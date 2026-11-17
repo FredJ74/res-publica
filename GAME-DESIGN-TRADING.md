@@ -82,7 +82,7 @@ Implémentation : migration `20261105030000_entrepot_krasnov_trading_internation
   - Quai principal ;
   - Entrepôts de fret, avec les mêmes ordres qu'à PSM (expédier une caisse, réceptionner, marchandises non réclamées) ;
   - Douanes.
-  Pas de criée, de box, de syndicat des dockers ni d'administration portuaire : ces services sont propres à PSM. PNJ : Chef de quai Ganbaatar Tsybikov, Douanier Sükhbaatar Baïartouïev (noms à relire).
+  Pas de criée, de box, de syndicat des dockers ni d'administration portuaire : ces services sont propres à PSM. PNJ : Chef de quai Ganbaatar Tsybikov, Douanier Stepan Vetrov (ex-Sükhbaatar Baïartouïev, renommé le 17/11/2026 à la demande de Fred : l'homme de son image du bureau des douanes est de type slave ; nom proposé par Claude) (noms à relire).
 - Ce qui marche désormais :
   - Sovarka reçoit les achats internationaux (dédouanement à Starovka) et les caisses expédiées depuis l'étranger ;
   - un PJ de Sovarka expédie des caisses depuis Starovka ;

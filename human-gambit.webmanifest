@@ -1,0 +1,12 @@
+{
+  "id": "/plateau.html",
+  "name": "Human Gambit — Res Publica",
+  "short_name": "Human Gambit",
+  "description": "Jeu de rôle politique et social Human Gambit",
+  "start_url": "/plateau.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#121a23",
+  "theme_color": "#172b3c",
+  "lang": "fr"
+}
