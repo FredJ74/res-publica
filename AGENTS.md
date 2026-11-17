@@ -94,6 +94,9 @@ session, puis bascule sur l'autre. Le travail doit donc pouvoir être
    25/10/2026). Il ne fusionne jamais un chantier qui attend une décision
    de design, ni une branche en conflit, et il dit à Fred ce qui est parti
    en bêta et comment le tester.
+   **Exception (décision de Fred, 17/11/2026)** : un chantier d'image seule
+   se fusionne dès que les contrôles rapides sont verts, sans attendre
+   « bancs-hors-production », qui tourne aussi chaque nuit sur `main`.
 6. **Chantier terminé et fusionné** : vider la section « En cours » de
    `RELAIS.md` et ajouter une ligne dans « Derniers chantiers ».
 
