@@ -2471,7 +2471,7 @@ const WORLD = {
     ville_a: {
       name:'Starovka',
       imageUrl:'https://images.unsplash.com/photo-1483664852095-d6cc6870702d?w=1200&q=80',
-      desc:'Ville miniere glaciale aux confins de l\'empire. Le froid mord, le charbon manque rarement.',
+      desc:'Ville minière glaciale aux confins de l\'empire. Le froid polaire laisse les rues presque désertes : les habitants se retrouvent surtout à l\'intérieur des bâtiments, où la vie demeure chaleureuse.',
       isCapitale: false,
       buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-3','stade','zone-production','entrepot-logistique-starovka','port-starovka'],
       buildingContext: {
