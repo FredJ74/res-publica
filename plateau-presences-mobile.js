@@ -23,7 +23,7 @@
   carte.setAttribute('aria-label','Personnes présentes');
   const total=document.createElement('strong');total.className='hg-presences-total';
   const rail=document.createElement('div');rail.className='hg-presences-rail';
-  rail.setAttribute('role','list');
+  rail.setAttribute('role','group');
   carte.append(total,rail);
   ambiance.after(carte);
   const versCode=()=>{const lang=document.documentElement.lang||'fr';return langues[lang]?lang:langues[lang.split('-')[0]]?lang.split('-')[0]:'fr'};
@@ -38,12 +38,11 @@
       !el.closest('[hidden], [aria-hidden="true"]') &&
       !el.classList.contains('hg-personne-cachee')
     );
-    total.textContent=personnes.length ? personnes.length+' '+(personnes.length===1?singulier:pluriel):vide;
     personnes.forEach(origin=>{
       const nom=origin.querySelector('.person-name')?.textContent?.trim();
       if(!nom) return;
       const button=document.createElement('button');
-      button.type='button';button.className='hg-presence-personne';button.setAttribute('role','listitem');
+      button.type='button';button.className='hg-presence-personne';
       button.setAttribute('aria-label',nom);button.title=nom;
       const portrait=document.createElement('span');portrait.className='hg-presence-portrait';
       const avatar=origin.querySelector('.person-avatar');
@@ -66,7 +65,9 @@
       button.addEventListener('click',()=>{if(origin.isConnected)origin.click();});
       rail.append(button);
     });
-    if(!rail.children.length){
+    const nombre=rail.children.length;
+    total.textContent=nombre ? nombre+' '+(nombre===1?singulier:pluriel):vide;
+    if(!nombre){
       total.textContent=vide;
       const empty=document.createElement('span');empty.className='hg-presences-vide';empty.textContent=vide;rail.append(empty);
     }
