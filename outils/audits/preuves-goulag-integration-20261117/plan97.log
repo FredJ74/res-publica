@@ -5,6 +5,6 @@ test_ordre_exact_et_sources_verifiees (__main__.Plan) ... ok
 test_variante_diner_sans_exclure_les_tarifs_historiques (__main__.Plan) ... ok
 
 ----------------------------------------------------------------------
-Ran 5 tests in 19.948s
+Ran 5 tests in 19.411s
 
 OK

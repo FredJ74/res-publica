@@ -2,54 +2,134 @@ TAP version 13
 # Subtest: ordres proposés par pièce, détenu ou personne habilitée
 ok 1 - ordres proposés par pièce, détenu ou personne habilitée
   ---
-  duration_ms: 14.001901
+  duration_ms: 11.410488
   ...
 # Subtest: aucune fuite vers le QHS de Républia ni hors du camp
 ok 2 - aucune fuite vers le QHS de Républia ni hors du camp
   ---
-  duration_ms: 2.569765
+  duration_ms: 2.179988
   ...
 # Subtest: les neuf langues portent tous les textes, noms propres en alphabet latin
 ok 3 - les neuf langues portent tous les textes, noms propres en alphabet latin
   ---
-  duration_ms: 8.054411
+  duration_ms: 6.737933
   ...
 # Subtest: doOrder est enveloppé : ordres du goulag routés, autres ordres inchangés
 ok 4 - doOrder est enveloppé : ordres du goulag routés, autres ordres inchangés
   ---
-  duration_ms: 9.524587
+  duration_ms: 7.331776
   ...
 # Subtest: un refus serveur est nommé, sans effet calculé par l’écran
 ok 5 - un refus serveur est nommé, sans effet calculé par l’écran
   ---
-  duration_ms: 4.227394
+  duration_ms: 4.008097
   ...
 # Subtest: fenêtres : sens d’écriture automatique, aucune couleur en dur
 ok 6 - fenêtres : sens d’écriture automatique, aucune couleur en dur
   ---
-  duration_ms: 0.561062
+  duration_ms: 0.473554
   ...
 # Subtest: plateau.html charge le module une seule fois, avant le routeur
 ok 7 - plateau.html charge le module une seule fois, avant le routeur
   ---
-  duration_ms: 1.80297
+  duration_ms: 4.384218
   ...
 # Subtest: cron de minuit : contrôle idempotent côté serveur, tolérant à un moteur absent
 ok 8 - cron de minuit : contrôle idempotent côté serveur, tolérant à un moteur absent
   ---
-  duration_ms: 2.359769
+  duration_ms: 4.119654
   ...
 # Subtest: migrations : additives, verrouillées par \#1020, sans écriture par la vue personnages
 ok 9 - migrations : additives, verrouillées par \#1020, sans écriture par la vue personnages
   ---
-  duration_ms: 4.84914
+  duration_ms: 3.17382
   ...
-1..9
-# tests 9
+# Subtest: serveur « sans_transport » : goulag fermé, aucun ordre ni masque, aucune autre RPC
+ok 10 - serveur « sans_transport » : goulag fermé, aucun ordre ni masque, aucune autre RPC
+  ---
+  duration_ms: 67.390577
+  ...
+# Subtest: serveur « fonction_absente » : goulag fermé, aucun ordre ni masque, aucune autre RPC
+ok 11 - serveur « fonction_absente » : goulag fermé, aucun ordre ni masque, aucune autre RPC
+  ---
+  duration_ms: 22.216002
+  ...
+# Subtest: serveur « erreur_serveur » : goulag fermé, aucun ordre ni masque, aucune autre RPC
+ok 12 - serveur « erreur_serveur » : goulag fermé, aucun ordre ni masque, aucune autre RPC
+  ---
+  duration_ms: 21.465264
+  ...
+# Subtest: serveur « injoignable » : goulag fermé, aucun ordre ni masque, aucune autre RPC
+ok 13 - serveur « injoignable » : goulag fermé, aucun ordre ni masque, aucune autre RPC
+  ---
+  duration_ms: 21.846528
+  ...
+# Subtest: serveur « exception » : goulag fermé, aucun ordre ni masque, aucune autre RPC
+ok 14 - serveur « exception » : goulag fermé, aucun ordre ni masque, aucune autre RPC
+  ---
+  duration_ms: 20.909089
+  ...
+# Subtest: serveur « session_perdue » : goulag fermé, aucun ordre ni masque, aucune autre RPC
+ok 15 - serveur « session_perdue » : goulag fermé, aucun ordre ni masque, aucune autre RPC
+  ---
+  duration_ms: 20.348746
+  ...
+# Subtest: serveur « faux » : goulag fermé, aucun ordre ni masque, aucune autre RPC
+ok 16 - serveur « faux » : goulag fermé, aucun ordre ni masque, aucune autre RPC
+  ---
+  duration_ms: 23.445164
+  ...
+# Subtest: serveur « nul » : goulag fermé, aucun ordre ni masque, aucune autre RPC
+ok 17 - serveur « nul » : goulag fermé, aucun ordre ni masque, aucune autre RPC
+  ---
+  duration_ms: 29.402835
+  ...
+# Subtest: serveur « chaine_true » : goulag fermé, aucun ordre ni masque, aucune autre RPC
+ok 18 - serveur « chaine_true » : goulag fermé, aucun ordre ni masque, aucune autre RPC
+  ---
+  duration_ms: 18.137682
+  ...
+# Subtest: serveur « objet » : goulag fermé, aucun ordre ni masque, aucune autre RPC
+ok 19 - serveur « objet » : goulag fermé, aucun ordre ni masque, aucune autre RPC
+  ---
+  duration_ms: 19.658528
+  ...
+# Subtest: serveur « tableau » : goulag fermé, aucun ordre ni masque, aucune autre RPC
+ok 20 - serveur « tableau » : goulag fermé, aucun ordre ni masque, aucune autre RPC
+  ---
+  duration_ms: 20.176968
+  ...
+# Subtest: serveur « verrou_en_place » : goulag fermé, aucun ordre ni masque, aucune autre RPC
+ok 21 - serveur « verrou_en_place » : goulag fermé, aucun ordre ni masque, aucune autre RPC
+  ---
+  duration_ms: 22.889394
+  ...
+# Subtest: rue de l'école de Krasnov : flèches identiques à main
+ok 22 - rue de l'école de Krasnov : flèches identiques à main
+  ---
+  duration_ms: 102.058971
+  ...
+# Subtest: contre-épreuve : seul un `true` du serveur ouvre (boutons et flèche apparaissent)
+ok 23 - contre-épreuve : seul un `true` du serveur ouvre (boutons et flèche apparaissent)
+  ---
+  duration_ms: 21.374208
+  ...
+# Subtest: juge de Sovarka, goulag fermé : même écran et même condamnation au QHS que main
+ok 24 - juge de Sovarka, goulag fermé : même écran et même condamnation au QHS que main
+  ---
+  duration_ms: 65.555914
+  ...
+# Subtest: juge de Sovarka, goulag ouvert (contre-épreuve) : la RPC du goulag est appelée
+ok 25 - juge de Sovarka, goulag ouvert (contre-épreuve) : la RPC du goulag est appelée
+  ---
+  duration_ms: 5.180386
+  ...
+1..25
+# tests 25
 # suites 0
-# pass 9
+# pass 25
 # fail 0
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 167.861822
+# duration_ms 615.034839

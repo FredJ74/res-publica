@@ -23,6 +23,7 @@ const STYLES = ['style.css', 'rue-centrale.css', 'plateau-exploration-mobile.css
       for (const f of STYLES) await page.addStyleTag({ content: fs.readFileSync(path.join(R, f), 'utf8') });
       await page.evaluate(() => {
         window.i18next = { language: 'fr' };
+        window.goulagOuvert = () => true; // serveur qui confirme l'ouverture (verrou éprouvé à part)
         window.state = { country: 'soviet', currentCity: 'qhs', estEmprisonne: null, char: { poste: { id: 'juge' } },
           inventory: [{ name: 'Montre à gousset très ancienne avec gravure', type: 'objet', stackKey: 'montre' }] };
         window.WORLD = { soviet: { capitale: { name: 'Novomirsk' }, ville_a: { name: 'Starovka' }, ville_b: { name: 'Krasnov' } } };

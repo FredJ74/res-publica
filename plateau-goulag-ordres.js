@@ -644,6 +644,8 @@
   }
   function ordresDuLieu(buildingId, roomId, ville) {
     if (typeof state === 'undefined' || state.country !== 'soviet' || ville !== 'qhs' || buildingId !== 'qhs-prison') return [];
+    // Goulag fermé ou serveur muet (plateau-goulag-ouverture.js) : aucun bouton, les ordres actuels restent.
+    if (!(typeof window.goulagOuvert === 'function' && window.goulagOuvert() === true)) return [];
     const detenu = !!state.estEmprisonne;
     switch (roomId) {
       case 'entree_qhs':

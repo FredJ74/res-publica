@@ -27,7 +27,9 @@ function charger({ pays = 'soviet', detenu = false, poste = null, langue = 'fr',
     showToast: (titre, msg, ok) => toasts.push({ titre, msg, ok }),
     sbRpcVerdict: async (nom, params) => { appels.push({ nom, params }); return verdicts[nom] || { ok: true }; },
     sbLoadPersonnage: async () => null, updateUI: () => {}, fermerModalPostes: () => {},
-    doOrder: function (fn) { appels.push({ nom: 'doOrder:' + fn }); }
+    doOrder: function (fn) { appels.push({ nom: 'doOrder:' + fn }); },
+    // Goulag ouvert simulé (serveur qui confirme) ; le verrou est éprouvé par test-goulag-verrou-client-20261117.cjs.
+    goulagOuvert: () => true
   };
   ctx.window = ctx;
   vm.createContext(ctx);

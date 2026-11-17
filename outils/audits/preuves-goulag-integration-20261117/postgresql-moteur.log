@@ -804,6 +804,7 @@ test_ministre_etranger_refuse (__main__.Goulag) ... ok
 test_ministre_ne_condamne_pas (__main__.Goulag) ... ok
 test_navigation_groupe_reflete_membre_arrete (__main__.Goulag) ... ok
 test_navigation_publique_reflete_arrestation (__main__.Goulag) ... ok
+test_ouverture_lue_fermee_tant_que_verrou (__main__.Goulag) ... ok
 test_parcours_complets_sept_et_dix_jours (__main__.Goulag) ... ok
 test_pas_de_bonus_civil_en_toundra (__main__.Goulag) ... ok
 test_permissions_et_rls (__main__.Goulag) ... ok
@@ -821,6 +822,6 @@ test_transport_sans_habilitation_refuse (__main__.Goulag) ... ok
 test_zz_concurrence_progression (__main__.Goulag) ... ok
 
 ----------------------------------------------------------------------
-Ran 32 tests in 7.452s
+Ran 33 tests in 8.275s
 
 OK
