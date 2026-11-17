@@ -5,6 +5,13 @@ const {R,temoin,lecture,preuve,avecJeu,page}=require('./mobile-navigateur.cjs');
 // que ces comparaisons surveillent. On l'aligne sur les deux pages avant la capture.
 // De même, le bouton « Se déconnecter » du menu (PR #1067, voulu, absent du témoin 728010c) est retiré avant capture.
 const memeLibelleAide=async p=>{await p.waitForTimeout(300);await p.evaluate(()=>{const b=document.querySelector('button[onclick="openRulesView()"]');const e=b&&(b.querySelector('span')||b);if(e)e.textContent='Aide';document.getElementById('rp-logout-player')?.remove();});};
+// Depuis ce8f4eb (en-tête mobile compact, 17/11/2026), le bouton « Personnage » est masqué sur mobile :
+// la bannière d'identité #hg-mobile-brand (plateau-mobile-entete-compact.js) l'actionne, et la sortie du
+// bâtiment passe par #hg-mobile-exit. On charge donc ces deux modules comme plateau.html (même ordre).
+// Depuis 4701f27b (17/11/2026), la rangée des pièces passe dans l'onglet « Pièces » (plateau-interieurs-mobile.js).
+const ENTETE_MOBILE=['plateau-mobile-identite-20261117.js','plateau-mobile-entete-compact.js','plateau-interieurs-mobile.js'];
+const pageMobile=async(b,o,w,h)=>{const p=await page(b,o,w,h);for(const f of ENTETE_MOBILE)await p.addScriptTag({url:o+'/'+f});await p.waitForTimeout(200);return p;};
+const ACCES={personnage:'#hg-mobile-brand',menu:'[data-hg-panneau=menu]'};
 test('L1 : bureau 1440 strictement identique au témoin avant mobile',async()=>avecJeu(async(b,o)=>{
  const a=await page(b,o,1440,900,true),n=await page(b,o,1440,900);
  // Le témoin doit remplacer, pas compléter, la feuille courante.
@@ -12,7 +19,7 @@ test('L1 : bureau 1440 strictement identique au témoin avant mobile',async()=>a
  const avant=await a.screenshot(),apres=await n.screenshot();preuve('plateau-1440-avant.png',avant);preuve('plateau-1440-apres.png',apres);assert.ok(apres.equals(avant),'pixels du plateau bureau inchangés');
 }));
 for(const [w,h] of [[375,667],[393,852],[412,915],[852,393],[768,1024]])test(`L1 : coque ${w}×${h}, panneaux uniques et navigation UI sans RPC`,async()=>avecJeu(async(b,o)=>{
- const p=await page(b,o,w,h);await p.evaluate(()=>{window.appels=0;window.fetch=()=>{appels++;throw Error('réseau interdit');};});
+ const p=await pageMobile(b,o,w,h);await p.evaluate(()=>{window.appels=0;window.fetch=()=>{appels++;throw Error('réseau interdit');};});
  assert.ok((await p.locator('#center').evaluate(e=>e.getBoundingClientRect().width))>=w-1);
  // Depuis #1059, #rue-image est display:contents sur mobile (ses enfants deviennent des frères flex de #vue-rue) :
  // sa boîte vaut 0 par construction ; c'est la vue rue qui doit occuper toute la largeur.
@@ -20,7 +27,9 @@ for(const [w,h] of [[375,667],[393,852],[412,915],[852,393],[768,1024]])test(`L1
  assert.ok(await p.locator('#vue-rue').evaluate(e=>e.getBoundingClientRect().width)>=w-1);
  // Depuis #1063, en vue rue, le bouton « Présents » est masqué : le bandeau horizontal des présents le remplace.
  assert.equal(await p.locator('[data-hg-panneau=personnes]').isVisible(),false);
- for(const nom of ['personnage','menu']){await p.locator(`[data-hg-panneau=${nom}]`).click();assert.equal(await p.locator('body').getAttribute('data-mobile-panel'),nom);assert.equal(await p.locator(`[data-hg-panneau=${nom}]`).getAttribute('aria-expanded'),'true');await p.keyboard.press('Escape');assert.equal(await p.locator('body').getAttribute('data-mobile-panel'),null);}
+ // Un seul accès visible au personnage : la bannière d'identité ; l'ancien bouton reste dans le DOM (masqué).
+ assert.equal(await p.locator('[data-hg-panneau=personnage]').isVisible(),false);assert.ok(await p.locator('#hg-mobile-brand').isVisible());
+ for(const nom of ['personnage','menu']){await p.locator(ACCES[nom]).click();assert.equal(await p.locator('body').getAttribute('data-mobile-panel'),nom);assert.equal(await p.locator(`[data-hg-panneau=${nom}]`).getAttribute('aria-expanded'),'true');await p.keyboard.press('Escape');assert.equal(await p.locator('body').getAttribute('data-mobile-panel'),null);}
  assert.equal(await p.locator('#left').count(),1);assert.equal(await p.evaluate(()=>appels),0);
  await p.locator('[data-hg-panneau=menu]').click();if(w===375)preuve('mobile-375-menu.png',await p.screenshot());await p.locator('#hg-menu-existant .forum-btn').first().evaluate(e=>e.removeAttribute('onclick'));await p.locator('#hg-menu-existant .forum-btn').first().click();assert.equal(await p.locator('body').getAttribute('data-mobile-panel'),null);
 }));
@@ -35,9 +44,14 @@ test('L2 : pas de panneau Lieux visibles, zones et clavier actifs',async()=>avec
  assert.equal(await p.locator('.hg-lieux-tactiles').count(),0,'aucun panneau réinséré');
 }));
 test('L2 : pièces et actions accessibles en paysage',async()=>avecJeu(async(b,o)=>{
- const p=await page(b,o,852,393);await p.evaluate(()=>{document.getElementById('vue-rue').classList.remove('active');document.getElementById('vue-batiment').classList.add('active');document.getElementById('pieces-tabs').innerHTML=Array.from({length:8},(_,i)=>'<button class="piece-tab">Pièce '+i+'</button>').join('');});
- await p.locator('.piece-tab').last().scrollIntoViewIfNeeded();await p.locator('.piece-tab').last().click();assert.ok(await p.locator('#piece-image').evaluate(e=>e.getBoundingClientRect().width)>800);
- await p.locator('#vue-batiment .sortir-btn').scrollIntoViewIfNeeded();assert.ok(await p.locator('#vue-batiment .sortir-btn').isVisible());
+ const p=await pageMobile(b,o,852,393);await p.evaluate(()=>{document.getElementById('vue-rue').classList.remove('active');document.getElementById('vue-batiment').classList.add('active');document.getElementById('pieces-tabs').innerHTML=Array.from({length:8},(_,i)=>'<button class="piece-tab">Pièce '+i+'</button>').join('');});
+ // Le joueur ouvre l'onglet « Pièces », choisit la dernière pièce, et la liste se referme.
+ assert.equal(await p.locator('#pieces-tabs').isVisible(),false);await p.locator('[data-room-tab="0"]').click();
+ await p.locator('.piece-tab').last().scrollIntoViewIfNeeded();await p.locator('.piece-tab').last().click();assert.equal(await p.locator('#hg-room-list').isVisible(),false);assert.ok(await p.locator('#piece-image').evaluate(e=>e.getBoundingClientRect().width)>800);
+ // Sortie : bouton compact de l'en-tête, relié au bouton d'origine (masqué sur mobile).
+ assert.equal(await p.locator('#vue-batiment .batiment-header>.sortir-btn').isVisible(),false);
+ await p.evaluate(()=>{window.sorties=0;document.querySelector('#vue-batiment .sortir-btn').onclick=()=>sorties++;});
+ assert.ok(await p.locator('#hg-mobile-exit').isVisible());await p.locator('#hg-mobile-exit').click();assert.equal(await p.evaluate(()=>sorties),1);
 }));
 test('L3 : longue modale, focus, fermeture existante et retour sans action métier',async()=>avecJeu(async(b,o)=>{
  const p=await page(b,o,375,667);
