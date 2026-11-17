@@ -6086,44 +6086,6 @@ export const SCENES_PNJ = {
     "piece": "Hall de la gare de Starovka",
     "personnes": []
   },
-  "[\"soviet\",\"ville_a\",\"centre-commercial\",\"hall\"]": {
-    "pays": "Sovarka",
-    "ville": "Starovka",
-    "batiment": "Centre Commercial",
-    "piece": "Hall d'Entrée",
-    "personnes": [
-      "Tuya Sanjieva",
-      "Altan Namsaraïev"
-    ]
-  },
-  "[\"soviet\",\"ville_a\",\"centre-commercial\",\"vitrine_principale\"]": {
-    "pays": "Sovarka",
-    "ville": "Starovka",
-    "batiment": "Centre Commercial",
-    "piece": "Vitrine Principale — Local à louer",
-    "personnes": []
-  },
-  "[\"soviet\",\"ville_a\",\"centre-commercial\",\"boutique_milieu\"]": {
-    "pays": "Sovarka",
-    "ville": "Starovka",
-    "batiment": "Centre Commercial",
-    "piece": "Boutique Milieu — Local à louer",
-    "personnes": []
-  },
-  "[\"soviet\",\"ville_a\",\"centre-commercial\",\"arriere_boutique\"]": {
-    "pays": "Sovarka",
-    "ville": "Starovka",
-    "batiment": "Centre Commercial",
-    "piece": "Arrière-Boutique — Local à louer",
-    "personnes": []
-  },
-  "[\"soviet\",\"ville_a\",\"centre-commercial\",\"cave_reserve\"]": {
-    "pays": "Sovarka",
-    "ville": "Starovka",
-    "batiment": "Centre Commercial",
-    "piece": "Cave / Réserve — Local à louer",
-    "personnes": []
-  },
   "[\"soviet\",\"ville_a\",\"centre-artisanal\",\"travees\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",
@@ -6538,13 +6500,6 @@ export const SCENES_PNJ = {
     "piece": "Local n°1",
     "personnes": []
   },
-  "[\"soviet\",\"ville_a\",\"local-starovka-chasse\",\"local_2\"]": {
-    "pays": "Sovarka",
-    "ville": "Starovka",
-    "batiment": "Local à louer",
-    "piece": "Local n°2",
-    "personnes": []
-  },
   "[\"soviet\",\"ville_a\",\"presse-starovka\",\"presse\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",
@@ -6575,7 +6530,7 @@ export const SCENES_PNJ = {
   "[\"soviet\",\"ville_a\",\"ferme-starovka\",\"cour_ferme\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",
-    "batiment": "Ferme de Starovka",
+    "batiment": "Enclos des rennes de Starovka",
     "piece": "La cour de la ferme",
     "personnes": [
       "Bair Sambuev"
@@ -6587,6 +6542,59 @@ export const SCENES_PNJ = {
     "batiment": "Fourreur « La Fourrure chaude »",
     "piece": "La boutique",
     "personnes": []
+  },
+  "[\"soviet\",\"ville_a\",\"local-starovka-chasse\",\"local_2\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Local à louer",
+    "piece": "Local n°2",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_a\",\"locaux-starovka-route\",\"local_3\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Locaux à louer de la route du pétrole",
+    "piece": "Local n°3",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_a\",\"locaux-starovka-route\",\"local_4\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Locaux à louer de la route du pétrole",
+    "piece": "Local n°4",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_a\",\"locaux-starovka-route\",\"local_5\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Locaux à louer de la route du pétrole",
+    "piece": "Local n°5",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_a\",\"champ-petrole-starovka\",\"zone_recolte\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Champ de pétrole de la route",
+    "piece": "Les puits",
+    "personnes": []
+  },
+  "[\"soviet\",\"ville_a\",\"magasin-kolkhoze-starovka\",\"magasin\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Magasin du kolkhoze",
+    "piece": "Le magasin",
+    "personnes": [
+      "Tuyana Sambueva"
+    ]
+  },
+  "[\"soviet\",\"ville_a\",\"compagnie-petrole-starovka\",\"bureau\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Compagnie Nationale du Pétrole",
+    "piece": "Le bureau du chalet",
+    "personnes": [
+      "Dashi Burilov"
+    ]
   },
   "[\"soviet\",\"ville_b\",\"hotel-mineur\",\"hall_mineur\"]": {
     "pays": "Sovarka",

@@ -12673,3 +12673,53 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
   };
   ['locaux-starovka-route', 'champ-petrole-starovka'].forEach(b => { if (!cite.buildings.includes(b)) cite.buildings.push(b); });
 })();
+
+// STAROVKA_CARREFOUR_FERME_PETROLE_20261117 (décisions de Fred, 17/11/2026, GAME-DESIGN-NOVOMIRSK.md « Tour de Starovka »)
+// Carrefour pétrole/ferme : à droite le magasin du kolkhoze, à gauche le bureau (chalet) de la Compagnie
+// Nationale du Pétrole, deux lieux de décor sans ordre. La cour de la ferme (ferme-starovka) et ses ordres
+// passent à la vue suivante (enclos de rennes, rue des maisons) ; la récolte du pétrole se fait au champ de
+// la vue précédente (champ-petrole-starovka) ou depuis les foreuses des logements collectifs (zone-production).
+// Serveur : migration 20261117140000.
+(function () {
+  const cite = WORLD.soviet && WORLD.soviet.ville_a;
+  if (!cite) return;
+  const dir = 'images/Sovarka/Starovka/';
+  BUILDINGS['magasin-kolkhoze-starovka'] = {
+    name: 'Magasin du kolkhoze',
+    shortName: 'Magasin',
+    cat: 'Économie',
+    icon: 'ti-basket',
+    bgColor: '#1a120e',
+    desc: 'La boutique de la ferme de Starovka (« Колхозный магазин ») : viande de renne, laitages, conserves et peaux, face aux enclos.',
+    rooms: { magasin: {
+      name: 'Le magasin',
+      imageBg: 'linear-gradient(135deg,#1a120e,#2a1c14)',
+      imageUrl: dir + 'Starovka_ferme_magasin_kolkhoze.webp',
+      desc: 'Une vitrine réfrigérée pleine de bœuf, de mouton et de renne, des bidons de lait, des fromages et des peaux pendues au mur. Par la fenêtre, les rennes grattent la neige.',
+      persons: [{ name: 'Tuyana Sambueva (PNJ)', role: 'Vendeuse du kolkhoze', rel: 'friendly', job: 'commercant',
+        photoUrl: dir + 'Starovka_portrait_ferme-starovka_tuyana-sambueva.webp', photoPos: '50% 30%' }],
+      orders: []
+    } }
+  };
+  BUILDINGS['compagnie-petrole-starovka'] = {
+    name: 'Compagnie Nationale du Pétrole',
+    shortName: 'Compagnie',
+    cat: 'Économie',
+    icon: 'ti-building-factory',
+    bgColor: '#160f0a',
+    desc: 'Le chalet de la Compagnie Nationale du Pétrole : le bureau où l\'on tient le registre des puits de Starovka.',
+    rooms: { bureau: {
+      name: 'Le bureau du chalet',
+      imageBg: 'linear-gradient(135deg,#160f0a,#2a1d14)',
+      imageUrl: dir + 'Starovka_compagnie_petrole_bureau.webp',
+      desc: 'Une affiche « Plus de pétrole, plus forte la patrie ! », des classeurs métalliques et un boulier sur le bureau. Les foreurs y boivent leur thé en rentrant des derricks.',
+      persons: [{ name: 'Dashi Burilov (PNJ)', role: 'Chef de chantier de la Compagnie', rel: 'neutral', job: 'chef_entreprise',
+        photoUrl: dir + 'Starovka_portrait_zone-production_dashi-burilov.webp', photoPos: '50% 30%' }],
+      orders: []
+    } }
+  };
+  BUILDINGS['ferme-starovka'].name = 'Enclos des rennes de Starovka';
+  BUILDINGS['ferme-starovka'].shortName = 'Enclos';
+  BUILDINGS['ferme-starovka'].desc = 'L’enclos de rennes de la ferme de Starovka (« Оленина Старовки ») : on y vient prêter la main contre une part du travail.';
+  ['magasin-kolkhoze-starovka', 'compagnie-petrole-starovka'].forEach(b => { if (!cite.buildings.includes(b)) cite.buildings.push(b); });
+})();

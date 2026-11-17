@@ -8,6 +8,9 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Starovka : carrefour pétrole/ferme (Claude, 17/11/2026, en cours)
+Branche `claude/starovka-carrefour-ferme-petrole-20261117`. Décisions de Fred (`GAME-DESIGN-NOVOMIRSK.md`, « Tour de Starovka », point 4). Nouveaux lieux de décor sans ordre : `magasin-kolkhoze-starovka` (pièce `magasin`, image `Starovka_ferme_magasin_kolkhoze.webp`, Tuyana Sambueva avec portrait) et `compagnie-petrole-starovka` (pièce `bureau`, image `Starovka_compagnie_petrole_bureau.webp`, Dashi Burilov avec portrait). `ferme-starovka` (cour, ordres inchangés) devient « Enclos des rennes » à la vue `starovka-maisons-ferme` (portail à droite). La Compagnie des logements collectifs (`zone-production`, champ) est inchangée. Scènes PNJ régénérées. Migration `20261117140000_starovka_carrefour_magasin_compagnie.sql` **pas encore appliquée** : le client a annulé automatiquement la confirmation Supabase de l'essai ; à éprouver puis appliquer, puis fusionner.
+
 ### Création — El Estado et Al-Khalija bientôt disponibles (17/11/2026)
 Décision de Fred : les deux empires non prêts restent visibles mais **non sélectionnables** lors de la création du PJ. PR #1074 fusionnée sur main au commit `dd173ff` : cartes grisées, mention « Bientôt disponible » localisée dans les 9 langues, choix et validation locale bloqués pour `narco`/`khalija` ; Républia et Sovarka inchangés. Test ciblé + `node --check creation.js` : workflow #43994001646 **SUCCESS**. Aucune migration ni modification des personnages existants. **Limite :** garde côté client dans le parcours de création, pas de nouvelle contrainte de création SQL au serveur ; recettes réelles non exécutées. Vercel production et rendu navigateur à certifier séparément.
 
