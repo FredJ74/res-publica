@@ -24,6 +24,7 @@ for(const[lang,q]of Object.entries(questions)){
  test('question économique précise et suivi par routeur réel : '+lang,async()=>{
   const original=global.fetch,cle=process.env.DEEPSEEK_API_KEY;const calls=[];process.env.DEEPSEEK_API_KEY='fixture-locale-pas-un-secret';
   global.fetch=async(url,opts)=>{
+    if(String(url).endsWith('/rest/v1/rpc/ia_quota_consommer'))return new Response(JSON.stringify({ok:true,appels:1,plafond:300}));
    calls.push({url:String(url),opts});if(String(url).endsWith('/auth/v1/user'))return new Response(JSON.stringify({id:'fixture-isolee'}));
    assert.equal(String(url),'https://api.deepseek.com/chat/completions');return new Response(JSON.stringify({choices:[{message:{content:'Réponse de fixture, pas une sortie IA réelle.'},finish_reason:'stop'}]}));
   };
