@@ -25,7 +25,9 @@
   const rail=document.createElement('div');rail.className='hg-presences-rail';
   rail.setAttribute('role','group');
   carte.append(total,rail);
-  ambiance.after(carte);
+  // Enfant direct de la vue flex : WebKit ne calcule pas toujours correctement
+  // les marges des enfants d'un parent en display:contents (#rue-image).
+  rue.append(carte);
   const versCode=()=>{const lang=document.documentElement.lang||'fr';return langues[lang]?lang:langues[lang.split('-')[0]]?lang.split('-')[0]:'fr'};
   function render(){
     const [singulier,pluriel,vide]=langues[versCode()];
@@ -68,16 +70,15 @@
       rail.append(button);
     });
     const nombre=rail.children.length;
+    carte.classList.toggle('hg-presences-empty',!nombre);
     total.textContent=nombre ? nombre+' '+(nombre===1?singulier:pluriel):vide;
     rail.scrollLeft=ancienDefilement;
     if(focusNom){
       const suivant=[...rail.querySelectorAll('.hg-presence-personne')].find(b=>b.getAttribute('aria-label')===focusNom);
       suivant?.focus({preventScroll:true});
     }
-    if(!nombre){
-      total.textContent=vide;
-      const empty=document.createElement('span');empty.className='hg-presences-vide';empty.textContent=vide;rail.append(empty);
-    }
+    // Pas de doublon du message vide dans un rail sans portraits.
+    // La ligne vide est portée par l'en-tête, dans la boîte du composant.
   }
   let planned=false;
   const observer=new MutationObserver(()=>{
