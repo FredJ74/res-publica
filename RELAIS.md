@@ -8,6 +8,9 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Création — El Estado et Al-Khalija bientôt disponibles (17/11/2026)
+Décision de Fred : les deux empires non prêts restent visibles mais **non sélectionnables** lors de la création du PJ. PR #1074 fusionnée sur main au commit `dd173ff` : cartes grisées, mention « Bientôt disponible » localisée dans les 9 langues, choix et validation locale bloqués pour `narco`/`khalija` ; Républia et Sovarka inchangés. Test ciblé + `node --check creation.js` : workflow #43994001646 **SUCCESS**. Aucune migration ni modification des personnages existants. **Limite :** garde côté client dans le parcours de création, pas de nouvelle contrainte de création SQL au serveur ; recettes réelles non exécutées. Vercel production et rendu navigateur à certifier séparément.
+
 ### Musée de Luthécia — accueil de Valérie / enquête Jodie (16/11/2026)
 - **Défaut réel Angie Porcelana diagnostiqué sur Supabase** : enquête `relancee`, invitation Jodie acceptée, ancien champ `accueilValerie=true` alors qu'aucun dialogue ne s'était affiché. L'ancienne RPC consommait le drapeau avant rendu. Le crochet client partait aussi avant l'écriture effective de la position dans le hall (`pas_sur_place` silencieux).
 - **PR #1036 fusionnée** au commit `6a1bf52f` : hall avec description explicite et ordre gratuit permanent **« Parler à Valérie de l'enquête »** ; introduction spontanée après position Supabase confirmée, explication des quatre cadres et du calepin, validation uniquement après clic **« Compris, je commence mon enquête »**. Le nouveau marqueur `accueilValerieConfirme` n'est jamais déduit de l'ancien indicateur ; Angie pourra donc voir le dialogue sans remise à zéro de sa quête.
