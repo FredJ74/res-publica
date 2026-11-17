@@ -4,6 +4,7 @@ on:
     paths:
       - 'plateau.html'
       - 'plateau-mobile-prototype.css'
+      - 'plateau-presences-mobile.js'
       - 'plateau-mobile-identite-20261117.js'
       - 'outils/bancs/test-mobile-prototype-fidelity-20261117.cjs'
       - '.github/workflows/mobile-prototype-fidelity.yml'
