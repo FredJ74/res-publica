@@ -90,6 +90,13 @@
       info.textContent='ⓘ';info.setAttribute('aria-haspopup','dialog');
       info.setAttribute('aria-label',label('description')+' — '+orderName(button));
       sources.set(info,button);
+      // Gestion directe : le bouton tactile ouvre sa description indépendamment
+      // des délégations de clic du plateau et des réorganisations de menus.
+      info.addEventListener('click',event=>{
+        event.preventDefault();
+        event.stopPropagation();
+        open(info);
+      });
       // Un vrai bouton frère : il reste disponible même si l'ordre est disabled.
       button.before(row);row.append(button,info);
     }
