@@ -12606,3 +12606,50 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
   BUILDINGS['locaux-starovka'].rooms.local_2.imageUrl = dir + 'Starovka_locaux-starovka_local_2.webp';
   cite.buildings = cite.buildings.filter(b => b !== 'centre-commercial');
 })();
+
+// STAROVKA_LOCAUX_CHAMP_ROUTE_20261117 (décisions de Fred, 17/11/2026, GAME-DESIGN-NOVOMIRSK.md « Tour de Starovka »)
+// Rue des locaux à louer : à droite, trois commerces à louer (locaux n°3 à 5, même image de Fred,
+// mêmes règles que les locaux n°1 et 2 : demande à la mairie, loyer plafonné à 30 PSK) ; à gauche,
+// un champ de pétrole distinct de celui de la Compagnie (même récolte, la récolte dépend de la ville).
+// Serveur : migration 20261117120000.
+(function () {
+  const cite = WORLD.soviet && WORLD.soviet.ville_a;
+  if (!cite) return;
+  const dir = 'images/Sovarka/Starovka/';
+  const gabaritLocal = BUILDINGS['locaux-starovka'].rooms.local_1;
+  BUILDINGS['locaux-starovka-route'] = {
+    name: 'Locaux à louer de la route du pétrole',
+    shortName: 'Locaux',
+    cat: 'Économie',
+    icon: 'ti-building-store',
+    bgColor: '#121418',
+    desc: 'Trois commerces de plain-pied face aux derricks (« Помещение в аренду »), propriété de l\'État. On les obtient en écrivant à la mairie.',
+    rooms: Object.fromEntries([3, 4, 5].map(k => ['local_' + k, {
+      name: 'Local n°' + k,
+      imageBg: gabaritLocal.imageBg,
+      imageUrl: dir + 'Starovka_locaux-petrole_local.webp',
+      desc: 'Un local vide aux grandes vitrines, face au champ de pétrole. Le loyer est fixé par le maire.',
+      persons: [],
+      orders: gabaritLocal.orders.map(o => Object.assign({}, o))
+    }]))
+  };
+  const recolte = BUILDINGS['zone-production'].rooms.zone_recolte;
+  BUILDINGS['champ-petrole-starovka'] = {
+    name: 'Champ de pétrole de la route',
+    shortName: 'Champ de pétrole',
+    cat: 'Économie',
+    icon: 'ti-building-factory',
+    bgColor: '#0e1208',
+    desc: 'Un second champ de pétrole de Starovka, le long de la route : pompes à balancier, vannes gelées et cuves sous la neige. Les volontaires peuvent y prêter la main pour augmenter la production.',
+    rooms: {
+      zone_recolte: Object.assign({}, recolte, {
+        name: 'Les puits',
+        imageUrl: dir + 'Starovka_champ_petrole_route.webp',
+        desc: 'Les pompes grincent dans le froid. On récolte ici le pétrole de Starovka, comme au champ de la Compagnie.',
+        persons: [],
+        orders: recolte.orders.map(o => Object.assign({}, o))
+      })
+    }
+  };
+  ['locaux-starovka-route', 'champ-petrole-starovka'].forEach(b => { if (!cite.buildings.includes(b)) cite.buildings.push(b); });
+})();
