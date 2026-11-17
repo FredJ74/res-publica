@@ -81,6 +81,7 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 
 ### Consignes durables pour tous les agents (reprises des chantiers des 26-30/10)
 
+- **Chantiers d'image seule (Fred, 17/11/2026, 18 h 19)** : un chantier qui ne fait que poser des images (fichiers WebP, `imageUrl`/`photoUrl`, version de cache, relais) se fusionne dès que les contrôles rapides sont verts, **sans attendre « bancs-hors-production »** (15 à 25 minutes). Ce gros contrôle tourne en plus chaque nuit sur `main` ; les ordres se contrôlent la nuit. Dès qu'un chantier touche un ordre, un prix, un texte traduit ou le serveur, la règle ci-dessous s'applique en entier.
 - **Contrôle « bancs-hors-production » (Claude, 15/11/2026)** : il tourne sur chaque PR, calendrier `test-*.mjs` compris ; le garder vert avant de fusionner. Un banc qui fige une preuve la fige sur les commits de son propre lot (manifeste), jamais sur `merge-base` ; une version de cache se vérifie par la présence de sa marque, pas comme dernière marque ; un sandbox `vm` qui charge un fichier du plateau lui donne `window`.
 - **Partage du travail (Fred, 14/11/2026, 19 h 06)** : tant que Sovarka n'est pas terminée, la traduction relève de Codex. Claude ne prend pas les chantiers de traduction (bancs i18n rouges compris) ; il continue de traduire seulement les textes qu'il ajoute lui-même.
 
