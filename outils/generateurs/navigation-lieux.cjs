@@ -41,6 +41,8 @@ for(const x of rows){
  if(x.pays==='soviet'&&x.ville==='qhs'&&x.id==='qhs-prison')x.rooms=['entree_qhs','cellules_qhs','salle_interrogatoire','promenoir','salle_commune_qhs'];
  // Local n°2 de Starovka devenu bâtiment propre (17/11, migration 20261117130000) : la référence historique garde les deux pièces.
  if(x.pays==='soviet'&&x.ville==='ville_a'&&x.id==='locaux-starovka')x.rooms=['local_1','local_2'];
+ // Hôtel des Voyageurs de Starovka (17/11) : chambres 2 à 4 ajoutées par 20261117160000, hors de la référence du 31/10.
+ if(x.pays==='soviet'&&x.ville==='ville_a'&&x.id==='hotel-mineur')x.rooms=x.rooms.filter(r=>!/^chambre_mineur_\d$/.test(r));
  if(/^dispensaire-public/.test(x.id))x.rooms=x.rooms.filter(r=>r!=='chambre');
  x.rooms=x.rooms.filter(r=>!/_chambre_\d+$/.test(r));
  if(x.pays==='soviet'&&x.id==='mairie')x.rooms=x.rooms.filter(r=>r!=='salle_elections');

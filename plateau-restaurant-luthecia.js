@@ -11,7 +11,9 @@ function restaurantLutheciaIci() {
 function restaurantDinerContratIci() {
   return restaurantLutheciaIci()||(state.country==='republic'&&state.currentCity==='ville_a'&&state.currentBuilding==='capitaine-sauvage'&&state.currentRoom==='salle_principale')
     // Grand Hotel de Sovarka (Novomirsk), 100 PSK (07/11/2026).
-    ||(state.country==='soviet'&&state.currentCity==='capitale'&&state.currentBuilding==='hotel-republica'&&state.currentRoom==='restaurant');
+    ||(state.country==='soviet'&&state.currentCity==='capitale'&&state.currentBuilding==='hotel-republica'&&state.currentRoom==='restaurant')
+    // Hotel des Voyageurs de Starovka, salle commune, 40 PSK (17/11/2026).
+    ||(state.country==='soviet'&&state.currentCity==='ville_a'&&state.currentBuilding==='hotel-mineur'&&state.currentRoom==='hall_mineur');
 }
 function restaurantLutheciaCarte(data,pays,ville,batiment,piece) {
   if(!data||pays!=='republic'||ville!=='capitale'||batiment!=='hotel-republica') return data;

@@ -16,6 +16,7 @@
   ["Bagagiste","Porter","Botones","行李員","Носильщик","벨보이","حامل الأمتعة","Carregador","Gepäckträger"],
   ["Serveur","Waiter","Camarero","服務生","Официант","웨이터","نادل","Garçom","Kellner"],
   ["Barman","Bartender","Barman","酒保","Бармен","바텐더","ساقي البار","Barman","Barkeeper"],
+  ["Serveur et barman","Waiter and bartender","Camarero y barman","服務生兼酒保","Официант и бармен","웨이터 겸 바텐더","نادل وساقي البار","Garçom e barman","Kellner und Barkeeper"],
   ["Habitué du bar","Bar regular","Cliente habitual del bar","酒吧常客","Завсегдатай бара","바 단골","زبون دائم للبار","Frequentador do bar","Stammgast der Bar"],
   ["Escort","Escort","Acompañante","伴遊","Эскорт","에스코트","مرافق(ة)","Acompanhante","Begleitung"],
   ["Securite du Palais du Gouvernement","Government Palace security","Seguridad del Palacio del Gobierno","政府宮安全人員","Охрана Дворца правительства","정부궁 경비","أمن قصر الحكومة","Segurança do Palácio do Governo","Sicherheit des Regierungspalasts"],
