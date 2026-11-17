@@ -91,6 +91,12 @@ entre dortoir, entrée et mirador ; jamais le bureau ; aucune sortie du cachot p
   transaction de condamnation. Il reprend le jugement réel rendu dans cette transaction (tribunal, juge) ; à
   défaut, ces champs restent vides (« Inconnu »). Une réincarcération après évasion reprend le reliquat figé
   et les références de la condamnation initiale.
+- **Peines ajoutées** : un nouveau jugement de goulag exécuté pendant une détention s'ajoute au compteur une
+  seule fois (5 + 30 = 35) ; après évasion et réincarcération, le reliquat figé et la nouvelle peine sont
+  additionnés une fois (`sovarka_goulag_registre_jugements`, un jugement compté au plus une fois). Les références
+  de la condamnation initiale restent celles du registre.
+- **Rejeux** : une clé de requête n'est rejouable que par le même acteur, sur la même cible et le même contexte
+  (nuits de la sanction) ; sinon `requete_deja_utilisee`, avant tout paiement ou effet.
 - **Un seul sommeil par jour de Paris**, marqueur partagé avec le repos général (`pa_repos_le`) : le « Dormir »
   de la fiche est refusé au détenu du goulag (`sommeil_goulag_dortoir`), aucune double récupération.
 - La libération au calendrier (`detention_clore_purgee`) est refusée pour une peine du goulag.
