@@ -12169,9 +12169,16 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
       } }
     };
   };
-  maison('maison-starovka', 'Maison de Dolgor', 'Dolgor Tsybikova', 'Habitante de Starovka',
-    'Une maison de bois basse, fumée qui monte droit dans le froid : la porte s’ouvre avant même qu’on ait frappé.',
-    'Un poêle ronflant, du thé au beurre sur le feu et une vieille dame bouriate qui vous fait signe de vous asseoir.');
+  // Fred (17/11/2026) : Dolgor est la vieille cantinière des ouvriers du pétrole ; le chalet coquet est le sien.
+  maison('maison-starovka', 'Maison de Dolgor', 'Dolgor Tsybikova', 'Cantinière des ouvriers du pétrole',
+    'Un chalet de bois coquet aux volets sculptés, fumée qui monte droit dans le froid : la porte s’ouvre avant même qu’on ait frappé.',
+    'Des rideaux brodés, une marmite qui mijote sur le poêle et une vieille dame bouriate, cantinière des foreurs depuis quarante ans, qui vous fait signe de vous asseoir.',
+    'images/Sovarka/Starovka/Starovka_maison_dolgor_interieur.webp');
+  // Fred (17/11/2026) : le chalet rustique voisin est celui d'un ouvrier du pétrole (nom proposé par Claude).
+  maison('maison-starovka-ouvrier', 'Maison de Zorigto', 'Zorigto Badmaev', 'Foreur de la Compagnie Nationale du Pétrole',
+    'Un petit chalet de rondins brut, une paire de skis plantée dans la neige devant la porte.',
+    'Un poêle de fonte, des cannes à pêche, un vieux fusil au mur et une peau de renard. Par la fenêtre givrée, les derricks au-delà du parc à rennes. Zorigto rentre du puits et pose la bouilloire.',
+    'images/Sovarka/Starovka/Starovka_maison_zorigto_interieur.webp');
   maison('maison-krasnov', 'Maison de Stepan', 'Stepan Kouznetsov', 'Habitant de Krasnov',
     'La maison d’un vieux kolkhozien, ses bocaux alignés sur le rebord de la fenêtre.',
     'Une table couverte d’une toile cirée, des cornichons, du pain noir et un vieil homme ravi d’avoir de la compagnie.',
@@ -12203,7 +12210,7 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
   ];
   MAISONNETTES_KRASNOV.forEach(m => maison(...m));
   const cite = v => WORLD.soviet && WORLD.soviet[v];
-  if (cite('ville_a') && !cite('ville_a').buildings.includes('maison-starovka')) cite('ville_a').buildings.push('maison-starovka');
+  ['maison-starovka', 'maison-starovka-ouvrier'].forEach(id => { if (cite('ville_a') && !cite('ville_a').buildings.includes(id)) cite('ville_a').buildings.push(id); });
   ['maison-krasnov', ...MAISONNETTES_KRASNOV.map(m => m[0])].forEach(id => {
     if (cite('ville_b') && !cite('ville_b').buildings.includes(id)) cite('ville_b').buildings.push(id);
   });
@@ -12721,5 +12728,10 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
   BUILDINGS['ferme-starovka'].name = 'Enclos des rennes de Starovka';
   BUILDINGS['ferme-starovka'].shortName = 'Enclos';
   BUILDINGS['ferme-starovka'].desc = 'L’enclos de rennes de la ferme de Starovka (« Оленина Старовки ») : on y vient prêter la main contre une part du travail.';
+  // Image de Fred (17/11/2026) : le parc à rennes, vue suivante du carrefour.
+  BUILDINGS['ferme-starovka'].imagesAVenir = false;
+  Object.assign(BUILDINGS['ferme-starovka'].rooms.cour_ferme, { name: 'Le parc à rennes',
+    imageUrl: dir + 'Starovka_enclos_rennes.webp',
+    desc: 'Un renne curieux vient vous renifler de près ; derrière lui, le troupeau gratte la neige et le foin, entre les barrières givrées et la grange. L’éleveur vous tend une paire de gants.' });
   ['magasin-kolkhoze-starovka', 'compagnie-petrole-starovka'].forEach(b => { if (!cite.buildings.includes(b)) cite.buildings.push(b); });
 })();

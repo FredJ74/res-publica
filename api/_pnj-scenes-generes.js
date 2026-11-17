@@ -6527,11 +6527,20 @@ export const SCENES_PNJ = {
       "Dolgor Tsybikova"
     ]
   },
+  "[\"soviet\",\"ville_a\",\"maison-starovka-ouvrier\",\"piece_maison\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Maison de Zorigto",
+    "piece": "La pièce commune",
+    "personnes": [
+      "Zorigto Badmaev"
+    ]
+  },
   "[\"soviet\",\"ville_a\",\"ferme-starovka\",\"cour_ferme\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",
     "batiment": "Enclos des rennes de Starovka",
-    "piece": "La cour de la ferme",
+    "piece": "Le parc à rennes",
     "personnes": [
       "Bair Sambuev"
     ]
