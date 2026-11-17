@@ -19,7 +19,7 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           from PIL import Image
-          import hashlib
+          import subprocess
           root=Path('images/El Estado/Ciudad Roja')
           files={
             'Centre multimodal El Estado en effervescence.png':('Ciudad_Roja_centre_multimodal_exterieur.webp','9c55dbfbb54c5e969a322cbb01118d12031b94c1'),
@@ -27,15 +27,10 @@ jobs:
             'Contrôle douanier à El Estado.png':('Ciudad_Roja_centre_multimodal_douanes.webp','eb02b0a04e36914809ce3a9d8723d8827ce63dce'),
             'Embarquement tropical à la porte A3.png':('Ciudad_Roja_centre_multimodal_embarquement.webp','1b8ca3827b91880bc10761b641e2842a48377fe1')
           }
-          def gitsha(data):
-            h=hashlib.sha1()
-            h.update(f'blob {len(data)}\\0'.encode().replace(b'\\\\0',b'\\0'))
-            h.update(data)
-            return h.hexdigest()
           for filename,(out,expected) in files.items():
             source=root/filename
             data=source.read_bytes()
-            assert gitsha(data)==expected, f'Source image modifiée: {filename}'
+            assert subprocess.check_output(['git','hash-object',str(source)],text=True).strip()==expected, f'Source image modifiée: {filename}'
             dest=root/out
             assert not dest.exists(), f'Destination existe déjà: {dest}'
             with Image.open(source) as im:
