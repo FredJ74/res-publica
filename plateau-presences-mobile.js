@@ -29,6 +29,8 @@
   const versCode=()=>{const lang=document.documentElement.lang||'fr';return langues[lang]?lang:langues[lang.split('-')[0]]?lang.split('-')[0]:'fr'};
   function render(){
     const [singulier,pluriel,vide]=langues[versCode()];
+    const ancienDefilement=rail.scrollLeft;
+    const focusNom=document.activeElement?.closest?.('.hg-presence-personne')?.getAttribute('aria-label')||null;
     rail.replaceChildren();
     // La liste source est filtrée par les règles existantes (masquage et droits).
     // On n'ajoute ni caméra, ni présence virtuelle, ni le PJ lui-même.
@@ -67,6 +69,11 @@
     });
     const nombre=rail.children.length;
     total.textContent=nombre ? nombre+' '+(nombre===1?singulier:pluriel):vide;
+    rail.scrollLeft=ancienDefilement;
+    if(focusNom){
+      const suivant=[...rail.querySelectorAll('.hg-presence-personne')].find(b=>b.getAttribute('aria-label')===focusNom);
+      suivant?.focus({preventScroll:true});
+    }
     if(!nombre){
       total.textContent=vide;
       const empty=document.createElement('span');empty.className='hg-presences-vide';empty.textContent=vide;rail.append(empty);

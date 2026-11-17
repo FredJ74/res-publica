@@ -1,0 +1,27 @@
+name: Bandeau des présences mobiles
+on:
+  pull_request:
+    paths:
+      - 'plateau.html'
+      - 'data.js'
+      - 'plateau-presences-mobile.js'
+      - 'plateau-mobile-prototype.css'
+      - 'plateau-exploration-mobile.js'
+      - 'outils/bancs/test-presences-mobile-browser-20261117.cjs'
+      - '.github/workflows/presences-mobile.yml'
+jobs:
+  navigateur:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          node --check plateau-presences-mobile.js
+          node --check outils/bancs/test-presences-mobile-browser-20261117.cjs
+      - run: |
+          cd outils/e2e
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - run: node outils/bancs/test-presences-mobile-browser-20261117.cjs
