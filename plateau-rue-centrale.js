@@ -1534,7 +1534,8 @@ const RUE_CENTRALE_NOEUDS = {
     n.zones.push({ xPct, yPct: yPct || [8, 76], nom, type: 'batiment', buildingId });
   };
   Z('starovka-rue-hotel', [0, 38], 'Hôtel des Voyageurs', 'hotel-mineur', [0, 72]);
-  Z('starovka-rue-petrole-ferme', [0, 22], 'Compagnie Nationale du Pétrole', 'zone-production');
+  // 17/11/2026 (Fred) : à gauche du carrefour, le chalet-bureau de la Compagnie (la récolte se fait aux champs).
+  Z('starovka-rue-petrole-ferme', [0, 22], 'Compagnie Nationale du Pétrole', 'compagnie-petrole-starovka');
   Z('starovka-rue-logements-collectifs', [55, 100], 'Baraquement Sibirsk-9', 'logements-novomirsk');
   // Fred (15/11/2026) : à gauche de la même vue, le bâtiment de la Compagnie et les foreuses mènent
   // aussi au champ de pétrole (sortie serveur : migration 20261115230000).
@@ -1542,8 +1543,18 @@ const RUE_CENTRALE_NOEUDS = {
   Z('starovka-rue-restaurant-boutique', [0, 30], 'Restaurant « Entre terre et mer »', 'capitaine-sauvage');
   Z('starovka-rue-mairie-marche', [30, 60], 'Marché de Starovka', 'marche');
   Z('starovka-rue-lycee-commissariat', [60, 95], 'Lycée de l\'Avenir', 'universite');
-  Z('starovka-rue-magasin-chasse', [62, 95], 'Chasse et Pêche', 'armurerie');
-  Z('starovka-rue-locaux-a-louer', [45, 100], 'Locaux à louer', 'locaux-starovka');
+  // 17/11/2026 (Fred) : le local vide voisin (« Помещение в аренду », à gauche du magasin) est le
+  // local n°2 de Starovka ; la zone du magasin est resserrée pour ne pas le recouvrir.
+  Z('starovka-rue-magasin-chasse', [70, 99], 'Chasse et Pêche', 'armurerie', [24, 74]);
+  // Correctif 17/11 : bâtiment propre (local-starovka-chasse), sortie unique vers cette rue.
+  RUE_CENTRALE_NOEUDS.soviet['starovka-rue-magasin-chasse'].zones = RUE_CENTRALE_NOEUDS.soviet['starovka-rue-magasin-chasse'].zones.filter(z => z.buildingId !== 'locaux-starovka');
+  Z('starovka-rue-magasin-chasse', [54, 69], 'Local à louer', 'local-starovka-chasse', [36, 68]);
+  // 17/11/2026 (Fred) : les trois commerces de droite sont les locaux n°3 à 5 (bâtiment propre) et le
+  // champ de pétrole de gauche est un lieu distinct ; les locaux n°1 et 2 ont leurs propres rues.
+  if (RUE_CENTRALE_NOEUDS.soviet['starovka-rue-locaux-a-louer']) RUE_CENTRALE_NOEUDS.soviet['starovka-rue-locaux-a-louer'].zones =
+    (RUE_CENTRALE_NOEUDS.soviet['starovka-rue-locaux-a-louer'].zones || []).filter(z => z.buildingId !== 'locaux-starovka');
+  Z('starovka-rue-locaux-a-louer', [45, 100], 'Locaux à louer', 'locaux-starovka-route', [30, 70]);
+  Z('starovka-rue-locaux-a-louer', [0, 40], 'Champ de pétrole', 'champ-petrole-starovka', [22, 62]);
   Z('krasnov-rue-marche-ferme', [0, 50], 'Marché de Krasnov', 'marche');
   Z('krasnov-rue-ecole-foret', [0, 35], 'École de Krasnov', 'universite');
   Z('krasnov-rue-ecole-foret', [75, 100], 'Exploitation forestière de Krasnov', 'zone-production');
@@ -1557,7 +1568,12 @@ const RUE_CENTRALE_NOEUDS = {
   Z('krasnov-rue-tabac-bar', [58, 78], 'Immeuble de la rue du Tabac', 'logements-krasnov-rue-tabac', [14, 72]);
   Z('krasnov-rue-tabac-bar', [79, 100], 'Tabac/Presse de Krasnov', 'tabac-presse-krasnov', [32, 75]);
   // Partie 2 du lot (10/11/2026, migration 20261110123000) : fermes, distillerie et fourreur, reperes sur les enseignes.
-  Z('starovka-rue-petrole-ferme', [62, 100], 'Ferme de Starovka', 'ferme-starovka', [22, 64]);
+  // 17/11/2026 (Fred) : à droite du carrefour, le magasin du kolkhoze ; la cour de la ferme passe à la vue
+  // suivante, derrière le portail « Оленина Старовки ».
+  RUE_CENTRALE_NOEUDS.soviet['starovka-rue-petrole-ferme'].zones = RUE_CENTRALE_NOEUDS.soviet['starovka-rue-petrole-ferme'].zones
+    .filter(z => z.buildingId !== 'zone-production' && z.buildingId !== 'ferme-starovka');
+  Z('starovka-rue-petrole-ferme', [62, 100], 'Magasin du kolkhoze', 'magasin-kolkhoze-starovka', [22, 64]);
+  Z('starovka-maisons-ferme', [72, 100], 'Enclos des rennes', 'ferme-starovka', [14, 72]);
   Z('krasnov-rue-marche-ferme', [70, 100], 'Kolkhoze S. M. Kirov', 'ferme-krasnov', [18, 66]);
   Z('krasnov-rue-distillerie-radar', [0, 34], 'Distillerie de Krasnov', 'distillerie-krasnov', [8, 66]);
   Z('starovka-rue-restaurant-boutique', [77, 100], 'Fourreur « La Fourrure chaude »', 'fourreur-starovka', [20, 64]);

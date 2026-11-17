@@ -12,7 +12,7 @@ const appel=async(body,headers={authorization:'Bearer fixture-isolee'},method='P
 async function fournisseur(f,run){
  const fetchInitial=globalThis.fetch,cle=process.env.DEEPSEEK_API_KEY;
  process.env.DEEPSEEK_API_KEY='fixture-aucun-appel-reel';
- const appels=[];globalThis.fetch=async(url,opts)=>{appels.push({url:String(url),opts});return f(String(url),opts)};
+ const appels=[];globalThis.fetch=async(url,opts)=>{if(String(url).endsWith('/rest/v1/rpc/ia_quota_consommer'))return new Response(JSON.stringify({ok:true,appels:1,plafond:300}));appels.push({url:String(url),opts});return f(String(url),opts)};
  try{await run(appels)}finally{globalThis.fetch=fetchInitial;if(cle===undefined)delete process.env.DEEPSEEK_API_KEY;else process.env.DEEPSEEK_API_KEY=cle}
 }
 const auth=()=>new Response(JSON.stringify({id:'identite-fixture'}));

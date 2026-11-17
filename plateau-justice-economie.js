@@ -3460,9 +3460,9 @@ function appliquerBonusLocation(loc) {
   // le loyer est réellement payé (prelever_loyer_bail, migration 20261103234000). L'ancien cumul
   // orga.bonusLocaux n'était lu nulle part et l'organisation n'est plus écrite par l'écran.
   const mult = 0.3; // 30% des bonus de l'orga profitent directement au chef
-  if (orga.chef === state.char?.name && loc.bonusDIS > 0) {
-    state.dis = Math.min(100, (state.dis || 50) + Math.floor(loc.bonusDIS * mult));
-  }
+  // Bonus de DIS du local suspendu (failles de l'audit du 16/11/2026) : une hausse de discrétion ne
+  // vient plus que du serveur ; à verser par prelever_loyer_bail, comme POP et INF (#379).
+  void mult;
 }
 
 function expulserLocataire(idx) {
@@ -3829,7 +3829,9 @@ async function confirmerDonPnj(encodedPnj) {
   else if (v.job === 'policier') jetDis(25, 65, 3, 15, 'Il regarde ailleurs.', 'Refus !');
   else if (v.job === 'inspecteur') jetDis(35, 70, 5, 15, 'Inspecteur convaincu !', 'Refus !');
   else if (v.job === 'juge') jetDis(20, 55, 8, 25, 'Le juge est comprehensif.', 'SCANDALE !');
-  else if (v.job === 'banquier') { state.dis = Math.min(100,(state.dis||50)+5); showToast('Service discret.','+5 DIS.',true); }
+  // +5 DIS du banquier suspendu (failles de l'audit du 16/11/2026) : une hausse de discrétion ne vient
+  // plus que du serveur ; à reporter dans don_argent_pnj si Fred le souhaite.
+  else if (v.job === 'banquier') { showToast('Service discret.', txt, true); }
   else {
     const m = messages[v.job] || ['Don accepte.', 'Don a ' + nomCourt + '.'];
     showToast(m[0], (v.job in messages ? '' : nomCourt + ' apprecie. ') + txt, true, v.job === 'journaliste' || v.job === 'loge' || v.job === 'grand_pretre' || v.job === 'escort');

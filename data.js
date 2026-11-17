@@ -12541,6 +12541,7 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     ['ville_a', 'capitaine-sauvage', 'salle_principale', "Sesegma Badmaeva (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_capitaine-sauvage_sesegma-badmaeva.webp'],
     ['ville_a', 'tribunal-local', 'salle_audience_locale', "Dulma Tsyrenova (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_tribunal-local_dulma-tsyrenova.webp'],
     ['ville_a', 'universite', 'amphi', "Darima Zhambalova (PNJ)",'images/Sovarka/Starovka/Starovka_portrait_universite_darima-zhambalova.webp'],
+    ['ville_a', 'armurerie', 'magasin', "Bato Tsyrenov (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_armurerie_bato-tsyrenov_v2.webp'],
     ['ville_b', 'mairie', 'accueil_mairie', "Galina Dokladova (PNJ)", 'images/Sovarka/Krasnov/Krasnov_portrait_mairie_galina-dokladova.webp'],
     ['ville_b', 'mairie', 'salle_elections', "Zinaïda Izbirkova (PNJ)", 'images/Sovarka/Krasnov/Krasnov_portrait_mairie_zinaida-izbirkova.webp'],
     ['ville_b', 'dispensaire-public-v', 'attente', "Infirmiere (PNJ)", 'images/Sovarka/Krasnov/Krasnov_portrait_dispensaire-public-v_infirmiere.webp'],
@@ -12586,4 +12587,139 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     ctx.roomOverrides = Object.assign({}, ctx.roomOverrides);
     ctx.roomOverrides[piece] = Object.assign({}, ro, { persons: copie });
   }
+})();
+
+// STAROVKA_CHASSE_LOCAL_20261117 (décisions de Fred, 17/11/2026, GAME-DESIGN-NOVOMIRSK.md « Tour de Starovka »)
+// - Chasse et Pêche : image du magasin dessinée par Fred (portrait de Bato Tsyrenov tiré du décor, plus haut).
+// - Local n°2 : le local vide voisin de Chasse et Pêche (enseigne « Помещение в аренду »), image de Fred.
+// - Pas de centre commercial à Starovka : les PJ peuvent en construire un sur les terrains à bâtir.
+//   Retrait serveur (règle de navigation et quatre locaux vides) : migration 20261117110000.
+(function () {
+  const cite = WORLD.soviet && WORLD.soviet.ville_a;
+  if (!cite) return;
+  const dir = 'images/Sovarka/Starovka/';
+  const chasse = cite.buildingContext && cite.buildingContext.armurerie;
+  if (!chasse) throw new Error('Starovka : contexte Chasse et Pêche absent');
+  chasse.roomOverrides = Object.assign({}, chasse.roomOverrides);
+  chasse.roomOverrides.magasin = Object.assign({}, chasse.roomOverrides.magasin,
+    { imageUrl: dir + 'Starovka_chasse_peche_magasin_v2.webp' });
+  // Correctif du 17/11/2026 (Fred) : le local n°2 devient un bâtiment propre à la rue du magasin de
+  // chasse. Dans « locaux-starovka », il s'ouvrait sur le local n°1 (face à l'imprimerie) et la sortie
+  // pouvait ramener rue de l'imprimerie. Serveur : migration 20261117130000.
+  const local2 = BUILDINGS['locaux-starovka'].rooms.local_2;
+  BUILDINGS['local-starovka-chasse'] = {
+    name: 'Local à louer',
+    shortName: 'Local',
+    cat: 'Économie',
+    icon: 'ti-building-store',
+    bgColor: '#121418',
+    desc: 'Un petit local commercial vide à côté du magasin Chasse et Pêche (« Помещение в аренду »), propriété de l\'État. On l\'obtient en écrivant à la mairie.',
+    rooms: { local_2: Object.assign({}, local2, {
+      imageUrl: dir + 'Starovka_local-starovka-chasse.webp',
+      desc: 'Un local vide aux grandes vitrines, voisin de Chasse et Pêche. Le loyer est fixé par le maire.',
+      persons: [],
+      orders: local2.orders.map(o => Object.assign({}, o))
+    }) }
+  };
+  delete BUILDINGS['locaux-starovka'].rooms.local_2;
+  BUILDINGS['locaux-starovka'].desc = 'Un petit local commercial de plain-pied face à l\'imprimerie (« Помещение в аренду »), propriété de l\'État. On l\'obtient en écrivant à la mairie.';
+  if (!cite.buildings.includes('local-starovka-chasse')) cite.buildings.push('local-starovka-chasse');
+  cite.buildings = cite.buildings.filter(b => b !== 'centre-commercial');
+})();
+
+// STAROVKA_LOCAUX_CHAMP_ROUTE_20261117 (décisions de Fred, 17/11/2026, GAME-DESIGN-NOVOMIRSK.md « Tour de Starovka »)
+// Rue des locaux à louer : à droite, trois commerces à louer (locaux n°3 à 5, même image de Fred,
+// mêmes règles que les locaux n°1 et 2 : demande à la mairie, loyer plafonné à 30 PSK) ; à gauche,
+// un champ de pétrole distinct de celui de la Compagnie (même récolte, la récolte dépend de la ville).
+// Serveur : migration 20261117120000.
+(function () {
+  const cite = WORLD.soviet && WORLD.soviet.ville_a;
+  if (!cite) return;
+  const dir = 'images/Sovarka/Starovka/';
+  const gabaritLocal = BUILDINGS['locaux-starovka'].rooms.local_1;
+  BUILDINGS['locaux-starovka-route'] = {
+    name: 'Locaux à louer de la route du pétrole',
+    shortName: 'Locaux',
+    cat: 'Économie',
+    icon: 'ti-building-store',
+    bgColor: '#121418',
+    desc: 'Trois commerces de plain-pied face aux derricks (« Помещение в аренду »), propriété de l\'État. On les obtient en écrivant à la mairie.',
+    rooms: Object.fromEntries([3, 4, 5].map(k => ['local_' + k, {
+      name: 'Local n°' + k,
+      imageBg: gabaritLocal.imageBg,
+      imageUrl: dir + 'Starovka_locaux-petrole_local.webp',
+      desc: 'Un local vide aux grandes vitrines, face au champ de pétrole. Le loyer est fixé par le maire.',
+      persons: [],
+      orders: gabaritLocal.orders.map(o => Object.assign({}, o))
+    }]))
+  };
+  const recolte = BUILDINGS['zone-production'].rooms.zone_recolte;
+  BUILDINGS['champ-petrole-starovka'] = {
+    name: 'Champ de pétrole de la route',
+    shortName: 'Champ de pétrole',
+    cat: 'Économie',
+    icon: 'ti-building-factory',
+    bgColor: '#0e1208',
+    desc: 'Un second champ de pétrole de Starovka, le long de la route : pompes à balancier, vannes gelées et cuves sous la neige. Les volontaires peuvent y prêter la main pour augmenter la production.',
+    rooms: {
+      zone_recolte: Object.assign({}, recolte, {
+        name: 'Les puits',
+        imageUrl: dir + 'Starovka_champ_petrole_route.webp',
+        desc: 'Les pompes grincent dans le froid. On récolte ici le pétrole de Starovka, comme au champ de la Compagnie.',
+        persons: [],
+        orders: recolte.orders.map(o => Object.assign({}, o))
+      })
+    }
+  };
+  ['locaux-starovka-route', 'champ-petrole-starovka'].forEach(b => { if (!cite.buildings.includes(b)) cite.buildings.push(b); });
+})();
+
+// STAROVKA_CARREFOUR_FERME_PETROLE_20261117 (décisions de Fred, 17/11/2026, GAME-DESIGN-NOVOMIRSK.md « Tour de Starovka »)
+// Carrefour pétrole/ferme : à droite le magasin du kolkhoze, à gauche le bureau (chalet) de la Compagnie
+// Nationale du Pétrole, deux lieux de décor sans ordre. La cour de la ferme (ferme-starovka) et ses ordres
+// passent à la vue suivante (enclos de rennes, rue des maisons) ; la récolte du pétrole se fait au champ de
+// la vue précédente (champ-petrole-starovka) ou depuis les foreuses des logements collectifs (zone-production).
+// Serveur : migration 20261117140000.
+(function () {
+  const cite = WORLD.soviet && WORLD.soviet.ville_a;
+  if (!cite) return;
+  const dir = 'images/Sovarka/Starovka/';
+  BUILDINGS['magasin-kolkhoze-starovka'] = {
+    name: 'Magasin du kolkhoze',
+    shortName: 'Magasin',
+    cat: 'Économie',
+    icon: 'ti-basket',
+    bgColor: '#1a120e',
+    desc: 'La boutique de la ferme de Starovka (« Колхозный магазин ») : viande de renne, laitages, conserves et peaux, face aux enclos.',
+    rooms: { magasin: {
+      name: 'Le magasin',
+      imageBg: 'linear-gradient(135deg,#1a120e,#2a1c14)',
+      imageUrl: dir + 'Starovka_ferme_magasin_kolkhoze.webp',
+      desc: 'Une vitrine réfrigérée pleine de bœuf, de mouton et de renne, des bidons de lait, des fromages et des peaux pendues au mur. Par la fenêtre, les rennes grattent la neige.',
+      persons: [{ name: 'Tuyana Sambueva (PNJ)', role: 'Vendeuse du kolkhoze', rel: 'friendly', job: 'commercant',
+        photoUrl: dir + 'Starovka_portrait_ferme-starovka_tuyana-sambueva.webp', photoPos: '50% 30%' }],
+      orders: []
+    } }
+  };
+  BUILDINGS['compagnie-petrole-starovka'] = {
+    name: 'Compagnie Nationale du Pétrole',
+    shortName: 'Compagnie',
+    cat: 'Économie',
+    icon: 'ti-building-factory',
+    bgColor: '#160f0a',
+    desc: 'Le chalet de la Compagnie Nationale du Pétrole : le bureau où l\'on tient le registre des puits de Starovka.',
+    rooms: { bureau: {
+      name: 'Le bureau du chalet',
+      imageBg: 'linear-gradient(135deg,#160f0a,#2a1d14)',
+      imageUrl: dir + 'Starovka_compagnie_petrole_bureau.webp',
+      desc: 'Une affiche « Plus de pétrole, plus forte la patrie ! », des classeurs métalliques et un boulier sur le bureau. Les foreurs y boivent leur thé en rentrant des derricks.',
+      persons: [{ name: 'Dashi Burilov (PNJ)', role: 'Chef de chantier de la Compagnie', rel: 'neutral', job: 'chef_entreprise',
+        photoUrl: dir + 'Starovka_portrait_zone-production_dashi-burilov.webp', photoPos: '50% 30%' }],
+      orders: []
+    } }
+  };
+  BUILDINGS['ferme-starovka'].name = 'Enclos des rennes de Starovka';
+  BUILDINGS['ferme-starovka'].shortName = 'Enclos';
+  BUILDINGS['ferme-starovka'].desc = 'L’enclos de rennes de la ferme de Starovka (« Оленина Старовки ») : on y vient prêter la main contre une part du travail.';
+  ['magasin-kolkhoze-starovka', 'compagnie-petrole-starovka'].forEach(b => { if (!cite.buildings.includes(b)) cite.buildings.push(b); });
 })();
