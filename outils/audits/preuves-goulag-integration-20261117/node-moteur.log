@@ -1,0 +1,18 @@
+OK  node --check api/_goulag-parcours.js
+OK  node --check api/_goulag-survie.js
+OK  node --check outils/bancs/test-goulag-parcours-20261116.cjs
+OK  node --check outils/bancs/test-goulag-survie-20261116.cjs
+OK  node --check plateau-goulag-refuge.js
+OK  node --check plateau-goulag-toundra.js
+OK  node --check plateau-goulag-transports.js
+OK  node --check plateau-justice-economie.js
+OK  node --check plateau-politique.js
+OK  node --check plateau-router.js
+OK  node --test outils/bancs/test-goulag-navigation-20261117.cjs
+OK  node outils/bancs/test-goulag-decor-runtime-20261116.cjs
+OK  node outils/bancs/test-goulag-decors-20261116.cjs
+OK  node outils/bancs/test-goulag-ecran-interactif-20261116.cjs
+OK  node outils/bancs/test-goulag-interface-circuits-20261116.cjs
+OK  node outils/bancs/test-goulag-parcours-20261116.cjs
+OK  node outils/bancs/test-goulag-sql-structure-20261116.cjs
+OK  node outils/bancs/test-goulag-survie-20261116.cjs

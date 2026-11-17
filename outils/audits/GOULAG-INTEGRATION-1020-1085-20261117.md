@@ -60,3 +60,18 @@ porte exactement sur `banc-mobile-coque` L1/L2, rouges à l'identique sur `main`
 Simulations : aucune recette avec un personnage connecté, aucune session GoTrue réelle, aucun téléphone
 physique. Aucune compilation sur Supabase de production. Vercel ne déploie que `main` (configuration du
 dépôt) : pas de prévisualisation de branche.
+
+## Finalisation (17/11/2026, 20 h 30) — main `654bba9`
+
+- `main` `654bba9` (correctifs mobiles #1095, images Starovka #1094/#1096) fusionné dans #1020 (`28a5b96`), puis
+  `main` et #1020 dans #1085 (`c11e753`, `1c89e76`) : **aucun conflit**, fichiers mobiles indépendants intacts.
+- Générateurs officiels relancés : aucun écart ; par rapport à `main`, 19 tarifs goulag ajoutés, 0 retiré ou modifié.
+- Recette locale sur l'arbre intégré : ordres internes 38/38, moteur 32/32, raccords 41/41, **contrats 11/11**
+  (corruption définitive, refus sans perte d'objet, 1 PA, rejeux liés à l'acteur, peine ajoutée, réincarcération,
+  absence à minuit, transfert dont 7 + 30 = 37), Node 17/17 et 18/18, plan 97 et workflow conformes,
+  Chrome 189 + 27 + 54 rendus (9 langues, RTL).
+- **Verrou d'activation** : `test_activation_interdite_et_aucun_effet` (moteur : `UPDATE … SET active=true` refusé
+  par la contrainte, toutes les RPC moteur répondent `goulag_non_active`, aucune écriture),
+  `test_inactif_aucun_effet` (les neuf RPC des ordres internes refusent, contrôle de minuit inactif, aucune ligne),
+  `test_raccord_verrou_conserve` (contrainte présente après les quatre migrations #1085) : verts.
+- `banc-mobile-coque` L1/L2 toujours rouges sur `main` `654bba9` (préexistant, hors goulag).

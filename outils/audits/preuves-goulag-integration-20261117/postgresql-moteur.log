@@ -32,6 +32,6 @@ test_transport_sans_habilitation_refuse (__main__.Goulag) ... ok
 test_zz_concurrence_progression (__main__.Goulag) ... ok
 
 ----------------------------------------------------------------------
-Ran 32 tests in 7.540s
+Ran 32 tests in 8.153s
 
 OK

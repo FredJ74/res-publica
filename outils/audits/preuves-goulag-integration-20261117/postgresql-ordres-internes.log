@@ -43,6 +43,6 @@ test_visiteur_part_sans_jet (__main__.OrdresInternes) ... ok
 test_zz_concurrence_sommeil_et_interrogatoire (__main__.OrdresInternes) ... ok
 
 ----------------------------------------------------------------------
-Ran 38 tests in 7.772s
+Ran 38 tests in 8.614s
 
 OK
