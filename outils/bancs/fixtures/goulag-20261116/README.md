@@ -9,3 +9,5 @@ Le CHECK interdisant l'activation est éprouvé avant toute simulation. Certains
 Exécution : `python3 outils/bancs/test-goulag-postgresql-20261116.py --postgres-bin <binaires PostgreSQL 17.6>/bin`. Aucune URL distante n'est acceptée. Les appels client passent au rôle `authenticated`, avec identité fictive et chemin `/rpc/`. Le test de concurrence ouvre deux connexions réelles.
 
 Actualisation du 17/11 : navigation publique réelle et ses dépendances, ACL restaurées depuis le relevé ; sept correspondances hôtel/hôpital ajoutées aux références publiques, aucun profil collecté.
+
+Relevé complémentaire du 17/11 : les 114 fonctions ont été relues ; 112 définitions inchangées, deux fonctions d’identité actualisées (refus des comptes anonymes). Le banc exerce la navigation publique et les appels concurrents d’entrée, de voyage/révocation et de paiements.

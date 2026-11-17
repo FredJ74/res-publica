@@ -25,7 +25,7 @@ if(!['chromium','webkit'].includes(moteur))throw Error('Moteur inconnu');
     await page.evaluate(v=>{donnees.champignons_a_decider=v;return goulagToundraOuvrir();},champignons);
     const box=await page.locator('#goulag-toundra').evaluate(e=>({width:e.clientWidth,scroll:e.scrollWidth,dir:getComputedStyle(e).direction}));
     assert.ok(box.scroll<=box.width+1,JSON.stringify({width,lang,box}));assert.equal(box.dir,lang==='ar'?'rtl':'ltr');
-    for(const b of await page.locator('#goulag-toundra button').all()){const bounds=await b.boundingBox();assert.ok(bounds.width<=width && bounds.height>=44);}
+    for(const b of await page.locator('#goulag-toundra button').all()){await b.scrollIntoViewIfNeeded();const bounds=await b.boundingBox();assert.ok(bounds.width<=width && bounds.height>=44 && bounds.x>=-1 && bounds.x+bounds.width<=width+1);assert.ok(await b.evaluate(e=>{const r=e.getBoundingClientRect();return e.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));}),'bouton tactile recouvert');}
     assert.equal(await page.locator('#saisie').inputValue(),'à conserver');rendus++;
    }
   }

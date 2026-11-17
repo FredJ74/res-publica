@@ -1,0 +1,15 @@
+{
+  "projet": "jxpwoosmmhohoihxpbuc",
+  "version": "17.6",
+  "configuration": null,
+  "depart": null,
+  "jugement": null,
+  "compilation_distante": "non validee : confirmation expiree sur deux tentatives BEGIN/ROLLBACK",
+  "installation_durable": false,
+  "fonctions_relues": 114,
+  "inchangees": 112,
+  "actualisees_dans_fixture": [
+    "mon_personnage()",
+    "est_mon_personnage(text)"
+  ]
+}
