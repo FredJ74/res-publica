@@ -2621,6 +2621,30 @@ function ouvrirBureauDeVoteBtn(el) { ouvrirBureauDeVote(el.dataset.poste, el.dat
 function deposerCandidatureBtn(el) { deposerCandidature(el.dataset.poste, el.dataset.country, state.currentCity); }
 function fermerModalPostes() { document.getElementById('modal-postes').classList.remove('open'); }
 
+// RÈGLE DES FENÊTRES DE VENTE (Fred, 18/11/2026), pour tout le jeu : une vente RÉUSSIE ferme la
+// fenêtre avec un message de confirmation (pour revendre, on reclique sur l'ordre) ; un REFUS laisse
+// la fenêtre ouverte et y affiche le motif. La fenêtre ne se ferme donc jamais avant la réponse du serveur.
+function venteReussieFermer(titre, message) {
+  fermerModalPostes();
+  if (typeof showToast === 'function') showToast(titre, message || '', true, true);
+}
+function venteRefusDansFenetre(titre, motif) {
+  const modal = document.getElementById('modal-postes');
+  const corps = document.getElementById('postes-body');
+  if (modal && corps && modal.classList.contains('open')) {
+    let bandeau = corps.querySelector(':scope > .vente-refus');
+    if (!bandeau) {
+      bandeau = document.createElement('div');
+      bandeau.className = 'vente-refus';
+      bandeau.setAttribute('role', 'alert');
+      bandeau.style.cssText = 'margin:.6rem 1rem 0;padding:.5rem .7rem;border:1px solid #8a3a2a;background:#1a0c08;color:#e0a090;font-size:.85rem';
+      corps.prepend(bandeau);
+    }
+    bandeau.textContent = [titre, motif].filter(t => t && t !== '—').join(' : ');
+  }
+  if (typeof showToast === 'function') showToast(titre, motif || '', false);
+}
+
 
 
 // =====================

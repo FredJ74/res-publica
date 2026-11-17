@@ -2063,17 +2063,16 @@ async function commercePjApporter(matiere, requete, mode) {
   return commercePjTransaction('matiere', async (tx) => {
   const ctx = await commercePjContexte();
   if (!commercePjTransactionActive(tx)) return;
-  if (ctx.fonds?.references?.[referenceId]?.venteSurPlaceUniquement === true) {
-    showToast('Consommation sur place', 'Cette prestation ne peut pas être vendue à emporter.', false);
-    return;
-  }
+  // (18/11/2026) Retiré : un contrôle « consommation sur place » recopié des prestations lisait une
+  // variable inexistante et faisait échouer toute vente ou tout don de matière ici.
   const qte = Math.max(1, Math.floor(Number((document.getElementById('cpj-appro-qte') || {}).value) || 1));
   const r = await sbFondsMatiereApporter(requete, state.char.name, ctx.fondsId, matiere, qte, mode);
   if (!commercePjTransactionActive(tx)) return;
-  if (!r || !r.ok) { showToast('—', commercePjRefus(r), false); return; }
+  // Règle des fenêtres de vente (18/11/2026) : refus = fenêtre ouverte avec le motif ; succès = fenêtre fermée.
+  if (!r || !r.ok) { venteRefusDansFenetre('—', commercePjRefus(r)); return; }
   await commercePjActualiserPersonnage({inventaire:true});
   if (!commercePjTransactionActive(tx)) return;
-  if (r.rejeu === true) { commercePjEcranMatieresPubliques(); return; }
+  if (r.rejeu === true) { fermerModalPostes(); return; }
   if (typeof updateUI === 'function') updateUI();
   const titre = (mode === 'don') ? tCommercePJ('commercepj.appro.donne') : tCommercePJ('commercepj.appro.vendu');
   let sous = commercePjLibelleMatiere(matiere) + ' × ' + r.quantite;
@@ -2081,9 +2080,8 @@ async function commercePjApporter(matiere, requete, mode) {
   if (Number(r.quantite) < Number(r.demandee)) {
     sous += ' · ' + tCommercePJ('commercepj.appro.partiel', { faites: r.quantite, voulues: r.demandee });
   }
-  showToast(titre, sous, true);
+  venteReussieFermer(titre, sous);
   if (typeof addJournalEntry === 'function') addJournalEntry(titre + ' : ' + sous);
-  commercePjEcranMatieresPubliques();
   });
 }
 
