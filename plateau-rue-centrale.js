@@ -1536,7 +1536,12 @@ const RUE_CENTRALE_NOEUDS = {
   // local n°2 de Starovka ; la zone du magasin est resserrée pour ne pas le recouvrir.
   Z('starovka-rue-magasin-chasse', [70, 99], 'Chasse et Pêche', 'armurerie', [24, 74]);
   Z('starovka-rue-magasin-chasse', [54, 69], 'Local à louer', 'locaux-starovka', [36, 68]);
-  Z('starovka-rue-locaux-a-louer', [45, 100], 'Locaux à louer', 'locaux-starovka');
+  // 17/11/2026 (Fred) : les trois commerces de droite sont les locaux n°3 à 5 (bâtiment propre) et le
+  // champ de pétrole de gauche est un lieu distinct ; les locaux n°1 et 2 ont leurs propres rues.
+  if (RUE_CENTRALE_NOEUDS.soviet['starovka-rue-locaux-a-louer']) RUE_CENTRALE_NOEUDS.soviet['starovka-rue-locaux-a-louer'].zones =
+    (RUE_CENTRALE_NOEUDS.soviet['starovka-rue-locaux-a-louer'].zones || []).filter(z => z.buildingId !== 'locaux-starovka');
+  Z('starovka-rue-locaux-a-louer', [45, 100], 'Locaux à louer', 'locaux-starovka-route', [30, 70]);
+  Z('starovka-rue-locaux-a-louer', [0, 40], 'Champ de pétrole', 'champ-petrole-starovka', [22, 62]);
   Z('krasnov-rue-marche-ferme', [0, 50], 'Marché de Krasnov', 'marche');
   Z('krasnov-rue-ecole-foret', [0, 35], 'École de Krasnov', 'universite');
   Z('krasnov-rue-ecole-foret', [75, 100], 'Exploitation forestière de Krasnov', 'zone-production');

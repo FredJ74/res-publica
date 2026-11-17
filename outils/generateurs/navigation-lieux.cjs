@@ -32,8 +32,9 @@ for(const x of rows)if(x.pays==='soviet'&&x.ville==='capitale'&&x.id==='centre-a
 // chambres d'hôpital des dispensaires (13-14/11), chambres des appartements (relecture du 13/11), salle des
 // élections des mairies de Starovka et Krasnov (14/11), boutique du stade de Krasnov (14/11) et de Starovka (15/11), salles de la raffinerie de Starovka (15/11), immeubles,
 // logements et Tabac/Presse de Krasnov et de Novomirsk (12-14/11), quatre bureaux du centre d'affaires de Krasnov (15/11).
+// Locaux n°3 à 5 et champ de pétrole de la route de Starovka (17/11, migration 20261117120000).
 // Tabac/Presse de Starovka et retrait de la tribune (15/11) : aucune réécriture des migrations historiques.
-const EXCLUS_APRES_3110={soviet:{ville_a:['presse-starovka'],capitale:['logements-novomirsk-marche','logements-novomirsk-quais'],ville_b:['logements-krasnov-place-ours','logements-krasnov-rue-tabac','logements-novomirsk','tabac-presse-krasnov']}};
+const EXCLUS_APRES_3110={soviet:{ville_a:['presse-starovka','locaux-starovka-route','champ-petrole-starovka'],capitale:['logements-novomirsk-marche','logements-novomirsk-quais'],ville_b:['logements-krasnov-place-ours','logements-krasnov-rue-tabac','logements-novomirsk','tabac-presse-krasnov']}};
 for(let i=rows.length-1;i>=0;i--)if(EXCLUS_APRES_3110[rows[i].pays]?.[rows[i].ville]?.includes(rows[i].id))rows.splice(i,1);
 for(const x of rows){
  // Cinq vues du goulag (16/11) : seule la référence historique garde les pièces QHS du 31/10.
