@@ -33,6 +33,10 @@ jobs:
           fi
       - name: Contrôler JavaScript
         run: node --check data.js
+      - name: Recette réelle du chargement des lieux de Starovka
+        run: |
+          node --test outils/bancs/test-starovka-rue-petrole-ferme-20261106.mjs
+          node --test outils/bancs/test-starovka-terrains-logements-20261106.mjs
       - name: Contrôler les dix fichiers de portrait avant commit
         run: |
           python - <<'PY'
