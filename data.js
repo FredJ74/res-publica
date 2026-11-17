@@ -12541,6 +12541,7 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     ['ville_a', 'capitaine-sauvage', 'salle_principale', "Sesegma Badmaeva (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_capitaine-sauvage_sesegma-badmaeva.webp'],
     ['ville_a', 'tribunal-local', 'salle_audience_locale', "Dulma Tsyrenova (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_tribunal-local_dulma-tsyrenova.webp'],
     ['ville_a', 'universite', 'amphi', "Darima Zhambalova (PNJ)",'images/Sovarka/Starovka/Starovka_portrait_universite_darima-zhambalova.webp'],
+    ['ville_a', 'armurerie', 'magasin', "Bato Tsyrenov (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_armurerie_bato-tsyrenov.webp'],
     ['ville_b', 'mairie', 'accueil_mairie', "Galina Dokladova (PNJ)", 'images/Sovarka/Krasnov/Krasnov_portrait_mairie_galina-dokladova.webp'],
     ['ville_b', 'mairie', 'salle_elections', "Zinaïda Izbirkova (PNJ)", 'images/Sovarka/Krasnov/Krasnov_portrait_mairie_zinaida-izbirkova.webp'],
     ['ville_b', 'dispensaire-public-v', 'attente', "Infirmiere (PNJ)", 'images/Sovarka/Krasnov/Krasnov_portrait_dispensaire-public-v_infirmiere.webp'],
@@ -12586,4 +12587,22 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     ctx.roomOverrides = Object.assign({}, ctx.roomOverrides);
     ctx.roomOverrides[piece] = Object.assign({}, ro, { persons: copie });
   }
+})();
+
+// STAROVKA_CHASSE_LOCAL_20261117 (décisions de Fred, 17/11/2026, GAME-DESIGN-NOVOMIRSK.md « Tour de Starovka »)
+// - Chasse et Pêche : image du magasin dessinée par Fred (portrait de Bato Tsyrenov tiré du décor, plus haut).
+// - Local n°2 : le local vide voisin de Chasse et Pêche (enseigne « Помещение в аренду »), image de Fred.
+// - Pas de centre commercial à Starovka : les PJ peuvent en construire un sur les terrains à bâtir.
+//   Retrait serveur (règle de navigation et quatre locaux vides) : migration 20261117110000.
+(function () {
+  const cite = WORLD.soviet && WORLD.soviet.ville_a;
+  if (!cite) return;
+  const dir = 'images/Sovarka/Starovka/';
+  const chasse = cite.buildingContext && cite.buildingContext.armurerie;
+  if (!chasse) throw new Error('Starovka : contexte Chasse et Pêche absent');
+  chasse.roomOverrides = Object.assign({}, chasse.roomOverrides);
+  chasse.roomOverrides.magasin = Object.assign({}, chasse.roomOverrides.magasin,
+    { imageUrl: dir + 'Starovka_chasse_peche_magasin.webp' });
+  BUILDINGS['locaux-starovka'].rooms.local_2.imageUrl = dir + 'Starovka_locaux-starovka_local_2.webp';
+  cite.buildings = cite.buildings.filter(b => b !== 'centre-commercial');
 })();

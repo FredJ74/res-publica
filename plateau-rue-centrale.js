@@ -1532,7 +1532,10 @@ const RUE_CENTRALE_NOEUDS = {
   Z('starovka-rue-restaurant-boutique', [0, 30], 'Restaurant « Entre terre et mer »', 'capitaine-sauvage');
   Z('starovka-rue-mairie-marche', [30, 60], 'Marché de Starovka', 'marche');
   Z('starovka-rue-lycee-commissariat', [60, 95], 'Lycée de l\'Avenir', 'universite');
-  Z('starovka-rue-magasin-chasse', [62, 95], 'Chasse et Pêche', 'armurerie');
+  // 17/11/2026 (Fred) : le local vide voisin (« Помещение в аренду », à gauche du magasin) est le
+  // local n°2 de Starovka ; la zone du magasin est resserrée pour ne pas le recouvrir.
+  Z('starovka-rue-magasin-chasse', [70, 99], 'Chasse et Pêche', 'armurerie', [24, 74]);
+  Z('starovka-rue-magasin-chasse', [54, 69], 'Local à louer', 'locaux-starovka', [36, 68]);
   Z('starovka-rue-locaux-a-louer', [45, 100], 'Locaux à louer', 'locaux-starovka');
   Z('krasnov-rue-marche-ferme', [0, 50], 'Marché de Krasnov', 'marche');
   Z('krasnov-rue-ecole-foret', [0, 35], 'École de Krasnov', 'universite');
