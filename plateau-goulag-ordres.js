@@ -63,7 +63,7 @@
         non_detenu_goulag: "Vous n'êtes pas détenu au goulag.", detenu_introuvable: 'Détenu introuvable.',
         reserve_habilite_entree: 'Réservé aux personnes habilitées présentes.', reserve_habilite_bureau: 'Réservé aux personnes habilitées présentes.',
         reserve_habilite_mirador: 'Réservé aux personnes habilitées présentes.', objet_introuvable: 'Objet introuvable dans votre inventaire.',
-        pas_au_dortoir: 'Uniquement au dortoir.', pas_au_mirador: 'Uniquement au mirador.', pa_insuffisants: 'Pas assez de PA pour cet ordre.', defaut: 'Le serveur a refusé cet ordre.'
+        pas_au_dortoir: 'Uniquement au dortoir.', pas_au_mirador: 'Uniquement au mirador.', pa_insuffisants: 'Pas assez de PA pour cet ordre.', requete_deja_utilisee: 'Cette demande a déjà été utilisée par quelqu\'un d\'autre ; recommencez.', defaut: 'Le serveur a refusé cet ordre.'
       }
     },
     en: {
@@ -105,7 +105,7 @@
         non_detenu_goulag: 'You are not a prisoner of the gulag.', detenu_introuvable: 'Prisoner not found.',
         reserve_habilite_entree: 'Reserved for authorised people present.', reserve_habilite_bureau: 'Reserved for authorised people present.',
         reserve_habilite_mirador: 'Reserved for authorised people present.', objet_introuvable: 'Item not found in your inventory.',
-        pas_au_dortoir: 'Only in the dormitory.', pas_au_mirador: 'Only at the watchtower.', pa_insuffisants: 'Not enough AP for this order.', defaut: 'The server refused this order.'
+        pas_au_dortoir: 'Only in the dormitory.', pas_au_mirador: 'Only at the watchtower.', pa_insuffisants: 'Not enough AP for this order.', requete_deja_utilisee: 'This request was already used by someone else; please start again.', defaut: 'The server refused this order.'
       }
     },
     es: {
@@ -145,7 +145,7 @@
         non_detenu_goulag: 'No está preso en el gulag.', detenu_introuvable: 'Preso no encontrado.',
         reserve_habilite_entree: 'Reservado a personas autorizadas presentes.', reserve_habilite_bureau: 'Reservado a personas autorizadas presentes.',
         reserve_habilite_mirador: 'Reservado a personas autorizadas presentes.', objet_introuvable: 'Objeto no encontrado en su inventario.',
-        pas_au_dortoir: 'Solo en el dormitorio.', pas_au_mirador: 'Solo en la torre de vigilancia.', pa_insuffisants: 'PA insuficientes para esta orden.', defaut: 'El servidor rechazó esta orden.'
+        pas_au_dortoir: 'Solo en el dormitorio.', pas_au_mirador: 'Solo en la torre de vigilancia.', pa_insuffisants: 'PA insuficientes para esta orden.', requete_deja_utilisee: 'Esta solicitud ya la usó otra persona; vuelva a empezar.', defaut: 'El servidor rechazó esta orden.'
       }
     },
     'zh-TW': {
@@ -179,7 +179,7 @@
         tentative_deja_faite_aujourdhui: '每天只能嘗試越獄一次。', pa_insuffisants_depart: '行動點不足以完成此行程。',
         non_detenu_goulag: '您不是古拉格的囚犯。', detenu_introuvable: '找不到該囚犯。', reserve_habilite_entree: '僅限在場的授權人員。',
         reserve_habilite_bureau: '僅限在場的授權人員。', reserve_habilite_mirador: '僅限在場的授權人員。', objet_introuvable: '您的物品欄中找不到該物品。',
-        pas_au_dortoir: '僅限宿舍。', pas_au_mirador: '僅限瞭望塔。', pa_insuffisants: '行動點不足以執行此命令。', defaut: '伺服器拒絕了此命令。'
+        pas_au_dortoir: '僅限宿舍。', pas_au_mirador: '僅限瞭望塔。', pa_insuffisants: '行動點不足以執行此命令。', requete_deja_utilisee: '此請求已被他人使用，請重新操作。', defaut: '伺服器拒絕了此命令。'
       }
     },
     ru: {
@@ -219,7 +219,7 @@
         non_detenu_goulag: 'Вы не заключённый лагеря.', detenu_introuvable: 'Заключённый не найден.',
         reserve_habilite_entree: 'Только для присутствующих допущенных лиц.', reserve_habilite_bureau: 'Только для присутствующих допущенных лиц.',
         reserve_habilite_mirador: 'Только для присутствующих допущенных лиц.', objet_introuvable: 'Предмет не найден в инвентаре.',
-        pas_au_dortoir: 'Только в бараке.', pas_au_mirador: 'Только на вышке.', pa_insuffisants: 'Недостаточно ОД для этого приказа.', defaut: 'Сервер отклонил этот приказ.'
+        pas_au_dortoir: 'Только в бараке.', pas_au_mirador: 'Только на вышке.', pa_insuffisants: 'Недостаточно ОД для этого приказа.', requete_deja_utilisee: 'Этот запрос уже использован другим игроком; начните заново.', defaut: 'Сервер отклонил этот приказ.'
       }
     },
     ko: {
@@ -255,7 +255,7 @@
         non_detenu_goulag: '굴라크 수감자가 아닙니다.', detenu_introuvable: '수감자를 찾을 수 없습니다.',
         reserve_habilite_entree: '현장에 있는 허가된 사람만 가능합니다.', reserve_habilite_bureau: '현장에 있는 허가된 사람만 가능합니다.',
         reserve_habilite_mirador: '현장에 있는 허가된 사람만 가능합니다.', objet_introuvable: '인벤토리에서 물건을 찾을 수 없습니다.',
-        pas_au_dortoir: '숙소에서만 가능합니다.', pas_au_mirador: '감시탑에서만 가능합니다.', pa_insuffisants: '이 명령에 필요한 AP가 부족합니다.', defaut: '서버가 이 명령을 거부했습니다.'
+        pas_au_dortoir: '숙소에서만 가능합니다.', pas_au_mirador: '감시탑에서만 가능합니다.', pa_insuffisants: '이 명령에 필요한 AP가 부족합니다.', requete_deja_utilisee: '이 요청은 이미 다른 사람이 사용했습니다. 다시 시도하세요.', defaut: '서버가 이 명령을 거부했습니다.'
       }
     },
     ar: {
@@ -293,7 +293,7 @@
         non_detenu_goulag: 'لست سجينًا في الغولاغ.', detenu_introuvable: 'لم يُعثر على السجين.',
         reserve_habilite_entree: 'مخصص للأشخاص المأذون لهم الحاضرين.', reserve_habilite_bureau: 'مخصص للأشخاص المأذون لهم الحاضرين.',
         reserve_habilite_mirador: 'مخصص للأشخاص المأذون لهم الحاضرين.', objet_introuvable: 'لم يُعثر على الغرض في مخزونك.',
-        pas_au_dortoir: 'في المهجع فقط.', pas_au_mirador: 'في برج المراقبة فقط.', pa_insuffisants: 'نقاط العمل غير كافية لهذا الأمر.', defaut: 'رفض الخادم هذا الأمر.'
+        pas_au_dortoir: 'في المهجع فقط.', pas_au_mirador: 'في برج المراقبة فقط.', pa_insuffisants: 'نقاط العمل غير كافية لهذا الأمر.', requete_deja_utilisee: 'سبق أن استخدم شخص آخر هذا الطلب؛ أعد المحاولة.', defaut: 'رفض الخادم هذا الأمر.'
       }
     },
     'pt-BR': {
@@ -333,7 +333,7 @@
         non_detenu_goulag: 'Você não é preso do gulag.', detenu_introuvable: 'Preso não encontrado.',
         reserve_habilite_entree: 'Reservado às pessoas autorizadas presentes.', reserve_habilite_bureau: 'Reservado às pessoas autorizadas presentes.',
         reserve_habilite_mirador: 'Reservado às pessoas autorizadas presentes.', objet_introuvable: 'Objeto não encontrado no seu inventário.',
-        pas_au_dortoir: 'Somente no dormitório.', pas_au_mirador: 'Somente na torre de vigia.', pa_insuffisants: 'PA insuficientes para esta ordem.', defaut: 'O servidor recusou esta ordem.'
+        pas_au_dortoir: 'Somente no dormitório.', pas_au_mirador: 'Somente na torre de vigia.', pa_insuffisants: 'PA insuficientes para esta ordem.', requete_deja_utilisee: 'Este pedido já foi usado por outra pessoa; recomece.', defaut: 'O servidor recusou esta ordem.'
       }
     },
     de: {
@@ -373,7 +373,7 @@
         non_detenu_goulag: 'Sie sind kein Häftling des Gulags.', detenu_introuvable: 'Häftling nicht gefunden.',
         reserve_habilite_entree: 'Nur für anwesende befugte Personen.', reserve_habilite_bureau: 'Nur für anwesende befugte Personen.',
         reserve_habilite_mirador: 'Nur für anwesende befugte Personen.', objet_introuvable: 'Gegenstand nicht im Inventar gefunden.',
-        pas_au_dortoir: 'Nur in der Baracke.', pas_au_mirador: 'Nur auf dem Wachturm.', pa_insuffisants: 'Nicht genug AP für diesen Befehl.', defaut: 'Der Server hat diesen Befehl abgelehnt.'
+        pas_au_dortoir: 'Nur in der Baracke.', pas_au_mirador: 'Nur auf dem Wachturm.', pa_insuffisants: 'Nicht genug AP für diesen Befehl.', requete_deja_utilisee: 'Diese Anfrage wurde bereits von jemand anderem verwendet; bitte neu beginnen.', defaut: 'Der Server hat diesen Befehl abgelehnt.'
       }
     }
   };

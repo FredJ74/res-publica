@@ -150,8 +150,13 @@ BEGIN
   SELECT * INTO d FROM public.personnages_donnees WHERE name = btrim(p_detenu) FOR UPDATE;
   IF NOT FOUND OR d.country IS DISTINCT FROM 'soviet' THEN
     RETURN jsonb_build_object('ok',false,'raison','detenu_introuvable'); END IF;
-  SELECT resultat INTO v_deja FROM public.sovarka_goulag_interrogatoires WHERE requete = p_requete;
-  IF FOUND THEN RETURN v_deja || jsonb_build_object('rejeu',true); END IF;
+  -- Rejeu : seulement pour le même interrogateur et le même détenu ; une clé déjà prise ailleurs est refusée.
+  SELECT CASE WHEN interrogateur = v_nom AND detenu = d.name THEN resultat END INTO v_deja
+    FROM public.sovarka_goulag_interrogatoires WHERE requete = p_requete;
+  IF FOUND THEN
+    IF v_deja IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','requete_deja_utilisee'); END IF;
+    RETURN v_deja || jsonb_build_object('rejeu',true);
+  END IF;
   v_det := public.sovarka_goulag_detention_registree_interne(d.name);
   SELECT * INTO r FROM public.sovarka_goulag_registre WHERE detention_id = v_det FOR UPDATE;
   IF NOT FOUND THEN RETURN jsonb_build_object('ok',false,'raison','detenu_introuvable'); END IF;
@@ -243,8 +248,12 @@ BEGIN
   IF NOT FOUND OR d.country IS DISTINCT FROM 'soviet' THEN
     RETURN jsonb_build_object('ok',false,'raison','detenu_introuvable'); END IF;
   v_cle := 'sanction:' || p_requete::text;
-  IF EXISTS (SELECT 1 FROM public.sovarka_goulag_incidents WHERE cle = v_cle) THEN
-    RETURN jsonb_build_object('ok',true,'rejeu',true,'detenu',d.name); END IF;
+  -- Rejeu : seulement pour le même juge, le même détenu et le même nombre de nuits, avant tout paiement.
+  SELECT CASE WHEN i.nom = d.name AND i.details->>'juge' = v_nom AND (i.details->>'nuits')::integer = p_nuits
+              THEN jsonb_build_object('ok',true,'rejeu',true,'detenu',d.name,'nuits',p_nuits)
+              ELSE jsonb_build_object('ok',false,'raison','requete_deja_utilisee') END
+    INTO v_res FROM public.sovarka_goulag_incidents i WHERE i.cle = v_cle;
+  IF FOUND THEN RETURN v_res; END IF;
   v_det := public.sovarka_goulag_detention_registree_interne(d.name);
   IF v_det IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','detenu_introuvable'); END IF;
   PERFORM 1 FROM public.sovarka_goulag_registre WHERE detention_id = v_det FOR UPDATE;
@@ -284,8 +293,13 @@ BEGIN
   IF v_refus IS NOT NULL THEN RETURN v_refus; END IF;
   -- Verrou du détenu d'abord : deux tentatives simultanées sont sérialisées (inventaire et compteurs).
   SELECT * INTO p FROM public.personnages_donnees WHERE name = v_nom AND user_id = auth.uid() FOR UPDATE;
-  SELECT resultat INTO v_deja FROM public.sovarka_goulag_corruptions WHERE requete = p_requete AND nom = v_nom;
-  IF FOUND THEN RETURN v_deja || jsonb_build_object('rejeu',true); END IF;
+  -- Rejeu : seulement pour le même détenu ; une clé déjà prise par un autre est refusée.
+  SELECT CASE WHEN nom = v_nom THEN resultat END INTO v_deja
+    FROM public.sovarka_goulag_corruptions WHERE requete = p_requete;
+  IF FOUND THEN
+    IF v_deja IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','requete_deja_utilisee'); END IF;
+    RETURN v_deja || jsonb_build_object('rejeu',true);
+  END IF;
   IF (p.country, p.current_city, p.current_building, p.current_room)
      IS DISTINCT FROM ('soviet','qhs','qhs-prison','mirador') THEN
     RETURN jsonb_build_object('ok',false,'raison','pas_au_mirador'); END IF;

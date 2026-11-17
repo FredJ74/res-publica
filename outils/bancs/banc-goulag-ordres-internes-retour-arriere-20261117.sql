@@ -58,6 +58,8 @@ BEGIN
 END $retour_purge$;
 
 DROP TRIGGER IF EXISTS sovarka_goulag_registre_ouverture ON public.detentions;
+DROP TRIGGER IF EXISTS sovarka_goulag_registre_jugement ON public.jugements;
+DROP FUNCTION IF EXISTS public.sovarka_goulag_registre_jugement();
 DROP FUNCTION IF EXISTS public.sovarka_goulag_sortie_jet_interne(text,text);
 DROP FUNCTION IF EXISTS public.sovarka_goulag_controle_minuit(date);
 DROP FUNCTION IF EXISTS public.sovarka_goulag_incidents_consulter();
@@ -85,6 +87,7 @@ DROP TABLE IF EXISTS public.sovarka_goulag_corruptions;
 DROP TABLE IF EXISTS public.sovarka_goulag_tentatives;
 DROP TABLE IF EXISTS public.sovarka_goulag_incidents;
 DROP TABLE IF EXISTS public.sovarka_goulag_controles;
+DROP TABLE IF EXISTS public.sovarka_goulag_registre_jugements;
 DROP TABLE IF EXISTS public.sovarka_goulag_registre;
 
 ROLLBACK;

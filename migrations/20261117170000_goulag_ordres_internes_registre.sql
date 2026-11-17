@@ -53,6 +53,18 @@ CREATE INDEX IF NOT EXISTS sovarka_goulag_registre_nom_idx ON public.sovarka_gou
 ALTER TABLE public.sovarka_goulag_registre ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.sovarka_goulag_registre FROM PUBLIC,anon,authenticated,service_role;
 
+-- Jugements déjà comptés dans un registre : chaque décision de goulag s'ajoute UNE fois au compteur
+-- (nouvelle condamnation, peine ajoutée en détention, peine prononcée après réincarcération).
+CREATE TABLE IF NOT EXISTS public.sovarka_goulag_registre_jugements (
+  jugement_id text PRIMARY KEY,
+  detention_id text NOT NULL REFERENCES public.detentions(id),
+  jours integer NOT NULL CHECK (jours >= 0),
+  ajoute boolean NOT NULL,
+  compte_le timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE public.sovarka_goulag_registre_jugements ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.sovarka_goulag_registre_jugements FROM PUBLIC,anon,authenticated,service_role;
+
 -- Historique daté des incidents du camp. `cle` rend chaque écriture idempotente.
 CREATE TABLE IF NOT EXISTS public.sovarka_goulag_incidents (
   id bigserial PRIMARY KEY,
@@ -159,16 +171,29 @@ BEGIN
     RETURN NULL; END IF;
   -- Reprise après évasion : le reliquat figé est exactement repris, sans peine ajoutée,
   -- avec les références judiciaires de la condamnation initiale.
+  -- Le jugement réel rendu dans la MÊME transaction (même horodatage), s'il n'est pas déjà compté.
+  SELECT j.id, j.country, j.city, j.juge,
+         CASE WHEN coalesce(j.data->>'jours','') ~ '^[0-9]+$' THEN (j.data->>'jours')::integer ELSE 0 END AS jours
+    INTO v_j FROM public.jugements j
+   WHERE j.accuse = d.nom AND j.country = 'soviet' AND j.data->>'genre' = 'qhs'
+     AND j.created_at = now()
+     AND NOT EXISTS (SELECT 1 FROM public.sovarka_goulag_registre_jugements g WHERE g.jugement_id = j.id)
+   ORDER BY j.id LIMIT 1;
   SELECT r.* INTO v_prec FROM public.sovarka_goulag_traversees t
     JOIN public.sovarka_goulag_registre r ON r.detention_id = t.detention_id
    WHERE t.nom = d.nom AND t.nouvelle_detention_id = d.id
    LIMIT 1;
   IF FOUND THEN
+    -- Reliquat figé + peine nouvellement prononcée (une seule fois), références initiales conservées.
     INSERT INTO public.sovarka_goulag_registre(detention_id,nom,jugement_id,tribunal_pays,
       tribunal_ville,juge,detention_precedente_id,jours_restants)
     VALUES (d.id,d.nom,v_prec.jugement_id,v_prec.tribunal_pays,v_prec.tribunal_ville,
-      v_prec.juge,v_prec.detention_id,v_prec.jours_restants)
+      v_prec.juge,v_prec.detention_id,v_prec.jours_restants + coalesce(v_j.jours,0))
     ON CONFLICT (detention_id) DO NOTHING;
+    IF v_j.id IS NOT NULL THEN
+      INSERT INTO public.sovarka_goulag_registre_jugements(jugement_id,detention_id,jours,ajoute)
+      VALUES (v_j.id,d.id,v_j.jours,true) ON CONFLICT (jugement_id) DO NOTHING;
+    END IF;
     UPDATE public.sovarka_goulag_registre SET reincarcere_le = now()
      WHERE detention_id = v_prec.detention_id AND reincarcere_le IS NULL;
     RETURN NULL;
@@ -188,15 +213,16 @@ BEGIN
       v_rest := greatest(0, coalesce(d.jour_fin - d.jour_debut, 0));
     END IF;
   END IF;
-  -- Le jugement réel rendu dans la MÊME transaction (même horodatage) ; sinon inconnu.
-  SELECT j.id, j.country, j.city, j.juge INTO v_j FROM public.jugements j
-   WHERE j.accuse = d.nom AND j.country = 'soviet' AND j.data->>'genre' = 'qhs'
-     AND j.created_at = now()
-   ORDER BY j.id LIMIT 1;
+  -- Références : le jugement de la même transaction ; sinon inconnues (jamais reconstituées).
   INSERT INTO public.sovarka_goulag_registre(detention_id,nom,jugement_id,tribunal_pays,
     tribunal_ville,juge,detention_precedente_id,jours_restants)
   VALUES (d.id,d.nom,v_j.id,v_j.country,v_j.city,v_j.juge,d.detention_precedente_id,v_rest)
   ON CONFLICT (detention_id) DO NOTHING;
+  -- Sa durée est déjà incluse dans le compteur initial : comptée, non ajoutée.
+  IF v_j.id IS NOT NULL THEN
+    INSERT INTO public.sovarka_goulag_registre_jugements(jugement_id,detention_id,jours,ajoute)
+    VALUES (v_j.id,d.id,v_j.jours,false) ON CONFLICT (jugement_id) DO NOTHING;
+  END IF;
   RETURN NULL;
 END $$;
 
@@ -207,9 +233,41 @@ CREATE CONSTRAINT TRIGGER sovarka_goulag_registre_ouverture
   FOR EACH ROW WHEN (NEW.country = 'soviet' AND NEW.qhs IS TRUE AND NEW.mode_fin IS NULL)
   EXECUTE FUNCTION public.sovarka_goulag_registre_ouvrir();
 
+-- Peine ajoutée pendant une détention au goulag déjà enregistrée (nouveau jugement exécuté par
+-- prolongation) : la durée prononcée s'ajoute une fois au compteur. Différé, après l'ouverture
+-- éventuelle du registre dans la même transaction (qui compte alors ce jugement elle-même).
+CREATE OR REPLACE FUNCTION public.sovarka_goulag_registre_jugement()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public','pg_temp' AS $$
+DECLARE j public.jugements%ROWTYPE; v_det text; v_jours integer;
+BEGIN
+  SELECT * INTO j FROM public.jugements WHERE id = NEW.id;
+  IF NOT FOUND OR j.country IS DISTINCT FROM 'soviet' OR j.data->>'genre' IS DISTINCT FROM 'qhs'
+     OR j.executee IS NOT TRUE OR j.accuse IS NULL THEN RETURN NULL; END IF;
+  IF EXISTS (SELECT 1 FROM public.sovarka_goulag_registre_jugements WHERE jugement_id = j.id) THEN
+    RETURN NULL; END IF;
+  v_det := public.sovarka_goulag_detention_registree_interne(j.accuse);
+  IF v_det IS NULL THEN RETURN NULL; END IF;
+  v_jours := CASE WHEN coalesce(j.data->>'jours','') ~ '^[0-9]+$' THEN (j.data->>'jours')::integer ELSE 0 END;
+  INSERT INTO public.sovarka_goulag_registre_jugements(jugement_id,detention_id,jours,ajoute)
+  VALUES (j.id, v_det, v_jours, true) ON CONFLICT (jugement_id) DO NOTHING;
+  IF FOUND THEN
+    UPDATE public.sovarka_goulag_registre SET jours_restants = jours_restants + v_jours
+     WHERE detention_id = v_det;
+  END IF;
+  RETURN NULL;
+END $$;
+
+DROP TRIGGER IF EXISTS sovarka_goulag_registre_jugement ON public.jugements;
+CREATE CONSTRAINT TRIGGER sovarka_goulag_registre_jugement
+  AFTER INSERT OR UPDATE OF executee ON public.jugements
+  DEFERRABLE INITIALLY DEFERRED
+  FOR EACH ROW WHEN (NEW.country = 'soviet' AND NEW.executee IS TRUE)
+  EXECUTE FUNCTION public.sovarka_goulag_registre_jugement();
+
 REVOKE ALL ON FUNCTION public.sovarka_goulag_ordres_refus_interne() FROM PUBLIC,anon,authenticated,service_role;
 REVOKE ALL ON FUNCTION public.sovarka_goulag_jour_interne() FROM PUBLIC,anon,authenticated,service_role;
 REVOKE ALL ON FUNCTION public.sovarka_goulag_detention_registree_interne(text) FROM PUBLIC,anon,authenticated,service_role;
 REVOKE ALL ON FUNCTION public.sovarka_goulag_habilite_present_interne(text,text) FROM PUBLIC,anon,authenticated,service_role;
 REVOKE ALL ON FUNCTION public.sovarka_goulag_incident_interne(text,text,text,text,jsonb) FROM PUBLIC,anon,authenticated,service_role;
 REVOKE ALL ON FUNCTION public.sovarka_goulag_registre_ouvrir() FROM PUBLIC,anon,authenticated,service_role;
+REVOKE ALL ON FUNCTION public.sovarka_goulag_registre_jugement() FROM PUBLIC,anon,authenticated,service_role;

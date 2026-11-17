@@ -218,6 +218,35 @@ class OrdresInternes(unittest.TestCase):
         self.assertEqual((reg['jugement_id'], reg['tribunal_pays'], reg['tribunal_ville'], reg['juge'], reg['jours_restants']),
                          ('jug-fx-affaire', 'soviet', 'capitale', JUGE, 30))
 
+    def nouveau_jugement(self, cible=DETENU, affaire='fx-addition', jours=30):
+        self.admin(); self.juge()
+        self.q.execute("UPDATE public.personnages_donnees SET current_city='capitale',current_building='tribunal',current_room='bureau_juge' WHERE name=%s", (JUGE,))
+        self.q.execute("INSERT INTO public.plaintes_en_cours(id,country,city,data) VALUES(%s,'soviet','capitale',%s)",
+                       (affaire, json.dumps({'status': 'saisie', 'audience_ouverte_le': 'fixture', 'cible': cible})))
+        self.client(4); r = self.sql("SELECT public.sovarka_goulag_juger(%s,'vol',%s)", (affaire, jours)); self.assertTrue(r['ok'], r)
+        self.admin(); self.q.execute('SET CONSTRAINTS ALL IMMEDIATE'); self.q.execute('SET CONSTRAINTS ALL DEFERRED')
+
+    def test_peine_ajoutee_en_detention_comptee_une_fois(self):
+        """Contrat #1020 : détenu à 5 jours + jugement réel de 30 jours = 35, une seule fois."""
+        self.detenu(jours=5); self.nouveau_jugement()
+        self.assertEqual(self.sql("SELECT jours_restants FROM public.sovarka_goulag_registre WHERE detention_id='fx-det'"), 35)
+        self.q.execute("UPDATE public.jugements SET executee=true WHERE id='jug-fx-addition'"); self.q.execute('SET CONSTRAINTS ALL IMMEDIATE')
+        self.assertEqual(self.sql("SELECT jours_restants FROM public.sovarka_goulag_registre WHERE detention_id='fx-det'"), 35)
+        self.assertEqual(self.sql("SELECT (jours,ajoute)::text FROM public.sovarka_goulag_registre_jugements WHERE jugement_id='jug-fx-addition'"), '(30,t)')
+        # Les références de la condamnation initiale (inconnues ici) ne sont pas remplacées.
+        self.assertIsNone(self.sql("SELECT jugement_id FROM public.sovarka_goulag_registre WHERE detention_id='fx-det'"))
+
+    def test_reincarceration_puis_nouvelle_peine(self):
+        """Contrat #1020 : évasion à 5 jours, puis nouveau jugement de 30 jours = 35, une seule fois."""
+        self.detenu(jours=5, piece='entree_qhs', pa=20)
+        self.client(); self.graine(lambda j: j <= 80)
+        self.assertTrue(self.sql("SELECT public.goulag_toundra_demarrer('starovka')")['ok'])
+        self.admin(); self.q.execute('UPDATE public.sovarka_goulag_traversees SET en_cours=false WHERE nom=%s', (DETENU,))
+        self.nouveau_jugement()
+        r = self.sql("SELECT row_to_json(x) FROM public.sovarka_goulag_registre x JOIN public.detentions d ON d.id=x.detention_id WHERE x.nom=%s AND d.mode_fin IS NULL", (DETENU,))
+        self.assertEqual((r['jours_restants'], r['detention_precedente_id']), (35, 'fx-det'))
+        self.assertEqual(self.sql("SELECT count(*) FROM public.sovarka_goulag_registre_jugements WHERE jugement_id='jug-fx-addition'"), 1)
+
     def test_jugement_inconnu_jamais_invente(self):
         self.detenu()
         reg = self.sql("SELECT row_to_json(r) FROM public.sovarka_goulag_registre r WHERE detention_id='fx-det'")
@@ -372,6 +401,35 @@ class OrdresInternes(unittest.TestCase):
         self.admin(); self.q.execute(f"UPDATE public.personnages_donnees SET current_room='mirador' WHERE name='{JUGE}'")
         self.client(4); self.sql(f"SELECT public.sovarka_goulag_sanctionner('{DETENU}',2,'{uuid.uuid4()}')")
         self.assertEqual(self.val(f"SELECT pa FROM public.personnages_donnees WHERE name='{JUGE}'"), 2)
+
+    def test_rejeu_lie_a_l_interrogateur_et_au_juge(self):
+        """Contrats #1020 : une clé de requête rejouée par un autre acteur est refusée, sans paiement."""
+        self.detenu(pa=20); self.present(); self.juge()
+        req = str(uuid.uuid4()); self.client(2)
+        self.assertTrue(self.sql('SELECT public.sovarka_goulag_interroger(%s,%s)', (DETENU, req))['ok'])
+        self.client(4); r = self.sql('SELECT public.sovarka_goulag_interroger(%s,%s)', (DETENU, req))
+        self.assertEqual((r['ok'], r['raison']), (False, 'requete_deja_utilisee'))
+        self.assertEqual(self.val('SELECT pa FROM public.personnages_donnees WHERE name=%s', (JUGE,)), 20)
+        # Sanction : même clé, autre juge, ou même juge avec un autre nombre de nuits : refus avant paiement.
+        req = str(uuid.uuid4()); self.client(4)
+        self.assertTrue(self.sql('SELECT public.sovarka_goulag_sanctionner(%s,1,%s)', (DETENU, req))['ok'])
+        self.assertEqual(self.sql('SELECT public.sovarka_goulag_sanctionner(%s,2,%s)', (DETENU, req))['raison'], 'requete_deja_utilisee')
+        self.assertTrue(self.sql('SELECT public.sovarka_goulag_sanctionner(%s,1,%s)', (DETENU, req))['rejeu'])
+        self.admin()
+        self.q.execute("UPDATE public.personnages_donnees SET poste='{\"id\":\"juge\",\"city\":\"ville_b\"}' WHERE name=%s", (VISITEUR,))
+        self.q.execute("INSERT INTO public.postes_attribues(id,country,poste_id,city,titulaire,source) VALUES('fx-autre-juge','soviet','juge','ville_b',%s,'fixture')", (VISITEUR,))
+        avant = self.sql('SELECT pa FROM public.personnages_donnees WHERE name=%s', (VISITEUR,))
+        self.client(2); r = self.sql('SELECT public.sovarka_goulag_sanctionner(%s,1,%s)', (DETENU, req))
+        self.assertEqual((r['ok'], r['raison']), (False, 'requete_deja_utilisee'))
+        self.assertEqual(self.val('SELECT pa FROM public.personnages_donnees WHERE name=%s', (VISITEUR,)), avant)
+        self.assertEqual(self.sql('SELECT pa FROM public.personnages_donnees WHERE name=%s', (JUGE,)), 19)
+        # Corruption : une clé prise par un autre détenu est refusée sans consommer d'objet.
+        self.q.execute(f"UPDATE public.personnages_donnees SET current_room='mirador',inventory='[{{\"name\":\"Pain\",\"type\":\"nourriture\",\"stackKey\":\"pain\"}}]' WHERE name='{DETENU}'")
+        reqc = str(uuid.uuid4())
+        self.q.execute("INSERT INTO public.sovarka_goulag_corruptions(requete,detention_id,nom,jour,objet,objet_perdu,taux,jet,reussi,resultat) VALUES(%s,'fx-det',%s,current_date,'{}',true,80,50,true,'{\"ok\":true}')", (reqc, REPUBLIC))
+        self.client(); r = self.corruption(requete=reqc, signature={'name': 'Pain', 'type': 'nourriture', 'stackKey': 'pain'})
+        self.assertEqual((r['ok'], r['raison']), (False, 'requete_deja_utilisee'))
+        self.assertEqual(len(self.val(f"SELECT inventory FROM public.personnages_donnees WHERE name='{DETENU}'")), 1)
 
     def test_interrogatoire_probabilites(self):
         self.detenu(pa=30); self.present()
