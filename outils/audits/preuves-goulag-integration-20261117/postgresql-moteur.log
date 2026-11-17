@@ -1,0 +1,37 @@
+test_activation_interdite_et_aucun_effet (__main__.Goulag) ... ok
+test_arrestation_aucun_jet_sur_piece_ou_visiteur (__main__.Goulag) ... ok
+test_arrestation_jet_unique_et_peine_reprise (__main__.Goulag) ... ok
+test_autorisation_permanente_reutilisable_revocable (__main__.Goulag) ... ok
+test_champignons_decision_2_unique (__main__.Goulag) ... ok
+test_compte_anonyme_sans_personnage (__main__.Goulag) ... ok
+test_departs_visiteur_seuils_et_absence_de_sanction (__main__.Goulag) ... ok
+test_deux_arrivees_bois_et_refuge (__main__.Goulag) ... ok
+test_evasion_reliquat_et_perte_depot (__main__.Goulag) ... ok
+test_geographie_bidirectionnelle (__main__.Goulag) ... ok
+test_inventaire_confiscation_restitution_et_perte (__main__.Goulag) ... ok
+test_jugement_atomique_et_double_clic (__main__.Goulag) ... ok
+test_migrations_rejouables (__main__.Goulag) ... ok
+test_ministre_etranger_refuse (__main__.Goulag) ... ok
+test_ministre_ne_condamne_pas (__main__.Goulag) ... ok
+test_navigation_groupe_reflete_membre_arrete (__main__.Goulag) ... ok
+test_navigation_publique_reflete_arrestation (__main__.Goulag) ... ok
+test_parcours_complets_sept_et_dix_jours (__main__.Goulag) ... ok
+test_pas_de_bonus_civil_en_toundra (__main__.Goulag) ... ok
+test_permissions_et_rls (__main__.Goulag) ... ok
+test_refuge_reconnexion_partielle_et_devis_perime (__main__.Goulag) ... ok
+test_refuge_reconnexion_tardive_sans_nuit (__main__.Goulag) ... ok
+test_rep_reste_inchangee (__main__.Goulag) ... ok
+test_revocation_ne_bloque_pas_sortie_visiteur_present (__main__.Goulag) ... ok
+test_rpc_gratuite_refusee_au_refuge (__main__.Goulag) ... ok
+test_rpc_gratuite_refusee_en_toundra (__main__.Goulag) ... ok
+test_second_refuge_reinitialise (__main__.Goulag) ... ok
+test_sommeil_partage_avec_autres_phases (__main__.Goulag) ... ok
+test_survie_plancher_et_repetition (__main__.Goulag) ... ok
+test_transport_habilite_tarif_national (__main__.Goulag) ... ok
+test_transport_sans_habilitation_refuse (__main__.Goulag) ... ok
+test_zz_concurrence_progression (__main__.Goulag) ... ok
+
+----------------------------------------------------------------------
+Ran 32 tests in 7.540s
+
+OK

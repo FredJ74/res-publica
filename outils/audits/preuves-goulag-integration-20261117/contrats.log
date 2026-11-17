@@ -1,0 +1,17 @@
+Source #1085 : HEAD
+test_contrat_absence_minuit_sans_evasion (__main__.Contrats) ... ok
+test_contrat_corruption_definitive (__main__.Contrats) ... ok
+test_contrat_corruption_reussie_refus_sans_perte (__main__.Contrats) ... ok
+test_contrat_interrogateur_un_pa (__main__.Contrats) ... ok
+test_contrat_juge_sanction_un_pa (__main__.Contrats) ... ok
+test_contrat_peine_ajoutee_en_detention (__main__.Contrats) ... ok
+test_contrat_reincarceration_et_nouvelle_peine (__main__.Contrats) ... ok
+test_contrat_rejeu_lie_a_interrogateur (__main__.Contrats) ... ok
+test_contrat_rejeu_sanction_lie_au_juge (__main__.Contrats) ... ok
+test_contrat_transfert_detention_commencee (__main__.Contrats) ... ok
+test_contrat_transfert_par_jugement_reel (__main__.Contrats) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 7.136s
+
+OK
