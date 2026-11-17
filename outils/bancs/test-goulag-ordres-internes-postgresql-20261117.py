@@ -70,6 +70,10 @@ class OrdresInternes(unittest.TestCase):
             for row in rows:
                 q.execute('INSERT INTO public.' + table + ' SELECT * FROM jsonb_populate_record(NULL::public.' + table + ',%s) ON CONFLICT DO NOTHING', (Json(row),))
         for p in MIGRATIONS_1020: q.execute(p.read_text())
+        RACCORDEES = ['public.goulag_toundra_demarrer(text)', 'public.pa_repos_nocturne(text)', 'public.detention_clore_purgee()']
+        cls.avant = {}
+        for sig in RACCORDEES:
+            q.execute('SELECT pg_get_functiondef(%s::regprocedure)', (sig,)); cls.avant[sig] = q.fetchone()[0]
         for p in MIGRATIONS: q.execute(p.read_text())
         q.execute('DROP TRIGGER IF EXISTS fixture_goulag_revision ON public.personnages_donnees;CREATE TRIGGER fixture_goulag_revision BEFORE UPDATE OF inventory ON public.personnages_donnees FOR EACH ROW EXECUTE FUNCTION public.inventaire_revision_garder()')
         for i, (nom, pays) in enumerate([(DETENU, 'soviet'), (VISITEUR, 'soviet'), (REPUBLIC, 'republic'), (JUGE, 'soviet')], 1):
@@ -176,6 +180,18 @@ class OrdresInternes(unittest.TestCase):
         src = self.sql("SELECT pg_get_functiondef('public.goulag_toundra_demarrer(text)'::regprocedure)")
         self.assertEqual(src.count('goulag_sortie_jet_20261117'), 1)
         self.assertEqual(self.sql("SELECT pg_get_functiondef('public.pa_repos_nocturne(text)'::regprocedure)").count('goulag_sommeil_dortoir_20261117'), 1)
+
+    def test_retour_arriere_restaure_les_fonctions(self):
+        script = (R / 'outils/bancs/banc-goulag-ordres-internes-retour-arriere-20261117.sql').read_text()
+        script = script.replace('BEGIN;', '', 1).replace('ROLLBACK;', '')
+        self.q.execute(script)
+        for sig, texte in self.avant.items():
+            self.assertEqual(self.sql('SELECT pg_get_functiondef(%s::regprocedure)', (sig,)), texte, sig)
+        self.assertIsNone(self.sql("SELECT to_regclass('public.sovarka_goulag_registre')"))
+        self.assertIsNotNone(self.sql("SELECT to_regclass('public.sovarka_goulag_traversees')"))
+        # Puis réinstallation : le lot est rejouable après un retour arrière.
+        for p in MIGRATIONS: self.q.execute(p.read_text())
+        self.assertIsNotNone(self.sql("SELECT to_regclass('public.sovarka_goulag_registre')"))
 
     def test_republia_qhs_inchange(self):
         """Le QHS de Républia garde son repos plafonné à 3 PA et ignore les ordres du goulag."""

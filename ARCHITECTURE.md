@@ -148,6 +148,7 @@ ligne trouvée fausse se corrige ici.
 | Tribunal et greffe | Procès, juges, avocats, témoins, casier, archives. | Serveur | Tribunaux. |
 | Prison et QHS | Détention, évasion, codétenus, haute sécurité. | Mixte | Établissements pénitentiaires. |
 | Grâce | Recommandation du ministre, décision du président. | Mixte | Rien : commun. |
+| Goulag de Sovarka — ordres internes (branche `claude/goulag-ordres-internes-20261117`) | Liste des détenus et contrôle de minuit, dortoir et cachot (peine purgée par le seul sommeil), registre, interrogatoire, sanction du juge présent, corruption, incidents, jet de sortie du camp. Référence : `GAME-DESIGN-GOULAG-SOVARKA-ORDRES-INTERNES.md`. | Serveur préparé sur le moteur #1020, **non installé et non activé**. | Goulag soviarkien. |
 
 ### Crime
 

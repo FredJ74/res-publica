@@ -1,0 +1,62 @@
+name: Goulag Sovarka - ordres internes
+on:
+  push:
+    branches:
+      - claude/goulag-ordres-internes-20261117
+  pull_request:
+    paths:
+      - 'plateau-goulag-ordres.js'
+      - 'migrations/*goulag_ordres_internes*.sql'
+      - 'outils/bancs/test-goulag-ordres-internes-*'
+      - 'outils/integration/goulag-*'
+      - 'api/cron-minuit.js'
+      - '.github/workflows/goulag-ordres-internes-20261117.yml'
+jobs:
+  ordres-internes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check plateau-goulag-ordres.js
+      - run: node --check api/cron-minuit.js
+      - run: node --test outils/bancs/test-goulag-ordres-internes-20261117.cjs
+      # Moteur préparé par Codex (PR #1020) : lu sur sa branche, jamais modifié ici.
+      # Une fois #1020 fusionnée, ses migrations sont déjà dans ce dépôt.
+      - name: Copie du moteur #1020
+        run: |
+          if git fetch --no-tags origin chatgpt/goulag-moteur-survie-20261116; then
+            git worktree add --detach "$RUNNER_TEMP/moteur-1020" FETCH_HEAD
+          else
+            git worktree add --detach "$RUNNER_TEMP/moteur-1020" HEAD
+          fi
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python3 -m pip install -r outils/bancs/requirements-postgres-local.txt
+      - name: PostgreSQL 17.6 local isolé
+        env:
+          HGPG17_PREFIX: ${{ runner.temp }}/goulag-pg17
+        run: |
+          bash outils/bancs/installer-postgresql17-local.sh
+          python3 outils/bancs/test-goulag-ordres-internes-postgresql-20261117.py --postgres-bin "$HGPG17_PREFIX/bin" --moteur-1020 "$RUNNER_TEMP/moteur-1020"
+      - name: Épreuves #1020 avec ce chantier (intégration, copie jetable)
+        env:
+          HGPG17_PREFIX: ${{ runner.temp }}/goulag-pg17
+        run: |
+          cd "$RUNNER_TEMP/moteur-1020"
+          cp "$GITHUB_WORKSPACE"/migrations/20261117*_goulag_ordres_internes_*.sql migrations/
+          git apply "$GITHUB_WORKSPACE/outils/integration/goulag-1020-adaptation-tests-ordres-internes.diff"
+          python3 outils/bancs/test-goulag-postgresql-20261116.py --postgres-bin "$HGPG17_PREFIX/bin"
+      - run: npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
+      - run: npx --prefix outils/e2e playwright install --with-deps chromium webkit
+      - run: node outils/bancs/test-goulag-ordres-internes-navigateur-20261117.cjs
+      - run: node outils/bancs/test-goulag-ordres-internes-navigateur-20261117.cjs
+        env:
+          GOULAG_BROWSER: webkit
