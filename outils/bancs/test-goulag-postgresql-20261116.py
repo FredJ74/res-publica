@@ -213,6 +213,15 @@ class Goulag(unittest.TestCase):
   self.graine(True);self.client();r=self.sql("SELECT public.navigation_interieure('hotel-mineur','hall_mineur')")
   self.assertTrue(r['ok'],r);self.assertTrue(r['goulag_arrestation']['ok'])
   self.admin();self.assertEqual(self.sql("SELECT current_city FROM public.personnages_donnees WHERE name='__goulag_detenu'"),'qhs')
+ def test_navigation_groupe_reflete_membre_arrete(self):
+  self.activation_fixture();self.fugitif()
+  self.q.execute("UPDATE public.personnages_donnees SET country='soviet',current_city='ville_a',current_street='starovka-rue-hotel',current_building=NULL,current_room=NULL WHERE name IN ('__goulag_detenu','__goulag_visiteur')")
+  self.q.execute("INSERT INTO public.groupes_pj_adhesions(membre,chef) VALUES('__goulag_detenu','__goulag_visiteur')")
+  self.graine(True);self.client(2);r=self.sql("SELECT public.navigation_interieure('hotel-mineur','hall_mineur')")
+  self.assertTrue(r['ok'],r);self.assertTrue(r['goulag_arrestation']['ok']);self.assertFalse(r['goulag_arrestation']['arrete'])
+  self.admin();self.assertEqual(self.sql("SELECT current_building FROM public.personnages_donnees WHERE name='__goulag_visiteur'"),'hotel-mineur')
+  self.assertEqual(self.sql("SELECT current_city FROM public.personnages_donnees WHERE name='__goulag_detenu'"),'qhs')
+  self.assertEqual(self.sql('SELECT count(*) FROM public.sovarka_goulag_entrees'),1)
  def test_migrations_rejouables(self):
   for p in self.migrations:self.q.execute(p.read_text())
   self.assertFalse(self.sql('SELECT active FROM public.sovarka_goulag_configuration'))

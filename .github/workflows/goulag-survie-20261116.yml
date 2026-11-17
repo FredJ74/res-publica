@@ -43,6 +43,7 @@ jobs:
       - run: node outils/bancs/test-goulag-decors-20261116.cjs
       - run: node outils/bancs/test-goulag-decor-runtime-20261116.cjs
       - run: node outils/bancs/test-goulag-ecran-interactif-20261116.cjs
+      - run: node --test outils/bancs/test-goulag-navigation-20261117.cjs
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'

@@ -78,8 +78,9 @@ BEGIN
  ancre:=E'  RETURN v;';
  ajout:=E'  -- goulag_navigation_arrestation_20261117\n'
   ||E'  IF coalesce((v->>''ok'')::boolean,false) AND EXISTS(SELECT 1 FROM public.sovarka_goulag_entrees\n'
-  ||E'    WHERE nom=v_moi AND transaction_id=txid_current() AND arrete) THEN\n'
-  ||E'   v:=v||jsonb_build_object(''goulag_arrestation'',jsonb_build_object(''ok'',true,''arrete'',true)); END IF;\n'||ancre;
+  ||E'    WHERE transaction_id=txid_current() AND arrete AND (nom=v_moi OR coalesce(v->''membres'',''[]''::jsonb) ? nom)) THEN\n'
+  ||E'   v:=v||jsonb_build_object(''goulag_arrestation'',jsonb_build_object(''ok'',true,''arrete'',\n'
+  ||E'    EXISTS(SELECT 1 FROM public.sovarka_goulag_entrees WHERE transaction_id=txid_current() AND arrete AND nom=v_moi))); END IF;\n'||ancre;
  IF (length(source)-length(replace(source,ancre,'')))<>length(ancre) THEN RAISE EXCEPTION 'navigation_goulag_ancre_absente'; END IF;
  EXECUTE replace(source,ancre,ajout);
 END $navigation_arrestation$;
