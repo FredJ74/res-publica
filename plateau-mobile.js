@@ -66,7 +66,8 @@
   window.addEventListener('resize', dimensionner);
   // Les zones gardent leurs gestionnaires : la liste tactile les active, elle ne
   // reconstruit ni les destinations ni les contrôles du moteur de déplacement.
-  const scenesPreparees = new WeakSet();
+  // Les zones cliquables du décor sont suffisantes : aucun panneau
+  // « Lieux visibles » dupliqué sous la photographie sur mobile.
   function preparerScene() {
     document.querySelectorAll('.rc-fleche[onclick],.minimap-building[onclick]').forEach(e => {
       e.setAttribute('role','button'); e.tabIndex = 0;
@@ -77,20 +78,9 @@
           : /chevron-right/.test(icone) ? 'À droite' : 'Tout droit');
       }
     });
-    const scene = document.getElementById('rc-scene');
-    if (!petit.matches || !scene || scenesPreparees.has(scene)) return;
-    const zones = [...scene.querySelectorAll('.rc-zone')];
-    if (!zones.length) return;
-    scenesPreparees.add(scene);
-    const details = document.createElement('details'); details.className = 'hg-lieux-tactiles';
-    const titre = document.createElement('summary'); titre.textContent = 'Lieux visibles'; details.append(titre);
-    zones.forEach(zone => {
-      const b = document.createElement('button'); b.type = 'button';
-      b.textContent = zone.getAttribute('aria-label') || 'Consulter ce lieu';
-      b.addEventListener('click', () => { if (zone.isConnected) zone.click(); });
-      details.append(b);
-    });
-    scene.after(details);
+    // Nettoie également les panneaux éventuellement construits avant un changement
+    // de version du script ou un rerendu de scène.
+    document.querySelectorAll('#vue-rue .hg-lieux-tactiles').forEach(e => e.remove());
   }
   document.addEventListener('keydown', e => {
     if (!e.target.matches('.rc-zone,.rc-fleche[onclick],.minimap-building[onclick]')) return;
