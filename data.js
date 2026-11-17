@@ -12806,9 +12806,9 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
   if (!ville) throw new Error('Starovka absente');
   const portraits = [
     ['usine-principale', 'direction_usine', 'Damdin Mazoutov (PNJ)', 'images/Sovarka/Starovka/Starovka_portrait_usine-principale_damdin-mazoutov.webp'],
-    ['centre-artisanal', 'travees', 'Bayar Otchirov (PNJ)', 'images/Sovarka/Starovka/Starovka_portrait_centre-artisanal_bayar-otchirov.webp'],
-    ['centre-artisanal', 'travees', 'Ganbold Garmaïev (PNJ)', 'images/Sovarka/Starovka/Starovka_portrait_centre-artisanal_ganbold-garmaiev.webp'],
-    ['centre-artisanal', 'travees', 'Temür Dougarov (PNJ)', 'images/Sovarka/Starovka/Starovka_portrait_centre-artisanal_temur-dougarov.webp'],
+    ['centre-artisanal', 'travees', 'Bayar Otchirov', 'images/Sovarka/Starovka/Starovka_portrait_centre-artisanal_bayar-otchirov.webp'],
+    ['centre-artisanal', 'travees', 'Ganbold Garmaïev', 'images/Sovarka/Starovka/Starovka_portrait_centre-artisanal_ganbold-garmaiev.webp'],
+    ['centre-artisanal', 'travees', 'Temür Dougarov', 'images/Sovarka/Starovka/Starovka_portrait_centre-artisanal_temur-dougarov.webp'],
     ['stade', 'siege_supporters', 'Meneur des Supporters (PNJ)', 'images/Sovarka/Starovka/Starovka_portrait_stade_meneur-supporters.webp'],
     ['presse-starovka', 'presse', 'Saran Batbayar (PNJ)', 'images/Sovarka/Starovka/Starovka_portrait_presse-starovka_saran-batbayar.webp'],
     ['maison-starovka', 'piece_maison', 'Dolgor Tsybikova (PNJ)', 'images/Sovarka/Starovka/Starovka_portrait_maison-starovka_dolgor-tsybikova.webp'],
