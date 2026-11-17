@@ -11,6 +11,7 @@
 // l'IA par bouteille. En cas d'échec, l'écran garde la phrase fixe déjà affichée.
 import { appelDeepSeek, joueurAuthentifie } from './_deepseek.js';
 import { LANGUES, langueDialogueAutorisee } from './_pnj-profils.js';
+import { CONSIGNE_BOURIATE_STAROVKA } from './_pnj-culture-bouriate.js';
 import { SUPABASE_URL, SUPABASE_ANON } from './_supabase.js';
 
 const ORIGINE = 'https://res-publica.vercel.app';
@@ -68,6 +69,7 @@ export async function handlerReactionHabitant(req, res) {
   const langue = langueDialogueAutorisee(body.lang);
   const consigne = (LANGUES[langue] || LANGUES.en || {}).consigne || '';
   const systeme = portrait
+    + (geste.habitant === 'Dolgor Tsybikova' ? '\n' + CONSIGNE_BOURIATE_STAROVKA : '')
     + "\nUn visiteur vient de t'offrir " + (ALCOOLS[geste.alcool] || ALCOOLS.alcool) + " et vous trinquez ensemble."
     + "\nRéagis en une ou deux phrases courtes, à voix haute, avec ta personnalité : ce que t'inspire cette bouteille, puis un toast."
     + " Pas de didascalie, pas de guillemets, pas de secret ni de ragot (ils viennent juste après), aucune promesse d'objet ou d'argent."
