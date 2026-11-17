@@ -11252,20 +11252,9 @@ function slugPnjSovarka(nom) {
   entrepot.desc = "Starovka Logistika, au bout du quai. Pétrole, charbon et bois du Grand Nord y attendent le train ou le brise-glace.";
   for (const piece of Object.values(entrepot.rooms)) delete piece.imageUrl;
   entrepot.rooms.bureau_direction.persons = [{name:'Batzorig Dorjiev (PNJ)', role:"Directeur de l'Entrepôt Logistique", rel:'neutral', job:'directeur_entrepot'}];
-  const psm = BUILDINGS['port-sainte-marie'].rooms;
-  // Bureau portuaire voulu dans l'entrepôt logistique, et non au quai.
-  entrepot.rooms.administration_portuaire = {
-        name: psm.administration_portuaire.name,
-        imageBg: "linear-gradient(135deg,#0b1016,#16212c)",
-        desc: "Le bureau du Commandant du Port, au-dessus des quais. Par la grande baie vitrée, les grues chargent les cargos ; au mur, le plan du port de Starovka. Les douaniers y déposent leurs dossiers.",
-        imageUrl: "images/Sovarka/Starovka/Starovka_port_administration_portuaire.webp",
-        persons: [{name:'Commandant Tömör Ochirov (PNJ)', role:'Commandant de Port', rel:'neutral', job:'capitaine_port'}],
-        orders: copie(psm.administration_portuaire.orders).filter(o => o.fn !== 'consulter_manifeste').map(o => Object.assign(o,
-          o.fn === 'consulter_administration_port'
-            ? { desc: 'Caisse du port, balance commerciale, marchandises, contrats de la nuit et registre du port. Consultation publique, gratuite.' }
-            : { desc: 'Réservé au Commandant du Port : fléchage vers les entrepôts, prix de cession et d\'exportation, quotas, taux de douane.' }))
-  };
   BUILDINGS['entrepot-logistique-starovka'] = entrepot;
+
+  const psm = BUILDINGS['port-sainte-marie'].rooms;
   BUILDINGS['port-starovka'] = {
     name: "Port Industriel de Starovka",
     shortName: "Port Industriel",
@@ -11295,7 +11284,20 @@ function slugPnjSovarka(nom) {
         persons: [{name:'Douanier Sükhbaatar Baïartouïev (PNJ)', role:'Douanier du port', rel:'neutral', job:'agent_portuaire'}],
         orders: []
       },
-
+      // Bureau du Commandant du Port de Sovarka (Fred, 16/11/2026, GAME-DESIGN-REGULATION-PRODUCTION.md) :
+      // piece du port, comme l'administration portuaire de PSM. Image de Fred (16/11/2026). Ordres du
+      // commandant raccordes par le commerce international (#1024) : administration du port, logistique.
+      administration_portuaire: {
+        name: psm.administration_portuaire.name,
+        imageBg: "linear-gradient(135deg,#0b1016,#16212c)",
+        desc: "Le bureau du Commandant du Port, au-dessus des quais. Par la grande baie vitrée, les grues chargent les cargos ; au mur, le plan du port de Starovka. Les douaniers y déposent leurs dossiers.",
+        imageUrl: "images/Sovarka/Starovka/Starovka_port_administration_portuaire.webp",
+        persons: [{name:'Commandant Tömör Ochirov (PNJ)', role:'Commandant de Port', rel:'neutral', job:'capitaine_port'}],
+        orders: copie(psm.administration_portuaire.orders).filter(o => o.fn !== 'consulter_manifeste').map(o => Object.assign(o,
+          o.fn === 'consulter_administration_port'
+            ? { desc: 'Caisse du port, balance commerciale, marchandises, contrats de la nuit et registre du port. Consultation publique, gratuite.' }
+            : { desc: 'Réservé au Commandant du Port : fléchage vers les entrepôts, prix de cession et d\'exportation, quotas, taux de douane.' }))
+      }
     }
   };
 }
