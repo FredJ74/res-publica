@@ -1,0 +1,24 @@
+name: Starovka — bureau du Commandant dans l'entrepôt
+on:
+  pull_request:
+    paths:
+      - 'data.js'
+      - 'migrations/20261117123500_starovka_bureau_commandant_entrepot.sql'
+      - 'outils/bancs/test-starovka-commandant-entrepot-20261117.cjs'
+      - '.github/workflows/starovka-bureau-commandant.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'data.js'
+      - 'migrations/20261117123500_starovka_bureau_commandant_entrepot.sql'
+      - 'outils/bancs/test-starovka-commandant-entrepot-20261117.cjs'
+jobs:
+  verification:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check data.js
+      - run: node outils/bancs/test-starovka-commandant-entrepot-20261117.cjs
