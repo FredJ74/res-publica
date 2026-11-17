@@ -84,6 +84,21 @@
   /* La carte et la liste de présents conservent leur accès via les panneaux mobiles existants. */
   #vue-rue .rue-container>.minimap,#vue-rue .rue-container>.persons-sidebar{order:7}
   #vue-rue .hg-lieux-tactiles{border:1px solid #977f56;border-radius:9px;margin:6px 12px 8px}
+
+  /* Le panneau tactile est un enfant de #rue-image rendu display:contents.
+     Sans ordre explicite, son order:0 passe devant les onglets et les masque. */
+  #vue-rue .hg-lieux-tactiles {
+    order:5;
+    position:relative;
+    z-index:0;
+    flex:0 0 auto;
+    width:auto;
+    max-width:calc(100% - 24px);
+    box-sizing:border-box;
+    overflow:visible;
+  }
+  #vue-rue .hg-explore-info {order:6;flex:0 0 auto;}
+  #vue-rue #actionbar {order:7;flex:0 0 auto;}
 }
 @media(max-width:360px){
   #hg-mobile-identite-20261117 .hg-identite-statut{grid-template-columns:repeat(2,minmax(0,1fr))}
