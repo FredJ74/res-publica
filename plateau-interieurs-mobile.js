@@ -17,6 +17,13 @@
     'zh-TW':['房間','操作','資訊']
   };
   const nav=document.getElementById('hg-room-primary') || document.createElement('nav');nav.className='hg-room-tabs';
+  // Les pieces ne prennent plus une rangée permanente sur téléphone.
+  // Le DOM métier #pieces-tabs est déplacé sans recréer ses boutons ou événements.
+  const roomPanel=document.createElement('section');
+  roomPanel.id='hg-room-list';
+  roomPanel.className='hg-room-list';
+  roomPanel.hidden=true;
+  roomPanel.setAttribute('aria-label','Pièces accessibles');
   const info=document.createElement('section');info.className='hg-room-info';
   info.id='hg-room-info';info.setAttribute('role','region');info.hidden=true;
   const title=document.createElement('strong');const desc=document.createElement('div');
@@ -27,16 +34,34 @@
     button.setAttribute('aria-pressed','false');
     button.addEventListener('click',()=>{
       if(!mobile.matches)return;
-      buttons.forEach((b,j)=>b.setAttribute('aria-pressed',String(i===j)));
+      const openRooms=i===0 && roomPanel.hidden;
+      roomPanel.hidden=!openRooms;
       info.hidden=i!==2;
-      if(i===0)rooms.scrollIntoView({block:'nearest',behavior:'smooth'});
+      buttons.forEach((b,j)=>b.setAttribute('aria-pressed',String(i===j && (i!==0 || openRooms))));
+      if(openRooms)roomPanel.scrollIntoView({block:'nearest',behavior:'smooth'});
       if(i===1)actionbar.scrollIntoView({block:'nearest',behavior:'smooth'});
       if(i===2)info.scrollIntoView({block:'nearest',behavior:'smooth'});
     });
     if(!button.isConnected)nav.append(button);return button;
   });
   // Afficher les acces des l'entree dans le batiment, pas apres l'image.
-  if(nav.parentElement!==vue)header.after(nav);nav.after(info);
+  if(nav.parentElement!==vue)header.after(nav);
+  nav.after(roomPanel,info);
+  function syncRoomsPosition(){
+    if(mobile.matches){
+      if(rooms.parentElement!==roomPanel)roomPanel.append(rooms);
+    }else{
+      if(rooms.parentElement!==header)header.append(rooms);
+      roomPanel.hidden=true;
+      info.hidden=true;
+      buttons.forEach(b=>b.setAttribute('aria-pressed','false'));
+    }
+  }
+  rooms.addEventListener('click',event=>{
+    if(!mobile.matches || !event.target.closest('.piece-tab'))return;
+    roomPanel.hidden=true;
+    buttons[0].setAttribute('aria-pressed','false');
+  });
 
   function translate(){
     const lang=document.documentElement.lang||'fr';
@@ -54,6 +79,7 @@
   const watch=(node,fn)=>node&&new MutationObserver(fn).observe(node,{subtree:true,childList:true,characterData:true});
   watch(roomName,update);watch(roomDesc,update);
   new MutationObserver(translate).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});
-  mobile.addEventListener?.('change',()=>{if(!mobile.matches){info.hidden=true;buttons.forEach(b=>b.setAttribute('aria-pressed','false'));}});
+  mobile.addEventListener?.('change',syncRoomsPosition);
+  syncRoomsPosition();
   translate();update();
 })();

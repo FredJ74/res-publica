@@ -8,6 +8,11 @@
   #vue-batiment .batiment-header-info{flex:1 1 160px;min-width:0}
   #vue-batiment .batiment-nom{font-size:1.15rem;color:#f0dba7;line-height:1.3;overflow-wrap:anywhere}
   #vue-batiment .batiment-cat{font-size:.89rem;color:#c3b594}
+  /* Masquer la rangée initiale avant le chargement JS ; réafficher dans l'onglet Pièces. */
+  #vue-batiment .batiment-header #pieces-tabs{display:none}
+  #vue-batiment .hg-room-list[hidden]{display:none!important}
+  #vue-batiment .hg-room-list:not([hidden]){display:block;padding:8px 10px;background:#17222d;border-bottom:1px solid rgba(169,141,86,.45)}
+  #vue-batiment .hg-room-list #pieces-tabs{display:flex;flex-wrap:wrap;gap:7px;padding:4px 0;overflow-x:visible;overflow-y:visible}
   #vue-batiment .pieces-tabs{display:flex;flex:1 0 100%;min-width:0;max-width:100%;gap:7px;padding:5px 0 3px;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;scroll-snap-type:x proximity}
   #vue-batiment .piece-tab{flex:0 0 auto;min-height:44px;display:flex;align-items:center;max-width:min(290px,80vw);white-space:normal;line-height:1.25;overflow-wrap:anywhere;scroll-snap-align:start;padding:7px 12px;border:1px solid #76674a;border-radius:8px;background:#273746;color:#e0d0ad;font-family:'Crimson Pro',serif;font-size:.95rem;letter-spacing:0}
   #vue-batiment .piece-tab.active{background:#ad905e;border-color:#e6cf9e;color:#121d26}
