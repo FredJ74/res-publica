@@ -26,14 +26,14 @@ with Image.open(source) as im:
     w,h=im.size
     assert w>=900 and h>=600, f"Planche trop petite {w}x{h}"
     ratio=w/h
-    assert 1.15<ratio<1.9, f"Planche 3×3 attendue {w}x{h}"
+    assert .9<ratio<1.9, f"Planche 3×3 attendue {w}x{h}"
     tw,th=w/3,h/3
     for i, (name,building,room,slug) in enumerate(labels):
         col,row=i%3,i//3
         # Zone carrée centrée sur le visage, au-dessus du cartouche de nom
-        side=min(tw*.51,th*.73)
+        side=min(tw*.67,th*.68)
         cx=(col+.5)*tw
-        cy=row*th+th*.395
+        cy=row*th+th*.38
         box=(round(cx-side/2),round(cy-side/2),round(cx+side/2),round(cy+side/2))
         assert box[0]>=0 and box[1]>=0 and box[2]<=w and box[3]<=h
         portrait=im.crop(box).convert("RGB").resize((512,512),Image.Resampling.LANCZOS)
