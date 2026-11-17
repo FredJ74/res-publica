@@ -1,18 +1,102 @@
-OK  node --check api/_goulag-parcours.js
-OK  node --check api/_goulag-survie.js
-OK  node --check outils/bancs/test-goulag-parcours-20261116.cjs
-OK  node --check outils/bancs/test-goulag-survie-20261116.cjs
-OK  node --check plateau-goulag-refuge.js
-OK  node --check plateau-goulag-toundra.js
-OK  node --check plateau-goulag-transports.js
-OK  node --check plateau-justice-economie.js
-OK  node --check plateau-politique.js
-OK  node --check plateau-router.js
-OK  node --test outils/bancs/test-goulag-navigation-20261117.cjs
-OK  node outils/bancs/test-goulag-decor-runtime-20261116.cjs
-OK  node outils/bancs/test-goulag-decors-20261116.cjs
-OK  node outils/bancs/test-goulag-ecran-interactif-20261116.cjs
-OK  node outils/bancs/test-goulag-interface-circuits-20261116.cjs
-OK  node outils/bancs/test-goulag-parcours-20261116.cjs
-OK  node outils/bancs/test-goulag-sql-structure-20261116.cjs
-OK  node outils/bancs/test-goulag-survie-20261116.cjs
+TAP version 13
+# Goulag : cinq pièces WebP, entrée en premier, dortoir carcéral, aucun ordre, autres empires intacts : OK
+# Subtest: outils/bancs/test-goulag-cinq-pieces-20261116.cjs
+ok 1 - outils/bancs/test-goulag-cinq-pieces-20261116.cjs
+  ---
+  duration_ms: 178.755777
+  ...
+# Goulag : ordres exclusivement sovarkiens et images progressives 1–10 vérifiés
+# Subtest: outils/bancs/test-goulag-decor-runtime-20261116.cjs
+ok 2 - outils/bancs/test-goulag-decor-runtime-20261116.cjs
+  ---
+  duration_ms: 179.118796
+  ...
+# Goulag : 10 images WebP, poids/dimensions/ordre, suppression PNG, routes et interface vérifiés
+# Subtest: outils/bancs/test-goulag-decors-20261116.cjs
+ok 3 - outils/bancs/test-goulag-decors-20261116.cjs
+  ---
+  duration_ms: 161.906985
+  ...
+# Goulag : écran, 3 ordres, RPC serveur et passage visuel 01 → 02 testés
+# Subtest: outils/bancs/test-goulag-ecran-interactif-20261116.cjs
+ok 4 - outils/bancs/test-goulag-ecran-interactif-20261116.cjs
+  ---
+  duration_ms: 156.663571
+  ...
+# Goulag interface : modules chargés, demandes, transport, refuge, champignons, juge seul : OK
+# Subtest: outils/bancs/test-goulag-interface-circuits-20261116.cjs
+ok 5 - outils/bancs/test-goulag-interface-circuits-20261116.cjs
+  ---
+  duration_ms: 144.383232
+  ...
+# Subtest: arrestation personnelle : position relue, aucune entrée cliente fictive
+ok 6 - arrestation personnelle : position relue, aucune entrée cliente fictive
+  ---
+  duration_ms: 14.60064
+  ...
+# Subtest: membre arrêté : chef relu sans afficher sa propre condamnation
+ok 7 - membre arrêté : chef relu sans afficher sa propre condamnation
+  ---
+  duration_ms: 13.005105
+  ...
+# Subtest: entrée ordinaire : même navigation, aucun rechargement ni dépense
+ok 8 - entrée ordinaire : même navigation, aucun rechargement ni dépense
+  ---
+  duration_ms: 13.59312
+  ...
+# Subtest: double clic arrêté : une seule mutation et une seule relecture
+ok 9 - double clic arrêté : une seule mutation et une seule relecture
+  ---
+  duration_ms: 12.934004
+  ...
+# Subtest: seul juge sovarkien, jugement QHS réel validé
+ok 10 - seul juge sovarkien, jugement QHS réel validé
+  ---
+  duration_ms: 2.408586
+  ...
+# Subtest: transport nominatif et pays du poste, détenu bloqué
+ok 11 - transport nominatif et pays du poste, détenu bloqué
+  ---
+  duration_ms: 0.623689
+  ...
+# Subtest: confiscation, clés conservées, restitution idempotente, perte irréversible
+ok 12 - confiscation, clés conservées, restitution idempotente, perte irréversible
+  ---
+  duration_ms: 1.947145
+  ...
+# Subtest: parcours visiteur et détenu, destination géographique, PA et peine
+ok 13 - parcours visiteur et détenu, destination géographique, PA et peine
+  ---
+  duration_ms: 0.59333
+  ...
+# Subtest: refuge : 5 et 3 bois, deux nuits maximum, aucun doublon
+ok 14 - refuge : 5 et 3 bois, deux nuits maximum, aucun doublon
+  ---
+  duration_ms: 0.407251
+  ...
+# Subtest: quatre décisions définitives du 16/11, aucune règle supposée
+ok 15 - quatre décisions définitives du 16/11, aucune règle supposée
+  ---
+  duration_ms: 0.187909
+  ...
+# Goulag : migration préparatoire verrouillée, juge seul, clés, refuge, non-activation : OK
+# Subtest: outils/bancs/test-goulag-sql-structure-20261116.cjs
+ok 8 - outils/bancs/test-goulag-sql-structure-20261116.cjs
+  ---
+  duration_ms: 82.245155
+  ...
+# Goulag Sovarka : seuils, survie, double-clic, jours, bois, arrivée et fatigue : OK
+# Subtest: outils/bancs/test-goulag-survie-20261116.cjs
+ok 9 - outils/bancs/test-goulag-survie-20261116.cjs
+  ---
+  duration_ms: 79.822458
+  ...
+1..17
+# tests 17
+# suites 0
+# pass 17
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 258.458178

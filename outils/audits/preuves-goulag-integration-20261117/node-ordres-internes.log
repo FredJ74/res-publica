@@ -2,94 +2,54 @@ TAP version 13
 # Subtest: ordres proposés par pièce, détenu ou personne habilitée
 ok 1 - ordres proposés par pièce, détenu ou personne habilitée
   ---
-  duration_ms: 15.599225
+  duration_ms: 14.001901
   ...
 # Subtest: aucune fuite vers le QHS de Républia ni hors du camp
 ok 2 - aucune fuite vers le QHS de Républia ni hors du camp
   ---
-  duration_ms: 3.635793
+  duration_ms: 2.569765
   ...
 # Subtest: les neuf langues portent tous les textes, noms propres en alphabet latin
 ok 3 - les neuf langues portent tous les textes, noms propres en alphabet latin
   ---
-  duration_ms: 7.391578
+  duration_ms: 8.054411
   ...
 # Subtest: doOrder est enveloppé : ordres du goulag routés, autres ordres inchangés
 ok 4 - doOrder est enveloppé : ordres du goulag routés, autres ordres inchangés
   ---
-  duration_ms: 13.630097
+  duration_ms: 9.524587
   ...
 # Subtest: un refus serveur est nommé, sans effet calculé par l’écran
 ok 5 - un refus serveur est nommé, sans effet calculé par l’écran
   ---
-  duration_ms: 3.552138
+  duration_ms: 4.227394
   ...
 # Subtest: fenêtres : sens d’écriture automatique, aucune couleur en dur
 ok 6 - fenêtres : sens d’écriture automatique, aucune couleur en dur
   ---
-  duration_ms: 0.666419
+  duration_ms: 0.561062
   ...
 # Subtest: plateau.html charge le module une seule fois, avant le routeur
 ok 7 - plateau.html charge le module une seule fois, avant le routeur
   ---
-  duration_ms: 2.266993
+  duration_ms: 1.80297
   ...
 # Subtest: cron de minuit : contrôle idempotent côté serveur, tolérant à un moteur absent
 ok 8 - cron de minuit : contrôle idempotent côté serveur, tolérant à un moteur absent
   ---
-  duration_ms: 5.11812
+  duration_ms: 2.359769
   ...
 # Subtest: migrations : additives, verrouillées par \#1020, sans écriture par la vue personnages
 ok 9 - migrations : additives, verrouillées par \#1020, sans écriture par la vue personnages
   ---
-  duration_ms: 5.3159
+  duration_ms: 4.84914
   ...
-# Subtest: ordres : tableau à l’accueil des 3 mairies, classement chez le ministre, boîte dans les 3 salles des partis
-ok 10 - ordres : tableau à l’accueil des 3 mairies, classement chez le ministre, boîte dans les 3 salles des partis
-  ---
-  duration_ms: 3.509432
-  ...
-# Subtest: coûts miroirs : seeds régénérés et migration concordants
-ok 11 - coûts miroirs : seeds régénérés et migration concordants
-  ---
-  duration_ms: 1.530577
-  ...
-# Subtest: routes : les quatre ordres ouvrent le module ; le module expose ses fonctions
-ok 12 - routes : les quatre ordres ouvrent le module ; le module expose ses fonctions
-  ---
-  duration_ms: 4.321347
-  ...
-# Subtest: catalogue : 9 langues, mêmes clés, mêmes variables ; toutes les clés appelées existent
-ok 13 - catalogue : 9 langues, mêmes clés, mêmes variables ; toutes les clés appelées existent
-  ---
-  duration_ms: 7.270194
-  ...
-# Subtest: infobulles et libellés : texte français exact de data.js, 9 colonnes
-ok 14 - infobulles et libellés : texte français exact de data.js, 9 colonnes
-  ---
-  duration_ms: 8.937146
-  ...
-# Subtest: écran : médaille traduite et échappée, objets ordinaires intacts ; refus et libellé d’équipement
-ok 15 - écran : médaille traduite et échappée, objets ordinaires intacts ; refus et libellé d’équipement
-  ---
-  duration_ms: 14.857028
-  ...
-# Subtest: minuit : clôture hebdomadaire appelée chaque nuit, verdict contrôlé
-ok 16 - minuit : clôture hebdomadaire appelée chaque nuit, verdict contrôlé
-  ---
-  duration_ms: 3.397129
-  ...
-# Subtest: migration : anonymat, compte jamais bloquant, droits fermés, décision non automatique
-ok 17 - migration : anonymat, compte jamais bloquant, droits fermés, décision non automatique
-  ---
-  duration_ms: 1.18544
-  ...
-1..17
-# tests 17
+1..9
+# tests 9
 # suites 0
-# pass 17
+# pass 9
 # fail 0
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 265.619223
+# duration_ms 167.861822

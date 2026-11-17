@@ -12,6 +12,6 @@ test_contrat_transfert_detention_commencee (__main__.Contrats) ... ok
 test_contrat_transfert_par_jugement_reel (__main__.Contrats) ... ok
 
 ----------------------------------------------------------------------
-Ran 11 tests in 8.198s
+Ran 11 tests in 8.103s
 
 OK
