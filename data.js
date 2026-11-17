@@ -11252,7 +11252,6 @@ function slugPnjSovarka(nom) {
   entrepot.desc = "Starovka Logistika, au bout du quai. Pétrole, charbon et bois du Grand Nord y attendent le train ou le brise-glace.";
   for (const piece of Object.values(entrepot.rooms)) delete piece.imageUrl;
   entrepot.rooms.bureau_direction.persons = [{name:'Batzorig Dorjiev (PNJ)', role:"Directeur de l'Entrepôt Logistique", rel:'neutral', job:'directeur_entrepot'}];
-  entrepot.rooms.bureau_direction.imageUrl = 'images/Sovarka/Starovka/Starovka_entrepot_bureau_direction.webp'; // image de Fred (17/11/2026)
   BUILDINGS['entrepot-logistique-starovka'] = entrepot;
 
   const psm = BUILDINGS['port-sainte-marie'].rooms;
@@ -11276,6 +11275,7 @@ function slugPnjSovarka(nom) {
         name: psm.entrepot.name,
         imageBg: "linear-gradient(135deg,#10161c,#1a232c)",
         desc: "Les hangars de fret, chauffés juste assez pour que les caisses ne gèlent pas. On y expédie, on y retire, on y signe beaucoup.",
+        imageUrl: "images/Sovarka/Starovka/Starovka_port_entrepots_fret.webp", // image de Fred (17/11/2026) : le bureau des entrepôts de fret
         persons: [],
         orders: copie(psm.entrepot.orders)
       },
@@ -12601,7 +12601,6 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     ['ville_a', 'stade', 'guichet_paris', "Bookmaker Officiel (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_stade_bookmaker-officiel.webp'],
     ['ville_a', 'stade', 'boutique', "Vendeur des accessoires de Starovka (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_stade_vendeur-des-accessoires-de-starovka.webp'],
     ['ville_a', 'port-starovka', 'quai_principal', "Chef de quai Ganbaatar Tsybikov (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_port-starovka_ganbaatar-tsybikov.webp'],
-    ['ville_a', 'entrepot-logistique-starovka', 'bureau_direction', "Batzorig Dorjiev (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_entrepot-logistique-starovka_batzorig-dorjiev.webp'],
     ['ville_a', 'port-starovka', 'administration_portuaire', "Commandant Tömör Ochirov (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_port-starovka_commandant-tomor-ochirov.webp'],
     ['ville_a', 'marche', 'marche_ext', "Tuyana Dashieva (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_marche_tuyana-dashieva.webp'],
     ['ville_a', 'capitaine-sauvage', 'salle_principale', "Sesegma Badmaeva (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_capitaine-sauvage_sesegma-badmaeva.webp'],
