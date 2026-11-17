@@ -160,3 +160,11 @@
   #topbar .logo{font-size:.81rem}
 }
 @media(min-width:1024px){#hg-mobile-identite-20261117{display:none}}
+
+/* Langues à écriture droite-gauche : inversion de la navigation et des portraits. */
+@media(max-width:1023px){
+  html[lang="ar"] #vue-rue .hg-presences-rail,
+  html[dir="rtl"] #vue-rue .hg-presences-rail,
+  html[lang="ar"] #vue-rue #hg-explore-primary,
+  html[dir="rtl"] #vue-rue #hg-explore-primary {direction:rtl}
+}
