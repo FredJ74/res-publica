@@ -3584,6 +3584,56 @@ const RECETTES_ALIMENTAIRES = {
     effets: { hp: 10, moral: 1, paDiffere: 3 },
     typesAutorises: ['brasserie'], paysAutorises: ['soviet'], villesAutorisees: ['ville_a'], buildingsAutorises: ['capitaine-sauvage']
   },
+  // Hotel des Voyageurs de Starovka (decisions de Fred, 17/11/2026) : salle commune reception + restaurant + bar,
+  // commerce 'cafe' du batiment hotel-mineur a Starovka seulement. Serveur : migration 20261117160000.
+  voyageurs_petit_dejeuner: {
+    id: 'voyageurs_petit_dejeuner',
+    label: 'Petit-déjeuner du voyageur (bouillie d\'avoine au lait de renne, pain et confiture, thé)',
+    categorie: 'petit_dej', image: null,
+    materiaux: { cereales: 1 }, pa: 1, portions: 10,
+    effets: { hp: 3, moral: 1 },
+    typesAutorises: ['cafe'], paysAutorises: ['soviet'], villesAutorisees: ['ville_a'], buildingsAutorises: ['hotel-mineur']
+  },
+  voyageurs_the_beurre: {
+    id: 'voyageurs_the_beurre',
+    label: 'Thé au beurre bouriate',
+    categorie: 'boisson', image: null,
+    materiaux: { produits_exotiques: 1 }, pa: 1, portions: 15,
+    effets: { moral: 2 },
+    typesAutorises: ['cafe'], paysAutorises: ['soviet'], villesAutorisees: ['ville_a'], buildingsAutorises: ['hotel-mineur']
+  },
+  voyageurs_tarassoun: {
+    id: 'voyageurs_tarassoun',
+    label: 'Tarassoun (eau-de-vie de lait bouriate)',
+    categorie: 'boisson', image: null,
+    materiaux: { laitages: 1 }, pa: 1, portions: 15,
+    effets: { moral: 2 },
+    typesAutorises: ['cafe'], paysAutorises: ['soviet'], villesAutorisees: ['ville_a'], buildingsAutorises: ['hotel-mineur']
+  },
+  voyageurs_vodka: {
+    id: 'voyageurs_vodka',
+    label: 'Verre de vodka',
+    categorie: 'boisson', image: null,
+    materiaux: { alcool: 1 }, pa: 1, portions: 15,
+    effets: { moral: 2 },
+    typesAutorises: ['cafe'], paysAutorises: ['soviet'], villesAutorisees: ['ville_a'], buildingsAutorises: ['hotel-mineur']
+  },
+  voyageurs_menu_voyageur: {
+    id: 'voyageurs_menu_voyageur',
+    label: 'Menu du Voyageur — Soupe de nouilles au mouton, Khouchour (chaussons frits au renne), Compote d\'airelles',
+    categorie: 'menu', image: null,
+    materiaux: { viande: 1, cereales: 1, fruits_legumes: 1 }, pa: 1, portions: 6,
+    effets: { hp: 10, moral: 1, paDiffere: 3 },
+    typesAutorises: ['cafe'], paysAutorises: ['soviet'], villesAutorisees: ['ville_a'], buildingsAutorises: ['hotel-mineur']
+  },
+  voyageurs_menu_cheminot: {
+    id: 'voyageurs_menu_cheminot',
+    label: 'Menu du Cheminot — Pelmeni en bouillon, Pain noir, Kissel de canneberge',
+    categorie: 'menu', image: null,
+    materiaux: { viande: 1, cereales: 1, fruits_legumes: 1 }, pa: 1, portions: 6,
+    effets: { hp: 10, moral: 1, paDiffere: 3 },
+    typesAutorises: ['cafe'], paysAutorises: ['soviet'], villesAutorisees: ['ville_a'], buildingsAutorises: ['hotel-mineur']
+  },
 
   // Menus gastronomiques du Capitaine Sauvage (Port-Sainte-Marie, 23 aout 2026) -- carte propre a
   // PSM, deliberement DISTINCTE des 3 menus ci-dessus (jamais prixFixe : moteur normal

@@ -11852,6 +11852,58 @@ function CHAMBRE_HOPITAL_ORDRES_SOVARKA() { return CHAMBRE_HOPITAL_ORDRES(); }
   Object.assign(contexte('ville_a', 'hotel-mineur'), { name: 'Hôtel des Voyageurs', desc: 'L\'hôtel des voyageurs de Starovka : on y attend le train ou le bateau, au chaud, en buvant du thé au beurre.' });
   Object.assign(contexte('ville_b', 'hotel-mineur'), { name: 'Hôtel du Kolkhoze', desc: 'L\'hôtel du kolkhoze de Krasnov : chambres simples, poêle en faïence et petit-déjeuner de la ferme.' });
 
+  // HOTEL_DES_VOYAGEURS_STAROVKA_20261117 (decisions de Fred, 17/11/2026, GAME-DESIGN-NOVOMIRSK.md « Tour de
+  // Starovka ») : cinq pieces. La grande salle (hall_mineur, ID conserve pour la reservation et le commerce
+  // cafe-soviet-ville_a-hotel-mineur) regroupe reception, restaurant et bar du modele de La Republia, sans
+  // l'escort ; deux PNJ bouriates. Quatre chambres sur la meme image (chambre_mineur + 2 a 4, reconnues par
+  // hotel_nuitee_consommation_interne). Diner d'affaires 40 PSK (diner_commerce_lieu_interne). Montrouge et
+  // Krasnov, qui partagent le gabarit, ne changent pas.
+  {
+    const hotel = contexte('ville_a', 'hotel-mineur');
+    const dir = 'images/Sovarka/Starovka/';
+    const imageChambre = dir + 'Starovka_hotel_voyageurs_chambre.webp';
+    const descChambre = 'Lambris de bois, plaid écossais et peau de renne au pied du lit. Par la fenêtre, la gare enneigée, les rennes et les grues du port.';
+    const ordresChambre = BUILDINGS['hotel-mineur'].rooms.chambre_mineur.orders.map(o => Object.assign({}, o));
+    hotel.roomOrder = ['hall_mineur', 'chambre_mineur', 'chambre_mineur_2', 'chambre_mineur_3', 'chambre_mineur_4'];
+    hotel.roomOverrides = hotel.roomOverrides || {};
+    hotel.roomOverrides.hall_mineur = Object.assign(hotel.roomOverrides.hall_mineur || {}, {
+      name: 'Salle commune',
+      desc: 'Réception, bar et restaurant sous les mêmes poutres : le comptoir aux clés, les bouteilles alignées et les tables aux nappes brodées. Par les grandes fenêtres, la gare et le port de Starovka.',
+      imageUrl: dir + 'Starovka_hotel_voyageurs_salle.webp',
+      persons: [
+        { name: 'Erzhena Dambaeva (PNJ)', role: 'Réceptionniste', rel: 'neutral', job: 'hotelier',
+          photoUrl: dir + 'Starovka_portrait_hotel-mineur_erzhena-dambaeva.webp', photoPos: '50% 30%' },
+        { name: 'Aldar Zhamsuev (PNJ)', role: 'Serveur et barman', rel: 'neutral', job: 'barman',
+          photoUrl: dir + 'Starovka_portrait_hotel-mineur_aldar-zhamsuev.webp', photoPos: '50% 30%' }
+      ],
+      // Petit-dejeuner seul remplace par la carte complete ; reservation, gestion et vente de matieres heritees.
+      excludeOrders: ['produire_commerce', 'consulter_carte_commerce'],
+      orders: [
+        {fn:'consulter_carte_commerce', label:'Consulter la carte', i18nKey:'variant.commerce_menu', pa:0, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir les plats et les boissons disponibles et commander.'},
+        {fn:'produire_commerce', label:'Cuisiner', i18nKey:'variant.commerce_cook', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Préparer un plat ou une boisson de la carte (consomme les matières en stock, rémunéré en PSK).'},
+        {fn:'diner_affaires', label:'Diner d\'affaires', pa:2, cost:40, type:'legal', icon:'ti-wine', successRate:100, desc:'Invitez un PJ present dans la piece a diner, a vos frais. Si accepte : consomme 2 menus + 1 tarassoun de la maison. +10 Sante, +2 Moral, +5 INF, +3 PA au prochain Dormir pour chacun. Aucun cout si refuse ou si l\'hotel n\'a pas de quoi servir.'},
+        {fn:'ecouter_rumeurs', label:'Ecouter le barman', i18nKey:'variant.rumours_barman', pa:0, cost:0, type:'grey', icon:'ti-ear', successRate:90, desc:'Le barman entend tout. Revele une rumeur vraie ou generee selon le contexte.', sourceOverride:'Aldar Zhamsuev'},
+        {fn:'lancer_rumeur_cible', label:'Lancer une rumeur', pa:1, cost:0, type:'grey', icon:'ti-messages', successRate:75, desc:'Rediger une rumeur visant un PJ, une organisation, un local, un gouvernement ou un pays. Succes (75%) : effet selon la cible. Echec : retour de bâton limite + risque de detection.'},
+        {fn:'offrir_tournee', label:'Offrir à boire', pa:1, cost:0, type:'legal', icon:'ti-glass-cocktail', successRate:100, desc:'Invitez un ou plusieurs PJ présents. Chacun accepte ou refuse. Vous buvez aussi : 1 PA par ordre, 25 PSK par verre servi. Avec des acceptants : +5 Santé, +2 INF, +2 ENT une seule fois par participant. Sans acceptant : vous seul buvez et perdez 5 Moral.'},
+        {fn:'recruter_informateur_pnj', label:'Recruter un informateur', pa:1, cost:150, type:'grey', icon:'ti-user-plus', successRate:100, desc:'1 PA, 150 PSK puis 150 PSK/jour. Un PNJ (PER 12-18) rejoint votre groupe en permanence tant que vous le payez : sa PER s\'ajoute a celle du groupe pour les recherches, enquetes et localisations.'}
+      ]
+    });
+    hotel.roomOverrides.chambre_mineur = Object.assign(hotel.roomOverrides.chambre_mineur || {}, {
+      name: 'Chambre 1', desc: descChambre, imageUrl: imageChambre
+    });
+    hotel.roomsExtra = hotel.roomsExtra || {};
+    for (const n of [2, 3, 4]) {
+      hotel.roomsExtra['chambre_mineur_' + n] = {
+        name: 'Chambre ' + n,
+        imageBg: BUILDINGS['hotel-mineur'].rooms.chambre_mineur.imageBg,
+        desc: descChambre,
+        imageUrl: imageChambre,
+        persons: [],
+        orders: ordresChambre.map(o => Object.assign({}, o))
+      };
+    }
+  }
+
   // Presse : « La Voix de Sovarka ».
   const voix = (ville, nom, journaliste) => {
     const p = piece(contexte(ville, 'centre-affaires'), 'tribune_republia');

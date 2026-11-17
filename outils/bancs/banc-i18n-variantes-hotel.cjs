@@ -55,7 +55,8 @@ test('sept rumeurs et deux conférences disposent de variantes sûres',()=>{
  const data=fs.readFileSync(path.join(root,'data.js'),'utf8');
  const rumours=[...data.matchAll(/fn:'ecouter_rumeurs',\s*label:'((?:\\.|[^'])*)',\s*i18nKey:'variant\.(rumours_[a-z]+)'/g)];
  const press=[...data.matchAll(/fn:'conference_presse',\s*label:'((?:\\.|[^'])*)',\s*i18nKey:'variant\.press_conference'/g)];
- assert.equal(rumours.length,7);
+ // Hôtel des Voyageurs de Starovka (17/11/2026) : + « Écouter le barman ».
+ assert.equal(rumours.length,8);
  assert.equal(press.length,2);
  const expected=['rumours_tables','rumours_barman','rumours_general','rumours_owner','rumours_waitress','rumours_listen'];
  for(const key of expected)assert.ok(rumours.some(match=>match[2]===key),key);
@@ -77,7 +78,8 @@ test('60 ordres de commerces et banque localisés par contexte, sans altérer le
  const source=fs.readFileSync(path.join(root,'data.js'),'utf8');
  // Résidence impériale (12/11/2026) : ses cinq appartements quittent la location de local.
  // Tabac/Presse de Krasnov (14/11/2026) : +1 Produire, +1 Vendre des matières.
- const expected={produire_commerce:15,consulter_carte_commerce:11,vendre_matiere_commerce:17,gerer_finances:3,gerer_local:14};
+ // Hôtel des Voyageurs de Starovka (17/11/2026) : +1 Cuisiner, +1 Consulter la carte.
+ const expected={produire_commerce:16,consulter_carte_commerce:12,vendre_matiere_commerce:17,gerer_finances:3,gerer_local:14};
  const keys={
   produire_commerce:['commerce_produce_market','commerce_cook','commerce_prepare_drinks','commerce_serve','commerce_breakfast_prep','commerce_produce'],
   consulter_carte_commerce:['commerce_menu','commerce_breakfast_menu'],
