@@ -52,6 +52,10 @@ Sur `25f115e` (#1085) et `8a37a17` (#1020) : `ordres-internes` et `descriptions-
 (préexistant, chantier mobile hors goulag). `descriptions-tactiles` : démarrage Chromium > 20 s (machine CI),
 vert sur main. `guillemets` (#1020) : exécution annulée.
 
+**Résultat final** — #1085 `45574e2` : 72 verts, 1 rouge ; #1020 `6012cd8` : 71 verts, 1 rouge. `moteur-survie`,
+`ordres-internes`, `descriptions-goulag`, `descriptions-tactiles` verts. Le seul rouge, `bancs-hors-production`,
+porte exactement sur `banc-mobile-coque` L1/L2, rouges à l'identique sur `main` 37bb26c (hors goulag).
+
 ## Limites
 Simulations : aucune recette avec un personnage connecté, aucune session GoTrue réelle, aucun téléphone
 physique. Aucune compilation sur Supabase de production. Vercel ne déploie que `main` (configuration du
