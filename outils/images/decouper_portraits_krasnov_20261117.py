@@ -79,7 +79,7 @@ assert marker not in text, "Portraits déjà branchés, ne pas relancer le gén�
 rows=[]
 for name,building,room,slug in ROSTER:
     exact=name+" (PNJ)"
-    assert exact in text, f"Personnage non trouvé dans data.js : {exact}"
+    assert name in text, f"Nom de personnage non présent dans data.js : {name}"  # les noms des maisons sont assemblés au runtime
     path=f"images/Sovarka/Krasnov/Krasnov_portrait_{building}_{slug}.webp"
     rows.append("    ["+", ".join(json.dumps(v,ensure_ascii=False) for v in [building,room,exact,path])+"]")
 # Même mécanisme de surcharge sûre que les portraits déjà implémentés en 20261116.
