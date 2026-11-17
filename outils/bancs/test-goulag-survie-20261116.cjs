@@ -83,12 +83,13 @@ for(const pa of [6,7,8,20]) {
 }
 const refus=choisirChampignons({...cinquieme,pa:20},'refuser',5);
 assert.equal(refus.champignonsRefuses,true);
-erreur(()=>agir(refus,'dormir',date(4)),'malus_champignons_non_arbitre');
+assert.equal(agir(refus,'dormir',date(4)).pa,21);
+assert.equal(agir({...refus,jours:[{jour:date(4),abri:true}]},'dormir',date(4)).pa,24);
 assert.equal(sommeilAvecChampignons(8,6,6),8);
 assert.equal(sommeilAvecChampignons(6,3,3),7);
 assert.equal(sommeilAvecChampignons(2,3,2),5, 'Le malus ne doit jamais créer un gain supérieur au sommeil normal');
 assert.equal(sommeilAvecChampignons(20,6,2),24);
-erreur(()=>sommeilAvecChampignons(20,6,undefined),'malus_champignons_non_arbitre');
+assert.equal(sommeilAvecChampignons(20,6),24);
 erreur(()=>choisirChampignons({...cinquieme,progressions:4},'manger',4),'champignons_indisponibles');
 assert.equal(choisirChampignons({...cinquieme,progressions:3,pa:7},'manger',5).pa,8,'Evenement au J5 meme sans cinq progressions');
 

@@ -24,15 +24,15 @@ BEGIN
   v_pa:=p.pa;
   v_total:=CASE tr.destination WHEN 'starovka' THEN 7 ELSE 10 END;
   IF p_action='abri' THEN
-    IF tr.jour_abri=v_jour OR tr.jour_sommeil=v_jour THEN
+    IF tr.jour_abri>=v_jour OR tr.jour_sommeil>=v_jour THEN
       RETURN jsonb_build_object('ok',false,'raison','abri_deja_fait'); END IF;
     IF v_pa<=1 THEN RETURN jsonb_build_object('ok',false,'raison','pa_insuffisants'); END IF;
     v_pa:=v_pa-1;
     UPDATE public.sovarka_goulag_traversees SET jour_abri=v_jour,actualise_le=now() WHERE nom=v_nom;
   ELSIF p_action='dormir' THEN
-    IF tr.jour_sommeil=v_jour THEN
+    IF tr.jour_sommeil>=v_jour THEN
       RETURN jsonb_build_object('ok',false,'raison','sommeil_deja_fait'); END IF;
-    v_sommeil:=CASE WHEN tr.jour_abri=v_jour THEN 6 ELSE 3 END;
+    v_sommeil:=CASE WHEN tr.jour_abri>=v_jour THEN 6 ELSE 3 END;
     IF tr.champignons_penalite_en_attente THEN
       -- Une décision de Fred sera exigée avant activation de la configuration.
       v_sommeil:=least(v_pa+v_sommeil,greatest(7,v_pa+v_sommeil-c.champignons_malus))-v_pa;
@@ -44,7 +44,7 @@ BEGIN
   ELSIF p_action='progresser' THEN
     IF v_jour>=tr.debut_le+4 AND tr.champignons_choix IS NULL THEN
       RETURN jsonb_build_object('ok',false,'raison','champignons_a_decider'); END IF;
-    IF tr.jour_progression=v_jour THEN
+    IF tr.jour_progression>=v_jour THEN
       RETURN jsonb_build_object('ok',false,'raison','progression_deja_faite'); END IF;
     IF v_pa<=5 THEN RETURN jsonb_build_object('ok',false,'raison','pa_insuffisants'); END IF;
     v_pa:=v_pa-5;
@@ -123,9 +123,9 @@ BEGIN
  v_total:=CASE WHEN tr.destination='starovka' THEN 7 ELSE 10 END;
  RETURN jsonb_build_object('ok',true,'en_cours',true,'destination',tr.destination,'statut',tr.statut,
    'progressions',tr.progressions,'total',v_total,'pa',p.pa,'bois_trouve',tr.bois_trouve,
-   'abri_aujourdhui',coalesce(tr.jour_abri=v_jour,false),
-   'dormi_aujourdhui',coalesce(tr.jour_sommeil=v_jour,false),
-   'progresse_aujourdhui',coalesce(tr.jour_progression=v_jour,false),
+   'abri_aujourdhui',coalesce(tr.jour_abri>=v_jour,false),
+   'dormi_aujourdhui',coalesce(tr.jour_sommeil>=v_jour,false),
+   'progresse_aujourdhui',coalesce(tr.jour_progression>=v_jour,false),
    'champignons_a_decider',v_jour>=tr.debut_le+4 AND tr.champignons_choix IS NULL,
    'champignons_choix',tr.champignons_choix,
    'peine_gelee_secondes',tr.peine_gelee_secondes);

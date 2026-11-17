@@ -5,8 +5,8 @@
  *
  * Aucun accès client direct : les fonctions ci-dessous sont des règles pures.
  * Le futur RPC devra verrouiller le personnage, vérifier les droits et persister
- * l'état + les PA + l'inventaire dans UNE transaction. La formule d'arrestation
- * et la pénalité des champignons refusés ne sont pas spécifiées ici.
+ * l'état + les PA + l'inventaire dans UNE transaction. Les décisions du 16/11 sont
+ * documentées dans GAME-DESIGN-GOULAG-SOVARKA.md.
  */
 const ITINERAIRES = Object.freeze({
   starovka: Object.freeze({ ville: 'ville_a', minimumPA: 7, progressions: 7 }),
@@ -75,11 +75,11 @@ function choisirChampignons(etat, choix, jourDepuisDepart) {
 }
 
 /** Montant encore non validé : aucune déduction silencieuse. */
-function sommeilAvecChampignons(pa, gain, malus) {
+function sommeilAvecChampignons(pa, gain, malus = 2) {
   verifierPA(pa);
   if (!entier(gain) || gain < 1) refuser('gain_invalide');
   if (!entier(malus) || malus < 1 || malus > gain)
-    refuser('malus_champignons_non_arbitre');
+    refuser('malus_champignons_invalide');
   return Math.min(pa + gain, Math.max(7, pa + gain - malus));
 }
 
@@ -103,7 +103,7 @@ function agir(etat, action, jour) {
   } else if (action === 'dormir') {
     if (e.sommeil) refuser('sommeil_deja_fait');
     const gain = e.abri ? 6 : 3;
-    pa = etat.champignonsRefuses ? sommeilAvecChampignons(pa, gain, etat.malusChampignons) : pa + gain;
+    pa = etat.champignonsRefuses ? sommeilAvecChampignons(pa, gain, 2) : pa + gain;
     e.sommeil = true;
     if (etat.champignonsRefuses) etat = {...etat,champignonsRefuses:false};
   } else {

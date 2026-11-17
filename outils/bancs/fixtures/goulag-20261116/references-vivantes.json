@@ -1,1 +1,2286 @@
-{"ordres_couts":[{"fn":"prendre_bus_taxi","pa":1,"cost":150},{"fn":"prendre_train","pa":2,"cost":75},{"fn":"rendre_sentence","pa":2,"cost":0}],"rue_noeuds_serveur":[{"city":"ville_b","noeud":"krasnov-rue-gare","country":"soviet","voisins":["krasnov-rue-entrepot"],"directions":{"liens":{"arriere":"krasnov-rue-entrepot"},"parArrivee":{}}},{"city":"ville_b","noeud":"krasnov-rue-immeubles-centre-commercial","country":"soviet","voisins":["krasnov-rue-distillerie-radar","krasnov-rue-mairie-place"],"directions":{"liens":{"arriere":"krasnov-rue-distillerie-radar","toutDroit":"krasnov-rue-mairie-place"},"parArrivee":{}}},{"city":"ville_b","noeud":"krasnov-rue-descendante","country":"soviet","voisins":["krasnov-rue-bureaux","krasnov-rue-eglise"],"directions":{"liens":{"arriere":"krasnov-rue-bureaux","toutDroit":"krasnov-rue-eglise"},"parArrivee":{}}},{"city":"ville_b","noeud":"krasnov-rue-eglise","country":"soviet","voisins":["krasnov-rue-terrains","krasnov-rue-descendante"],"directions":{"liens":{"droite":"krasnov-rue-descendante","arriere":"krasnov-rue-terrains"},"parArrivee":{}}},{"city":"ville_a","noeud":"starovka-rue-restaurant-boutique","country":"soviet","voisins":["starovka-rue-logements-collectifs","starovka-rue-blizzard"],"directions":{"liens":{"arriere":"starovka-rue-blizzard","toutDroit":"starovka-rue-logements-collectifs"},"parArrivee":{}}},{"city":"ville_a","noeud":"starovka-rue-locaux-a-louer","country":"soviet","voisins":["starovka-rue-magasin-chasse","starovka-rue-petrole-ferme"],"directions":{"liens":{"arriere":"starovka-rue-magasin-chasse","toutDroit":"starovka-rue-petrole-ferme"},"parArrivee":{}}},{"city":"capitale","noeud":"novomirsk-vue-16","country":"soviet","voisins":["novomirsk-vue-14","novomirsk-vue-17","novomirsk-vue-15"],"directions":{"liens":{"droite":"novomirsk-vue-15","arriere":"novomirsk-vue-14","toutDroit":"novomirsk-vue-17"},"parArrivee":{}}},{"city":"ville_b","noeud":"krasnov-rue-bureaux","country":"soviet","voisins":["krasnov-rue-station-musee","krasnov-rue-descendante","krasnov-rue-hopital"],"directions":{"liens":{"droite":"krasnov-rue-hopital","arriere":"krasnov-rue-station-musee","toutDroit":"krasnov-rue-descendante"},"parArrivee":{}}},{"city":"ville_a","noeud":"starovka-rue-lycee-commissariat","country":"soviet","voisins":["starovka-rue-mairie-marche","starovka-rue-hopital"],"directions":{"liens":{"droite":"starovka-rue-mairie-marche","gauche":"starovka-rue-hopital"},"parArrivee":{}}},{"city":"ville_a","noeud":"starovka-rue-petrole-ferme","country":"soviet","voisins":["starovka-maisons-ferme","starovka-rue-terrains","starovka-rue-locaux-a-louer"],"directions":{"liens":{"droite":"starovka-rue-terrains","arriere":"starovka-rue-locaux-a-louer","toutDroit":"starovka-maisons-ferme"},"parArrivee":{}}},{"city":"ville_b","noeud":"krasnov-rue-entrepot","country":"soviet","voisins":["krasnov-rue-gare","krasnov-rue-maison"],"directions":{"liens":{"droite":"krasnov-rue-maison","toutDroit":"krasnov-rue-gare"},"parArrivee":{}}},{"city":"ville_b","noeud":"krasnov-rue-marche-ferme","country":"soviet","voisins":["krasnov-rue-terrains","krasnov-centre-artisanal"],"directions":{"liens":{"droite":"krasnov-centre-artisanal","gauche":"krasnov-rue-terrains"},"parArrivee":{}}},{"city":"ville_b","noeud":"krasnov-centre-artisanal","country":"soviet","voisins":["krasnov-rue-marche-ferme","krasnov-rue-stade-commissariat"],"directions":{"liens":{"gauche":"krasnov-rue-marche-ferme","toutDroit":"krasnov-rue-stade-commissariat"},"parArrivee":{}}},{"city":"ville_b","noeud":"krasnov-rue-tabac-bar","country":"soviet","voisins":["krasnov-rue-mairie-place","krasnov-rue-station-musee"],"directions":{"liens":{"arriere":"krasnov-rue-mairie-place","toutDroit":"krasnov-rue-station-musee"},"parArrivee":{}}},{"city":"ville_a","noeud":"starovka-rue-port-industriel","country":"soviet","voisins":["starovka-rue-gare"],"directions":{"liens":{"arriere":"starovka-rue-gare"},"parArrivee":{}}},{"city":"ville_a","noeud":"starovka-rue-gare","country":"soviet","voisins":["starovka-rue-port-industriel","starovka-rue-hotel"],"directions":{"liens":{"arriere":"starovka-rue-hotel","toutDroit":"starovka-rue-port-industriel"},"parArrivee":{}}},{"city":"ville_a","noeud":"starovka-rue-raffinerie","country":"soviet","voisins":["starovka-rue-terrains","starovka-rue-logements-collectifs"],"directions":{"liens":{"droite":"starovka-rue-logements-collectifs","gauche":"starovka-rue-terrains"},"parArrivee":{}}},{"city":"ville_a","noeud":"starovka-rue-blizzard","country":"soviet","voisins":["starovka-rue-restaurant-boutique","starovka-rue-mairie-marche"],"directions":{"liens":{"arriere":"starovka-rue-mairie-marche","toutDroit":"starovka-rue-restaurant-boutique"},"parArrivee":{}}},{"city":"ville_a","noeud":"starovka-rue-stade","country":"soviet","voisins":["starovka-rue-logements-collectifs"],"directions":{"liens":{"gauche":"starovka-rue-logements-collectifs"},"parArrivee":{}}},{"city":"ville_b","noeud":"krasnov-rue-hopital","country":"soviet","voisins":["krasnov-rue-bureaux"],"directions":{"liens":{"arriere":"krasnov-rue-bureaux"},"parArrivee":{}}},{"city":"ville_b","noeud":"krasnov-rue-mairie-place","country":"soviet","voisins":["krasnov-rue-immeubles-centre-commercial","krasnov-rue-tabac-bar","krasnov-place-ours"],"directions":{"liens":{"gauche":"krasnov-place-ours","arriere":"krasnov-rue-immeubles-centre-commercial","toutDroit":"krasnov-rue-tabac-bar"},"parArrivee":{}}},{"city":"ville_a","noeud":"starovka-rue-bureaux-caserne","country":"soviet","voisins":["starovka-rue-tribunal-artisanal","starovka-rue-magasin-chasse"],"directions":{"liens":{"droite":"starovka-rue-tribunal-artisanal","toutDroit":"starovka-rue-magasin-chasse"},"parArrivee":{}}},{"city":"ville_a","noeud":"starovka-rue-terrains","country":"soviet","voisins":["starovka-rue-petrole-ferme","starovka-rue-raffinerie"],"directions":{"liens":{"droite":"starovka-rue-raffinerie","gauche":"starovka-rue-petrole-ferme"},"parArrivee":{}}},{"city":"capitale","noeud":"novomirsk-vue-1","country":"soviet","voisins":["novomirsk-vue-2","novomirsk-vue-10","novomirsk-vue-11"],"directions":{"liens":{"droite":"novomirsk-vue-11","gauche":"novomirsk-vue-10","arriere":"novomirsk-vue-2"},"parArrivee":{}}},{"city":"capitale","noeud":"novomirsk-vue-2","country":"soviet","voisins":["novomirsk-vue-1","novomirsk-vue-3"],"directions":{"liens":{"arriere":"novomirsk-vue-3","toutDroit":"novomirsk-vue-1"},"parArrivee":{}}},{"city":"capitale","noeud":"novomirsk-vue-7","country":"soviet","voisins":["novomirsk-vue-6","novomirsk-vue-18","novomirsk-vue-8"],"directions":{"liens":{"droite":"novomirsk-vue-8","gauche":"novomirsk-vue-18","arriere":"novomirsk-vue-6"},"parArrivee":{}}},{"city":"capitale","noeud":"novomirsk-vue-8","country":"soviet","voisins":["novomirsk-vue-7","novomirsk-vue-9"],"directions":{"liens":{"droite":"novomirsk-vue-7","toutDroit":"novomirsk-vue-9"},"parArrivee":{}}},{"city":"capitale","noeud":"novomirsk-vue-9","country":"soviet","voisins":["novomirsk-vue-8","novomirsk-vue-10"],"directions":{"liens":{"droite":"novomirsk-vue-10","arriere":"novomirsk-vue-8"},"parArrivee":{}}},{"city":"capitale","noeud":"novomirsk-vue-10","country":"soviet","voisins":["novomirsk-vue-9","novomirsk-vue-1"],"directions":{"liens":{"arriere":"novomirsk-vue-1","toutDroit":"novomirsk-vue-9"},"parArrivee":{}}},{"city":"capitale","noeud":"novomirsk-vue-11","country":"soviet","voisins":["novomirsk-vue-1","novomirsk-vue-12"],"directions":{"liens":{"arriere":"novomirsk-vue-1","toutDroit":"novomirsk-vue-12"},"parArrivee":{}}},{"city":"capitale","noeud":"novomirsk-vue-12","country":"soviet","voisins":["novomirsk-vue-11","novomirsk-vue-13"],"directions":{"liens":{"droite":"novomirsk-vue-13","arriere":"novomirsk-vue-11"},"parArrivee":{}}},{"city":"capitale","noeud":"novomirsk-vue-13","country":"soviet","voisins":["novomirsk-vue-12","novomirsk-vue-14"],"directions":{"liens":{"droite":"novomirsk-vue-12","toutDroit":"novomirsk-vue-14"},"parArrivee":{}}},{"city":"capitale","noeud":"novomirsk-vue-14","country":"soviet","voisins":["novomirsk-vue-13","novomirsk-vue-15","novomirsk-vue-16"],"directions":{"liens":{"droite":"novomirsk-vue-15","arriere":"novomirsk-vue-13","toutDroit":"novomirsk-vue-16"},"parArrivee":{}}},{"city":"capitale","noeud":"novomirsk-vue-15","country":"soviet","voisins":["novomirsk-vue-4","novomirsk-vue-14","novomirsk-vue-16"],"directions":{"liens":{"droite":"novomirsk-vue-16","gauche":"novomirsk-vue-14","arriere":"novomirsk-vue-4"},"parArrivee":{}}},{"city":"capitale","noeud":"novomirsk-vue-17","country":"soviet","voisins":["novomirsk-vue-16","novomirsk-vue-18"],"directions":{"liens":{"arriere":"novomirsk-vue-16","toutDroit":"novomirsk-vue-18"},"parArrivee":{}}},{"city":"capitale","noeud":"novomirsk-vue-18","country":"soviet","voisins":["novomirsk-vue-17","novomirsk-vue-7"],"directions":{"liens":{"arriere":"novomirsk-vue-17","toutDroit":"novomirsk-vue-7"},"parArrivee":{}}},{"city":"ville_b","noeud":"krasnov-rue-maison","country":"soviet","voisins":["krasnov-rue-entrepot","krasnov-rue-terrains"],"directions":{"liens":{"droite":"krasnov-rue-terrains","gauche":"krasnov-rue-entrepot"},"parArrivee":{}}},{"city":"ville_b","noeud":"krasnov-rue-stade-commissariat","country":"soviet","voisins":["krasnov-centre-artisanal","krasnov-rue-ecole-foret"],"directions":{"liens":{"arriere":"krasnov-centre-artisanal","toutDroit":"krasnov-rue-ecole-foret"},"parArrivee":{}}},{"city":"ville_b","noeud":"krasnov-rue-ecole-foret","country":"soviet","voisins":["krasnov-rue-stade-commissariat","krasnov-rue-distillerie-radar"],"directions":{"liens":{"arriere":"krasnov-rue-stade-commissariat","toutDroit":"krasnov-rue-distillerie-radar"},"parArrivee":{}}},{"city":"capitale","noeud":"novomirsk-vue-4","country":"soviet","voisins":["novomirsk-vue-3","novomirsk-vue-5","novomirsk-vue-15"],"directions":{"liens":{"droite":"novomirsk-vue-15","gauche":"novomirsk-vue-5","toutDroit":"novomirsk-vue-3"},"parArrivee":{}}},{"city":"ville_b","noeud":"krasnov-rue-terrains","country":"soviet","voisins":["krasnov-rue-maison","krasnov-rue-eglise","krasnov-rue-marche-ferme"],"directions":{"liens":{"droite":"krasnov-rue-marche-ferme","gauche":"krasnov-rue-maison","toutDroit":"krasnov-rue-eglise"},"parArrivee":{}}},{"city":"ville_b","noeud":"krasnov-rue-distillerie-radar","country":"soviet","voisins":["krasnov-rue-ecole-foret","krasnov-rue-immeubles-centre-commercial"],"directions":{"liens":{"arriere":"krasnov-rue-ecole-foret","toutDroit":"krasnov-rue-immeubles-centre-commercial"},"parArrivee":{}}},{"city":"ville_b","noeud":"krasnov-rue-station-musee","country":"soviet","voisins":["krasnov-rue-tabac-bar","krasnov-rue-bureaux"],"directions":{"liens":{"arriere":"krasnov-rue-tabac-bar","toutDroit":"krasnov-rue-bureaux"},"parArrivee":{}}},{"city":"ville_a","noeud":"starovka-rue-hotel","country":"soviet","voisins":["starovka-rue-gare","starovka-maisons-ferme"],"directions":{"liens":{"arriere":"starovka-maisons-ferme","toutDroit":"starovka-rue-gare"},"parArrivee":{}}},{"city":"ville_a","noeud":"starovka-maisons-ferme","country":"soviet","voisins":["starovka-rue-hotel","starovka-rue-petrole-ferme"],"directions":{"liens":{"arriere":"starovka-rue-petrole-ferme","toutDroit":"starovka-rue-hotel"},"parArrivee":{}}},{"city":"ville_a","noeud":"starovka-rue-logements-collectifs","country":"soviet","voisins":["starovka-rue-raffinerie","starovka-rue-restaurant-boutique","starovka-rue-stade"],"directions":{"liens":{"droite":"starovka-rue-stade","gauche":"starovka-rue-raffinerie","arriere":"starovka-rue-restaurant-boutique"},"parArrivee":{}}},{"city":"ville_a","noeud":"starovka-rue-mairie-marche","country":"soviet","voisins":["starovka-rue-blizzard","starovka-rue-lycee-commissariat"],"directions":{"liens":{"gauche":"starovka-rue-lycee-commissariat","toutDroit":"starovka-rue-blizzard"},"parArrivee":{}}},{"city":"ville_a","noeud":"starovka-rue-magasin-chasse","country":"soviet","voisins":["starovka-rue-bureaux-caserne","starovka-rue-locaux-a-louer"],"directions":{"liens":{"arriere":"starovka-rue-bureaux-caserne","toutDroit":"starovka-rue-locaux-a-louer"},"parArrivee":{}}},{"city":"capitale","noeud":"novomirsk-vue-5","country":"soviet","voisins":["novomirsk-vue-4","novomirsk-vue-6"],"directions":{"liens":{"droite":"novomirsk-vue-4","toutDroit":"novomirsk-vue-6"},"parArrivee":{}}},{"city":"capitale","noeud":"novomirsk-vue-6","country":"soviet","voisins":["novomirsk-vue-5","novomirsk-vue-7"],"directions":{"liens":{"arriere":"novomirsk-vue-5","toutDroit":"novomirsk-vue-7"},"parArrivee":{}}},{"city":"capitale","noeud":"novomirsk-vue-3","country":"soviet","voisins":["novomirsk-vue-2","novomirsk-vue-4"],"directions":{"liens":{"arriere":"novomirsk-vue-4","toutDroit":"novomirsk-vue-2"},"parArrivee":{}}},{"city":"ville_b","noeud":"krasnov-place-ours","country":"soviet","voisins":["krasnov-rue-mairie-place"],"directions":{"liens":{"arriere":"krasnov-rue-mairie-place"},"parArrivee":{}}},{"city":"ville_a","noeud":"starovka-rue-hopital","country":"soviet","voisins":["starovka-rue-lycee-commissariat","starovka-rue-tribunal-artisanal"],"directions":{"liens":{"droite":"starovka-rue-lycee-commissariat","gauche":"starovka-rue-tribunal-artisanal"},"parArrivee":{}}},{"city":"ville_a","noeud":"starovka-rue-tribunal-artisanal","country":"soviet","voisins":["starovka-rue-hopital","starovka-rue-bureaux-caserne"],"directions":{"liens":{"droite":"starovka-rue-hopital","gauche":"starovka-rue-bureaux-caserne"},"parArrivee":{}}}],"navigation_lieux_regles":[{"pays":"soviet","ferme":false,"ville":"ville_a","pieces":["hall_gare_montrouge"],"batiment":"centre-multinodal-montrouge","membership":null},{"pays":"soviet","ferme":false,"ville":"capitale","pieces":["hall","bureaux","salle_conseil","salle_presse","archives_gouv","bureau_min_int","bureau_min_fin","bureau_min_just","bureau_min_def","bureau_min_info","bureau_min_ae"],"batiment":"palais-gouvernement","membership":null},{"pays":"soviet","ferme":false,"ville":"capitale","pieces":["accueil_assemblee","hemicycle","couloirs","salle_archives_assemblee"],"batiment":"assemblee","membership":null},{"pays":"soviet","ferme":false,"ville":"capitale","pieces":["salle_audience","bureau_magistrats","greffe"],"batiment":"tribunal","membership":null},{"pays":"soviet","ferme":false,"ville":"capitale","pieces":["accueil_banque","coffre_privatif"],"batiment":"banque-nationale","membership":null},{"pays":"soviet","ferme":false,"ville":"capitale","pieces":["bureau_prive"],"batiment":"banque-privee","membership":null},{"pays":"soviet","ferme":false,"ville":"capitale","pieces":["reception_clinique","chambre_1","chambre_2","chambre_3","chambre_4","chambre_5","chambre_6","chambre_7","chambre_8","chambre_9","chambre_10"],"batiment":"clinique-privee","membership":null},{"pays":"soviet","ferme":false,"ville":"capitale","pieces":["accueil_police","prison","bureau_commissaire"],"batiment":"commissariat","membership":null},{"pays":"soviet","ferme":false,"ville":"capitale","pieces":["accueil_tribune","redaction"],"batiment":"la-tribune","membership":null},{"pays":"soviet","ferme":false,"ville":"capitale","pieces":["portail","hall_loge","bureau_venerable","salle_reunion_loge"],"batiment":"loge-maconnique","membership":"loge"},{"pays":"soviet","ferme":false,"ville":"capitale","pieces":["amphi","salle_reunion"],"batiment":"universite","membership":null},{"pays":"soviet","ferme":false,"ville":"capitale","pieces":["magasin"],"batiment":"armurerie","membership":null},{"pays":"soviet","ferme":false,"ville":"capitale","pieces":["marche_ext"],"batiment":"marche","membership":null},{"pays":"soviet","ferme":false,"ville":"capitale","pieces":["grange_sainte"],"batiment":"kolkhoze-spirituel","membership":null},{"pays":"soviet","ferme":false,"ville":"capitale","pieces":["hall_gare","hall_douanes","zone_embarquement"],"batiment":"centre-multinodal-luthecia","membership":null},{"pays":"soviet","ferme":false,"ville":"capitale","pieces":["hall","vitrine_principale","boutique_milieu","arriere_boutique","cave_reserve"],"batiment":"centre-commercial","membership":null},{"pays":"soviet","ferme":false,"ville":"capitale","pieces":["travees","echoppe_facade","atelier_milieu","reserve_arriere"],"batiment":"centre-artisanal","membership":null},{"pays":"soviet","ferme":false,"ville":"capitale","pieces":["terrain"],"batiment":"terrain-a-batir-1","membership":null},{"pays":"soviet","ferme":false,"ville":"capitale","pieces":["terrain"],"batiment":"terrain-a-batir-4","membership":null},{"pays":"soviet","ferme":false,"ville":"capitale","pieces":["terrain"],"batiment":"terrain-a-batir-5","membership":null},{"pays":"soviet","ferme":false,"ville":"capitale","pieces":["terrain"],"batiment":"terrain-a-batir-6","membership":null},{"pays":"soviet","ferme":false,"ville":"capitale","pieces":["terrain"],"batiment":"terrain-a-batir-7","membership":null},{"pays":"soviet","ferme":false,"ville":"capitale","pieces":["accueil_notaire","bureau_successions","bureau_contrats","archives_notariales"],"batiment":"office-notarial","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_a","pieces":["hall_mineur","chambre_mineur"],"batiment":"hotel-mineur","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_a","pieces":["guichet"],"batiment":"banque-locale","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_a","pieces":["accueil_loc","geoles","bureau_commissaire"],"batiment":"commissariat-local","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_a","pieces":["salle_audience_locale","bureau_magistrats","greffe"],"batiment":"tribunal-local","membership":null},{"pays":"soviet","ferme":false,"ville":"capitale","pieces":["terrain","vestiaires","buvette","guichet_paris","siege_supporters","bureau_president","boutique"],"batiment":"stade","membership":null},{"pays":"soviet","ferme":false,"ville":"capitale","pieces":["hall_mairie","bureau_maire","bureau_maire_adjoint","salle_elections","salle_archives","salle_partis"],"batiment":"mairie-capitale","membership":null},{"pays":"soviet","ferme":false,"ville":"capitale","pieces":["accueil_elysee","appartements_president","salle_reception","musee_presidentiel"],"batiment":"palais-presidentiel","membership":null},{"pays":"soviet","ferme":false,"ville":"capitale","pieces":["salle_attente","ehpad_tilleuls","chambre"],"batiment":"dispensaire-public","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_a","pieces":["attente","ehpad","chambre"],"batiment":"dispensaire-public-v","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_a","pieces":["accueil_mairie","bureau_maire_local","bureau_maire_adjoint","salle_partis","salle_elections"],"batiment":"mairie","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_a","pieces":["salle_ventes_raffinerie","interieur_raffinerie","direction_usine"],"batiment":"usine-principale","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_a","pieces":["hall","vitrine_principale","boutique_milieu","arriere_boutique","cave_reserve"],"batiment":"centre-commercial","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_a","pieces":["travees","echoppe_facade","atelier_milieu","reserve_arriere"],"batiment":"centre-artisanal","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_a","pieces":["terrain"],"batiment":"terrain-a-batir-3","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_a","pieces":["zone_recolte"],"batiment":"zone-production","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_b","pieces":["hall_mineur","chambre_mineur"],"batiment":"hotel-mineur","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_b","pieces":["guichet"],"batiment":"banque-locale","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_b","pieces":["accueil_loc","geoles","bureau_commissaire"],"batiment":"commissariat-local","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_b","pieces":["salle_audience_locale","bureau_magistrats","greffe"],"batiment":"tribunal-local","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_b","pieces":["direction_usine"],"batiment":"usine-principale","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_b","pieces":["hall_gare_montrouge"],"batiment":"centre-multinodal-montrouge","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_b","pieces":["hall","vitrine_principale","boutique_milieu","arriere_boutique","cave_reserve"],"batiment":"centre-commercial","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_b","pieces":["travees","echoppe_facade","atelier_milieu","reserve_arriere"],"batiment":"centre-artisanal","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_b","pieces":["terrain"],"batiment":"terrain-a-batir-2","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_b","pieces":["hall","bureau_1","bureau_2","bureau_3","bureau_4"],"batiment":"centre-affaires","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_b","pieces":["salle"],"batiment":"cafe-tabac-cheminots-montrouge","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_b","pieces":["amphi","salle_reunion"],"batiment":"universite","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_b","pieces":["attente","ehpad","chambre"],"batiment":"dispensaire-public-v","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_b","pieces":["accueil_mairie","bureau_maire_local","bureau_maire_adjoint","salle_partis","salle_elections"],"batiment":"mairie","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_a","pieces":["terrain","vestiaires","buvette","guichet_paris","siege_supporters","bureau_president","boutique"],"batiment":"stade","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_a","pieces":["hall","bureau_prestige","bureau_standard","open_space"],"batiment":"centre-affaires","membership":null},{"pays":"soviet","ferme":false,"ville":"qhs","pieces":["entree_qhs","cellules_qhs","cachot_disciplinaire","bureau_chef","mirador"],"batiment":"qhs-prison","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_a","pieces":["amphi","bibliotheque"],"batiment":"universite","membership":null},{"pays":"soviet","ferme":false,"ville":"capitale","pieces":["accueil_imprimerie","atelier"],"batiment":"imprimerie-librairie","membership":null},{"pays":"soviet","ferme":false,"ville":"capitale","pieces":["salle_principale"],"batiment":"capitaine-sauvage","membership":null},{"pays":"soviet","ferme":false,"ville":"capitale","pieces":["hall_pavillon","salle_reception","bar","suite_privee","suite_presidentielle","suite_parti"],"batiment":"pavillon-ambassadeurs-novomirsk","membership":null},{"pays":"soviet","ferme":false,"ville":"capitale","pieces":["accueil","restaurant","bar","chambres"],"batiment":"hotel-republica","membership":null},{"pays":"soviet","ferme":false,"ville":"capitale","pieces":["hall_residence","appartement_1","appartement_2","appartement_3","appartement_4","grand_appartement"],"batiment":"residence-imperiale-novomirsk","membership":null},{"pays":"soviet","ferme":false,"ville":"capitale","pieces":["salle_ventes","bureau_direction"],"batiment":"entrepot-logistique-novomirsk","membership":null},{"pays":"soviet","ferme":false,"ville":"capitale","pieces":["accueil_renseignement","salle_ecoutes","salle_interrogatoire_renseignement"],"batiment":"siege-renseignement","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_b","pieces":["salle_ventes","bureau_direction"],"batiment":"entrepot-logistique-krasnov","membership":null},{"pays":"soviet","ferme":false,"ville":"capitale","pieces":["corps_garde","infirmerie","salle_commandement","armurerie_militaire","refectoire","salle_faits_armes","quartier_troupes"],"batiment":"caserne-militaire","membership":null},{"pays":"soviet","ferme":false,"ville":"capitale","pieces":["atelier_garage"],"batiment":"garage-novomirsk","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_b","pieces":["boutique_station"],"batiment":"station-service-krasnov","membership":null},{"pays":"soviet","ferme":false,"ville":"capitale","pieces":["salon_coiffure"],"batiment":"salon-coiffure-novomirsk","membership":null},{"pays":"soviet","ferme":false,"ville":"capitale","pieces":["salle","petit_appartement_1","petit_appartement_2","petit_appartement_3","petit_appartement_4","grand_appartement_1","grand_appartement_2","grand_appartement_3","grand_appartement_4"],"batiment":"logements-novomirsk","membership":null},{"pays":"soviet","ferme":false,"ville":"capitale","pieces":["comptoir_pharmacie"],"batiment":"pharmacie-officielle-novomirsk","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_a","pieces":["salle_ventes","bureau_direction"],"batiment":"entrepot-logistique-starovka","membership":null},{"pays":"soviet","ferme":false,"ville":"capitale","pieces":["etal_poissonniere"],"batiment":"poissonniere-novomirsk","membership":null},{"pays":"soviet","ferme":false,"ville":"capitale","pieces":["salle_ventes","bureau_direction","salle_production"],"batiment":"usine-pharmaceutique-luthecia","membership":null},{"pays":"soviet","ferme":false,"ville":"capitale","pieces":["hall","salle_presidents","expositions_temporaires","salle_honneur_militaire_nationale","salle_politiques","salle_civils_intellectuels","salle_organisations","salle_artistes_sportifs","salle_tresor_national","salle_reussites_economiques","salle_grandes_villes","salle_criminels_pays"],"batiment":"musee-national-republia","membership":null},{"pays":"soviet","ferme":false,"ville":"capitale","pieces":["hall","bureau_prestige","bureau_standard","open_space","tribune_republia","bureau_prestige_b","reunion_grande_a","reunion_grande_b","reunion_moyenne_a","reunion_moyenne_b"],"batiment":"centre-affaires","membership":null},{"pays":"soviet","ferme":false,"ville":"capitale","pieces":["accueil_ambassades_novomirsk","bureau_republia_novomirsk","bureau_khalija_novomirsk","bureau_estado_novomirsk"],"batiment":"palais-ambassades-novomirsk","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_a","pieces":["quai_principal","entrepot","douanes","administration_portuaire"],"batiment":"port-starovka","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_a","pieces":["magasin"],"batiment":"armurerie","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_b","pieces":["marche_ext"],"batiment":"marche","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_a","pieces":["marche_ext"],"batiment":"marche","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_b","pieces":["grange_sainte"],"batiment":"kolkhoze-spirituel","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_a","pieces":["salle_principale"],"batiment":"capitaine-sauvage","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_a","pieces":["salle","petit_appartement_1","petit_appartement_2","petit_appartement_3","petit_appartement_4","grand_appartement_1","grand_appartement_2","grand_appartement_3","grand_appartement_4"],"batiment":"logements-novomirsk","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_a","pieces":["local_1","local_2"],"batiment":"locaux-starovka","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_a","pieces":["salle_ecoute"],"batiment":"poste-vigilance-glaciale","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_b","pieces":["salle_ecoute"],"batiment":"station-radar-krasnov","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_a","pieces":["piece_maison"],"batiment":"maison-starovka","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_b","pieces":["piece_maison"],"batiment":"maison-krasnov","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_a","pieces":["cour_ferme"],"batiment":"ferme-starovka","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_b","pieces":["cour_ferme"],"batiment":"ferme-krasnov","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_a","pieces":["boutique_fourreur"],"batiment":"fourreur-starovka","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_b","pieces":["zone_recolte","foret_vue_1","foret_vue_2","foret_vue_3","foret_vue_4"],"batiment":"zone-production","membership":null},{"pays":"soviet","ferme":false,"ville":"capitale","pieces":["salle","petit_appartement_1","petit_appartement_2","petit_appartement_3","petit_appartement_4","grand_appartement_1","grand_appartement_2","grand_appartement_3","grand_appartement_4"],"batiment":"logements-novomirsk-marche","membership":null},{"pays":"soviet","ferme":false,"ville":"capitale","pieces":["salle","petit_appartement_1","petit_appartement_2","petit_appartement_3","petit_appartement_4","grand_appartement_1","grand_appartement_2","grand_appartement_3","grand_appartement_4"],"batiment":"logements-novomirsk-quais","membership":null},{"pays":"soviet","ferme":false,"ville":"capitale","pieces":["hall","salle_origines","salle_personnalites_discretes","salle_bataille_fleuve","salle_grand_incendie"],"batiment":"musee-novomirsk","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_b","pieces":["terrain","vestiaires","buvette","guichet_paris","siege_supporters","bureau_president","boutique"],"batiment":"stade","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_b","pieces":["salle_ventes","bureau_direction","atelier_distillerie"],"batiment":"distillerie-krasnov","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_b","pieces":["piece_maison"],"batiment":"maison-krasnov-bureaux","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_b","pieces":["piece_maison"],"batiment":"maison-krasnov-rouge","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_b","pieces":["piece_maison"],"batiment":"maison-krasnov-bleue","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_b","pieces":["piece_maison"],"batiment":"maison-krasnov-eglise","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_b","pieces":["piece_maison"],"batiment":"maison-krasnov-terrains","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_b","pieces":["salle","petit_appartement_1","petit_appartement_2","petit_appartement_3","petit_appartement_4","grand_appartement_1","grand_appartement_2","grand_appartement_3","grand_appartement_4"],"batiment":"logements-novomirsk","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_b","pieces":["hall","petit_appartement_1","petit_appartement_2","petit_appartement_3","petit_appartement_4","grand_appartement_1","grand_appartement_2","grand_appartement_3","grand_appartement_4"],"batiment":"logements-krasnov-place-ours","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_b","pieces":["boutique"],"batiment":"tabac-presse-krasnov","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_b","pieces":["hall","petit_appartement_1","petit_appartement_2","petit_appartement_3","petit_appartement_4","grand_appartement_1","grand_appartement_2","grand_appartement_3","grand_appartement_4"],"batiment":"logements-krasnov-rue-tabac","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_b","pieces":["hall","faune_sauvage","flore_sauvage","exploitation_bois","kolkhozes","ecoute_spatiale"],"batiment":"musee-novomirsk","membership":null},{"pays":"soviet","ferme":false,"ville":"ville_a","pieces":["presse"],"batiment":"presse-starovka","membership":null}],"ordres_couts_pays":[{"fn":"prendre_bus_taxi","pa":1,"cost":60,"pays":"soviet"},{"fn":"prendre_train","pa":2,"cost":30,"pays":"soviet"}]}
+{
+  "ordres_couts": [
+    {
+      "fn": "prendre_bus_taxi",
+      "pa": 1,
+      "cost": 150
+    },
+    {
+      "fn": "prendre_train",
+      "pa": 2,
+      "cost": 75
+    },
+    {
+      "fn": "rendre_sentence",
+      "pa": 2,
+      "cost": 0
+    }
+  ],
+  "rue_noeuds_serveur": [
+    {
+      "city": "ville_b",
+      "noeud": "krasnov-rue-gare",
+      "country": "soviet",
+      "voisins": [
+        "krasnov-rue-entrepot"
+      ],
+      "directions": {
+        "liens": {
+          "arriere": "krasnov-rue-entrepot"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "ville_b",
+      "noeud": "krasnov-rue-immeubles-centre-commercial",
+      "country": "soviet",
+      "voisins": [
+        "krasnov-rue-distillerie-radar",
+        "krasnov-rue-mairie-place"
+      ],
+      "directions": {
+        "liens": {
+          "arriere": "krasnov-rue-distillerie-radar",
+          "toutDroit": "krasnov-rue-mairie-place"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "ville_b",
+      "noeud": "krasnov-rue-descendante",
+      "country": "soviet",
+      "voisins": [
+        "krasnov-rue-bureaux",
+        "krasnov-rue-eglise"
+      ],
+      "directions": {
+        "liens": {
+          "arriere": "krasnov-rue-bureaux",
+          "toutDroit": "krasnov-rue-eglise"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "ville_b",
+      "noeud": "krasnov-rue-eglise",
+      "country": "soviet",
+      "voisins": [
+        "krasnov-rue-terrains",
+        "krasnov-rue-descendante"
+      ],
+      "directions": {
+        "liens": {
+          "droite": "krasnov-rue-descendante",
+          "arriere": "krasnov-rue-terrains"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "ville_a",
+      "noeud": "starovka-rue-restaurant-boutique",
+      "country": "soviet",
+      "voisins": [
+        "starovka-rue-logements-collectifs",
+        "starovka-rue-blizzard"
+      ],
+      "directions": {
+        "liens": {
+          "arriere": "starovka-rue-blizzard",
+          "toutDroit": "starovka-rue-logements-collectifs"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "ville_a",
+      "noeud": "starovka-rue-locaux-a-louer",
+      "country": "soviet",
+      "voisins": [
+        "starovka-rue-magasin-chasse",
+        "starovka-rue-petrole-ferme"
+      ],
+      "directions": {
+        "liens": {
+          "arriere": "starovka-rue-magasin-chasse",
+          "toutDroit": "starovka-rue-petrole-ferme"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "capitale",
+      "noeud": "novomirsk-vue-16",
+      "country": "soviet",
+      "voisins": [
+        "novomirsk-vue-14",
+        "novomirsk-vue-17",
+        "novomirsk-vue-15"
+      ],
+      "directions": {
+        "liens": {
+          "droite": "novomirsk-vue-15",
+          "arriere": "novomirsk-vue-14",
+          "toutDroit": "novomirsk-vue-17"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "ville_b",
+      "noeud": "krasnov-rue-bureaux",
+      "country": "soviet",
+      "voisins": [
+        "krasnov-rue-station-musee",
+        "krasnov-rue-descendante",
+        "krasnov-rue-hopital"
+      ],
+      "directions": {
+        "liens": {
+          "droite": "krasnov-rue-hopital",
+          "arriere": "krasnov-rue-station-musee",
+          "toutDroit": "krasnov-rue-descendante"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "ville_a",
+      "noeud": "starovka-rue-lycee-commissariat",
+      "country": "soviet",
+      "voisins": [
+        "starovka-rue-mairie-marche",
+        "starovka-rue-hopital"
+      ],
+      "directions": {
+        "liens": {
+          "droite": "starovka-rue-mairie-marche",
+          "gauche": "starovka-rue-hopital"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "ville_a",
+      "noeud": "starovka-rue-petrole-ferme",
+      "country": "soviet",
+      "voisins": [
+        "starovka-maisons-ferme",
+        "starovka-rue-terrains",
+        "starovka-rue-locaux-a-louer"
+      ],
+      "directions": {
+        "liens": {
+          "droite": "starovka-rue-terrains",
+          "arriere": "starovka-rue-locaux-a-louer",
+          "toutDroit": "starovka-maisons-ferme"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "ville_b",
+      "noeud": "krasnov-rue-entrepot",
+      "country": "soviet",
+      "voisins": [
+        "krasnov-rue-gare",
+        "krasnov-rue-maison"
+      ],
+      "directions": {
+        "liens": {
+          "droite": "krasnov-rue-maison",
+          "toutDroit": "krasnov-rue-gare"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "ville_b",
+      "noeud": "krasnov-rue-marche-ferme",
+      "country": "soviet",
+      "voisins": [
+        "krasnov-rue-terrains",
+        "krasnov-centre-artisanal"
+      ],
+      "directions": {
+        "liens": {
+          "droite": "krasnov-centre-artisanal",
+          "gauche": "krasnov-rue-terrains"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "ville_b",
+      "noeud": "krasnov-centre-artisanal",
+      "country": "soviet",
+      "voisins": [
+        "krasnov-rue-marche-ferme",
+        "krasnov-rue-stade-commissariat"
+      ],
+      "directions": {
+        "liens": {
+          "gauche": "krasnov-rue-marche-ferme",
+          "toutDroit": "krasnov-rue-stade-commissariat"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "ville_b",
+      "noeud": "krasnov-rue-tabac-bar",
+      "country": "soviet",
+      "voisins": [
+        "krasnov-rue-mairie-place",
+        "krasnov-rue-station-musee"
+      ],
+      "directions": {
+        "liens": {
+          "arriere": "krasnov-rue-mairie-place",
+          "toutDroit": "krasnov-rue-station-musee"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "ville_a",
+      "noeud": "starovka-rue-port-industriel",
+      "country": "soviet",
+      "voisins": [
+        "starovka-rue-gare"
+      ],
+      "directions": {
+        "liens": {
+          "arriere": "starovka-rue-gare"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "ville_a",
+      "noeud": "starovka-rue-gare",
+      "country": "soviet",
+      "voisins": [
+        "starovka-rue-port-industriel",
+        "starovka-rue-hotel"
+      ],
+      "directions": {
+        "liens": {
+          "arriere": "starovka-rue-hotel",
+          "toutDroit": "starovka-rue-port-industriel"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "ville_a",
+      "noeud": "starovka-rue-raffinerie",
+      "country": "soviet",
+      "voisins": [
+        "starovka-rue-terrains",
+        "starovka-rue-logements-collectifs"
+      ],
+      "directions": {
+        "liens": {
+          "droite": "starovka-rue-logements-collectifs",
+          "gauche": "starovka-rue-terrains"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "ville_a",
+      "noeud": "starovka-rue-blizzard",
+      "country": "soviet",
+      "voisins": [
+        "starovka-rue-restaurant-boutique",
+        "starovka-rue-mairie-marche"
+      ],
+      "directions": {
+        "liens": {
+          "arriere": "starovka-rue-mairie-marche",
+          "toutDroit": "starovka-rue-restaurant-boutique"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "ville_a",
+      "noeud": "starovka-rue-stade",
+      "country": "soviet",
+      "voisins": [
+        "starovka-rue-logements-collectifs"
+      ],
+      "directions": {
+        "liens": {
+          "gauche": "starovka-rue-logements-collectifs"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "ville_b",
+      "noeud": "krasnov-rue-hopital",
+      "country": "soviet",
+      "voisins": [
+        "krasnov-rue-bureaux"
+      ],
+      "directions": {
+        "liens": {
+          "arriere": "krasnov-rue-bureaux"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "ville_b",
+      "noeud": "krasnov-rue-mairie-place",
+      "country": "soviet",
+      "voisins": [
+        "krasnov-rue-immeubles-centre-commercial",
+        "krasnov-rue-tabac-bar",
+        "krasnov-place-ours"
+      ],
+      "directions": {
+        "liens": {
+          "gauche": "krasnov-place-ours",
+          "arriere": "krasnov-rue-immeubles-centre-commercial",
+          "toutDroit": "krasnov-rue-tabac-bar"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "ville_a",
+      "noeud": "starovka-rue-bureaux-caserne",
+      "country": "soviet",
+      "voisins": [
+        "starovka-rue-tribunal-artisanal",
+        "starovka-rue-magasin-chasse"
+      ],
+      "directions": {
+        "liens": {
+          "droite": "starovka-rue-tribunal-artisanal",
+          "toutDroit": "starovka-rue-magasin-chasse"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "ville_a",
+      "noeud": "starovka-rue-terrains",
+      "country": "soviet",
+      "voisins": [
+        "starovka-rue-petrole-ferme",
+        "starovka-rue-raffinerie"
+      ],
+      "directions": {
+        "liens": {
+          "droite": "starovka-rue-raffinerie",
+          "gauche": "starovka-rue-petrole-ferme"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "capitale",
+      "noeud": "novomirsk-vue-1",
+      "country": "soviet",
+      "voisins": [
+        "novomirsk-vue-2",
+        "novomirsk-vue-10",
+        "novomirsk-vue-11"
+      ],
+      "directions": {
+        "liens": {
+          "droite": "novomirsk-vue-11",
+          "gauche": "novomirsk-vue-10",
+          "arriere": "novomirsk-vue-2"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "capitale",
+      "noeud": "novomirsk-vue-2",
+      "country": "soviet",
+      "voisins": [
+        "novomirsk-vue-1",
+        "novomirsk-vue-3"
+      ],
+      "directions": {
+        "liens": {
+          "arriere": "novomirsk-vue-3",
+          "toutDroit": "novomirsk-vue-1"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "capitale",
+      "noeud": "novomirsk-vue-7",
+      "country": "soviet",
+      "voisins": [
+        "novomirsk-vue-6",
+        "novomirsk-vue-18",
+        "novomirsk-vue-8"
+      ],
+      "directions": {
+        "liens": {
+          "droite": "novomirsk-vue-8",
+          "gauche": "novomirsk-vue-18",
+          "arriere": "novomirsk-vue-6"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "capitale",
+      "noeud": "novomirsk-vue-8",
+      "country": "soviet",
+      "voisins": [
+        "novomirsk-vue-7",
+        "novomirsk-vue-9"
+      ],
+      "directions": {
+        "liens": {
+          "droite": "novomirsk-vue-7",
+          "toutDroit": "novomirsk-vue-9"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "capitale",
+      "noeud": "novomirsk-vue-9",
+      "country": "soviet",
+      "voisins": [
+        "novomirsk-vue-8",
+        "novomirsk-vue-10"
+      ],
+      "directions": {
+        "liens": {
+          "droite": "novomirsk-vue-10",
+          "arriere": "novomirsk-vue-8"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "capitale",
+      "noeud": "novomirsk-vue-10",
+      "country": "soviet",
+      "voisins": [
+        "novomirsk-vue-9",
+        "novomirsk-vue-1"
+      ],
+      "directions": {
+        "liens": {
+          "arriere": "novomirsk-vue-1",
+          "toutDroit": "novomirsk-vue-9"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "capitale",
+      "noeud": "novomirsk-vue-11",
+      "country": "soviet",
+      "voisins": [
+        "novomirsk-vue-1",
+        "novomirsk-vue-12"
+      ],
+      "directions": {
+        "liens": {
+          "arriere": "novomirsk-vue-1",
+          "toutDroit": "novomirsk-vue-12"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "capitale",
+      "noeud": "novomirsk-vue-12",
+      "country": "soviet",
+      "voisins": [
+        "novomirsk-vue-11",
+        "novomirsk-vue-13"
+      ],
+      "directions": {
+        "liens": {
+          "droite": "novomirsk-vue-13",
+          "arriere": "novomirsk-vue-11"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "capitale",
+      "noeud": "novomirsk-vue-13",
+      "country": "soviet",
+      "voisins": [
+        "novomirsk-vue-12",
+        "novomirsk-vue-14"
+      ],
+      "directions": {
+        "liens": {
+          "droite": "novomirsk-vue-12",
+          "toutDroit": "novomirsk-vue-14"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "capitale",
+      "noeud": "novomirsk-vue-14",
+      "country": "soviet",
+      "voisins": [
+        "novomirsk-vue-13",
+        "novomirsk-vue-15",
+        "novomirsk-vue-16"
+      ],
+      "directions": {
+        "liens": {
+          "droite": "novomirsk-vue-15",
+          "arriere": "novomirsk-vue-13",
+          "toutDroit": "novomirsk-vue-16"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "capitale",
+      "noeud": "novomirsk-vue-15",
+      "country": "soviet",
+      "voisins": [
+        "novomirsk-vue-4",
+        "novomirsk-vue-14",
+        "novomirsk-vue-16"
+      ],
+      "directions": {
+        "liens": {
+          "droite": "novomirsk-vue-16",
+          "gauche": "novomirsk-vue-14",
+          "arriere": "novomirsk-vue-4"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "capitale",
+      "noeud": "novomirsk-vue-17",
+      "country": "soviet",
+      "voisins": [
+        "novomirsk-vue-16",
+        "novomirsk-vue-18"
+      ],
+      "directions": {
+        "liens": {
+          "arriere": "novomirsk-vue-16",
+          "toutDroit": "novomirsk-vue-18"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "capitale",
+      "noeud": "novomirsk-vue-18",
+      "country": "soviet",
+      "voisins": [
+        "novomirsk-vue-17",
+        "novomirsk-vue-7"
+      ],
+      "directions": {
+        "liens": {
+          "arriere": "novomirsk-vue-17",
+          "toutDroit": "novomirsk-vue-7"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "ville_b",
+      "noeud": "krasnov-rue-maison",
+      "country": "soviet",
+      "voisins": [
+        "krasnov-rue-entrepot",
+        "krasnov-rue-terrains"
+      ],
+      "directions": {
+        "liens": {
+          "droite": "krasnov-rue-terrains",
+          "gauche": "krasnov-rue-entrepot"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "ville_b",
+      "noeud": "krasnov-rue-stade-commissariat",
+      "country": "soviet",
+      "voisins": [
+        "krasnov-centre-artisanal",
+        "krasnov-rue-ecole-foret"
+      ],
+      "directions": {
+        "liens": {
+          "arriere": "krasnov-centre-artisanal",
+          "toutDroit": "krasnov-rue-ecole-foret"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "ville_b",
+      "noeud": "krasnov-rue-ecole-foret",
+      "country": "soviet",
+      "voisins": [
+        "krasnov-rue-stade-commissariat",
+        "krasnov-rue-distillerie-radar"
+      ],
+      "directions": {
+        "liens": {
+          "arriere": "krasnov-rue-stade-commissariat",
+          "toutDroit": "krasnov-rue-distillerie-radar"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "capitale",
+      "noeud": "novomirsk-vue-4",
+      "country": "soviet",
+      "voisins": [
+        "novomirsk-vue-3",
+        "novomirsk-vue-5",
+        "novomirsk-vue-15"
+      ],
+      "directions": {
+        "liens": {
+          "droite": "novomirsk-vue-15",
+          "gauche": "novomirsk-vue-5",
+          "toutDroit": "novomirsk-vue-3"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "ville_b",
+      "noeud": "krasnov-rue-terrains",
+      "country": "soviet",
+      "voisins": [
+        "krasnov-rue-maison",
+        "krasnov-rue-eglise",
+        "krasnov-rue-marche-ferme"
+      ],
+      "directions": {
+        "liens": {
+          "droite": "krasnov-rue-marche-ferme",
+          "gauche": "krasnov-rue-maison",
+          "toutDroit": "krasnov-rue-eglise"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "ville_b",
+      "noeud": "krasnov-rue-distillerie-radar",
+      "country": "soviet",
+      "voisins": [
+        "krasnov-rue-ecole-foret",
+        "krasnov-rue-immeubles-centre-commercial"
+      ],
+      "directions": {
+        "liens": {
+          "arriere": "krasnov-rue-ecole-foret",
+          "toutDroit": "krasnov-rue-immeubles-centre-commercial"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "ville_b",
+      "noeud": "krasnov-rue-station-musee",
+      "country": "soviet",
+      "voisins": [
+        "krasnov-rue-tabac-bar",
+        "krasnov-rue-bureaux"
+      ],
+      "directions": {
+        "liens": {
+          "arriere": "krasnov-rue-tabac-bar",
+          "toutDroit": "krasnov-rue-bureaux"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "ville_a",
+      "noeud": "starovka-rue-hotel",
+      "country": "soviet",
+      "voisins": [
+        "starovka-rue-gare",
+        "starovka-maisons-ferme"
+      ],
+      "directions": {
+        "liens": {
+          "arriere": "starovka-maisons-ferme",
+          "toutDroit": "starovka-rue-gare"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "ville_a",
+      "noeud": "starovka-maisons-ferme",
+      "country": "soviet",
+      "voisins": [
+        "starovka-rue-hotel",
+        "starovka-rue-petrole-ferme"
+      ],
+      "directions": {
+        "liens": {
+          "arriere": "starovka-rue-petrole-ferme",
+          "toutDroit": "starovka-rue-hotel"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "ville_a",
+      "noeud": "starovka-rue-logements-collectifs",
+      "country": "soviet",
+      "voisins": [
+        "starovka-rue-raffinerie",
+        "starovka-rue-restaurant-boutique",
+        "starovka-rue-stade"
+      ],
+      "directions": {
+        "liens": {
+          "droite": "starovka-rue-stade",
+          "gauche": "starovka-rue-raffinerie",
+          "arriere": "starovka-rue-restaurant-boutique"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "ville_a",
+      "noeud": "starovka-rue-mairie-marche",
+      "country": "soviet",
+      "voisins": [
+        "starovka-rue-blizzard",
+        "starovka-rue-lycee-commissariat"
+      ],
+      "directions": {
+        "liens": {
+          "gauche": "starovka-rue-lycee-commissariat",
+          "toutDroit": "starovka-rue-blizzard"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "ville_a",
+      "noeud": "starovka-rue-magasin-chasse",
+      "country": "soviet",
+      "voisins": [
+        "starovka-rue-bureaux-caserne",
+        "starovka-rue-locaux-a-louer"
+      ],
+      "directions": {
+        "liens": {
+          "arriere": "starovka-rue-bureaux-caserne",
+          "toutDroit": "starovka-rue-locaux-a-louer"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "capitale",
+      "noeud": "novomirsk-vue-5",
+      "country": "soviet",
+      "voisins": [
+        "novomirsk-vue-4",
+        "novomirsk-vue-6"
+      ],
+      "directions": {
+        "liens": {
+          "droite": "novomirsk-vue-4",
+          "toutDroit": "novomirsk-vue-6"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "capitale",
+      "noeud": "novomirsk-vue-6",
+      "country": "soviet",
+      "voisins": [
+        "novomirsk-vue-5",
+        "novomirsk-vue-7"
+      ],
+      "directions": {
+        "liens": {
+          "arriere": "novomirsk-vue-5",
+          "toutDroit": "novomirsk-vue-7"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "capitale",
+      "noeud": "novomirsk-vue-3",
+      "country": "soviet",
+      "voisins": [
+        "novomirsk-vue-2",
+        "novomirsk-vue-4"
+      ],
+      "directions": {
+        "liens": {
+          "arriere": "novomirsk-vue-4",
+          "toutDroit": "novomirsk-vue-2"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "ville_b",
+      "noeud": "krasnov-place-ours",
+      "country": "soviet",
+      "voisins": [
+        "krasnov-rue-mairie-place"
+      ],
+      "directions": {
+        "liens": {
+          "arriere": "krasnov-rue-mairie-place"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "ville_a",
+      "noeud": "starovka-rue-hopital",
+      "country": "soviet",
+      "voisins": [
+        "starovka-rue-lycee-commissariat",
+        "starovka-rue-tribunal-artisanal"
+      ],
+      "directions": {
+        "liens": {
+          "droite": "starovka-rue-lycee-commissariat",
+          "gauche": "starovka-rue-tribunal-artisanal"
+        },
+        "parArrivee": {}
+      }
+    },
+    {
+      "city": "ville_a",
+      "noeud": "starovka-rue-tribunal-artisanal",
+      "country": "soviet",
+      "voisins": [
+        "starovka-rue-hopital",
+        "starovka-rue-bureaux-caserne"
+      ],
+      "directions": {
+        "liens": {
+          "droite": "starovka-rue-hopital",
+          "gauche": "starovka-rue-bureaux-caserne"
+        },
+        "parArrivee": {}
+      }
+    }
+  ],
+  "navigation_lieux_regles": [
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_a",
+      "pieces": [
+        "hall_gare_montrouge"
+      ],
+      "batiment": "centre-multinodal-montrouge",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "capitale",
+      "pieces": [
+        "hall",
+        "bureaux",
+        "salle_conseil",
+        "salle_presse",
+        "archives_gouv",
+        "bureau_min_int",
+        "bureau_min_fin",
+        "bureau_min_just",
+        "bureau_min_def",
+        "bureau_min_info",
+        "bureau_min_ae"
+      ],
+      "batiment": "palais-gouvernement",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "capitale",
+      "pieces": [
+        "accueil_assemblee",
+        "hemicycle",
+        "couloirs",
+        "salle_archives_assemblee"
+      ],
+      "batiment": "assemblee",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "capitale",
+      "pieces": [
+        "salle_audience",
+        "bureau_magistrats",
+        "greffe"
+      ],
+      "batiment": "tribunal",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "capitale",
+      "pieces": [
+        "accueil_banque",
+        "coffre_privatif"
+      ],
+      "batiment": "banque-nationale",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "capitale",
+      "pieces": [
+        "bureau_prive"
+      ],
+      "batiment": "banque-privee",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "capitale",
+      "pieces": [
+        "reception_clinique",
+        "chambre_1",
+        "chambre_2",
+        "chambre_3",
+        "chambre_4",
+        "chambre_5",
+        "chambre_6",
+        "chambre_7",
+        "chambre_8",
+        "chambre_9",
+        "chambre_10"
+      ],
+      "batiment": "clinique-privee",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "capitale",
+      "pieces": [
+        "accueil_police",
+        "prison",
+        "bureau_commissaire"
+      ],
+      "batiment": "commissariat",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "capitale",
+      "pieces": [
+        "accueil_tribune",
+        "redaction"
+      ],
+      "batiment": "la-tribune",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "capitale",
+      "pieces": [
+        "portail",
+        "hall_loge",
+        "bureau_venerable",
+        "salle_reunion_loge"
+      ],
+      "batiment": "loge-maconnique",
+      "membership": "loge"
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "capitale",
+      "pieces": [
+        "amphi",
+        "salle_reunion"
+      ],
+      "batiment": "universite",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "capitale",
+      "pieces": [
+        "magasin"
+      ],
+      "batiment": "armurerie",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "capitale",
+      "pieces": [
+        "marche_ext"
+      ],
+      "batiment": "marche",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "capitale",
+      "pieces": [
+        "grange_sainte"
+      ],
+      "batiment": "kolkhoze-spirituel",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "capitale",
+      "pieces": [
+        "hall_gare",
+        "hall_douanes",
+        "zone_embarquement"
+      ],
+      "batiment": "centre-multinodal-luthecia",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "capitale",
+      "pieces": [
+        "hall",
+        "vitrine_principale",
+        "boutique_milieu",
+        "arriere_boutique",
+        "cave_reserve"
+      ],
+      "batiment": "centre-commercial",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "capitale",
+      "pieces": [
+        "travees",
+        "echoppe_facade",
+        "atelier_milieu",
+        "reserve_arriere"
+      ],
+      "batiment": "centre-artisanal",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "capitale",
+      "pieces": [
+        "terrain"
+      ],
+      "batiment": "terrain-a-batir-1",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "capitale",
+      "pieces": [
+        "terrain"
+      ],
+      "batiment": "terrain-a-batir-4",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "capitale",
+      "pieces": [
+        "terrain"
+      ],
+      "batiment": "terrain-a-batir-5",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "capitale",
+      "pieces": [
+        "terrain"
+      ],
+      "batiment": "terrain-a-batir-6",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "capitale",
+      "pieces": [
+        "terrain"
+      ],
+      "batiment": "terrain-a-batir-7",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "capitale",
+      "pieces": [
+        "accueil_notaire",
+        "bureau_successions",
+        "bureau_contrats",
+        "archives_notariales"
+      ],
+      "batiment": "office-notarial",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_a",
+      "pieces": [
+        "hall_mineur",
+        "chambre_mineur"
+      ],
+      "batiment": "hotel-mineur",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_a",
+      "pieces": [
+        "guichet"
+      ],
+      "batiment": "banque-locale",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_a",
+      "pieces": [
+        "accueil_loc",
+        "geoles",
+        "bureau_commissaire"
+      ],
+      "batiment": "commissariat-local",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_a",
+      "pieces": [
+        "salle_audience_locale",
+        "bureau_magistrats",
+        "greffe"
+      ],
+      "batiment": "tribunal-local",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "capitale",
+      "pieces": [
+        "terrain",
+        "vestiaires",
+        "buvette",
+        "guichet_paris",
+        "siege_supporters",
+        "bureau_president",
+        "boutique"
+      ],
+      "batiment": "stade",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "capitale",
+      "pieces": [
+        "hall_mairie",
+        "bureau_maire",
+        "bureau_maire_adjoint",
+        "salle_elections",
+        "salle_archives",
+        "salle_partis"
+      ],
+      "batiment": "mairie-capitale",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "capitale",
+      "pieces": [
+        "accueil_elysee",
+        "appartements_president",
+        "salle_reception",
+        "musee_presidentiel"
+      ],
+      "batiment": "palais-presidentiel",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "capitale",
+      "pieces": [
+        "salle_attente",
+        "ehpad_tilleuls",
+        "chambre"
+      ],
+      "batiment": "dispensaire-public",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_a",
+      "pieces": [
+        "attente",
+        "ehpad",
+        "chambre"
+      ],
+      "batiment": "dispensaire-public-v",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_a",
+      "pieces": [
+        "accueil_mairie",
+        "bureau_maire_local",
+        "bureau_maire_adjoint",
+        "salle_partis",
+        "salle_elections"
+      ],
+      "batiment": "mairie",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_a",
+      "pieces": [
+        "salle_ventes_raffinerie",
+        "interieur_raffinerie",
+        "direction_usine"
+      ],
+      "batiment": "usine-principale",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_a",
+      "pieces": [
+        "hall",
+        "vitrine_principale",
+        "boutique_milieu",
+        "arriere_boutique",
+        "cave_reserve"
+      ],
+      "batiment": "centre-commercial",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_a",
+      "pieces": [
+        "travees",
+        "echoppe_facade",
+        "atelier_milieu",
+        "reserve_arriere"
+      ],
+      "batiment": "centre-artisanal",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_a",
+      "pieces": [
+        "terrain"
+      ],
+      "batiment": "terrain-a-batir-3",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_a",
+      "pieces": [
+        "zone_recolte"
+      ],
+      "batiment": "zone-production",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_b",
+      "pieces": [
+        "hall_mineur",
+        "chambre_mineur"
+      ],
+      "batiment": "hotel-mineur",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_b",
+      "pieces": [
+        "guichet"
+      ],
+      "batiment": "banque-locale",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_b",
+      "pieces": [
+        "accueil_loc",
+        "geoles",
+        "bureau_commissaire"
+      ],
+      "batiment": "commissariat-local",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_b",
+      "pieces": [
+        "salle_audience_locale",
+        "bureau_magistrats",
+        "greffe"
+      ],
+      "batiment": "tribunal-local",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_b",
+      "pieces": [
+        "direction_usine"
+      ],
+      "batiment": "usine-principale",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_b",
+      "pieces": [
+        "hall_gare_montrouge"
+      ],
+      "batiment": "centre-multinodal-montrouge",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_b",
+      "pieces": [
+        "hall",
+        "vitrine_principale",
+        "boutique_milieu",
+        "arriere_boutique",
+        "cave_reserve"
+      ],
+      "batiment": "centre-commercial",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_b",
+      "pieces": [
+        "travees",
+        "echoppe_facade",
+        "atelier_milieu",
+        "reserve_arriere"
+      ],
+      "batiment": "centre-artisanal",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_b",
+      "pieces": [
+        "terrain"
+      ],
+      "batiment": "terrain-a-batir-2",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_b",
+      "pieces": [
+        "hall",
+        "bureau_1",
+        "bureau_2",
+        "bureau_3",
+        "bureau_4"
+      ],
+      "batiment": "centre-affaires",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_b",
+      "pieces": [
+        "salle"
+      ],
+      "batiment": "cafe-tabac-cheminots-montrouge",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_b",
+      "pieces": [
+        "amphi",
+        "salle_reunion"
+      ],
+      "batiment": "universite",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_b",
+      "pieces": [
+        "attente",
+        "ehpad",
+        "chambre"
+      ],
+      "batiment": "dispensaire-public-v",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_b",
+      "pieces": [
+        "accueil_mairie",
+        "bureau_maire_local",
+        "bureau_maire_adjoint",
+        "salle_partis",
+        "salle_elections"
+      ],
+      "batiment": "mairie",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_a",
+      "pieces": [
+        "terrain",
+        "vestiaires",
+        "buvette",
+        "guichet_paris",
+        "siege_supporters",
+        "bureau_president",
+        "boutique"
+      ],
+      "batiment": "stade",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_a",
+      "pieces": [
+        "hall",
+        "bureau_prestige",
+        "bureau_standard",
+        "open_space"
+      ],
+      "batiment": "centre-affaires",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "qhs",
+      "pieces": [
+        "entree_qhs",
+        "cellules_qhs",
+        "cachot_disciplinaire",
+        "bureau_chef",
+        "mirador"
+      ],
+      "batiment": "qhs-prison",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_a",
+      "pieces": [
+        "amphi",
+        "bibliotheque"
+      ],
+      "batiment": "universite",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "capitale",
+      "pieces": [
+        "accueil_imprimerie",
+        "atelier"
+      ],
+      "batiment": "imprimerie-librairie",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "capitale",
+      "pieces": [
+        "salle_principale"
+      ],
+      "batiment": "capitaine-sauvage",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "capitale",
+      "pieces": [
+        "hall_pavillon",
+        "salle_reception",
+        "bar",
+        "suite_privee",
+        "suite_presidentielle",
+        "suite_parti"
+      ],
+      "batiment": "pavillon-ambassadeurs-novomirsk",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "capitale",
+      "pieces": [
+        "accueil",
+        "restaurant",
+        "bar",
+        "chambres"
+      ],
+      "batiment": "hotel-republica",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "capitale",
+      "pieces": [
+        "hall_residence",
+        "appartement_1",
+        "appartement_2",
+        "appartement_3",
+        "appartement_4",
+        "grand_appartement"
+      ],
+      "batiment": "residence-imperiale-novomirsk",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "capitale",
+      "pieces": [
+        "salle_ventes",
+        "bureau_direction"
+      ],
+      "batiment": "entrepot-logistique-novomirsk",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "capitale",
+      "pieces": [
+        "accueil_renseignement",
+        "salle_ecoutes",
+        "salle_interrogatoire_renseignement"
+      ],
+      "batiment": "siege-renseignement",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_b",
+      "pieces": [
+        "salle_ventes",
+        "bureau_direction"
+      ],
+      "batiment": "entrepot-logistique-krasnov",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "capitale",
+      "pieces": [
+        "corps_garde",
+        "infirmerie",
+        "salle_commandement",
+        "armurerie_militaire",
+        "refectoire",
+        "salle_faits_armes",
+        "quartier_troupes"
+      ],
+      "batiment": "caserne-militaire",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "capitale",
+      "pieces": [
+        "atelier_garage"
+      ],
+      "batiment": "garage-novomirsk",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_b",
+      "pieces": [
+        "boutique_station"
+      ],
+      "batiment": "station-service-krasnov",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "capitale",
+      "pieces": [
+        "salon_coiffure"
+      ],
+      "batiment": "salon-coiffure-novomirsk",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "capitale",
+      "pieces": [
+        "salle",
+        "petit_appartement_1",
+        "petit_appartement_2",
+        "petit_appartement_3",
+        "petit_appartement_4",
+        "grand_appartement_1",
+        "grand_appartement_2",
+        "grand_appartement_3",
+        "grand_appartement_4"
+      ],
+      "batiment": "logements-novomirsk",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "capitale",
+      "pieces": [
+        "comptoir_pharmacie"
+      ],
+      "batiment": "pharmacie-officielle-novomirsk",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_a",
+      "pieces": [
+        "salle_ventes",
+        "bureau_direction"
+      ],
+      "batiment": "entrepot-logistique-starovka",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "capitale",
+      "pieces": [
+        "etal_poissonniere"
+      ],
+      "batiment": "poissonniere-novomirsk",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "capitale",
+      "pieces": [
+        "salle_ventes",
+        "bureau_direction",
+        "salle_production"
+      ],
+      "batiment": "usine-pharmaceutique-luthecia",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "capitale",
+      "pieces": [
+        "hall",
+        "salle_presidents",
+        "expositions_temporaires",
+        "salle_honneur_militaire_nationale",
+        "salle_politiques",
+        "salle_civils_intellectuels",
+        "salle_organisations",
+        "salle_artistes_sportifs",
+        "salle_tresor_national",
+        "salle_reussites_economiques",
+        "salle_grandes_villes",
+        "salle_criminels_pays"
+      ],
+      "batiment": "musee-national-republia",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "capitale",
+      "pieces": [
+        "hall",
+        "bureau_prestige",
+        "bureau_standard",
+        "open_space",
+        "tribune_republia",
+        "bureau_prestige_b",
+        "reunion_grande_a",
+        "reunion_grande_b",
+        "reunion_moyenne_a",
+        "reunion_moyenne_b"
+      ],
+      "batiment": "centre-affaires",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "capitale",
+      "pieces": [
+        "accueil_ambassades_novomirsk",
+        "bureau_republia_novomirsk",
+        "bureau_khalija_novomirsk",
+        "bureau_estado_novomirsk"
+      ],
+      "batiment": "palais-ambassades-novomirsk",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_a",
+      "pieces": [
+        "quai_principal",
+        "entrepot",
+        "douanes",
+        "administration_portuaire"
+      ],
+      "batiment": "port-starovka",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_a",
+      "pieces": [
+        "magasin"
+      ],
+      "batiment": "armurerie",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_b",
+      "pieces": [
+        "marche_ext"
+      ],
+      "batiment": "marche",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_a",
+      "pieces": [
+        "marche_ext"
+      ],
+      "batiment": "marche",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_b",
+      "pieces": [
+        "grange_sainte"
+      ],
+      "batiment": "kolkhoze-spirituel",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_a",
+      "pieces": [
+        "salle_principale"
+      ],
+      "batiment": "capitaine-sauvage",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_a",
+      "pieces": [
+        "salle",
+        "petit_appartement_1",
+        "petit_appartement_2",
+        "petit_appartement_3",
+        "petit_appartement_4",
+        "grand_appartement_1",
+        "grand_appartement_2",
+        "grand_appartement_3",
+        "grand_appartement_4"
+      ],
+      "batiment": "logements-novomirsk",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_a",
+      "pieces": [
+        "local_1",
+        "local_2"
+      ],
+      "batiment": "locaux-starovka",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_a",
+      "pieces": [
+        "salle_ecoute"
+      ],
+      "batiment": "poste-vigilance-glaciale",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_b",
+      "pieces": [
+        "salle_ecoute"
+      ],
+      "batiment": "station-radar-krasnov",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_a",
+      "pieces": [
+        "piece_maison"
+      ],
+      "batiment": "maison-starovka",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_b",
+      "pieces": [
+        "piece_maison"
+      ],
+      "batiment": "maison-krasnov",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_a",
+      "pieces": [
+        "cour_ferme"
+      ],
+      "batiment": "ferme-starovka",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_b",
+      "pieces": [
+        "cour_ferme"
+      ],
+      "batiment": "ferme-krasnov",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_a",
+      "pieces": [
+        "boutique_fourreur"
+      ],
+      "batiment": "fourreur-starovka",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_b",
+      "pieces": [
+        "zone_recolte",
+        "foret_vue_1",
+        "foret_vue_2",
+        "foret_vue_3",
+        "foret_vue_4"
+      ],
+      "batiment": "zone-production",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "capitale",
+      "pieces": [
+        "salle",
+        "petit_appartement_1",
+        "petit_appartement_2",
+        "petit_appartement_3",
+        "petit_appartement_4",
+        "grand_appartement_1",
+        "grand_appartement_2",
+        "grand_appartement_3",
+        "grand_appartement_4"
+      ],
+      "batiment": "logements-novomirsk-marche",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "capitale",
+      "pieces": [
+        "salle",
+        "petit_appartement_1",
+        "petit_appartement_2",
+        "petit_appartement_3",
+        "petit_appartement_4",
+        "grand_appartement_1",
+        "grand_appartement_2",
+        "grand_appartement_3",
+        "grand_appartement_4"
+      ],
+      "batiment": "logements-novomirsk-quais",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "capitale",
+      "pieces": [
+        "hall",
+        "salle_origines",
+        "salle_personnalites_discretes",
+        "salle_bataille_fleuve",
+        "salle_grand_incendie"
+      ],
+      "batiment": "musee-novomirsk",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_b",
+      "pieces": [
+        "terrain",
+        "vestiaires",
+        "buvette",
+        "guichet_paris",
+        "siege_supporters",
+        "bureau_president",
+        "boutique"
+      ],
+      "batiment": "stade",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_b",
+      "pieces": [
+        "salle_ventes",
+        "bureau_direction",
+        "atelier_distillerie"
+      ],
+      "batiment": "distillerie-krasnov",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_b",
+      "pieces": [
+        "piece_maison"
+      ],
+      "batiment": "maison-krasnov-bureaux",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_b",
+      "pieces": [
+        "piece_maison"
+      ],
+      "batiment": "maison-krasnov-rouge",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_b",
+      "pieces": [
+        "piece_maison"
+      ],
+      "batiment": "maison-krasnov-bleue",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_b",
+      "pieces": [
+        "piece_maison"
+      ],
+      "batiment": "maison-krasnov-eglise",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_b",
+      "pieces": [
+        "piece_maison"
+      ],
+      "batiment": "maison-krasnov-terrains",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_b",
+      "pieces": [
+        "salle",
+        "petit_appartement_1",
+        "petit_appartement_2",
+        "petit_appartement_3",
+        "petit_appartement_4",
+        "grand_appartement_1",
+        "grand_appartement_2",
+        "grand_appartement_3",
+        "grand_appartement_4"
+      ],
+      "batiment": "logements-novomirsk",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_b",
+      "pieces": [
+        "hall",
+        "petit_appartement_1",
+        "petit_appartement_2",
+        "petit_appartement_3",
+        "petit_appartement_4",
+        "grand_appartement_1",
+        "grand_appartement_2",
+        "grand_appartement_3",
+        "grand_appartement_4"
+      ],
+      "batiment": "logements-krasnov-place-ours",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_b",
+      "pieces": [
+        "boutique"
+      ],
+      "batiment": "tabac-presse-krasnov",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_b",
+      "pieces": [
+        "hall",
+        "petit_appartement_1",
+        "petit_appartement_2",
+        "petit_appartement_3",
+        "petit_appartement_4",
+        "grand_appartement_1",
+        "grand_appartement_2",
+        "grand_appartement_3",
+        "grand_appartement_4"
+      ],
+      "batiment": "logements-krasnov-rue-tabac",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_b",
+      "pieces": [
+        "hall",
+        "faune_sauvage",
+        "flore_sauvage",
+        "exploitation_bois",
+        "kolkhozes",
+        "ecoute_spatiale"
+      ],
+      "batiment": "musee-novomirsk",
+      "membership": null
+    },
+    {
+      "pays": "soviet",
+      "ferme": false,
+      "ville": "ville_a",
+      "pieces": [
+        "presse"
+      ],
+      "batiment": "presse-starovka",
+      "membership": null
+    }
+  ],
+  "ordres_couts_pays": [
+    {
+      "fn": "prendre_bus_taxi",
+      "pa": 1,
+      "cost": 60,
+      "pays": "soviet"
+    },
+    {
+      "fn": "prendre_train",
+      "pa": 2,
+      "cost": 30,
+      "pays": "soviet"
+    }
+  ],
+  "rue_sorties_batiments": [
+    {
+      "city": "capitale",
+      "noeud": "novomirsk-vue-15",
+      "country": "soviet",
+      "building": "clinique-privee"
+    },
+    {
+      "city": "capitale",
+      "noeud": "novomirsk-vue-15",
+      "country": "soviet",
+      "building": "dispensaire-public"
+    },
+    {
+      "city": "capitale",
+      "noeud": "novomirsk-vue-4",
+      "country": "soviet",
+      "building": "hotel-republica"
+    },
+    {
+      "city": "capitale",
+      "noeud": "novomirsk-vue-5",
+      "country": "soviet",
+      "building": "hotel-republica"
+    },
+    {
+      "city": "ville_a",
+      "noeud": "starovka-rue-hopital",
+      "country": "soviet",
+      "building": "dispensaire-public-v"
+    },
+    {
+      "city": "ville_a",
+      "noeud": "starovka-rue-hotel",
+      "country": "soviet",
+      "building": "hotel-mineur"
+    },
+    {
+      "city": "ville_b",
+      "noeud": "krasnov-rue-hopital",
+      "country": "soviet",
+      "building": "dispensaire-public-v"
+    }
+  ]
+}

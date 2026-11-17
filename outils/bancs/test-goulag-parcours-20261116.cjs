@@ -58,7 +58,6 @@ t.test('refuge : 5 et 3 bois, deux nuits maximum, aucun doublon',()=>{
  a.equal(n2.boisRestant,0);a.equal(n2.nuits,2);
  rejet(()=>g.heberger({refuge:{nuits:2,dernierJour:2},nuit:3,bois:10}),'nuit_deja_prise');
 });
-t.test('pas de taux d arrestation ni pénalité de champignons inventés',()=>{
- for(const action of ['penalite_champignons','arrestation_hotel_hopital','autorisation_validite'])
- rejet(()=>g.regleNonArbitree(action),'arbitrage_game_designer_requis');
+t.test('quatre décisions définitives du 16/11, aucune règle supposée',()=>{
+ a.deepEqual(g.DECISIONS,{malusChampignons:2,arrestationPourcent:30,autorisation:'permanente',retour:'choix_ville'});
 });

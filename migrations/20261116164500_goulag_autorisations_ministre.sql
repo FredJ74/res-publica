@@ -1,14 +1,14 @@
 -- Autorisations nominatives de visite au goulag. Le ministre décide de
 -- l'autorisation de VISITE, jamais de la condamnation.
--- Validité/renouvellement laissés sans interprétation avant arbitrage de Fred.
+-- Décision 6924193788 : permanente, réutilisable et révocable.
 CREATE TABLE IF NOT EXISTS public.sovarka_goulag_autorisations (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   nom text NOT NULL REFERENCES public.personnages_donnees(name),
-  etat text NOT NULL DEFAULT 'demandee' CHECK (etat IN ('demandee','accordee','refusee','utilisee')),
+  etat text NOT NULL DEFAULT 'demandee' CHECK (etat IN ('demandee','accordee','refusee','revoquee')),
   demandee_le timestamptz NOT NULL DEFAULT now(),
   decidee_le timestamptz,
   ministre text,
-  utilisee_le timestamptz,
+  revoquee_le timestamptz,
   commentaire text
 );
 CREATE UNIQUE INDEX IF NOT EXISTS sovarka_goulag_autorisation_demande_active
@@ -66,16 +66,24 @@ DECLARE v_nom text:=public.mon_personnage(); a public.sovarka_goulag_autorisatio
 BEGIN
   IF auth.uid() IS NULL OR v_nom IS NULL THEN
     RETURN jsonb_build_object('ok',false,'raison','non_authentifie'); END IF;
+  PERFORM 1 FROM public.personnages_donnees WHERE name=v_nom AND user_id=auth.uid() FOR SHARE;
+  PERFORM 1 FROM public.postes_attribues WHERE country='soviet' AND poste_id='min_just' AND titulaire=v_nom FOR SHARE;
   IF NOT public.sovarka_est_titulaire_interne(v_nom,'min_just')
      OR NOT EXISTS(SELECT 1 FROM public.personnages_donnees
        WHERE name=v_nom AND user_id=auth.uid() AND country='soviet') THEN
     RETURN jsonb_build_object('ok',false,'raison','reserve_ministre_justice_sovarka'); END IF;
-  IF p_decision NOT IN ('accorder','refuser') OR p_decision IS NULL THEN
+  IF p_decision NOT IN ('accorder','refuser','revoquer') OR p_decision IS NULL THEN
     RETURN jsonb_build_object('ok',false,'raison','decision_invalide'); END IF;
   IF NOT EXISTS(SELECT 1 FROM public.sovarka_goulag_configuration WHERE singleton AND active) THEN
     RETURN jsonb_build_object('ok',false,'raison','goulag_non_active'); END IF;
   SELECT * INTO a FROM public.sovarka_goulag_autorisations WHERE id=p_id FOR UPDATE;
   IF NOT FOUND THEN RETURN jsonb_build_object('ok',false,'raison','demande_absente'); END IF;
+  IF p_decision='revoquer' THEN
+    IF a.etat='revoquee' THEN RETURN jsonb_build_object('ok',true,'demande_id',p_id,'etat','revoquee','deja_revoquee',true); END IF;
+    IF a.etat<>'accordee' THEN RETURN jsonb_build_object('ok',false,'raison','autorisation_non_accordee'); END IF;
+    UPDATE public.sovarka_goulag_autorisations SET etat='revoquee',revoquee_le=now(),ministre=v_nom WHERE id=p_id;
+    RETURN jsonb_build_object('ok',true,'demande_id',p_id,'etat','revoquee');
+  END IF;
   IF a.etat<>'demandee' THEN
     RETURN jsonb_build_object('ok',false,'raison','demande_deja_traitee'); END IF;
   UPDATE public.sovarka_goulag_autorisations

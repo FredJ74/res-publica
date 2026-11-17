@@ -1,16 +1,18 @@
 'use strict';
 // Navigateur réel, RPC simulées : aucune session ni dépense de production.
 const assert=require('node:assert/strict'),fs=require('node:fs');
-let chromium;try{({chromium}=require('../e2e/node_modules/playwright'));}catch(_){({chromium}=require('playwright'));}
+let pw;try{pw=require('../e2e/node_modules/playwright');}catch(_){pw=require('playwright');}
+const moteur=process.env.GOULAG_BROWSER||'chromium',driver=pw[moteur];
+if(!['chromium','webkit'].includes(moteur))throw Error('Moteur inconnu');
 (async()=>{
- const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||(fs.existsSync('/usr/bin/chromium')?'/usr/bin/chromium':chromium.executablePath()),headless:true,args:['--no-sandbox']});
+ const browser=await driver.launch(moteur==='chromium'?{executablePath:process.env.CHROMIUM_PATH||(fs.existsSync('/usr/bin/chromium')?'/usr/bin/chromium':driver.executablePath()),headless:true,args:['--no-sandbox']}:{headless:true});
  let rendus=0;
  try{
  for(const width of [320,390,1280]){
   const page=await browser.newPage({viewport:{width,height:850}});
   await page.route('**/*',r=>r.abort());
-  await page.setContent('<!doctype html><html><head><meta charset="utf-8"></head><body><input id="saisie" value="à conserver"></body></html>');
-  await page.addStyleTag({content:fs.readFileSync('style.css','utf8')});
+  await page.setContent(fs.readFileSync('plateau.html','utf8').replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')+'<input id="saisie" value="à conserver">');
+  for(const fichier of ['style.css','rue-centrale.css','plateau-exploration-mobile.css','plateau-mobile-refonte-visible.css','plateau-mobile-prototype.css','plateau-interieurs-mobile.css'])await page.addStyleTag({content:fs.readFileSync(fichier,'utf8')});
   await page.evaluate(()=>{
    window.state={country:'soviet',personnageChargeDepuisServeur:false,currentCity:'qhs'};
    window.appels=[];window.donnees={ok:true,en_cours:true,destination:'krasnov',statut:'detenu',pa:20,progressions:0,bois_trouve:0};
@@ -32,8 +34,37 @@ let chromium;try{({chromium}=require('../e2e/node_modules/playwright'));}catch(_
   await page.waitForTimeout(100);
   assert.equal(await page.evaluate(()=>appels.filter(x=>x.fn==='goulag_toundra_agir').length),1);
   assert.equal(await page.evaluate(()=>donnees.pa),20);
+  // Reconnexion dans la maison : le serveur seul rend les commandes visibles.
+  await page.evaluate(()=>{
+   window.state={country:'soviet',currentCity:'ville_a',currentBuilding:'maison-starovka'};
+   window.refugeFixture={ok:true,termine:false,nuits:0,bois_prochain:8};
+   window.confirmations=[];window.confirm=t=>{confirmations.push(t);return true;};
+   window.sbLoadPersonnage=async()=>{};window.updateUI=()=>{};
+   window.sbRpcVerdict=async(fn,p)=>{appels.push({fn,p});await new Promise(r=>setTimeout(r,15));
+    if(fn==='sovarka_goulag_refuge_lire')return {...refugeFixture};
+    return {ok:true,bois_preleves:8,paiements:[{bois:5},{bois:3}]};};
+  });
+  await page.addScriptTag({content:fs.readFileSync('plateau-goulag-refuge.js','utf8')});
+  assert.equal(await page.evaluate(()=>RP_ORDRES_DYNAMIQUES.at(-1)('maison-starovka','piece_maison','ville_a').length),0);
+  await page.evaluate(()=>goulagRefugeLire());
+  assert.equal(await page.evaluate(()=>RP_ORDRES_DYNAMIQUES.at(-1)('maison-starovka','piece_maison','ville_a').length),2);
+  await page.evaluate(async()=>{appels.length=0;await Promise.all([goulagRefugeNuit(),goulagRefugeNuit()]);});
+  assert.deepEqual(await page.evaluate(()=>appels.filter(x=>x.fn==='sovarka_goulag_refuge_nuit').map(x=>x.p)),[{p_max_bois:8}]);
+  await page.evaluate(()=>goulagRefugeTerminer());
+  assert.equal(await page.evaluate(()=>RP_ORDRES_DYNAMIQUES.at(-1)('maison-starovka','piece_maison','ville_a').length),0);
+  await page.addScriptTag({content:fs.readFileSync('plateau-goulag-transports.js','utf8')});
+  for(const [choix,destination] of [['1','capitale'],['2','ville_b'],['3','ville_a']]){
+   await page.evaluate(async choix=>{appels.length=0;const saisies=[choix,'2'];window.prompt=()=>saisies.shift();await goulagVisiteurRetour();},choix);
+   assert.deepEqual(await page.evaluate(()=>appels.map(x=>x.p)),[{p_mode:'bus',p_destination:destination}]);
+  }
+  await page.evaluate(async()=>{
+   appels.length=0;window.prompt=()=> '1';window.sbRpcVerdict=async(fn,p)=>{appels.push({fn,p});return fn==='sovarka_goulag_visite_lire'?{ok:true,ministre:true,demandes:[{id:'autorisation-test',nom:'Visiteur',etat:'accordee'}]}:{ok:true};};
+   await goulagAutorisationsGerer();
+  });
+  assert.deepEqual(await page.evaluate(()=>appels.at(-1)),{fn:'sovarka_goulag_visite_decider',p:{p_id:'autorisation-test',p_decision:'revoquer'}});
+  assert.equal(await page.locator('#saisie').inputValue(),'à conserver');
   await page.close();
  }
- console.log(JSON.stringify({rendus,largeurs:[320,390,1280],langues:9,rtl:true,doubleClic:'un seul ordre',serveur:'simulé',personnageConnecte:false}));
+ console.log(JSON.stringify({moteur,rendus,largeurs:[320,390,1280],langues:9,rtl:true,doubleClic:'un seul ordre',serveur:'simulé',personnageConnecte:false}));
  }finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

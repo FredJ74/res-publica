@@ -40,7 +40,15 @@ class Goulag(unittest.TestCase):
    else:
     for col in cols:q.execute('ALTER TABLE public."'+t['name']+'" ADD COLUMN IF NOT EXISTS '+col)
   q.execute('SET check_function_bodies=off')
-  for f in json.loads((F/'fonctions-vivantes.json').read_text()):q.execute(f['definition'])
+  for f in json.loads((F/'fonctions-vivantes.json').read_text()):
+   q.execute(f['definition'])
+   # CREATE OR REPLACE conserve les ACL du vieux baseline : rétablir celles du relevé réel.
+   signature='public.'+f['signature']
+   q.execute('REVOKE ALL ON FUNCTION '+signature+' FROM PUBLIC,anon,authenticated,service_role')
+   acl=f.get('acl')
+   if acl is None or re.search(r'(?:\{|,)=X',acl):q.execute('GRANT EXECUTE ON FUNCTION '+signature+' TO PUBLIC')
+   for role in ['anon','authenticated','service_role']:
+    if acl and re.search(r'(?:\{|,)'+role+r'=X',acl):q.execute('GRANT EXECUTE ON FUNCTION '+signature+' TO '+role)
   q.execute('SET check_function_bodies=on')
   q.execute('ALTER TABLE public.rue_noeuds_serveur ADD COLUMN IF NOT EXISTS directions jsonb')
   for table,rows in json.loads((F/'references-vivantes.json').read_text()).items():
@@ -55,22 +63,32 @@ class Goulag(unittest.TestCase):
    q.execute('INSERT INTO auth.users(id) VALUES(%s)',(uid,))
    q.execute("SELECT set_config('request.jwt.claims',%s,true)",(json.dumps({'sub':uid,'role':'authenticated'}),))
    q.execute("INSERT INTO public.personnages_donnees(name,country,user_id,pa,current_city,current_building,current_room,inventory) VALUES(%s,%s,%s,20,'qhs','qhs-prison','entree_qhs','[]')",(nom,pays,uid))
+  q.execute("""CREATE FUNCTION public.fixture_gratuit(p_champ text) RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp AS $$BEGIN
+    IF p_champ='pa' THEN UPDATE personnages_donnees SET pa=pa+12 WHERE name=public.mon_personnage();
+    ELSIF p_champ='inventaire' THEN PERFORM public.inventaire_deposer_interne(public.mon_personnage(),'{"stackKey":"pain","qty":1}',true);
+    ELSE UPDATE personnages_donnees SET current_city='ville_a' WHERE name=public.mon_personnage(); END IF; END$$;
+    REVOKE ALL ON FUNCTION public.fixture_gratuit(text) FROM PUBLIC;GRANT EXECUTE ON FUNCTION public.fixture_gratuit(text) TO authenticated;
+    CREATE FUNCTION public.fixture_cadeau(p_cible text) RETURNS jsonb LANGUAGE sql SECURITY DEFINER SET search_path=public,pg_temp AS $$SELECT public.inventaire_deposer_interne(p_cible,'{"stackKey":"pain","qty":1}',true)$$;
+    REVOKE ALL ON FUNCTION public.fixture_cadeau(text) FROM PUBLIC;GRANT EXECUTE ON FUNCTION public.fixture_cadeau(text) TO authenticated;""")
   cls.c.commit()
  @classmethod
  def tearDownClass(cls):
   cls.c.close();cls.s.cleanup();cls.tmp.cleanup()
- def setUp(self):self.q=self.c.cursor()
+ def setUp(self):self.q=self.c.cursor();self._client=False
  def tearDown(self):self.c.rollback();self.q.close()
- def sql(self,sql,args=None):self.q.execute(sql,args);return self.q.fetchone()[0] if self.q.description else None
+ def sql(self,sql,args=None):
+  appel=re.match(r'SELECT public\.([a-z_0-9]+)\(',sql)
+  if self._client and appel:self.q.execute("SELECT set_config('request.path',%s,true)",('/rpc/'+appel[1],))
+  self.q.execute(sql,args);return self.q.fetchone()[0] if self.q.description else None
  def client(self,i=1):
   self.sql("SELECT set_config('request.jwt.claims',%s,true)",(json.dumps({'sub':f'00000000-0000-4000-8000-{i:012}','role':'authenticated'}),))
   self.sql("SELECT set_config('request.path','/rpc/goulag_toundra_agir',true)")
-  self.q.execute('SET LOCAL ROLE authenticated')
- def admin(self):self.q.execute('RESET ROLE')
+  self.q.execute('SET LOCAL ROLE authenticated');self._client=True
+ def admin(self):self.q.execute('RESET ROLE');self._client=False
  def activation_fixture(self):
   self.q.execute('ALTER TABLE public.sovarka_goulag_configuration DROP CONSTRAINT sovarka_goulag_activation_figee')
-  # Simulation uniquement : aucune arrestation ni validité n'est ici arbitrée.
-  self.q.execute("UPDATE public.sovarka_goulag_configuration SET active=true,champignons_malus=1,formule_arrestation='FIXTURE_NON_OPERATIONNELLE',autorisation_usage='unique',retour_visiteur='meme_ville'")
+  # Retrait du verrou dans la seule base jetable ; décisions de Fred du 16/11.
+  self.q.execute("UPDATE public.sovarka_goulag_configuration SET active=true,champignons_malus=2,formule_arrestation='30_par_entree',autorisation_usage='permanente',retour_visiteur='choix_ville'")
  def traverser(self,nom='__goulag_detenu',destination='starovka',statut='detenu',progressions=0):
   self.q.execute("INSERT INTO public.sovarka_goulag_traversees(nom,destination,statut,progressions,champignons_choix) VALUES(%s,%s,%s,%s,'manger')",(nom,destination,statut,progressions))
  def test_activation_interdite_et_aucun_effet(self):
@@ -82,6 +100,102 @@ class Goulag(unittest.TestCase):
   self.admin();self.assertEqual(self.sql('SELECT count(*) FROM public.sovarka_goulag_traversees'),0)
   self.assertEqual(self.sql('SELECT count(*) FROM public.sovarka_goulag_autorisations'),0)
   self.assertEqual(self.sql("SELECT pa FROM public.personnages_donnees WHERE name='__goulag_detenu'"),20)
+ def fugitif(self):
+  self.q.execute("UPDATE public.personnages_donnees SET current_city='ville_a',current_building=NULL,current_room=NULL,current_street='starovka-rue-stade',est_emprisonne=NULL WHERE name='__goulag_detenu'")
+  self.q.execute("INSERT INTO public.detentions(id,nom,country,city,qhs,jour_debut,jour_fin,mode_fin,jour_fin_effective) VALUES('fixture-origine','__goulag_detenu','soviet','ville_a',true,1,11,'evasion',1)")
+  self.q.execute("INSERT INTO public.sovarka_goulag_traversees(nom,destination,statut,en_cours,progressions,detention_id,peine_gelee_secondes,recherche_id) VALUES('__goulag_detenu','starovka','detenu',false,7,'fixture-origine',3600,'fixture-recherche')")
+ def graine(self,capture):
+  for n in [i/50 for i in range(-50,51)]:
+   self.sql('SELECT setseed(%s)',(n,));v=self.sql('SELECT random()')
+   if (v<0.30)==capture:self.sql('SELECT setseed(%s)',(n,));return n
+  self.fail('graine de fixture introuvable')
+ def test_champignons_decision_2_unique(self):
+  self.activation_fixture();self.traverser()
+  self.q.execute("UPDATE public.sovarka_goulag_traversees SET debut_le=public.sovarka_jour_paris()-4,champignons_choix=NULL")
+  self.client();self.assertTrue(self.sql("SELECT public.goulag_toundra_agir('champignons_refuser')")['ok'])
+  self.assertEqual(self.sql("SELECT public.goulag_toundra_agir('dormir')")['pa'],21)
+  self.admin();self.q.execute("UPDATE public.sovarka_goulag_traversees SET jour_sommeil=NULL")
+  self.client();self.assertEqual(self.sql("SELECT public.goulag_toundra_agir('dormir')")['pa'],24)
+ def test_refuge_reconnexion_tardive_sans_nuit(self):
+  self.activation_fixture()
+  self.q.execute("UPDATE public.personnages_donnees SET current_city='ville_a',current_building='maison-starovka',current_room='piece_maison',pa=1,inventory='[{\"stackKey\":\"bois\",\"stackable\":true,\"qty\":8}]' WHERE name='__goulag_detenu'")
+  self.q.execute("INSERT INTO public.sovarka_goulag_refuges(nom,destination,statut,arrivee_le) VALUES('__goulag_detenu','starovka','detenu',public.sovarka_jour_paris()-10)")
+  self.client();r=self.sql('SELECT public.sovarka_goulag_refuge_terminer(8)');self.assertTrue(r['ok'],r);self.assertEqual([p['bois'] for p in r['paiements']],[5,3])
+  self.assertTrue(self.sql('SELECT public.sovarka_goulag_refuge_terminer(8)')['deja_termine'])
+  self.admin();self.assertEqual(self.sql("SELECT pa FROM public.personnages_donnees WHERE name='__goulag_detenu'"),1)
+  self.assertEqual(self.sql("SELECT inventory FROM public.personnages_donnees WHERE name='__goulag_detenu'"),[])
+ def test_arrestation_jet_unique_et_peine_reprise(self):
+  self.activation_fixture();self.fugitif();self.graine(True)
+  self.client();self.q.execute("SELECT set_config('request.path','/rpc/fixture_entree',true)")
+  # L'UPDATE de fixture simule le mouvement effectif ; le vrai déclencheur fait le jet.
+  self.admin();self.q.execute("UPDATE public.personnages_donnees SET current_building='hotel-mineur',current_room='hall_mineur',current_street=NULL WHERE name='__goulag_detenu'")
+  self.assertEqual(self.sql('SELECT count(*) FROM public.sovarka_goulag_entrees'),1)
+  self.assertTrue(self.sql('SELECT arrete FROM public.sovarka_goulag_entrees'))
+  self.assertEqual(self.sql("SELECT current_city FROM public.personnages_donnees WHERE name='__goulag_detenu'"),'qhs')
+  self.assertAlmostEqual(float(self.sql("SELECT (est_emprisonne->>'jours')::numeric FROM public.personnages_donnees WHERE name='__goulag_detenu'")),3600/86400,places=8)
+ def test_arrestation_aucun_jet_sur_piece_ou_visiteur(self):
+  self.activation_fixture();self.fugitif();self.graine(False)
+  self.q.execute("UPDATE public.personnages_donnees SET current_building='hotel-mineur',current_room='hall_mineur',current_street=NULL WHERE name='__goulag_detenu'")
+  self.q.execute("UPDATE public.personnages_donnees SET current_room='chambre_mineur' WHERE name='__goulag_detenu'")
+  self.q.execute("UPDATE public.personnages_donnees SET current_room='chambre_mineur' WHERE name='__goulag_detenu'")
+  self.assertEqual(self.sql('SELECT count(*) FROM public.sovarka_goulag_entrees'),1)
+  self.assertFalse(self.sql('SELECT arrete FROM public.sovarka_goulag_entrees'))
+  self.q.execute("UPDATE public.personnages_donnees SET current_city='ville_a',current_building='hotel-mineur',current_room='hall_mineur' WHERE name='__goulag_visiteur'")
+  self.assertEqual(self.sql('SELECT count(*) FROM public.sovarka_goulag_entrees'),1)
+ def test_rpc_gratuite_refusee_en_toundra(self):
+  self.activation_fixture();self.traverser();self.client()
+  for champ in ['pa','inventaire','position']:
+   self.q.execute('SAVEPOINT contournement')
+   with self.assertRaises(psycopg2.errors.InsufficientPrivilege) as refus:self.sql('SELECT public.fixture_gratuit(%s)',(champ,))
+   self.assertIn('traversee_irreversible',str(refus.exception));self.q.execute('ROLLBACK TO contournement')
+  self.admin();self.assertEqual(self.sql("SELECT pa FROM public.personnages_donnees WHERE name='__goulag_detenu'"),20)
+  self.client(3);self.q.execute('SAVEPOINT cadeau')
+  with self.assertRaises(psycopg2.errors.InsufficientPrivilege) as refus:self.sql("SELECT public.fixture_cadeau('__goulag_detenu')")
+  self.assertIn('traversee_irreversible',str(refus.exception));self.q.execute('ROLLBACK TO cadeau')
+ def ministre_fixture(self):
+  self.q.execute("UPDATE public.personnages_donnees SET poste='{\"id\":\"min_just\"}',current_city='capitale',current_building='palais-gouvernement',current_room='bureau_min_just' WHERE name='__goulag_detenu'")
+  self.q.execute("INSERT INTO public.postes_attribues(id,country,poste_id,city,titulaire,source) VALUES('fixture-min-autor','soviet','min_just','capitale','__goulag_detenu','fixture')")
+ def test_autorisation_permanente_reutilisable_revocable(self):
+  self.activation_fixture();self.ministre_fixture()
+  self.q.execute("UPDATE public.personnages_donnees SET current_city='ville_b',current_building='centre-multinodal-montrouge',current_room='hall_gare_montrouge',liquide=300,pa=30 WHERE name='__goulag_visiteur'")
+  self.client(2);demande=self.sql('SELECT public.sovarka_goulag_visite_demander()')['demande_id']
+  self.client(1);self.assertTrue(self.sql('SELECT public.sovarka_goulag_visite_decider(%s,%s)',(demande,'accorder'))['ok'])
+  self.client(2)
+  for destination in ['capitale','ville_a','ville_b']:
+   self.assertTrue(self.sql("SELECT public.sovarka_goulag_voyager('train')")['ok'])
+   r=self.sql('SELECT public.sovarka_goulag_visiteur_repartir(%s,%s)',('train',destination));self.assertTrue(r['ok'],r);self.assertEqual(r['ville'],destination)
+  self.client(1);self.assertTrue(self.sql('SELECT public.sovarka_goulag_visite_decider(%s,%s)',(demande,'revoquer'))['ok'])
+  self.assertTrue(self.sql('SELECT public.sovarka_goulag_visite_decider(%s,%s)',(demande,'revoquer'))['deja_revoquee'])
+  self.client(2);r=self.sql("SELECT public.sovarka_goulag_voyager('train')");self.assertFalse(r['ok']);self.assertEqual(r['raison'],'autorisation_goulag_requise')
+  self.admin();self.assertEqual(self.sql("SELECT liquide FROM public.personnages_donnees WHERE name='__goulag_visiteur'"),120)
+  self.assertEqual(self.sql("SELECT pa FROM public.personnages_donnees WHERE name='__goulag_visiteur'"),18)
+ def test_revocation_ne_bloque_pas_sortie_visiteur_present(self):
+  self.activation_fixture();self.ministre_fixture()
+  demande=self.sql("INSERT INTO public.sovarka_goulag_autorisations(nom,etat,ministre) VALUES('__goulag_visiteur','accordee','__goulag_detenu') RETURNING id")
+  self.q.execute("INSERT INTO public.sovarka_goulag_visites(nom,origine,autorisation) VALUES('__goulag_visiteur','ville_b',%s)",(demande,))
+  self.q.execute("UPDATE public.personnages_donnees SET liquide=100 WHERE name='__goulag_visiteur'")
+  self.client(1);self.assertTrue(self.sql('SELECT public.sovarka_goulag_visite_decider(%s,%s)',(demande,'revoquer'))['ok'])
+  self.client(2);self.assertTrue(self.sql("SELECT public.sovarka_goulag_visiteur_repartir('bus','capitale')")['ok'])
+ def test_ministre_etranger_refuse(self):
+  self.activation_fixture()
+  demande=self.sql("INSERT INTO public.sovarka_goulag_autorisations(nom) VALUES('__goulag_visiteur') RETURNING id")
+  self.q.execute("UPDATE public.personnages_donnees SET poste='{\"id\":\"min_just\"}' WHERE name='__goulag_republic'")
+  self.q.execute("INSERT INTO public.postes_attribues(id,country,poste_id,city,titulaire,source) VALUES('fixture-min-republic','republic','min_just','capitale','__goulag_republic','fixture')")
+  self.client(3);r=self.sql('SELECT public.sovarka_goulag_visite_decider(%s,%s)',(demande,'accorder'));self.assertFalse(r['ok']);self.assertEqual(r['raison'],'reserve_ministre_justice_sovarka')
+ def test_refuge_reconnexion_partielle_et_devis_perime(self):
+  self.activation_fixture()
+  self.q.execute("UPDATE public.personnages_donnees SET current_city='ville_a',current_building='maison-starovka',current_room='piece_maison',inventory='[{\"stackKey\":\"bois\",\"stackable\":true,\"qty\":8}]' WHERE name='__goulag_detenu'")
+  self.q.execute("INSERT INTO public.sovarka_goulag_refuges(nom,destination,statut,arrivee_le) VALUES('__goulag_detenu','starovka','detenu',public.sovarka_jour_paris()-10)")
+  self.client();r=self.sql('SELECT public.sovarka_goulag_refuge_lire()');self.assertEqual(r['bois_prochain'],8)
+  r=self.sql('SELECT public.sovarka_goulag_refuge_nuit(5)');self.assertFalse(r['ok']);self.assertEqual(r['raison'],'bois_a_confirmer')
+  self.assertTrue(self.sql('SELECT public.sovarka_goulag_refuge_nuit(8)')['ok'])
+  self.assertTrue(self.sql('SELECT public.sovarka_goulag_refuge_terminer(0)')['ok'])
+ def test_navigation_publique_reflete_arrestation(self):
+  self.activation_fixture();self.fugitif()
+  self.q.execute("UPDATE public.personnages_donnees SET current_street='starovka-rue-hotel' WHERE name='__goulag_detenu'")
+  self.graine(True);self.client();r=self.sql("SELECT public.navigation_interieure('hotel-mineur','hall_mineur')")
+  self.assertTrue(r['ok'],r);self.assertTrue(r['goulag_arrestation']['ok'])
+  self.admin();self.assertEqual(self.sql("SELECT current_city FROM public.personnages_donnees WHERE name='__goulag_detenu'"),'qhs')
  def test_migrations_rejouables(self):
   for p in self.migrations:self.q.execute(p.read_text())
   self.assertFalse(self.sql('SELECT active FROM public.sovarka_goulag_configuration'))
@@ -92,7 +206,7 @@ class Goulag(unittest.TestCase):
  def test_permissions_et_rls(self):
   for role in ['anon','authenticated','service_role']:
    self.assertFalse(self.sql("SELECT has_function_privilege(%s,'public.sovarka_goulag_confisquer_interne(text,text)','EXECUTE')",(role,)))
-  for table in ['traversees','depots','autorisations','refuges','configuration','visites']:
+  for table in ['traversees','depots','autorisations','refuges','configuration','visites','entrees']:
    self.assertTrue(self.sql('SELECT relrowsecurity FROM pg_class WHERE oid=%s::regclass',('public.sovarka_goulag_'+table,)))
    for role in ['authenticated','anon','service_role']:
     self.assertFalse(self.sql('SELECT has_table_privilege(%s,%s,\'SELECT\')',(role,'public.sovarka_goulag_'+table)))
@@ -152,8 +266,8 @@ class Goulag(unittest.TestCase):
   self.client(2);r=self.sql("SELECT public.sovarka_goulag_voyager('train')");self.assertTrue(r['ok'],r);self.admin()
   self.assertEqual(self.sql("SELECT pa FROM public.personnages_donnees WHERE name='__goulag_visiteur'"),18)
   self.assertEqual(self.sql("SELECT liquide FROM public.personnages_donnees WHERE name='__goulag_visiteur'"),70)
-  self.assertEqual(self.sql("SELECT etat FROM public.sovarka_goulag_autorisations WHERE nom='__goulag_visiteur'"),'utilisee')
-  self.client(2);r=self.sql("SELECT public.sovarka_goulag_visiteur_repartir('train',NULL)");self.assertTrue(r['ok'],r);self.admin()
+  self.assertEqual(self.sql("SELECT etat FROM public.sovarka_goulag_autorisations WHERE nom='__goulag_visiteur'"),'accordee')
+  self.client(2);r=self.sql("SELECT public.sovarka_goulag_visiteur_repartir('train','ville_b')");self.assertTrue(r['ok'],r);self.admin()
   self.assertEqual(self.sql("SELECT liquide FROM public.personnages_donnees WHERE name='__goulag_visiteur'"),40)
   self.assertEqual(self.sql("SELECT current_city FROM public.personnages_donnees WHERE name='__goulag_visiteur'"),'ville_b')
 
@@ -190,12 +304,29 @@ class Goulag(unittest.TestCase):
    r=self.sql("SELECT public.goulag_toundra_agir('progresser')");self.assertEqual(r['pa'],1);self.assertEqual(r['bois_gagne'],3);self.assertTrue(r['termine'])
    self.assertEqual(r['rue'],'starovka-rue-stade' if i==1 else 'krasnov-camp-bucherons')
    self.assertEqual(self.sql("SELECT public.sovarka_goulag_refuge_rejoindre()")['ok'],True)
-   self.assertEqual(self.sql("SELECT public.sovarka_goulag_refuge_nuit()")['bois_preleves'],5)
-   self.assertEqual(self.sql("SELECT public.sovarka_goulag_refuge_nuit()")['raison'],'nuit_deja_prise')
+   self.assertEqual(self.sql("SELECT public.sovarka_goulag_refuge_nuit(8)")['bois_preleves'],5)
+   self.assertEqual(self.sql("SELECT public.sovarka_goulag_refuge_nuit(8)")['raison'],'nuit_deja_prise')
    self.admin();self.q.execute('UPDATE public.sovarka_goulag_refuges SET derniere_nuit=NULL WHERE nom=%s',(nom,));self.client(i)
-   self.assertEqual(self.sql("SELECT public.sovarka_goulag_refuge_nuit()")['bois_preleves'],3)
-   self.assertEqual(self.sql("SELECT public.sovarka_goulag_refuge_nuit()")['raison'],'nuit_deja_prise')
+   self.assertEqual(self.sql("SELECT public.sovarka_goulag_refuge_nuit(8)")['bois_preleves'],3)
+   self.assertEqual(self.sql("SELECT public.sovarka_goulag_refuge_nuit(8)")['raison'],'nuit_deja_prise')
    self.admin();self.assertEqual(self.sql("SELECT inventory FROM public.personnages_donnees WHERE name=%s",(nom,)),[])
+ def test_parcours_complets_sept_et_dix_jours(self):
+  self.activation_fixture()
+  for destination,total,ville,rue,i,nom in [('starovka',7,'ville_a','starovka-rue-stade',1,'__goulag_detenu'),('krasnov',10,'ville_b','krasnov-camp-bucherons',2,'__goulag_visiteur')]:
+   self.traverser(nom,destination)
+   for jour in range(total):
+    self.client(i)
+    self.assertTrue(self.sql("SELECT public.goulag_toundra_agir('abri')")['ok'])
+    self.assertTrue(self.sql("SELECT public.goulag_toundra_agir('dormir')")['ok'])
+    r=self.sql("SELECT public.goulag_toundra_agir('progresser')");self.assertTrue(r['ok'],r)
+    self.assertEqual(r['progressions'],jour+1)
+    if jour<total-1:
+     self.assertEqual(self.sql("SELECT public.goulag_toundra_agir('progresser')")['raison'],'progression_deja_faite')
+    self.admin()
+    self.q.execute("UPDATE public.sovarka_goulag_traversees SET debut_le=debut_le-1,jour_abri=jour_abri-1,jour_sommeil=jour_sommeil-1,jour_progression=jour_progression-1 WHERE nom=%s",(nom,))
+   self.assertEqual(self.sql("SELECT current_city FROM public.personnages_donnees WHERE name=%s",(nom,)),ville)
+   self.assertEqual(self.sql("SELECT current_street FROM public.personnages_donnees WHERE name=%s",(nom,)),rue)
+   self.assertEqual(self.sql("SELECT pa FROM public.personnages_donnees WHERE name=%s",(nom,)),1)
  def test_second_refuge_reinitialise(self):
   self.q.execute("UPDATE public.personnages_donnees SET pa=1,current_city='ville_a' WHERE name='__goulag_detenu'")
   self.assertTrue(self.sql("SELECT public.sovarka_goulag_refuge_creer_interne('__goulag_detenu','starovka','detenu')")['ok'])
@@ -212,6 +343,7 @@ class Goulag(unittest.TestCase):
   def appel(_):
    with psycopg2.connect(self.s.get_uri()) as c:
     q=c.cursor();q.execute("SELECT set_config('request.jwt.claims',%s,true)",(json.dumps({'sub':'00000000-0000-4000-8000-000000000001','role':'authenticated'}),));q.execute('SET LOCAL ROLE authenticated')
+    q.execute("SELECT set_config('request.path','/rpc/goulag_toundra_agir',true)")
     q.execute("SELECT public.goulag_toundra_agir('progresser')");return q.fetchone()[0]
   with concurrent.futures.ThreadPoolExecutor(max_workers=2) as e:res=list(e.map(appel,range(2)))
   self.assertEqual(sum(r['ok'] for r in res),1);self.assertEqual(self.sql("SELECT pa FROM public.personnages_donnees WHERE name='__goulag_detenu'"),15)
@@ -222,7 +354,7 @@ class Goulag(unittest.TestCase):
   def nuit(_):
    with psycopg2.connect(self.s.get_uri()) as c:
     q=c.cursor();q.execute("SELECT set_config('request.jwt.claims',%s,true)",(json.dumps({'sub':'00000000-0000-4000-8000-000000000001','role':'authenticated'}),));q.execute("SELECT set_config('request.path','/rpc/sovarka_goulag_refuge_nuit',true)");q.execute('SET LOCAL ROLE authenticated')
-    q.execute('SELECT public.sovarka_goulag_refuge_nuit()');return q.fetchone()[0]
+    q.execute('SELECT public.sovarka_goulag_refuge_nuit(8)');return q.fetchone()[0]
   for montant in [5,3]:
    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as e:res=list(e.map(nuit,range(2)))
    self.assertEqual(sum(r['ok'] for r in res),1)

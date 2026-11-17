@@ -37,10 +37,14 @@
  }
  async function retour(){
    if(occupe)return;
+   const ville=window.prompt('Destination du retour : 1 — Novomirsk / 2 — Krasnov / 3 — Starovka', '1');
+   if(ville===null)return;
+   const destination={'1':'capitale','2':'ville_b','3':'ville_a'}[ville.trim()];
+   if(!destination){dire('Destination inconnue','Choisissez 1, 2 ou 3.');return;}
    const choisi=mode();if(!choisi)return;
    occupe=true;
    try{
-     const res=await rpc('sovarka_goulag_visiteur_repartir',{p_mode:choisi,p_destination:null});
+     const res=await rpc('sovarka_goulag_visiteur_repartir',{p_mode:choisi,p_destination:destination});
      dire(res.ok?'Retour confirmé':'Retour refusé',res.ok?'Vous êtes arrivé au centre multimodal.':res.raison||'Refus serveur',res.ok);
      if(res.ok){if(typeof sbLoadPersonnage==='function')await sbLoadPersonnage();if(typeof updateUI==='function')updateUI();}
    }finally{occupe=false;}
@@ -51,14 +55,15 @@
    try{
      const res=await rpc('sovarka_goulag_visite_lire',{});
      if(!res.ok||!res.ministre){dire('Accès refusé',res.raison||'Réservé au ministre de la Justice');return;}
-     const demandes=(res.demandes||[]).filter(x=>x.etat==='demandee');
+     const demandes=(res.demandes||[]).filter(x=>x.etat==='demandee'||x.etat==='accordee');
      if(!demandes.length){dire('Demandes de visite','Aucune demande en attente.',true);return;}
-     const textes=demandes.map((x,i)=>(i+1)+' — '+x.nom).join('\n');
+     const textes=demandes.map((x,i)=>(i+1)+' — '+x.nom+(x.etat==='accordee'?' (autorisation permanente)':' (demande)')).join('\n');
      const index=Number(window.prompt('Demandes de visite au goulag :\n'+textes+'\n\nNuméro de la demande à traiter :','1'));
      if(!Number.isSafeInteger(index)||index<1||index>demandes.length)return;
-     const choix=window.prompt('Visite de '+demandes[index-1].nom+' : 1 — Accorder / 2 — Refuser. Annuler = aucune décision.','1');
+     const accordee=demandes[index-1].etat==='accordee';
+     const choix=accordee ? (window.confirm('Révoquer l’autorisation permanente de '+demandes[index-1].nom+' ? Les nouveaux départs seront refusés.')?'revoquer':null) : window.prompt('Visite de '+demandes[index-1].nom+' : 1 — Accorder / 2 — Refuser. Annuler = aucune décision.','1');
      if(choix===null)return;
-     const decision=choix.trim()==='1'?'accorder':choix.trim()==='2'?'refuser':null;
+     const decision=accordee?'revoquer':choix.trim()==='1'?'accorder':choix.trim()==='2'?'refuser':null;
      if(!decision)return;
      const verdict=await rpc('sovarka_goulag_visite_decider',{p_id:demandes[index-1].id,p_decision:decision});
      dire(verdict.ok?'Décision enregistrée':'Décision refusée',verdict.ok?'La décision est conservée au serveur.':verdict.raison||'Refus serveur',verdict.ok);
@@ -78,7 +83,7 @@
    if(ville==='capitale'&&batiment==='palais-gouvernement'&&piece==='bureau_min_just'){
      return [{fn:'goulag_autorisations_gerer',label:'Autorisations de visite du goulag',pa:0,cost:0,
        type:'legal',icon:'ti-id-badge',requiresPost:'min_just',
-       desc:'Approuver ou refuser les demandes de visite, sans pouvoir condamner un dissident.'}];
+       desc:'Accorder une autorisation permanente, refuser une demande ou révoquer un droit de visite ; aucun pouvoir de condamnation.'}];
    }
    if(ville==='qhs'&&batiment==='qhs-prison'&&piece==='entree_qhs'){
      return [{fn:'goulag_visiteur_retour',label:'Retour du visiteur vers la ville',pa:0,cost:0,

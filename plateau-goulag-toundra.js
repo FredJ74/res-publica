@@ -139,12 +139,12 @@
     const pieces = (typeof BUILDINGS !== 'undefined' && BUILDINGS['qhs-prison']?.rooms) || {};
     const masque = Object.values(pieces).flatMap(p => (p.orders || []).map(o => o.fn));
     if (roomId === 'cellules_qhs') return [
-      { fn: '__goulag_masque', masque, invisible: true, label: '', pa: 0, cost: 0 },
+      { masque, invisible: true },
       { fn: 'goulag_detenu_entree', label: "Se rendre à l'entrée du goulag", pa: 0, cost: 0,
         type: 'legal', icon: 'ti-door-enter', successRate: 100,
         desc: "Rejoindre l'entrée sous contrôle de la détention. Ce n'est pas une libération ni un transport." }
     ];
-    if (roomId !== 'entree_qhs') return [{ fn: '__goulag_masque', masque, invisible: true, label: '', pa: 0, cost: 0 }];
+    if (roomId !== 'entree_qhs') return [{ masque, invisible: true }];
     return [{ fn: 'goulag_depart_pied', label: "S'enfuir à pied", pa: 0, cost: 0,
       icon: 'ti-walk', type: 'legal', successRate: 100, masque,
       desc: 'Choisir Starovka (7 PA minimum, 7 progressions) ou Krasnov (10 PA minimum, 10 progressions). Départ irréversible.' }];

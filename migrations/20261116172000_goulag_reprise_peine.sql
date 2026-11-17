@@ -11,7 +11,7 @@ BEGIN
  IF strpos(code,'goulag_reprise_peine_gelee_20261116')>0 THEN RETURN; END IF;
  ancre:=E'  RETURN jsonb_build_object(''ok'',true,''detention_id'',v_id,''jour_debut'',v_jour_cible,''jour_fin'',v_jour_cible+p_jours);';
  ajout:=E'  -- goulag_reprise_peine_gelee_20261116 : la condamnation précédente n a pas diminué pendant la fuite.\n'
-  ||E'  DECLARE v_goulag_restant bigint; v_goulag_recherche text; v_goulag_supp integer;\n'
+  ||E'  DECLARE v_goulag_restant numeric; v_goulag_recherche text; v_goulag_supp integer;\n'
   ||E'  BEGIN\n'
   ||E'   IF p_country = ''soviet'' THEN\n'
   ||E'    SELECT t.peine_gelee_secondes,t.recherche_id INTO v_goulag_restant,v_goulag_recherche\n'

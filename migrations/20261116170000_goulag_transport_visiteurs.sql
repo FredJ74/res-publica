@@ -1,17 +1,17 @@
--- Goulag Sovarka : règles de transport explicitement à arbitrer.
+-- Goulag Sovarka : décisions de Fred du 16/11, commentaires 6924193788 et 6924385758.
 -- Aucun trajet n'est ouvert avant la configuration complète et active.
 CREATE TABLE IF NOT EXISTS public.sovarka_goulag_configuration (
  singleton boolean PRIMARY KEY DEFAULT true CHECK(singleton),
  active boolean NOT NULL DEFAULT false,
- autorisation_usage text CHECK(autorisation_usage IN ('unique','permanente')),
- retour_visiteur text CHECK(retour_visiteur IN ('meme_ville','choix_ville')),
- champignons_malus integer CHECK(champignons_malus BETWEEN 1 AND 6),
- formule_arrestation text,
+ autorisation_usage text NOT NULL DEFAULT 'permanente' CHECK(autorisation_usage='permanente'),
+ retour_visiteur text NOT NULL DEFAULT 'choix_ville' CHECK(retour_visiteur='choix_ville'),
+ champignons_malus integer NOT NULL DEFAULT 2 CHECK(champignons_malus=2),
+ formule_arrestation text NOT NULL DEFAULT '30_par_entree' CHECK(formule_arrestation='30_par_entree'),
  camp_bucherons_noeud text,
  actualise_le timestamptz NOT NULL DEFAULT now()
 );
 -- La configuration n'est PAS suffisante pour rendre l'évasion sûre :
--- formule d'arrestation et destination du camp encore non arbitrées.
+-- mise en service soumise à contrôle final et autorisation explicite.
 -- Même un changement manuel de active=true est interdit par cette garde.
 DO $goulag_activation_figee$
 BEGIN
@@ -97,10 +97,7 @@ BEGIN
     VALUES(v_nom,v_p.current_city,v_aut.id,true,now(),NULL)
   ON CONFLICT(nom) DO UPDATE SET origine=EXCLUDED.origine,autorisation=EXCLUDED.autorisation,
     present=true,entre_le=now(),sorti_le=NULL;
-  IF v_aut.id IS NOT NULL AND v_conf.autorisation_usage='unique' THEN
-    UPDATE public.sovarka_goulag_autorisations
-       SET etat='utilisee',utilisee_le=now() WHERE id=v_aut.id;
-  END IF;
+  -- Autorisation permanente : ne jamais consommer le droit au voyage.
   RETURN jsonb_build_object('ok',true,'ville','qhs','building','qhs-prison',
     'room','entree_qhs','tarif',v_paiement,'statut','visiteur');
 END $$;
@@ -130,8 +127,7 @@ BEGIN
   IF EXISTS(SELECT 1 FROM public.detention_active(v_nom)) OR EXISTS(
      SELECT 1 FROM public.sovarka_goulag_traversees WHERE nom=v_nom AND en_cours) THEN
     RETURN jsonb_build_object('ok',false,'raison','retour_interdit'); END IF;
-  v_dest:=CASE WHEN v_c.retour_visiteur='meme_ville' THEN v_v.origine
-            ELSE p_destination END;
+  v_dest:=p_destination; -- Libre choix explicite, jamais une ville déduite du client.
   IF v_dest NOT IN ('capitale','ville_a','ville_b') OR v_dest IS NULL THEN
     RETURN jsonb_build_object('ok',false,'raison','destination_invalide'); END IF;
   SELECT batiment,pieces->>0 INTO v_bat,v_piece

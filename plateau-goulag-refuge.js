@@ -4,9 +4,10 @@
 (function () {
   'use strict';
   let actif = false;
-  async function requete(action) {
+  let refugeCourant = null;
+  async function requete(action,args={}) {
     if (typeof sbRpcVerdict !== 'function') return {ok:false,raison:'serveur_indisponible'};
-    try { return await sbRpcVerdict(action,{}); }
+    try { return await sbRpcVerdict(action,args); }
     catch (_) { return {ok:false,raison:'connexion_impossible'}; }
   }
   function avertir(titre,texte,ok) {
@@ -14,7 +15,8 @@
   }
   async function lire() {
     const reponse=await requete('sovarka_goulag_refuge_lire');
-    if(!reponse.ok) return null;
+    if(!reponse.ok) { refugeCourant=null; return null; }
+    refugeCourant=reponse;
     return reponse;
   }
   async function rejoindre() {
@@ -39,14 +41,14 @@
       const info=await lire();
       if(!info || info.termine){avertir('Refuge indisponible','Aucune récupération en cours.',false);return;}
       if(info.nuits >= 2){avertir('Deux nuits effectuées','Votre deuxième nuit a déjà été enregistrée.',false);return;}
-      const cout=info.nuits===0?5:3;
-      if(!window.confirm('Passer la '+(info.nuits===0?'première':'deuxième')+
-        ' nuit chez l’habitant contre '+cout+' unités de bois ?')) return;
-      const r=await requete('sovarka_goulag_refuge_nuit');
+      const cout=info.bois_prochain;
+      if(!Number.isInteger(cout)||cout<=0){avertir('Nuit indisponible','Le serveur ne confirme pas le bois dû.',false);return;}
+      if(!window.confirm((cout===8?'Régler les deux nuits écoulées (5 puis 3 bois)':'Passer la '+(info.nuits===0?'première':'deuxième')+' nuit chez l’habitant')+' : '+cout+' unités de bois. Confirmer ?')) return;
+      const r=await requete('sovarka_goulag_refuge_nuit',{p_max_bois:cout});
       if(!r.ok){avertir('Nuit refusée',r.raison||'Refus serveur',false);return;}
       if (r.inventory && typeof sbAdopterInventaireServeur==='function')
         sbAdopterInventaireServeur(r);
-      avertir('Bois remis',r.bois_preleves+' unités de bois remises à votre hôte. Restez au repos.',true);
+      avertir('Bois remis',(r.paiements?.length>1?'Deux nuits réglées : '+r.paiements.map(p=>p.bois).join(' puis ')+' unités de bois.':r.bois_preleves+' unités de bois remises à votre hôte.')+' Restez au repos.',true);
       if(typeof sbLoadPersonnage==='function') await sbLoadPersonnage();
       if(typeof updateUI==='function') updateUI();
     }finally{actif=false;}
@@ -55,15 +57,21 @@
     if(actif)return;
     actif=true;
     try {
-      const r=await requete('sovarka_goulag_refuge_terminer');
+      const info=await lire();
+      if(!info)return;
+      const cout=info.bois_prochain||0;
+      if(cout>0&&!window.confirm('Régler les nuits dues ('+cout+' bois) et terminer la récupération si les trois jours sont écoulés ?'))return;
+      const r=await requete('sovarka_goulag_refuge_terminer',{p_max_bois:cout});
+      if(r.ok && r.inventory && typeof sbAdopterInventaireServeur==='function')sbAdopterInventaireServeur(r);
       avertir(r.ok?'Repos terminé':'Repos en cours',
         r.ok?'Votre récupération est terminée.':r.raison||'Les trois jours ou les deux nuits ne sont pas terminés.',r.ok);
+      if(r.ok)refugeCourant={...info,termine:true};
       if(r.ok && typeof sbLoadPersonnage==='function')await sbLoadPersonnage();
       if(r.ok && typeof updateUI==='function')updateUI();
     }finally{actif=false;}
   }
   function ordresRefuge(batiment,piece,ville){
-    if(typeof state==='undefined' || state.country!=='soviet' || piece!=='piece_maison')return [];
+    if(!refugeCourant || refugeCourant.termine || typeof state==='undefined' || state.country!=='soviet' || piece!=='piece_maison')return [];
     if ((ville==='ville_a' && batiment==='maison-starovka')
       || (ville==='ville_b' && batiment==='maison-krasnov')){
       return [
@@ -88,10 +96,13 @@
       essais++;
       if(typeof state!=='undefined' && state.personnageChargeDepuisServeur===true){
         window.clearInterval(intervalle);
-        if(state.country==='soviet' && !state.currentBuilding
+        if(state.country==='soviet'
           && (state.currentCity==='ville_a'||state.currentCity==='ville_b')){
           const r=await lire();
-          if(r && !r.termine && r.nuits===0)await rejoindre();
+          if(r && !r.termine){
+            if(!state.currentBuilding && r.nuits===0)await rejoindre();
+            else if(typeof updateUI==='function')updateUI();
+          }
         }
       }else if(essais>=20)window.clearInterval(intervalle);
     },1500);

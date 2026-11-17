@@ -91,10 +91,6 @@ function heberger({refuge,nuit,bois}) {
   if (bois<cout) refuser('bois_insuffisant');
   return {nuits:refuge.nuits+1,dernierJour:nuit,coutBois:cout,boisRestant:bois-cout};
 }
-function regleNonArbitree(action) {
-  if (['penalite_champignons','arrestation_hotel_hopital','autorisation_validite'].includes(action))
-    refuser('arbitrage_game_designer_requis');
-  refuser('action_inconnue');
-}
+const DECISIONS=Object.freeze({malusChampignons:2,arrestationPourcent:30,autorisation:'permanente',retour:'choix_ville'});
 module.exports={ENTREE,RefusParcours,verifierCondamnation,verifierVoyage,
-  confisquer,cloreDepot,debuterMarche,arriver,heberger,regleNonArbitree};
+  confisquer,cloreDepot,debuterMarche,arriver,heberger,DECISIONS};

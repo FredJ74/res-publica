@@ -54,5 +54,8 @@ jobs:
           bash outils/bancs/installer-postgresql17-local.sh
           python3 outils/bancs/test-goulag-postgresql-20261116.py --postgres-bin "$HGPG17_PREFIX/bin"
       - run: npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
-      - run: npx --prefix outils/e2e playwright install chromium
+      - run: npx --prefix outils/e2e playwright install --with-deps chromium webkit
       - run: node outils/bancs/test-goulag-chromium-20261116.cjs
+      - run: node outils/bancs/test-goulag-chromium-20261116.cjs
+        env:
+          GOULAG_BROWSER: webkit

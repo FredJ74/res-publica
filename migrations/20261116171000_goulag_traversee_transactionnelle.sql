@@ -25,14 +25,14 @@ ALTER TABLE public.sovarka_goulag_traversees
   ADD COLUMN IF NOT EXISTS champignons_choix text
     CHECK(champignons_choix IN ('manger','refuser')),
   ADD COLUMN IF NOT EXISTS champignons_penalite_en_attente boolean NOT NULL DEFAULT false,
-  ADD COLUMN IF NOT EXISTS peine_gelee_secondes bigint,
+  ADD COLUMN IF NOT EXISTS peine_gelee_secondes numeric,
   ADD COLUMN IF NOT EXISTS recherche_id text;
 
 CREATE OR REPLACE FUNCTION public.goulag_toundra_demarrer(p_destination text)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public','pg_temp' AS $$
 DECLARE v_nom text:=public.mon_personnage(); p public.personnages_donnees%ROWTYPE;
         c public.sovarka_goulag_configuration%ROWTYPE;
-        v_det record; v_statut text; v_total integer; v_dep text; v_rest bigint;
+        v_det record; v_statut text; v_total integer; v_dep text; v_rest numeric;
         v_rech jsonb; v_rech_id text; v_fin numeric; v_debut numeric; v_duree numeric;
 BEGIN
   IF auth.uid() IS NULL OR v_nom IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','non_authentifie'); END IF;
@@ -82,8 +82,8 @@ BEGIN
     v_debut:=(p.est_emprisonne->>'debutTs')::numeric;
     v_duree:=(p.est_emprisonne->>'jours')::numeric;
     v_fin:=v_debut+v_duree*86400000;
-    v_rest:=greatest(0,ceil((v_fin-extract(epoch from statement_timestamp())*1000)/1000))::bigint;
-    IF v_rest<1 THEN
+    v_rest:=greatest(0,(v_fin-extract(epoch from clock_timestamp())*1000)/1000);
+    IF v_rest<=0 THEN
       RETURN jsonb_build_object('ok',false,'raison','peine_deja_purgee'); END IF;
     -- Clore avec mode "evasion" (jamais "purgee") pour figer le reliquat.
     PERFORM public.detention_clore_interne(v_nom,'evasion');
@@ -126,6 +126,9 @@ BEGIN
      champignons_choix=NULL,champignons_penalite_en_attente=false,
      debut_le=EXCLUDED.debut_le,arrivee_le=NULL,
      peine_reprise_le=NULL,nouvelle_detention_id=NULL,actualise_le=now();
+  -- La marche est un état serveur isolé, pas une présence dans l’entrée du camp.
+  UPDATE public.personnages_donnees SET current_building=NULL,current_room=NULL,
+    current_street=NULL,updated_at=clock_timestamp() WHERE name=v_nom AND user_id=auth.uid();
   RETURN jsonb_build_object('ok',true,'en_cours',true,'destination',p_destination,
     'statut',v_statut,'pa',p.pa,'progressions',0,'peine_gelee_secondes',v_rest);
 END $$;
