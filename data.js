@@ -11286,7 +11286,7 @@ function slugPnjSovarka(nom) {
         imageBg: "linear-gradient(135deg,#120f12,#1c171c)",
         desc: "Le poste de douane du port. Le tampon est lourd, le formulaire en trois exemplaires.",
         imageUrl: "images/Sovarka/Starovka/Starovka_port_douanes_bureau_chef.webp", // image de Fred (17/11/2026, 19 h 05) : le bureau du chef des douanes
-        persons: [{name:'Douanier Sükhbaatar Baïartouïev (PNJ)', role:'Douanier du port', rel:'neutral', job:'agent_portuaire'}],
+        persons: [{name:'Douanier Stepan Vetrov (PNJ)', role:'Douanier du port', rel:'neutral', job:'agent_portuaire'}],
         orders: []
       },
       // Bureau du Commandant du Port de Sovarka (Fred, 16/11/2026, GAME-DESIGN-REGULATION-PRODUCTION.md) :
@@ -11415,6 +11415,8 @@ function slugPnjSovarka(nom) {
       if (ville === 'ville_b') o.imageUrl = 'images/Sovarka/Krasnov/Krasnov_terrain_a_batir.webp';
       // Image de Fred (17/11/2026) : la plaine enneigée balisée de Starovka, tant que le terrain n'est pas construit.
       if (ville === 'ville_a') o.imageUrl = 'images/Sovarka/Starovka/Starovka_terrain_a_batir.webp';
+      // Quatre parcelles à Starovka (Fred, 09/11/2026 ; serveur : sovarka_terrains) : nommées dans la fenêtre « Terrain municipal ».
+      if (ville === 'ville_a') WORLD.soviet.ville_a.buildingContext['terrain-a-batir-' + n].parcelles = 4;
       o.desc = 'Terrain de la commune. La mairie y fait construire, à ses frais, un immeuble collectif quand des dossiers de commerce attendent un local.';
       ajouter(o, [ordre('sovarka_terrain_municipal', 'Terrain municipal', 0, 'ti-building-community',
         'Voir l\'état du terrain : libre, immeuble en chantier ou immeuble livré.')], ordresTerrain);
@@ -12603,7 +12605,7 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     ['ville_a', 'stade', 'guichet_paris', "Bookmaker Officiel (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_stade_bookmaker-officiel.webp'],
     ['ville_a', 'stade', 'boutique', "Vendeur des accessoires de Starovka (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_stade_vendeur-des-accessoires-de-starovka.webp'],
     ['ville_a', 'port-starovka', 'quai_principal', "Chef de quai Ganbaatar Tsybikov (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_port-starovka_ganbaatar-tsybikov.webp'],
-    ['ville_a', 'port-starovka', 'douanes', "Douanier Sükhbaatar Baïartouïev (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_port-starovka_chef-des-douanes.webp'],
+    ['ville_a', 'port-starovka', 'douanes', "Douanier Stepan Vetrov (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_port-starovka_chef-des-douanes.webp'],
     ['ville_a', 'entrepot-logistique-starovka', 'bureau_direction', "Batzorig Dorjiev (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_entrepot-logistique-starovka_batzorig-dorjiev_v2.webp'],
     ['ville_a', 'port-starovka', 'administration_portuaire', "Commandant Tömör Ochirov (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_port-starovka_commandant-tomor-ochirov.webp'],
     ['ville_a', 'marche', 'marche_ext', "Tuyana Dashieva (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_marche_tuyana-dashieva.webp'],
@@ -12796,4 +12798,56 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     imageUrl: dir + 'Starovka_enclos_rennes.webp',
     desc: 'Un renne curieux vient vous renifler de près ; derrière lui, le troupeau gratte la neige et le foin, entre les barrières givrées et la grange. L’éleveur vous tend une paire de gants.' });
   ['magasin-kolkhoze-starovka', 'compagnie-petrole-starovka'].forEach(b => { if (!cite.buildings.includes(b)) cite.buildings.push(b); });
+})();
+
+// STAROVKA_PORTRAITS_MANQUANTS_20261117 — planche contrôlée après inventaire
+// 9 visages issus de la planche GitHub, plus le sergent recadré depuis son décor.
+// Pas de modification des portraits préexistants (bookmaker, secrétaire, etc.).
+(function () {
+  const ville = WORLD.soviet && WORLD.soviet.ville_a;
+  if (!ville) throw new Error('Starovka absente');
+  const portraits = [
+    ['usine-principale', 'direction_usine', 'Damdin Mazoutov (PNJ)', 'images/Sovarka/Starovka/Starovka_portrait_usine-principale_damdin-mazoutov.webp'],
+    ['centre-artisanal', 'travees', 'Bayar Otchirov', 'images/Sovarka/Starovka/Starovka_portrait_centre-artisanal_bayar-otchirov.webp'],
+    ['centre-artisanal', 'travees', 'Ganbold Garmaïev', 'images/Sovarka/Starovka/Starovka_portrait_centre-artisanal_ganbold-garmaiev.webp'],
+    ['centre-artisanal', 'travees', 'Temür Dougarov', 'images/Sovarka/Starovka/Starovka_portrait_centre-artisanal_temur-dougarov.webp'],
+    ['stade', 'siege_supporters', 'Meneur des Supporters (PNJ)', 'images/Sovarka/Starovka/Starovka_portrait_stade_meneur-supporters.webp'],
+    ['presse-starovka', 'presse', 'Saran Batbayar (PNJ)', 'images/Sovarka/Starovka/Starovka_portrait_presse-starovka_saran-batbayar.webp'],
+    ['maison-starovka', 'piece_maison', 'Dolgor Tsybikova (PNJ)', 'images/Sovarka/Starovka/Starovka_portrait_maison-starovka_dolgor-tsybikova.webp'],
+    ['maison-starovka-ouvrier', 'piece_maison', 'Zorigto Badmaev (PNJ)', 'images/Sovarka/Starovka/Starovka_portrait_maison-starovka-ouvrier_zorigto-badmaev.webp'],
+    ['ferme-starovka', 'cour_ferme', 'Bair Sambuev (PNJ)', 'images/Sovarka/Starovka/Starovka_portrait_ferme-starovka_bair-sambuev.webp'],
+    ['poste-vigilance-glaciale', 'salle_ecoute', 'Sergent Bair Dorjiev (PNJ)', 'images/Sovarka/Starovka/Starovka_portrait_poste-vigilance-glaciale_bair-dorjiev.webp']
+  ];
+  for (const [batiment, piece, nom, url] of portraits) {
+    const original = BUILDINGS[batiment];
+    if (!original || !original.rooms || !original.rooms[piece]) {
+      throw new Error('Portrait Starovka : pièce absente ' + batiment + '/' + piece);
+    }
+    const ctx = ville.buildingContext && ville.buildingContext[batiment];
+    const ro = ctx && ctx.roomOverrides && ctx.roomOverrides[piece];
+    const extra = ctx && ctx.roomsExtra && ctx.roomsExtra[piece];
+    const liste = (ro && ro.persons) || (extra && extra.persons)
+      || (original.rooms[piece] && original.rooms[piece].persons) || [];
+    if (!liste.some(p => p.name === nom)) {
+      throw new Error('Portrait Starovka : PNJ absent ' + nom + ' ' + batiment + '/' + piece);
+    }
+    const nouvelle = liste.map(p => p.name === nom
+      ? Object.assign({}, p, { photoUrl: url, photoPos: '50% 30%' })
+      : Object.assign({}, p));
+    if (!ctx) {
+      // Construction exclusivement utilisée par Starovka.
+      const utiliseAilleurs = Object.entries(WORLD).some(([pays, villes]) =>
+        Object.entries(villes || {}).some(([villeId, v]) =>
+          !(pays === 'soviet' && villeId === 'ville_a')
+          && Array.isArray(v && v.buildings) && v.buildings.includes(batiment)));
+      if (utiliseAilleurs) throw new Error('Portrait Starovka : bâtiment partagé sans contexte ' + batiment);
+      original.rooms[piece].persons = nouvelle;
+    } else if (extra && extra.persons === liste && !(ro && ro.persons)) {
+      ctx.roomsExtra = Object.assign({},ctx.roomsExtra);
+      ctx.roomsExtra[piece] = Object.assign({},extra,{ persons:nouvelle });
+    } else {
+      ctx.roomOverrides = Object.assign({},ctx.roomOverrides);
+      ctx.roomOverrides[piece] = Object.assign({},ro || {},{ persons:nouvelle });
+    }
+  }
 })();

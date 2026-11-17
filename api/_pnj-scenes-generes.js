@@ -6313,7 +6313,7 @@ export const SCENES_PNJ = {
     "batiment": "Port Industriel de Starovka",
     "piece": "Douanes",
     "personnes": [
-      "Douanier Sükhbaatar Baïartouïev"
+      "Douanier Stepan Vetrov"
     ]
   },
   "[\"soviet\",\"ville_a\",\"port-starovka\",\"administration_portuaire\"]": {
