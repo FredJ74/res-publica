@@ -24,9 +24,10 @@ for(const width of [320,390,414,896,1280]){
    await page.waitForFunction(()=>document.getElementById('hg-identite-personnage').textContent==='Personnage de test');
    assert.match(await page.locator('#hg-identite-pa').innerText(),/PA\s+15/);
    assert.match(await page.locator('#hg-identite-argent').innerText(),/30 590 PSK/);
-   const a=await brand.evaluate(el=>({width:el.getBoundingClientRect().width,top:el.getBoundingClientRect().top,background:getComputedStyle(el).backgroundImage,visible:getComputedStyle(el).display}));
+   const a=await brand.evaluate(el=>({width:el.getBoundingClientRect().width,top:el.getBoundingClientRect().top,background:getComputedStyle(el).backgroundImage+' '+getComputedStyle(el).backgroundColor,visible:getComputedStyle(el).display}));
    assert.ok(a.top>=0&&a.top<200,'bandeau hors écran '+width);
-   assert.ok(!a.background.includes('none'),'ancienne présentation '+width);
+   // Habillage uni depuis les lots mobiles du 17/11 (#1068-#1073) : un fond plein suffit, dégradé ou non.
+   assert.ok(!/^none rgba\(0, 0, 0, 0\)$/.test(a.background),'ancienne présentation '+width);
    assert.ok((await page.evaluate(()=>document.documentElement.scrollWidth))<=width+2,'débordement '+width);
  }
  console.log('OK bandeau personnage mobile '+width);

@@ -61,9 +61,12 @@ const html=fs.readFileSync(path.join(root,'plateau.html'),'utf8')
     assert.ok(data.location.top<data.time.top,'lieu avant date');
     assert.ok(data.time.top<data.scene.top,'date avant décor');
     assert.ok(data.scene.bottom<=data.tabs.top,'onglets APRES l’image');
-    assert.ok(data.tabs.bottom<=data.description.top,'cartel APRES onglets');
-    assert.ok(data.description.bottom<=data.actions.top,'ordres après description');
-    assert.ok(data.actions.top-data.description.bottom<70,'pas de vide artificiel');
+    // Depuis les lots mobiles du 17/11 (#1068-#1073), la description de rue n'est plus sous l'image :
+    // elle vit dans l'onglet Informations (#rue-ambiance masqué). Les ordres suivent alors les onglets.
+    const avant=data.description.display==='none'?data.tabs:data.description;
+    if(avant===data.description)assert.ok(data.tabs.bottom<=data.description.top,'cartel APRES onglets');
+    assert.ok(avant.bottom<=data.actions.top,'ordres après description');
+    assert.ok(data.actions.top-avant.bottom<70,'pas de vide artificiel');
     assert.ok(data.scrollWidth<=width+2,'débordement '+width);
   }else{
     assert.equal(data.banner.display,'none','bureau intact');

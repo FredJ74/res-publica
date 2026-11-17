@@ -26,7 +26,7 @@ html=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'');
        '<div class="person-card" onclick="window.clics++"><div class="person-avatar"><img src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="></div><div class="person-name">Dolgor</div></div>'+
        '<div class="person-card" onclick="window.clics++"><div class="person-avatar"></div><div class="person-name">Camille</div></div>'+
        '<div class="person-card"><div class="person-name">Arnie (Vous)</div></div>'+
-       '<div class="person-card"><div class="person-name">Joueur [SIM]</div></div>';
+       '<div class="person-card"><div class="person-name">Joueur <span>[SIM]</span></div></div>';
    },lang);
    await page.addScriptTag({path:path.join(root,'plateau-exploration-mobile.js')});
    await page.addScriptTag({path:path.join(root,'plateau-presences-mobile.js')});
