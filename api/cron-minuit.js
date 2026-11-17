@@ -3591,6 +3591,30 @@ async function traiterBataillesEchuesServeur() {
   return verdict;
 }
 
+// GOULAG DE SOVARKA — CONTROLE DE MINUIT (17/11/2026, decisions de Fred). La liste administrative des
+// detenus est actualisee une fois par jour de reference : une evasion n'apparait « En fuite » qu'a ce
+// controle, le reliquat de peine n'est jamais touche. Tout est decide par sovarka_goulag_controle_minuit
+// (idempotente par jour). Tant que le moteur du goulag n'est pas installe (PR #1020), la RPC n'existe
+// pas : la tache se declare ignoree au lieu de faire tomber la passe ; installee mais non activee,
+// la RPC repond elle-meme { inactif: true }.
+async function traiterControleGoulagQuotidien() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/sovarka_goulag_controle_minuit`, {
+    method: 'POST',
+    headers: { ...HEADERS_SERVICE, 'Prefer': 'return=representation' },
+    body: JSON.stringify({ p_jour: jourParisISO(new Date()) })
+  });
+  if (res.status === 404) {
+    const texte = await res.text().catch(() => '');
+    if (texte.includes('PGRST202')) return { ignoree: 'goulag_non_installe' };
+    throw new Error('controle_goulag:http_404');
+  }
+  if (!res.ok) throw new Error('controle_goulag:http_' + res.status + ':' + (await res.text().catch(() => '')).slice(0, 200));
+  const r = await res.json();
+  const v = Array.isArray(r) ? r[0] : r;
+  if (!v || v.ok !== true) throw new Error('controle_goulag:' + ((v && v.raison) || 'verdict_absent'));
+  return v;
+}
+
 async function tacheQuotidienne(nom, fn) {
   // Cle CRON-SEULEMENT (verifie : aucun fichier client n'ecrit dans joursCron),
   // donc basculee sur Europe/Paris sans fenetre de divergence possible.
@@ -6617,6 +6641,7 @@ export default async function handler(req, res) {
     // dossiers de commerce acceptes qui attendent un local. Tout est decide par sovarka_urbanisme_passe.
     const urbanismeSovarka = await tacheQuotidienne('urbanisme_sovarka', traiterUrbanismeSovarkaQuotidien);
     const herosTravail = await tacheQuotidienne('heros_travail', traiterHerosTravailHebdomadaire);
+    const controleGoulag = await tacheQuotidienne('controle_goulag_sovarka', traiterControleGoulagQuotidien);
 
     // 12c. Arrivage quotidien de poisson propre a la Criee de PSM (arbitrage du 25 aout 2026) :
     // independant de livrerEntrepotsQuotidien ci-dessus, ne touche aucun entrepot.
@@ -6699,7 +6724,7 @@ export default async function handler(req, res) {
     // alerter -- un console.error, non. Le corps reste identique par ailleurs : tout ce qui a
     // abouti est conserve et documente, rien n'est annule. Le rejeu qui suivra est sur, chaque
     // tache financiere portant desormais son marqueur de journee (voir tacheQuotidienne).
-    const corps = { ok: ECHECS_PASSE.length === 0, traites: results.length, details: results, echecs: ECHECS_PASSE, nbEchecs: ECHECS_PASSE.length, detentionsLiberees, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, cascadeMunicipale, subventionsExpirees, delaisJudiciaires, convocationsTemoins, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, permis, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, productionSovarka, commerceInternational, entrepotsSovarka, urbanismeSovarka, herosTravail, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, effortDeGuerre, journalDuJour, detentionsPnj, cellulesRenseignement, collecteAgents, rapportsCellules, payeDouane, syncGloireSovarka, bonsEtatSovarka, ecoutesSovarka, pouvoirSovarka, releveDouaneAeroport, payePolice, bataillesEchues, affectationsExpirees, candidaturesRelancees };
+    const corps = { ok: ECHECS_PASSE.length === 0, traites: results.length, details: results, echecs: ECHECS_PASSE, nbEchecs: ECHECS_PASSE.length, detentionsLiberees, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, cascadeMunicipale, subventionsExpirees, delaisJudiciaires, convocationsTemoins, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, permis, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, productionSovarka, commerceInternational, entrepotsSovarka, urbanismeSovarka, herosTravail, controleGoulag, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, effortDeGuerre, journalDuJour, detentionsPnj, cellulesRenseignement, collecteAgents, rapportsCellules, payeDouane, syncGloireSovarka, bonsEtatSovarka, ecoutesSovarka, pouvoirSovarka, releveDouaneAeroport, payePolice, bataillesEchues, affectationsExpirees, candidaturesRelancees };
     if (ECHECS_PASSE.length > 0) {
       console.error('[cron-minuit] PASSE INCOMPLETE : ' + ECHECS_PASSE.length + ' etape(s) en echec -> ' + ECHECS_PASSE.map(e => e.etape).join(', '));
       await journaliserCron('_passe', jourPasse, 'echec',
