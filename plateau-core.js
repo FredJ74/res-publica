@@ -1503,7 +1503,12 @@ function loadCharacter() {
           // figure, c'est qu'une exception a ete avalee dans les 124 lignes precedentes.
           rpDiagId('avantTest', 'atteint');
           rpDiagId('detecteur', typeof sbEtatIdentitePersonnage);
-          return diagnostiquerIdentite(char.name);
+          // Le chargeur sert aussi au verrou de reprise mobile : renvoyer une
+          // confirmation explicite uniquement après une fiche serveur validée.
+          // Ne jamais assimiler un diagnostic d'identité silencieux à un succès.
+          return Promise.resolve(diagnostiquerIdentite(char.name)).then(() =>
+            lectureCourante() && state.personnageChargeDepuisServeur === true
+          );
           // Ce .catch etait muet : c'est lui qui masquait un rejet de sbLoadPersonnage ou une
           // exception du corps ci-dessus. Il nomme desormais la panne (instrumentation).
         }).catch(e => {
