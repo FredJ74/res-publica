@@ -69,7 +69,7 @@ assert marker not in src,"Déjà raccordé"
 for name,building,room,dest in outputs:
     assert name in src,f"Personnage absent de data.js : {name}"
 items=",\n".join(
-    f"    [{building!r}, {room!r}, {name+' (PNJ)'!r}, {'images/Sovarka/Starovka/'+dest.name!r}]"
+    f"    [{building!r}, {room!r}, {(name if name in ('Bayar Otchirov','Ganbold Garmaïev','Temür Dougarov') else name+' (PNJ)')!r}, {'images/Sovarka/Starovka/'+dest.name!r}]"
     for name,building,room,dest in outputs
 )
 append=marker+"""
