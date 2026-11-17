@@ -6,6 +6,7 @@ L'image source a été vérifiée localement : 922x1825, SHA256 e16b41a7...
 from pathlib import Path
 from hashlib import sha256
 from PIL import Image, ImageOps
+from zipfile import ZipFile
 import json
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -36,41 +37,60 @@ ROSTER = [
 assert len(ROSTER) == 17 and len(set(x[0] for x in ROSTER)) == 17
 assert "Ignat" not in " ".join(x[0] for x in ROSTER)
 
-sources = sorted(list(DIR.glob("Galerie des personnages de Krasnov*.png"))
-                 + list(DIR.glob("Grille de portraits du village*.png")))
-assert len(sources) == 2, f"Deux fichiers source attendus : {sources}"
-for source in sources:
-    print("SOURCE", source.name, sha256(source.read_bytes()).hexdigest(), flush=True)
-matches = [p for p in sources if sha256(p.read_bytes()).hexdigest() == SHA_FINAL]
-assert len(matches) == 1, (
-    "La planche finale de 17 portraits n'est pas parmi les PNG chargés. "
-    "Il faut charger exactement Krasnov_planche_17_portraits_sans_Ignat.png "
-    "et ne pas utiliser une planche antérieure. Les sources restent intactes."
-)
-source = matches[0]
-with Image.open(source) as im:
-    im.load()
-    assert im.size == (922, 1825), f"Format inattendu de la planche : {im.size}"
-    assert im.mode in ("RGB","RGBA")
-    # La dernière case (colonne 3, ligne 6) doit être vide.
-    empty = im.crop((12+2*301+25,12+5*301+25,12+2*301+220,12+5*301+220)).convert("RGB")
-    colors = empty.getcolors(maxcolors=5)
-    assert colors is not None, "Dernière cellule non vide : planche à 18 portraits ?"
-    for index, (name,building,room,slug) in enumerate(ROSTER):
-        row,col = divmod(index,3)
-        x,y=12+col*301,12+row*301
-        # Le visage et les épaules seulement, sans cartouche de nom en bas.
-        box=(x+25,y+5,x+271,y+226)
-        crop=im.crop(box).convert("RGB")
-        dest=DIR/f"Krasnov_portrait_{building}_{slug}.webp"
-        assert not dest.exists(), f"Portrait existant : REFUS de l'écraser ({dest})"
-        tile=ImageOps.fit(crop,(512,512),method=Image.Resampling.LANCZOS,centering=(.5,.42))
-        tile.save(dest,"WEBP",quality=90,method=6)
-        with Image.open(dest) as proof:
-            assert proof.format=="WEBP" and proof.size==(512,512)
-            proof.verify()
-        assert dest.stat().st_size > 5000, str(dest)
-        print("PORTRAIT",index,name,dest.name,dest.stat().st_size,flush=True)
+# Deux modes sûrs : ZIP final de 17 WebP ou PNG définitif validé par SHA256.
+# Le ZIP ne contient aucun autre nom ni personnage déjà illustré.
+zip_source=DIR/"Krasnov_17_portraits_WebP.zip"
+ZIP_SHA="71482590db0fd716589002ac9f6d79500e094e24c834d4fb1905050a6b6cc4e9"
+sources=sorted(list(DIR.glob("Galerie des personnages de Krasnov*.png"))
+               + list(DIR.glob("Grille de portraits du village*.png"))
+               + list(DIR.glob("Krasnov_planche_17_portraits_sans_Ignat.png")))
+to_delete=list(sources)
+if zip_source.exists():
+    assert sha256(zip_source.read_bytes()).hexdigest()==ZIP_SHA, "ZIP inattendu : SHA256 incorrect"
+    to_delete.append(zip_source)
+    expected={
+        f"images/Sovarka/Krasnov/Krasnov_portrait_{building}_{slug}.webp"
+        for _,building,_,slug in ROSTER
+    }
+    with ZipFile(zip_source) as archive:
+        assert set(archive.namelist())==expected, (
+            "Liste ZIP non conforme aux 17 noms exacts du jeu",archive.namelist()
+        )
+        for entry in sorted(expected):
+            dest=ROOT/entry
+            assert not dest.exists(), f"Refus de remplacer une photo existante : {dest}"
+            dest.write_bytes(archive.read(entry))
+            with Image.open(dest) as proof:
+                assert proof.format=="WEBP" and proof.size==(512,512),entry
+                proof.verify()
+            assert dest.stat().st_size>5000,entry
+            print("PORTRAIT",entry,dest.stat().st_size,flush=True)
+else:
+    for source in sources:
+        print("SOURCE",source.name,sha256(source.read_bytes()).hexdigest(),flush=True)
+    matches=[p for p in sources if sha256(p.read_bytes()).hexdigest()==SHA_FINAL]
+    assert len(matches)==1, (
+        "Ni ZIP final ni PNG final des 17 portraits présent sur cette branche. "
+        "Les deux vieilles planches ne doivent pas être attribuées aux PNJ."
+    )
+    with Image.open(matches[0]) as im:
+        im.load()
+        assert im.size==(922,1825),f"Dimension inattendue : {im.size}"
+        empty=im.crop((12+2*301+25,12+5*301+25,12+2*301+220,12+5*301+220)).convert("RGB")
+        assert empty.getcolors(maxcolors=5) is not None,"Dernière case occupée : risque Ignat"
+        for index,(name,building,room,slug) in enumerate(ROSTER):
+            row,col=divmod(index,3)
+            x,y=12+col*301,12+row*301
+            crop=im.crop((x+25,y+5,x+271,y+226)).convert("RGB")
+            dest=DIR/f"Krasnov_portrait_{building}_{slug}.webp"
+            assert not dest.exists(),f"Photo préexistante à conserver : {dest}"
+            tile=ImageOps.fit(crop,(512,512),method=Image.Resampling.LANCZOS,centering=(.5,.42))
+            tile.save(dest,"WEBP",quality=90,method=6)
+            with Image.open(dest) as proof:
+                assert proof.format=="WEBP" and proof.size==(512,512)
+                proof.verify()
+            assert dest.stat().st_size>5000
+            print("PORTRAIT",index,name,dest.name,dest.stat().st_size,flush=True)
 
 data=ROOT/"data.js"
 text=data.read_text(encoding="utf-8")
@@ -130,6 +150,6 @@ patch = marker+"""
 text+="\n"+patch
 data.write_text(text,encoding="utf-8")
 # Uniquement après la validation des dix-sept WebP ET l'écriture du raccordement.
-for f in sources:
+for f in to_delete:
     f.unlink()
 print("OK 17 PORTRAITS : images WebP, raccordement, PNG supprimés",flush=True)
