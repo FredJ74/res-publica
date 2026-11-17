@@ -75,7 +75,8 @@ marker="// KRASNOV_PORTRAITS_MANQUANTS_20261117 (19 PNJ ; Ignat et photos exista
 assert marker not in text, "Portraits déjà branchés, ne pas relancer le générateur"
 rows=[]
 for name,building,room,slug in ROSTER:
-    exact=name+" (PNJ)"
+    # Trois PNJ du centre commercial/artisanal portent un nom exact sans suffixe.
+    exact=name if name in ("Varvara Kozlova", "Efim Iakovlev", "Stas Mironov") else name+" (PNJ)"
     assert name in text, f"Nom de personnage non présent dans data.js : {name}"  # les noms des maisons sont assemblés au runtime
     path=f"images/Sovarka/Krasnov/Krasnov_portrait_{building}_{slug}.webp"
     rows.append("    ["+", ".join(json.dumps(v,ensure_ascii=False) for v in [building,room,exact,path])+"]")
