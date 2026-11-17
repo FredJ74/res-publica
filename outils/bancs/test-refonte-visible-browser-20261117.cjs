@@ -9,7 +9,7 @@ html=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'');
   const page=await browser.newPage({viewport:{width,height},deviceScaleFactor:1});
   await page.route('**/*',route=>route.abort());
   await page.setContent(html,{waitUntil:'domcontentloaded'});
-  for(const css of ['style.css','rue-centrale.css','plateau-exploration-mobile.css','plateau-mobile-refonte-visible.css'])
+  for(const css of ['style.css','rue-centrale.css','plateau-exploration-mobile.css','plateau-mobile-refonte-visible.css','plateau-mobile-prototype.css'])
     await page.addStyleTag({path:path.join(root,css)});
   await page.evaluate(()=>{
     const rue=document.getElementById('rue-image');
@@ -22,16 +22,20 @@ html=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'');
     const row=document.getElementById('rue-actions-row');row.innerHTML='<button class="action-btn">Action disponible</button>';
   });
   await page.addScriptTag({path:path.join(root,'plateau-exploration-mobile.js')});
+  await page.evaluate(()=>{document.getElementById('persons-list-rue').innerHTML='<div class="person-card" onclick="window.presenceClicks=(window.presenceClicks||0)+1"><span class="person-avatar"><i class="ti ti-user"></i></span><span class="person-name">Nina</span></div>';});
+  await page.addScriptTag({path:path.join(root,'plateau-presences-mobile.js')});
   const sizes=await page.evaluate(()=>{
     const pos=s=>{const e=document.querySelector(s);if(!e)return null;const r=e.getBoundingClientRect(),cs=getComputedStyle(e);return {top:Math.round(r.top),bottom:Math.round(r.bottom),height:Math.round(r.height),display:cs.display};};
-    return {nav:pos('#hg-explore-primary'),scene:pos('.rc-scene'),ambiance:pos('.rue-ambiance'),actions:pos('#actionbar'),container:pos('.rue-container'),doc:document.documentElement.scrollWidth,w:innerWidth,void:pos('#vue-rue')};
+    return {nav:pos('#hg-explore-primary'),scene:pos('.rc-scene'),ambiance:pos('.rue-ambiance'),presence:pos('#hg-presences-mobiles'),actions:pos('#actionbar'),container:pos('.rue-container'),doc:document.documentElement.scrollWidth,w:innerWidth,void:pos('#vue-rue')};
   });
   assert.equal(await page.locator('#hg-explore-primary').isVisible(),width<1024);
   if(width<1024){
-   assert.ok(sizes.nav.top<sizes.scene.top,'navigation avant scene');
-   assert.ok(sizes.scene.bottom<=sizes.ambiance.top,'le cartel doit suivre le décor '+JSON.stringify(sizes));
-   assert.ok(sizes.scene.bottom<=sizes.actions.top,'actions suivent decor et description '+JSON.stringify(sizes));
-   assert.ok(sizes.actions.top-sizes.scene.bottom<360,'pas de grand vide avant les actions '+JSON.stringify(sizes));
+   assert.ok(sizes.scene.bottom<=sizes.nav.top,'onglets sous le décor '+JSON.stringify(sizes));
+   assert.equal(sizes.ambiance.display,'none','description déplacée dans Informations');
+   assert.ok(sizes.nav.bottom<=sizes.presence.top,'présences après onglets '+JSON.stringify(sizes));
+   assert.ok(sizes.presence.bottom<=sizes.actions.top,'actions sous les présences '+JSON.stringify(sizes));
+   assert.ok(sizes.actions.top-sizes.scene.bottom<420,'pas de grand vide avant les actions '+JSON.stringify(sizes));
+   assert.equal(await page.locator('.hg-presence-personne').count(),1);
    assert.ok(sizes.doc<=sizes.w+2,'pas de debordement horizontal '+JSON.stringify(sizes));
   }
   console.log('COMPOSITION '+width+'x'+height+' '+JSON.stringify(sizes));
