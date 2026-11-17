@@ -99,6 +99,61 @@
   }
   #vue-rue .hg-explore-info {order:6;flex:0 0 auto;}
   #vue-rue #actionbar {order:7;flex:0 0 auto;}
+  /* Charte mobile bleu-gris et identité du jeu : HUMAN GAMBIT d'abord. */
+  #topbar .logo{font-size:0;line-height:1}
+  #topbar .logo::before{
+    content:'HUMAN GAMBIT';display:block;margin:0;
+    font:700 clamp(1.12rem,4.7vw,1.65rem) 'Playfair Display',serif;
+    letter-spacing:.025em;color:#e7eff7;
+  }
+  #topbar .logo::after{
+    content:'RES PUBLICA';display:block;margin-top:6px;
+    font:600 .65rem 'Crimson Pro',serif;letter-spacing:.18em;color:#a9c2d2;
+  }
+  #topbar,#hg-mobile-identite-20261117,#vue-rue .hg-explore-head,#vue-rue .city-header{
+    background:#172b3c;
+  }
+  #vue-rue #hg-explore-primary{background:#172b3c;border-color:#52738b}
+  #vue-rue #hg-explore-primary button{border-color:#6689a1;background:#29445a;color:#eaf2f7}
+  #vue-rue #hg-explore-primary button[aria-pressed="true"],
+  #vue-rue #hg-explore-primary button:first-child:not([aria-pressed="true"]){
+    background:#a9c3d5;color:#102332;border-color:#b9d6e6;
+  }
+  /* Le texte reste dans #rue-ambiance pour l'onglet Informations. */
+  #vue-rue .rue-ambiance{display:none!important}
+  #vue-rue #hg-presences-mobiles{
+    order:4;display:block;min-width:0;flex:0 0 auto;
+    margin:10px 12px 4px;padding:12px 10px 11px;
+    border:1px solid #58758a;border-radius:12px;background:#1b3041;
+  }
+  #vue-rue .hg-presences-total{
+    display:block;margin:0 3px 10px;color:#dbe8f3;
+    font:600 1rem 'Crimson Pro',serif;
+  }
+  #vue-rue .hg-presences-rail{
+    display:flex;align-items:start;gap:10px;overflow-x:auto;overflow-y:hidden;
+    padding:1px 3px 9px;scroll-snap-type:x proximity;overscroll-behavior-x:contain;
+    -webkit-overflow-scrolling:touch;
+  }
+  #vue-rue .hg-presence-personne{
+    flex:0 0 83px;min-width:0;display:flex;flex-direction:column;
+    align-items:center;gap:6px;scroll-snap-align:start;
+    padding:3px;border:0;background:transparent;color:#e8f0f6;
+    font:500 .84rem 'Crimson Pro',serif;cursor:pointer;
+  }
+  #vue-rue .hg-presence-portrait{
+    width:64px;height:64px;border-radius:50%;overflow:hidden;
+    display:flex;align-items:center;justify-content:center;
+    background:#29485e;border:1px solid #8fb1c8;color:#d9e7f1;font-size:1.3rem;
+  }
+  #vue-rue .hg-presence-portrait img{width:100%;height:100%;object-fit:cover}
+  #vue-rue .hg-presence-nom{line-height:1.25;text-align:center;overflow-wrap:anywhere}
+  #vue-rue .hg-presence-personne:focus-visible{outline:2px solid #e4eff8;outline-offset:2px}
+  #vue-rue .hg-presences-vide{color:#bdd0df;font:italic .9rem 'Crimson Pro',serif}
+  body:has(#vue-rue.active) #topbar [data-hg-panneau="personnes"]{display:none!important}
+  #vue-rue .hg-explore-info{order:6}
+  #vue-rue #actionbar{order:7}
+
 }
 @media(max-width:360px){
   #hg-mobile-identite-20261117 .hg-identite-statut{grid-template-columns:repeat(2,minmax(0,1fr))}
