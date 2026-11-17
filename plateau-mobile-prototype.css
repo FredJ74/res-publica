@@ -53,7 +53,14 @@
   #vue-rue .city-header{order:1;display:flex;justify-content:flex-start;padding:0 14px 10px;background:#142838;border-bottom:1px solid #b89963}
   #vue-rue .game-time-display{font-size:.84rem;color:#cfbd99}
   #vue-rue #rue-centrale-conteneur{
+    /* Le JS le crée avec position:absolute; inset:0. Une scène absolue ne
+       réserve aucune hauteur dans le flux : le rail des présents la recouvre.
+       L'image reprend sa hauteur naturelle dans le flex mobile uniquement. */
+    position:relative !important;
+    inset:auto !important;
+    height:auto !important;
     order:2;display:block;width:100%;max-width:100%;
+    flex:0 0 auto;
     box-shadow:0 9px 22px #0008;overflow:visible;
   }
   #vue-rue .rc-scene{width:100%;border:0;border-radius:0}
