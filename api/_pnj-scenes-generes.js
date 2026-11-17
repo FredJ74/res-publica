@@ -6538,10 +6538,10 @@ export const SCENES_PNJ = {
     "piece": "Local n°1",
     "personnes": []
   },
-  "[\"soviet\",\"ville_a\",\"locaux-starovka\",\"local_2\"]": {
+  "[\"soviet\",\"ville_a\",\"local-starovka-chasse\",\"local_2\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",
-    "batiment": "Locaux à louer",
+    "batiment": "Local à louer",
     "piece": "Local n°2",
     "personnes": []
   },

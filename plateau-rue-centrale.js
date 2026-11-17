@@ -1535,7 +1535,9 @@ const RUE_CENTRALE_NOEUDS = {
   // 17/11/2026 (Fred) : le local vide voisin (« Помещение в аренду », à gauche du magasin) est le
   // local n°2 de Starovka ; la zone du magasin est resserrée pour ne pas le recouvrir.
   Z('starovka-rue-magasin-chasse', [70, 99], 'Chasse et Pêche', 'armurerie', [24, 74]);
-  Z('starovka-rue-magasin-chasse', [54, 69], 'Local à louer', 'locaux-starovka', [36, 68]);
+  // Correctif 17/11 : bâtiment propre (local-starovka-chasse), sortie unique vers cette rue.
+  RUE_CENTRALE_NOEUDS.soviet['starovka-rue-magasin-chasse'].zones = RUE_CENTRALE_NOEUDS.soviet['starovka-rue-magasin-chasse'].zones.filter(z => z.buildingId !== 'locaux-starovka');
+  Z('starovka-rue-magasin-chasse', [54, 69], 'Local à louer', 'local-starovka-chasse', [36, 68]);
   // 17/11/2026 (Fred) : les trois commerces de droite sont les locaux n°3 à 5 (bâtiment propre) et le
   // champ de pétrole de gauche est un lieu distinct ; les locaux n°1 et 2 ont leurs propres rues.
   if (RUE_CENTRALE_NOEUDS.soviet['starovka-rue-locaux-a-louer']) RUE_CENTRALE_NOEUDS.soviet['starovka-rue-locaux-a-louer'].zones =

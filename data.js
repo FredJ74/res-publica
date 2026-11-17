@@ -12541,7 +12541,7 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     ['ville_a', 'capitaine-sauvage', 'salle_principale', "Sesegma Badmaeva (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_capitaine-sauvage_sesegma-badmaeva.webp'],
     ['ville_a', 'tribunal-local', 'salle_audience_locale', "Dulma Tsyrenova (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_tribunal-local_dulma-tsyrenova.webp'],
     ['ville_a', 'universite', 'amphi', "Darima Zhambalova (PNJ)",'images/Sovarka/Starovka/Starovka_portrait_universite_darima-zhambalova.webp'],
-    ['ville_a', 'armurerie', 'magasin', "Bato Tsyrenov (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_armurerie_bato-tsyrenov.webp'],
+    ['ville_a', 'armurerie', 'magasin', "Bato Tsyrenov (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_armurerie_bato-tsyrenov_v2.webp'],
     ['ville_b', 'mairie', 'accueil_mairie', "Galina Dokladova (PNJ)", 'images/Sovarka/Krasnov/Krasnov_portrait_mairie_galina-dokladova.webp'],
     ['ville_b', 'mairie', 'salle_elections', "Zinaïda Izbirkova (PNJ)", 'images/Sovarka/Krasnov/Krasnov_portrait_mairie_zinaida-izbirkova.webp'],
     ['ville_b', 'dispensaire-public-v', 'attente', "Infirmiere (PNJ)", 'images/Sovarka/Krasnov/Krasnov_portrait_dispensaire-public-v_infirmiere.webp'],
@@ -12602,8 +12602,28 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
   if (!chasse) throw new Error('Starovka : contexte Chasse et Pêche absent');
   chasse.roomOverrides = Object.assign({}, chasse.roomOverrides);
   chasse.roomOverrides.magasin = Object.assign({}, chasse.roomOverrides.magasin,
-    { imageUrl: dir + 'Starovka_chasse_peche_magasin.webp' });
-  BUILDINGS['locaux-starovka'].rooms.local_2.imageUrl = dir + 'Starovka_locaux-starovka_local_2.webp';
+    { imageUrl: dir + 'Starovka_chasse_peche_magasin_v2.webp' });
+  // Correctif du 17/11/2026 (Fred) : le local n°2 devient un bâtiment propre à la rue du magasin de
+  // chasse. Dans « locaux-starovka », il s'ouvrait sur le local n°1 (face à l'imprimerie) et la sortie
+  // pouvait ramener rue de l'imprimerie. Serveur : migration 20261117130000.
+  const local2 = BUILDINGS['locaux-starovka'].rooms.local_2;
+  BUILDINGS['local-starovka-chasse'] = {
+    name: 'Local à louer',
+    shortName: 'Local',
+    cat: 'Économie',
+    icon: 'ti-building-store',
+    bgColor: '#121418',
+    desc: 'Un petit local commercial vide à côté du magasin Chasse et Pêche (« Помещение в аренду »), propriété de l\'État. On l\'obtient en écrivant à la mairie.',
+    rooms: { local_2: Object.assign({}, local2, {
+      imageUrl: dir + 'Starovka_local-starovka-chasse.webp',
+      desc: 'Un local vide aux grandes vitrines, voisin de Chasse et Pêche. Le loyer est fixé par le maire.',
+      persons: [],
+      orders: local2.orders.map(o => Object.assign({}, o))
+    }) }
+  };
+  delete BUILDINGS['locaux-starovka'].rooms.local_2;
+  BUILDINGS['locaux-starovka'].desc = 'Un petit local commercial de plain-pied face à l\'imprimerie (« Помещение в аренду »), propriété de l\'État. On l\'obtient en écrivant à la mairie.';
+  if (!cite.buildings.includes('local-starovka-chasse')) cite.buildings.push('local-starovka-chasse');
   cite.buildings = cite.buildings.filter(b => b !== 'centre-commercial');
 })();
 

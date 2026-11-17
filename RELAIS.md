@@ -8,6 +8,9 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Starovka : correctif de la rue du magasin de chasse (Claude, 17/11/2026, en cours)
+Branche `claude/starovka-chasse-local-correctif-20261117`. Demande de Fred : (1) nouvelle image du magasin Chasse et Pêche (`Starovka_chasse_peche_magasin_v2.webp`, la vue extérieure de l'ancienne était incohérente), portrait de Bato Tsyrenov recadré dessus (`…bato-tsyrenov_v2.webp`) ; (2) le local n°2 s'ouvrait sur le local n°1 (face à l'imprimerie) et la sortie ramenait rue de l'imprimerie : il devient un bâtiment propre `local-starovka-chasse` (pièce `local_2`, image `Starovka_local-starovka-chasse.webp`), sortie unique vers la rue du magasin de chasse. Migration `20261117130000_starovka_local_chasse_batiment_propre.sql` **pas encore appliquée** (l'essai en transaction annulée attend la confirmation de Fred sur le serveur Supabase). Aucun bail ni demande sur ce local.
+
 ### Création — El Estado et Al-Khalija bientôt disponibles (17/11/2026)
 Décision de Fred : les deux empires non prêts restent visibles mais **non sélectionnables** lors de la création du PJ. PR #1074 fusionnée sur main au commit `dd173ff` : cartes grisées, mention « Bientôt disponible » localisée dans les 9 langues, choix et validation locale bloqués pour `narco`/`khalija` ; Républia et Sovarka inchangés. Test ciblé + `node --check creation.js` : workflow #43994001646 **SUCCESS**. Aucune migration ni modification des personnages existants. **Limite :** garde côté client dans le parcours de création, pas de nouvelle contrainte de création SQL au serveur ; recettes réelles non exécutées. Vercel production et rendu navigateur à certifier séparément.
 
