@@ -31,6 +31,7 @@ import { profilsPersonnalites, RICHES } from './_pnj-personnalites.js';
 // d'aider et des limites. Le corpus d'un domaine -- la bible militaire, par exemple --
 // n'est PAS une personnalite : il reste ici, et on le passe a l'assemblage.
 import { deriverProfilsSovarka } from './_pnj-sovarka.js';
+import { consigneBouriateStarovka } from './_pnj-culture-bouriate.js';
 import { REFERENTS, profilReferent, blocPedagogie, CASERNE_SOVARKA, versSovarka } from './_pnj-referents.js';
 // LA BIBLE DE LA PRESIDENCE (11 octobre 2026). Meme architecture que la bible militaire : des
 // blocs de connaissance REELLE, releves dans data.js et dans la base, assembles ici par referent.
@@ -843,6 +844,7 @@ function construirePromptSysteme(profilId, lang, relation, pedagogie, contextePu
     '',
     'CARACTERE : ' + p.caractere,
     '',
+    ...(consigneBouriateStarovka(p, scene) ? [consigneBouriateStarovka(p, scene), ''] : []),
     p.immersion ? "CE QUE TU SAIS DE TA VIE ET DE CE LIEU :" :
     "CE QUE TU SAIS — ce sont les regles REELLES de Res Publica. Elles font foi. Ne raisonne jamais par analogie avec une armee du monde reel :",
     p.savoir,
