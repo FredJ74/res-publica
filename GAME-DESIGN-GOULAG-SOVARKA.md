@@ -61,7 +61,7 @@ La mission du 17/11 impose de conserver le brouillon et le CHECK `active IS FALS
 
 ## Raccord aux ordres internes — décisions du 17 novembre 2026
 
-La mission de Fred sur #1020 confirme : interroger coûte **1 PA à l’interrogateur**, prononcer une sanction disciplinaire coûte **1 PA au juge** ; corruption du gardien à **70 % de base**, réussite portant le jet de sortie de **80 % à 95 %**. Les bonus des cadeaux, leur consommation éventuelle et la cadence des tentatives de corruption ne sont pas décidés ici. Leur absence continue de bloquer la corruption, sans inventer de valeurs.
+La mission de Fred sur #1020 confirme : interroger coûte **1 PA à l’interrogateur**, prononcer une sanction disciplinaire coûte **1 PA au juge** ; corruption du gardien à **70 % de base**, réussite portant le jet de sortie de **80 % à 95 %**. Les bonus des cadeaux, leur consommation éventuelle et la cadence des tentatives de corruption ne sont pas décidés ici. Dans l’instantané initial 4a1ced9, leur absence bloquait la corruption. Le document des ordres internes de Claude décrit ensuite une correction annoncée comme décidée par Fred (ee21b38) : elle reste dans #1085, sans fixer ici de bonus, consommation ou cadence ni rétablir l’ancien paramétrage.
 
 Les ordres internes et leurs quatre migrations restent sous responsabilité de Claude dans [#1085](https://github.com/FredJ74/res-publica/pull/1085). Après leur installation, le reliquat vient du compteur diminué par les sommeils valides, et non du calendrier ; le dernier sommeil libère devant l’entrée et restitue le dépôt non perdu. Les descriptions calendaires historiques de #1020 ci-dessus sont le comportement préparatoire seul : elles ne doivent pas prévaloir sur ce raccord. Aucun moteur n’est activé isolément.
 

@@ -6,7 +6,7 @@ reste un rouge, aucun expectedFailure ni remplacement de fonction métier.
 import argparse, importlib.util, json, subprocess, sys, tempfile, unittest, uuid
 from pathlib import Path
 R=Path(__file__).resolve().parents[2]
-p=argparse.ArgumentParser();p.add_argument('--postgres-bin',required=True);p.add_argument('--ordres-ref',default='4a1ced9b96bec3cb2bf867dd602de87456a7383c');p.add_argument('--contrats',action='store_true');opt=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument('--postgres-bin',required=True);p.add_argument('--ordres-ref',default='4bb8f42a11bf9e5c2ce8e891445cf162d44d5adf');p.add_argument('--contrats',action='store_true');opt=p.parse_args()
 files=['migrations/20261117170000_goulag_ordres_internes_registre.sql','migrations/20261117170500_goulag_ordres_internes_detention.sql','migrations/20261117171000_goulag_ordres_internes_bureau_mirador.sql','migrations/20261117171500_goulag_ordres_internes_raccord_evasion.sql','outils/bancs/test-goulag-ordres-internes-postgresql-20261117.py','outils/bancs/banc-goulag-ordres-internes-retour-arriere-20261117.sql']
 tmp=tempfile.TemporaryDirectory(prefix='hg-1085-lecture-');T=Path(tmp.name)
 for f in files:
@@ -17,6 +17,11 @@ sys.argv=[str(T/files[4]),'--postgres-bin',opt.postgres_bin,'--moteur-1020',str(
 spec=importlib.util.spec_from_file_location('claude1085',T/files[4]);m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
 D,V,J=m.DETENU,m.VISITEUR,m.JUGE
 class Raccords(m.OrdresInternes):
+ def test_raccord_verrou_conserve(self):
+  self.assertFalse(self.sql('SELECT active FROM public.sovarka_goulag_configuration'))
+  self.q.execute('SAVEPOINT verrou')
+  with self.assertRaises(m.psycopg2.errors.CheckViolation):self.q.execute('UPDATE public.sovarka_goulag_configuration SET active=true')
+  self.q.execute('ROLLBACK TO verrou')
  def test_raccord_sommeil_partage_camp_toundra(self):
   self.detenu(jours=5,pa=20);self.client();self.assertTrue(self.sql('SELECT public.sovarka_goulag_dormir()')['ok'])
   self.assertTrue(self.sql("SELECT public.sovarka_goulag_detenu_aller('entree_qhs')")['ok']);self.graine(lambda j:j<=80)
@@ -51,8 +56,13 @@ class Contrats(m.OrdresInternes):
  def test_contrat_juge_sanction_un_pa(self):
   self.detenu();self.juge();self.client(4);r=self.sql('SELECT public.sovarka_goulag_sanctionner(%s,1,%s)',(D,str(uuid.uuid4())));self.assertTrue(r['ok'],r);self.assertEqual(self.val('SELECT pa FROM public.personnages_donnees WHERE name=%s',(J,)),19)
  def test_contrat_corruption_base_soixante_dix(self):
-  self.assertEqual(self.sql("SELECT valeur FROM public.sovarka_goulag_parametres WHERE cle='corruption_taux_base'"),70)
-  self.assertEqual(self.sql("SELECT count(*) FROM public.sovarka_goulag_parametres WHERE cle<>'corruption_taux_base' AND valeur IS NULL"),3)
+  if self.sql("SELECT to_regclass('public.sovarka_goulag_parametres')") is not None:
+   self.assertEqual(self.sql("SELECT valeur FROM public.sovarka_goulag_parametres WHERE cle='corruption_taux_base'"),70)
+   self.assertEqual(self.sql("SELECT count(*) FROM public.sovarka_goulag_parametres WHERE cle<>'corruption_taux_base' AND valeur IS NULL"),3)
+  else:
+   # Le lot ee21b38 supprime les paramètres : exécuter le test comportemental
+   # fourni par Claude, sans décider ici de bonus, cadeau ou cadence.
+   m.OrdresInternes.test_corruption_formule_et_plafond(self)
  def nouveau_jugement(self):
   self.admin();self.juge();self.q.execute("UPDATE public.personnages_donnees SET current_city='capitale',current_building='tribunal',current_room='bureau_juge' WHERE name=%s",(J,))
   self.q.execute("INSERT INTO public.plaintes_en_cours(id,country,city,data) VALUES('fx-addition','soviet','capitale',%s)",(json.dumps({'status':'saisie','audience_ouverte_le':'fixture','cible':D}),))
