@@ -550,10 +550,10 @@
     {
       "source": "i18n/sovarka-droits-resources.js",
       "packed": "i18n/packed/sovarka-droits-resources.js.br",
-      "sourceBytes": 94588,
-      "packedBytes": 22749,
-      "sourceSha256": "4921f8dbd2675070bd02699f77209ff3e21a3d168e1f9a14aa7cc077d86b7ced",
-      "packedSha256": "04605b5d3980d9c86c85bf54507ff418a169f5982abcdfb537008a8387eb8e02"
+      "sourceBytes": 95371,
+      "packedBytes": 22908,
+      "sourceSha256": "a3acbecc723d3755716cda7385deb4b19061fe3a0880d81e4c0d1b512924360b",
+      "packedSha256": "fe50678a9f139099a6811ccaee1f4c61e7f7154cddc17a12223fdd8c4ad7cf40"
     },
     {
       "source": "i18n/sovarka-heros-boite-resources.js",
