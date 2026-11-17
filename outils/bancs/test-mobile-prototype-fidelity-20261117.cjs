@@ -2,12 +2,13 @@
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
-const {chromium}=require('../e2e/node_modules/playwright');
+const {chromium,webkit}=require('../e2e/node_modules/playwright');
 const root=path.resolve(__dirname,'../..');
 const html=fs.readFileSync(path.join(root,'plateau.html'),'utf8')
  .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'');
 (async()=>{
- const browser=await chromium.launch({headless:true});
+ for(const [engine,driver] of [['Chromium',chromium],['WebKit',webkit]]){
+ const browser=await driver.launch({headless:true});
  try{
  for(const width of [320,390,414,896,1280]){
   const height=width===896?500:844;
@@ -49,7 +50,7 @@ const html=fs.readFileSync(path.join(root,'plateau.html'),'utf8')
       labels:[...document.querySelectorAll('#hg-explore-primary button')].map(e=>e.textContent)
     };
   });
-  console.log('PROTOTYPE '+width+' '+JSON.stringify(data));
+  console.log('PROTOTYPE '+engine+' '+width+' '+JSON.stringify(data));
   if(width<1024){
     assert.equal(data.name,'Angie test');
     assert.equal(data.portrait,true);
@@ -71,4 +72,5 @@ const html=fs.readFileSync(path.join(root,'plateau.html'),'utf8')
   await page.close();
  }
  }finally{await browser.close()}
+ }
 })().catch(e=>{console.error(e);process.exitCode=1});
