@@ -1,4 +1,5 @@
 from pathlib import Path
+from hashlib import sha256
 from PIL import Image, ImageOps
 p=Path("images/Sovarka/Krasnov")
 out=Path("outils/images/.krasnov-audit")
@@ -6,6 +7,7 @@ out.mkdir(parents=True,exist_ok=True)
 files=sorted(list(p.glob("Galerie des personnages de Krasnov*.png"))+list(p.glob("Grille de portraits du village*.png")))
 assert len(files)==2, [str(f) for f in files]
 for i,f in enumerate(files):
+    print(f'PORTRAIT_SHA256_{i}: {sha256(f.read_bytes()).hexdigest()}')
     with Image.open(f) as im:
         im.load()
         w,h=im.size
