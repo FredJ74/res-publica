@@ -20,7 +20,7 @@ for(const [w,h] of [[375,667],[393,852],[412,915],[852,393],[768,1024]])test(`L1
  assert.ok(await p.locator('#vue-rue').evaluate(e=>e.getBoundingClientRect().width)>=w-1);
  // Depuis #1063, en vue rue, le bouton « Présents » est masqué : le bandeau horizontal des présents le remplace.
  assert.equal(await p.locator('[data-hg-panneau=personnes]').isVisible(),false);
- for(const nom of ['personnage','menu']){await p.locator(`[data-hg-panneau=${nom}]`).click();assert.equal(await p.locator('body').getAttribute('data-mobile-panel'),nom);assert.equal(await p.locator(`[data-hg-panneau=${nom}]`).getAttribute('aria-expanded'),'true');await p.keyboard.press('Escape');assert.equal(await p.locator('body').getAttribute('data-mobile-panel'),null);}
+ for(const nom of ['personnage','menu']){const acces=nom==='personnage'?p.locator('#hg-mobile-brand'):p.locator(`[data-hg-panneau=${nom}]`);await acces.click();assert.equal(await p.locator('body').getAttribute('data-mobile-panel'),nom);assert.equal(await p.locator(`[data-hg-panneau=${nom}]`).getAttribute('aria-expanded'),'true');await p.keyboard.press('Escape');assert.equal(await p.locator('body').getAttribute('data-mobile-panel'),null);}
  assert.equal(await p.locator('#left').count(),1);assert.equal(await p.evaluate(()=>appels),0);
  await p.locator('[data-hg-panneau=menu]').click();if(w===375)preuve('mobile-375-menu.png',await p.screenshot());await p.locator('#hg-menu-existant .forum-btn').first().evaluate(e=>e.removeAttribute('onclick'));await p.locator('#hg-menu-existant .forum-btn').first().click();assert.equal(await p.locator('body').getAttribute('data-mobile-panel'),null);
 }));
@@ -36,8 +36,9 @@ test('L2 : pas de panneau Lieux visibles, zones et clavier actifs',async()=>avec
 }));
 test('L2 : pièces et actions accessibles en paysage',async()=>avecJeu(async(b,o)=>{
  const p=await page(b,o,852,393);await p.evaluate(()=>{document.getElementById('vue-rue').classList.remove('active');document.getElementById('vue-batiment').classList.add('active');document.getElementById('pieces-tabs').innerHTML=Array.from({length:8},(_,i)=>'<button class="piece-tab">Pièce '+i+'</button>').join('');});
- await p.locator('.piece-tab').last().scrollIntoViewIfNeeded();await p.locator('.piece-tab').last().click();assert.ok(await p.locator('#piece-image').evaluate(e=>e.getBoundingClientRect().width)>800);
- await p.locator('#vue-batiment .sortir-btn').scrollIntoViewIfNeeded();assert.ok(await p.locator('#vue-batiment .sortir-btn').isVisible());
+ await p.locator('#hg-room-primary [data-room-tab="0"]').click();assert.equal(await p.locator('#hg-room-list').isVisible(),true,'le panneau Pièces s’ouvre avant de sélectionner une pièce');
+ await p.locator('#hg-room-list .piece-tab').last().scrollIntoViewIfNeeded();await p.locator('#hg-room-list .piece-tab').last().click();assert.equal(await p.locator('#hg-room-list').isVisible(),false,'le panneau Pièces se ferme après sélection');assert.ok(await p.locator('#piece-image').evaluate(e=>e.getBoundingClientRect().width)>800);
+ assert.ok(await p.locator('#hg-mobile-exit').isVisible(),'Sortir reste disponible dans l’en-tête mobile');
 }));
 test('L3 : longue modale, focus, fermeture existante et retour sans action métier',async()=>avecJeu(async(b,o)=>{
  const p=await page(b,o,375,667);
