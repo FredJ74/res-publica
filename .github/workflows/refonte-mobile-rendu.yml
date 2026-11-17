@@ -4,6 +4,8 @@ on:
     paths:
       - 'plateau.html'
       - 'plateau-mobile-refonte-visible.css'
+      - 'plateau-mobile-prototype.css'
+      - 'plateau-presences-mobile.js'
       - 'outils/bancs/test-refonte-visible-browser-20261117.cjs'
       - '.github/workflows/refonte-mobile-rendu.yml'
 jobs:
