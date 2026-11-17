@@ -1,0 +1,69 @@
+name: Goulag Sovarka - survie
+on:
+  push:
+    branches:
+      - chatgpt/goulag-moteur-survie-20261116
+  pull_request:
+    paths:
+      - 'api/_goulag*.js'
+      - 'plateau-goulag*.js'
+      - 'plateau-justice-economie.js'
+      - 'plateau-rue-centrale.js'
+      - 'migrations/*goulag*.sql'
+      - 'outils/bancs/*goulag*'
+      - 'outils/bancs/fixtures/goulag-20261116/**'
+      - 'outils/bancs/test-goulag-survie-20261116.cjs'
+      - '.github/workflows/goulag-survie-20261116.yml'
+jobs:
+  moteur-survie:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check api/_goulag-survie.js
+      - run: node --check api/_goulag-parcours.js
+      - run: node --check outils/bancs/test-goulag-parcours-20261116.cjs
+      - run: node outils/bancs/test-goulag-parcours-20261116.cjs
+      - run: node outils/bancs/test-goulag-sql-structure-20261116.cjs
+      - run: node --check outils/bancs/test-goulag-survie-20261116.cjs
+      - run: node outils/bancs/test-goulag-survie-20261116.cjs
+      - run: node --check plateau-goulag-toundra.js
+      - run: node --check plateau-goulag-transports.js
+      - run: node --check plateau-goulag-refuge.js
+      - run: node --check plateau-router.js
+      - run: node --check plateau-justice-economie.js
+      - run: node outils/bancs/test-goulag-interface-circuits-20261116.cjs
+      - run: node --check plateau-politique.js
+      - run: node --check plateau-router.js
+      - run: node outils/bancs/test-goulag-decors-20261116.cjs
+      - run: node outils/bancs/test-goulag-decor-runtime-20261116.cjs
+      - run: node outils/bancs/test-goulag-ecran-interactif-20261116.cjs
+      - run: node --test outils/bancs/test-goulag-navigation-20261117.cjs
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python3 -m pip install -r outils/bancs/requirements-postgres-local.txt
+      - name: PostgreSQL 17.6 local isolé
+        env:
+          HGPG17_PREFIX: ${{ runner.temp }}/goulag-pg17
+        run: |
+          bash outils/bancs/installer-postgresql17-local.sh
+          python3 outils/bancs/test-goulag-postgresql-20261116.py --postgres-bin "$HGPG17_PREFIX/bin"
+          git fetch --no-tags origin 4bb8f42a11bf9e5c2ce8e891445cf162d44d5adf
+          python3 outils/bancs/test-goulag-integration-1085-20261117.py --postgres-bin "$HGPG17_PREFIX/bin"
+          python3 outils/bancs/test-goulag-integration-1085-20261117.py --postgres-bin "$HGPG17_PREFIX/bin" --contrats
+      - run: npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
+      - run: npx --prefix outils/e2e playwright install --with-deps chromium webkit
+      - run: node outils/bancs/test-goulag-chromium-20261116.cjs
+      - run: node outils/bancs/test-goulag-chromium-20261116.cjs
+        env:
+          GOULAG_BROWSER: webkit
+      - run: node outils/bancs/test-goulag-raccord-navigateur-1085-20261117.cjs
+      - run: node outils/bancs/test-goulag-raccord-navigateur-1085-20261117.cjs
+        env:
+          GOULAG_BROWSER: webkit

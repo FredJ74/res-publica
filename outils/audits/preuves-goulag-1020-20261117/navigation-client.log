@@ -1,0 +1,12 @@
+✔ arrestation personnelle : position relue, aucune entrée cliente fictive (13.087187ms)
+✔ membre arrêté : chef relu sans afficher sa propre condamnation (11.47024ms)
+✔ entrée ordinaire : même navigation, aucun rechargement ni dépense (12.36006ms)
+✔ double clic arrêté : une seule mutation et une seule relecture (15.828278ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 176.713556

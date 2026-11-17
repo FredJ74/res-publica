@@ -147,6 +147,7 @@ ligne trouvée fausse se corrige ici.
 | Police | Interception, contrôle, avis de recherche. | Mixte | Commissariats, profils de policiers. |
 | Tribunal et greffe | Procès, juges, avocats, témoins, casier, archives. | Serveur | Tribunaux. |
 | Prison et QHS | Détention, évasion, codétenus, haute sécurité. | Mixte | Établissements pénitentiaires. |
+| Goulag de Sovarka — PR #1020 préparatoire | Réutilise justice, détention, inventaire et transports ; survie et récupération transactionnelles, reliquat figé, visites permanentes révocables. Références : `GAME-DESIGN-GOULAG-SOVARKA.md` et `outils/audits/GOULAG-1020-20261117.md`. | Serveur préparé, **non installé et non activé** ; CHECK `active IS FALSE`, autorisation finale requise. | Goulag soviarkien ; les cinq pièces visuelles sont livrées séparément. |
 | Grâce | Recommandation du ministre, décision du président. | Mixte | Rien : commun. |
 | Goulag de Sovarka — ordres internes (branche `claude/goulag-ordres-internes-20261117`) | Liste des détenus et contrôle de minuit, dortoir et cachot (peine purgée par le seul sommeil), registre, interrogatoire, sanction du juge présent, corruption, incidents, jet de sortie du camp. Référence : `GAME-DESIGN-GOULAG-SOVARKA-ORDRES-INTERNES.md`. | Serveur préparé sur le moteur #1020, **non installé et non activé**. | Goulag soviarkien. |
 

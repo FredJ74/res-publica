@@ -45,7 +45,7 @@ class Plan(unittest.TestCase):
         self.assertEqual(len(result['tarifs_ajoutes_sovarka_provinces']), 15)
         self.assertEqual(result['tarifs_ajoutes_diner_sovarka'], [{'fn':'diner_affaires','pa':2,'cost':100},{'fn':'casier_mon_extrait','pa':1,'cost':8}])
         self.assertEqual(result['tarifs_ajoutes_sovarka_pouvoir'], [{'fn': 'sovarka_acte_officiel', 'pa': 1, 'cost': 8}, {'fn': 'sovarka_acte_officiel_autorite', 'pa': 1, 'cost': 0}, {'fn': 'sovarka_autocritique', 'pa': 1, 'cost': 0}, {'fn': 'sovarka_conscription', 'pa': 0, 'cost': 0}, {'fn': 'sovarka_conscrit_presenter', 'pa': 1, 'cost': 0}, {'fn': 'sovarka_extrait_parti', 'pa': 1, 'cost': 7}, {'fn': 'sovarka_lois_examen', 'pa': 0, 'cost': 0}, {'fn': 'sovarka_mon_parti', 'pa': 0, 'cost': 0}, {'fn': 'sovarka_musee_billet', 'pa': 0, 'cost': 8}, {'fn': 'sovarka_offrir_cafe', 'pa': 0, 'cost': 0}, {'fn': 'sovarka_ordres_ministre', 'pa': 0, 'cost': 0}, {'fn': 'sovarka_parti_fonder', 'pa': 2, 'cost': 15}, {'fn': 'sovarka_partis', 'pa': 0, 'cost': 0}, {'fn': 'sovarka_registre_plaintes', 'pa': 0, 'cost': 0}, {'fn': 'sovarka_repas_presidentiel', 'pa': 0, 'cost': 0}, {'fn': 'sovarka_saisir_juge', 'pa': 1, 'cost': 0}, {'fn': 'sovarka_seance', 'pa': 0, 'cost': 0}, {'fn': 'sovarka_signalements', 'pa': 0, 'cost': 0}, {'fn': 'sovarka_sondages', 'pa': 0, 'cost': 0}, {'fn': 'sovarka_surveiller', 'pa': 2, 'cost': 0}])
-        self.assertEqual(result['tarifs_actuels']['lignes'], 569)  # +11 ordres internes du goulag de Sovarka (17/11, PR #1085) ; +1 diner_affaires 2 PA 40 (17/11, Hôtel des Voyageurs de Starovka) ; +1 enigme1_parler_valerie (17/11, musée) ; +1 regulation_production (16/11) ; +34 ordres et variantes postérieurs au 10/11 (relevé du 15/11, écartés de la photographie) ; +15 provinces de Sovarka et Dynamo (10/11), -1 consommer_buvette retiré (#682) ; +6 justice de Sovarka (08/11), +1 extrait de casier Sovarka à 8 PSK (08/11), +3 partis de Sovarka (07/11), -1 Soviet Suprême retiré, +7 ministères de Sovarka (08/11), +1 registre des signalements (08/11), +1 surveillance (08/11), +1 billet du musée présidentiel (08/11)
+        self.assertEqual(result['tarifs_actuels']['lignes'], 577)  # +11 ordres internes du goulag de Sovarka (17/11, PR #1085) ; +8 menus gratuits du moteur du goulag (17/11, PR #1020) ; +1 diner_affaires 2 PA 40 (17/11, Hôtel des Voyageurs de Starovka) ; +1 enigme1_parler_valerie (17/11, musée) ; +1 regulation_production (16/11) ; +34 ordres et variantes postérieurs au 10/11 (relevé du 15/11, écartés de la photographie) ; +15 provinces de Sovarka et Dynamo (10/11), -1 consommer_buvette retiré (#682) ; +6 justice de Sovarka (08/11), +1 extrait de casier Sovarka à 8 PSK (08/11), +3 partis de Sovarka (07/11), -1 Soviet Suprême retiré, +7 ministères de Sovarka (08/11), +1 registre des signalements (08/11), +1 surveillance (08/11), +1 billet du musée présidentiel (08/11)
         self.assertEqual(len(result['tarifs_actuels']['md5']), 32)
         self.assertFalse(result['execution_autorisee'])
         self.assertTrue(result['ancien_plan_tarifaire_conforme_source'])
@@ -53,6 +53,27 @@ class Plan(unittest.TestCase):
             [item['version'] for item in result['migrations'][-2:]],
             ['20261101170000', '20261101171000']
         )
+
+    def test_ajouts_goulag_non_conformes_refuses(self):
+        source = json.loads(subprocess.check_output([
+            module.sys.executable, str(R / 'outils/generateurs/generer_ordres_couts.py'), '--json'
+        ], cwd=R, text=True))
+        ajouts = module.preparer()['tarifs_ajoutes_goulag']
+        self.assertEqual(len(ajouts), 8)
+        for ajout in ajouts:
+            for mutation in ('absence', 'prix', 'pa', 'doublon'):
+                alteree = copy.deepcopy(source)
+                cible = next(x for x in alteree if x['fn'] == ajout['fn'])
+                if mutation == 'absence':
+                    alteree.remove(cible)
+                elif mutation == 'doublon':
+                    alteree.append(copy.deepcopy(cible))
+                else:
+                    cible['cost' if mutation == 'prix' else 'pa'] += 1
+                with self.subTest(ordre=ajout['fn'], mutation=mutation), \
+                     patch.object(module.subprocess, 'check_output', return_value=json.dumps(alteree)), \
+                     self.assertRaisesRegex(ValueError, 'Ordres Goulag'):
+                    module.preparer()
 
     def test_ajouts_sovarka_non_conformes_refuses(self):
         source = json.loads(subprocess.check_output([

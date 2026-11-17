@@ -1,0 +1,543 @@
+OK  banc-acces-reserve-20261112.cjs
+OK  banc-accueil-neuf-langues.cjs
+OK  banc-achats-cle-unicite-ecran.cjs
+OK  banc-acte-notaire-solde.cjs
+OK  banc-administration-client.js
+OK  banc-aide-avancee.mjs
+OK  banc-aide-corpus.mjs
+OK  banc-aide-hrp.mjs
+OK  banc-aide-interface.cjs
+OK  banc-aide-multilingue.mjs
+OK  banc-aide-neuf-langues-navigateur.cjs
+OK  banc-ambassades-bientot-20261101.cjs
+OK  banc-amendes-tresor.cjs
+OK  banc-annuaire-territoires.cjs
+OK  banc-api-supabase.js
+OK  banc-appro-chantier.js
+OK  banc-archives-musee.cjs
+OK  banc-assemblee-hall.js
+OK  banc-audit-i18n-global.cjs
+OK  banc-autorite-detecteurs.cjs
+OK  banc-avis-de-recherche.js
+OK  banc-avis-personnels-expediteurs.mjs
+OK  banc-banque-guichet-135.cjs
+OK  banc-barreau-temoins-client.js
+OK  banc-caisses-accueil-communal.cjs
+OK  banc-caisses-collectives-client.cjs
+OK  banc-caisses-dialogue-lisibilite-20261031.cjs
+OK  banc-calendrier-electoral.js
+OK  banc-calendrier-succession.js
+OK  banc-candidatures-nocturnes.js
+OK  banc-carrieres-creation-et-audience-client.js
+OK  banc-caserne-parite-menus-20261113.cjs
+OK  banc-catalogue-manufactures-20261104.cjs
+OK  banc-ced-football-client.cjs
+OK  banc-centre-artisanal-novomirsk-20261110.mjs
+OK  banc-chaines-17-a-20.js
+OK  banc-chantier-progression-serveur.js
+OK  banc-chat-disponibilite.mjs
+OK  banc-chemins-historiques.cjs
+OK  banc-chromium-cycle.cjs
+OK  banc-circuits-residuels-219-client.cjs
+OK  banc-clinique-nuitee-client.cjs
+OK  banc-clinique-repas-nuitee.cjs
+OK  banc-coherence-banques.cjs
+OK  banc-coherence-organisations.cjs
+OK  banc-coherence-sauvegarde.cjs
+OK  banc-commerce-etat-client.cjs
+OK  banc-commerce-transactions.cjs
+OK  banc-commerce-unifie-navigateur.cjs
+OK  banc-commerce-unifie.cjs
+OK  banc-commerces-stock-unique-20261104.cjs
+OK  banc-commissariats-pouvoirs.cjs
+OK  banc-compromis-nocturnes.js
+OK  banc-conference-presse-client.js
+OK  banc-confession-universelle-20261113.cjs
+OK  banc-consommation-inventaire.cjs
+OK  banc-construction-commandes.cjs
+OK  banc-contexte-public-dialogue.js
+OK  banc-continuite-municipale.mjs
+OK  banc-controles-globaux-20261107.cjs
+OK  banc-controleur-processus.cjs
+OK  banc-cotisations-organisations.js
+OK  banc-creation-personnage-reseau-20261028.cjs
+OK  banc-cron-paris.cjs
+OK  banc-cycle-plaintes.js
+OK  banc-deploiement-sobre.cjs
+OK  banc-desertion-liberation.js
+OK  banc-destinations-multimodal-20261028.cjs
+OK  banc-detention-plateau.js
+OK  banc-dialogue-pnj-republia.js
+OK  banc-direction-renseignement-novomirsk-20261113.cjs
+OK  banc-dotation-cloisonnement-sovarka-20261113.cjs
+OK  banc-ecritures-ecran.cjs
+OK  banc-entrepot-sovarka-saisie-20261113.cjs
+OK  banc-entrepots-caisse-unique.cjs
+OK  banc-equipements-collectifs-client.cjs
+OK  banc-escorts-sovarka-20261112.cjs
+OK  banc-etat-terrain.js
+OK  banc-fiche-verite-serveur-20261030.cjs
+OK  banc-fonds-murs-ecran-66.cjs
+OK  banc-football-blessures-entrainement-3j.cjs
+OK  banc-forum-auteur-institutionnel.cjs
+OK  banc-forum-local-compteurs-20261103.cjs
+OK  banc-forum-voyants-reconnexion-20261103.cjs
+OK  banc-forums-contextes-422.cjs
+OK  banc-forums-territoires-adhesions-20261103.cjs
+OK  banc-generateur-couts-serveur.cjs
+OK  banc-genre-pnj-dialogue.mjs
+OK  banc-grace-atomique-379.cjs
+OK  banc-grace-sql-379.cjs
+OK  banc-greffe-documents-client.js
+OK  banc-greve-generale.js
+OK  banc-groupes-arrestation-confirmee.cjs
+OK  banc-groupes-bataille-client.cjs
+OK  banc-groupes-calendrier-client.cjs
+OK  banc-groupes-cibles-client.cjs
+OK  banc-groupes-cinq-rounds-client.cjs
+OK  banc-groupes-controle-client.cjs
+OK  banc-groupes-douanes-client.cjs
+OK  banc-groupes-effectifs-client.cjs
+OK  banc-groupes-interieurs-client.cjs
+OK  banc-groupes-police-client.cjs
+OK  banc-groupes-provenance-client.cjs
+OK  banc-groupes-transports-client.cjs
+OK  banc-groupes-universels.cjs
+OK  banc-guide-musee-novomirsk-20261111.mjs
+OK  banc-hopital-novomirsk-affichage-20261112.cjs
+OK  banc-hospitalisation-client.cjs
+OK  banc-hydratation-personnage.cjs
+OK  banc-i18n-actions-courrier.cjs
+OK  banc-i18n-adhesions-organisations-20261114.cjs
+OK  banc-i18n-adhesions-organisations-navigateur-20261114.cjs
+OK  banc-i18n-administration-economie.cjs
+OK  banc-i18n-agence-emploi-20261111.cjs
+OK  banc-i18n-agence-sociale-20261111.cjs
+OK  banc-i18n-alertes-navigation.cjs
+OK  banc-i18n-beta-activation.cjs
+OK  banc-i18n-beta-public-avertissement.cjs
+OK  banc-i18n-bookmaker.cjs
+OK  banc-i18n-building-categories-20261116.cjs
+OK  banc-i18n-building-header-20261116.cjs
+OK  banc-i18n-catalogue-economique.cjs
+OK  banc-i18n-catalogue-ordres.cjs
+OK  banc-i18n-clinique-20261112.cjs
+OK  banc-i18n-commandes-forum.cjs
+OK  banc-i18n-commerce-menu.cjs
+OK  banc-i18n-communes-fonctions-20261113.cjs
+OK  banc-i18n-communes-partage-20261113.cjs
+OK  banc-i18n-communes-partage-navigateur-20261113.cjs
+OK  banc-i18n-compositeur-forum.cjs
+OK  banc-i18n-confirmation-adresse-20261113.cjs
+OK  banc-i18n-confirmation-adresse-navigateur-20261113.cjs
+OK  banc-i18n-confirmations-forum-20261113.cjs
+OK  banc-i18n-confirmations-forum-navigateur-20261113.cjs
+OK  banc-i18n-connexion-ui.cjs
+OK  banc-i18n-contenu-securise.mjs
+OK  banc-i18n-corps-integrite-20261114.cjs
+OK  banc-i18n-corps-notifications-20261114.cjs
+OK  banc-i18n-corrections-codex-20261109.cjs
+OK  banc-i18n-couverture.cjs
+OK  banc-i18n-creation-organisation-20261114.cjs
+OK  banc-i18n-creation-organisation-navigateur-20261114.cjs
+OK  banc-i18n-dealer-20261112.cjs
+OK  banc-i18n-dependances.mjs
+OK  banc-i18n-dialogues-pnj.mjs
+OK  banc-i18n-editorial.cjs
+OK  banc-i18n-etat-civil-20261112.cjs
+OK  banc-i18n-etat-ordres.cjs
+OK  banc-i18n-exit-feedback-20261116.cjs
+OK  banc-i18n-explications-creation-20261114.cjs
+NON banc-i18n-explications-creation-navigateur-20261114.cjs
+,"recherche":[],"domicile":{"country":"republic","city":"ville_b","depuis":1},"organisations":[],"objectifs_completes":[],"votes_pnj":{}}]],"cache":{"respublica_char_PJ Fixture":"{\\"country\\":\\"republic\\",\\"origin\\":\\"fixture\\",\\"school\\":\\"fixture\\",\\"archetype\\":\\"fixture\\",\\"career\\":\\"fixture\\",\\"stats\\":{},\\"freeStats\\":{},\\"freePtsRestants\\":2,\\"name\\":\\"PJ Fixture\\",\\"bio\\":\\"Récit libre conservé\\",\\"motto\\":\\"Devise libre\\",\\"arg\\":1000,\\"resources\\":{\\"inf\\":25,\\"pop\\":30,\\"dis\\":85},\\"createdAt\\":\\"2026-11-14T00:00:00.000Z\\",\\"currentCity\\":\\"ville_b\\",\\"queteAccueil\\":{\\"etape\\":\\"non_commencee\\"}}","respublica_char":"{\\"country\\":\\"republic\\",\\"origin\\":\\"fixture\\",\\"school\\":\\"fixture\\",\\"archetype\\":\\"fixture\\",\\"career\\":\\"fixture\\",\\"stats\\":{},\\"freeStats\\":{},\\"freePtsRestants\\":2,\\"name\\":\\"PJ Fixture\\",\\"bio\\":\\"Récit libre conservé\\",\\"motto\\":\\"Devise libre\\",\\"arg\\":1000,\\"resources\\":{\\"inf\\":25,\\"pop\\":30,\\"dis\\":85},\\"createdAt\\":\\"2026-11-14T00:00:00.000Z\\",\\"currentCity\\":\\"ville_b\\",\\"queteAccueil\\":{\\"etape\\":\\"non_commencee\\"}}","respublica_last_char":"PJ Fixture"},"G":{"country":"republic","city":"ville_b","origin":"fixture","school":"fixture","archetype":"fixture","career":"fixture","freeStats":{},"freePts":2,"name":"PJ Fixture","bio":"Récit libre conservé","motto":"Devise libre"},"playerState":{"pa":17,"arg":3000,"inventory":[{"id":"fixture"}],"progression":{"stage":3}},"lock":true}',
+  -   button: 'Creation en cours...',
+  -   disabled: true,
+      ui: '{"draft":"Brouillon à conserver","focus":"draft","start":2,"end":5,"scroll":[0,0]}'
+    }
+  
+      at TestContext.<anonymous> (/workspace/work/i18n-reprise-reference/outils/bancs/banc-i18n-explications-creation-navigateur-20261114.cjs:10:129)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { business: '{"calls":[],"cache":{},"G":{"country":"republic","city":"ville_b","origin":"fixture","school":"fixture","archetype":"fixture","career":"fixture","freeStats":{},"freePts":2,"name":"PJ Fixture","bio":"Récit libre conservé","motto":"Devise libre"},"playerState":{"pa":17,"arg":3000,"inventory":[{"id":"fixture"}],"progression":{"stage":3}},"lock":false}', ui: '{"draft":"Brouillon à conserver","focus":"draft","start":2,"end":5,"scroll":[0,0]}', button: 'Valider et entrer dans le jeu', disabled: false },
+    expected: { business: '{"calls":[["cache-owner"],["create",{"char":{"country":"republic","origin":"fixture","school":"fixture","archetype":"fixture","career":"fixture","stats":{},"freeStats":{},"freePtsRestants":2,"name":"PJ Fixture","bio":"Récit libre conservé","motto":"Devise libre","arg":1000,"resources":{"inf":25,"pop":30,"dis":85},"createdAt":"2026-11-14T00:00:00.000Z","currentCity":"ville_b","queteAccueil":{"etape":"non_commencee"}},"country":"republic","currentCity":"ville_b","arg":1000,"liquide":150,"inf":25,"pop":30,"dis":85,"hp":100,"pa":10,"moral":75,"poste":null,"inventory":[],"informateurs":[],"day":1,"recherche":[],"domicile":{"country":"republic","city":"ville_b","depuis":1},"organisations":[],"objectifs_completes":[],"votes_pnj":{}}]],"cache":{"respublica_char_PJ Fixture":"{\\"country\\":\\"republic\\",\\"origin\\":\\"fixture\\",\\"school\\":\\"fixture\\",\\"archetype\\":\\"fixture\\",\\"career\\":\\"fixture\\",\\"stats\\":{},\\"freeStats\\":{},\\"freePtsRestants\\":2,\\"name\\":\\"PJ Fixture\\",\\"bio\\":\\"Récit libre conservé\\",\\"motto\\":\\"Devise libre\\",\\"arg\\":1000,\\"resources\\":{\\"inf\\":25,\\"pop\\":30,\\"dis\\":85},\\"createdAt\\":\\"2026-11-14T00:00:00.000Z\\",\\"currentCity\\":\\"ville_b\\",\\"queteAccueil\\":{\\"etape\\":\\"non_commencee\\"}}","respublica_char":"{\\"country\\":\\"republic\\",\\"origin\\":\\"fixture\\",\\"school\\":\\"fixture\\",\\"archetype\\":\\"fixture\\",\\"career\\":\\"fixture\\",\\"stats\\":{},\\"freeStats\\":{},\\"freePtsRestants\\":2,\\"name\\":\\"PJ Fixture\\",\\"bio\\":\\"Récit libre conservé\\",\\"motto\\":\\"Devise libre\\",\\"arg\\":1000,\\"resources\\":{\\"inf\\":25,\\"pop\\":30,\\"dis\\":85},\\"createdAt\\":\\"2026-11-14T00:00:00.000Z\\",\\"currentCity\\":\\"ville_b\\",\\"queteAccueil\\":{\\"etape\\":\\"non_commencee\\"}}","respublica_last_char":"PJ Fixture"},"G":{"country":"republic","city":"ville_b","origin":"fixture","school":"fixture","archetype":"fixture","career":"fixture","freeStats":{},"freePts":2,"name":"PJ Fixture","bio":"Récit libre conservé","motto":"Devise libre"},"playerState":{"pa":17,"arg":3000,"inventory":[{"id":"fixture"}],"progression":{"stage":3}},"lock":true}', ui: '{"draft":"Brouillon à conserver","focus":"draft","start":2,"end":5,"scroll":[0,0]}', button: 'Creation en cours...', disabled: true },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+OK  banc-i18n-fiche-personnage.cjs
+OK  banc-i18n-fiches-produits.cjs
+OK  banc-i18n-finance135-20261112.cjs
+OK  banc-i18n-garde-accueil.cjs
+OK  banc-i18n-gestion-commerce.cjs
+OK  banc-i18n-goulag-descriptions-20261116.cjs
+OK  banc-i18n-guide-complet.cjs
+OK  banc-i18n-guide-economie.cjs
+OK  banc-i18n-guide-integrite.cjs
+OK  banc-i18n-guide-interactions.cjs
+OK  banc-i18n-guide-mail.cjs
+OK  banc-i18n-guide-plateau.cjs
+OK  banc-i18n-guide-politique.cjs
+OK  banc-i18n-guide-sport.cjs
+OK  banc-i18n-ilia-20261113.cjs
+OK  banc-i18n-ilia-mobile-20261113.cjs
+OK  banc-i18n-inventaire-escaped.cjs
+OK  banc-i18n-inventaire-ui.cjs
+OK  banc-i18n-krasnov-descriptions-20261115.cjs
+OK  banc-i18n-lecture-rls.mjs
+OK  banc-i18n-logements-sociaux-20261112.cjs
+OK  banc-i18n-membres-organisations-20261114.cjs
+OK  banc-i18n-membres-organisations-navigateur-20261114.cjs
+OK  banc-i18n-modalites-communales.cjs
+OK  banc-i18n-musee-national-20261112.cjs
+OK  banc-i18n-naval-20261112.cjs
+OK  banc-i18n-navbar-20261106.cjs
+OK  banc-i18n-navigation-transports.cjs
+OK  banc-i18n-notifications.cjs
+OK  banc-i18n-occupation-20261112.cjs
+OK  banc-i18n-onglet-organisations-20261114.cjs
+OK  banc-i18n-onglet-organisations-navigateur-20261114.cjs
+OK  banc-i18n-open-space-20261112.cjs
+OK  banc-i18n-ordres.cjs
+OK  banc-i18n-panneau-personnel.cjs
+OK  banc-i18n-parametres-organisations-20261114.cjs
+OK  banc-i18n-parametres-organisations-navigateur-20261114.cjs
+OK  banc-i18n-passeur-20261111.cjs
+OK  banc-i18n-petit-accueil.cjs
+OK  banc-i18n-pieces-communes-20261112.cjs
+OK  banc-i18n-plan-rues-20261113.cjs
+OK  banc-i18n-plateau-init.cjs
+OK  banc-i18n-plateau-ressources.cjs
+OK  banc-i18n-plateau-wiring.cjs
+OK  banc-i18n-player-missions-20261113.cjs
+OK  banc-i18n-player-missions-mobile-20261113.cjs
+OK  banc-i18n-pluriels-forum.cjs
+OK  banc-i18n-pnj-sociaux-amorces.cjs
+OK  banc-i18n-pont-plateau.cjs
+OK  banc-i18n-port-douanes.cjs
+OK  banc-i18n-premieres-scenes-jeremy.cjs
+OK  banc-i18n-presentation-forum-jeremy.cjs
+OK  banc-i18n-prevol-rls.cjs
+OK  banc-i18n-production-commerce.cjs
+OK  banc-i18n-publicite-premium-20261112.cjs
+OK  banc-i18n-quete-carriere.cjs
+OK  banc-i18n-recherche-personnage-20261113.cjs
+OK  banc-i18n-recherche-personnage-navigateur-20261113.cjs
+OK  banc-i18n-refus-actions-20261113.cjs
+OK  banc-i18n-refus-actions-navigateur-20261113.cjs
+OK  banc-i18n-render-ordres.cjs
+OK  banc-i18n-repertoire-courrier-navigateur.cjs
+OK  banc-i18n-repertoire-courrier.cjs
+OK  banc-i18n-reprise-commandes-20261113.cjs
+OK  banc-i18n-reprise-commandes-navigateur-20261113.cjs
+OK  banc-i18n-retours-chantiers-20261113.cjs
+OK  banc-i18n-retours-chantiers-navigateur-20261113.cjs
+OK  banc-i18n-retours-compte-20261113.cjs
+OK  banc-i18n-retours-compte-navigateur-20261113.cjs
+OK  banc-i18n-retours-forum-navigateur.cjs
+OK  banc-i18n-retours-forum.cjs
+OK  banc-i18n-room-actions.cjs
+OK  banc-i18n-salles-gouvernement.cjs
+OK  banc-i18n-salles-sovarka-services.cjs
+OK  banc-i18n-selecteur-interactif.cjs
+OK  banc-i18n-social-par-langue.cjs
+OK  banc-i18n-socle-ordres-navigateur.cjs
+OK  banc-i18n-socle-ordres.cjs
+OK  banc-i18n-sovarka-droits-20261111.cjs
+OK  banc-i18n-sovarka-infobulles-navigateur.cjs
+OK  banc-i18n-sovarka-justice-provinces-20261111.cjs
+OK  banc-i18n-sovarka-messages-20261111.cjs
+OK  banc-i18n-sovarka-ordres-novembre.cjs
+OK  banc-i18n-sovarka-partis-20261111.cjs
+OK  banc-i18n-sovarka-pouvoir-20261111.cjs
+OK  banc-i18n-stade-et-guidage.cjs
+OK  banc-i18n-statut-pnj.cjs
+OK  banc-i18n-stockage.mjs
+OK  banc-i18n-tableau-organisations-20261114.cjs
+OK  banc-i18n-tableau-organisations-navigateur-20261114.cjs
+OK  banc-i18n-tarifs-variables.cjs
+OK  banc-i18n-texte-joueur.cjs
+OK  banc-i18n-titres-creation-20261114.cjs
+NON banc-i18n-titres-creation-navigateur-20261114.cjs
+tats\\":{},\\"freeStats\\":{},\\"freePtsRestants\\":2,\\"name\\":\\"PJ Fixture\\",\\"bio\\":\\"Récit libre conservé\\",\\"motto\\":\\"Devise libre\\",\\"arg\\":1000,\\"resources\\":{\\"inf\\":25,\\"pop\\":30,\\"dis\\":85},\\"createdAt\\":\\"2026-11-14T00:00:00.000Z\\",\\"currentCity\\":\\"ville_b\\",\\"queteAccueil\\":{\\"etape\\":\\"non_commencee\\"}}","respublica_last_char":"PJ Fixture"},"G":{"country":"republic","city":"ville_b","origin":"fixture","school":"fixture","archetype":"fixture","career":"fixture","freeStats":{},"freePts":2,"name":"PJ Fixture","bio":"Récit libre conservé","motto":"Devise libre"},"playerState":{"pa":17,"arg":3000,"inventory":[{"id":"fixture"}],"progression":{"stage":3}},"lock":true}',
+  -   button: 'Creation en cours...',
+  -   disabled: true,
+      ui: '{"draft":"Brouillon à conserver","focus":"draft","start":2,"end":5,"scroll":[0,0]}'
+    }
+  
+      at TestContext.<anonymous> (/workspace/work/i18n-reprise-reference/outils/bancs/banc-i18n-titres-creation-navigateur-20261114.cjs:8:193)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: { business: '{"calls":[],"cache":{},"G":{"country":"republic","city":"ville_b","origin":"fixture","school":"fixture","archetype":"fixture","career":"fixture","freeStats":{},"freePts":2,"name":"PJ Fixture","bio":"Récit libre conservé","motto":"Devise libre"},"playerState":{"pa":17,"arg":3000,"inventory":[{"id":"fixture"}],"progression":{"stage":3}},"lock":false}', ui: '{"draft":"Brouillon à conserver","focus":"draft","start":2,"end":5,"scroll":[0,0]}', button: 'Valider et entrer dans le jeu', disabled: false },
+    expected: { business: '{"calls":[["cache-owner"],["create",{"char":{"country":"republic","origin":"fixture","school":"fixture","archetype":"fixture","career":"fixture","stats":{},"freeStats":{},"freePtsRestants":2,"name":"PJ Fixture","bio":"Récit libre conservé","motto":"Devise libre","arg":1000,"resources":{"inf":25,"pop":30,"dis":85},"createdAt":"2026-11-14T00:00:00.000Z","currentCity":"ville_b","queteAccueil":{"etape":"non_commencee"}},"country":"republic","currentCity":"ville_b","arg":1000,"liquide":150,"inf":25,"pop":30,"dis":85,"hp":100,"pa":10,"moral":75,"poste":null,"inventory":[],"informateurs":[],"day":1,"recherche":[],"domicile":{"country":"republic","city":"ville_b","depuis":1},"organisations":[],"objectifs_completes":[],"votes_pnj":{}}]],"cache":{"respublica_char_PJ Fixture":"{\\"country\\":\\"republic\\",\\"origin\\":\\"fixture\\",\\"school\\":\\"fixture\\",\\"archetype\\":\\"fixture\\",\\"career\\":\\"fixture\\",\\"stats\\":{},\\"freeStats\\":{},\\"freePtsRestants\\":2,\\"name\\":\\"PJ Fixture\\",\\"bio\\":\\"Récit libre conservé\\",\\"motto\\":\\"Devise libre\\",\\"arg\\":1000,\\"resources\\":{\\"inf\\":25,\\"pop\\":30,\\"dis\\":85},\\"createdAt\\":\\"2026-11-14T00:00:00.000Z\\",\\"currentCity\\":\\"ville_b\\",\\"queteAccueil\\":{\\"etape\\":\\"non_commencee\\"}}","respublica_char":"{\\"country\\":\\"republic\\",\\"origin\\":\\"fixture\\",\\"school\\":\\"fixture\\",\\"archetype\\":\\"fixture\\",\\"career\\":\\"fixture\\",\\"stats\\":{},\\"freeStats\\":{},\\"freePtsRestants\\":2,\\"name\\":\\"PJ Fixture\\",\\"bio\\":\\"Récit libre conservé\\",\\"motto\\":\\"Devise libre\\",\\"arg\\":1000,\\"resources\\":{\\"inf\\":25,\\"pop\\":30,\\"dis\\":85},\\"createdAt\\":\\"2026-11-14T00:00:00.000Z\\",\\"currentCity\\":\\"ville_b\\",\\"queteAccueil\\":{\\"etape\\":\\"non_commencee\\"}}","respublica_last_char":"PJ Fixture"},"G":{"country":"republic","city":"ville_b","origin":"fixture","school":"fixture","archetype":"fixture","career":"fixture","freeStats":{},"freePts":2,"name":"PJ Fixture","bio":"Récit libre conservé","motto":"Devise libre"},"playerState":{"pa":17,"arg":3000,"inventory":[{"id":"fixture"}],"progression":{"stage":3}},"lock":true}', ui: '{"draft":"Brouillon à conserver","focus":"draft","start":2,"end":5,"scroll":[0,0]}', button: 'Creation en cours...', disabled: true },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-i18n-titres-creation-navigateur-20261114.cjs:24:1
+✖ création : 54 bascules par le vrai sélecteur et le rafraîchissement du récapitulatif, sans répéter la création (874.992981ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'Valider et entrer dans le jeu'
+  - 'Creation en cours...'
+  
+      at TestContext.<anonymous> (/workspace/work/i18n-reprise-reference/outils/bancs/banc-i18n-titres-creation-navigateur-20261114.cjs:30:249)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'Valider et entrer dans le jeu',
+    expected: 'Creation en cours...',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+OK  banc-i18n-tracts-20261111.cjs
+OK  banc-i18n-traduction-sources.mjs
+OK  banc-i18n-transport-catalogues-20261114.cjs
+OK  banc-i18n-tutoriel.cjs
+OK  banc-i18n-variantes-hotel.cjs
+OK  banc-i18n-vehicules-garage-20261112.cjs
+OK  banc-i18n-vehicules-trajets-20261112.cjs
+OK  banc-i18n-vente-don-matieres.cjs
+OK  banc-i18n-ventes-diners-20261111.cjs
+OK  banc-indices-autorite-422.cjs
+OK  banc-infobulles-guillemets-20261113.cjs
+OK  banc-infobulles-navigateur.cjs
+OK  banc-inspection-cargaisons-379.cjs
+OK  banc-interception-reseau.cjs
+OK  banc-intitules-ministeres-empires.cjs
+OK  banc-inventaire-raccordements.cjs
+OK  banc-inventaire-receptions.cjs
+OK  banc-inventaire-relecture-services.cjs
+OK  banc-jauges-copies-forum-379.cjs
+OK  banc-jauges-ordres-379.cjs
+OK  banc-jodie-confirmation.cjs
+OK  banc-jodie-interview-navigateur.cjs
+OK  banc-jodie-portrait-api.cjs
+OK  banc-jodie-portraits-journal.cjs
+OK  banc-journal-ventes-navigateur.cjs
+OK  banc-justice-peine-client.js
+OK  banc-kolkhoze-don-libre-20261113.cjs
+OK  banc-lisibilite-acces-reserve-20261113.cjs
+OK  banc-livraison-hotels-ambassade-20261104.cjs
+OK  banc-locaux-loyers.cjs
+OK  banc-logements-sociaux.cjs
+OK  banc-mail-systeme.js
+OK  banc-mails-defilement-navigateur.cjs
+OK  banc-mairie-acquereur.cjs
+OK  banc-mairies-communes.cjs
+OK  banc-mandats-nationaux-caserne-20261113.cjs
+OK  banc-memoire-mandats-dialogue.js
+OK  banc-mobile-certification.cjs
+NON banc-mobile-coque.cjs
+sage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-mobile-coque.cjs:13:73
+✖ L1 : coque 412×915, panneaux uniques et navigation UI sans RPC (1550.940944ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(await p.locator('#rue-image').evaluate(e=>e.getBoundingClientRect().width)>100)
+  
+      at /workspace/work/i18n-reprise-reference/outils/bancs/banc-mobile-coque.cjs:16:9
+      at async avecJeu (/workspace/work/i18n-reprise-reference/outils/bancs/mobile-navigateur.cjs:15:200)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-mobile-coque.cjs:13:73
+✖ L1 : coque 852×393, panneaux uniques et navigation UI sans RPC (1295.43107ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(await p.locator('#rue-image').evaluate(e=>e.getBoundingClientRect().width)>100)
+  
+      at /workspace/work/i18n-reprise-reference/outils/bancs/banc-mobile-coque.cjs:16:9
+      at async avecJeu (/workspace/work/i18n-reprise-reference/outils/bancs/mobile-navigateur.cjs:15:200)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-mobile-coque.cjs:13:73
+✖ L1 : coque 768×1024, panneaux uniques et navigation UI sans RPC (1451.739869ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(await p.locator('#rue-image').evaluate(e=>e.getBoundingClientRect().width)>100)
+  
+      at /workspace/work/i18n-reprise-reference/outils/bancs/banc-mobile-coque.cjs:16:9
+      at async avecJeu (/workspace/work/i18n-reprise-reference/outils/bancs/mobile-navigateur.cjs:15:200)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-mobile-coque.cjs:21:1
+✖ L2 : pas de panneau Lieux visibles, zones et clavier actifs (6308.411442ms)
+  locator.click: Timeout 5000ms exceeded.
+  Call log:
+  [2m  - waiting for locator('.rc-zone')[22m
+  [2m    - locator resolved to <div tabindex="0" class="rc-zone" aria-label="Lieu de test"></div>[22m
+  [2m  - attempting click action[22m
+  [2m    2 × waiting for element to be visible, enabled and stable[22m
+  [2m      - element is not visible[22m
+  [2m    - retrying click action[22m
+  [2m    - waiting 20ms[22m
+  [2m    2 × waiting for element to be visible, enabled and stable[22m
+  [2m      - element is not visible[22m
+  [2m    - retrying click action[22m
+  [2m      - waiting 100ms[22m
+  [2m    10 × waiting for element to be visible, enabled and stable[22m
+  [2m       - element is not visible[22m
+  [2m     - retrying click action[22m
+  [2m       - waiting 500ms[22m
+  
+      at /workspace/work/i18n-reprise-reference/outils/bancs/banc-mobile-coque.cjs:25:30
+      at async avecJeu (/workspace/work/i18n-reprise-reference/outils/bancs/mobile-navigateur.cjs:15:200) {
+    name: 'TimeoutError',
+    log: [ "  - waiting for locator('.rc-zone')", '    - locator resolved to <div tabindex="0" class="rc-zone" aria-label="Lieu de test"></div>', '  - attempting click action', '    2 × waiting for element to be visible, enabled and stable', '      - element is not visible', '    - retrying click action', '    - waiting 20ms', '    2 × waiting for element to be visible, enabled and stable', '      - element is not visible', '    - retrying click action', '      - waiting 100ms', '    10 × waiting for element to be visible, enabled and stable', '       - element is not visible', '     - retrying click action', '       - waiting 500ms' ]
+  }
+
+test at outils/bancs/banc-mobile-coque.cjs:72:1
+✖ L6 : rubriques, liste et lecture sans débordement mobile ; bureau forum 1440 identique (11509.512602ms)
+  AssertionError [ERR_ASSERTION]: forum bureau identique pixel pour pixel
+      at /workspace/work/i18n-reprise-reference/outils/bancs/banc-mobile-coque.cjs:74:489
+      at async avecJeu (/workspace/work/i18n-reprise-reference/outils/bancs/mobile-navigateur.cjs:15:200)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+OK  banc-mobile-helvetia-double-tap.cjs
+OK  banc-mobile-piece-20261111.cjs
+OK  banc-mobile-restauration-retardee.cjs
+OK  banc-mobile-sovarka.cjs
+OK  banc-moteur-javascript.cjs
+OK  banc-multimodal-psm-20261101.cjs
+OK  banc-musee-national-novomirsk-neuf-salles.mjs
+OK  banc-mutation-terrain.js
+OK  banc-navigation-rues.cjs
+OK  banc-negociation-squatteurs-client.cjs
+OK  banc-nominations-municipales.cjs
+OK  banc-novomirsk-palais-ambassades-acces-20261113.cjs
+OK  banc-novomirsk-palais-ambassades-reception-image-20261113.cjs
+OK  banc-objectifs-secrets-379.cjs
+OK  banc-occupant-terrain-visible.cjs
+OK  banc-occupation-actions-client.cjs
+OK  banc-ordre-de-bataille-client.js
+OK  banc-ordres-info-tactile-20261113.cjs
+OK  banc-ordres-info-tactile-navigateur-20261113.cjs
+OK  banc-ordres-territoires.cjs
+OK  banc-organisations-activation-client.cjs
+OK  banc-organisations-commandes-client.cjs
+OK  banc-organisations-evenements-client.cjs
+OK  banc-organisations-jauges-379.cjs
+OK  banc-organisations-membres-client.cjs
+OK  banc-palais-gouvernement.js
+OK  banc-parcelles-135.cjs
+OK  banc-parquet-client.js
+OK  banc-patcher-blob.js
+OK  banc-permis-cron-acquisition-135.cjs
+OK  banc-permis-depot-client.cjs
+OK  banc-pnj-localisation-psm.mjs
+OK  banc-pnj-promesses-objets.mjs
+OK  banc-pop-inf-cache-379.cjs
+OK  banc-pop-inf-forge-379.cjs
+OK  banc-portrait-liquide.cjs
+OK  banc-position-f5-luthecia-20261101.cjs
+OK  banc-position-ville-serveur-f5.cjs
+OK  banc-preemptions.js
+OK  banc-presidence-client.js
+OK  banc-prets-bancaires.js
+OK  banc-prime-signature-client.cjs
+OK  banc-prime-signature-saisie.cjs
+OK  banc-psm-boutiques-location.cjs
+OK  banc-psm-portrait-navigateur.cjs
+OK  banc-psm-premium-bail.cjs
+OK  banc-quatrieme-passe-client.js
+OK  banc-raffinerie-derives.cjs
+OK  banc-reception-objets.cjs
+OK  banc-reception-rest-20261028.cjs
+OK  banc-reconnexion-trois-villes.cjs
+OK  banc-referent-commandant.js
+OK  banc-referents-palais.js
+OK  banc-reliquats-producteurs-morts-379.cjs
+OK  banc-reliquats-religion-jauges-379.cjs
+OK  banc-reliquats-subtilisation-impacts-379.cjs
+OK  banc-reliquats-vols-codetenu-379.cjs
+OK  banc-reprise-sovarka-ministeres-20261114.cjs
+OK  banc-reservation-republica.cjs
+OK  banc-restaurant-luthecia.cjs
+OK  banc-retours-acteur.cjs
+OK  banc-rues-navigateur.cjs
+OK  banc-rumeur-organisations-secretes.cjs
+OK  banc-rumeurs-ecoute-jauges-379.cjs
+OK  banc-saisines-ministre-juge-sovarka-20261113.cjs
+OK  banc-sanctions-financieres.cjs
+OK  banc-seance-client.js
+OK  banc-session-nocturne.cjs
+OK  banc-soins-discrets-confidentialite-20261113.cjs
+OK  banc-sortie-reponse-perdue-20261028.cjs
+OK  banc-sorties-batiments.cjs
+OK  banc-souvenirs-et-achat-direct.js
+OK  banc-squatteurs-roleplay.mjs
+OK  banc-stabilisation-session.cjs
+OK  banc-starovka-raffinerie-20261115.cjs
+OK  banc-starovka-raffinerie-interieurs-20261115.cjs
+OK  banc-starovka-rues-hopital-tribunal-20261115.cjs
+OK  banc-subventions-client.js
+OK  banc-successions-reglement.js
+OK  banc-taux-imposition.js
+OK  banc-taxe-fonciere.js
+OK  banc-terrain-achat-intrus.cjs
+OK  banc-terrain-banque-reprise-135.cjs
+OK  banc-terrain-intrus-seulement.cjs
+OK  banc-terrain-position-occupation.cjs
+OK  banc-titre-pnj-de-poste.js
+OK  banc-traduction-i18n.mjs
+OK  banc-transport-rest.js
+OK  banc-transports-sans-repli-local.cjs
+OK  banc-tribunal-client.js
+OK  banc-universite-calendrier.js
+OK  banc-universite-et-pnj-client.js
+OK  banc-universite-missions-autres.js
+OK  banc-universite-missions-medecin.js
+OK  banc-urbanisme-nature-refusee.js
+OK  banc-vercel-bundle.cjs
+OK  banc-vercel-douze-fonctions-20261111.cjs
+OK  banc-verrou-inventaire-client-20261031.cjs
+OK  banc-virements-pelisson-20261104.cjs
+OK  banc-vote-electoral.js
+OK  banc-workflow-dependances.cjs
+OK  banc-workflow-rangement.cjs
+383/386 bancs reussis ; 3 echec(s). Aucun SQL execute.
