@@ -72,6 +72,7 @@
   }
   function ordresRefuge(batiment,piece,ville){
     if(!refugeCourant || refugeCourant.termine || typeof state==='undefined' || state.country!=='soviet' || piece!=='piece_maison')return [];
+    if(!(typeof window.goulagOuvert==='function'&&window.goulagOuvert()===true))return [];
     if ((ville==='ville_a' && batiment==='maison-starovka')
       || (ville==='ville_b' && batiment==='maison-krasnov')){
       return [
@@ -97,7 +98,9 @@
       if(typeof state!=='undefined' && state.personnageChargeDepuisServeur===true){
         window.clearInterval(intervalle);
         if(state.country==='soviet'
-          && (state.currentCity==='ville_a'||state.currentCity==='ville_b')){
+          && (state.currentCity==='ville_a'||state.currentCity==='ville_b')
+          && typeof window.goulagOuvertureVerifier==='function'
+          && (await window.goulagOuvertureVerifier())===true){
           const r=await lire();
           if(r && !r.termine){
             if(!state.currentBuilding && r.nuits===0)await rejoindre();

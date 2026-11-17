@@ -2538,12 +2538,18 @@ function infractionsCanoniques() {
 // montre A COTE du libelle, toujours : sans lui le juge choisirait entre douze lignes « Delit
 // mineur » indistinguables. Nommer ces 23 infractions est un arbitrage de game design, et ce
 // n'est pas au code de le rendre.
+// Goulag de Sovarka : tant que le serveur ne confirme pas l'ouverture, le juge garde le QHS actuel.
+function goulagSovarkaOuvert() {
+  return typeof state !== 'undefined' && state.country === 'soviet'
+    && typeof window !== 'undefined' && typeof window.goulagOuvert === 'function' && window.goulagOuvert() === true;
+}
+
 function ouvrirQualificationSentence(affaireId, type, pa, cost) {
   const affaire = (state.plaintesEnCours || []).find(p => p.id === affaireId);
   if (!affaire) return;
   const liste = infractionsCanoniques();
   const titres = { amende: 'Amende', prison: 'Prison', amenagement: 'Amenagement de peine',
-                   qhs: (state.country === 'soviet' ? 'Envoi au goulag' : 'Envoi au QHS'), torture: 'Sanction torture' };
+                   qhs: (goulagSovarkaOuvert() ? 'Envoi au goulag' : 'Envoi au QHS'), torture: 'Sanction torture' };
 
   document.getElementById('postes-modal-title').textContent = 'Qualifier les faits';
   let html = '<div style="padding:1rem">';
@@ -2674,7 +2680,8 @@ async function prononcerSentence(affaireId, type, infraction, pa, cost) {
   }
   // Goulag de Sovarka : seul le juge prononce la sentence.
   // Paiement + verdict + transfert + dépôt sont validés ensemble dans la même RPC.
-  if (type === 'qhs' && state.country === 'soviet') {
+  if (type === 'qhs' && state.country === 'soviet' && typeof window.goulagOuvertureVerifier === 'function'
+      && (await window.goulagOuvertureVerifier()) === true) {
     const verdict = typeof sbRpcVerdict === 'function'
       ? await sbRpcVerdict('sovarka_goulag_juger', {
           p_affaire_id: affaireId, p_infraction: infraction, p_jours: jours
@@ -13323,7 +13330,7 @@ async function ouvrirDossiersJuge(pa, cost) {
       //
       // LA TORTURE RESTE CONDITIONNEE AU MOTIF, exactement comme avant : l'ancien ecran ne
       // l'offrait que si le motif mentionnait la torture. Aucune regle n'est elargie ici.
-      html += '<button onclick="ouvrirQualificationSentence(' + a + ',\'qhs\',' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #4a1a10;background:transparent;color:#9a4a3a;cursor:pointer">' + (state.country === 'soviet' ? 'Condamner — envoi au goulag' : 'Condamner — envoi au QHS') + '</button>';
+      html += '<button onclick="ouvrirQualificationSentence(' + a + ',\'qhs\',' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #4a1a10;background:transparent;color:#9a4a3a;cursor:pointer">' + (goulagSovarkaOuvert() ? 'Condamner — envoi au goulag' : 'Condamner — envoi au QHS') + '</button>';
       if ((d.motif || '').toLowerCase().includes('tortur')) {
         html += '<button onclick="ouvrirQualificationSentence(' + a + ',\'torture\',' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #6a1010;background:#150505;color:#cc4444;cursor:pointer">⚖ Sanction torture</button>';
       }

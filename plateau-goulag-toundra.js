@@ -136,6 +136,8 @@
 
   function ordresGoulagDuLieu(buildingId, roomId, ville) {
     if (typeof state === 'undefined' || state.country !== 'soviet' || ville !== 'qhs' || buildingId !== 'qhs-prison') return [];
+    // Goulag fermé (ou serveur muet) : aucun masque, aucun bouton ; les ordres actuels restent.
+    if (!(typeof window.goulagOuvert === 'function' && window.goulagOuvert() === true)) return [];
     const pieces = (typeof BUILDINGS !== 'undefined' && BUILDINGS['qhs-prison']?.rooms) || {};
     const masque = Object.values(pieces).flatMap(p => (p.orders || []).map(o => o.fn));
     if (roomId === 'cellules_qhs') return [
@@ -203,7 +205,9 @@
       essais++;
       if (typeof state !== 'undefined' && state.personnageChargeDepuisServeur === true) {
         window.clearInterval(minuteur);
-        if (state.country === 'soviet') Promise.resolve(lire()).catch(() => null);
+        if (state.country === 'soviet' && typeof window.goulagOuvertureVerifier === 'function') {
+          Promise.resolve(window.goulagOuvertureVerifier()).then(o => (o === true ? lire() : null)).catch(() => null);
+        }
       } else if (essais >= 20) window.clearInterval(minuteur);
     }, 1500);
   });

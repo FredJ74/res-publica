@@ -7,8 +7,11 @@ const htmlClaude=execFileSync('git',['show',ref+':plateau.html'],{encoding:'utf8
 const tag=htmlClaude.match(/<script src="plateau-goulag-ordres\.js[^>]+><\/script>/)[0];
 const initial=lecture('plateau.html');
 const html=initial.includes('src=\"plateau-goulag-ordres.js')?initial:initial.replace('<script src="plateau-sovarka-justice.js',tag+'\n<script src="plateau-sovarka-justice.js');
-const modules=[...html.matchAll(/<script src="(plateau-goulag-[^?"/]+\.js)/g)].map(m=>m[1]);
-assert.equal(new Set(modules).size,4);assert.ok(html.indexOf(tag)<html.indexOf('<script src="plateau-router.js'));
+// Le verrou d'ouverture (5e module) est remplacé ici par un serveur qui confirme l'ouverture ;
+// il est éprouvé à part (test-goulag-verrou-client-20261117.cjs).
+const tous=[...html.matchAll(/<script src="(plateau-goulag-[^?"/]+\.js)/g)].map(m=>m[1]);
+assert.equal(new Set(tous).size,5);assert.ok(tous.includes('plateau-goulag-ouverture.js'));
+const modules=tous.filter(f=>f!=='plateau-goulag-ouverture.js');assert.ok(html.indexOf(tag)<html.indexOf('<script src="plateau-router.js'));
 const moteur=process.env.GOULAG_BROWSER||'chromium';assert.ok(['chromium','webkit'].includes(moteur));
 (async()=>{
  const b=await pw[moteur].launch(moteur==='chromium'?{executablePath:process.env.CHROMIUM_PATH||'/usr/bin/chromium',headless:true,args:['--no-sandbox']}:{headless:true});let scenarios=0;
@@ -18,6 +21,8 @@ const moteur=process.env.GOULAG_BROWSER||'chromium';assert.ok(['chromium','webki
   for(const f of ['style.css','rue-centrale.css','plateau-exploration-mobile.css','plateau-mobile-refonte-visible.css','plateau-mobile-prototype.css','plateau-interieurs-mobile.css'])await p.addStyleTag({content:lecture(f)});
   await p.evaluate(()=>{
    Object.defineProperty(document,'readyState',{value:'loading',configurable:true});
+   // Goulag ouvert simulé (serveur qui confirme) : le verrou d'ouverture est éprouvé à part.
+   window.goulagOuvert=()=>true;window.goulagOuvertureVerifier=async()=>true;
    window.state={country:'soviet',currentCity:'qhs',currentBuilding:'qhs-prison',currentRoom:'cellules_qhs',personnageChargeDepuisServeur:false,estEmprisonne:{qhs:true},char:{poste:{}},pa:10};
    window.BUILDINGS={'qhs-prison':{rooms:{cellules_qhs:{orders:[{fn:'greve_faim'},{fn:'tentative_evasion'}]}}}};
    window.i18next={language:'fr'};window.appels=[];window.fallback=[];window.toasts=[];

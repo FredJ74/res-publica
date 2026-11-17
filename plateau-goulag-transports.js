@@ -71,6 +71,8 @@
  }
  function ordresGoulagTransport(batiment,piece,ville){
    if(typeof state==='undefined'||state.country!=='soviet')return [];
+   // Goulag fermé (ou serveur muet) : aucun bouton de visite, de voyage ni d'autorisation.
+   if(!(typeof window.goulagOuvert==='function'&&window.goulagOuvert()===true))return [];
    if(['capitale','ville_a','ville_b'].includes(ville)&&typeof batiment==='string'
        &&batiment.startsWith('centre-multinodal-')){
       return [

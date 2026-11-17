@@ -100,6 +100,15 @@ class Goulag(unittest.TestCase):
   self.admin();self.assertEqual(self.sql('SELECT count(*) FROM public.sovarka_goulag_traversees'),0)
   self.assertEqual(self.sql('SELECT count(*) FROM public.sovarka_goulag_autorisations'),0)
   self.assertEqual(self.sql("SELECT pa FROM public.personnages_donnees WHERE name='__goulag_detenu'"),20)
+ def test_ouverture_lue_fermee_tant_que_verrou(self):
+  # Le navigateur ne montre rien du goulag tant que cette lecture ne rend pas true.
+  self.client();self.assertIs(self.sql('SELECT public.sovarka_goulag_ouvert()'),False)
+  self.admin()
+  self.assertTrue(self.sql("SELECT has_function_privilege('authenticated','public.sovarka_goulag_ouvert()','EXECUTE')"))
+  self.assertFalse(self.sql("SELECT has_function_privilege('anon','public.sovarka_goulag_ouvert()','EXECUTE')"))
+  self.q.execute('SAVEPOINT ouverture');self.q.execute('DELETE FROM public.sovarka_goulag_configuration')
+  self.assertIs(self.sql('SELECT public.sovarka_goulag_ouvert()'),False)
+  self.q.execute('ROLLBACK TO ouverture')
  def fugitif(self):
   self.q.execute("UPDATE public.personnages_donnees SET current_city='ville_a',current_building=NULL,current_room=NULL,current_street='starovka-rue-stade',est_emprisonne=NULL WHERE name='__goulag_detenu'")
   self.q.execute("INSERT INTO public.detentions(id,nom,country,city,qhs,jour_debut,jour_fin,mode_fin,jour_fin_effective) VALUES('fixture-origine','__goulag_detenu','soviet','ville_a',true,1,11,'evasion',1)")

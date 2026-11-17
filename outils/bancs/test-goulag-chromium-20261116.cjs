@@ -14,6 +14,8 @@ if(!['chromium','webkit'].includes(moteur))throw Error('Moteur inconnu');
   await page.setContent(fs.readFileSync('plateau.html','utf8').replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')+'<input id="saisie" value="à conserver">');
   for(const fichier of ['style.css','rue-centrale.css','plateau-exploration-mobile.css','plateau-mobile-refonte-visible.css','plateau-mobile-prototype.css','plateau-interieurs-mobile.css'])await page.addStyleTag({content:fs.readFileSync(fichier,'utf8')});
   await page.evaluate(()=>{
+   // Goulag ouvert simulé (serveur qui confirme) : le verrou d'ouverture est éprouvé à part.
+   window.goulagOuvert=()=>true;window.goulagOuvertureVerifier=async()=>true;
    window.state={country:'soviet',personnageChargeDepuisServeur:false,currentCity:'qhs'};
    window.appels=[];window.donnees={ok:true,en_cours:true,destination:'krasnov',statut:'detenu',pa:20,progressions:0,bois_trouve:0};
    window.sbRpcVerdict=async(fn,p)=>{appels.push({fn,p});await new Promise(r=>setTimeout(r,30));if(fn==='goulag_toundra_lire')return {...donnees};return {ok:false,raison:'refus_fixture'};};
