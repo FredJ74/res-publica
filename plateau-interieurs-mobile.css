@@ -22,6 +22,25 @@
   #vue-batiment #piece-image[data-hg-split="1"] .piece-ambiance{padding:12px 14px;background:#202c39;border-block:1px solid rgba(169,141,86,.4)}
   #vue-batiment .piece-nom{font-size:1.15rem;color:#efdaaa}
   #vue-batiment .piece-desc{font-size:1rem;line-height:1.55;color:#d1dce5}
+  /* L'image devient le sujet principal sur mobile. Conserver le nom de la salle,
+     mais ne pas répéter son descriptif (toujours disponible dans les données). */
+  #vue-batiment #piece-image .piece-ambiance .piece-desc{display:none!important}
+  #vue-batiment #piece-image[data-hg-split="1"] .piece-ambiance{
+    padding:9px 13px 10px;
+  }
+  #vue-batiment #piece-image[data-hg-split="1"] .piece-nom{
+    margin:0;line-height:1.2;
+  }
+  /* Les décors courants gagnent de la hauteur sans déformer le fichier.
+     Les images à zones cliquables, musées et décors spécifiques gardent
+     leur cadrage original afin de préserver les zones actives. */
+  #vue-batiment #piece-image[data-hg-split="1"]:not([data-musee="1"]):not([data-commerce-decor="1"]):not(:has([onclick],a[href],button,[role="button"])) {
+    background-size:cover!important;
+    background-position:center center!important;
+  }
+  #vue-batiment #piece-image[data-hg-split="1"]:not([data-musee="1"]):not([data-commerce-decor="1"]):not(:has([onclick],a[href],button,[role="button"]))::before {
+    padding-top:max(var(--hg-ratio-image,56.25%),72%);
+  }
   #vue-batiment #actionbar-batiment{flex:0 0 auto;background:#1a2632;padding:12px;border-top:1px solid rgba(169,141,86,.35)}
   #vue-batiment #action-context-bat{font-family:'Crimson Pro',serif;font-size:.95rem;line-height:1.35;letter-spacing:.03em;color:#d6bd86;margin-bottom:10px;overflow-wrap:anywhere}
   #vue-batiment #actions-row-bat{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
