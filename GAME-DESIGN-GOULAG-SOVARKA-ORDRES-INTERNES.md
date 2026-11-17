@@ -117,14 +117,22 @@ entre dortoir, entrée et mirador ; jamais le bureau ; aucune sortie du cachot p
 - Écritures protégées : verrous de ligne, clé de requête rejouable (interrogatoire, sanction, corruption),
   clé (détention, jour) pour la tentative d'évasion, clé d'idempotence par incident, une ligne par jour de contrôle.
 
-## Points réellement à arbitrer (Fred)
+## Arbitrages de Fred — clôturés le 17/11/2026
 
 1. ~~Corruption du gardien~~ : **tranché le 17/11** (cadeau obligatoire, formule ci-dessus), codé.
 2. ~~Coût en PA de l'interrogateur et du juge~~ : **tranché le 17/11, 1 PA chacun** (codé, voir plus haut).
-3. **Détenu hors du camp sans évasion** (par exemple hospitalisé) au contrôle de minuit : codé comme absence
-   enregistrée dans les incidents, statut administratif laissé à « Détenu ». À confirmer.
-4. **Transfert au goulag d'une détention déjà en cours** (prolongation) : le compteur démarre au reste calendaire
-   à l'instant du transfert, puis ne baisse plus qu'au sommeil. À confirmer.
+3. **Détenu hors du camp sans évasion — VALIDÉ PAR FRED LE 17/11/2026** : absence
+   enregistrée dans les incidents au contrôle de minuit, statut administratif « Détenu » conservé.
+   Ce traitement ne constitue pas une évasion automatique.
+4. **Transfert au goulag d'une détention déjà en cours — VALIDÉ PAR FRED LE 17/11/2026** :
+   le compteur démarre sur les jours restants au moment du transfert, puis ne baisse
+   plus qu'à chaque sommeil valide.
+5. **Corruption réussie — VALIDÉ PAR FRED LE 17/11/2026** : une nouvelle corruption
+   est refusée (`gardien_deja_corrompu`) tant que le bonus d'évasion à 95 % n'a
+   pas servi. Aucun objet ne doit être consommé par ce refus.
+
+
+**Validation complémentaire de Fred (17/11/2026) :** les trois comportements ci-dessus sont approuvés. La lecture du SQL à la tête `4bb8f42` confirme les chemins prévus (absence de minuit, compteur de transfert, garde contre la corruption répétée). Cette validation n'est ni une recette Supabase ni une autorisation d'activer le goulag.
 
 ## Dépendances avec la PR #1020
 
