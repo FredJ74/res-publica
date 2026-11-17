@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - 'plateau.html'
+      - 'data.js'
       - 'plateau-presences-mobile.js'
       - 'plateau-mobile-prototype.css'
       - 'plateau-exploration-mobile.js'
