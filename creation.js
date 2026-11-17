@@ -474,6 +474,17 @@ function rafraichirEcranCreationApresChangementLangue(){
 window.RP_I18N_ON_LANGUAGE_CHANGE=rafraichirEcranCreationApresChangementLangue;
 
 /* ---- Country ---- */
+const RP_EMPIRES_OUVERTS_CREATION = Object.freeze(['republic','soviet']);
+const RP_EMPIRES_BIENTOT = Object.freeze({
+  fr:'Bientôt disponible', en:'Coming soon', es:'Próximamente',
+  ru:'Скоро будет доступно', de:'Demnächst verfügbar',
+  ko:'곧 이용 가능', ar:'قريبًا', 'pt-BR':'Em breve', 'zh-TW':'即將推出'
+});
+function rpEmpireOuvertCreation(id){return RP_EMPIRES_OUVERTS_CREATION.includes(id);}
+function rpEmpireBientotLibelle(){
+  const lang=(document.documentElement.lang||'fr').replace('_','-');
+  return RP_EMPIRES_BIENTOT[lang]||RP_EMPIRES_BIENTOT[lang.split('-')[0]]||RP_EMPIRES_BIENTOT.fr;
+}
 function renderCountry(){
   document.getElementById('country-grid').innerHTML=Object.entries(COUNTRIES).map(([id,d])=>{
     // d.n (nom propre : Republia, El Estado...) toujours lu tel quel depuis data.js, jamais
@@ -482,11 +493,12 @@ function renderCountry(){
     const tags = t(`creation.countries.${id}.tags`, { returnObjects: true });
     const desc = t(`creation.countries.${id}.description`);
     return `
-    <div class="cc ${G.country===id?'sel':''}" data-c="${id}" onclick="selCountry('${id}')">
+    <div class="cc ${G.country===id?'sel':''} ${rpEmpireOuvertCreation(id)?'':'rp-empire-a-venir'}" data-c="${id}" ${rpEmpireOuvertCreation(id)?`onclick="selCountry('${id}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selCountry('${id}');}"`:'aria-disabled="true"'}>
       <div class="icon-c" style="border-color:${d.col};color:${d.col}">
         <i class="ti ${d.icon}" style="font-size:1.2rem"></i>
       </div>
       <div class="cname" style="color:${d.col}">${d.n}</div>
+      ${rpEmpireOuvertCreation(id)?'':`<div class="rp-empire-etiquette">${rpEmpireBientotLibelle()}</div>`}
       <div style="margin-bottom:.6rem">
         ${(Array.isArray(tags)?tags:[]).map(tag=>`<span class="ctag" style="color:${d.col};border-color:${d.col}">${tag}</span>`).join('')}
       </div>
@@ -495,6 +507,7 @@ function renderCountry(){
   }).join('');
 }
 function selCountry(id){
+  if (!rpEmpireOuvertCreation(id)) return;
   G.country=id;
   G.city=null;
   G.freeStats={INT:0,CHA:0,VOL:0,PER:0,DUP:0,ENT:0};
@@ -505,6 +518,7 @@ function selCountry(id){
 }
 
 function renderCityChoice(){
+  if (!rpEmpireOuvertCreation(G.country)) return;
   const modal = document.getElementById('modal-city');
   const grid = document.getElementById('city-grid');
   if (!G.country || !WORLD[G.country]) { modal.classList.remove('open'); return; }
@@ -526,6 +540,7 @@ function renderCityChoice(){
 }
 
 function selCity(key){
+  if (!rpEmpireOuvertCreation(G.country)) return;
   G.city = key;
   document.getElementById('modal-city').classList.remove('open');
   document.getElementById('n1').disabled = !(G.country && G.city);
@@ -1093,6 +1108,14 @@ function rpAnnoterCorpsErreurCreation(zone, texteTitre, cle, values) {
 }
 
 async function validateChar(){
+  // Ne pas créer un personnage dans un empire encore fermé, même si la sélection est forcée.
+  if (!rpEmpireOuvertCreation(G.country)) {
+    const notice=document.getElementById('creation-erreur')||document.createElement('div');
+    notice.id='creation-erreur';notice.setAttribute('role','alert');
+    notice.textContent=rpEmpireBientotLibelle();
+    document.getElementById('s8')?.prepend(notice);
+    return;
+  }
   // CREATION NON DESTRUCTRICE (chantier B, 14 septembre 2026).
   // Jusqu'ici cette fonction ecrivait le personnage sans attendre le resultat, par un chemin
   // qui faisait un PATCH si le nom etait deja pris : saisir le nom d'un joueur existant
