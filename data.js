@@ -11253,6 +11253,7 @@ function slugPnjSovarka(nom) {
   for (const piece of Object.values(entrepot.rooms)) delete piece.imageUrl;
   entrepot.rooms.bureau_direction.persons = [{name:'Batzorig Dorjiev (PNJ)', role:"Directeur de l'Entrepôt Logistique", rel:'neutral', job:'directeur_entrepot'}];
   entrepot.rooms.bureau_direction.imageUrl = 'images/Sovarka/Starovka/Starovka_entrepot_bureau_direction_v2.webp'; // image de Fred (17/11/2026)
+  entrepot.rooms.salle_ventes.imageUrl = 'images/Sovarka/Starovka/Starovka_entrepot_salle_ventes.webp'; // image de Fred (17/11/2026)
   BUILDINGS['entrepot-logistique-starovka'] = entrepot;
 
   const psm = BUILDINGS['port-sainte-marie'].rooms;
