@@ -39,7 +39,7 @@ const STYLES = ['style.css', 'rue-centrale.css', 'plateau-exploration-mobile.css
           sovarka_goulag_detenus_choisir: { ok: true, detenus: [{ nom: long }, { nom: 'Ivan' }] },
           sovarka_goulag_interroger: { ok: true, reussi: true, revelation: true, probabilite: 70 },
           sovarka_goulag_sanctionner: { ok: true, detenu: long, nuits: 2 },
-          sovarka_goulag_corrompre: { ok: false, raison: 'corruption_a_arbitrer' }
+          sovarka_goulag_corrompre: { ok: false, raison: 'cadeau_obligatoire' }
         };
         window.sbRpcVerdict = async (fn, p) => { appels.push({ fn, p }); await new Promise(r => setTimeout(r, 30)); return verdicts[fn] || { ok: true }; };
       });
@@ -88,10 +88,10 @@ const STYLES = ['style.css', 'rue-centrale.css', 'plateau-exploration-mobile.css
       });
       await page.waitForTimeout(200);
       assert.equal(await page.evaluate(() => appels.filter(a => a.fn === 'sovarka_goulag_interroger').length), 1);
-      // Refus du serveur nommé (corruption non arbitrée), sans effet local.
+      // Refus du serveur nommé (cadeau obligatoire), sans effet local.
       await page.evaluate(async () => { toasts.length = 0; await goulagOrdresTest('sovarka_goulag_corrompre'); document.getElementById('goulag-ordres-ok').click(); });
       await page.waitForTimeout(150);
-      assert.ok(await page.evaluate(() => toasts.some(t => /game designer/.test(t.m))));
+      assert.ok(await page.evaluate(() => toasts.some(t => /objet à offrir au gardien/.test(t.m))));
       assert.equal(await page.evaluate(() => state.inventory.length), 1);
       // Ordres d'un autre bâtiment ou de Républia : jamais routés vers le goulag.
       await page.evaluate(() => { appels.length = 0; doOrder('prier'); });

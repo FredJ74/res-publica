@@ -142,8 +142,10 @@ test('migrations : additives, verrouillées par #1020, sans écriture par la vue
   assert.doesNotMatch(sql, /UPDATE\s+public\.personnages\s/i);
   assert.doesNotMatch(sql, /\bDROP\s+TABLE\b/i);
   assert.doesNotMatch(sql, /sovarka_goulag_configuration\s+SET\s+active/i);
+  assert.doesNotMatch(sql, /sovarka_goulag_parametres|corruption_a_arbitrer/);
   for (const fixe of ['taux IN (80,95)', "CASE WHEN r.corruption_bonus THEN 95 ELSE 80 END", 'least(95, greatest(5, round(50 + 5 * (v_vol_i - v_vol_d))',
-    'greatest(1, coalesce(d.pa,0) - 7)', 'cachot_nuits BETWEEN 0 AND 2', "('corruption_taux_base',70,",
+    'greatest(1, coalesce(d.pa,0) - 7)', 'cachot_nuits BETWEEN 0 AND 2', 'least(90, floor(70 + 10 + 2 * v_cha)::integer)', 'objet jsonb NOT NULL',
+    "'cadeau_obligatoire'", 'inventaire_objet_protege(p.quete_carriere, v_objet)',
     "payer_ordre_interne(v_nom, 'sovarka_goulag_interroger', 1, 0)", "payer_ordre_interne(v_nom, 'sovarka_goulag_sanction', 1, 0)",
     "('sovarka_goulag_interroger',1,0),('sovarka_goulag_sanction',1,0)"]) assert.ok(sql.includes(fixe), fixe);
   const miroir = fs.readFileSync(path.join(R, 'baseline/seeds/95_a-regenerer/ordres_couts.sql'), 'utf8');

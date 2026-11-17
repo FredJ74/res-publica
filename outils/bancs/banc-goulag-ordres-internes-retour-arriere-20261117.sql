@@ -85,7 +85,6 @@ DROP TABLE IF EXISTS public.sovarka_goulag_corruptions;
 DROP TABLE IF EXISTS public.sovarka_goulag_tentatives;
 DROP TABLE IF EXISTS public.sovarka_goulag_incidents;
 DROP TABLE IF EXISTS public.sovarka_goulag_controles;
-DROP TABLE IF EXISTS public.sovarka_goulag_parametres;
 DROP TABLE IF EXISTS public.sovarka_goulag_registre;
 
 ROLLBACK;

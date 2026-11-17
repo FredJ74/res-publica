@@ -93,27 +93,6 @@ CREATE TABLE IF NOT EXISTS public.sovarka_goulag_controles (
 ALTER TABLE public.sovarka_goulag_controles ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.sovarka_goulag_controles FROM PUBLIC,anon,authenticated,service_role;
 
--- Paramètres de la corruption. Seul le taux de base est décidé (Fred, 17/11/2026 : 70 % sans cadeau) ;
--- les trois autres restent NULL et bloquent seulement « Corrompre le gardien », jamais le reste du camp.
--- Aucune valeur inventée.
-CREATE TABLE IF NOT EXISTS public.sovarka_goulag_parametres (
-  cle text PRIMARY KEY CHECK (cle IN ('corruption_taux_base','corruption_bonus_objet',
-    'corruption_objet_perdu_si_echec','corruption_tentatives_jour')),
-  valeur numeric,
-  description text NOT NULL,
-  decide_le timestamptz
-);
-INSERT INTO public.sovarka_goulag_parametres(cle,valeur,description) VALUES
- ('corruption_taux_base',70,'Chance de réussite (en %) d''une corruption sans objet offert. Décidé par Fred le 17/11/2026 : 70 %.'),
- ('corruption_bonus_objet',NULL,'Points de pourcentage ajoutés quand un objet est proposé au gardien.'),
- ('corruption_objet_perdu_si_echec',NULL,'1 : l''objet proposé est perdu même en cas d''échec ; 0 : il est rendu.'),
- ('corruption_tentatives_jour',NULL,'Nombre maximal de tentatives de corruption par détenu et par jour.')
-ON CONFLICT (cle) DO NOTHING;
-UPDATE public.sovarka_goulag_parametres SET decide_le = coalesce(decide_le, '2026-11-17 12:00:00+01')
- WHERE cle = 'corruption_taux_base' AND valeur = 70;
-ALTER TABLE public.sovarka_goulag_parametres ENABLE ROW LEVEL SECURITY;
-REVOKE ALL ON public.sovarka_goulag_parametres FROM PUBLIC,anon,authenticated,service_role;
-
 -- ---------------------------------------------------------------------------
 -- Primitives internes (jamais exposées aux rôles réseau).
 -- ---------------------------------------------------------------------------

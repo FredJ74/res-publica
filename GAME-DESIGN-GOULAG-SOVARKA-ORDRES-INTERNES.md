@@ -55,8 +55,12 @@ sur autorisation explicite de Fred.
 - **Prononcer une sanction disciplinaire : 1 PA** pour le juge.
 - **Corrompre le gardien : 70 % de réussite de base**, sans cadeau. Une corruption réussie conserve le bonus
   décidé : l'évasion passe de 80 % à 95 %.
-- **Non décidés** (ordre maintenu désactivé) : bonus apporté par un objet offert, perte éventuelle de l'objet
-  en cas d'échec, nombre de tentatives de corruption par jour.
+- **Règle définitive de la corruption (Fred, 17/11/2026, correction finale) :** un **cadeau est obligatoire
+  à chaque tentative, dès la première** ; probabilité = **min(90, 70 + 10 + 2 × CHARME)** ; chaque tentative
+  consomme définitivement un objet réellement possédé, **réussite ou échec** ; plusieurs tentatives par jour,
+  avec un nouvel objet à chaque fois ; réussite = bonus d'évasion (95 % au lieu de 80 %) ; l'évasion reste
+  limitée à une tentative par jour ; aucun ordre de remise de cadeau. *(Remplace les versions précédentes du
+  même jour : 70 % de base, puis une tentative sans cadeau par jour.)*
 
 ### Tentative d'évasion depuis le camp
 - Jet de **sortie du camp**, distinct de la survie : **80 %**, **95 %** après corruption d'un gardien ;
@@ -74,7 +78,7 @@ sur autorisation explicite de Fred.
 | Bureau | Consulter le registre | `sovarka_goulag_registre_consulter()` |
 | Bureau | Interroger un détenu | `sovarka_goulag_detenus_choisir()`, `sovarka_goulag_interroger(détenu, requête)` |
 | Bureau | Prononcer une sanction disciplinaire | `sovarka_goulag_sanctionner(détenu, nuits, requête)` |
-| Mirador | Corrompre le gardien | `sovarka_goulag_corrompre(requête, index, signature)` |
+| Mirador | Corrompre le gardien | `sovarka_goulag_corrompre(requête, index, signature)` (cadeau obligatoire) |
 | Mirador | Consulter les incidents du camp | `sovarka_goulag_incidents_consulter()` |
 | Entrée | S'enfuir à pied (jet de sortie) | `goulag_toundra_demarrer` de #1020, complétée par `sovarka_goulag_sortie_jet_interne` |
 | Minuit | Contrôle de la liste | `sovarka_goulag_controle_minuit(jour)` (rôle service, cron `controle_goulag_sovarka`) |
@@ -98,15 +102,18 @@ entre dortoir, entrée et mirador ; jamais le bureau ; aucune sortie du cachot p
   (`sovarka_goulag_interroger` et `sovarka_goulag_sanction`, 1 PA, 0 PSK) et prélevés par `payer_ordre_interne`
   dans la même transaction que l'effet. PA insuffisants (`pa_insuffisants`) ou refus préalable : aucun effet,
   aucun prélèvement ; un rejeu de la même requête ne prélève pas une seconde fois.
+- **Corruption** (`sovarka_goulag_corrompre`) : sans objet, refus `cadeau_obligatoire` sans aucun effet ;
+  CHARME lu côté serveur (`stats.CHA`, valeur de base du jeu 8 s'il manque) ; un seul exemplaire du cadeau est
+  retiré (une pile perd une unité) dans la même transaction que le jet, sous verrou du détenu (deux tentatives
+  simultanées ne peuvent pas offrir le même objet) ; objet conservé dans `sovarka_goulag_corruptions` ; objet
+  de quête protégé refusé (règle des dons). Tant que le bonus n'a pas servi, une nouvelle corruption est
+  refusée (`gardien_deja_corrompu`) pour ne pas consommer d'objet inutilement.
 - Écritures protégées : verrous de ligne, clé de requête rejouable (interrogatoire, sanction, corruption),
   clé (détention, jour) pour la tentative d'évasion, clé d'idempotence par incident, une ligne par jour de contrôle.
 
 ## Points réellement à arbitrer (Fred)
 
-1. **Corruption du gardien** — taux de base **70 %** enregistré (décision du 17/11) ; l'ordre reste bloqué
-   (`corruption_a_arbitrer`) tant que ces trois valeurs ne sont pas décidées (table `sovarka_goulag_parametres`,
-   aucune valeur inventée) : bonus apporté par un objet proposé ; l'objet est-il perdu en cas d'échec ; nombre
-   de tentatives par jour. Le reste du camp fonctionne sans elles.
+1. ~~Corruption du gardien~~ : **tranché le 17/11** (cadeau obligatoire, formule ci-dessus), codé.
 2. ~~Coût en PA de l'interrogateur et du juge~~ : **tranché le 17/11, 1 PA chacun** (codé, voir plus haut).
 3. **Détenu hors du camp sans évasion** (par exemple hospitalisé) au contrôle de minuit : codé comme absence
    enregistrée dans les incidents, statut administratif laissé à « Détenu ». À confirmer.

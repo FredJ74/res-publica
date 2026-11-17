@@ -158,7 +158,7 @@ class OrdresInternes(unittest.TestCase):
         self.assertEqual(self.sql(f"SELECT pa FROM public.personnages_donnees WHERE name='{DETENU}'"), 20)
 
     def test_permissions_et_rls(self):
-        for table in ['registre', 'incidents', 'tentatives', 'controles', 'parametres', 'interrogatoires', 'traces_revelees', 'corruptions']:
+        for table in ['registre', 'incidents', 'tentatives', 'controles', 'interrogatoires', 'traces_revelees', 'corruptions']:
             self.assertTrue(self.sql('SELECT relrowsecurity FROM pg_class WHERE oid=%s::regclass', ('public.sovarka_goulag_' + table,)))
             for role in ['anon', 'authenticated', 'service_role']:
                 self.assertFalse(self.sql("SELECT has_table_privilege(%s,%s,'SELECT,INSERT,UPDATE,DELETE')", (role, 'public.sovarka_goulag_' + table)), table)
@@ -171,11 +171,6 @@ class OrdresInternes(unittest.TestCase):
         self.assertTrue(self.sql("SELECT has_function_privilege('service_role','public.sovarka_goulag_controle_minuit(date)','EXECUTE')"))
         for fn in ['sovarka_goulag_dormir()', 'sovarka_goulag_interroger(text,uuid)', 'sovarka_goulag_sanctionner(text,integer,uuid)']:
             self.assertFalse(self.sql("SELECT has_function_privilege('anon',%s,'EXECUTE')", ('public.' + fn,)))
-
-    def test_parametres_corruption_seul_le_taux_de_base_decide(self):
-        self.assertEqual(self.sql("SELECT valeur FROM public.sovarka_goulag_parametres WHERE cle='corruption_taux_base'"), 70)
-        self.assertIsNotNone(self.sql("SELECT decide_le FROM public.sovarka_goulag_parametres WHERE cle='corruption_taux_base'"))
-        self.assertEqual(self.sql('SELECT count(*) FROM public.sovarka_goulag_parametres WHERE valeur IS NULL'), 3)
 
     def test_couts_declares_au_referentiel(self):
         lignes = self.sql("SELECT jsonb_agg(jsonb_build_array(fn,pa,cost) ORDER BY fn) FROM public.ordres_couts WHERE fn IN ('sovarka_goulag_interroger','sovarka_goulag_sanction')")
@@ -419,33 +414,92 @@ class OrdresInternes(unittest.TestCase):
         self.assertEqual(self.sql('SELECT public.sovarka_goulag_incidents_consulter()')['raison'], 'reserve_habilite_mirador')
 
     # -- mirador : corruption --------------------------------------------------
-    def test_corruption_bloquee_tant_que_non_arbitree(self):
+    def corruption(self, requete=None, signature=None, index=0):
+        req = requete or str(uuid.uuid4())
+        if signature is None: return self.sql(f"SELECT public.sovarka_goulag_corrompre('{req}')")
+        return self.sql("SELECT public.sovarka_goulag_corrompre(%s,%s,%s)", (req, index, Json(signature)))
+
+    def test_corruption_formule_et_plafond(self):
+        """Cadeau obligatoire : min(90, 70 + 10 + 2 × CHARME) ; CHARME absent = valeur de base du jeu (8)."""
         self.detenu(piece='mirador')
-        self.client(); r = self.sql(f"SELECT public.sovarka_goulag_corrompre('{uuid.uuid4()}')")
-        self.assertEqual(r['raison'], 'corruption_a_arbitrer')
-        self.assertEqual(sorted(r['parametres']), ['corruption_bonus_objet', 'corruption_objet_perdu_si_echec', 'corruption_tentatives_jour'])
+        pain = {'name': 'Pain', 'type': 'nourriture', 'stackKey': 'pain'}
+        for cha, attendu in [(None, 90), (0, 80), (3, 86), (4, 88), (5, 90), (12, 90), (-5, 70), (-45, 0)]:
+            self.admin()
+            self.q.execute("UPDATE public.sovarka_goulag_registre SET corruption_bonus=false")
+            self.q.execute("UPDATE public.personnages_donnees SET stats=%s,inventory=%s WHERE name=%s",
+                           (Json({} if cha is None else {'CHA': cha}), Json([pain]), DETENU))
+            self.client(); r = self.corruption(signature=pain)
+            self.assertTrue(r['ok'], r); self.assertEqual(r['taux'], attendu, cha)
+
+    def test_corruption_sans_cadeau_refusee_sans_effet(self):
+        self.detenu(piece='mirador')
+        pain = {'name': 'Pain', 'type': 'nourriture', 'stackKey': 'pain', 'stackable': True, 'qty': 2}
+        self.q.execute("UPDATE public.personnages_donnees SET inventory=%s WHERE name=%s", (Json([pain]), DETENU))
+        self.client()
+        for _ in range(2):
+            r = self.corruption(); self.assertEqual((r['ok'], r['raison']), (False, 'cadeau_obligatoire'))
+        r = self.sql(f"SELECT public.sovarka_goulag_corrompre('{uuid.uuid4()}',0,'\"texte\"'::jsonb)"); self.assertEqual(r['raison'], 'cadeau_obligatoire')
+        self.admin()
+        self.assertEqual(self.sql(f"SELECT inventory FROM public.personnages_donnees WHERE name='{DETENU}'"), [pain])
+        self.assertEqual(self.sql('SELECT count(*) FROM public.sovarka_goulag_corruptions'), 0)
+        self.q.execute(f"UPDATE public.personnages_donnees SET inventory='[]' WHERE name='{DETENU}'")
+        self.client(); self.assertEqual(self.corruption(signature={'name': 'Pain', 'type': 'nourriture', 'stackKey': 'pain'})['raison'], 'objet_introuvable')
         self.assertEqual(self.val('SELECT count(*) FROM public.sovarka_goulag_corruptions'), 0)
 
-    def test_corruption_sans_objet_70_pour_cent(self):
+    def test_corruption_cadeau_transfere_meme_en_echec(self):
         self.detenu(piece='mirador')
-        self.q.execute("UPDATE public.sovarka_goulag_parametres SET valeur=CASE cle WHEN 'corruption_bonus_objet' THEN 20 WHEN 'corruption_objet_perdu_si_echec' THEN 0 WHEN 'corruption_tentatives_jour' THEN 1 ELSE valeur END")
-        self.client(); self.graine(lambda j: j > 70)
-        r = self.sql(f"SELECT public.sovarka_goulag_corrompre('{uuid.uuid4()}')")
-        self.assertEqual((r['ok'], r['reussi'], r['taux']), (True, False, 70))
-        self.assertFalse(self.val("SELECT corruption_bonus FROM public.sovarka_goulag_registre WHERE detention_id='fx-det'"))
-        self.client(); self.assertEqual(self.sql(f"SELECT public.sovarka_goulag_corrompre('{uuid.uuid4()}')")['raison'], 'corruption_deja_tentee_aujourdhui')
+        pile = {'name': 'Pain', 'type': 'nourriture', 'stackKey': 'pain', 'stackable': True, 'qty': 3}
+        montre = {'name': 'Montre', 'type': 'objet', 'stackKey': 'montre', 'id': 'montre-unique'}
+        self.q.execute("UPDATE public.personnages_donnees SET stats='{\"CHA\":0}',inventory=%s WHERE name=%s", (Json([pile, montre]), DETENU))
+        self.client(); self.graine(lambda j: j > 80)
+        r = self.corruption(signature={'name': 'Pain', 'type': 'nourriture', 'stackKey': 'pain'})
+        self.assertEqual((r['ok'], r['reussi'], r['taux']), (True, False, 80))
+        self.assertEqual(r['inventory'], [dict(pile, qty=2), montre])
+        self.graine(lambda j: j > 80)
+        r = self.corruption(signature={'name': 'Montre', 'type': 'objet', 'stackKey': 'montre'}, index=1)
+        self.assertFalse(r['reussi']); self.assertEqual(r['inventory'], [dict(pile, qty=2)])
+        self.admin()
+        objets = sorted(self.sql("SELECT jsonb_agg(objet) FROM public.sovarka_goulag_corruptions"), key=lambda o: o['stackKey'])
+        self.assertEqual(objets, [montre, dict(pile, qty=1)])
+        self.assertEqual(self.sql("SELECT bool_and(objet_perdu) FROM public.sovarka_goulag_corruptions"), True)
+        self.assertFalse(self.sql("SELECT corruption_bonus FROM public.sovarka_goulag_registre WHERE detention_id='fx-det'"))
 
-    def test_corruption_objet_puis_bonus_evasion_95(self):
-        self.detenu(piece='entree_qhs', pa=20)
-        self.q.execute("UPDATE public.personnages_donnees SET current_room='mirador',inventory='[{\"name\":\"Montre\",\"type\":\"objet\",\"stackKey\":\"montre\"}]' WHERE name=%s", (DETENU,))
-        # Taux de base décidé (70 %) ; les trois autres valeurs sont de FIXTURE (aucune décision) : +20, objet rendu si échec, 1/jour.
-        self.q.execute("UPDATE public.sovarka_goulag_parametres SET valeur=CASE cle WHEN 'corruption_bonus_objet' THEN 20 WHEN 'corruption_objet_perdu_si_echec' THEN 0 WHEN 'corruption_tentatives_jour' THEN 1 ELSE valeur END")
-        self.client(); self.graine(lambda j: j <= 90)
+    def test_corruption_plusieurs_tentatives_un_objet_chacune(self):
+        self.detenu(piece='mirador')
+        pain = {'name': 'Pain', 'type': 'nourriture', 'stackKey': 'pain', 'stackable': True, 'qty': 3}
+        sig = {'name': 'Pain', 'type': 'nourriture', 'stackKey': 'pain'}
+        self.q.execute("UPDATE public.personnages_donnees SET stats='{\"CHA\":0}',inventory=%s WHERE name=%s", (Json([pain]), DETENU))
+        self.client(); self.graine(lambda j: j > 80)
         req = str(uuid.uuid4())
-        r = self.sql(f"SELECT public.sovarka_goulag_corrompre('{req}',0,'{{\"name\":\"Montre\",\"type\":\"objet\",\"stackKey\":\"montre\"}}')")
-        self.assertTrue(r['reussi'], r); self.assertEqual(r['taux'], 90); self.assertTrue(r['objet_perdu']); self.assertEqual(r['inventory'], [])
-        self.assertTrue(self.sql(f"SELECT public.sovarka_goulag_corrompre('{req}')")['rejeu'])
-        self.assertEqual(self.sql(f"SELECT public.sovarka_goulag_corrompre('{uuid.uuid4()}')")['raison'], 'gardien_deja_corrompu')
+        self.assertFalse(self.corruption(requete=req, signature=sig)['reussi'])
+        self.assertTrue(self.corruption(requete=req, signature=sig)['rejeu'])
+        self.assertEqual(self.val(f"SELECT inventory->0->>'qty' FROM public.personnages_donnees WHERE name='{DETENU}'"), '2')
+        self.client(); self.graine(lambda j: j > 80)
+        self.assertFalse(self.corruption(signature=sig)['reussi'])
+        self.client(); self.graine(lambda j: j <= 80)
+        r = self.corruption(signature=sig); self.assertTrue(r['reussi'], r); self.assertEqual(r['inventory'], [])
+        self.assertEqual(self.corruption(signature=sig)['raison'], 'gardien_deja_corrompu')
+        self.admin()
+        self.assertEqual(self.sql('SELECT count(*) FROM public.sovarka_goulag_corruptions WHERE jour=public.sovarka_goulag_jour_interne()'), 3)
+        self.assertTrue(self.sql('SELECT bool_and(objet_perdu) FROM public.sovarka_goulag_corruptions'))
+
+    def test_corruption_objet_absent_ou_protege_refuse_sans_effet(self):
+        self.detenu(piece='mirador')
+        colis = {'name': 'Colis', 'type': 'colis_secret_pat', 'stackKey': ''}
+        self.q.execute("UPDATE public.personnages_donnees SET inventory=%s WHERE name=%s", (Json([colis]), DETENU))
+        self.client()
+        self.assertEqual(self.corruption(signature={'name': 'Montre', 'type': 'objet', 'stackKey': 'montre'})['raison'], 'objet_introuvable')
+        self.assertEqual(self.corruption(signature={'name': 'Colis', 'type': 'colis_secret_pat', 'stackKey': ''})['raison'], 'objet_protege')
+        self.assertEqual(self.val(f"SELECT inventory FROM public.personnages_donnees WHERE name='{DETENU}'"), [colis])
+        self.assertEqual(self.sql('SELECT count(*) FROM public.sovarka_goulag_corruptions'), 0)
+        self.admin(); self.q.execute(f"UPDATE public.personnages_donnees SET current_room='cellules_qhs' WHERE name='{DETENU}'")
+        self.client(); self.assertEqual(self.corruption()['raison'], 'pas_au_mirador')
+
+    def test_corruption_reussie_puis_evasion_a_95(self):
+        self.detenu(piece='mirador', pa=20)
+        self.q.execute("UPDATE public.personnages_donnees SET stats='{\"CHA\":0}',inventory='[{\"name\":\"Montre\",\"type\":\"objet\",\"stackKey\":\"montre\"}]' WHERE name=%s", (DETENU,))
+        self.client(); self.graine(lambda j: j <= 80)
+        self.assertTrue(self.corruption(signature={'name': 'Montre', 'type': 'objet', 'stackKey': 'montre'})['reussi'])
         self.assertTrue(self.sql("SELECT public.sovarka_goulag_detenu_aller('entree_qhs')")['ok'])
         self.graine(lambda j: 80 < j <= 95)
         r = self.sql("SELECT public.goulag_toundra_demarrer('starovka')"); self.assertTrue(r['ok'], r)
@@ -547,6 +601,16 @@ class OrdresInternes(unittest.TestCase):
         self.assertEqual(self.sql(f"SELECT pa FROM public.personnages_donnees WHERE name='{DETENU}'"), 14)
         self.assertEqual(self.sql(f"SELECT pa FROM public.personnages_donnees WHERE name='{VISITEUR}'"), 19)
         self.assertEqual(self.sql("SELECT interrogatoires FROM public.sovarka_goulag_registre WHERE detention_id='fx-det'"), 1)
+        # Deux corruptions simultanées pour un seul objet : une seule le consomme, l'autre est refusée.
+        self.q.execute("UPDATE public.personnages_donnees SET current_room='mirador',stats=%s,inventory=%s WHERE name=%s",
+                       (Json({'CHA': -40}), Json([{'name': 'Montre', 'type': 'objet', 'stackKey': 'montre', 'id': 'unique'}]), DETENU)); self.c.commit()
+        sig = json.dumps({'name': 'Montre', 'type': 'objet', 'stackKey': 'montre'})
+        appels_cadeau = [(1, f"SELECT public.sovarka_goulag_corrompre('{uuid.uuid4()}',0,'{sig}'::jsonb)") for _ in range(2)]
+        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as e:
+            res = list(e.map(appel, appels_cadeau))
+        self.assertEqual(sorted(str(r.get('raison', r.get('ok'))) for r in res), ['True', 'objet_introuvable'], res)
+        self.assertEqual(self.sql('SELECT count(*) FROM public.sovarka_goulag_corruptions'), 1)
+        self.assertEqual(self.sql(f"SELECT inventory FROM public.personnages_donnees WHERE name='{DETENU}'"), [])
         self.q.execute(f"UPDATE public.personnages_donnees SET current_room='entree_qhs' WHERE name='{DETENU}'"); self.c.commit()
         with concurrent.futures.ThreadPoolExecutor(max_workers=2) as e:
             res = list(e.map(appel, [(1, "SELECT public.goulag_toundra_demarrer('starovka')")] * 2))

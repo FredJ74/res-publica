@@ -52,13 +52,14 @@ CREATE TABLE IF NOT EXISTS public.sovarka_goulag_corruptions (
   detention_id text NOT NULL REFERENCES public.detentions(id),
   nom text NOT NULL REFERENCES public.personnages_donnees(name),
   jour date NOT NULL,
-  objet jsonb,
-  objet_perdu boolean NOT NULL DEFAULT false,
-  taux numeric NOT NULL,
+  objet jsonb NOT NULL,
+  objet_perdu boolean NOT NULL DEFAULT true CHECK (objet_perdu),
+  taux integer NOT NULL CHECK (taux BETWEEN 0 AND 90),
   jet integer NOT NULL CHECK (jet BETWEEN 1 AND 100),
   reussi boolean NOT NULL,
   resultat jsonb NOT NULL,
-  cree_le timestamptz NOT NULL DEFAULT now()
+  cree_le timestamptz NOT NULL DEFAULT now(),
+  CHECK (jsonb_typeof(objet) = 'object')
 );
 CREATE INDEX IF NOT EXISTS sovarka_goulag_corruptions_jour_idx ON public.sovarka_goulag_corruptions(detention_id, jour);
 ALTER TABLE public.sovarka_goulag_corruptions ENABLE ROW LEVEL SECURITY;
@@ -261,30 +262,27 @@ END $$;
 -- ---------------------------------------------------------------------------
 -- Mirador.
 -- ---------------------------------------------------------------------------
--- « Corrompre le gardien » : objet facultatif, pris dans l'inventaire SERVEUR (les objets confisqués
--- à l'admission n'y sont plus). Les paramètres non décidés bloquent cet ordre seul.
+-- « Corrompre le gardien » (règle définitive de Fred, 17/11/2026) :
+--   un cadeau est OBLIGATOIRE à chaque tentative, dès la première ;
+--   probabilité = min(90, 70 + 10 + 2 × CHARME) ;
+--   le cadeau est un objet réel de l'inventaire SERVEUR (les objets confisqués à l'admission n'y sont plus),
+--   transféré définitivement au gardien, réussite ou échec (un seul exemplaire d'une pile) ;
+--   plusieurs tentatives par jour, un nouvel objet à chaque fois ;
+--   la réussite accorde le bonus d'évasion (95 % au lieu de 80 %), valable pour la prochaine tentative.
+-- Pas d'ordre de remise d'objet : l'objet est choisi dans l'inventaire au moment de la tentative.
 CREATE OR REPLACE FUNCTION public.sovarka_goulag_corrompre(p_requete uuid, p_index integer DEFAULT NULL, p_signature jsonb DEFAULT NULL)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public','pg_temp' AS $$
 DECLARE v_nom text := public.mon_personnage(); v_refus jsonb; v_det text; v_deja jsonb;
         p public.personnages_donnees%ROWTYPE; r public.sovarka_goulag_registre%ROWTYPE;
-        v_base numeric; v_bonus numeric; v_perdu_echec numeric; v_max numeric; v_manquants text[];
-        v_jour date := public.sovarka_goulag_jour_interne(); v_pos integer; v_objet jsonb;
-        v_taux numeric; v_jet integer; v_ok boolean; v_perdu boolean := false; v_inv jsonb; v_res jsonb;
+        v_jour date := public.sovarka_goulag_jour_interne(); v_pos integer; v_objet jsonb; v_cadeau jsonb;
+        v_cha numeric; v_taux integer; v_jet integer; v_ok boolean; v_inv jsonb; v_qte integer; v_res jsonb;
 BEGIN
   IF auth.uid() IS NULL OR v_nom IS NULL THEN
     RETURN jsonb_build_object('ok',false,'raison','non_authentifie'); END IF;
   IF p_requete IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','parametres_invalides'); END IF;
   v_refus := public.sovarka_goulag_ordres_refus_interne();
   IF v_refus IS NOT NULL THEN RETURN v_refus; END IF;
-  SELECT array_agg(cle ORDER BY cle) INTO v_manquants FROM public.sovarka_goulag_parametres
-   WHERE cle IN ('corruption_taux_base','corruption_bonus_objet','corruption_objet_perdu_si_echec',
-                 'corruption_tentatives_jour') AND valeur IS NULL;
-  IF v_manquants IS NOT NULL THEN
-    RETURN jsonb_build_object('ok',false,'raison','corruption_a_arbitrer','parametres',to_jsonb(v_manquants)); END IF;
-  SELECT valeur INTO v_base FROM public.sovarka_goulag_parametres WHERE cle = 'corruption_taux_base';
-  SELECT valeur INTO v_bonus FROM public.sovarka_goulag_parametres WHERE cle = 'corruption_bonus_objet';
-  SELECT valeur INTO v_perdu_echec FROM public.sovarka_goulag_parametres WHERE cle = 'corruption_objet_perdu_si_echec';
-  SELECT valeur INTO v_max FROM public.sovarka_goulag_parametres WHERE cle = 'corruption_tentatives_jour';
+  -- Verrou du détenu d'abord : deux tentatives simultanées sont sérialisées (inventaire et compteurs).
   SELECT * INTO p FROM public.personnages_donnees WHERE name = v_nom AND user_id = auth.uid() FOR UPDATE;
   SELECT resultat INTO v_deja FROM public.sovarka_goulag_corruptions WHERE requete = p_requete AND nom = v_nom;
   IF FOUND THEN RETURN v_deja || jsonb_build_object('rejeu',true); END IF;
@@ -296,32 +294,34 @@ BEGIN
   IF NOT FOUND THEN RETURN jsonb_build_object('ok',false,'raison','non_detenu_goulag'); END IF;
   IF r.corruption_bonus THEN
     RETURN jsonb_build_object('ok',false,'raison','gardien_deja_corrompu'); END IF;
-  IF (SELECT count(*) FROM public.sovarka_goulag_corruptions
-       WHERE detention_id = r.detention_id AND jour = v_jour) >= v_max THEN
-    RETURN jsonb_build_object('ok',false,'raison','corruption_deja_tentee_aujourdhui'); END IF;
+  -- Aucun jet sans cadeau : refus sans le moindre effet.
+  IF p_signature IS NULL OR jsonb_typeof(p_signature) IS DISTINCT FROM 'object' THEN
+    RETURN jsonb_build_object('ok',false,'raison','cadeau_obligatoire'); END IF;
   v_inv := CASE WHEN jsonb_typeof(p.inventory) = 'array' THEN p.inventory ELSE '[]'::jsonb END;
-  IF p_signature IS NOT NULL THEN
-    v_pos := public.inventaire_localiser(v_inv, coalesce(p_index,-1), p_signature);
-    IF v_pos < 0 THEN RETURN jsonb_build_object('ok',false,'raison','objet_introuvable'); END IF;
-    v_objet := v_inv -> v_pos;
-  END IF;
-  v_taux := least(100, greatest(0, v_base + CASE WHEN v_objet IS NOT NULL THEN v_bonus ELSE 0 END));
+  v_pos := public.inventaire_localiser(v_inv, coalesce(p_index,-1), p_signature);
+  IF v_pos < 0 THEN RETURN jsonb_build_object('ok',false,'raison','objet_introuvable'); END IF;
+  v_objet := v_inv -> v_pos;
+  IF public.inventaire_objet_protege(p.quete_carriere, v_objet) THEN
+    RETURN jsonb_build_object('ok',false,'raison','objet_protege'); END IF;
+  v_cha := public.assemblee_stat_base(CASE WHEN jsonb_typeof(p.stats) = 'object' THEN p.stats ELSE '{}'::jsonb END,'CHA');
+  v_taux := greatest(0, least(90, floor(70 + 10 + 2 * v_cha)::integer));
   v_jet := floor(random() * 100)::integer + 1;
   v_ok := v_jet <= v_taux;
-  IF v_objet IS NOT NULL AND (v_ok OR v_perdu_echec = 1) THEN
-    v_inv := public.inventaire_retirer_position(v_inv, v_pos);
-    UPDATE public.personnages_donnees SET inventory = v_inv, updated_at = now() WHERE name = v_nom;
-    IF (SELECT inventory FROM public.personnages_donnees WHERE name = v_nom) IS DISTINCT FROM v_inv THEN
-      RAISE EXCEPTION 'goulag_cadeau_refuse'; END IF;
-    v_perdu := true;
-  END IF;
+  -- Transfert définitif au gardien : un exemplaire, quelle que soit l'issue, dans la même transaction.
+  v_qte := CASE WHEN coalesce(v_objet->>'qty','') ~ '^[0-9]+$' THEN (v_objet->>'qty')::integer ELSE 1 END;
+  v_cadeau := CASE WHEN v_qte > 1 THEN jsonb_set(v_objet, '{qty}', '1'::jsonb) ELSE v_objet END;
+  IF v_qte > 1 THEN v_inv := jsonb_set(v_inv, ARRAY[v_pos::text,'qty'], to_jsonb(v_qte - 1));
+  ELSE v_inv := public.inventaire_retirer_position(v_inv, v_pos); END IF;
+  UPDATE public.personnages_donnees SET inventory = v_inv, updated_at = now() WHERE name = v_nom;
+  IF (SELECT inventory FROM public.personnages_donnees WHERE name = v_nom) IS DISTINCT FROM v_inv THEN
+    RAISE EXCEPTION 'goulag_cadeau_refuse'; END IF;
   IF v_ok THEN
     UPDATE public.sovarka_goulag_registre SET corruption_bonus = true WHERE detention_id = r.detention_id;
   END IF;
   v_res := jsonb_build_object('ok',true,'reussi',v_ok,'taux',v_taux,'jet',v_jet,
-    'objet_propose',v_objet IS NOT NULL,'objet_perdu',v_perdu,'inventory',v_inv);
+    'cadeau',v_cadeau,'inventory',v_inv);
   INSERT INTO public.sovarka_goulag_corruptions(requete,detention_id,nom,jour,objet,objet_perdu,taux,jet,reussi,resultat)
-  VALUES (p_requete,r.detention_id,v_nom,v_jour,v_objet,v_perdu,v_taux,v_jet,v_ok,v_res);
+  VALUES (p_requete,r.detention_id,v_nom,v_jour,v_cadeau,true,v_taux,v_jet,v_ok,v_res);
   RETURN v_res;
 END $$;
 
