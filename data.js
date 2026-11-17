@@ -11286,7 +11286,7 @@ function slugPnjSovarka(nom) {
         imageBg: "linear-gradient(135deg,#120f12,#1c171c)",
         desc: "Le poste de douane du port. Le tampon est lourd, le formulaire en trois exemplaires.",
         imageUrl: "images/Sovarka/Starovka/Starovka_port_douanes_bureau_chef.webp", // image de Fred (17/11/2026, 19 h 05) : le bureau du chef des douanes
-        persons: [{name:'Douanier Sükhbaatar Baïartouïev (PNJ)', role:'Douanier du port', rel:'neutral', job:'agent_portuaire'}],
+        persons: [{name:'Douanier Stepan Vetrov (PNJ)', role:'Douanier du port', rel:'neutral', job:'agent_portuaire'}],
         orders: []
       },
       // Bureau du Commandant du Port de Sovarka (Fred, 16/11/2026, GAME-DESIGN-REGULATION-PRODUCTION.md) :
@@ -12603,7 +12603,7 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     ['ville_a', 'stade', 'guichet_paris', "Bookmaker Officiel (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_stade_bookmaker-officiel.webp'],
     ['ville_a', 'stade', 'boutique', "Vendeur des accessoires de Starovka (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_stade_vendeur-des-accessoires-de-starovka.webp'],
     ['ville_a', 'port-starovka', 'quai_principal', "Chef de quai Ganbaatar Tsybikov (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_port-starovka_ganbaatar-tsybikov.webp'],
-    ['ville_a', 'port-starovka', 'douanes', "Douanier Sükhbaatar Baïartouïev (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_port-starovka_chef-des-douanes.webp'],
+    ['ville_a', 'port-starovka', 'douanes', "Douanier Stepan Vetrov (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_port-starovka_chef-des-douanes.webp'],
     ['ville_a', 'entrepot-logistique-starovka', 'bureau_direction', "Batzorig Dorjiev (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_entrepot-logistique-starovka_batzorig-dorjiev_v2.webp'],
     ['ville_a', 'port-starovka', 'administration_portuaire', "Commandant Tömör Ochirov (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_port-starovka_commandant-tomor-ochirov.webp'],
     ['ville_a', 'marche', 'marche_ext', "Tuyana Dashieva (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_marche_tuyana-dashieva.webp'],
