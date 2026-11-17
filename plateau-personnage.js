@@ -3170,7 +3170,10 @@ async function doReserverChambreHotel(pa) {
     signalerRefusReservationChambre({ raison: 'tarif_local_introuvable' }, 0);
     return;
   }
-  const cout = Number(ordre.cost);
+  // Tarif national (Sovarka, 17/11/2026) : le bouton affiche deja le prix de ordres_couts_pays
+  // (25 PSK) ; le paiement doit envoyer le meme, sinon payer_ordre refuse (cout_non_declare).
+  const tarifNational = (typeof tarifOrdrePays === 'function') ? tarifOrdrePays('reserver_chambre_hotel', state.country) : null;
+  const cout = (tarifNational && tarifNational.cost > 0) ? tarifNational.cost : Number(ordre.cost);
   // CHANTIER C / PHASE 3. Le Republica encaisse dans SA caisse d'entreprise : prelevement et
   // credit doivent alors se faire dans la MEME transaction serveur, sinon l'un peut aboutir
   // sans l'autre. Les autres hotels versent dans une caisse institutionnelle et gardent le
