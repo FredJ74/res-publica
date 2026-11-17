@@ -20,7 +20,8 @@ test('Fermes : ordres et PA décidés par Fred, façades sur les enseignes', () 
     const z = (n, b) => (RUE_CENTRALE_NOEUDS.soviet[n].zones || []).some(x => x.buildingId === b);
     const o = id => BUILDINGS[id].rooms.cour_ferme.orders.map(x => x.fn + ':' + x.pa).join();
     return { starovka: o('ferme-starovka'), krasnov: o('ferme-krasnov'),
-      facades: z('starovka-rue-petrole-ferme', 'ferme-starovka') && z('krasnov-rue-marche-ferme', 'ferme-krasnov')
+      // 17/11/2026 (Fred) : la cour de la ferme de Starovka (enclos des rennes) est à la vue suivante du carrefour.
+      facades: z('starovka-maisons-ferme', 'ferme-starovka') && z('krasnov-rue-marche-ferme', 'ferme-krasnov')
         && z('krasnov-rue-distillerie-radar', 'distillerie-krasnov') && z('starovka-rue-restaurant-boutique', 'fourreur-starovka'),
       listes: ['ferme-starovka', 'fourreur-starovka'].every(b => WORLD.soviet.ville_a.buildings.includes(b))
         && ['ferme-krasnov', 'distillerie-krasnov'].every(b => WORLD.soviet.ville_b.buildings.includes(b)),
