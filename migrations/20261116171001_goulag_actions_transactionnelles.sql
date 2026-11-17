@@ -24,17 +24,17 @@ BEGIN
   v_pa:=p.pa;
   v_total:=CASE tr.destination WHEN 'starovka' THEN 7 ELSE 10 END;
   IF p_action='abri' THEN
-    IF tr.jour_abri>=v_jour OR tr.jour_sommeil>=v_jour THEN
+    IF tr.jour_abri>=v_jour OR tr.jour_sommeil>=v_jour OR p.pa_repos_le>=v_jour THEN
       RETURN jsonb_build_object('ok',false,'raison','abri_deja_fait'); END IF;
     IF v_pa<=1 THEN RETURN jsonb_build_object('ok',false,'raison','pa_insuffisants'); END IF;
     v_pa:=v_pa-1;
     UPDATE public.sovarka_goulag_traversees SET jour_abri=v_jour,actualise_le=now() WHERE nom=v_nom;
   ELSIF p_action='dormir' THEN
-    IF tr.jour_sommeil>=v_jour THEN
+    IF tr.jour_sommeil>=v_jour OR p.pa_repos_le>=v_jour THEN
       RETURN jsonb_build_object('ok',false,'raison','sommeil_deja_fait'); END IF;
     v_sommeil:=CASE WHEN tr.jour_abri>=v_jour THEN 6 ELSE 3 END;
     IF tr.champignons_penalite_en_attente THEN
-      -- Une décision de Fred sera exigée avant activation de la configuration.
+      -- Décision de Fred : deux PA sur le gain du prochain sommeil, une fois.
       v_sommeil:=least(v_pa+v_sommeil,greatest(7,v_pa+v_sommeil-c.champignons_malus))-v_pa;
     END IF;
     v_pa:=v_pa+v_sommeil;
@@ -91,7 +91,9 @@ BEGIN
     RETURN jsonb_build_object('ok',false,'raison','ordre_inconnu');
   END IF;
   IF NOT v_dernier THEN
-    UPDATE public.personnages_donnees SET pa=v_pa WHERE name=v_nom AND user_id=auth.uid();
+    UPDATE public.personnages_donnees SET pa=v_pa,
+      pa_repos_le=CASE WHEN p_action='dormir' THEN v_jour ELSE pa_repos_le END
+      WHERE name=v_nom AND user_id=auth.uid();
   END IF;
   RETURN jsonb_build_object('ok',true,'en_cours',NOT v_dernier,
     'termine',v_dernier,'arrivee',CASE WHEN v_dernier THEN v_dest END,
@@ -116,7 +118,7 @@ BEGIN
    RETURN jsonb_build_object('ok',false,'raison','non_authentifie'); END IF;
  SELECT * INTO tr FROM public.sovarka_goulag_traversees WHERE nom=v_nom AND en_cours;
  IF NOT FOUND THEN RETURN jsonb_build_object('ok',false,'raison','pas_de_traversee');END IF;
- SELECT country,current_city,pa INTO p FROM public.personnages_donnees
+ SELECT country,current_city,pa,pa_repos_le INTO p FROM public.personnages_donnees
     WHERE name=v_nom AND user_id=auth.uid();
  IF NOT FOUND OR (p.country,p.current_city) IS DISTINCT FROM ('soviet','qhs') THEN
     RETURN jsonb_build_object('ok',false,'raison','hors_toundra'); END IF;
@@ -124,7 +126,7 @@ BEGIN
  RETURN jsonb_build_object('ok',true,'en_cours',true,'destination',tr.destination,'statut',tr.statut,
    'progressions',tr.progressions,'total',v_total,'pa',p.pa,'bois_trouve',tr.bois_trouve,
    'abri_aujourdhui',coalesce(tr.jour_abri>=v_jour,false),
-   'dormi_aujourdhui',coalesce(tr.jour_sommeil>=v_jour,false),
+   'dormi_aujourdhui',coalesce(tr.jour_sommeil>=v_jour,false) OR coalesce(p.pa_repos_le>=v_jour,false),
    'progresse_aujourdhui',coalesce(tr.jour_progression>=v_jour,false),
    'champignons_a_decider',v_jour>=tr.debut_le+4 AND tr.champignons_choix IS NULL,
    'champignons_choix',tr.champignons_choix,
