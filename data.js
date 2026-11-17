@@ -12851,3 +12851,59 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     }
   }
 })();
+
+// KRASNOV_PORTRAITS_MANQUANTS_20261117 (19 PNJ ; Ignat et photos existantes préservés)
+(function () {
+  const cite = WORLD.soviet && WORLD.soviet.ville_b;
+  if (!cite) throw new Error('Krasnov absente');
+  const portraits = [
+    ["mairie", "bureau_maire_local", "Le Maire (PNJ)", "images/Sovarka/Krasnov/Krasnov_portrait_mairie_le-maire.webp"],
+    ["mairie", "salle_partis", "Lieutenant Fiodor Doznaïev (PNJ)", "images/Sovarka/Krasnov/Krasnov_portrait_mairie_fiodor-doznaiev.webp"],
+    ["commissariat-local", "bureau_commissaire", "Egor Tikhonov (PNJ)", "images/Sovarka/Krasnov/Krasnov_portrait_commissariat-local_egor-tikhonov.webp"],
+    ["tribunal-local", "salle_audience_locale", "Anatoli Gromov (PNJ)", "images/Sovarka/Krasnov/Krasnov_portrait_tribunal-local_anatoli-gromov.webp"],
+    ["usine-principale", "direction_usine", "Directeur Platon Iermakov (PNJ)", "images/Sovarka/Krasnov/Krasnov_portrait_usine-principale_platon-iermakov.webp"],
+    ["centre-commercial", "hall", "Varvara Kozlova", "images/Sovarka/Krasnov/Krasnov_portrait_centre-commercial_varvara-kozlova.webp"],
+    ["centre-commercial", "hall", "Efim Iakovlev", "images/Sovarka/Krasnov/Krasnov_portrait_centre-commercial_efim-iakovlev.webp"],
+    ["centre-artisanal", "travees", "Stas Mironov (PNJ)", "images/Sovarka/Krasnov/Krasnov_portrait_centre-artisanal_stas-mironov.webp"],
+    ["tabac-presse-krasnov", "boutique", "Valentina Makhorkina (PNJ)", "images/Sovarka/Krasnov/Krasnov_portrait_tabac-presse-krasnov_valentina-makhorkina.webp"],
+    ["stade", "siege_supporters", "Stiopa « le Tambour » Ossipov (PNJ)", "images/Sovarka/Krasnov/Krasnov_portrait_stade_stiopa-ossipov.webp"],
+    ["entrepot-logistique-krasnov", "bureau_direction", "Fiodor Kolkhozov (PNJ)", "images/Sovarka/Krasnov/Krasnov_portrait_entrepot-logistique-krasnov_fiodor-kolkhozov.webp"],
+    ["maison-krasnov", "piece_maison", "Stepan Kouznetsov (PNJ)", "images/Sovarka/Krasnov/Krasnov_portrait_maison-krasnov_stepan-kouznetsov.webp"],
+    ["maison-krasnov-bureaux", "piece_maison", "Antonina Merkoulova (PNJ)", "images/Sovarka/Krasnov/Krasnov_portrait_maison-krasnov-bureaux_antonina-merkoulova.webp"],
+    ["maison-krasnov-rouge", "piece_maison", "Matveï Rybakov (PNJ)", "images/Sovarka/Krasnov/Krasnov_portrait_maison-krasnov-rouge_matvei-rybakov.webp"],
+    ["ferme-krasnov", "cour_ferme", "Galina Belova (PNJ)", "images/Sovarka/Krasnov/Krasnov_portrait_ferme-krasnov_galina-belova.webp"],
+    ["distillerie-krasnov", "bureau_direction", "Anatoli Pokhmelkine (PNJ)", "images/Sovarka/Krasnov/Krasnov_portrait_distillerie-krasnov_anatoli-pokhmelkine.webp"],
+    ["distillerie-krasnov", "atelier_distillerie", "Vassili Gradousov (PNJ)", "images/Sovarka/Krasnov/Krasnov_portrait_distillerie-krasnov_vassili-gradousov.webp"],
+    ["hotel-mineur", "hall_mineur", "Receptionniste (PNJ)", "images/Sovarka/Krasnov/Krasnov_portrait_hotel-mineur_receptionniste.webp"],
+    ["station-radar-krasnov", "salle_ecoute", "Caporal Ilia Sorokine (PNJ)", "images/Sovarka/Krasnov/Krasnov_portrait_station-radar-krasnov_ilia-sorokine.webp"]
+  ];
+  const dejaVus = new Set();
+  for (const [batiment, piece, nom, photo] of portraits) {
+    if (dejaVus.has(nom)) throw new Error('Portrait Krasnov en double : ' + nom);
+    dejaVus.add(nom);
+    const b = BUILDINGS[batiment];
+    if (!b) throw new Error('Portrait Krasnov : bâtiment absent ' + batiment);
+    cite.buildingContext = cite.buildingContext || {};
+    const ctx = cite.buildingContext[batiment] = cite.buildingContext[batiment] || {};
+    const ro = ctx && ctx.roomOverrides && ctx.roomOverrides[piece];
+    const extra = ctx && ctx.roomsExtra && ctx.roomsExtra[piece];
+    const premiere = Object.keys(b.rooms || {})[0];
+    const liste = (ro && ro.persons)
+      || (piece === premiere && ctx && ctx.persons && ctx.persons.length ? ctx.persons : null)
+      || (extra && extra.persons)
+      || (b.rooms && b.rooms[piece] && b.rooms[piece].persons) || [];
+    const cibles = liste.filter(p => p.name === nom);
+    if (cibles.length !== 1) throw new Error('Portrait Krasnov : PNJ absent ou doublé ' + nom + ' (' + batiment + '/' + piece + ')');
+    if (cibles[0].photoUrl) throw new Error('Portrait Krasnov : photo EXISTANTE à conserver ' + nom);
+    const copie = liste.map(p => p.name === nom
+      ? Object.assign({}, p, { photoUrl: photo, photoPos: '50% 30%' })
+      : Object.assign({}, p));
+    if (!(ro && ro.persons) && extra && extra.persons === liste) {
+      ctx.roomsExtra = Object.assign({},ctx.roomsExtra);
+      ctx.roomsExtra[piece] = Object.assign({},extra,{ persons:copie });
+    } else {
+      ctx.roomOverrides = Object.assign({},ctx.roomOverrides);
+      ctx.roomOverrides[piece] = Object.assign({},ro || {},{ persons:copie });
+    }
+  }
+})();
