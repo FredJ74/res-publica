@@ -38,7 +38,8 @@ test('pas de commandes metier ni de stats inventees',()=>{
 });
 test('zones et boutons moteurs preserves',()=>{
   assert.match(rue,/div\.className = 'rc-zone'/);
-  assert.match(mobile,/zone\.click\(\)/);
+  // Activation clavier des zones de rue conservée (plateau-mobile.js : Entrée/Espace → e.target.click()).
+  assert.match(mobile,/\.rc-zone[^\n]*\n[^\n]*e\.target\.click\(\)/);
   assert.match(js,/details\.open=true/);
 });
 test('pas de CSS pour effacer les zones ou flèches',()=>{
