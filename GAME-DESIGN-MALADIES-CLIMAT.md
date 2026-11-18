@@ -228,3 +228,13 @@ bandelettes, plats cuisinés, furet renifleur).
   suivante, dans la langue du joueur.
 - **Consommation** : aliment manufacturé ou matière brute avariée = toujours ses PA, et 50 % d'intoxication (paramètre
   `aliment_avarie` de l'intoxication, réglable par le MJ). La durée de 10 jours est réglable (`aliments_parametres`).
+- **Lot 2b — contrôle à la réception** (ventes et dons d'aliments à un commerce, moteur historique et fonds PJ) : les unités
+  vendues sont prises sur les piles les plus anciennes ; chaque unité avariée est détectée à 70 % (95 % si une bandelette est
+  consommée). Détectée : refusée, détruite, non payée. Les unités non détectées entrent dans le stock et sont comptées à part
+  (`matieresAvariees`) pour les plats cuisinés du lot 2c. Le registre des apports garde la quantité livrée.
+- **Fraude alimentaire** : si le vendeur avait reçu le message d'avarie de ces piles, la tentative laisse une trace
+  (`actions_tracables`, type `fraude_alimentaire`), qu'elle soit détectée ou non.
+- **Bandelettes réactives** : vendues dans les pharmacies du lot 1 (4 l'unité, réglable) ; n'importe qui de présent peut en
+  déposer dans le commerce de la pièce (c'est un don) ; chaque livraison d'aliments reçue en consomme une.
+- **Réglages du MJ** : section « Aliments » de la page d'administration (péremption, deux taux de détection, prix).
+- **Lot 2c (à venir)** : plats cuisinés avec un ingrédient avarié (20 %) et furet renifleur.

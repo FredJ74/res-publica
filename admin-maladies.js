@@ -88,3 +88,28 @@ async function admMaladiesCharger() {
   el.append(malades);
  } catch (e) { el.textContent = 'Erreur : ' + e.message; }
 }
+
+// Aliments (lot 2b, 18/11/2026) : péremption, détection à la réception, prix des bandelettes réactives.
+const ADM_ALIM_CHAMPS = [['peremption_jours', 'Péremption (jours)'], ['detection_base', 'Détection à la réception sans bandelette (%)'],
+ ['detection_bandelette', 'Détection avec bandelette (%)'], ['prix_bandelette', 'Prix d’une bandelette']];
+async function admAlimentsCharger() {
+ const el = document.getElementById('adm-aliments'); if (!el) return;
+ el.textContent = 'Chargement…';
+ try {
+  const d = await rpAdminRpc('admin_aliments_lire', {});
+  el.textContent = '';
+  const p = (d && d.parametres) || {};
+  for (const [cle, label] of ADM_ALIM_CHAMPS) {
+   const lab = document.createElement('label'); lab.className = 'adm-detail'; lab.style.display = 'block'; lab.textContent = label + ' ';
+   const inp = document.createElement('input'); inp.type = 'number'; inp.min = '0'; inp.value = p[cle] ?? ''; inp.style.width = '6rem';
+   const b = document.createElement('button'); b.type = 'button'; b.textContent = 'Enregistrer';
+   b.onclick = async () => {
+    try {
+     const r = await rpAdminRpc('admin_aliment_modifier', { p_cle: cle, p_valeur: Number(inp.value) });
+     alert(r && r.ok ? 'Enregistré.' : 'Refus : ' + (r && r.raison));
+    } catch (e) { alert('Échec : ' + e.message); }
+   };
+   lab.append(inp, ' ', b); el.append(lab);
+  }
+ } catch (e) { el.textContent = 'Erreur : ' + e.message; }
+}

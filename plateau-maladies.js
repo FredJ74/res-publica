@@ -24,6 +24,7 @@ const T = {
     bought: '{qte} × {med} pour {paye} {cur}.', take: 'Prendre', taken: 'Médicament pris : guérison au prochain Dormir.',
     drink: 'Boire', drunk: 'Vous buvez : {nom}.',
     spoiled: 'Certains de vos aliments se sont gâtés : {liste}.', a_viande: 'viande', a_viande_renne: 'viande de renne', a_laitages: 'laitages', a_poisson: 'poisson', a_fruits_legumes: 'fruits et légumes', a_oeufs: 'œufs',
+    strips: 'Bandelettes réactives', stripsDeposit: 'Déposer dans ce commerce', stripsDeposited: '{n} bandelette(s) déposée(s) : réserve du commerce {reserve}.', foodRefused: 'Contrôle à la réception : {n} unité(s) avariée(s) refusée(s), détruite(s) et non payée(s).', r_pas_dans_un_commerce: 'Il faut être dans un commerce.', r_pas_de_bandelettes: 'Vous n’avez pas de bandelettes.',
     r_aucune_maladie_a_traiter: 'Ce médicament ne soigne aucun de vos maux.',
     r_deja_traitee: 'Traitement déjà pris : guérison au prochain Dormir.',
     r_rupture: 'Rupture de stock pour aujourd’hui.', r_stock_insuffisant: 'Stock insuffisant : il en reste {restant}.',
@@ -49,6 +50,7 @@ const T = {
     bought: '{qte} × {med} for {paye} {cur}.', take: 'Take', taken: 'Medicine taken: you will recover at your next Sleep.',
     drink: 'Drink', drunk: 'You drink: {nom}.',
     spoiled: 'Some of your food has gone bad: {liste}.', a_viande: 'meat', a_viande_renne: 'reindeer meat', a_laitages: 'dairy', a_poisson: 'fish', a_fruits_legumes: 'fruit and vegetables', a_oeufs: 'eggs',
+    strips: 'Reactive test strips', stripsDeposit: 'Leave them in this shop', stripsDeposited: '{n} strip(s) left: the shop now holds {reserve}.', foodRefused: 'Inspection on delivery: {n} spoiled unit(s) refused, destroyed and unpaid.', r_pas_dans_un_commerce: 'You must be inside a shop.', r_pas_de_bandelettes: 'You have no test strips.',
     r_aucune_maladie_a_traiter: 'This medicine treats none of your ailments.',
     r_deja_traitee: 'Treatment already taken: you will recover at your next Sleep.',
     r_rupture: 'Out of stock for today.', r_stock_insuffisant: 'Not enough stock: {restant} left.',
@@ -74,6 +76,7 @@ const T = {
     bought: '{qte} × {med} por {paye} {cur}.', take: 'Tomar', taken: 'Medicamento tomado: curación en el próximo Dormir.',
     drink: 'Beber', drunk: 'Bebe: {nom}.',
     spoiled: 'Algunos de sus alimentos se han echado a perder: {liste}.', a_viande: 'carne', a_viande_renne: 'carne de reno', a_laitages: 'lácteos', a_poisson: 'pescado', a_fruits_legumes: 'frutas y verduras', a_oeufs: 'huevos',
+    strips: 'Tiras reactivas', stripsDeposit: 'Dejarlas en este comercio', stripsDeposited: '{n} tira(s) entregada(s): reserva del comercio {reserve}.', foodRefused: 'Control en la recepción: {n} unidad(es) en mal estado rechazada(s), destruida(s) y no pagada(s).', r_pas_dans_un_commerce: 'Debe estar en un comercio.', r_pas_de_bandelettes: 'No tiene tiras reactivas.',
     r_aucune_maladie_a_traiter: 'Este medicamento no trata ninguno de sus males.',
     r_deja_traitee: 'Tratamiento ya tomado: curación en el próximo Dormir.',
     r_rupture: 'Agotado por hoy.', r_stock_insuffisant: 'Existencias insuficientes: quedan {restant}.',
@@ -99,6 +102,7 @@ const T = {
     bought: '{qte} × {med}，共 {paye} {cur}。', take: '服用', taken: '已服藥：下次睡覺時痊癒。',
     drink: '喝', drunk: '你喝了：{nom}。',
     spoiled: '你的部分食物已經壞了：{liste}。', a_viande: '肉', a_viande_renne: '馴鹿肉', a_laitages: '乳製品', a_poisson: '魚', a_fruits_legumes: '蔬果', a_oeufs: '蛋',
+    strips: '檢測試紙', stripsDeposit: '放在這家店', stripsDeposited: '已放下 {n} 張試紙：店內存量 {reserve}。', foodRefused: '收貨檢查：{n} 單位腐壞貨品被拒收、銷毀，不予付款。', r_pas_dans_un_commerce: '你必須在商店裡。', r_pas_de_bandelettes: '你沒有檢測試紙。',
     r_aucune_maladie_a_traiter: '這種藥治不了您的任何病痛。',
     r_deja_traitee: '已服過藥：下次睡覺時痊癒。',
     r_rupture: '今日缺貨。', r_stock_insuffisant: '庫存不足：剩餘 {restant}。',
@@ -124,6 +128,7 @@ const T = {
     bought: '{qte} × {med} за {paye} {cur}.', take: 'Принять', taken: 'Лекарство принято: выздоровление при следующем сне.',
     drink: 'Выпить', drunk: 'Вы выпили: {nom}.',
     spoiled: 'Часть ваших продуктов испортилась: {liste}.', a_viande: 'мясо', a_viande_renne: 'оленина', a_laitages: 'молочные продукты', a_poisson: 'рыба', a_fruits_legumes: 'фрукты и овощи', a_oeufs: 'яйца',
+    strips: 'Тест-полоски', stripsDeposit: 'Оставить в этом магазине', stripsDeposited: 'Оставлено полосок: {n}; запас магазина: {reserve}.', foodRefused: 'Проверка при приёмке: {n} испорченных единиц отклонено, уничтожено и не оплачено.', r_pas_dans_un_commerce: 'Нужно находиться в магазине.', r_pas_de_bandelettes: 'У вас нет тест-полосок.',
     r_aucune_maladie_a_traiter: 'Это лекарство не лечит ни одного из ваших недугов.',
     r_deja_traitee: 'Лекарство уже принято: выздоровление при следующем сне.',
     r_rupture: 'На сегодня товар закончился.', r_stock_insuffisant: 'Недостаточно запасов: осталось {restant}.',
@@ -149,6 +154,7 @@ const T = {
     bought: '{med} {qte}개, {paye} {cur}.', take: '복용', taken: '약을 먹었습니다: 다음 잠자기 때 회복됩니다.',
     drink: '마시기', drunk: '마셨습니다: {nom}.',
     spoiled: '음식 일부가 상했습니다: {liste}.', a_viande: '고기', a_viande_renne: '순록 고기', a_laitages: '유제품', a_poisson: '생선', a_fruits_legumes: '과일과 채소', a_oeufs: '달걀',
+    strips: '검사 시험지', stripsDeposit: '이 가게에 맡기기', stripsDeposited: '시험지 {n}개를 맡겼습니다: 가게 보유량 {reserve}.', foodRefused: '입고 검사: 상한 물품 {n}개가 거부되어 폐기되었고 대금은 지급되지 않았습니다.', r_pas_dans_un_commerce: '가게 안에 있어야 합니다.', r_pas_de_bandelettes: '검사 시험지가 없습니다.',
     r_aucune_maladie_a_traiter: '이 약은 당신의 어떤 병도 치료하지 않습니다.',
     r_deja_traitee: '이미 약을 먹었습니다: 다음 잠자기 때 회복됩니다.',
     r_rupture: '오늘은 품절입니다.', r_stock_insuffisant: '재고 부족: {restant}개 남음.',
@@ -174,6 +180,7 @@ const T = {
     bought: '{qte} × {med} مقابل {paye} {cur}.', take: 'تناول', taken: 'تم تناول الدواء: الشفاء عند النوم التالي.',
     drink: 'اشرب', drunk: 'شربت: {nom}.',
     spoiled: 'فسد بعض طعامك: {liste}.', a_viande: 'لحم', a_viande_renne: 'لحم الرنة', a_laitages: 'ألبان', a_poisson: 'سمك', a_fruits_legumes: 'فواكه وخضروات', a_oeufs: 'بيض',
+    strips: 'شرائط كاشفة', stripsDeposit: 'اتركها في هذا المتجر', stripsDeposited: 'تُركت {n} شريطة: مخزون المتجر {reserve}.', foodRefused: 'فحص عند الاستلام: رُفضت {n} وحدة فاسدة وأُتلفت ولم يُدفع ثمنها.', r_pas_dans_un_commerce: 'يجب أن تكون داخل متجر.', r_pas_de_bandelettes: 'ليست لديك شرائط كاشفة.',
     r_aucune_maladie_a_traiter: 'هذا الدواء لا يعالج أيًّا من أمراضك.',
     r_deja_traitee: 'تم أخذ العلاج بالفعل: الشفاء عند النوم التالي.',
     r_rupture: 'نفد المخزون لهذا اليوم.', r_stock_insuffisant: 'المخزون غير كافٍ: المتبقي {restant}.',
@@ -199,6 +206,7 @@ const T = {
     bought: '{qte} × {med} por {paye} {cur}.', take: 'Tomar', taken: 'Remédio tomado: cura no próximo Dormir.',
     drink: 'Beber', drunk: 'Você bebe: {nom}.',
     spoiled: 'Parte dos seus alimentos estragou: {liste}.', a_viande: 'carne', a_viande_renne: 'carne de rena', a_laitages: 'laticínios', a_poisson: 'peixe', a_fruits_legumes: 'frutas e legumes', a_oeufs: 'ovos',
+    strips: 'Tiras reagentes', stripsDeposit: 'Deixar neste comércio', stripsDeposited: '{n} tira(s) entregue(s): estoque do comércio {reserve}.', foodRefused: 'Controle no recebimento: {n} unidade(s) estragada(s) recusada(s), destruída(s) e não paga(s).', r_pas_dans_un_commerce: 'É preciso estar em um comércio.', r_pas_de_bandelettes: 'Você não tem tiras reagentes.',
     r_aucune_maladie_a_traiter: 'Este remédio não trata nenhum dos seus males.',
     r_deja_traitee: 'Tratamento já tomado: cura no próximo Dormir.',
     r_rupture: 'Esgotado por hoje.', r_stock_insuffisant: 'Estoque insuficiente: restam {restant}.',
@@ -224,6 +232,7 @@ const T = {
     bought: '{qte} × {med} für {paye} {cur}.', take: 'Einnehmen', taken: 'Medikament eingenommen: Genesung beim nächsten Schlafen.',
     drink: 'Trinken', drunk: 'Sie trinken: {nom}.',
     spoiled: 'Einige Ihrer Lebensmittel sind verdorben: {liste}.', a_viande: 'Fleisch', a_viande_renne: 'Rentierfleisch', a_laitages: 'Milchprodukte', a_poisson: 'Fisch', a_fruits_legumes: 'Obst und Gemüse', a_oeufs: 'Eier',
+    strips: 'Teststreifen', stripsDeposit: 'In diesem Geschäft lassen', stripsDeposited: '{n} Teststreifen abgegeben: Vorrat des Geschäfts {reserve}.', foodRefused: 'Wareneingangskontrolle: {n} verdorbene Einheit(en) abgelehnt, vernichtet und nicht bezahlt.', r_pas_dans_un_commerce: 'Sie müssen sich in einem Geschäft befinden.', r_pas_de_bandelettes: 'Sie haben keine Teststreifen.',
     r_aucune_maladie_a_traiter: 'Dieses Medikament hilft gegen keines Ihrer Leiden.',
     r_deja_traitee: 'Bereits eingenommen: Genesung beim nächsten Schlafen.',
     r_rupture: 'Für heute ausverkauft.', r_stock_insuffisant: 'Nicht genug Vorrat: noch {restant}.',
@@ -333,6 +342,7 @@ async function ouvrirPharmacie() {
       + esc(nomMedicament(m.medicament)) + ' (' + esc(nomMaladie({ cle: m.maladie, nom_mj: m.nom_mj })) + ') — '
       + esc(m.prix) + ' ' + esc(cur) + ' — ' + esc(dispo) + '</option>';
   }
+  if (e.prix_bandelette != null) html += '<option value="__bandelettes__">' + esc(texteMaladie('strips')) + ' — ' + esc(e.prix_bandelette) + ' ' + esc(cur) + '</option>';
   html += '</select>';
   html += '<label class="cpj-note" for="pharmacie-qte">' + esc(texteMaladie('quantity')) + '</label>';
   html += '<input id="pharmacie-qte" class="cpj-champ" type="number" min="1" max="10" step="1" value="1" style="width:100%;margin-bottom:.8rem">';
@@ -352,11 +362,13 @@ async function confirmerPharmacie() {
   if (!Number.isSafeInteger(qte) || qte < 1 || qte > 10) { global.showToast(texteMaladie('pharmacy'), texteMaladie('r_quantite_invalide'), false); return; }
   achatEnCours = true;
   try {
-    const r = un(await global.sbRpc('pharmacie_acheter', { p_requete: uuid(), p_medicament: med, p_qte: qte }).catch(() => null));
+    const bandelettes = med === '__bandelettes__';
+    const r = un(await global.sbRpc(bandelettes ? 'pharmacie_bandelettes_acheter' : 'pharmacie_acheter',
+      bandelettes ? { p_requete: uuid(), p_qte: qte } : { p_requete: uuid(), p_medicament: med, p_qte: qte }).catch(() => null));
     if (!r || r.ok !== true) { global.showToast(texteMaladie('pharmacy'), motif(r), false); return; }
     appliquerInventaire(r);
     global.document.getElementById('modal-postes')?.classList.remove('open');
-    global.showToast(texteMaladie('pharmacy'), texteMaladie('bought', { qte: r.quantite, med: nomMedicament(r.medicament), paye: r.paye, cur: devise() }), true);
+    global.showToast(texteMaladie('pharmacy'), texteMaladie('bought', { qte: r.quantite, med: bandelettes ? texteMaladie('strips') : nomMedicament(r.medicament), paye: r.paye, cur: devise() }), true);
     if (typeof global.updateUI === 'function') global.updateUI();
   } finally { achatEnCours = false; }
 }
@@ -406,7 +418,27 @@ async function boireBoisson(idx) {
 }
 // Nom affiché d'un médicament de maladie dans l'inventaire.
 function nomObjetMaladie(item) {
+  if (item && item.type === 'bandelette_reactive') return texteMaladie('strips');
   return item && item.type === 'medicament_maladie' ? nomMedicament(item.medicament) : null;
+}
+// Bandelettes réactives (lot 2b) : déposées dans le commerce de la pièce (un don ; le serveur trouve le commerce).
+function boutonBandelettes(item, style) {
+  if (!item || item.type !== 'bandelette_reactive') return '';
+  return '<button onclick="deposerBandelettes(' + Math.max(1, Math.floor(Number(item.qty) || 1)) + ')" style="' + (style || '') + '"><i class="ti ti-test-pipe"></i> '
+    + esc(texteMaladie('stripsDeposit')) + '</button>';
+}
+let depotEnCours = false;
+async function deposerBandelettes(qte) {
+  if (depotEnCours) return;
+  depotEnCours = true;
+  try {
+    const r = un(await global.sbRpc('commerce_bandelettes_deposer', { p_requete: uuid(), p_qte: qte }).catch(() => null));
+    if (!r || r.ok !== true) { global.showToast(texteMaladie('strips'), motif(r), false); return; }
+    appliquerInventaire(r);
+    global.document.getElementById('modal-postes')?.classList.remove('open');
+    global.showToast(texteMaladie('strips'), texteMaladie('stripsDeposited', { n: r.quantite, reserve: r.reserve }), true);
+    if (typeof global.updateUI === 'function') global.updateUI();
+  } finally { depotEnCours = false; }
 }
 
 // ── Symptômes des personnes présentes ───────────────────────────────────────────────────────────
@@ -446,6 +478,19 @@ function brancherSbRpc() {
   };
   enveloppe.__maladies = true;
   global.sbRpc = enveloppe;
+  // Ventes et dons d'aliments à un commerce (lot 2b) : annoncer les unités refusées au contrôle.
+  const origV = global.sbRpcVerdict;
+  if (typeof origV === 'function' && !origV.__maladies) {
+    const enveloppeV = async function (fn) {
+      const r = await origV.apply(this, arguments);
+      if ((fn === 'commerce_apporter_matiere' || fn === 'fonds_matiere_apporter') && r && Number(r.refuses) > 0 && global.showToast) {
+        global.showToast(texteMaladie('health'), texteMaladie('foodRefused', { n: Number(r.refuses) }), false);
+      }
+      return r;
+    };
+    enveloppeV.__maladies = true;
+    global.sbRpcVerdict = enveloppeV;
+  }
 }
 function demarrer() {
   if (typeof global.sbRpc !== 'function') return;
@@ -459,6 +504,6 @@ else if (global.document) global.document.addEventListener('DOMContentLoaded', d
 Object.assign(global, {
   RPMaladies: { T, CLES, MEDICAMENTS, texte: texteMaladie, nomMaladie, symptomeSoi, symptomeAutre, nomMedicament, motif },
   rafraichirMaladies, rendreEtatSante, ouvrirPharmacie, confirmerPharmacie, prendreMedicament,
-  boutonMedicamentMaladie, nomObjetMaladie, afficherSymptomesDans, boutonBoire, boireBoisson, estBoisson
+  boutonMedicamentMaladie, nomObjetMaladie, afficherSymptomesDans, boutonBoire, boireBoisson, estBoisson, boutonBandelettes, deposerBandelettes
 });
 })(typeof window !== 'undefined' ? window : globalThis);
