@@ -1,0 +1,31 @@
+name: Conversion des trois visuels armurerie Starovka
+on:
+  push:
+    branches:
+      - chatgpt/repair-starovka-weapon-catalog-20261118
+    paths:
+      - outils/images/convertir_armes_starovka_20261118.py
+      - .github/workflows/convertir-armes-starovka-20261118.yml
+permissions:
+  contents: write
+jobs:
+  convertir:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install Pillow==11.3.0
+      - name: Conversion, vérification et suppression des sources
+        run: python outils/images/convertir_armes_starovka_20261118.py
+      - name: Commit des fichiers WebP et raccordement du catalogue
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add images/Sovarka/Starovka images/arme-baionnette-soviet.webp images/arme-makarov-soviet.webp images/arme-kalachnikov-soviet.webp plateau-actions-illegales-rumeurs.js
+          git diff --cached --check
+          git commit -m "Armurerie Sovarka : trois WebP, suppression des PNG et raccordement"
+          git push
