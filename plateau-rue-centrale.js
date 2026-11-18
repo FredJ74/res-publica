@@ -1800,8 +1800,8 @@ async function initialiserRueCentrale(pays, noeudDepart, depuisNoeud) {
         return;
       }
     }
-    if (typeof showToast === 'function') showToast('Position non initialisee',
-      'Aucun segment de rue confirme par le serveur.', false);
+    if (typeof showToast === 'function') { showToast('Position non initialisee',
+      'Aucun segment de rue confirme par le serveur.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b2edc8cfc", 'Aucun segment de rue confirme par le serveur.', undefined, 'Position non initialisee'); }
     return;
   }
   await afficherNoeudRue(pays, noeudDepart, depuisNoeud);

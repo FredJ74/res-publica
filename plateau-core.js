@@ -1520,7 +1520,7 @@ function loadCharacter() {
           // autorité, aucune sauvegarde générique tant qu'une vraie lecture n'a pas réussi.
           state.personnageChargeDepuisServeur = false; // réponse serveur perdue : aucune écriture depuis le cache
           state._ficheBase = null;
-          if (typeof showToast === 'function') showToast('Fiche non synchronisée', 'Le serveur n’a pas pu être lu : rien ne sera enregistré depuis cet écran. Actualisez la page (F5).', false);
+          if (typeof showToast === 'function') { showToast('Fiche non synchronisée', 'Le serveur n’a pas pu être lu : rien ne sera enregistré depuis cet écran. Actualisez la page (F5).', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bbe92231d", 'Le serveur n’a pas pu être lu : rien ne sera enregistré depuis cet écran. Actualisez la page (F5).', undefined, 'Fiche non synchronisée'); }
         });
       } else {
         // Lecture serveur indisponible : le cache n'a pas autorité.
@@ -2550,7 +2550,7 @@ async function executerOrdreJaugesServeur(ordre, contexte = {}) {
     if (typeof sbFicheBaseAdopter === 'function') sbFicheBaseAdopter({pa:v.pa,hp:v.hp});
     return v;
   } catch (_) {
-    if (contexteGroupePjValide(c)) showToast('Action non confirmée', 'Consultez votre état avant de renouveler la demande.', false);
+    if (contexteGroupePjValide(c)) { showToast('Action non confirmée', 'Consultez votre état avant de renouveler la demande.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bbd427c53", 'Consultez votre état avant de renouveler la demande.', undefined, 'Action non confirmée'); }
     return null;
   } finally { RP_JAUGES_EN_COURS.delete(cle); }
 }

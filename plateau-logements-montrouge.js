@@ -49,7 +49,7 @@ function estResidentOfficielMontrouge() {
 
 function demanderLogementSocial(pa, cost) {
   if (!estResidentOfficielMontrouge()) {
-    showToast('Résidence requise', "Seul un résident officiel de Montrouge (domicile officiel) peut demander un logement social ici.", false);
+    showToast('Résidence requise', "Seul un résident officiel de Montrouge (domicile officiel) peut demander un logement social ici.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.bdf7466c9", "Seul un résident officiel de Montrouge (domicile officiel) peut demander un logement social ici.", undefined, 'Résidence requise');
     return;
   }
 
@@ -67,7 +67,7 @@ function demanderLogementSocial(pa, cost) {
 
 async function confirmerDemandeLogementSocial(typeSouhaite, pa, cost) {
   if (!estResidentOfficielMontrouge()) {
-    showToast('Résidence requise', "Seul un résident officiel de Montrouge peut déposer cette demande.", false);
+    showToast('Résidence requise', "Seul un résident officiel de Montrouge peut déposer cette demande.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b52b65c0a", "Seul un résident officiel de Montrouge peut déposer cette demande.", undefined, 'Résidence requise');
     return;
   }
   const demandeur = state.char?.name;
@@ -76,7 +76,7 @@ async function confirmerDemandeLogementSocial(typeSouhaite, pa, cost) {
   if (typeof sbGetDemandeLogementEnAttente === 'function') {
     const existante = await sbGetDemandeLogementEnAttente(LOGEMENTS_SOCIAUX_MONTROUGE_PAYS, LOGEMENTS_SOCIAUX_MONTROUGE_VILLE, demandeur).catch(() => null);
     if (existante) {
-      showToast('Demande déjà en attente', 'Vous avez déjà une demande de logement social en cours de traitement.', false);
+      showToast('Demande déjà en attente', 'Vous avez déjà une demande de logement social en cours de traitement.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bf84cfe71", 'Vous avez déjà une demande de logement social en cours de traitement.', undefined, 'Demande déjà en attente');
       document.getElementById('modal-postes')?.classList.remove('open');
       return;
     }
@@ -94,11 +94,11 @@ async function confirmerDemandeLogementSocial(typeSouhaite, pa, cost) {
   document.getElementById('modal-postes')?.classList.remove('open');
 
   if (!deposee) {
-    showToast('Demande non enregistrée', "La persistance des demandes n'est pas encore disponible (migration en attente).", false);
+    showToast('Demande non enregistrée', "La persistance des demandes n'est pas encore disponible (migration en attente).", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b3d2b2bff", "La persistance des demandes n'est pas encore disponible (migration en attente).", undefined, 'Demande non enregistrée');
     return;
   }
 
-  showToast('Demande déposée', "Votre demande de logement social a été transmise à l'adjoint au maire.", true, true);
+  showToast('Demande déposée', "Votre demande de logement social a été transmise à l'adjoint au maire.", true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.bb174874b", "Votre demande de logement social a été transmise à l'adjoint au maire.", undefined, 'Demande déposée');
   addJournalEntry('Demande de logement social déposée à Montrouge.', 'event-good');
 
   if (typeof getTitulaireActuel === 'function') {
@@ -124,11 +124,11 @@ function gererLogementSocial() {
   const location = typeof getLocationPourRoom === 'function' ? getLocationPourRoom(buildingId, roomId) : null;
 
   if (!location) {
-    showToast('Logement non attribué', "Ce logement social n'est pas encore attribué. Déposez une demande au bureau de l'adjoint au maire (Hôtel de Ville).", false);
+    showToast('Logement non attribué', "Ce logement social n'est pas encore attribué. Déposez une demande au bureau de l'adjoint au maire (Hôtel de Ville).", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b3ee1ba6c", "Ce logement social n'est pas encore attribué. Déposez une demande au bureau de l'adjoint au maire (Hôtel de Ville).", undefined, 'Logement non attribué');
     return;
   }
   if (location.locataire !== state.char?.name) {
-    showToast('Non locataire', "Vous n'êtes pas le locataire de cet appartement.", false);
+    showToast('Non locataire', "Vous n'êtes pas le locataire de cet appartement.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b430b1870", "Vous n'êtes pas le locataire de cet appartement.", undefined, 'Non locataire');
     return;
   }
   ouvrirModalGererLocal();
@@ -205,7 +205,7 @@ async function attribuerLogementSocial(demandeId, demandeurName, roomId, pa, cos
   const dejaLoue = typeof getLocationPourRoom === 'function'
     ? getLocationPourRoom(LOGEMENTS_SOCIAUX_MONTROUGE_BUILDING, roomId, LOGEMENTS_SOCIAUX_MONTROUGE_VILLE) : null;
   if (dejaLoue) {
-    showToast('Déjà attribué', 'Ce logement vient d\'être attribué entre-temps.', false);
+    showToast('Déjà attribué', 'Ce logement vient d\'être attribué entre-temps.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b18c3edbc", 'Ce logement vient d\'être attribué entre-temps.', undefined, 'Déjà attribué');
     traiterDemandesLogementSocial(pa, cost);
     return;
   }

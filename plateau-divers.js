@@ -85,13 +85,13 @@ async function publierSondage(texte) {
     const postId = topicId && typeof sbCreatePost === 'function'
       ? await sbCreatePost(topicId, from, texte, time).catch(() => null) : null;
     if (!topicId || !postId) {
-      showToast('Publication impossible', "Le forum n'a pas enregistré le sondage. Réessayez plus tard.", false);
+      showToast('Publication impossible', "Le forum n'a pas enregistré le sondage. Réessayez plus tard.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.bb9782ef3", "Le forum n'a pas enregistré le sondage. Réessayez plus tard.", undefined, 'Publication impossible');
       return;
     }
-    showToast('Sondage publié !', 'Visible sur le forum local.', true);
+    showToast('Sondage publié !', 'Visible sur le forum local.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.bb9135822", 'Visible sur le forum local.', undefined, 'Sondage publié !');
     addJournalEntry('Sondage publié sur le forum.', 'event-info');
   } else {
-    showToast('Forum indisponible', 'Impossible de publier.', false);
+    showToast('Forum indisponible', 'Impossible de publier.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b82ab37fe", 'Impossible de publier.', undefined, 'Forum indisponible');
   }
 }
 
@@ -395,7 +395,7 @@ async function religionAgirServeur(fn, pa, cost) {
     addJournalEntry('Vous devenez Prêtre titulaire de ' + v.nom_ville + '.', 'event-good');
   }
   if (v.grand_pretre_conquis) {
-    showToast('Grand Prêtre national !', 'Vous devenez Grand Prêtre de Républia, sans perdre votre charge locale.', true, true);
+    showToast('Grand Prêtre national !', 'Vous devenez Grand Prêtre de Républia, sans perdre votre charge locale.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b9882eb8c", 'Vous devenez Grand Prêtre de Républia, sans perdre votre charge locale.', undefined, 'Grand Prêtre national !');
     addJournalEntry('Vous devenez Grand Prêtre national de Républia.', 'event-good');
   }
   if (typeof updateUI === 'function') updateUI();
@@ -471,7 +471,7 @@ async function leverExcommunicationCible(nomCible) {
 async function ouvrirExcommunierCible() {
   document.getElementById('modal-pnj')?.classList.remove('open');
   if (!(await estGrandPretreActuel(state.char?.name))) {
-    showToast('Pouvoir réservé', 'Seul le Grand Prêtre national en exercice peut excommunier.', false);
+    showToast('Pouvoir réservé', 'Seul le Grand Prêtre national en exercice peut excommunier.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bc470b2e5", 'Seul le Grand Prêtre national en exercice peut excommunier.', undefined, 'Pouvoir réservé');
     return;
   }
   if (typeof ouvrirCiblageFiscal === 'function') ouvrirCiblageFiscal('excommunier', 'Excommunier');
@@ -480,7 +480,7 @@ async function ouvrirExcommunierCible() {
 async function ouvrirLeverExcommunicationCible() {
   document.getElementById('modal-pnj')?.classList.remove('open');
   if (!(await estGrandPretreActuel(state.char?.name))) {
-    showToast('Pouvoir réservé', 'Seul le Grand Prêtre national en exercice peut lever une excommunication.', false);
+    showToast('Pouvoir réservé', 'Seul le Grand Prêtre national en exercice peut lever une excommunication.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bdb08f1d8", 'Seul le Grand Prêtre national en exercice peut lever une excommunication.', undefined, 'Pouvoir réservé');
     return;
   }
   if (typeof ouvrirCiblageFiscal === 'function') ouvrirCiblageFiscal('lever_excommunication', 'Lever une excommunication');
@@ -525,13 +525,13 @@ async function doSeConfeser(pa, cost) {
     const v = Array.isArray(brut) ? brut[0] : brut;
     if (!v || v.ok !== true) {
       if (v?.raison === 'aucune_trace_eligible') {
-        showToast('Rien à confesser', 'Aucun acte illégal réussi ne possède encore de trace effaçable. Aucun PA dépensé.', false);
+        showToast('Rien à confesser', 'Aucun acte illégal réussi ne possède encore de trace effaçable. Aucun PA dépensé.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b8183f9e0", 'Aucun acte illégal réussi ne possède encore de trace effaçable. Aucun PA dépensé.', undefined, 'Rien à confesser');
       } else if (v?.raison === 'confession_lieu_invalide') {
-        showToast('Confession impossible', 'Présentez-vous auprès d’un religieux dans une salle de culte habilitée.', false);
+        showToast('Confession impossible', 'Présentez-vous auprès d’un religieux dans une salle de culte habilitée.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b94a33682", 'Présentez-vous auprès d’un religieux dans une salle de culte habilitée.', undefined, 'Confession impossible');
       } else if (typeof signalerRefusCout === 'function') {
         signalerRefusCout(v || {raison:'service_indisponible'});
       } else {
-        showToast('Confession impossible', 'Le serveur ne confirme pas la confession.', false);
+        showToast('Confession impossible', 'Le serveur ne confirme pas la confession.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b5a5a2a16", 'Le serveur ne confirme pas la confession.', undefined, 'Confession impossible');
       }
       return;
     }
@@ -547,7 +547,7 @@ async function doSeConfeser(pa, cost) {
       addJournalEntry('Confession sans absolution : 2 PA dépensés.', 'event-info');
     }
   } catch (e) {
-    showToast('Confession non confirmée', 'Réponse serveur indisponible. Vérifiez vos PA avant de réessayer.', false);
+    showToast('Confession non confirmée', 'Réponse serveur indisponible. Vérifiez vos PA avant de réessayer.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b17d293f2", 'Réponse serveur indisponible. Vérifiez vos PA avant de réessayer.', undefined, 'Confession non confirmée');
   } finally {
     confessionEnCours = false;
   }
@@ -584,7 +584,7 @@ async function confirmerDonKolkhoze() {
   if (donKolkhozeEnCours) return;
   const montant = Number(document.getElementById('kolkhoze-montant')?.value);
   if (!Number.isSafeInteger(montant) || montant < 1 || montant > 100000000) {
-    showToast('Don refusé', 'Indiquez un montant entier de 1 à 100 000 000 PSK.', false);
+    showToast('Don refusé', 'Indiquez un montant entier de 1 à 100 000 000 PSK.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b27d33e0a", 'Indiquez un montant entier de 1 à 100 000 000 PSK.', undefined, 'Don refusé');
     return;
   }
   donKolkhozeEnCours = true;
@@ -596,9 +596,9 @@ async function confirmerDonKolkhoze() {
     const v = Array.isArray(brut) ? brut[0] : brut;
     if (!v || v.ok !== true) {
       if (v?.raison === 'montant_invalide') {
-        showToast('Don refusé', 'Montant invalide.', false);
+        showToast('Don refusé', 'Montant invalide.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b12169e64", 'Montant invalide.', undefined, 'Don refusé');
       } else if (v?.raison === 'pas_au_kolkhoze') {
-        showToast('Don refusé', 'Vous devez être dans la Grange Sainte du Kolkhoze.', false);
+        showToast('Don refusé', 'Vous devez être dans la Grange Sainte du Kolkhoze.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b769fecc8", 'Vous devez être dans la Grange Sainte du Kolkhoze.', undefined, 'Don refusé');
       } else if (typeof signalerRefusCout === 'function') {
         signalerRefusCout(v || {raison:'paiement_indisponible'});
       }
@@ -616,7 +616,7 @@ async function confirmerDonKolkhoze() {
       ' popularité (plafond quotidien).', true);
     addJournalEntry('Don au Kolkhoze : ' + montant + ' PSK.', 'event-info');
   } catch (e) {
-    showToast('Don impossible', 'Le serveur ne confirme pas le versement. Aucun succès annoncé.', false);
+    showToast('Don impossible', 'Le serveur ne confirme pas le versement. Aucun succès annoncé.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b32df6803", 'Le serveur ne confirme pas le versement. Aucun succès annoncé.', undefined, 'Don impossible');
   } finally {
     donKolkhozeEnCours = false;
     if (bouton) bouton.disabled = false;
@@ -697,7 +697,7 @@ async function doDemanderBenediction(pa, cost) {
     if (!state.char) return;
     state.char.benediction = { actif: true, expire: (state.day || 1) + 1 };
     if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
-    showToast('Béni !', 'Vous bénéficiez d\'un bonus de +5 points sur votre prochain ordre avec jet (24h, non cumulable).', true, true);
+    showToast('Béni !', 'Vous bénéficiez d\'un bonus de +5 points sur votre prochain ordre avec jet (24h, non cumulable).', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.bd87cc927", 'Vous bénéficiez d\'un bonus de +5 points sur votre prochain ordre avec jet (24h, non cumulable).', undefined, 'Béni !');
     addJournalEntry('Bénédiction reçue du ' + (religion?.grandPretre || 'religieux habilité') + '. +5 points prochain ordre.', 'event-good');
   } else {
     showToast('Pas de réponse', 'Le ' + (religion?.grandPretre || 'Très-Haut') + ' est occupé. Revenez demain.', false);
@@ -713,7 +713,7 @@ async function doPelerin(pa, cost) {
   if (typeof r.dis === 'number') state.dis = r.dis;
   if (!state.pelerinExpire) state.pelerinExpire = state.day + 1;
   updateUI();
-  showToast('Pèlerin déclaré', '+10 DIS pendant 24h. Accès facilité aux lieux saints des autres empires.', true);
+  showToast('Pèlerin déclaré', '+10 DIS pendant 24h. Accès facilité aux lieux saints des autres empires.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.b5216f2c4", '+10 DIS pendant 24h. Accès facilité aux lieux saints des autres empires.', undefined, 'Pèlerin déclaré');
   addJournalEntry('Statut de pèlerin déclaré.', 'event-info');
 }
 
@@ -770,7 +770,7 @@ async function doAcheterRelique(pa, cost) {
   if (!r) return;
   modifierIP(10);
   updateUI();
-  showToast('Relique acquise !', 'Relique du Loukoum Sacré ajoutée à votre inventaire. +10 IP.', true, true);
+  showToast('Relique acquise !', 'Relique du Loukoum Sacré ajoutée à votre inventaire. +10 IP.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.bdf41dfb2", 'Relique du Loukoum Sacré ajoutée à votre inventaire. +10 IP.', undefined, 'Relique acquise !');
 }
 
 // =====================
@@ -828,7 +828,7 @@ async function ouvrirModalInterrogerAccueil() {
 // =====================
 async function interrogerAccueilSurObjets(cibleNom) {
   if (typeof sbGetSouvenirsAccueilPour !== 'function') {
-    showToast('Indisponible', 'Service indisponible pour le moment.', false);
+    showToast('Indisponible', 'Service indisponible pour le moment.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b2536fc85", 'Service indisponible pour le moment.', undefined, 'Indisponible');
     return;
   }
   const souvenirs = await sbGetSouvenirsAccueilPour(cibleNom).catch(() => []);
@@ -917,8 +917,8 @@ async function executerReceptionInventaire(fn, parametres, options) {
       if (v?.transport) {
         if (v.transport.envoyee === false) {
           sessionStorage.removeItem(cle);
-          showToast('Demande non envoyée', 'Votre connexion doit être rétablie avant de réessayer.', false);
-        } else showToast('Confirmation incertaine', 'Réessayez la même demande pour vérifier son résultat.', false);
+          showToast('Demande non envoyée', 'Votre connexion doit être rétablie avant de réessayer.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b55da70b9", 'Votre connexion doit être rétablie avant de réessayer.', undefined, 'Demande non envoyée');
+        } else { showToast('Confirmation incertaine', 'Réessayez la même demande pour vérifier son résultat.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b62ff2c60", 'Réessayez la même demande pour vérifier son résultat.', undefined, 'Confirmation incertaine'); }
       } else if (v && typeof options?.surRefus === 'function' && options.surRefus(v)) {
         // refus affiche par l'appelant, avec ses propres mots
       } else {
@@ -948,16 +948,16 @@ async function executerReceptionInventaire(fn, parametres, options) {
       return null;
     }
     if (!Number.isSafeInteger(v.revision) || !sbAdopterInventaireServeur(v)) {
-      showToast('Confirmation à relire', 'La réponse ne permet pas de confirmer votre inventaire. Réessayez la même demande.', false); return null;
+      showToast('Confirmation à relire', 'La réponse ne permet pas de confirmer votre inventaire. Réessayez la même demande.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bbc749824", 'La réponse ne permet pas de confirmer votre inventaire. Réessayez la même demande.', undefined, 'Confirmation à relire'); return null;
     }
     if (v.paie && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v.paie);
     sessionStorage.removeItem(cle);
     if (repriseAutre) {
-      updateUI(); showToast('Demande précédente vérifiée', 'Votre inventaire est à jour. Vous pouvez maintenant choisir une nouvelle action.', true); return null;
+      updateUI(); showToast('Demande précédente vérifiée', 'Votre inventaire est à jour. Vous pouvez maintenant choisir une nouvelle action.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.b63a20252", 'Votre inventaire est à jour. Vous pouvez maintenant choisir une nouvelle action.', undefined, 'Demande précédente vérifiée'); return null;
     }
     return v;
   } catch (_) {
-    showToast('Confirmation incertaine', 'Réessayez la même demande pour vérifier son résultat.', false); return null;
+    showToast('Confirmation incertaine', 'Réessayez la même demande pour vérifier son résultat.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b62ff2c60", 'Réessayez la même demande pour vérifier son résultat.', undefined, 'Confirmation incertaine'); return null;
   } finally { receptionsInventaireEnCours.delete(cle); }
 }
 
@@ -971,7 +971,7 @@ async function acheterObjetServeur(ordre, modele, pa, cost) {
   return executerReceptionInventaire('objet_acheter', { p_ordre: ordre, p_modele: modele, p_pa: pa || 0, p_cost: cost || 0 }, {
     surRefus: (v) => {
       if (v.raison !== 'inventaire_plein') return false;
-      showToast('Inventaire plein', 'Libérez de la place avant d\'acheter.', false); return true;
+      showToast('Inventaire plein', 'Libérez de la place avant d\'acheter.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b313cf3fa", 'Libérez de la place avant d\'acheter.', undefined, 'Inventaire plein'); return true;
     }
   });
 }

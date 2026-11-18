@@ -221,7 +221,7 @@ async function vehVendreMatiere(entreprise, matiere) {
 
 async function ouvrirGarageRevision(utiliserCache=false) {
   const l = utiliserCache && VEH_LECTURE ? VEH_LECTURE : await vehLire(); if (!l) return;
-  if (!l.ici || l.ici.type !== 'garage') { showToast('Garage', 'Présentez-vous au comptoir d’un garage.', false); return; }
+  if (!l.ici || l.ici.type !== 'garage') { showToast('Garage', 'Présentez-vous au comptoir d’un garage.', false); globalThis.RPI18nPlateau?.markToast("vehicleGarage.garageVisit", 'Présentez-vous au comptoir d’un garage.', undefined, 'Garage'); return; }
   const cur = vehMonnaie();
   const prix = l.ici.proprietaire === 'PNJ' || !l.ici.prix?.revision_vehicule ? 500 : l.ici.prix.revision_vehicule;
   let html = '<p class="cpj-note">'+vehTH('revisionNote','Une révision tous les 10 trajets. Au-delà, le risque de panne grimpe ; au 15e trajet, le véhicule ne démarre plus. Révision : {price} {currency}.',{price:vehNombre(prix),currency:cur})+'</p>';

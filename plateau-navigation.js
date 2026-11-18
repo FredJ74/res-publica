@@ -357,7 +357,7 @@ async function commanderNavigationInterieure(buildingId,roomId) {
         ||new Set(r.positions.map(p=>p.name)).size!==r.positions.length
         ||!r.positions.every(p=>r.membres.includes(p.name)&&p.country===state.country&&p.city===state.currentCity
           &&p.building===buildingId&&p.room===roomId&&p.street===null))){
-      if(typeof showToast==='function')showToast('Déplacement non confirmé','La composition et les positions du groupe ne sont pas confirmées.',false);
+      if(typeof showToast==='function'){ showToast('Déplacement non confirmé','La composition et les positions du groupe ne sont pas confirmées.',false); globalThis.RPI18nPlateau?.markToast("toastBodies.b8b029f7e", 'La composition et les positions du groupe ne sont pas confirmées.', undefined, 'Déplacement non confirmé'); }
       return false;
     }
     if(moi?.updated_at)state._dernierUpdatedAtConnu=moi.updated_at;
@@ -452,7 +452,7 @@ function enterBuilding(buildingId, skipAutoRoom) {
 
   // Verrou : hospitalisation — jour 1 uniquement, aucun deplacement sauf transfert vers la clinique privee
   if (!positionServeurConfirmee&&state.hospitalisation && joursEcoulesHospitalisation() === 1 && buildingId !== batimentHospitalisation() && buildingId !== 'clinique-privee') {
-    showToast('Hospitalisé(e)', 'Vous êtes encore trop faible pour vous déplacer aujourd\'hui. Seul un transfert vers une clinique privée est possible.', false);
+    showToast('Hospitalisé(e)', 'Vous êtes encore trop faible pour vous déplacer aujourd\'hui. Seul un transfert vers une clinique privée est possible.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b936d2253", 'Vous êtes encore trop faible pour vous déplacer aujourd\'hui. Seul un transfert vers une clinique privée est possible.', undefined, 'Hospitalisé(e)');
     return;
   }
 
@@ -473,7 +473,7 @@ function enterBuilding(buildingId, skipAutoRoom) {
   }
 
   if (!positionServeurConfirmee&&b.locked) {
-    showToast('Accès restreint', "Vous n'êtes pas membre de cet établissement.", false);
+    showToast('Accès restreint', "Vous n'êtes pas membre de cet établissement.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b4923405c", "Vous n'êtes pas membre de cet établissement.", undefined, 'Accès restreint');
     addJournalEntry("Vous tentez d'entrer mais l'accès vous est refusé.", 'event-bad');
     return;
   }
@@ -487,7 +487,7 @@ function enterBuilding(buildingId, skipAutoRoom) {
     const estMembre = loge?.membres?.some(m => m.nom === state.char?.name);
     if (!estMembre) {
       if (typeof doLogePortail === 'function') doLogePortail();
-      else showToast('Accès refusé', "Vous devez être membre d'une loge pour entrer ici.", false);
+      else { showToast('Accès refusé', "Vous devez être membre d'une loge pour entrer ici.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.be582358e", "Vous devez être membre d'une loge pour entrer ici.", undefined, 'Accès refusé'); }
       return;
     }
   }
@@ -769,7 +769,7 @@ function enterRoom(buildingId, roomId, tabEl) {
   }
   // Verrou : hospitalisation — jour 1 uniquement, reste dans sa chambre
   if (!positionServeurConfirmee&&state.hospitalisation && joursEcoulesHospitalisation() === 1 && buildingId !== batimentHospitalisation()) {
-    showToast('Hospitalisé(e)', 'Vous êtes encore alité(e) aujourd\'hui.', false);
+    showToast('Hospitalisé(e)', 'Vous êtes encore alité(e) aujourd\'hui.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bc681adc2", 'Vous êtes encore alité(e) aujourd\'hui.', undefined, 'Hospitalisé(e)');
     return;
   }
   // Vérifier accès zone embarquement
@@ -803,7 +803,7 @@ function enterRoom(buildingId, roomId, tabEl) {
   if (!positionServeurConfirmee&&buildingId === 'clinique-privee' && /^chambre_(?:[1-9]|10)$/.test(roomId)) {
     const locChambre = (typeof getLocationPourRoom === 'function') ? getLocationPourRoom(buildingId, roomId, 'capitale') : null;
     if (locChambre && locChambre.locataire !== state.char?.name && locChambre.visitesAutorisees === false) {
-      showToast('Visite refusée', 'Le patient de cette chambre a interdit les visites pour le moment.', false);
+      showToast('Visite refusée', 'Le patient de cette chambre a interdit les visites pour le moment.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b4af1197d", 'Le patient de cette chambre a interdit les visites pour le moment.', undefined, 'Visite refusée');
       return;
     }
   }
@@ -1532,7 +1532,7 @@ async function declencherEntreeZone(buildingId, roomId, zonePrecedente) {
     try {
       const g = await sbGardeControle(buildingId, roomId);
       if (g && g.intervention === true && typeof verifierArrestationRecherchePolice === 'function') {
-        showToast('Garde republicaine', 'Les gardes du poste vous ont reconnu(e).', false, true);
+        showToast('Garde republicaine', 'Les gardes du poste vous ont reconnu(e).', false, true); globalThis.RPI18nPlateau?.markToast("toastBodies.ba5fc4bcf", 'Les gardes du poste vous ont reconnu(e).', undefined, 'Garde republicaine');
         // Le jet de surveillance est deja lance a l'entree dans cette piece.
         // Ne pas le relancer ici : un seul jet par rencontre avec le garde.
       }
@@ -1566,7 +1566,7 @@ function afficherContactsDetectes(r) {
       ? ((typeof COUNTRIES !== 'undefined' && COUNTRIES[c.nationalite]?.n) || c.nationalite)
       : 'nationalité incertaine';
     if (typeof showToast === 'function') {
-      showToast('Troupes repérées', c.libelle + ' — ' + ou + ' (' + qui + ').', true, true);
+      showToast('Troupes repérées', c.libelle + ' — ' + ou + ' (' + qui + ').', true, true); globalThis.RPI18nPlateau?.markToast(null, c.libelle + ' — ' + ou + ' (' + qui + ').', undefined, 'Troupes repérées');
     }
     if (typeof addJournalEntry === 'function') {
       addJournalEntry('Reconnaissance : ' + c.libelle + ' repéré(s) — ' + ou + '.', 'event-info');
@@ -1601,7 +1601,7 @@ function checkZoneEmbarquementAcces(buildingId, roomId) {
   if(state._navigationServeur===true)return true;
   // Verrouiller la zone embarquement si douane non passée
   if (roomId === 'zone_embarquement' && !state.douanePassee) {
-    showToast('Accès refusé', 'Vous devez d\'abord passer le contrôle douanier.', false);
+    showToast('Accès refusé', 'Vous devez d\'abord passer le contrôle douanier.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.baf237826", 'Vous devez d\'abord passer le contrôle douanier.', undefined, 'Accès refusé');
     return false;
   }
   return true;
@@ -1765,7 +1765,7 @@ async function sortirBatiment() {
   }
   if(!contexteNavigationRueValide(contexteSortie))return;
   if(typeof interceptionJudiciaireBloqueDeplacement==='function'&&interceptionJudiciaireBloqueDeplacement())return;
-  if(state.estEmprisonne){showToast('Emprisonné(e)','Votre détention interdit cette sortie.',false);return;}
+  if(state.estEmprisonne){showToast('Emprisonné(e)','Votre détention interdit cette sortie.',false); globalThis.RPI18nPlateau?.markToast("toastBodies.b30293c8d", 'Votre détention interdit cette sortie.', undefined, 'Emprisonné(e)');return;}
 
   state.douanePassee = false;
   state.currentBuilding = null;
@@ -2803,7 +2803,7 @@ async function adopterPositionServeurRelue() {
  const frais=await sbLoadPersonnage(c.nom).catch(()=>null);
  if(!contexteNavigationRueValide(c))return false;
  if(!frais||(c.uid&&frais.userId!==c.uid)){
-  showToast('Position à resynchroniser','Le déplacement est enregistré ; rechargez la position serveur.',false);return false;}
+  showToast('Position à resynchroniser','Le déplacement est enregistré ; rechargez la position serveur.',false); globalThis.RPI18nPlateau?.markToast("toastBodies.be8b06ec0", 'Le déplacement est enregistré ; rechargez la position serveur.', undefined, 'Position à resynchroniser');return false;}
  afficherPositionNavigationConfirmee(frais);
  return true;
 }
@@ -2816,18 +2816,18 @@ async function commanderDouanesServeur() {
  try {
   let requete;
   try{requete=localStorage.getItem(cle);if(!requete){requete=crypto.randomUUID();localStorage.setItem(cle,requete);}}
-  catch(_){showToast('Contrôle non confirmé','Le reçu ne peut pas être conservé. Aucun contrôle envoyé.',false);return false;}
+  catch(_){showToast('Contrôle non confirmé','Le reçu ne peut pas être conservé. Aucun contrôle envoyé.',false); globalThis.RPI18nPlateau?.markToast("toastBodies.bb0e5d4b7", 'Le reçu ne peut pas être conservé. Aucun contrôle envoyé.', undefined, 'Contrôle non confirmé');return false;}
   const v=await sbRpcVerdict('douane_controle_groupe',{p_mode:'avion',p_requete:requete},
    {encoreValide:()=>contexteNavigationRueValide(c)}).catch(()=>null);
   if(!contexteNavigationRueValide(c))return false;
-  if(!v||v.transport){showToast('Contrôle non confirmé','La réponse est incertaine. Réessayez avec le même reçu.',false);return false;}
+  if(!v||v.transport){showToast('Contrôle non confirmé','La réponse est incertaine. Réessayez avec le même reçu.',false); globalThis.RPI18nPlateau?.markToast("toastBodies.b69e4858f", 'La réponse est incertaine. Réessayez avec le même reçu.', undefined, 'Contrôle non confirmé');return false;}
   if(Array.isArray(v.inventory)&&typeof sbAdopterInventaireServeur==='function'&&!sbAdopterInventaireServeur(v))return false;
   try{localStorage.removeItem(cle);}catch(_){}
   if(v.ok!==true){
    // #433 : à l'aéroport, un recherché détecté par les douaniers entre dans l'interception
    // commune (combat, fuite, reddition) au lieu d'une arrestation décidée d'office.
    if(v.interception===true&&typeof reprendreInterceptionJudiciaireServeur==='function'){
-    showToast('Contrôle douanier','Les douaniers vous ont reconnu(e).',false);
+    showToast('Contrôle douanier','Les douaniers vous ont reconnu(e).',false); globalThis.RPI18nPlateau?.markToast("toastBodies.b9ea38abd", 'Les douaniers vous ont reconnu(e).', undefined, 'Contrôle douanier');
     await reprendreInterceptionJudiciaireServeur();return false;
    }
    if(v.arrestation){
@@ -2839,7 +2839,7 @@ async function commanderDouanesServeur() {
     v.raison==='controle_a_renouveler'?'Un nouveau contrôle est nécessaire. Réessayez.':'Le serveur refuse ce contrôle : '+(v.raison||'état indisponible')+'.',false);return false;
   }
   const entre=await commanderNavigationInterieure(c.batiment,'zone_embarquement');
-  if(entre===true)showToast('Contrôle confirmé','Le serveur a autorisé l’embarquement du groupe.',true);
+  if(entre===true){ showToast('Contrôle confirmé','Le serveur a autorisé l’embarquement du groupe.',true); globalThis.RPI18nPlateau?.markToast("toastBodies.b24a5d6af", 'Le serveur a autorisé l’embarquement du groupe.', undefined, 'Contrôle confirmé'); }
   return entre===true;
  } finally {if(douanesServeurEnCours===c)douanesServeurEnCours=null;}
 }
@@ -2851,7 +2851,7 @@ async function commanderTransportServeur(mode,pays,ville) {
  try {
   let requete;
   try{requete=localStorage.getItem(cle);if(!requete){requete=crypto.randomUUID();localStorage.setItem(cle,requete);}}
-  catch(_){showToast('Voyage non confirmé','Le reçu du voyage ne peut pas être conservé. Aucun paiement envoyé.',false);return false;}
+  catch(_){showToast('Voyage non confirmé','Le reçu du voyage ne peut pas être conservé. Aucun paiement envoyé.',false); globalThis.RPI18nPlateau?.markToast("toastBodies.b0d12ec33", 'Le reçu du voyage ne peut pas être conservé. Aucun paiement envoyé.', undefined, 'Voyage non confirmé');return false;}
   const v=await sbRpcVerdict('transport_effectuer',{p_mode:mode,p_pays:pays,p_ville:ville,p_requete:requete},
     {encoreValide:()=>contexteNavigationRueValide(c)}).catch(()=>null);
   if(!contexteNavigationRueValide(c))return false;
@@ -2875,10 +2875,10 @@ async function commanderTransportServeur(mode,pays,ville) {
    international&&typeof sbInventaireReceptionEtat==='function'?sbInventaireReceptionEtat(c.nom).catch(()=>null):null]);
   if(!contexteNavigationRueValide(c))return false;
   if(!frais||frais.userId!==c.uid||!Array.isArray(comptes)||frais.country!==pays||frais.currentCity!==ville||frais.currentBuilding!==v.building||frais.currentRoom!==v.room){
-   showToast('Voyage enregistré','La position doit encore être relue. Aucun second paiement ne sera envoyé pour ce reçu.',false);return false;
+   showToast('Voyage enregistré','La position doit encore être relue. Aucun second paiement ne sera envoyé pour ce reçu.',false); globalThis.RPI18nPlateau?.markToast("toastBodies.b711f2e2b", 'La position doit encore être relue. Aucun second paiement ne sera envoyé pour ce reçu.', undefined, 'Voyage enregistré');return false;
   }
   if(international&&(!inventaire||inventaire.ok!==true||typeof sbAdopterInventaireServeur!=='function'||!sbAdopterInventaireServeur(inventaire))){
-   showToast('Voyage enregistré','L’inventaire doit encore être relu. Le reçu empêche un second paiement.',false);return false;
+   showToast('Voyage enregistré','L’inventaire doit encore être relu. Le reçu empêche un second paiement.',false); globalThis.RPI18nPlateau?.markToast("toastBodies.b2de5982e", 'L’inventaire doit encore être relu. Le reçu empêche un second paiement.', undefined, 'Voyage enregistré');return false;
   }
   if(typeof appliquerPaiementServeur==='function')appliquerPaiementServeur({ok:true,pa:frais.pa,liquide:frais.liquide,arg:frais.arg});
   if(typeof construireMapComptesBancaires==='function')state.comptesBancaires=construireMapComptesBancaires(comptes);
@@ -2943,15 +2943,15 @@ async function commanderCorruptionDouanesServeur(pa,cost) {
  try {
   let requete;
   try{requete=localStorage.getItem(cle);if(!requete){requete=crypto.randomUUID();localStorage.setItem(cle,requete);}}
-  catch(_){showToast('Tentative non envoyée','Le reçu ne peut pas être conservé.',false);return false;}
+  catch(_){showToast('Tentative non envoyée','Le reçu ne peut pas être conservé.',false); globalThis.RPI18nPlateau?.markToast("toastBodies.b0e5af16e", 'Le reçu ne peut pas être conservé.', undefined, 'Tentative non envoyée');return false;}
   const v=await sbRpcVerdict('crime_corrompre_douanier',{p_pa:pa,p_cost:cost,p_requete:requete},
    {encoreValide:()=>contexteNavigationRueValide(c)}).catch(()=>null);
   if(!contexteNavigationRueValide(c))return false;
-  if(!v||v.transport){showToast('Tentative non confirmée','La réponse est incertaine. Le même reçu empêchera un nouveau paiement.',false);return false;}
+  if(!v||v.transport){showToast('Tentative non confirmée','La réponse est incertaine. Le même reçu empêchera un nouveau paiement.',false); globalThis.RPI18nPlateau?.markToast("toastBodies.bdba8b841", 'La réponse est incertaine. Le même reçu empêchera un nouveau paiement.', undefined, 'Tentative non confirmée');return false;}
   if(v.ok!==true){try{localStorage.removeItem(cle);}catch(_){}showToast('Tentative refusée',v.raison||'Le serveur refuse cette tentative.',false);return false;}
   const [frais,comptes]=await Promise.all([sbLoadPersonnage(c.nom).catch(()=>null),sbGetComptesBancaires(c.nom).catch(()=>null)]);
   if(!contexteNavigationRueValide(c))return false;
-  if(frais?.userId!==c.uid||!Array.isArray(comptes)){showToast('Tentative enregistrée','Les soldes doivent encore être relus. Le reçu est conservé.',false);return false;}
+  if(frais?.userId!==c.uid||!Array.isArray(comptes)){showToast('Tentative enregistrée','Les soldes doivent encore être relus. Le reçu est conservé.',false); globalThis.RPI18nPlateau?.markToast("toastBodies.b660bfd05", 'Les soldes doivent encore être relus. Le reçu est conservé.', undefined, 'Tentative enregistrée');return false;}
   if(typeof appliquerPaiementServeur==='function')appliquerPaiementServeur({ok:true,pa:frais.pa,liquide:frais.liquide,arg:frais.arg});
   if(typeof construireMapComptesBancaires==='function')state.comptesBancaires=construireMapComptesBancaires(comptes);
   if(typeof frais.dis==='number')state.dis=frais.dis;
@@ -2959,7 +2959,7 @@ async function commanderCorruptionDouanesServeur(pa,cost) {
   try{localStorage.removeItem(cle);}catch(_){}
   if(typeof adopterDetectionServeur==='function')adopterDetectionServeur(v,'corrompre_douanier');
   if(v.reussi===true)return await commanderDouanesServeur();
-  showToast('Tentative échouée','Le serveur a refusé la corruption. Le coût de la tentative a été prélevé.',false);
+  showToast('Tentative échouée','Le serveur a refusé la corruption. Le coût de la tentative a été prélevé.',false); globalThis.RPI18nPlateau?.markToast("toastBodies.b7ca32d47", 'Le serveur a refusé la corruption. Le coût de la tentative a été prélevé.', undefined, 'Tentative échouée');
   if(typeof updateUI==='function')updateUI();
   return false;
  } finally {if(corruptionDouanesServeurEnCours===c)corruptionDouanesServeurEnCours=null;}
@@ -2982,10 +2982,10 @@ async function doContrebandePort(pa, cost) {
   if (!v || v.ok !== true) { signalerRefusCout(v || { raison: 'paiement_indisponible' }); return; }
   adopterEtatCrimeServeur(v);
   if (v.reussi) {
-    showToast('Contrebande réussie !', 'Cargaison ajoutée à votre inventaire. -5 DIS.', true, true);
+    showToast('Contrebande réussie !', 'Cargaison ajoutée à votre inventaire. -5 DIS.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b1b17c880", 'Cargaison ajoutée à votre inventaire. -5 DIS.', undefined, 'Contrebande réussie !');
     addJournalEntry('Contrebande portuaire réussie.', 'event-bad');
   } else {
-    showToast('Échec !', 'La douane a repéré la manœuvre.', false);
+    showToast('Échec !', 'La douane a repéré la manœuvre.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bf4e666fe", 'La douane a repéré la manœuvre.', undefined, 'Échec !');
   }
   adopterDetectionServeur(v, 'contrebande_port');
   updateUI();
@@ -2997,7 +2997,7 @@ async function doBlocusPortuaire(pa, cost) {
   // portuaire ne créait aucun blocus serveur et fabriquait un malus POP.
   // Le formulaire existant prépare la commande canonique, sans prélèvement ici.
   if (typeof doOrganiserBlocusSyndical !== 'function') {
-    showToast('Blocus indisponible', 'Le formulaire syndical n’est pas disponible.', false);
+    showToast('Blocus indisponible', 'Le formulaire syndical n’est pas disponible.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b4ce525a7", 'Le formulaire syndical n’est pas disponible.', undefined, 'Blocus indisponible');
     return;
   }
   return doOrganiserBlocusSyndical();
@@ -3011,20 +3011,20 @@ async function doInspecterCargaisons(pa, cost) {
   updateUI();
   if (v.rejeu === true) {
     showToast('Inspection déjà traitée',
-      'Le serveur a déjà enregistré cette inspection. Aucun nouveau coût ni gain.', true);
+      'Le serveur a déjà enregistré cette inspection. Aucun nouveau coût ni gain.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.b9246394d", 'Le serveur a déjà enregistré cette inspection. Aucun nouveau coût ni gain.', undefined, 'Inspection déjà traitée');
     return;
   }
   if (v.inspection_reussie === true) {
     if (v.contrebande_detectee === true) {
       showToast('Contrebande détectée !',
-        'Une cargaison suspecte a été repérée. +5 INF. Ouvrir une enquête ?', true, true);
+        'Une cargaison suspecte a été repérée. +5 INF. Ouvrir une enquête ?', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.bc436dff2", 'Une cargaison suspecte a été repérée. +5 INF. Ouvrir une enquête ?', undefined, 'Contrebande détectée !');
       addExternalEvent('INSPECTION : Contrebande détectée au port par ' +
         (state.char?.name || 'Anonyme') + '. Enquête en cours.');
     } else {
-      showToast('Inspection terminée', 'Rien d’anormal. +5 INF.', true);
+      showToast('Inspection terminée', 'Rien d’anormal. +5 INF.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.b9da6b067", 'Rien d’anormal. +5 INF.', undefined, 'Inspection terminée');
     }
   } else {
-    showToast('Inspection sans résultat', 'Rien à signaler. -3 INF.', false);
+    showToast('Inspection sans résultat', 'Rien à signaler. -3 INF.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bfa52a3d7", 'Rien à signaler. -3 INF.', undefined, 'Inspection sans résultat');
   }
 }
 

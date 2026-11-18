@@ -339,13 +339,13 @@ async function assembleeControlerVenteLegale(objets) {
     ? await sbAssembleeVerifierVente(objets || [], pays).catch(() => null)
     : null;
   if (!res) {
-    showToast('Vente impossible', 'La légalité de cette marchandise n\'a pas pu être vérifiée. Rien n\'a été débité.', false);
+    showToast('Vente impossible', 'La légalité de cette marchandise n\'a pas pu être vérifiée. Rien n\'a été débité.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bf1cf27d4", 'La légalité de cette marchandise n\'a pas pu être vérifiée. Rien n\'a été débité.', undefined, 'Vente impossible');
     return false;
   }
   if (res.ok === false) {
     const loi = res.interdits && res.interdits[0] && res.interdits[0].loi;
     if (!loi) {
-      showToast('Vente impossible', 'La légalité de cette marchandise n\'a pas pu être vérifiée. Rien n\'a été débité.', false);
+      showToast('Vente impossible', 'La légalité de cette marchandise n\'a pas pu être vérifiée. Rien n\'a été débité.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bf1cf27d4", 'La légalité de cette marchandise n\'a pas pu être vérifiée. Rien n\'a été débité.', undefined, 'Vente impossible');
       return false;
     }
     showToast('Vente interdite', 'Cette marchandise est interdite à la vente par la loi « ' + (loi.titre || '?') + ' ».', false);
@@ -379,7 +379,7 @@ async function assembleeSignalerAchatIllegal(circuit, ref) {
     if (!state.convocations) state.convocations = [];
     if (!state.convocations.some(c => c && c.id === a.convocation.id)) state.convocations.push(a.convocation);
     showToast('Convocation reçue',
-      'Votre transaction a été repérée. Présentez-vous au commissariat sous 36 h.', false, true);
+      'Votre transaction a été repérée. Présentez-vous au commissariat sous 36 h.', false, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b3fb46215", 'Votre transaction a été repérée. Présentez-vous au commissariat sous 36 h.', undefined, 'Convocation reçue');
     addJournalEntry('Convocation au commissariat : transaction sur marchandise interdite.', 'event-bad');
   }
   if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
@@ -881,7 +881,7 @@ function sebLexReinitialiser() {
 
 function ouvrirDeposerProposition(pa, cost) {
   if (!assembleePeutDeposer()) {
-    showToast('Accès refusé', ASSEMBLEE_RAISONS.ineligible, false);
+    showToast('Accès refusé', ASSEMBLEE_RAISONS.ineligible, false); globalThis.RPI18nPlateau?.markToast(null, ASSEMBLEE_RAISONS.ineligible, undefined, 'Accès refusé');
     return;
   }
   sebLexReinitialiser();
@@ -1064,7 +1064,7 @@ async function sebLexConsulter(message) {
 // qualification pour le circuit parlementaire existant -- qui, lui, ne change pas.
 async function sebLexValiderProjet() {
   if (!SEBLEX || !SEBLEX.projet) return;
-  if (!assembleePeutDeposer()) { showToast('Accès refusé', ASSEMBLEE_RAISONS.ineligible, false); return; }
+  if (!assembleePeutDeposer()) { showToast('Accès refusé', ASSEMBLEE_RAISONS.ineligible, false); globalThis.RPI18nPlateau?.markToast(null, ASSEMBLEE_RAISONS.ineligible, undefined, 'Accès refusé'); return; }
   if (typeof sbAssembleeDeposerProjet !== 'function') { assembleeIndisponible(); return; }
   const p = SEBLEX.projet;
 
@@ -1073,12 +1073,12 @@ async function sebLexValiderProjet() {
     // Le serveur forge lui-meme le titre « Abrogation — <loi cible> » : on ne le
     // lui dicte pas.
     type = 'abrogation'; titre = null; categorie = null; portee = null; cible = p.loi_cible;
-    if (!cible) { showToast('Loi introuvable', 'La loi à abroger n\'a pas été identifiée.', false); return; }
+    if (!cible) { showToast('Loi introuvable', 'La loi à abroger n\'a pas été identifiée.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b05f736de", 'La loi à abroger n\'a pas été identifiée.', undefined, 'Loi introuvable'); return; }
   } else if (p.nature === 'declarative') {
     type = 'rp'; titre = p.titre; categorie = null; portee = null; cible = null;
   } else {
     type = 'mecanique'; titre = p.titre; categorie = p.categorie; portee = p.portee; cible = null;
-    if (!categorie) { showToast('Projet incomplet', 'L\'objet de cette interdiction n\'a pas été fixé. Reprenez la consultation.', false); return; }
+    if (!categorie) { showToast('Projet incomplet', 'L\'objet de cette interdiction n\'a pas été fixé. Reprenez la consultation.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bb8a3d6d1", 'L\'objet de cette interdiction n\'a pas été fixé. Reprenez la consultation.', undefined, 'Projet incomplet'); return; }
   }
 
   const r = await assembleeActionServeur(function (rq) {
@@ -1139,7 +1139,7 @@ function loisANEcheanceLisible(l) {
 async function ouvrirLoisVoteesAN() {
   // Le grisage cote client n'est qu'une politesse : la RPC revalide le poste.
   if (state.poste?.id !== 'min_int') {
-    showToast('Accès refusé', 'Réservé au Ministre de l\'Intérieur.', false);
+    showToast('Accès refusé', 'Réservé au Ministre de l\'Intérieur.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b7e046c0b", 'Réservé au Ministre de l\'Intérieur.', undefined, 'Accès refusé');
     return;
   }
   if (typeof sbAssembleeRegistreExecution !== 'function') { assembleeIndisponible(); return; }
@@ -1368,7 +1368,7 @@ function assembleeOuvrirSaisieAmendement(propId) {
 async function confirmerAmendement(propId) {
   if (typeof sbAssembleeAmender !== 'function') { assembleeIndisponible(); return; }
   const texte = document.getElementById('amd-texte')?.value?.trim();
-  if (!texte) { showToast('Champs requis', 'Le texte de l\'amendement est obligatoire.', false); return; }
+  if (!texte) { showToast('Champs requis', 'Le texte de l\'amendement est obligatoire.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b83cd3ef5", 'Le texte de l\'amendement est obligatoire.', undefined, 'Champs requis'); return; }
 
   // Idempotent par requete : un double-clic n'ajoute jamais deux amendements.
   const r = await assembleeActionServeur(rq => sbAssembleeAmender(state.char?.name, propId, texte, rq));
@@ -1440,7 +1440,7 @@ async function ouvrirVoterLoi(pa, cost) {
   await rafraichirAssemblee();
   const monSiege = assembleeMonSiege();
   if (!monSiege) {
-    showToast('Accès refusé', ASSEMBLEE_RAISONS.pas_depute, false);
+    showToast('Accès refusé', ASSEMBLEE_RAISONS.pas_depute, false); globalThis.RPI18nPlateau?.markToast(null, ASSEMBLEE_RAISONS.pas_depute, undefined, 'Accès refusé');
     return;
   }
 
@@ -1713,12 +1713,12 @@ async function ouvrirMarchanderVote(pa, cost) {
   if (!sessions) { assembleeIndisponible(); return; }
 
   if (!sessions.length) {
-    showToast('Aucune session', 'Aucun projet n\'est en session : il n\'y a rien à marchander.', false);
+    showToast('Aucune session', 'Aucun projet n\'est en session : il n\'y a rien à marchander.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b1fb4d25a", 'Aucun projet n\'est en session : il n\'y a rien à marchander.', undefined, 'Aucune session');
     return;
   }
   const pnjs = occ.filter(o => o.estPnj);
   if (!pnjs.length) {
-    showToast('Aucune cible', 'Les neuf sièges sont tenus par des joueurs. Aucun député PNJ à convaincre.', false);
+    showToast('Aucune cible', 'Les neuf sièges sont tenus par des joueurs. Aucun député PNJ à convaincre.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.baca0e6da", 'Les neuf sièges sont tenus par des joueurs. Aucun député PNJ à convaincre.', undefined, 'Aucune cible');
     return;
   }
 
@@ -1763,7 +1763,7 @@ async function confirmerMarchanderVote() {
   const propId    = document.getElementById('mar-projet')?.value;
   const siegeId   = document.getElementById('mar-siege')?.value;
   const intention = document.getElementById('mar-intention')?.value;
-  if (!propId || !siegeId || !intention) { showToast('Choix incomplet', 'Sélectionnez un projet, un député et une intention.', false); return; }
+  if (!propId || !siegeId || !intention) { showToast('Choix incomplet', 'Sélectionnez un projet, un député et une intention.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b827a8cfe", 'Sélectionnez un projet, un député et une intention.', undefined, 'Choix incomplet'); return; }
 
   const cur = (typeof COUNTRIES !== 'undefined' && COUNTRIES[state.country]?.cur) || 'FR';
 
@@ -1808,7 +1808,7 @@ async function doConsulterLobbyiste(pa, cost) {
   const coutFR = ASSEMBLEE_LOBBYISTE_COUT;
 
   if (assembleeBonusLobbyiste() > 0) {
-    showToast('Déjà acquis', 'Le lobbyiste vous a déjà promis son appui pour votre prochain marchandage.', false);
+    showToast('Déjà acquis', 'Le lobbyiste vous a déjà promis son appui pour votre prochain marchandage.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bf5f7da0c", 'Le lobbyiste vous a déjà promis son appui pour votre prochain marchandage.', undefined, 'Déjà acquis');
     return;
   }
   if (typeof sbAssembleeConsulterLobbyiste !== 'function') { assembleeIndisponible(); return; }
@@ -1867,7 +1867,7 @@ async function doAcheterSelsAmmoniaque(pa, cost) {
 async function confirmerAcheterSels(pa) {
   const qte = Number(document.getElementById('sels-qte')?.value || 1);
   if (!Number.isInteger(qte) || qte < 1 || qte > 20) {
-    showToast('Quantité invalide', 'Choisissez de 1 à 20 flacons.', false); return;
+    showToast('Quantité invalide', 'Choisissez de 1 à 20 flacons.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bc41cea45", 'Choisissez de 1 à 20 flacons.', undefined, 'Quantité invalide'); return;
   }
   const v = await executerReceptionInventaire('sels_ammoniaque_acheter', { p_quantite: qte, p_pa: pa || 0 });
   if (!v) return;
@@ -1917,7 +1917,7 @@ async function confirmerReveillerDepute(siegeId) {
   // jamais deux flacons pour un seul reveil.
   await rafraichirAssemblee();
   const occ = assembleeOccupationSiege(siegeId);
-  if (!occ || !occ.estPnj) { showToast('Sans objet', 'Ce siège n\'est pas tenu par un député PNJ.', false); return; }
+  if (!occ || !occ.estPnj) { showToast('Sans objet', 'Ce siège n\'est pas tenu par un député PNJ.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bb6c7c4e7", 'Ce siège n\'est pas tenu par un député PNJ.', undefined, 'Sans objet'); return; }
   if (!occ.endormi)        { showToast('Déjà réveillé', siege.nom + ' est parfaitement éveillé.', false); return; }
   if (assembleeNbSels() <= 0) { showToast('Sels manquants', ASSEMBLEE_RAISONS.sels_manquants, false); return; }
 
@@ -2112,7 +2112,7 @@ async function verserIndemniteParlementaire() {
       true);
     addJournalEntry('Indemnité parlementaire perçue : ' + montant + ' ' + cur + '.', 'event-good');
   } else {
-    showToast('Indemnité impayée', 'La caisse de l\'Assemblée est vide aujourd\'hui.', false);
+    showToast('Indemnité impayée', 'La caisse de l\'Assemblée est vide aujourd\'hui.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b27795790", 'La caisse de l\'Assemblée est vide aujourd\'hui.', undefined, 'Indemnité impayée');
     addJournalEntry('Aucune indemnité parlementaire : caisse de l\'Assemblée vide.', 'event-bad');
   }
   updateUI();

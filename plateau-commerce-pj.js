@@ -1319,7 +1319,7 @@ async function commercePjProduireLots(referenceId) {
   const lots  = Math.max(1, Math.min(99, Math.floor(Number(champ && champ.value) || 1)));
   commercePjMessage(referenceId, tCommercePJ('commercepj.prod.enCours'), true);
   const ctx = await commercePjContexte();
-  if(!ctx.jeSuisProprietaire&&!commercePeutProduire(ctx.fonds)){showToast('Production non autorisée','Vous n’êtes pas habilité à produire ici.',false);return;}
+  if(!ctx.jeSuisProprietaire&&!commercePeutProduire(ctx.fonds)){showToast('Production non autorisée','Vous n’êtes pas habilité à produire ici.',false); globalThis.RPI18nPlateau?.markToast("toastBodies.bfa14b11c", 'Vous n’êtes pas habilité à produire ici.', undefined, 'Production non autorisée');return;}
   if (!commercePjTransactionActive(tx)) return;
   // UNE SEULE CLE POUR TOUTE LA COMMANDE : un double clic rejoue la meme cle et ne
   // produit donc pas une seconde fois les memes lots.
@@ -1617,7 +1617,7 @@ async function commercePjProduire(referenceId, requete, origine) {
   return commercePjTransaction('production', async (tx) => {
   const ctx = await commercePjContexte();
   if (!commercePjTransactionActive(tx)) return;
-  if (!ctx.jeSuisProprietaire && !commercePeutProduire(ctx.fonds)) { showToast('Production non autorisée', 'Vous n’êtes pas habilité à produire ici.', false); return; }
+  if (!ctx.jeSuisProprietaire && !commercePeutProduire(ctx.fonds)) { showToast('Production non autorisée', 'Vous n’êtes pas habilité à produire ici.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bfa14b11c", 'Vous n’êtes pas habilité à produire ici.', undefined, 'Production non autorisée'); return; }
   const r = await sbFondsReferenceProduire(requete, state.char.name, ctx.fondsId, referenceId);
   if (!commercePjTransactionActive(tx)) return;
   if (!r || !r.ok) { showToast('—', commercePjRefus(r), false); return; }
@@ -1833,7 +1833,7 @@ async function commercePjEcranBoutique(ctx) {
 async function commercePjEcranTravail(ctx) {
   commercePjChargement(tCommercePJ('commercepj.travail.titre'));
   if (!ctx || !ctx.fonds) ctx = await commercePjContexte();
-  if(!ctx.jeSuisProprietaire&&!commercePeutProduire(ctx.fonds)){showToast('Production non autorisée','Vous n’êtes pas habilité à produire ici.',false);return;}
+  if(!ctx.jeSuisProprietaire&&!commercePeutProduire(ctx.fonds)){showToast('Production non autorisée','Vous n’êtes pas habilité à produire ici.',false); globalThis.RPI18nPlateau?.markToast("toastBodies.bfa14b11c", 'Vous n’êtes pas habilité à produire ici.', undefined, 'Production non autorisée');return;}
   const f = ctx.fonds || {}, cur = commercePjDevise();
   const refs = f.references || {}, stocks = f.stockReferences || {};
   const maxis = (f.parametres || {}).stockMaxReferences || {};
@@ -2179,8 +2179,8 @@ async function commercePjTransaction(action, executer) {
   RP_CPJ_TRANSACTIONS.add(cle);
   try { return await executer(tx); }
   catch (e) {
-    if (commercePjTransactionActive(tx)) showToast('Réponse indisponible',
-      'Vérifiez l’état du commerce avant de réessayer.', false);
+    if (commercePjTransactionActive(tx)) { showToast('Réponse indisponible',
+      'Vérifiez l’état du commerce avant de réessayer.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b630e052a", 'Vérifiez l’état du commerce avant de réessayer.', undefined, 'Réponse indisponible'); }
   } finally { RP_CPJ_TRANSACTIONS.delete(cle); }
 }
 async function commercePjActualiserPersonnage(options = {}) {
@@ -2228,7 +2228,7 @@ async function commercePjAcheter(referenceId, requete) {
   return commercePjTransaction('achat', async (tx) => {
   const payeur=document.getElementById('cpj-payeur-collectif')?.value||'';
   const collectif=payeur.startsWith('orga:');
-  if(collectif){showToast('Équipements collectifs indisponibles','Le paiement par une organisation n’est pas encore activé.',false);return;}
+  if(collectif){showToast('Équipements collectifs indisponibles','Le paiement par une organisation n’est pas encore activé.',false); globalThis.RPI18nPlateau?.markToast("toastBodies.ba6725041", 'Le paiement par une organisation n’est pas encore activé.', undefined, 'Équipements collectifs indisponibles');return;}
   const ctx = await commercePjContexte();
   if (!commercePjTransactionActive(tx)) return;
   const qte = Math.max(1, Math.floor(Number((document.getElementById('cpj-qte') || {}).value) || 1));
