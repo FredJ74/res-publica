@@ -15,6 +15,8 @@ function between(src,first,last){
 }
 const forumFunctions=[
  between(forum,'function rpForumLibelle(', '/* ==========================='),
+ // 18/11/2026 : forums et nationalité (pays des forums territoriaux, Local de la bonne ville).
+ between(forum,'function idForumLocal(', 'function estMembreOrganisationForum('),
  between(forum,'function estMembreOrganisationForum(', 'function getForums('),
  between(forum,'function _cleDernierPassageForum(', 'function renderForumCategorieItems('),
  between(forum,'function renderForumCategorieItems(', 'function toggleSousGroupeForum('),

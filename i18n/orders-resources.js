@@ -4462,6 +4462,7 @@
   "fr": {
     "acte_officiel": "Demander un acte officiel",
     "demander_naturalisation": "Demander la naturalisation",
+    "changer_domicile": "Se domicilier ici",
     "demander_mariage": "Demander en mariage",
     "officialiser_mariage": "Officialiser un mariage",
     "deposer_candidature": "Déposer sa candidature",
@@ -4485,6 +4486,7 @@
   "en": {
     "acte_officiel": "Request an official certificate",
     "demander_naturalisation": "Apply for naturalisation",
+    "changer_domicile": "Register your home here",
     "demander_mariage": "Propose marriage",
     "officialiser_mariage": "Make a marriage official",
     "deposer_candidature": "Submit a candidacy",
@@ -4508,6 +4510,7 @@
   "es": {
     "acte_officiel": "Solicitar un certificado oficial",
     "demander_naturalisation": "Solicitar la naturalización",
+    "changer_domicile": "Domiciliarse aquí",
     "demander_mariage": "Pedir matrimonio",
     "officialiser_mariage": "Oficializar un matrimonio",
     "deposer_candidature": "Presentar candidatura",
@@ -4531,6 +4534,7 @@
   "zh-TW": {
     "acte_officiel": "申請正式證明文件",
     "demander_naturalisation": "申請歸化入籍",
+    "changer_domicile": "在此設立戶籍",
     "demander_mariage": "求婚",
     "officialiser_mariage": "正式登記結婚",
     "deposer_candidature": "提交參選申請",
@@ -4554,6 +4558,7 @@
   "ru": {
     "acte_officiel": "Запросить официальный документ",
     "demander_naturalisation": "Подать заявление о натурализации",
+    "changer_domicile": "Прописаться здесь",
     "demander_mariage": "Сделать предложение",
     "officialiser_mariage": "Официально зарегистрировать брак",
     "deposer_candidature": "Подать заявку на выборы",
@@ -4577,6 +4582,7 @@
   "ko": {
     "acte_officiel": "공식 증명서 발급 신청",
     "demander_naturalisation": "귀화 신청",
+    "changer_domicile": "여기에 주소지 등록",
     "demander_mariage": "청혼하기",
     "officialiser_mariage": "혼인 공식 등록",
     "deposer_candidature": "출마 신청서 제출",
@@ -4600,6 +4606,7 @@
   "ar": {
     "acte_officiel": "طلب وثيقة رسمية",
     "demander_naturalisation": "طلب التجنيس",
+    "changer_domicile": "تسجيل الإقامة هنا",
     "demander_mariage": "طلب الزواج",
     "officialiser_mariage": "توثيق الزواج رسميًا",
     "deposer_candidature": "تقديم طلب ترشح",
@@ -4623,6 +4630,7 @@
   "pt-BR": {
     "acte_officiel": "Solicitar documento oficial",
     "demander_naturalisation": "Solicitar naturalização",
+    "changer_domicile": "Fixar domicílio aqui",
     "demander_mariage": "Pedir em casamento",
     "officialiser_mariage": "Oficializar o casamento",
     "deposer_candidature": "Registrar candidatura",
@@ -4646,6 +4654,7 @@
   "de": {
     "acte_officiel": "Amtliche Urkunde beantragen",
     "demander_naturalisation": "Einbürgerung beantragen",
+    "changer_domicile": "Hier den Wohnsitz anmelden",
     "demander_mariage": "Heiratsantrag machen",
     "officialiser_mariage": "Eheschließung amtlich bestätigen",
     "deposer_candidature": "Kandidatur einreichen",
