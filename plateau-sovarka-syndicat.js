@@ -19,7 +19,7 @@ const T = {
     electionRunning: 'Une élection est déjà en cours.', tooEarly: 'Encore {n} jour(s) avant une nouvelle élection.',
     m_pas_au_bureau_syndical: 'Rendez-vous au bureau du syndicat national d’une mairie de Sovarka.',
     m_syndicat_trop_petit: 'Il faut au moins 10 syndiqués.', m_deja_manifeste_aujourdhui: 'Une manifestation a déjà eu lieu aujourd’hui dans cette ville.',
-    m_fonds_insuffisants: '50 PSK requis.', m_pa_insuffisants: 'PA insuffisants.', refused: 'Le serveur a refusé l’opération.'
+    m_fonds_insuffisants: '15 PSK requis.', m_pa_insuffisants: 'PA insuffisants.', refused: 'Le serveur a refusé l’opération.'
   },
   en: {
     title: 'National union', joined: 'You are now a member of the Sovarka National Union.',
@@ -34,7 +34,7 @@ const T = {
     electionRunning: 'An election is already under way.', tooEarly: '{n} more day(s) before a new election.',
     m_pas_au_bureau_syndical: 'Go to the national union office in a Sovarka town hall.',
     m_syndicat_trop_petit: 'At least 10 members are required.', m_deja_manifeste_aujourdhui: 'A rally has already taken place in this city today.',
-    m_fonds_insuffisants: '50 PSK required.', m_pa_insuffisants: 'Not enough AP.', refused: 'The server refused the operation.'
+    m_fonds_insuffisants: '15 PSK required.', m_pa_insuffisants: 'Not enough AP.', refused: 'The server refused the operation.'
   },
   es: {
     title: 'Sindicato nacional', joined: 'Ahora es afiliado del Sindicato nacional de Sovarka.',
@@ -49,7 +49,7 @@ const T = {
     electionRunning: 'Ya hay una elección en curso.', tooEarly: 'Faltan {n} día(s) para una nueva elección.',
     m_pas_au_bureau_syndical: 'Vaya a la oficina del sindicato nacional de un ayuntamiento de Sovarka.',
     m_syndicat_trop_petit: 'Se necesitan al menos 10 afiliados.', m_deja_manifeste_aujourdhui: 'Hoy ya hubo una manifestación en esta ciudad.',
-    m_fonds_insuffisants: 'Se requieren 50 PSK.', m_pa_insuffisants: 'PA insuficientes.', refused: 'El servidor rechazó la operación.'
+    m_fonds_insuffisants: 'Se requieren 15 PSK.', m_pa_insuffisants: 'PA insuficientes.', refused: 'El servidor rechazó la operación.'
   },
   'zh-TW': {
     title: '全國工會', joined: '您現在是索瓦爾卡全國工會的會員。',
@@ -64,7 +64,7 @@ const T = {
     electionRunning: '已有選舉正在進行。', tooEarly: '還需 {n} 天才能再次選舉。',
     m_pas_au_bureau_syndical: '請前往索瓦爾卡市政廳的全國工會辦公室。',
     m_syndicat_trop_petit: '至少需要 10 名會員。', m_deja_manifeste_aujourdhui: '本市今天已經舉行過遊行。',
-    m_fonds_insuffisants: '需要 50 PSK。', m_pa_insuffisants: '行動點不足。', refused: '伺服器拒絕了此操作。'
+    m_fonds_insuffisants: '需要 15 PSK。', m_pa_insuffisants: '行動點不足。', refused: '伺服器拒絕了此操作。'
   },
   ru: {
     title: 'Национальный профсоюз', joined: 'Теперь вы член Национального профсоюза Соварки.',
@@ -79,7 +79,7 @@ const T = {
     electionRunning: 'Выборы уже идут.', tooEarly: 'До новых выборов ещё {n} дн.',
     m_pas_au_bureau_syndical: 'Пройдите в бюро национального профсоюза в мэрии Соварки.',
     m_syndicat_trop_petit: 'Нужно не менее 10 членов.', m_deja_manifeste_aujourdhui: 'Сегодня в этом городе уже была манифестация.',
-    m_fonds_insuffisants: 'Нужно 50 PSK.', m_pa_insuffisants: 'Недостаточно ОД.', refused: 'Сервер отклонил операцию.'
+    m_fonds_insuffisants: 'Нужно 15 PSK.', m_pa_insuffisants: 'Недостаточно ОД.', refused: 'Сервер отклонил операцию.'
   },
   ko: {
     title: '전국 노동조합', joined: '이제 소바르카 전국 노동조합의 조합원입니다.',
@@ -94,7 +94,7 @@ const T = {
     electionRunning: '이미 선거가 진행 중입니다.', tooEarly: '새 선거까지 {n}일 남았습니다.',
     m_pas_au_bureau_syndical: '소바르카 시청의 전국 노동조합 사무실로 가세요.',
     m_syndicat_trop_petit: '조합원이 최소 10명 필요합니다.', m_deja_manifeste_aujourdhui: '오늘 이 도시에서 이미 집회가 열렸습니다.',
-    m_fonds_insuffisants: '50 PSK가 필요합니다.', m_pa_insuffisants: 'AP가 부족합니다.', refused: '서버가 작업을 거부했습니다.'
+    m_fonds_insuffisants: '15 PSK가 필요합니다.', m_pa_insuffisants: 'AP가 부족합니다.', refused: '서버가 작업을 거부했습니다.'
   },
   ar: {
     title: 'النقابة الوطنية', joined: 'أصبحت الآن منتسبًا إلى النقابة الوطنية لسوفاركا.',
@@ -109,7 +109,7 @@ const T = {
     electionRunning: 'هناك انتخاب جارٍ بالفعل.', tooEarly: 'بقي {n} يوم قبل انتخاب جديد.',
     m_pas_au_bureau_syndical: 'توجه إلى مكتب النقابة الوطنية في إحدى بلديات سوفاركا.',
     m_syndicat_trop_petit: 'يلزم 10 منتسبين على الأقل.', m_deja_manifeste_aujourdhui: 'جرت مظاهرة اليوم بالفعل في هذه المدينة.',
-    m_fonds_insuffisants: 'يلزم 50 PSK.', m_pa_insuffisants: 'نقاط العمل غير كافية.', refused: 'رفض الخادم العملية.'
+    m_fonds_insuffisants: 'يلزم 15 PSK.', m_pa_insuffisants: 'نقاط العمل غير كافية.', refused: 'رفض الخادم العملية.'
   },
   'pt-BR': {
     title: 'Sindicato nacional', joined: 'Agora você é filiado ao Sindicato nacional de Sovarka.',
@@ -124,7 +124,7 @@ const T = {
     electionRunning: 'Já há uma eleição em andamento.', tooEarly: 'Faltam {n} dia(s) para uma nova eleição.',
     m_pas_au_bureau_syndical: 'Vá ao escritório do sindicato nacional de uma prefeitura de Sovarka.',
     m_syndicat_trop_petit: 'São necessários ao menos 10 filiados.', m_deja_manifeste_aujourdhui: 'Já houve uma manifestação hoje nesta cidade.',
-    m_fonds_insuffisants: '50 PSK necessários.', m_pa_insuffisants: 'PA insuficientes.', refused: 'O servidor recusou a operação.'
+    m_fonds_insuffisants: '15 PSK necessários.', m_pa_insuffisants: 'PA insuficientes.', refused: 'O servidor recusou a operação.'
   },
   de: {
     title: 'Nationale Gewerkschaft', joined: 'Sie sind jetzt Mitglied der Nationalen Gewerkschaft Sowarkas.',
@@ -139,7 +139,7 @@ const T = {
     electionRunning: 'Es läuft bereits eine Wahl.', tooEarly: 'Noch {n} Tag(e) bis zu einer neuen Wahl.',
     m_pas_au_bureau_syndical: 'Gehen Sie in das Büro der Nationalen Gewerkschaft in einem Rathaus Sowarkas.',
     m_syndicat_trop_petit: 'Mindestens 10 Mitglieder sind nötig.', m_deja_manifeste_aujourdhui: 'In dieser Stadt fand heute bereits eine Kundgebung statt.',
-    m_fonds_insuffisants: '50 PSK erforderlich.', m_pa_insuffisants: 'Nicht genug AP.', refused: 'Der Server hat den Vorgang abgelehnt.'
+    m_fonds_insuffisants: '15 PSK erforderlich.', m_pa_insuffisants: 'Nicht genug AP.', refused: 'Der Server hat den Vorgang abgelehnt.'
   }
 };
 function langue() {
@@ -177,7 +177,7 @@ async function doAdhererSyndicatEtat() {
   if (typeof global.chargerOrganisations === 'function') await global.chargerOrganisations();
   if (typeof global.updateUI === 'function') global.updateUI();
   global.showToast(texteSyndicatEtat('title'), texteSyndicatEtat('joined'), true, true);
-  if (typeof global.addJournalEntry === 'function') global.addJournalEntry('Adhésion au Syndicat national de Sovarka (-50 PSK).', 'event-good');
+  if (typeof global.addJournalEntry === 'function') global.addJournalEntry('Adhésion au Syndicat national de Sovarka (-15 PSK, cotisation unique).', 'event-good');
 }
 
 async function doConsulterSyndicatEtat() {

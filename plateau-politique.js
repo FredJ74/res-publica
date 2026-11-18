@@ -268,6 +268,8 @@ function exigerAutoriteSurPosteNomme(regle, verbe) {
   const villeAutorite = regle && (regle.autoriteScope || regle.scope) === 'ville';
   if (regle && autoriteCouvre(state.poste?.id || '', regle.nommePar)
       && (!villeAutorite || state.poste?.city === state.currentCity)) return true;
+  // Tutelle (Fred, 18/11/2026) : le ministre de tutelle nomme comme le maire, depuis le bureau du maire.
+  if (regle && regle.nommePar === 'maire' && typeof tutelleMairieIci === 'function' && tutelleMairieIci(state.poste?.id || '')) return true;
   showToast('Accès refusé', 'Seul(e) le/la ' + ((regle && regle.nommePar) || '?') + ' peut ' + verbe + ' ce poste.', false);
   return false;
 }
