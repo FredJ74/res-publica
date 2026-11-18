@@ -77,7 +77,8 @@ async function partiCommande(action, parti, params, cleSuffixe) {
       { p_requete: requete, p_action: action, p_parti: parti || null, p_params: params || {} }).catch(() => null);
     if (v && !v.transport) sessionStorage.removeItem(cle);
     if (!v || v.ok !== true) {
-      showToast(partiT('tRefused'), PARTI_RAISONS.includes(v?.raison) ? partiT('m_' + v.raison) : partiT('notConfirmed'), false);
+      const motifNat = (typeof motifNationalite === 'function') ? motifNationalite(v?.raison) : null;  // règles du 18/11/2026
+      showToast(partiT('tRefused'), motifNat || (PARTI_RAISONS.includes(v?.raison) ? partiT('m_' + v.raison) : partiT('notConfirmed')), false);
       return null;
     }
     if (typeof appliquerPaiementServeur === 'function' && (v.pa != null || v.liquide != null))
@@ -122,6 +123,16 @@ async function ouvrirSovarkaMonParti(cache) {
       ? m.demandes.map((x, i) => '<div>' + partiE(x.nom) + ' ' + vehBouton(partiT('accept'), 'partiRepondre(' + i + ',true)', true) + ' ' +
           vehBouton(partiT('refuse'), 'partiRepondre(' + i + ',false)', false) + '</div>').join('')
       : '<p class="cpj-note">' + partiT('noRequest') + '</p>');
+    // Investiture d'un candidat à une mairie (Fred, 18/11/2026) : le chef choisit un membre et une ville de Sovarka.
+    const nt = (k, v) => (typeof texteNationalite === 'function' ? texteNationalite(k, v) : k);
+    const investissables = m.membres.map((x, i) => [x, i]).filter(([x]) => x.nom !== m.chef);
+    html += vehSection(nt('investirTitre'), (m.membres.length < 2
+      ? '<p class="cpj-note">' + partiE(nt('parti_suspendu')) + '</p>'
+      : '<label>' + partiE(nt('investirMembre')) + ' <select id="parti-investi" class="cpj-champ">'
+        + investissables.map(([x, i]) => '<option value="' + i + '">' + partiE(x.nom) + '</option>').join('') + '</select></label> '
+        + '<label>' + partiE(nt('investirVille')) + ' <select id="parti-investi-ville" class="cpj-champ">'
+        + Object.entries(PARTI_VILLES).map(([id, nom]) => '<option value="' + id + '">' + partiE(nom) + '</option>').join('') + '</select></label> '
+        + vehBouton(nt('investirAction'), 'partiInvestir()', true)));
     html += vehSection(partiT('secSoviet'), '<p class="cpj-note">' + partiT('sovietNote') + '</p>' +
       vehBouton(partiT('seats'), 'ouvrirSovietSupreme()', false));
     html += vehSection(partiT('secLaws'), '<p class="cpj-note">' + partiT('lawsNote') + '</p>'
@@ -168,6 +179,18 @@ async function partiDesignerPm(i) {
   if (!x) return;
   const v = await partiCommande('designer_pm', m.id, { nom: x.nom }, x.nom);
   if (v) { showToast(partiT('tPm'), partiT('pm', { nom: v.nom }), true); ouvrirSovarkaMonParti(); }
+}
+
+async function partiInvestir() {
+  const m = partiDonnees?.mon_parti;
+  const x = m?.membres?.[Number(document.getElementById('parti-investi')?.value)];
+  const ville = document.getElementById('parti-investi-ville')?.value;
+  if (!x || !ville) return;
+  const v = await partiCommande('investir', m.id, { nom: x.nom, ville }, x.nom + ':' + ville);
+  if (!v) return;
+  const nt = (k, w) => (typeof texteNationalite === 'function' ? texteNationalite(k, w) : k);
+  showToast(nt('investirTitre'), nt('investirOk', { nom: x.nom, ville: PARTI_VILLES[ville] || ville }), true);
+  ouvrirSovarkaMonParti();
 }
 
 async function partiQuitter() {

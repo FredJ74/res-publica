@@ -29,7 +29,7 @@ test('les 21 commandes nouvellement localisées correspondent aux sources et aux
  const {win}=load('en');
  const source=read('plateau-politique.js')+'\n'+read('plateau-construction-commandes.js');
  const canonical=win.RP_I18N_RESOURCES.fr.translation.orders;
- assert.equal(Object.keys(canonical).length,421); // +1 regulation_production (16/11) ; consommer_buvette supprimé ; +4 Héros du Travail et boîte du Parti (13/11)
+ assert.equal(Object.keys(canonical).length,422); // +1 changer_domicile (18/11, nationalité et domicile) ; +1 regulation_production (16/11) ; consommer_buvette supprimé ; +4 Héros du Travail et boîte du Parti (13/11)
  for(const id of ids){
   const escaped=id.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
   assert.match(source,new RegExp('fn\\s*:\\s*[\\x27\\x22]'+escaped+'[\\x27\\x22]\\s*,\\s*label\\s*:\\s*[\\x27\\x22]'));
@@ -70,7 +70,8 @@ test('l état civil traduit les boutons réellement visibles et préserve les or
   assert.match(html,/doOrder\('officialiser_mariage',2,200,'Officialiser un mariage'/);
   assert.equal(nodes['postes-modal-title'].textContent,
    locale==='fr'?'État civil':win.RP_I18N_RESOURCES[locale].translation.municipalUi.civilStatusTitle);
-  assert.ok(html.includes(win.RP_I18N_RESOURCES[locale].translation.municipalUi.comingSoon));
+  // 18/11/2026 : naturalisation ouverte, plus aucune démarche « bientôt disponible » à l'état civil.
+  assert.ok(!html.includes(win.RP_I18N_RESOURCES[locale].translation.municipalUi.comingSoon));
  }
 });
 test('drapeau fermé : textes français et interfaces administratives inchangés',()=>{

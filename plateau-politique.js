@@ -431,13 +431,15 @@ async function demanderNominationPoste(posteId, posteName, villeCible) {
 const DEMARCHES_ETAT_CIVIL_PAR_BATIMENT = {
   'mairie-capitale': [
     { fn:'acte_officiel', label:'Demander un acte officiel', pa:1, cost:50, icon:'ti-file-certificate', successRate:100, desc:'Naissance, mariage, document administratif.' },
-    { fn:'demander_naturalisation', label:'Demander la naturalisation', pa:2, cost:0, icon:'ti-passport', successRate:100, desc:'Deposer une demande de naturalisation vers un autre empire. Validee par le Ministre de l\'Interieur concerne.', bientot:'Bientôt disponible : la naturalisation ouvrira avec le voyage entre empires.' },
+    { fn:'demander_naturalisation', label:'Demander la naturalisation', pa:2, cost:50, icon:'ti-passport', successRate:100, desc:'Demander la nationalite du pays ou vous vous trouvez. Decision du ministre de l\'Interieur de ce pays ; acceptee au bout de 7 jours sans ministre joueur.' },
+    { fn:'changer_domicile', label:'Se domicilier ici', pa:1, cost:50, icon:'ti-home', successRate:100, desc:'Faire de cette ville votre domicile officiel : municipales, candidature a la mairie, logements reserves.' },
     { fn:'demander_mariage', label:'Demander en mariage', pa:1, cost:0, icon:'ti-heart', successRate:100, desc:'Envoyer une demande en mariage a un autre PJ. Necessitera une ceremonie a la mairie pour officialiser.' },
     { fn:'officialiser_mariage', label:'Officialiser un mariage', pa:2, cost:200, icon:'ti-heart-handshake', successRate:100, desc:'Celebrer le mariage. Les deux futurs epoux doivent etre presents.' }
   ],
   'mairie': [
     { fn:'acte_officiel', label:'Demander un acte officiel', pa:1, cost:50, icon:'ti-file-certificate', successRate:100, desc:'Naissance, mariage, document administratif.' },
-    { fn:'demander_naturalisation', label:'Demander la naturalisation', pa:2, cost:0, icon:'ti-passport', successRate:100, desc:'Deposer une demande de naturalisation vers un autre empire. Validee par le Ministre de l\'Interieur concerne.', bientot:'Bientôt disponible : la naturalisation ouvrira avec le voyage entre empires.' },
+    { fn:'demander_naturalisation', label:'Demander la naturalisation', pa:2, cost:50, icon:'ti-passport', successRate:100, desc:'Demander la nationalite du pays ou vous vous trouvez. Decision du ministre de l\'Interieur de ce pays ; acceptee au bout de 7 jours sans ministre joueur.' },
+    { fn:'changer_domicile', label:'Se domicilier ici', pa:1, cost:50, icon:'ti-home', successRate:100, desc:'Faire de cette ville votre domicile officiel : municipales, candidature a la mairie, logements reserves.' },
     { fn:'demander_mariage', label:'Demander en mariage', pa:1, cost:0, icon:'ti-heart', successRate:100, desc:'Envoyer une demande en mariage a un autre PJ. Necessitera une ceremonie a la mairie pour officialiser.' },
     { fn:'officialiser_mariage', label:'Officialiser un mariage', pa:2, cost:200, icon:'ti-heart-handshake', successRate:100, desc:'Celebrer le mariage. Les deux futurs epoux doivent etre presents.' }
   ]
@@ -723,7 +725,8 @@ async function ouvrirCalendrierElectoral() {
         // « Se porter candidat » vit desormais ICI, et nulle part ailleurs. La condition est celle
         // du jeu (candidaturesOuvertes), pas la seule phase CANDIDATURES -- c'est la meme regle
         // que verifie le serveur. Un candidat deja declare ne se la voit pas proposer deux fois.
-        ((candidaturesOuvertes(cycle) && !(cycle.candidats || []).some(c => c.nom === state.char?.name))
+        ((candidaturesOuvertes(cycle) && !(cycle.candidats || []).some(c => c.nom === state.char?.name)
+          && candidaturePossibleIci(p.id, country, city))
           ? '<button onclick="ouvrirRedactionProgramme(this)" data-poste="' + p.id + '" data-country="' + country + '" data-city="' + (city||'') + '" style="font-size:.7rem;font-family:Bebas Neue,sans-serif;padding:.25rem .6rem;border:1px solid #5a7aca;background:transparent;color:#8aaaea;cursor:pointer">📋 Se porter candidat</button>'
           : '') +
       '</div>') +
@@ -837,8 +840,24 @@ async function publierProgrammeCandidature(titre, contenu) {
   return { traite: true, topicId: rows.topic_id || null };
 }
 
+// Conditions de candidature (Fred, 18/11/2026), mêmes que candidature_refus_nationalite_interne :
+// on se déclare dans son pays et de sa nationalité ; mairie = domicile dans la ville ; en Sovarka,
+// pas de candidature à une mairie sans investiture du parti (ordre « Investir un candidat »).
+function candidaturePossibleIci(posteId, country, city) {
+  const nat = (typeof maNationalite === 'function') ? maNationalite() : state.country;
+  if (nat !== country || state.country !== country) return false;
+  if (posteEstLocal(posteId) && (state.domicile?.country !== country || state.domicile?.city !== (city || state.currentCity))) return false;
+  if (country === 'soviet' && posteId === 'maire') return false;
+  return true;
+}
+
 function messageRefusCandidature(r) {
   const raison = r && r.raison;
+  // Règles de nationalité, de domicile et des partis de Sovarka (18/11/2026), en neuf langues.
+  if (['hors_de_son_pays', 'domicile_requis', 'non_domicilie', 'nationalite_requise', 'investiture_requise',
+       'chef_de_parti_requis', 'parti_suspendu'].includes(raison) && typeof motifNationalite === 'function') {
+    return motifNationalite(raison);
+  }
   if (raison === 'influence_insuffisante') return 'Votre influence est insuffisante pour ce poste (' + (r.reel || 0) + '/' + (r.requis || 0) + ').';
   if (raison === 'non_domicilie') return 'Vous devez etre domicilie dans cet empire pour vous y presenter.';
   if (raison === 'cumul_interdit') return 'Ce poste est incompatible avec celui que vous occupez deja.';
@@ -1805,10 +1824,14 @@ async function voterPour(candidatNom, posteId, country, city) {
   const votant = state.char?.name;
   if (!votant) return;
 
-  const domicile = state.domicile;
-  const domicilePays = domicile?.country || state.country;
-  if (domicilePays !== country) {
-    showToast('Non domicilié', 'Vous ne pouvez pas voter dans cet empire.', false);
+  // NATIONALITÉ ET DOMICILE (Fred, 18/11/2026), mêmes règles que election_voter : présidentielle et
+  // scrutins nationaux selon la nationalité, municipales selon le domicile, et toujours depuis ce pays.
+  const refusVote = (state.country !== country) ? 'hors_de_son_pays'
+    : posteEstLocal(posteId)
+      ? ((state.domicile?.country !== country || state.domicile?.city !== city) ? 'non_domicilie' : null)
+      : (((typeof maNationalite === 'function' ? maNationalite() : state.country) !== country) ? 'nationalite_requise' : null);
+  if (refusVote) {
+    showToast('Vote non enregistré', (typeof motifNationalite === 'function' && motifNationalite(refusVote)) || refusVote, false);
     return;
   }
 
@@ -1873,7 +1896,7 @@ async function voterPour(candidatNom, posteId, country, city) {
     showToast('Vote non enregistré',
       motif === 'deja_vote' ? 'Vous avez déjà voté pour ce poste.'
       : motif === 'vote_ferme' ? 'Le vote n\'est pas ouvert actuellement.'
-      : motif === 'non_domicilie' ? 'Vous ne pouvez pas voter dans cet empire.'
+      : (typeof motifNationalite === 'function' && motifNationalite(motif)) ? motifNationalite(motif)
       : motif === 'candidat_inconnu' ? 'Ce candidat ne figure pas sur ce scrutin.'
       : motif === 'acteur_non_authentifie' ? 'Session non reconnue : reconnectez-vous.'
       : 'Votre bulletin n\'a pas pu être enregistré (' + motif + ').', false);
@@ -2852,12 +2875,14 @@ async function ouvrirTableauElectoral() {
 async function changerDomicile(newCountry, newCity) {
   const co = COUNTRIES[newCountry];
   const cur = co?.cur || 'FR';
-  const cout = 200;
+  const cout = 50;   // 1 PA et 50 dans la monnaie du pays de la ville (Fred, 18/11/2026)
+  const nt = (k, v) => (typeof texteNationalite === 'function' ? texteNationalite(k, v) : k);
 
   const r = (typeof sbRpcVerdict === 'function') ? await sbRpcVerdict('domicile_changer', {}) : null;
   if (!r || r.ok !== true) {
     const motifs = {
-      fonds_insuffisants: cout + ' ' + cur + ' requis pour changer de domicile.',
+      fonds_insuffisants: cout + ' ' + cur + ' et 1 PA requis pour changer de domicile.',
+      pa_insuffisants: nt('pa_insuffisants'),
       deja_domicilie: 'Vous êtes déjà domicilié ici.',
       position_inconnue: 'Votre position n\'est pas reconnue.',
       acteur_non_authentifie: 'Votre session n\'est pas reconnue.'
@@ -2889,7 +2914,8 @@ async function changerDomicile(newCountry, newCity) {
   }
 
   updateUI();
-  showToast('Domicile changé !', newCity + ', ' + co?.n + '. -' + cout + ' ' + cur, true);
+  const villeNom = WORLD[newCountry]?.[newCity]?.name || newCity;
+  showToast(nt('domTitre'), nt('domOk', { ville: villeNom }) + ' −1 PA, −' + cout + ' ' + cur, true);
   addJournalEntry('🏠 Nouveau domicile : ' + newCity + ', ' + (co?.n || newCountry) + '.', 'event-info');
 }
 
@@ -5922,84 +5948,45 @@ function demanderAccordFinancementTribune(refus) {
 // DEMANDE DE NATURALISATION (changement d'empire)
 // =====================
 function ouvrirModalNaturalisation(pa, cost) {
-  const empires = Object.keys(COUNTRIES).filter(c => c !== state.country);
-  document.getElementById('postes-modal-title').textContent = 'Demande de naturalisation';
-
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Votre demande sera examinee par le Ministre de l\'Interieur de l\'empire vise, apres un delai de 48h. En cas de refus, 50% du montant sera remboursé.</div>';
-
-  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">EMPIRE VISE</div>';
-  html += '<select id="natu-empire-vise" onchange="majCoutNaturalisation()" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.6rem">';
-  empires.forEach(c => { html += '<option value="' + c + '">' + (COUNTRIES[c]?.n || c) + '</option>'; });
-  html += '</select>';
-
-  html += '<div id="natu-cout-affiche" style="font-size:.85rem;color:#C9A84C;margin-bottom:.8rem"></div>';
-  html += '<button onclick="confirmerDemandeNaturalisation(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Déposer la demande</button>';
-  html += '</div>';
-
+  // NATURALISATION (Fred, 18/11/2026) : à l'accueil de n'importe quelle mairie du pays visé, c'est-à-dire
+  // le pays où l'on se trouve ; 2 PA et 50 dans sa monnaie ; décision du ministre de l'Intérieur de ce
+  // pays, acceptée d'office au bout de 7 jours sans ministre joueur. Le serveur décide de tout.
+  const nt = (k, v) => (typeof texteNationalite === 'function' ? texteNationalite(k, v) : k);
+  const paysVise = state.country;
+  const cur = COUNTRIES[paysVise]?.cur || 'FR';
+  document.getElementById('postes-modal-title').textContent = nt('natTitre');
+  let html = '<div style="padding:1rem" dir="auto">';
+  if ((typeof maNationalite === 'function' ? maNationalite() : state.country) === paysVise) {
+    html += '<p class="cpj-note">' + nt('deja_citoyen') + '</p></div>';
+  } else {
+    html += '<p class="cpj-note">' + nt('natExplication', { pays: COUNTRIES[paysVise]?.n || paysVise }) + '</p>';
+    html += '<p style="color:#C9A84C">' + nt('natCout', { devise: cur }) + '</p>';
+    html += '<button class="cpj-touche cpj-primaire" id="natu-confirmer" onclick="confirmerDemandeNaturalisation()">' + nt('natAction') + '</button></div>';
+  }
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
-  majCoutNaturalisation();
 }
 
-function getCoutNaturalisation(paysVise) {
-  const ie = typeof getIndiceNationalCalcule === 'function' ? getIndiceNationalCalcule(paysVise, 'ie') : (INDICES_NATIONAUX[paysVise]?.IE || 40);
-  return 2000 + ie * 30;
-}
-
-function majCoutNaturalisation() {
-  const paysVise = document.getElementById('natu-empire-vise')?.value;
-  if (!paysVise) return;
-  const cout = getCoutNaturalisation(paysVise);
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  document.getElementById('natu-cout-affiche').textContent = 'Coût de la demande : ' + cout + ' ' + cur;
-}
-
-async function confirmerDemandeNaturalisation(pa, cost) {
-  const paysVise = document.getElementById('natu-empire-vise')?.value;
-  if (!paysVise) return;
-  const cout = getCoutNaturalisation(paysVise);
-
-  if (state.arg < cout) {
-    showToast('Fonds insuffisants', cout + ' ' + (COUNTRIES[state.country]?.cur||'FR') + ' requis.', false);
+async function confirmerDemandeNaturalisation() {
+  const nt = (k, v) => (typeof texteNationalite === 'function' ? texteNationalite(k, v) : k);
+  const bouton = document.getElementById('natu-confirmer');
+  if (bouton) bouton.disabled = true;
+  const cle = 'hg-naturalisation:' + (state.char?.name || '');
+  let requete = null;
+  try { requete = sessionStorage.getItem(cle); if (!requete) { requete = crypto.randomUUID(); sessionStorage.setItem(cle, requete); } }
+  catch (_) { requete = crypto.randomUUID(); }
+  const v = (typeof sbRpcVerdict === 'function') ? await sbRpcVerdict('naturalisation_demander', { p_requete: requete }).catch(() => null) : null;
+  if (v && !v.transport) { try { sessionStorage.removeItem(cle); } catch (_) {} }
+  if (!v || v.ok !== true) {
+    if (bouton) bouton.disabled = false;
+    showToast(nt('natTitre'), (typeof motifNationalite === 'function' && motifNationalite(v?.raison)) || nt('defaut'), false);
     return;
   }
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  state.arg -= cout;
+  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v);
   updateUI();
   document.getElementById('modal-postes').classList.remove('open');
-
-  const maintenant = Date.now();
-  const demande = {
-    id: 'natu-' + maintenant,
-    demandeur: state.char?.name || 'Anonyme',
-    pays_origine: state.country,
-    pays_vise: paysVise,
-    montant: cout,
-    date_demande: maintenant,
-    date_traitement_possible: maintenant + 48 * 60 * 60 * 1000,
-    statut: 'pending'
-  };
-
-  if (typeof sbCreerDemandeNaturalisation === 'function') {
-    await sbCreerDemandeNaturalisation(demande).catch(() => {});
-  }
-
-  showToast('Demande déposée', 'Votre demande de naturalisation vers ' + (COUNTRIES[paysVise]?.n||paysVise) + ' a été transmise.', true, true);
-  addJournalEntry('Demande de naturalisation déposée vers ' + (COUNTRIES[paysVise]?.n||paysVise) + ' (' + cout + ' ' + (COUNTRIES[state.country]?.cur||'FR') + ').', 'event-info');
-
-  // Notifier le Ministre de l'Interieur du pays vise
-  const ministre = (typeof sbListPersonnages === 'function')
-    ? await sbListPersonnages().then(joueurs => (joueurs||[]).find(j => j.country === paysVise && j.poste?.id === 'min_int')).catch(() => null)
-    : null;
-  if (ministre && typeof sbSendMail === 'function') {
-    const h = String(state.hour || 8).padStart(2,'0');
-    const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
-    sbSendMail('Service de l\'Immigration', ministre.name, 'Demande de naturalisation',
-      (state.char?.name||'Un citoyen') + ' demande la naturalisation dans votre empire. Vous pouvez traiter sa demande depuis votre bureau, 48h apres le depot.', time).catch(() => {});
-  }
+  showToast(nt('natTitre'), nt('natOk'), true, true);
+  addJournalEntry(nt('natOk'), 'event-info');
 }
 
 // =====================
@@ -6012,7 +5999,7 @@ async function ouvrirDemandesNaturalisation() {
 
   let demandes = [];
   if (typeof sbGetDemandesNaturalisationPour === 'function') {
-    try { demandes = await sbGetDemandesNaturalisationPour(state.country) || []; } catch(e) {}
+    try { demandes = await sbGetDemandesNaturalisationPour((typeof maNationalite === 'function' ? maNationalite() : state.country)) || []; } catch(e) {}
   }
 
   const maintenant = Date.now();
@@ -6043,7 +6030,7 @@ async function ouvrirDemandesNaturalisation() {
 
 async function traiterDemandeNaturalisation(demandeId, accepter) {
   if (typeof sbGetDemandesNaturalisationPour !== 'function') return;
-  const demandes = await sbGetDemandesNaturalisationPour(state.country).catch(() => []);
+  const demandes = await sbGetDemandesNaturalisationPour((typeof maNationalite === 'function' ? maNationalite() : state.country)).catch(() => []);
   const demande = (demandes || []).find(d => d.id === demandeId);
   if (!demande) { showToast('Introuvable', 'Cette demande n\'existe plus.', false); return; }
 
@@ -6104,9 +6091,11 @@ async function appliquerNaturalisationAcceptee() {
     try {
       const rows = await sbGet('demandes_naturalisation', `demandeur=eq.${encodeURIComponent(state.char.name)}&statut=eq.acceptee&pays_vise=eq.${c}`);
       if (rows && rows.length > 0) {
-        state.country = c;
+        // Le serveur a déjà appliqué la naturalisation (nationalité, perte des postes et du parti) ;
+        // l'écran ne change que la NATIONALITÉ, jamais le pays où l'on se trouve (18/11/2026).
+        state.nationalite = c;
         state.poste = null;
-        if (state.char) { state.char.poste = null; state.char.country = c; }
+        if (state.char) { state.char.poste = null; state.char.nationalite = c; }
         await sbTraiterDemandeNaturalisation(rows[0].id, 'appliquee').catch(() => {});
         showToast('Naturalisation effective', 'Vous êtes désormais citoyen de ' + (COUNTRIES[c]?.n||c) + ' !', true, true);
         addJournalEntry('Votre naturalisation est effective. Vous êtes citoyen de ' + (COUNTRIES[c]?.n||c) + '.', 'event-good');
