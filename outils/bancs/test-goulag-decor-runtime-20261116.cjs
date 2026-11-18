@@ -1,0 +1,26 @@
+'use strict';
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+// Goulag ouvert simulé (serveur qui confirme) : sans cela, le verrou d'ouverture cache tout.
+const contexte=vm.createContext({console,window:{goulagOuvert:()=>true},state:{country:'soviet',currentCity:'qhs'},document:{}});
+vm.runInContext(fs.readFileSync('data.js','utf8')+';this.B=BUILDINGS',contexte);
+contexte.BUILDINGS=contexte.B;
+vm.runInContext(fs.readFileSync('plateau-goulag-toundra.js','utf8'),contexte);
+const fn=contexte.window.RP_ORDRES_DYNAMIQUES.at(-1);
+const debut=fn('qhs-prison','entree_qhs','qhs');
+assert.equal(debut.length,1);
+assert.equal(debut[0].fn,'goulag_depart_pied');
+assert.ok(debut[0].masque.includes('visiter_prisonnier'));
+assert.ok(debut[0].masque.includes('corrompre_fonct'));
+const cellules=fn('qhs-prison','cellules_qhs','qhs');
+assert.equal(cellules[0].invisible,true);
+assert.ok(cellules[0].masque.includes('tentative_evasion'));
+assert.equal(fn('qhs-prison','entree_qhs','capitale').length,0);
+contexte.state.country='republic';
+assert.equal(fn('qhs-prison','entree_qhs','qhs').length,0);
+const image=contexte.window.goulagToundraImageEtape;
+assert.ok(image({destination:'starovka',progressions:0}).endsWith('Sovarka_goulag_toundra_01.webp'));
+assert.ok(image({destination:'starovka',progressions:6}).endsWith('Sovarka_goulag_toundra_07.webp'));
+assert.ok(image({destination:'krasnov',progressions:7}).endsWith('Sovarka_goulag_toundra_08.webp'));
+assert.ok(image({destination:'krasnov',progressions:8}).endsWith('Sovarka_goulag_toundra_09.webp'));
+assert.ok(image({destination:'krasnov',progressions:9}).endsWith('Sovarka_goulag_toundra_10.webp'));
+console.log('Goulag : ordres exclusivement sovarkiens et images progressives 1–10 vérifiés');

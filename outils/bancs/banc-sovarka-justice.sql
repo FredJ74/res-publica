@@ -23,7 +23,7 @@ BEGIN;
 INSERT INTO public.titulaires_pnj (id, country, poste_id, city, nom_pnj) VALUES
   ('soviet_juge_capitale',        'soviet', 'juge',        'capitale', 'Camarade Juge Pravdine (PNJ)'),
   ('soviet_commissaire_capitale', 'soviet', 'commissaire', 'capitale', 'Vassili Ostrovski (PNJ)'),
-  ('soviet_juge_ville_a',         'soviet', 'juge',        'ville_a',  'Dulma Tsyrenova (PNJ)'),
+  ('soviet_juge_ville_a',         'soviet', 'juge',        'ville_a',  'Arkadi Prigovorov (PNJ)'),
   ('soviet_commissaire_ville_a',  'soviet', 'commissaire', 'ville_a',  'Bato Dashiev (PNJ)'),
   ('soviet_juge_ville_b',         'soviet', 'juge',        'ville_b',  'Anatoli Gromov (PNJ)'),
   ('soviet_commissaire_ville_b',  'soviet', 'commissaire', 'ville_b',  'Egor Tikhonov (PNJ)')

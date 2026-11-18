@@ -1,0 +1,52 @@
+Source #1085 : HEAD
+test_cachot_compteur_incoherent_jamais_indefini (__main__.Raccords) ... ok
+test_cachot_deux_nuits_puis_retour_dortoir (__main__.Raccords) ... ok
+test_cachot_peine_achevee_libere (__main__.Raccords) ... ok
+test_corruption_cadeau_transfere_meme_en_echec (__main__.Raccords) ... ok
+test_corruption_formule_et_plafond (__main__.Raccords)
+Cadeau obligatoire : min(90, 70 + 10 + 2 × CHARME) ; CHARME absent = valeur de base du jeu (8). ... ok
+test_corruption_objet_absent_ou_protege_refuse_sans_effet (__main__.Raccords) ... ok
+test_corruption_plusieurs_tentatives_un_objet_chacune (__main__.Raccords) ... ok
+test_corruption_reussie_puis_evasion_a_95 (__main__.Raccords) ... ok
+test_corruption_sans_cadeau_refusee_sans_effet (__main__.Raccords) ... ok
+test_couts_declares_au_referentiel (__main__.Raccords) ... ok
+test_dormir_dortoir_un_par_jour_sans_double_repos (__main__.Raccords) ... ok
+test_evasion_echouee_cachot_deux_nuits_peine_conservee (__main__.Raccords) ... ok
+test_evasion_pa_insuffisants_sans_jet (__main__.Raccords) ... ok
+test_evasion_reussie_reliquat_du_sommeil_et_controle_minuit (__main__.Raccords) ... ok
+test_greve_de_la_faim_absente_du_goulag_seulement (__main__.Raccords) ... ok
+test_inactif_aucun_effet (__main__.Raccords) ... ok
+test_interrogatoire_coute_1_pa_et_refus_sans_pa (__main__.Raccords) ... ok
+test_interrogatoire_pa_plancher_et_refus (__main__.Raccords) ... ok
+test_interrogatoire_probabilites (__main__.Raccords) ... ok
+test_interrogatoire_trace_unique_et_courrier_au_seul_juge (__main__.Raccords) ... ok
+test_jugement_inconnu_jamais_invente (__main__.Raccords) ... ok
+test_lectures_reservees_aux_habilites_presents (__main__.Raccords) ... ok
+test_manger_dortoir_une_fois_par_jour (__main__.Raccords) ... ok
+test_migrations_rejouables (__main__.Raccords) ... ok
+test_peine_ajoutee_en_detention_comptee_une_fois (__main__.Raccords)
+Contrat #1020 : détenu à 5 jours + jugement réel de 30 jours = 35, une seule fois. ... ok
+test_permissions_et_rls (__main__.Raccords) ... ok
+test_raccord_routes_et_refuge (__main__.Raccords) ... ok
+test_raccord_sommeil_partage_camp_toundra (__main__.Raccords) ... ok
+test_raccord_verrou_conserve (__main__.Raccords) ... ok
+test_registre_ouvert_par_le_vrai_jugement (__main__.Raccords) ... ok
+test_reincarceration_puis_nouvelle_peine (__main__.Raccords)
+Contrat #1020 : évasion à 5 jours, puis nouveau jugement de 30 jours = 35, une seule fois. ... ok
+test_reincarceration_reprend_le_reliquat (__main__.Raccords) ... ok
+test_rejeu_lie_a_l_interrogateur_et_au_juge (__main__.Raccords)
+Contrats #1020 : une clé de requête rejouée par un autre acteur est refusée, sans paiement. ... ok
+test_republia_qhs_inchange (__main__.Raccords)
+Le QHS de Républia garde son repos plafonné à 3 PA et ignore les ordres du goulag. ... ok
+test_retour_arriere_restaure_les_fonctions (__main__.Raccords) ... ok
+test_sanction_coute_1_pa_et_refus_sans_pa (__main__.Raccords) ... ok
+test_sanction_juge_present_seulement (__main__.Raccords) ... ok
+test_sommeil_final_libere_devant_entree (__main__.Raccords) ... ok
+test_temps_ecoule_ne_purge_jamais (__main__.Raccords) ... ok
+test_visiteur_part_sans_jet (__main__.Raccords) ... ok
+test_zz_concurrence_sommeil_et_interrogatoire (__main__.Raccords) ... ok
+
+----------------------------------------------------------------------
+Ran 41 tests in 8.152s
+
+OK

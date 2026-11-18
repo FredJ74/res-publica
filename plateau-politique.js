@@ -3995,6 +3995,8 @@ function renderRoomActions(room, buildingId, roomId) {
   // militaire ni pour aucune autre source existante.
   const dynMasque = [];
   dynOrders.forEach(d => { (d.masque || []).forEach(fn => dynMasque.push(fn)); });
+  // Conserver les masques, sans afficher de bouton pour les sentinelles.
+  dynOrders = dynOrders.filter(d => !d.invisible);
 
   // Plus d'ordres communs ici — se_cacher/blocus/incendier sont dans la fiche personnage
   const allOrders = ordresDeclares

@@ -1,0 +1,44 @@
+/workspace/work/missions-venv/lib/python3.12/site-packages/platformdirs/api.py:467: RuntimeDirWarning: XDG_RUNTIME_DIR is not set, falling back to /tmp/runtime-1000
+  return Path(self.user_runtime_dir)
+Source #1085 : 4a1ced9b96bec3cb2bf867dd602de87456a7383c
+test_cachot_compteur_incoherent_jamais_indefini (__main__.Raccords.test_cachot_compteur_incoherent_jamais_indefini) ... ok
+test_cachot_deux_nuits_puis_retour_dortoir (__main__.Raccords.test_cachot_deux_nuits_puis_retour_dortoir) ... ok
+test_cachot_peine_achevee_libere (__main__.Raccords.test_cachot_peine_achevee_libere) ... ok
+test_corruption_bloquee_tant_que_non_arbitree (__main__.Raccords.test_corruption_bloquee_tant_que_non_arbitree) ... ok
+test_corruption_objet_puis_bonus_evasion_95 (__main__.Raccords.test_corruption_objet_puis_bonus_evasion_95) ... ok
+test_corruption_sans_objet_70_pour_cent (__main__.Raccords.test_corruption_sans_objet_70_pour_cent) ... ok
+test_couts_declares_au_referentiel (__main__.Raccords.test_couts_declares_au_referentiel) ... ok
+test_dormir_dortoir_un_par_jour_sans_double_repos (__main__.Raccords.test_dormir_dortoir_un_par_jour_sans_double_repos) ... ok
+test_evasion_echouee_cachot_deux_nuits_peine_conservee (__main__.Raccords.test_evasion_echouee_cachot_deux_nuits_peine_conservee) ... ok
+test_evasion_pa_insuffisants_sans_jet (__main__.Raccords.test_evasion_pa_insuffisants_sans_jet) ... ok
+test_evasion_reussie_reliquat_du_sommeil_et_controle_minuit (__main__.Raccords.test_evasion_reussie_reliquat_du_sommeil_et_controle_minuit) ... ok
+test_greve_de_la_faim_absente_du_goulag_seulement (__main__.Raccords.test_greve_de_la_faim_absente_du_goulag_seulement) ... ok
+test_inactif_aucun_effet (__main__.Raccords.test_inactif_aucun_effet) ... ok
+test_interrogatoire_coute_1_pa_et_refus_sans_pa (__main__.Raccords.test_interrogatoire_coute_1_pa_et_refus_sans_pa) ... ok
+test_interrogatoire_pa_plancher_et_refus (__main__.Raccords.test_interrogatoire_pa_plancher_et_refus) ... ok
+test_interrogatoire_probabilites (__main__.Raccords.test_interrogatoire_probabilites) ... ok
+test_interrogatoire_trace_unique_et_courrier_au_seul_juge (__main__.Raccords.test_interrogatoire_trace_unique_et_courrier_au_seul_juge) ... ok
+test_jugement_inconnu_jamais_invente (__main__.Raccords.test_jugement_inconnu_jamais_invente) ... ok
+test_lectures_reservees_aux_habilites_presents (__main__.Raccords.test_lectures_reservees_aux_habilites_presents) ... ok
+test_manger_dortoir_une_fois_par_jour (__main__.Raccords.test_manger_dortoir_une_fois_par_jour) ... ok
+test_migrations_rejouables (__main__.Raccords.test_migrations_rejouables) ... ok
+test_parametres_corruption_seul_le_taux_de_base_decide (__main__.Raccords.test_parametres_corruption_seul_le_taux_de_base_decide) ... ok
+test_permissions_et_rls (__main__.Raccords.test_permissions_et_rls) ... ok
+test_raccord_routes_et_refuge (__main__.Raccords.test_raccord_routes_et_refuge) ... ok
+test_raccord_sommeil_partage_camp_toundra (__main__.Raccords.test_raccord_sommeil_partage_camp_toundra) ... ok
+test_registre_ouvert_par_le_vrai_jugement (__main__.Raccords.test_registre_ouvert_par_le_vrai_jugement) ... ok
+test_reincarceration_reprend_le_reliquat (__main__.Raccords.test_reincarceration_reprend_le_reliquat) ... ok
+test_republia_qhs_inchange (__main__.Raccords.test_republia_qhs_inchange)
+Le QHS de Républia garde son repos plafonné à 3 PA et ignore les ordres du goulag. ... ok
+test_retour_arriere_restaure_les_fonctions (__main__.Raccords.test_retour_arriere_restaure_les_fonctions) ... ok
+test_sanction_coute_1_pa_et_refus_sans_pa (__main__.Raccords.test_sanction_coute_1_pa_et_refus_sans_pa) ... ok
+test_sanction_juge_present_seulement (__main__.Raccords.test_sanction_juge_present_seulement) ... ok
+test_sommeil_final_libere_devant_entree (__main__.Raccords.test_sommeil_final_libere_devant_entree) ... ok
+test_temps_ecoule_ne_purge_jamais (__main__.Raccords.test_temps_ecoule_ne_purge_jamais) ... ok
+test_visiteur_part_sans_jet (__main__.Raccords.test_visiteur_part_sans_jet) ... ok
+test_zz_concurrence_sommeil_et_interrogatoire (__main__.Raccords.test_zz_concurrence_sommeil_et_interrogatoire) ... ok
+
+----------------------------------------------------------------------
+Ran 35 tests in 5.917s
+
+OK
