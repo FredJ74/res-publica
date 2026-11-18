@@ -48,10 +48,10 @@ test('le texte libre du MJ prime ; le nom de la maladie n’est jamais dans le s
   assert.equal(M.motif({ raison: 'inconnue' }), 'Сервер отклонил операцию.');
 });
 
-test('pharmacie : ordre actif à Novomirsk, ajouté à la salle des ventes de Luthécia, exclu de Pharmanov', () => {
+test('pharmacie : Novomirsk, usine de Luthécia et trois entrepôts de Républia, exclu de Pharmanov', () => {
   const data = lire('data.js');
   const ordres = data.match(/\{fn:'pharmacie_medicaments'[^}]*\}/g) || [];
-  assert.equal(ordres.length, 2);
+  assert.equal(ordres.length, 5);
   for (const o of ordres) assert.ok(!/bientot/.test(o), o);
   assert.match(data, /excludeOrders: \['acheter_sels_ammoniaque', 'pharmacie_medicaments'\]/);
   assert.match(lire('plateau-router.js'), /fn === 'pharmacie_medicaments'.*ouvrirPharmacie\(\)/);
@@ -75,4 +75,26 @@ test('migration : catalogue paramétrable, raccords à ancre unique et contrôle
   // Les lectures des joueurs ne renvoient jamais le nom de la maladie d'autrui : seulement la clé de symptôme.
   const symptomes = sql.slice(sql.indexOf('FUNCTION public.maladies_symptomes_piece'), sql.indexOf('-- ── Pharmacie'));
   assert.ok(!/nom_mj/.test(symptomes));
+});
+
+test('boissons : étiquette explicite sur chaque boisson, seules les alcoolisées comptent un verre', () => {
+  const sql = lire('migrations/20261118061000_maladies_boissons_repartition.sql');
+  const etiquettes = [...sql.matchAll(/\('([a-z_]+)', '(alcoolisee|non_alcoolisee)'\)/g)].filter(m => m[1] !== 'alcoolisee').map(m => m[1] + '=' + m[2]);
+  assert.equal(etiquettes.length, 20);
+  for (const b of ['cafe_boisson', 'chocolat_chaud_sovarka', 'boisson_sans_alcool', 'jus_de_fruits', 'the_chaud_sovarka'])
+    assert.ok(etiquettes.includes(b + '=non_alcoolisee'), b);
+  for (const b of ['biere_pression', 'vin', 'champagne_luthecia', 'voyageurs_tarassoun', 'vodka_distillerie'])
+    assert.ok(etiquettes.includes(b + '=alcoolisee'), b);
+  assert.match(sql, /recettes_commerce_boisson_obligatoire/);
+  assert.match(sql, /WHERE public\.boisson_alcoolisee_interne\(t\.recette_id\)/);
+  for (const f of ['consommer_sur_place_commerce', 'service_etage_commander', 'restaurant_diner_servir', 'diner_commerce_servir_interne',
+                   'inventaire_consommer', 'residence_acte', 'pharmacie_etat', 'pharmacie_acheter_interne']) assert.ok(sql.includes('public.' + f + '('), f);
+  assert.match(sql, /'entrepot-psm',\s+'republic', 'ville_a',  'entrepot-logistique-psm',\s+'salle_ventes', NULL, 0\.25/);
+  const { ctx } = charger('de');
+  const M = ctx;
+  assert.equal(M.estBoisson({ boisson: 'alcoolisee' }), true);
+  assert.equal(M.estBoisson({ recette_id: 'cafe_boisson', generique_id: 'boisson' }), true);
+  assert.equal(M.estBoisson({ stackKey: 'alcool', name: 'Alcool' }), false);
+  assert.match(M.boutonBoire({ boisson: 'alcoolisee' }, 3, ''), /boireBoisson\(3\).*Trinken/);
+  assert.match(lire('plateau-personnage.js'), /boutonBoire\(item, idx/);
 });

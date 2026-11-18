@@ -22,6 +22,7 @@ const T = {
     pharmacy: 'Pharmacie', pharmacyIntro: 'Le médicament adapté guérit au prochain Dormir.',
     left: 'reste {n}', outOfStock: 'rupture', buy: 'Acheter', cancel: 'Renoncer', quantity: 'Quantité',
     bought: '{qte} × {med} pour {paye} {cur}.', take: 'Prendre', taken: 'Médicament pris : guérison au prochain Dormir.',
+    drink: 'Boire', drunk: 'Vous buvez : {nom}.',
     r_aucune_maladie_a_traiter: 'Ce médicament ne soigne aucun de vos maux.',
     r_deja_traitee: 'Traitement déjà pris : guérison au prochain Dormir.',
     r_rupture: 'Rupture de stock pour aujourd’hui.', r_stock_insuffisant: 'Stock insuffisant : il en reste {restant}.',
@@ -45,6 +46,7 @@ const T = {
     pharmacy: 'Pharmacy', pharmacyIntro: 'The right medicine cures you at your next Sleep.',
     left: '{n} left', outOfStock: 'out of stock', buy: 'Buy', cancel: 'Cancel', quantity: 'Quantity',
     bought: '{qte} × {med} for {paye} {cur}.', take: 'Take', taken: 'Medicine taken: you will recover at your next Sleep.',
+    drink: 'Drink', drunk: 'You drink: {nom}.',
     r_aucune_maladie_a_traiter: 'This medicine treats none of your ailments.',
     r_deja_traitee: 'Treatment already taken: you will recover at your next Sleep.',
     r_rupture: 'Out of stock for today.', r_stock_insuffisant: 'Not enough stock: {restant} left.',
@@ -68,6 +70,7 @@ const T = {
     pharmacy: 'Farmacia', pharmacyIntro: 'El medicamento adecuado cura en el próximo Dormir.',
     left: 'quedan {n}', outOfStock: 'agotado', buy: 'Comprar', cancel: 'Renunciar', quantity: 'Cantidad',
     bought: '{qte} × {med} por {paye} {cur}.', take: 'Tomar', taken: 'Medicamento tomado: curación en el próximo Dormir.',
+    drink: 'Beber', drunk: 'Bebe: {nom}.',
     r_aucune_maladie_a_traiter: 'Este medicamento no trata ninguno de sus males.',
     r_deja_traitee: 'Tratamiento ya tomado: curación en el próximo Dormir.',
     r_rupture: 'Agotado por hoy.', r_stock_insuffisant: 'Existencias insuficientes: quedan {restant}.',
@@ -91,6 +94,7 @@ const T = {
     pharmacy: '藥局', pharmacyIntro: '對症的藥物會在下次睡覺時治癒您。',
     left: '剩餘 {n}', outOfStock: '缺貨', buy: '購買', cancel: '放棄', quantity: '數量',
     bought: '{qte} × {med}，共 {paye} {cur}。', take: '服用', taken: '已服藥：下次睡覺時痊癒。',
+    drink: '喝', drunk: '你喝了：{nom}。',
     r_aucune_maladie_a_traiter: '這種藥治不了您的任何病痛。',
     r_deja_traitee: '已服過藥：下次睡覺時痊癒。',
     r_rupture: '今日缺貨。', r_stock_insuffisant: '庫存不足：剩餘 {restant}。',
@@ -114,6 +118,7 @@ const T = {
     pharmacy: 'Аптека', pharmacyIntro: 'Подходящее лекарство вылечит вас при следующем сне.',
     left: 'осталось {n}', outOfStock: 'нет в наличии', buy: 'Купить', cancel: 'Отказаться', quantity: 'Количество',
     bought: '{qte} × {med} за {paye} {cur}.', take: 'Принять', taken: 'Лекарство принято: выздоровление при следующем сне.',
+    drink: 'Выпить', drunk: 'Вы выпили: {nom}.',
     r_aucune_maladie_a_traiter: 'Это лекарство не лечит ни одного из ваших недугов.',
     r_deja_traitee: 'Лекарство уже принято: выздоровление при следующем сне.',
     r_rupture: 'На сегодня товар закончился.', r_stock_insuffisant: 'Недостаточно запасов: осталось {restant}.',
@@ -137,6 +142,7 @@ const T = {
     pharmacy: '약국', pharmacyIntro: '맞는 약을 먹으면 다음 잠자기 때 낫습니다.',
     left: '{n}개 남음', outOfStock: '품절', buy: '구매', cancel: '취소', quantity: '수량',
     bought: '{med} {qte}개, {paye} {cur}.', take: '복용', taken: '약을 먹었습니다: 다음 잠자기 때 회복됩니다.',
+    drink: '마시기', drunk: '마셨습니다: {nom}.',
     r_aucune_maladie_a_traiter: '이 약은 당신의 어떤 병도 치료하지 않습니다.',
     r_deja_traitee: '이미 약을 먹었습니다: 다음 잠자기 때 회복됩니다.',
     r_rupture: '오늘은 품절입니다.', r_stock_insuffisant: '재고 부족: {restant}개 남음.',
@@ -160,6 +166,7 @@ const T = {
     pharmacy: 'صيدلية', pharmacyIntro: 'الدواء المناسب يشفيك عند النوم التالي.',
     left: 'المتبقي {n}', outOfStock: 'نفد', buy: 'شراء', cancel: 'تراجع', quantity: 'الكمية',
     bought: '{qte} × {med} مقابل {paye} {cur}.', take: 'تناول', taken: 'تم تناول الدواء: الشفاء عند النوم التالي.',
+    drink: 'اشرب', drunk: 'شربت: {nom}.',
     r_aucune_maladie_a_traiter: 'هذا الدواء لا يعالج أيًّا من أمراضك.',
     r_deja_traitee: 'تم أخذ العلاج بالفعل: الشفاء عند النوم التالي.',
     r_rupture: 'نفد المخزون لهذا اليوم.', r_stock_insuffisant: 'المخزون غير كافٍ: المتبقي {restant}.',
@@ -183,6 +190,7 @@ const T = {
     pharmacy: 'Farmácia', pharmacyIntro: 'O remédio certo cura no próximo Dormir.',
     left: 'restam {n}', outOfStock: 'esgotado', buy: 'Comprar', cancel: 'Desistir', quantity: 'Quantidade',
     bought: '{qte} × {med} por {paye} {cur}.', take: 'Tomar', taken: 'Remédio tomado: cura no próximo Dormir.',
+    drink: 'Beber', drunk: 'Você bebe: {nom}.',
     r_aucune_maladie_a_traiter: 'Este remédio não trata nenhum dos seus males.',
     r_deja_traitee: 'Tratamento já tomado: cura no próximo Dormir.',
     r_rupture: 'Esgotado por hoje.', r_stock_insuffisant: 'Estoque insuficiente: restam {restant}.',
@@ -206,6 +214,7 @@ const T = {
     pharmacy: 'Apotheke', pharmacyIntro: 'Das passende Medikament heilt Sie beim nächsten Schlafen.',
     left: 'noch {n}', outOfStock: 'ausverkauft', buy: 'Kaufen', cancel: 'Verzichten', quantity: 'Menge',
     bought: '{qte} × {med} für {paye} {cur}.', take: 'Einnehmen', taken: 'Medikament eingenommen: Genesung beim nächsten Schlafen.',
+    drink: 'Trinken', drunk: 'Sie trinken: {nom}.',
     r_aucune_maladie_a_traiter: 'Dieses Medikament hilft gegen keines Ihrer Leiden.',
     r_deja_traitee: 'Bereits eingenommen: Genesung beim nächsten Schlafen.',
     r_rupture: 'Für heute ausverkauft.', r_stock_insuffisant: 'Nicht genug Vorrat: noch {restant}.',
@@ -352,6 +361,35 @@ function boutonMedicamentMaladie(item, style) {
   return '<button onclick="prendreMedicament(\'' + esc(item.medicament).replace(/'/g, '') + '\')" style="' + (style || '') + '">'
     + esc(texteMaladie('take')) + '</button>';
 }
+// Boissons (décision de Fred, 18/11/2026) : une boisson étiquetée (alcoolisée ou non) se boit depuis l'inventaire. L'étiquette
+// est tranchée par le serveur (recette ou objet) ; l'écran ne propose le bouton qu'aux objets qui peuvent en porter une.
+function estBoisson(item) {
+  if (!item) return false;
+  if (item.boisson === 'alcoolisee' || item.boisson === 'non_alcoolisee') return true;
+  return !!item.recette_id && (item.generique_id === 'boisson' || item.generique_id === 'alcool-de-distillerie');
+}
+function boutonBoire(item, idx, style) {
+  if (!estBoisson(item) || !Number.isInteger(idx)) return '';
+  return '<button onclick="boireBoisson(' + idx + ')" style="' + (style || '') + '"><i class="ti ti-glass-full"></i> ' + esc(texteMaladie('drink')) + '</button>';
+}
+let boireEnCours = false;
+async function boireBoisson(idx) {
+  if (boireEnCours || typeof global.removeFromInventory !== 'function') return;
+  const item = ((typeof state !== 'undefined' && state && state.inventory) || [])[idx]; // state : « let » de plateau-core.js, hors de window
+  if (!estBoisson(item)) return;
+  boireEnCours = true;
+  try {
+    global.document.getElementById('modal-postes')?.classList.remove('open');
+    const r = await global.removeFromInventory(idx, 'consommer');
+    if (!r || !r.ok) {
+      const msg = typeof global.messageRefusSortieInventaire === 'function' ? global.messageRefusSortieInventaire(r && r.raison) : texteMaladie('refused');
+      global.showToast(texteMaladie('drink'), msg, false); return;
+    }
+    global.showToast(texteMaladie('drink'), texteMaladie('drunk', { nom: item.name || '' }), true);
+    if (typeof global.updateUI === 'function') global.updateUI();
+    setTimeout(() => { rafraichirMaladies().catch(() => {}); }, 400);
+  } finally { boireEnCours = false; }
+}
 // Nom affiché d'un médicament de maladie dans l'inventaire.
 function nomObjetMaladie(item) {
   return item && item.type === 'medicament_maladie' ? nomMedicament(item.medicament) : null;
@@ -382,7 +420,8 @@ async function afficherSymptomesDans(conteneurApres, nom) {
 }
 
 // Après les actions qui peuvent rendre malade ou guérir (manger cru, boire, Dormir), relire l'état de santé.
-const RPC_SANTE = new Set(['matiere_brute_manger', 'sovarka_maison_agir', 'tournee_cloturer_boire', 'pa_repos_nocturne', 'inventaire_consommer']);
+const RPC_SANTE = new Set(['matiere_brute_manger', 'sovarka_maison_agir', 'tournee_cloturer_boire', 'pa_repos_nocturne', 'inventaire_consommer',
+  'consommer_sur_place_commerce', 'service_etage_commander', 'restaurant_diner_servir']);
 function brancherSbRpc() {
   const orig = global.sbRpc;
   if (typeof orig !== 'function' || orig.__maladies) return;
@@ -406,6 +445,6 @@ else if (global.document) global.document.addEventListener('DOMContentLoaded', d
 Object.assign(global, {
   RPMaladies: { T, CLES, MEDICAMENTS, texte: texteMaladie, nomMaladie, symptomeSoi, symptomeAutre, nomMedicament, motif },
   rafraichirMaladies, rendreEtatSante, ouvrirPharmacie, confirmerPharmacie, prendreMedicament,
-  boutonMedicamentMaladie, nomObjetMaladie, afficherSymptomesDans
+  boutonMedicamentMaladie, nomObjetMaladie, afficherSymptomesDans, boutonBoire, boireBoisson, estBoisson
 });
 })(typeof window !== 'undefined' ? window : globalThis);

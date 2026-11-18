@@ -193,3 +193,20 @@ Découpage en lots, **une PR par lot**, textes dans les neuf langues, fichiers d
   n'est jamais transmis aux autres joueurs.
 - **Règle des 7 jours retrouvée** : `inventaire_consommer` donnait +1 PA à un aliment de 7 jours ou moins et −1 PA au-delà.
   Elle sera remplacée au lot 2 par la péremption à 10 jours.
+
+### Décisions de Fred du 18/11 au soir (fin du lot 1)
+
+- **Boissons : deux sous-articles explicites**, « boisson alcoolisée » et « boisson non alcoolisée ». L'étiquette est posée à la
+  main sur chaque boisson (colonne `recettes_commerce.boisson`, obligatoire pour toute recette de catégorie `boisson`), jamais
+  déduite de la matière « alcool ». Seules les boissons alcoolisées font monter le compteur de verres.
+  - Façons de boire comptées : tournée (selon la boisson commandée), consommation sur place au comptoir, service d'étage,
+    boisson du dîner d'affaires (le « verre offert » au restaurant, un verre par convive joueur), bouteille bue depuis
+    l'inventaire (bouteille du mini-bar de la Résidence impériale, alcools de distillerie), trinquer chez l'habitant
+    (toujours alcoolisé : vodka, slivovitz, samogon, alcool).
+  - Une boisson achetée à emporter se boit depuis l'inventaire (bouton « Boire »), sans effet sur les PA.
+- **Grippe** : comportement inchangé (PA au-dessus de 15 non retirés, plafond au prochain gain).
+- **Médicaments en Républia** : le comptoir de l'usine pharmaceutique de Luthécia est le seul point de vente PNJ. La
+  production journalière de chaque médicament (le « stock journalier » du MJ) est répartie comme celle des autres usines
+  stratégiques : 25 % au comptoir de l'usine, 25 % à chacun des trois entrepôts logistiques (Luthécia, Port-Sainte-Marie,
+  Montrouge), au plus fort reste. Les pharmacies ouvertes par des PJ s'y fournissent ; aucun contrat commerçant/usine. La
+  recette d'une vente en entrepôt va à la caisse de l'entrepôt.
