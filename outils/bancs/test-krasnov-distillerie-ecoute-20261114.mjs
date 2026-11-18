@@ -17,7 +17,7 @@ assert.deepEqual(dist.rooms.bureau_direction.persons.map(p=>p.name),['Anatoli Po
 assert.deepEqual(dist.rooms.atelier_distillerie.persons.map(p=>p.name),['Vassili Gradousov (PNJ)']);
 assert.deepEqual(radar.rooms.salle_ecoute.persons.map(p=>p.name),['Colonel Gleb Voronov (PNJ)','Caporal Ilia Sorokine (PNJ)']);
 assert.doesNotMatch(JSON.stringify(radar),/Sokolova/);
-assert.equal(vm.runInContext("BUILDINGS['poste-vigilance-glaciale'].rooms.salle_ecoute.persons[0].name",ctx),'Sergent Bair Dorjiev (PNJ)');
+assert.equal(vm.runInContext("BUILDINGS['poste-vigilance-glaciale'].rooms.salle_ecoute.persons[0].name",ctx),'Sergent Oleg Sloukhov (PNJ)');
 const local=fs.readFileSync(new URL('migrations/20261114180000_krasnov_distillerie_comptoir.sql',root),'utf8');
 assert.match(local,/SET piece = 'salle_ventes'/);
 assert.ok(radar.rooms.salle_ecoute.orders.some(o=>o.fn==='voler_archives_ecoute'));

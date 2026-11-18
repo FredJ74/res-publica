@@ -24,7 +24,7 @@ assert.ok(ctx.B.mairie.rooms.bureau_maire_local.orders.some(o=>o.requiresPost===
 assert.ok(ctx.B.mairie.rooms.bureau_maire_adjoint.orders.some(o=>o.requiresPost==='maire_adjoint'));
 assert.ok(mairie.roomsExtra.salle_elections.orders.some(o=>o.fn==='voter_election'));
 assert.ok(mairie.roomsExtra.salle_partis.orders.length>0);
-assert.ok(marche.persons.some(p=>p.name.includes('Tuyana Dashieva')));
+assert.ok(marche.persons.some(p=>p.name.includes('Tsypilma Dashieva')));
 for(const city of ['capitale','ville_b']){
  const m=ctx.W.soviet[city].buildingContext?.mairie;
  const market=ctx.W.soviet[city].buildingContext?.marche;

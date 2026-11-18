@@ -1218,7 +1218,12 @@ const PNJ_REFERENTS = ['marc_hantile', 'martial_bouterin', 'gaspard_ferriere',
                        'alfredo_mifassole', 'pascal_hamar', 'lucas_tenaire', 'laurent_barre',
   'gretta_delieu',
   // Krasnov (Fred, 15/11/2026) : référent religion et référente kolkhoze, aussi PNJ sociaux.
-  'kouzma_lapchine', 'praskovia_pakhomova'
+  'kouzma_lapchine', 'praskovia_pakhomova',
+  // Starovka (Fred, 18/11/2026) : PNJ en poste et référents désignés (GAME-DESIGN-NOVOMIRSK.md).
+  'sayana_tsydypova', 'tsyren_dorji_bazarov', 'munko_tsybenov', 'dugar_tsyrempilov', 'lieutenant_tsyden_zhalsaraev',
+  'erdem_gombozhapov', 'gleb_ledokolov', 'stepan_vetrov', 'batzorig_dorjiev', 'damdin_mazoutov', 'dashi_burilov',
+  'tuyana_sambueva', 'saran_batbayar', 'saryuna_dorjieva', 'arkadi_prigovorov', 'zhargal_dashiev', 'darima_zhambalova',
+  'gombo_zhigzhitov', 'viktor_morozko'
 ];
 
 // Note une consultation reellement aboutie aupres d'un referent. No-op partout ailleurs.

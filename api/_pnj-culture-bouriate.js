@@ -16,6 +16,8 @@ const CONSIGNE_BOURIATE_STAROVKA = [
 ].join(" ");
 
 function consigneBouriateStarovka(profil, scene) {
+  // PNJ slaves de Starovka (Fred, 18/11/2026) : la consigne ne s'applique pas (fiche marquée bouriate: false).
+  if (profil && profil.bouriate === false) return "";
   // Présence confirmée dans une scène de Starovka ; une ville seule ne prouve
   // pas l'identité culturelle d'un PNJ visiteur. Les profils explicitement
   // identifiés comme bouriates bénéficient de la consigne même hors de la scène.
