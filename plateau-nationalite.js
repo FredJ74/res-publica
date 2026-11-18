@@ -316,7 +316,8 @@
   }
   // Nationalité du joueur courant (repli sur le pays courant tant que la fiche n'est pas relue).
   function maNationalite() {
-    const s = global.state || {};
+    // `state` est un `let` global du jeu (plateau-core.js) : il n'est pas une propriété de window.
+    const s = (typeof state !== 'undefined' && state) || global.state || {};
     return s.nationalite || (s.char && s.char.nationalite) || s.country || null;
   }
   global.RPNationaliteI18n = { textes: T, langue, texte: texteNationalite };

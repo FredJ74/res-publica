@@ -38,6 +38,11 @@ test('textes : mêmes clés dans les neuf langues, aucun texte vide, variables c
 });
 
 test('nationalité du joueur : la fiche, jamais le pays où il se trouve', () => {
+  // Dans le navigateur, `state` est un `let` global, absent de window : la fonction doit le lire quand même.
+  const ctxLet = vm.createContext({ console, i18next: { language: 'fr' } }); ctxLet.window = ctxLet;
+  vm.runInContext("let state = { country: 'soviet', nationalite: 'republic' };", ctxLet);
+  vm.runInContext(lire('plateau-nationalite.js'), ctxLet);
+  assert.equal(vm.runInContext('maNationalite()', ctxLet), 'republic', 'state déclaré par let');
   assert.equal(ctxNat({ country: 'soviet', nationalite: 'republic' }).maNationalite(), 'republic');
   assert.equal(ctxNat({ country: 'soviet' }).maNationalite(), 'soviet');
 });

@@ -40,6 +40,10 @@ function showToast(t, m) { TOASTS.push(t + ' | ' + m); }
 function addJournalEntry(m) { JOURNAL.push(m); }
 function getCleCycle(posteId, city) { return city ? posteId + '_' + city : posteId; }
 function getPhaseActuelle() { return PHASE; }
+// Nationalité et domicile (18/11/2026) : municipales selon le domicile, vérifiées avant la porte.
+function posteEstLocal(p) { return p === 'maire'; }
+// Motifs de nationalité et de domicile (plateau-nationalite.js), même texte français.
+function motifNationalite(r) { return r === 'non_domicilie' ? 'Il faut être domicilié dans cette ville pour voter à ses municipales.' : null; }
 
 eval(bloc('voterPour'));
 
@@ -55,7 +59,7 @@ function sync(p) {
 function neuf() {
   RPC = []; ECRITURES = []; TOASTS = []; JOURNAL = []; REPONSES = {};
   PHASE = PHASES_ELECTORALES.VOTE;
-  state = { char: { name: 'Ben' }, country: 'republic', domicile: { country: 'republic' } };
+  state = { char: { name: 'Ben' }, country: 'republic', nationalite: 'republic', domicile: { country: 'republic', city: 'capitale' } };
   CYCLES_ELECTORAUX = { republic: { maire_capitale: {
     votes: {}, candidats: [{ nom: 'Arnie' }, { nom: 'Marsault' }] } } };
 }
@@ -80,7 +84,7 @@ print('2. AUCUNE CONFIRMATION SANS ECRITURE AUTORITAIRE');
 var refus = [
   ['deja_vote', 'Vous avez déjà voté'],
   ['vote_ferme', "Le vote n'est pas ouvert"],
-  ['non_domicilie', 'Vous ne pouvez pas voter dans cet empire'],
+  ['non_domicilie', 'Il faut être domicilié dans cette ville pour voter à ses municipales.'],
   ['candidat_inconnu', 'Ce candidat ne figure pas'],
   ['acteur_non_authentifie', 'Session non reconnue'],
   ['cycle_absent', "n'a pas pu être enregistré"],
