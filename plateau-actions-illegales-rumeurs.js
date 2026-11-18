@@ -1040,7 +1040,7 @@ const ARMES_CATALOGUE = {
       icon: 'ti-tools-kitchen-2',
       desc: 'Propriété du Peuple. Empruntée indéfiniment.',
       bonus: { stat: 'VOL', val: 5 },
-      imageUrl: 'images/arme-baionnette-soviet.png'
+      imageUrl: 'images/arme-baionnette-soviet.webp'
     },
     {
       id: 'makarov',
@@ -1050,7 +1050,7 @@ const ARMES_CATALOGUE = {
       icon: 'ti-crosshair',
       desc: 'Standard réglementaire. Camarade Kalachnikov détourne le regard.',
       bonus: { stat: 'PER', val: 8 },
-      imageUrl: 'images/arme-makarov-soviet.png'
+      imageUrl: 'images/arme-makarov-soviet.webp'
     },
     {
       id: 'kalachnikov',
@@ -1060,7 +1060,7 @@ const ARMES_CATALOGUE = {
       icon: 'ti-target-arrow',
       desc: 'Pour la défense de la Patrie. Usage personnel toléré.',
       bonus: { stat: 'PER', val: 16 },
-      imageUrl: 'images/arme-kalachnikov-soviet.png'
+      imageUrl: 'images/arme-kalachnikov-soviet.webp'
     }
   ],
   khalija: [
