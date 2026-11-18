@@ -782,6 +782,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'poissonniere_poisson') { ouvrirPoissonniere('poisson'); return; }
   if (fn === 'pharmacie_medicaments') { if (typeof ouvrirPharmacie === 'function') ouvrirPharmacie(); return; }
   if (fn === 'acheter_furet') { if (typeof ouvrirFuret === 'function') ouvrirFuret(); return; }
+  if (fn === 'acheter_graisse') { if (typeof ouvrirGraisses === 'function') ouvrirGraisses(); return; }
   if (fn === 'contrebande_poissonniere') { ouvrirPoissonniere('contrebande'); return; }
   if (fn === 'consulter_effectifs_douane') { ouvrirConsulterEffectifsDouane(); return; }
   if (fn === 'recruter_douanier') { doRecruterDouanier(pa, cost); return; }

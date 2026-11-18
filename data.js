@@ -2802,7 +2802,9 @@ const WORLD = {
             photoPos: '50% 24%'
           }],
           roomOverrides: {
-            marche_ext: { imageUrl: 'images/Sovarka/Krasnov/Krasnov_marche_etals.webp' }
+            // Graisse d'ours (maladies et climat, lot 4) : vendue sur les étals du kolkhoze.
+            marche_ext: { imageUrl: 'images/Sovarka/Krasnov/Krasnov_marche_etals.webp', orders: [
+              {fn:'acheter_graisse', label:'Acheter un bocal de graisse', pa:0, cost:0, type:'legal', icon:'ti-jar', successRate:100, desc:"Un bocal de graisse contre le froid : protège du blizzard (consommé)."}] }
           }
         },
         // Mêmes six pièces et tous les ordres sportifs du gabarit stade partagé.
@@ -8105,6 +8107,7 @@ const BUILDINGS = {
         desc: "Une bâche tendue contre le vent, des caisses de poisson sur la glace et, derrière, une marchande qui voit passer toute la ville.",
         persons: [{name:'Galina Karpova (PNJ)', role:'Marchande de poissons', rel:'neutral', job:'commercant'}],
         orders: [
+          {fn:'acheter_graisse', label:'Acheter un bocal de graisse', pa:0, cost:0, type:'legal', icon:'ti-jar', successRate:100, desc:"Un bocal de graisse contre le froid : protège du blizzard (consommé)."},
           {fn:'poissonniere_poisson', label:'Acheter du poisson de rivière', pa:0, cost:0, type:'legal', icon:'ti-fish', successRate:100, desc:"Pêché par son mari. Un peu moins cher qu'à l'entrepôt, mais la pêche du jour ne fait que 12 poissons."},
           {fn:'ecouter_rumeurs', label:'Tendre l\'oreille', i18nKey:'variant.rumours_listen', pa:0, cost:0, type:'grey', icon:'ti-ear', successRate:95, desc:'Galina sait tout ce qui se dit en ville. Révèle une rumeur vraie (action récente tracée) ou, à défaut, une information générée selon le contexte.'},
           {fn:'lancer_rumeur_cible', label:'Lui glisser une rumeur', i18nKey:'variant.sov_rumeur_glisser', pa:1, cost:0, type:'grey', icon:'ti-messages', successRate:75, desc:'Galina la répétera à toute la ville. Succès (75%) : effet selon la cible. Échec : retour de bâton limité + risque de détection.'},

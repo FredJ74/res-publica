@@ -158,7 +158,7 @@ async function admClimatCharger() {
    cal.append(p);
   }
   const f = document.createElement('div');
-  f.innerHTML = '<select id="adm-cl-type"><option>crue</option><option>canicule</option><option>orage</option><option>brouillard</option></select> '
+  f.innerHTML = '<select id="adm-cl-type"><option>crue</option><option>canicule</option><option>orage</option><option>brouillard</option><option>blizzard</option></select> '
    + '<select id="adm-cl-pays"><option value="republic">Républia</option><option value="soviet">Sovarka</option></select> '
    + '<select id="adm-cl-ville"><option value="capitale">capitale</option><option value="ville_a">ville A</option><option value="ville_b">ville B</option></select> '
    + '<input id="adm-cl-jour" type="date"> ';
