@@ -1,0 +1,54 @@
+{
+  "main": "f32d0163e9107e9464959dbaee682ddbad130100",
+  "resultat": "meme echec reproduit sur clone main exact",
+  "sources": [
+    {
+      "fichier": "creation.js",
+      "identique": true,
+      "sha256_main": "8d5fb8f9f9458ccdba96c738eba074ec1a5ebe8125084a1480b5ef14da2e4586",
+      "sha256_branche": "8d5fb8f9f9458ccdba96c738eba074ec1a5ebe8125084a1480b5ef14da2e4586"
+    },
+    {
+      "fichier": "outils/bancs/banc-i18n-explications-creation-navigateur-20261114.cjs",
+      "identique": true,
+      "sha256_main": "9778d9ffb4112cfd2369cf7b20508ebc2e030b11dcd1d710afc9d7bd58754efc",
+      "sha256_branche": "9778d9ffb4112cfd2369cf7b20508ebc2e030b11dcd1d710afc9d7bd58754efc"
+    },
+    {
+      "fichier": "outils/bancs/fixtures/creation-i18n-navigateur.cjs",
+      "identique": true,
+      "sha256_main": "8a0052acca1bc10281579b3fbc3fb228689fa947a7fc195a02ed49fabcad8a7a",
+      "sha256_branche": "8a0052acca1bc10281579b3fbc3fb228689fa947a7fc195a02ed49fabcad8a7a"
+    },
+    {
+      "fichier": "style.css",
+      "identique": false,
+      "sha256_main": "80d0c1fb04fded062e6a4acf5ac76251559f46ceba37850eefcb85158a6fe3e4",
+      "sha256_branche": "f2ccec689cf4be9d1b9c668f163d70063f0ff83d1c8b1647ae2a790e5bb3a8f1"
+    },
+    {
+      "fichier": "i18n/resources.js",
+      "identique": true,
+      "sha256_main": "5660c3107d3dc4c2a560c8fd671e27c63bc6f5870561ac7981896890f06dd668",
+      "sha256_branche": "5660c3107d3dc4c2a560c8fd671e27c63bc6f5870561ac7981896890f06dd668"
+    },
+    {
+      "fichier": "i18n/connection-resources.js",
+      "identique": true,
+      "sha256_main": "079f5d4667c8db9c6ccfe68c5ad1e2d8e22b44664e6cab45bb17ca1feebe08d6",
+      "sha256_branche": "079f5d4667c8db9c6ccfe68c5ad1e2d8e22b44664e6cab45bb17ca1feebe08d6"
+    },
+    {
+      "fichier": "i18n/i18next.min.js",
+      "identique": true,
+      "sha256_main": "10e96317f02244bebf0140a7268675ee550426f5dcdd9e30a02d293001c08eb4",
+      "sha256_branche": "10e96317f02244bebf0140a7268675ee550426f5dcdd9e30a02d293001c08eb4"
+    },
+    {
+      "fichier": "i18n/i18n-init.js",
+      "identique": true,
+      "sha256_main": "a76e8bd4f14036e5c9cbbaf2b1360beda33233a2c4353a1113e01585c4325304",
+      "sha256_branche": "a76e8bd4f14036e5c9cbbaf2b1360beda33233a2c4353a1113e01585c4325304"
+    }
+  ]
+}

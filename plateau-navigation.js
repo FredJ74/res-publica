@@ -307,6 +307,13 @@ async function commanderNavigationInterieure(buildingId,roomId) {
     if(!contexteNavigationRueValide(c))return false;
     let r=v&&typeof v.ok==='boolean'&&!v.transport?v:null;
     if(Array.isArray(r))r=r[0];
+    // Le jet du goulag est résolu : relire la vraie position et le groupe.
+    if(r?.goulag_arrestation?.ok===true){
+      if(typeof sbLoadPersonnage==='function')await sbLoadPersonnage();
+      if(typeof showToast==='function')showToast('Arrestation',r.goulag_arrestation.arrete ? 'Les autorités vous ont arrêté. Votre peine reprend sans pénalité automatique.' : 'Un membre de votre groupe a été arrêté. Votre position et votre groupe sont actualisés.',false);
+      if(typeof updateUI==='function')updateUI();
+      return false;
+    }
     // Une réponse perdue se vérifie par lecture, jamais par une seconde mutation.
     if(!r){
       const lu=await sbRpcVerdict('rue_position_lire',{},options).catch(()=>null);

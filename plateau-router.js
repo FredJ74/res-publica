@@ -14,6 +14,30 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   // modifier 268 signatures. Les handlers qui facturent apres une confirmation
   // differee (modale) peuvent le passer explicitement via l'option `fn`.
   if (typeof state !== 'undefined') state._ordreEnCours = fn;
+  // Goulag : ordre de choix, sans débit générique ; toutes les permissions sont côté RPC.
+  if (fn === 'goulag_depart_pied') {
+    if (state.country !== 'soviet' || state.currentCity !== 'qhs' || state.currentBuilding !== 'qhs-prison' || state.currentRoom !== 'entree_qhs') {
+      showToast('Accès refusé', 'Ce départ n’est possible qu’à l’entrée du goulag de Sovarka.', false);
+    } else if (typeof window.goulagToundraChoisirDepart === 'function') window.goulagToundraChoisirDepart();
+    else showToast('Service indisponible', 'La traversée n’est pas encore accessible.', false);
+    return;
+  }
+  // Transport et autorisations du goulag : aucun paiement côté navigateur.
+  const ordresVisiteGoulag = {
+    goulag_detenu_entree:'goulagDetenuVersEntree',
+    goulag_visite_demander:'goulagAutorisationDemander',
+    goulag_voyager:'goulagVoyager',
+    goulag_autorisations_gerer:'goulagAutorisationsGerer',
+    goulag_visiteur_retour:'goulagVisiteurRetour',
+    goulag_refuge_nuit:'goulagRefugeNuit',
+    goulag_refuge_terminer:'goulagRefugeTerminer'
+  };
+  if (Object.prototype.hasOwnProperty.call(ordresVisiteGoulag, fn)) {
+    const handler = window[ordresVisiteGoulag[fn]];
+    if (typeof handler === 'function') handler();
+    else showToast('Service indisponible', 'La fonction du goulag n’est pas encore disponible.', false);
+    return;
+  }
   if (fn === 'publicite_premium') { ouvrirPublicitePremium(); return; }
   if (typeof queteAccueilNotifierOrdre === 'function') queteAccueilNotifierOrdre(fn);
   successRate = successRate || 70;

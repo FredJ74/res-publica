@@ -1040,7 +1040,7 @@ const ARMES_CATALOGUE = {
       icon: 'ti-tools-kitchen-2',
       desc: 'Propriété du Peuple. Empruntée indéfiniment.',
       bonus: { stat: 'VOL', val: 5 },
-      imageUrl: 'images/arme-baionnette-soviet.png'
+      imageUrl: 'images/arme-baionnette-soviet.webp'
     },
     {
       id: 'makarov',
@@ -1050,7 +1050,7 @@ const ARMES_CATALOGUE = {
       icon: 'ti-crosshair',
       desc: 'Standard réglementaire. Camarade Kalachnikov détourne le regard.',
       bonus: { stat: 'PER', val: 8 },
-      imageUrl: 'images/arme-makarov-soviet.png'
+      imageUrl: 'images/arme-makarov-soviet.webp'
     },
     {
       id: 'kalachnikov',
@@ -1060,7 +1060,7 @@ const ARMES_CATALOGUE = {
       icon: 'ti-target-arrow',
       desc: 'Pour la défense de la Patrie. Usage personnel toléré.',
       bonus: { stat: 'PER', val: 16 },
-      imageUrl: 'images/arme-kalachnikov-soviet.png'
+      imageUrl: 'images/arme-kalachnikov-soviet.webp'
     }
   ],
   khalija: [
@@ -1186,7 +1186,10 @@ async function ouvrirModalAcheterArme() {
     // Image
     html += '<div style="width:100%;height:120px;overflow:hidden;background:#050503;flex-shrink:0">';
     if (arme.imageUrl) {
-      html += '<img src="' + arme.imageUrl + '" style="width:100%;height:100%;object-fit:cover;opacity:.85"/>';
+      // Un visuel référencé peut avoir été supprimé lors des conversions WebP :
+      // masquer l'image cassée et afficher le pictogramme du catalogue à sa place.
+      html += '<img src="' + arme.imageUrl + '" alt="' + arme.name + '" loading="lazy" onerror="this.hidden=true;this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'" style="width:100%;height:100%;object-fit:cover;opacity:.85"/>';
+      html += '<div style="display:none;width:100%;height:100%;align-items:center;justify-content:center;background:#172330" aria-hidden="true"><i class="ti ' + arme.icon + '" style="font-size:2.2rem;color:#c9a84c"></i></div>';
     } else {
       html += '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center"><i class="ti ' + arme.icon + '" style="font-size:2rem;color:#3a2a10"></i></div>';
     }
@@ -1205,8 +1208,9 @@ async function ouvrirModalAcheterArme() {
       html += '<button onclick="confirmerAchatArmeIllegal(\'' + arme.id + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.06em;padding:.4rem;border:1px solid #8a3a3a;background:transparent;color:#cc6a6a;cursor:pointer" onmouseover="this.style.background=\'#1a0a0a\'" onmouseout="this.style.background=\'transparent\'">Marché noir — ' + prixIllegal.toLocaleString('fr-FR') + ' ' + cur + '</button>';
     }
     html += '</div>';
-    html += '<button ' + (commercePeutProduire(data) ? 'onclick="confirmerProduction(\''+arme.id+'\')"' : 'disabled') + '>Produire</button>';
-    html += '<button onclick="ouvrirFicheArmeCommerce(\''+arme.id+'\')">Fiche produit</button>';
+    const peutProduire = commercePeutProduire(data);
+    html += '<button ' + (peutProduire ? 'onclick="confirmerProduction(\''+arme.id+'\')"' : 'disabled') + ' style="width:100%;margin-top:.4rem;min-height:36px;padding:.45rem;border:1px solid #567a5d;border-radius:4px;background:#18291c;color:#b9d9b9;font:600 .8rem Inter,sans-serif;cursor:' + (peutProduire ? 'pointer' : 'not-allowed') + ';opacity:' + (peutProduire ? '1' : '.45') + '">Produire</button>';
+    html += '<button onclick="ouvrirFicheArmeCommerce(\''+arme.id+'\')" style="width:100%;margin-top:.3rem;min-height:36px;padding:.45rem;border:1px solid #8d754b;border-radius:4px;background:#293343;color:#e6d2a3;font:600 .8rem Inter,sans-serif;cursor:pointer">Fiche produit</button>';
     html += '</div></div>';
   });
 

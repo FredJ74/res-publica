@@ -1,0 +1,17 @@
+✔ ordres proposés par pièce, détenu ou personne habilitée (15.082796ms)
+✔ aucune fuite vers le QHS de Républia ni hors du camp (35.702503ms)
+✔ les neuf langues portent tous les textes, noms propres en alphabet latin (15.404202ms)
+✔ doOrder est enveloppé : ordres du goulag routés, autres ordres inchangés (4.520839ms)
+✔ un refus serveur est nommé, sans effet calculé par l’écran (11.35214ms)
+✔ fenêtres : sens d’écriture automatique, aucune couleur en dur (0.606995ms)
+✔ plateau.html charge le module une seule fois, avant le routeur (2.965743ms)
+✔ cron de minuit : contrôle idempotent côté serveur, tolérant à un moteur absent (2.307379ms)
+✔ migrations : additives, verrouillées par #1020, sans écriture par la vue personnages (2.521253ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 103.171286

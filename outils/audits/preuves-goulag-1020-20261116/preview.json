@@ -1,0 +1,55 @@
+{
+  "commit": "5d8f9278eb0eea32598dad9d610aee9c15958dde",
+  "deployment": "dpl_2n5UWLfeSmHBR3z2n34xCU7W6c76",
+  "files": [
+    {
+      "file": "plateau-goulag-transports.js",
+      "http": 200,
+      "sha256": "ae7449ef35b0a111d06a816d94a600b9ca0810254b9e332f8fe0f269cb41e787",
+      "identique": true,
+      "octets": 5069,
+      "attendu": 5069
+    },
+    {
+      "file": "plateau-goulag-refuge.js",
+      "http": 200,
+      "sha256": "9ee05f4c4d2bd29684e2aa0fba0add175458c63c0dad5f0fc3997bba622af561",
+      "identique": true,
+      "octets": 4667,
+      "attendu": 4667
+    },
+    {
+      "file": "plateau.html",
+      "http": 200,
+      "sha256": "f3ea64c5d39b381bab774380a1cf63355f14718aa1fd2e6a7b43d00bccbe057c",
+      "identique": false,
+      "octets": 80270,
+      "attendu": 80107,
+      "identique_sans_barre_vercel": true
+    },
+    {
+      "file": "style.css",
+      "http": 200,
+      "sha256": "f2ccec689cf4be9d1b9c668f163d70063f0ff83d1c8b1647ae2a790e5bb3a8f1",
+      "identique": true,
+      "octets": 168432,
+      "attendu": 168432
+    },
+    {
+      "file": "plateau-rue-centrale.js",
+      "http": 200,
+      "sha256": "2200918fc124556153983b1c4d56e92daf12ee402b901f0223386e0147c10a8a",
+      "identique": true,
+      "octets": 123614,
+      "attendu": 123614
+    },
+    {
+      "file": "plateau-goulag-toundra.js",
+      "http": 200,
+      "sha256": "2926cd9426c38db01c91262f76ea33cc0fc9dcbe6a8a0d459338e306fefaf607",
+      "identique": true,
+      "octets": 12075,
+      "attendu": 12075
+    }
+  ]
+}
