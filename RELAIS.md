@@ -8,6 +8,12 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Maladies, péremption et climat — lot 5 : effets du climat, état de catastrophe naturelle (Claude, 19/11/2026)
+- **Branche `claude/climat-lot5-20261119`** (part du lot 4).
+- **Migrations APPLIQUÉES** : `20261119100000_climat_effets` (structure contrôlée à l'application, puis scénario complet en transaction annulée : bouteille d'eau, crue de l'entrepôt de Montrouge, viande gâtée en fin de canicule, coûts des deux options), `20261119100500_catastrophe_caisse_pm` (paiement sur la caisse du gouvernement tenue par le PM, vérifié en transaction annulée).
+- **Codé** : canicule, orage et groupe électrogène (équipement), crue (lieux fermés, 20 % de stock, sacs de sable), état de catastrophe naturelle (proposition du min_int, déclaration du PM, deux options avec coûts), boutique « Équipements contre les intempéries », brouillard exposé sans être branché (criminalité non touchée) ; textes en neuf langues ; ordre `boutique_climat` (plans 97/219 : 586 lignes ; 425 identifiants d'ordres).
+- **Passe horaire du climat RÉACTIVÉE le 19/11** après la fusion de #1127.
+
 ### Maladies, péremption et climat — lot 4 : blizzard, graisses, grippe, contagion (Claude, 19/11/2026)
 - **Branche `claude/climat-lot4-20261119`** (part du lot 3 ; contient la branche d'images `claude/images-furet-graisses-sac-20261118`).
 - **Migrations APPLIQUÉES** : `20261119090000_climat_blizzard_grippe` (essai annulé d'abord), `20261119090500_furet_image`.

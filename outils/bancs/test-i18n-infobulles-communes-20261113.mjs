@@ -48,7 +48,7 @@ test('inventaire : 237 descriptions communes affichées après isolation du goul
   // catalogue (trou antérieur, chantier de traduction à venir, consigné dans RELAIS.md). Le plafond
   // autorise la seule description de gestion de caserne rétablie à Sovarka ;
   // elle doit rejoindre le catalogue partagé dans le prochain lot i18n.
-  assert.equal(communesJeu.length, 239, // +1 le 18/11 : furet renifleur (maladies lot 2c) ; +1 le 18/11 : pharmacie de Républia (maladies lot 1).  Le 16/11 : 245 -> 237 ; les ordres hérités du QHS de Républia disparaissent du goulag de Sovarka (entrée, cellules et salles républicaines), sans retirer leurs traductions encore nécessaires en Républia.
+  assert.equal(communesJeu.length, 240, // +1 le 19/11 : boutique climat (lot 5) ; +1 le 18/11 : furet renifleur (maladies lot 2c) ; +1 le 18/11 : pharmacie de Républia (maladies lot 1).  Le 16/11 : 245 -> 237 ; les ordres hérités du QHS de Républia disparaissent du goulag de Sovarka (entrée, cellules et salles républicaines), sans retirer leurs traductions encore nécessaires en Républia.
     'nombre de descriptions communes affichées après exclusions ministérielles spécifiques à Sovarka');
   const manquantes = communesJeu.filter(d => !cat.includes(d));
   t.diagnostic('Descriptions communes manquantes : ' + JSON.stringify(manquantes));
@@ -65,7 +65,7 @@ test('inventaire : 237 descriptions communes affichées après isolation du goul
 
 test('257 lignes de neuf colonnes non vides, sans guillemet droit ni balise, toutes traduites', () => {
   const lignes = I('soviet', 'fr').communes;
-  assert.equal(lignes.length, 258); // +1 le 18/11 : furet renifleur ; +1 le 18/11 : pharmacie de Républia ; +2 le 16/11 : récolte (nouvelle description) et régulation de la production ; +1 le 14/11 : Dormir dans la chambre d’hôpital
+  assert.equal(lignes.length, 259); // +1 le 19/11 : boutique climat ; +1 le 18/11 : furet renifleur ; +1 le 18/11 : pharmacie de Républia ; +2 le 16/11 : récolte (nouvelle description) et régulation de la production ; +1 le 14/11 : Dormir dans la chambre d’hôpital
   for (const l of lignes) {
     assert.equal(l.length, 9, l[0]);
     for (const v of l) assert.ok(v.trim(), l[0]);

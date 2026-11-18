@@ -302,3 +302,28 @@ bandelettes, plats cuisinés, furet renifleur).
   dîners (saluer et parler n'ont pas de geste serveur à raccorder aujourd'hui) ; tirage unique par malade croisé et par jour,
   au niveau le plus élevé, une fois la journée terminée.
 - **Images** de la planche de Fred : furet (achat et objet), graisses de castor et d'ours (objets) ; sac de sable au lot 5.
+
+### Lot 5 : choix d'implémentation (19/11/2026)
+
+- **Canicule** : au début de l'événement, −3 PA pour tous les présents de la ville sauf avec une bouteille d'eau (consommée),
+  puis coup de chaleur selon le tableau des PA (eau : −5 points). À la fin, la nourriture portée sur soi (piles et aliments
+  manufacturés) devient avariée (marque invisible) et le joueur en est prévenu dans sa langue.
+- **Orage** : ordinateurs, box et caméras de la ville hors service pendant l'événement. Un groupe électrogène installé dans le
+  bureau (équipement, comme l'ordinateur) le maintient en service s'il contient 5 bidons au début de la coupure ; le
+  propriétaire le remplit avec les bidons de carburant de son inventaire.
+- **Crue** : les 2 ou 3 lieux nommés refusent l'entrée (les personnes déjà à l'intérieur y restent) ; entrepôts et commerces
+  qui s'y trouvent perdent 20 % de chaque stock (arrondi inférieur), sauf sacs de sable posés (protection totale, réglable :
+  `sacs_protection_pct`). Pertes valorisées au prix de base des matières (prix fixe de la recette pour les produits qui en
+  ont un, sinon 0).
+- **Sacs de sable** : quincailleries de Républia (armureries de Luthécia et de Montrouge, Chasse et Pêche de Port-Sainte-Marie) ;
+  posés par le propriétaire d'un commerce du bâtiment ou par le directeur de l'entrepôt, 1 PA, consommés par la crue.
+- **Groupe électrogène** : garage de Novomirsk ; en Républia, faute de garagiste, armureries-quincailleries de Luthécia et de
+  Montrouge (à confirmer). **Bouteilles d'eau** : marchés des trois villes de Républia.
+- **État de catastrophe naturelle** : courrier au ministre de l'Intérieur à la crue (bouton « Proposer ») ; courrier au Premier
+  ministre (bouton « Examiner les deux options ») qui ouvre une fenêtre avec les deux options, le nombre de sinistrés, le coût
+  de chacune, la caisse disponible et la limite des 72 h. Le paiement sort de la **caisse du gouvernement tenue par le Premier
+  ministre** (la réserve journalière de `budgets_nationaux` est vide en pratique) et va à la caisse de chaque commerce ou
+  entrepôt indemnisé.
+- **Brouillard** : filtre visuel (lot 3) ; ses modificateurs (+10 % de réussite, −20 % de détection) sont exposés par
+  `climat_brouillard_modificateurs_interne` mais **pas branchés** dans les actes illégaux : la criminalité est en cours de
+  conception (consigne de Fred du 19/11), on n'y touche pas.
