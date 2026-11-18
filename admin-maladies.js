@@ -113,3 +113,63 @@ async function admAlimentsCharger() {
   }
  } catch (e) { el.textContent = 'Erreur : ' + e.message; }
 }
+
+// Climat (lot 3, 18/11/2026) : réglages par type et par pays, calendrier (annuler), création d'un événement à une date.
+const ADM_CLIMAT_CHAMPS = [['actif', 'booléen', 'Actif'], ['par_periode', 'entier', 'Nombre par période'], ['delai_min', 'entier', 'Délai min. entre villes (jours)'],
+ ['delai_max', 'entier', 'Délai max. entre villes (jours)'], ['duree_heures', 'entier', 'Durée (heures)'], ['preavis_heures', 'entier', 'Préavis de l’alerte (heures)'],
+ ['bloque_chantiers', 'booléen', 'Bloque les chantiers']];
+const ADM_CLIMAT_VILLES = { republic: { capitale: 'Luthécia', ville_a: 'Port-Sainte-Marie', ville_b: 'Montrouge' }, soviet: { capitale: 'Novomirsk', ville_a: 'Starovka', ville_b: 'Krasnov' } };
+async function admClimatCharger() {
+ const el = document.getElementById('adm-climat'); if (!el) return;
+ el.textContent = 'Chargement…';
+ try {
+  const d = await rpAdminRpc('admin_climat_lire', {});
+  el.textContent = '';
+  for (const c of (d.parametres || [])) {
+   const bloc = document.createElement('div'); bloc.className = 'adm-dossier';
+   const t = document.createElement('strong'); t.textContent = c.type + ' — ' + (c.pays === 'republic' ? 'Républia' : 'Sovarka') + ' (' + c.frequence + ')'; bloc.append(t);
+   for (const [k, type, label] of ADM_CLIMAT_CHAMPS) {
+    const lab = document.createElement('label'); lab.className = 'adm-detail'; lab.style.display = 'block'; lab.textContent = label + ' ';
+    let inp;
+    if (type === 'booléen') { inp = document.createElement('select'); for (const o of ['true', 'false']) { const op = document.createElement('option'); op.value = o; op.textContent = o === 'true' ? 'oui' : 'non'; inp.append(op); } inp.value = String(!!c[k]); }
+    else { inp = document.createElement('input'); inp.type = 'number'; inp.min = '0'; inp.value = c[k]; inp.style.width = '5rem'; }
+    inp.dataset.champ = k; inp.dataset.type = type; lab.append(inp); bloc.append(lab);
+   }
+   const b = document.createElement('button'); b.type = 'button'; b.textContent = 'Enregistrer';
+   b.onclick = async () => {
+    const p = {}; bloc.querySelectorAll('[data-champ]').forEach(i => { p[i.dataset.champ] = i.dataset.type === 'booléen' ? i.value === 'true' : Number(i.value); });
+    try { const r = await rpAdminRpc('admin_climat_parametre_modifier', { p_type: c.type, p_pays: c.pays, p_parametres: p }); alert(r && r.ok ? 'Enregistré.' : 'Refus : ' + (r && r.raison)); }
+    catch (e) { alert('Échec : ' + e.message); }
+   };
+   bloc.append(b); el.append(bloc);
+  }
+  const cal = document.createElement('div'); cal.className = 'adm-dossier';
+  const ct = document.createElement('strong'); ct.textContent = 'Calendrier (' + (d.evenements || []).length + ')'; cal.append(ct);
+  for (const e of (d.evenements || [])) {
+   const p = document.createElement('p'); p.className = 'adm-detail';
+   const ville = (ADM_CLIMAT_VILLES[e.pays] || {})[e.ville] || e.ville;
+   p.textContent = new Date(e.debut).toLocaleDateString('fr-FR') + ' — ' + e.type + ' à ' + ville
+    + ((e.lieux || []).length ? ' (' + e.lieux.map(l => l.nom).join(', ') + ')' : '') + (e.alerte_le ? ' · annoncé' : '') + (e.annule ? ' · ANNULÉ' : '') + (e.origine === 'mj' ? ' · MJ' : '');
+   if (!e.annule && new Date(e.fin) > new Date()) {
+    const x = document.createElement('button'); x.type = 'button'; x.textContent = 'Annuler';
+    x.onclick = async () => { if (!confirm('Annuler cet événement ?')) return; try { const r = await rpAdminRpc('admin_climat_annuler', { p_id: e.id }); alert(r && r.ok ? 'Annulé.' : 'Refus'); admClimatCharger(); } catch (er) { alert('Échec : ' + er.message); } };
+    p.append(' ', x);
+   }
+   cal.append(p);
+  }
+  const f = document.createElement('div');
+  f.innerHTML = '<select id="adm-cl-type"><option>crue</option><option>canicule</option><option>orage</option><option>brouillard</option></select> '
+   + '<select id="adm-cl-pays"><option value="republic">Républia</option><option value="soviet">Sovarka</option></select> '
+   + '<select id="adm-cl-ville"><option value="capitale">capitale</option><option value="ville_a">ville A</option><option value="ville_b">ville B</option></select> '
+   + '<input id="adm-cl-jour" type="date"> ';
+  const cr = document.createElement('button'); cr.type = 'button'; cr.textContent = 'Créer l’événement';
+  cr.onclick = async () => {
+   try {
+    const r = await rpAdminRpc('admin_climat_creer', { p_type: document.getElementById('adm-cl-type').value, p_pays: document.getElementById('adm-cl-pays').value,
+     p_ville: document.getElementById('adm-cl-ville').value, p_jour: document.getElementById('adm-cl-jour').value });
+    alert(r && r.ok ? 'Événement créé.' : 'Refus : ' + (r && r.raison)); admClimatCharger();
+   } catch (e) { alert('Échec : ' + e.message); }
+  };
+  f.append(cr); cal.append(f); el.append(cal);
+ } catch (e) { el.textContent = 'Erreur : ' + e.message; }
+}
