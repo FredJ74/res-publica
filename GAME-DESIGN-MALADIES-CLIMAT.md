@@ -245,3 +245,34 @@ bandelettes, plats cuisinés, furet renifleur).
   tirés, à confirmer).
 - **Lot 2c — furet renifleur** : 250 (réglable), deux par boutique et par semaine, Chasse et Pêche de Port-Sainte-Marie et de
   Starovka ; « Faire renifler » 1 PA depuis la fiche d'un aliment ; meurt au 11e aliment avarié reniflé.
+
+### Décisions de Fred du 18/11 au soir — climat (remplacent les §§ 4, 7, 8 et 9 sur ces points)
+
+- **Crue, canicule, orage (Républia)** : chacun **une fois par trimestre et par ville**, dates tirées au hasard dans le
+  trimestre (les trois peuvent tomber le même mois). Tout est réglable par le MJ. Le **brouillard** ne change pas (deux
+  journées par mois et par ville, tous pays).
+- **Propagation** : l'événement frappe une première ville tirée au hasard, puis gagne les deux autres dans un ordre aléatoire.
+  Délais entre deux villes : canicule 2 à 4 jours, orage 1 à 2 jours, crue 1 à 3 jours.
+- **Alerte au moins 48 h avant**, pour chaque ville, avec une vraie mise en scène : articles de presse, fenêtre de message du
+  gouvernement, journal d'événements.
+- **Crue** : zones inondables — Luthécia : entrepôt logistique, marché, parc botanique ; Port-Sainte-Marie : port, port de
+  plaisance, bar des Pêcheurs, chantier naval, marché, Chasse et Pêche ; Montrouge : entrepôt logistique, zone de production.
+  Chaque crue ne touche que **2 ou 3 lieux** de la liste de sa ville, tirés au hasard et **nommés dans l'alerte**.
+- **État de catastrophe naturelle** : option que le gouvernement active de lui-même, jamais automatique ; indemnise les pertes
+  de stock dues à la crue sur le budget de l'État. Poste qui décide et part remboursée : **proposition à Fred, pas codé**.
+- **Graisses** : castor à Novomirsk chez la poissonnière, ours à Krasnov au marché de la ferme ; aussi vendables dans toute
+  pharmacie ouverte par un PJ.
+
+### Choix d'implémentation des lots 3 à 5
+
+- **Lot 3, socle** : calendrier serveur (`climat_evenements`), paramètres du MJ (`climat_parametres` : fréquence, délais de
+  propagation, durée, préavis), zones inondables (`climat_zones_inondables`), passe horaire (pg_cron) qui planifie le
+  trimestre en cours et le suivant, publie les alertes 48 h avant (article de presse en attente, journal d'événements) ;
+  l'écran affiche une fenêtre « Message du gouvernement » une fois par alerte et par personnage, dans les neuf langues, et
+  un filtre animé sur les vues de la ville touchée pendant l'événement ; les chantiers de la ville sont bloqués pendant un
+  blizzard, un orage, une crue ou une canicule ; section MJ « Climat » (lire, créer, annuler, régler).
+- **Orage en Sovarka** : la décision du trimestre vise la Républia ; en Sovarka l'orage garde la règle du § 7 (une fois par
+  mois et par ville, sans propagation) — à confirmer par Fred.
+- **Lot 4** : blizzard (une fois par mandat présidentiel et par ville de Sovarka), graisses, tableau de grippe, contagion.
+- **Lot 5** : effets du brouillard, de l'orage (groupe électrogène), de la crue (2 ou 3 lieux, sacs de sable, 20 % de stock)
+  et de la canicule (bouteille d'eau, coup de chaleur, nourriture portée avariée).

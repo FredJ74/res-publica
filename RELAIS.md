@@ -8,6 +8,13 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Maladies, péremption et climat — lot 3 : socle des événements climatiques (Claude, 18/11/2026, nuit)
+- **Branche `claude/climat-lot3-20261118`** (part du lot 2c). Décisions de Fred (points 6 à 8) et choix consignés dans `GAME-DESIGN-MALADIES-CLIMAT.md` § 11.
+- **Migration APPLIQUÉE** : `20261118080000_climat_socle` (+ correctif `climat_chantiers_apres_alerte`). Calendrier déjà planifié (trimestre en cours et suivant, mois en cours et suivant).
+- **PASSE HORAIRE EN PAUSE** (`cron.alter_job(…, active := false)` sur `climat_passe`) tant que la PR n'est pas fusionnée : aucune alerte ne part, aucun chantier n'est bloqué (le blocage exige une alerte publiée). À la fusion : `SELECT cron.alter_job(jobid, active := true) FROM cron.job WHERE jobname = 'climat_passe';`
+- **Codé** : `climat_parametres`, `climat_zones_inondables`, `climat_evenements`, planification avec propagation, alertes 48 h (journal + article de presse en attente), `climat_etat` ; `plateau-climat.js` (message du gouvernement une fois par alerte, filtres animés de rue, neuf langues) ; chantiers refusés pendant les intempéries ; section MJ « Climat ».
+- **Reste** : lot 4 (blizzard, graisses, contagion de la grippe), lot 5 (effets du brouillard, de l'orage, de la crue, de la canicule) ; état de catastrophe naturelle : proposition à Fred.
+
 ### Maladies, péremption et climat — lot 2c : plats cuisinés et furet renifleur (Claude, 18/11/2026, nuit)
 - **Branche `claude/maladies-lot2c-20261118`** (part du lot 2b).
 - **Migration APPLIQUÉE** : `20261118072000_aliments_plats_furet` (essai annulé d'abord).
