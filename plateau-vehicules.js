@@ -214,8 +214,9 @@ async function vehVendreMatiere(entreprise, matiere) {
   const q = vehLireChamp('veh-mat-' + matiere);
   if (q < 1 || typeof commerceApporterMatiere !== 'function') return;
   const r = await commerceApporterMatiere(entreprise, matiere, q, 'vente');
-  if (!r || r.ok !== true) { showToast('Vente refusée', VEH_MOTIFS[r?.raison] || 'Refusée par le serveur.', false); return; }
-  showToast('Matières vendues', vehNombre(r.qte) + ' × ' + matiere + ' pour ' + vehNombre(r.total) + ' ' + vehMonnaie() + '.', true);
+  // Règle des fenêtres de vente (18/11/2026) : refus = fenêtre ouverte avec le motif ; vente réussie = fenêtre fermée.
+  if (!r || r.ok !== true) { venteRefusDansFenetre('Vente refusée', VEH_MOTIFS[r?.raison] || 'Refusée par le serveur.'); return; }
+  venteReussieFermer('Matières vendues', vehNombre(r.qte) + ' × ' + matiere + ' pour ' + vehNombre(r.total) + ' ' + vehMonnaie() + '.');
 }
 
 async function ouvrirGarageRevision(utiliserCache=false) {

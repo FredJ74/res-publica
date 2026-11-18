@@ -3062,8 +3062,8 @@ async function confirmerVendreRessourceMedicaleUI(buildingId, ressource) {
   const pays = state.country || 'republic';
   const ville = state.currentCity || 'capitale';
   const qte = parseInt(document.getElementById('vendre-sante-qte-' + ressource)?.value || '0');
-  document.getElementById('modal-postes')?.classList.remove('open');
-  if (!qte || qte <= 0) { showToast('Quantité invalide', '', false); return; }
+  // Règle des fenêtres de vente (18/11/2026) : la fenêtre reste ouverte jusqu'à la réponse du serveur.
+  if (!qte || qte <= 0) { venteRefusDansFenetre('Quantité invalide', ''); return; }
 
   const res = await vendreRessourceMedicaleStructure(buildingId, pays, ville, ressource, qte);
   const label = RESSOURCES_ECONOMIE[ressource]?.label || ressource;
@@ -3076,13 +3076,12 @@ async function confirmerVendreRessourceMedicaleUI(buildingId, ressource) {
       stock_plein: 'Le stock maximum de cette ressource est atteint pour cette structure.',
       caisse_insuffisante: "Cette structure ne peut pas acheter cette quantité actuellement."
     };
-    showToast('Vente refusée', messages[res.raison] || '', false);
+    if (!res.dejaSignale) venteRefusDansFenetre('Vente refusée', messages[res.raison] || '');
     return;
   }
   updateUI();
-  showToast('Vente effectuée', '+' + res.total.toLocaleString('fr-FR') + ' FR pour ' + res.qte + ' ' + label + '.', true, true);
+  venteReussieFermer('Vente effectuée', '+' + res.total.toLocaleString('fr-FR') + ' FR pour ' + res.qte + ' ' + label + '.');
   addJournalEntry('Vente de ' + res.qte + ' ' + label + ' à ' + (BUILDINGS[buildingId]?.shortName || buildingId) + ' (+' + res.total.toLocaleString('fr-FR') + ' FR).', 'event-good');
-  doOuvrirVendreRessourceMedicale(buildingId, 0, 0);
 }
 
 // NOMMER LE REFUS (26 septembre 2026) — incident reel reproduit en production.
