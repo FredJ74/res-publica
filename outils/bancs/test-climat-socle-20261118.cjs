@@ -41,5 +41,5 @@ test('écran : message du gouvernement dans les neuf langues, filtre sur la vue 
   assert.match(m, /Port-Sainte-Marie/);
   assert.match(lire('plateau.html'), /plateau-climat\.js/);
   assert.match(lire('admin.html'), /admClimatCharger\(\)/);
-  assert.match(lire('plateau-construction-commandes.js'), /chantier_intemperies/);
+  assert.match(lire('plateau-climat.js'), /corps === 'chantier_intemperies'/);
 });

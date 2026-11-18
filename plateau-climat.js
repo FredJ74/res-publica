@@ -164,7 +164,21 @@ async function rafraichirClimat() {
   afficherSuivante();
   appliquerFiltre();
 }
+// Chantier refusé pendant les intempéries : le refus du serveur arrive sous forme de code (« chantier_intemperies ») dans
+// le message générique des commandes de construction ; on le remplace par la phrase traduite.
+function brancherToast() {
+  const orig = global.showToast;
+  if (typeof orig !== 'function' || orig.__climat) return;
+  const enveloppe = function (titre, corps) {
+    const args = Array.prototype.slice.call(arguments);
+    if (corps === 'chantier_intemperies') args[1] = texte('building');
+    return orig.apply(this, args);
+  };
+  enveloppe.__climat = true;
+  global.showToast = enveloppe;
+}
 function demarrer() {
+  brancherToast();
   setTimeout(rafraichirClimat, 6000);
   setInterval(rafraichirClimat, 600000);
   setInterval(appliquerFiltre, 5000);   // la vue de rue change à chaque déplacement : le filtre suit, sans lecture serveur
