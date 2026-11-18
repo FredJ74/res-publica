@@ -1,0 +1,1 @@
+{"moteur":"chromium","scenarios":27,"largeurs":[320,390,1280],"langues":9,"rtl":true,"ref1085":"77d457ad8e67702de8df5dec372f0596fa898737","modules":["plateau-goulag-ordres.js","plateau-goulag-toundra.js","plateau-goulag-transports.js","plateau-goulag-refuge.js"],"serveur":"simulé","personnageConnecte":false}

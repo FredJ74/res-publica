@@ -1,0 +1,56 @@
+name: Goulag Sovarka - ordres internes
+on:
+  push:
+    branches:
+      - claude/goulag-ordres-internes-20261117
+  pull_request:
+    paths:
+      - 'plateau-goulag-ordres.js'
+      - 'migrations/*goulag_ordres_internes*.sql'
+      - 'outils/bancs/test-goulag-ordres-internes-*'
+      - 'outils/integration/goulag-*'
+      - 'outils/bancs/*goulag*'
+      - 'api/cron-minuit.js'
+      - '.github/workflows/goulag-ordres-internes-20261117.yml'
+jobs:
+  ordres-internes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check plateau-goulag-ordres.js
+      - run: node --check api/cron-minuit.js
+      - run: node --test outils/bancs/test-goulag-ordres-internes-20261117.cjs
+      # PR empilée sur #1020 : le moteur et ses fixtures sont dans cet arbre.
+      - name: Moteur #1020 présent
+        run: test -f migrations/20261116171000_goulag_traversee_transactionnelle.sql && test -d outils/bancs/fixtures/goulag-20261116
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python3 -m pip install -r outils/bancs/requirements-postgres-local.txt
+      - name: PostgreSQL 17.6 local isolé
+        env:
+          HGPG17_PREFIX: ${{ runner.temp }}/goulag-pg17
+        run: |
+          bash outils/bancs/installer-postgresql17-local.sh
+          python3 outils/bancs/test-goulag-ordres-internes-postgresql-20261117.py --postgres-bin "$HGPG17_PREFIX/bin" --moteur-1020 "$GITHUB_WORKSPACE"
+      - name: Épreuves moteur #1020 et contrats d'intégration avec ce chantier
+        env:
+          HGPG17_PREFIX: ${{ runner.temp }}/goulag-pg17
+        run: |
+          python3 outils/bancs/test-goulag-postgresql-20261116.py --postgres-bin "$HGPG17_PREFIX/bin"
+          python3 outils/bancs/test-goulag-integration-1085-20261117.py --postgres-bin "$HGPG17_PREFIX/bin" --ordres-ref HEAD
+          python3 outils/bancs/test-goulag-integration-1085-20261117.py --postgres-bin "$HGPG17_PREFIX/bin" --ordres-ref HEAD --contrats
+      - run: npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
+      - run: npx --prefix outils/e2e playwright install --with-deps chromium webkit
+      - run: node outils/bancs/test-goulag-ordres-internes-navigateur-20261117.cjs
+      - run: node outils/bancs/test-goulag-ordres-internes-navigateur-20261117.cjs
+        env:
+          GOULAG_BROWSER: webkit

@@ -1,0 +1,117 @@
+TAP version 13
+# Goulag : cinq pièces WebP, entrée en premier, dortoir carcéral, aucun ordre, autres empires intacts : OK
+# Subtest: outils/bancs/test-goulag-cinq-pieces-20261116.cjs
+ok 1 - outils/bancs/test-goulag-cinq-pieces-20261116.cjs
+  ---
+  duration_ms: 174.943868
+  ...
+# Goulag : ordres exclusivement sovarkiens et images progressives 1–10 vérifiés
+# Subtest: outils/bancs/test-goulag-decor-runtime-20261116.cjs
+ok 2 - outils/bancs/test-goulag-decor-runtime-20261116.cjs
+  ---
+  duration_ms: 173.264747
+  ...
+# Goulag : 10 images WebP, poids/dimensions/ordre, suppression PNG, routes et interface vérifiés
+# Subtest: outils/bancs/test-goulag-decors-20261116.cjs
+ok 3 - outils/bancs/test-goulag-decors-20261116.cjs
+  ---
+  duration_ms: 147.326483
+  ...
+# Goulag : écran, 3 ordres, RPC serveur et passage visuel 01 → 02 testés
+# Subtest: outils/bancs/test-goulag-ecran-interactif-20261116.cjs
+ok 4 - outils/bancs/test-goulag-ecran-interactif-20261116.cjs
+  ---
+  duration_ms: 139.300078
+  ...
+# Goulag interface : modules chargés, demandes, transport, refuge, champignons, juge seul : OK
+# Subtest: outils/bancs/test-goulag-interface-circuits-20261116.cjs
+ok 5 - outils/bancs/test-goulag-interface-circuits-20261116.cjs
+  ---
+  duration_ms: 140.862635
+  ...
+# Subtest: arrestation personnelle : position relue, aucune entrée cliente fictive
+ok 6 - arrestation personnelle : position relue, aucune entrée cliente fictive
+  ---
+  duration_ms: 25.98247
+  ...
+# Subtest: membre arrêté : chef relu sans afficher sa propre condamnation
+ok 7 - membre arrêté : chef relu sans afficher sa propre condamnation
+  ---
+  duration_ms: 12.771771
+  ...
+# Subtest: entrée ordinaire : même navigation, aucun rechargement ni dépense
+ok 8 - entrée ordinaire : même navigation, aucun rechargement ni dépense
+  ---
+  duration_ms: 11.756195
+  ...
+# Subtest: double clic arrêté : une seule mutation et une seule relecture
+ok 9 - double clic arrêté : une seule mutation et une seule relecture
+  ---
+  duration_ms: 11.1768
+  ...
+# Subtest: seul juge sovarkien, jugement QHS réel validé
+ok 10 - seul juge sovarkien, jugement QHS réel validé
+  ---
+  duration_ms: 2.10133
+  ...
+# Subtest: transport nominatif et pays du poste, détenu bloqué
+ok 11 - transport nominatif et pays du poste, détenu bloqué
+  ---
+  duration_ms: 2.013935
+  ...
+# Subtest: confiscation, clés conservées, restitution idempotente, perte irréversible
+ok 12 - confiscation, clés conservées, restitution idempotente, perte irréversible
+  ---
+  duration_ms: 1.385896
+  ...
+# Subtest: parcours visiteur et détenu, destination géographique, PA et peine
+ok 13 - parcours visiteur et détenu, destination géographique, PA et peine
+  ---
+  duration_ms: 0.567904
+  ...
+# Subtest: refuge : 5 et 3 bois, deux nuits maximum, aucun doublon
+ok 14 - refuge : 5 et 3 bois, deux nuits maximum, aucun doublon
+  ---
+  duration_ms: 0.46227
+  ...
+# Subtest: quatre décisions définitives du 16/11, aucune règle supposée
+ok 15 - quatre décisions définitives du 16/11, aucune règle supposée
+  ---
+  duration_ms: 0.192346
+  ...
+# Goulag : migration préparatoire verrouillée, juge seul, clés, refuge, non-activation : OK
+# Subtest: outils/bancs/test-goulag-sql-structure-20261116.cjs
+ok 8 - outils/bancs/test-goulag-sql-structure-20261116.cjs
+  ---
+  duration_ms: 80.599545
+  ...
+# Goulag Sovarka : seuils, survie, double-clic, jours, bois, arrivée et fatigue : OK
+# Subtest: outils/bancs/test-goulag-survie-20261116.cjs
+ok 9 - outils/bancs/test-goulag-survie-20261116.cjs
+  ---
+  duration_ms: 81.580757
+  ...
+# Subtest: Krasnov : continuité de la gare au radar, toutes les flèches validées
+ok 18 - Krasnov : continuité de la gare au radar, toutes les flèches validées
+  ---
+  duration_ms: 46.174034
+  ...
+# Subtest: Krasnov : commissariat et stade héritent des pièces et ordres du socle commun
+ok 19 - Krasnov : commissariat et stade héritent des pièces et ordres du socle commun
+  ---
+  duration_ms: 16.640901
+  ...
+# Subtest: Krasnov : visuel WebP de la salle des ventes et ordres logistiques inchangés
+ok 20 - Krasnov : visuel WebP de la salle des ventes et ordres logistiques inchangés
+  ---
+  duration_ms: 17.392244
+  ...
+1..20
+# tests 20
+# suites 0
+# pass 20
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 360.942991

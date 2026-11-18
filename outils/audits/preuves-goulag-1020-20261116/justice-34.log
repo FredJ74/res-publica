@@ -1,0 +1,48 @@
+
+1. LA DUREE N EST PLUS COMPOSEE PAR LE NAVIGATEUR
+  ok  le « 3 jours en dur » a disparu de la sentence
+  ok  les deux drapeaux ne modulent plus arithmetiquement la peine
+  ok  la duree de prison vient du serveur
+  ok  le QHS n ecrit plus 30 en dur
+  ok  la torture ne compte plus ses antecedents dans le navigateur
+  ok  l amende n est plus un 500 en dur
+
+2. LA PORTE NE RECOIT PLUS NI BLOB D AFFAIRE NI CHAINE DE PEINE
+  ok  plus aucun p_affaire transmis
+  ok  plus aucune chaine de peine transmise
+  ok  la porte recoit l identifiant de l affaire
+  ok  elle recoit l infraction canonique et le genre
+  ok  elle recoit les nombres valides, pas un libelle
+  ok  appliquerSentence recoit les valeurs du serveur en parametres
+
+3. LE JUGE QUALIFIE AVANT DE PRONONCER
+  ok  les cinq genres de sanction sont tous offerts au juge
+  ok  et ils passent tous par l ecran de qualification du bareme
+  ok  aucun bouton n appelle plus directement appliquerSentence
+  ok  la liste des infractions est construite depuis le canon du navigateur
+  ok  elle couvre les DEUX tables du canon, resolues par getPeineParActe
+  ok  l identifiant est affiche a cote du libelle
+  ok  le motif de la plainte est presente comme une ALLEGATION, pas une qualification
+
+4. LA PLAGE VIENT DU SERVEUR, PAS D UN CALCUL LOCAL
+  ok  l ecran de modulation interroge justice_peine_proposer
+  ok  il ne recalcule aucune borne lui-meme
+  ok  le prononce RELIT la plage avant d appliquer quoi que ce soit
+  ok  une sanction imposee ignore la valeur du formulaire
+  ok  le cas ou l attenuation est inexprimable est DIT au juge
+  ok  le libelle affiche est celui du serveur
+
+5. LA PLAINTE NE SE PAIE PLUS DANS LE NAVIGATEUR
+  ok  soumettrePlaynte n appelle plus deduireCoutOrdre
+  ok  elle ne recoit plus ni pa ni cost
+  ok  le bouton ne lui transmet plus de montant
+  ok  les refus de paiement sont nommes au plaignant
+  ok  les soldes sont rafraichis depuis le verdict de la porte
+
+6. CE QUI NE DEVAIT PAS BOUGER N A PAS BOUGE
+  ok  la garde « QHS et torture exigent une personne detenue » est intacte
+  ok  le pre-controle d autorite avant toute consequence est intact
+  ok  sans peine appliquee, aucun jugement n est archive
+  ok  le code penal du navigateur n a PAS ete touche -- c est lui le canon
+
+LES 34 EPREUVES SONT VERTES.
