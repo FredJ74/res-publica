@@ -1,5 +1,5 @@
 'use strict';
-/* Libellés des 20 ordres reçus par courrier (16, + premium_oui/premium_non le 13/11/2026, + maire_oui/maire_non le 18/11/2026) : le marqueur/action reste serveur. */
+/* Libellés des 22 ordres reçus par courrier (16, + premium_oui/premium_non le 13/11/2026, + maire_oui/maire_non le 18/11/2026, + catastrophe_proposer/catastrophe_examiner le 19/11/2026) : le marqueur/action reste serveur. */
 const test=require('node:test'),assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const root=path.resolve(__dirname,'../..');
@@ -11,8 +11,8 @@ const context=vm.createContext({window:win});
 for(const file of ['resources.js','forum-ui.js'])
  vm.runInContext(fs.readFileSync(path.join(root,'i18n',file),'utf8'),context);
 const original=win.RP_I18N_RESOURCES.fr.translation.mailActions;
-test("20 boutons d’action de courriers localisés dans neuf langues",()=>{
- assert.equal(Object.keys(original).length,20);
+test("22 boutons d’action de courriers localisés dans neuf langues",()=>{
+ assert.equal(Object.keys(original).length,22);
  assert.equal(Object.keys(win.RP_I18N_LANGUAGES).length,9);
  for(const lang of Object.keys(win.RP_I18N_LANGUAGES)){
   locale=lang;
