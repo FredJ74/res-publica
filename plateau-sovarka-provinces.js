@@ -370,8 +370,14 @@ async function ouvrirCaisseKolkhoze(cache) {
     ? caisse.map(c => '<div style="margin:.3rem 0"><i class="ti ' + provEchapper(c.icon || 'ti-package') + '"></i> ' + provEchapper(c.nom) + ' : ' + c.qte + ' ' +
         champ('kol-p-' + c.cle) + vehBouton(provT('kolTake'), provJs('agirCaisseKolkhoze', 'prendre:' + c.cle), false) + '</div>').join('')
     : '<p class="cpj-note">' + provT('kolEmpty') + '</p>';
-  const miennes = (Array.isArray(state.inventory) ? state.inventory : [])
-    .filter(o => o && o.stackable && PROV_KOLKHOZE_ADMISES.includes(o.stackKey) && Number(o.qty) >= 1);
+  // Piles datées (lot 2a, 18/11/2026) : une ligne par matière, quantité = somme de ses piles.
+  const parCle = new Map();
+  for (const o of (Array.isArray(state.inventory) ? state.inventory : [])) {
+    if (!o || !o.stackable || !PROV_KOLKHOZE_ADMISES.includes(o.stackKey) || !(Number(o.qty) >= 1)) continue;
+    const deja = parCle.get(o.stackKey);
+    if (deja) deja.qty += Number(o.qty); else parCle.set(o.stackKey, { ...o, qty: Number(o.qty) });
+  }
+  const miennes = [...parCle.values()];
   const dons = miennes.length
     ? miennes.map(o => '<div style="margin:.3rem 0"><i class="ti ' + provEchapper(o.icon || 'ti-package') + '"></i> ' + provEchapper(o.name) + ' : ' + Math.floor(Number(o.qty)) + ' ' +
         champ('kol-d-' + o.stackKey) + vehBouton(provT('kolGive'), provJs('agirCaisseKolkhoze', 'donner:' + o.stackKey), true) + '</div>').join('')

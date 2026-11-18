@@ -210,3 +210,21 @@ Découpage en lots, **une PR par lot**, textes dans les neuf langues, fichiers d
   stratégiques : 25 % au comptoir de l'usine, 25 % à chacun des trois entrepôts logistiques (Luthécia, Port-Sainte-Marie,
   Montrouge), au plus fort reste. Les pharmacies ouvertes par des PJ s'y fournissent ; aucun contrat commerçant/usine. La
   recette d'une vente en entrepôt va à la caisse de l'entrepôt.
+
+### Lot 2 : choix d'implémentation (18/11/2026)
+
+Le lot 2 est livré en deux PR : **2a** (piles datées, péremption, consommation, message) et **2b** (contrôle à réception et
+bandelettes, plats cuisinés, furet renifleur).
+
+- **Matières périssables** : viande, viande de renne, laitages, poisson, fruits et légumes, œufs. Céréales, sucre et produits
+  exotiques ne se périment pas (à confirmer par Fred).
+- **Date de pile** (`recu`, jour de Paris) posée au dépôt. Deux piles ne fusionnent que si elles ont le même jour et le même état ;
+  une pile qui arrive avec sa date (don, remise) la garde. Le champ `avarie` est réservé à la canicule (lot 5).
+- **Retraits** : une quantité se prend sur les piles les plus anciennes d'abord ; une ligne choisie dans l'inventaire est servie
+  la première. Les fonctions qui ne regardaient que la première pile (maisons d'hospitalité, kolkhoze, jardins, offres d'achat)
+  comptent désormais toutes les piles.
+- **Passe de nuit** (`aliments_passe_nuit`, 00 h 10 heure d'hiver) : date les piles arrivées par un chemin qui ne datait pas
+  encore, et prépare le message au propriétaire des piles qui viennent de se gâter. Le message s'affiche à la connexion
+  suivante, dans la langue du joueur.
+- **Consommation** : aliment manufacturé ou matière brute avariée = toujours ses PA, et 50 % d'intoxication (paramètre
+  `aliment_avarie` de l'intoxication, réglable par le MJ). La durée de 10 jours est réglable (`aliments_parametres`).

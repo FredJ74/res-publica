@@ -23,6 +23,7 @@ const T = {
     left: 'reste {n}', outOfStock: 'rupture', buy: 'Acheter', cancel: 'Renoncer', quantity: 'Quantité',
     bought: '{qte} × {med} pour {paye} {cur}.', take: 'Prendre', taken: 'Médicament pris : guérison au prochain Dormir.',
     drink: 'Boire', drunk: 'Vous buvez : {nom}.',
+    spoiled: 'Certains de vos aliments se sont gâtés : {liste}.', a_viande: 'viande', a_viande_renne: 'viande de renne', a_laitages: 'laitages', a_poisson: 'poisson', a_fruits_legumes: 'fruits et légumes', a_oeufs: 'œufs',
     r_aucune_maladie_a_traiter: 'Ce médicament ne soigne aucun de vos maux.',
     r_deja_traitee: 'Traitement déjà pris : guérison au prochain Dormir.',
     r_rupture: 'Rupture de stock pour aujourd’hui.', r_stock_insuffisant: 'Stock insuffisant : il en reste {restant}.',
@@ -47,6 +48,7 @@ const T = {
     left: '{n} left', outOfStock: 'out of stock', buy: 'Buy', cancel: 'Cancel', quantity: 'Quantity',
     bought: '{qte} × {med} for {paye} {cur}.', take: 'Take', taken: 'Medicine taken: you will recover at your next Sleep.',
     drink: 'Drink', drunk: 'You drink: {nom}.',
+    spoiled: 'Some of your food has gone bad: {liste}.', a_viande: 'meat', a_viande_renne: 'reindeer meat', a_laitages: 'dairy', a_poisson: 'fish', a_fruits_legumes: 'fruit and vegetables', a_oeufs: 'eggs',
     r_aucune_maladie_a_traiter: 'This medicine treats none of your ailments.',
     r_deja_traitee: 'Treatment already taken: you will recover at your next Sleep.',
     r_rupture: 'Out of stock for today.', r_stock_insuffisant: 'Not enough stock: {restant} left.',
@@ -71,6 +73,7 @@ const T = {
     left: 'quedan {n}', outOfStock: 'agotado', buy: 'Comprar', cancel: 'Renunciar', quantity: 'Cantidad',
     bought: '{qte} × {med} por {paye} {cur}.', take: 'Tomar', taken: 'Medicamento tomado: curación en el próximo Dormir.',
     drink: 'Beber', drunk: 'Bebe: {nom}.',
+    spoiled: 'Algunos de sus alimentos se han echado a perder: {liste}.', a_viande: 'carne', a_viande_renne: 'carne de reno', a_laitages: 'lácteos', a_poisson: 'pescado', a_fruits_legumes: 'frutas y verduras', a_oeufs: 'huevos',
     r_aucune_maladie_a_traiter: 'Este medicamento no trata ninguno de sus males.',
     r_deja_traitee: 'Tratamiento ya tomado: curación en el próximo Dormir.',
     r_rupture: 'Agotado por hoy.', r_stock_insuffisant: 'Existencias insuficientes: quedan {restant}.',
@@ -95,6 +98,7 @@ const T = {
     left: '剩餘 {n}', outOfStock: '缺貨', buy: '購買', cancel: '放棄', quantity: '數量',
     bought: '{qte} × {med}，共 {paye} {cur}。', take: '服用', taken: '已服藥：下次睡覺時痊癒。',
     drink: '喝', drunk: '你喝了：{nom}。',
+    spoiled: '你的部分食物已經壞了：{liste}。', a_viande: '肉', a_viande_renne: '馴鹿肉', a_laitages: '乳製品', a_poisson: '魚', a_fruits_legumes: '蔬果', a_oeufs: '蛋',
     r_aucune_maladie_a_traiter: '這種藥治不了您的任何病痛。',
     r_deja_traitee: '已服過藥：下次睡覺時痊癒。',
     r_rupture: '今日缺貨。', r_stock_insuffisant: '庫存不足：剩餘 {restant}。',
@@ -119,6 +123,7 @@ const T = {
     left: 'осталось {n}', outOfStock: 'нет в наличии', buy: 'Купить', cancel: 'Отказаться', quantity: 'Количество',
     bought: '{qte} × {med} за {paye} {cur}.', take: 'Принять', taken: 'Лекарство принято: выздоровление при следующем сне.',
     drink: 'Выпить', drunk: 'Вы выпили: {nom}.',
+    spoiled: 'Часть ваших продуктов испортилась: {liste}.', a_viande: 'мясо', a_viande_renne: 'оленина', a_laitages: 'молочные продукты', a_poisson: 'рыба', a_fruits_legumes: 'фрукты и овощи', a_oeufs: 'яйца',
     r_aucune_maladie_a_traiter: 'Это лекарство не лечит ни одного из ваших недугов.',
     r_deja_traitee: 'Лекарство уже принято: выздоровление при следующем сне.',
     r_rupture: 'На сегодня товар закончился.', r_stock_insuffisant: 'Недостаточно запасов: осталось {restant}.',
@@ -143,6 +148,7 @@ const T = {
     left: '{n}개 남음', outOfStock: '품절', buy: '구매', cancel: '취소', quantity: '수량',
     bought: '{med} {qte}개, {paye} {cur}.', take: '복용', taken: '약을 먹었습니다: 다음 잠자기 때 회복됩니다.',
     drink: '마시기', drunk: '마셨습니다: {nom}.',
+    spoiled: '음식 일부가 상했습니다: {liste}.', a_viande: '고기', a_viande_renne: '순록 고기', a_laitages: '유제품', a_poisson: '생선', a_fruits_legumes: '과일과 채소', a_oeufs: '달걀',
     r_aucune_maladie_a_traiter: '이 약은 당신의 어떤 병도 치료하지 않습니다.',
     r_deja_traitee: '이미 약을 먹었습니다: 다음 잠자기 때 회복됩니다.',
     r_rupture: '오늘은 품절입니다.', r_stock_insuffisant: '재고 부족: {restant}개 남음.',
@@ -167,6 +173,7 @@ const T = {
     left: 'المتبقي {n}', outOfStock: 'نفد', buy: 'شراء', cancel: 'تراجع', quantity: 'الكمية',
     bought: '{qte} × {med} مقابل {paye} {cur}.', take: 'تناول', taken: 'تم تناول الدواء: الشفاء عند النوم التالي.',
     drink: 'اشرب', drunk: 'شربت: {nom}.',
+    spoiled: 'فسد بعض طعامك: {liste}.', a_viande: 'لحم', a_viande_renne: 'لحم الرنة', a_laitages: 'ألبان', a_poisson: 'سمك', a_fruits_legumes: 'فواكه وخضروات', a_oeufs: 'بيض',
     r_aucune_maladie_a_traiter: 'هذا الدواء لا يعالج أيًّا من أمراضك.',
     r_deja_traitee: 'تم أخذ العلاج بالفعل: الشفاء عند النوم التالي.',
     r_rupture: 'نفد المخزون لهذا اليوم.', r_stock_insuffisant: 'المخزون غير كافٍ: المتبقي {restant}.',
@@ -191,6 +198,7 @@ const T = {
     left: 'restam {n}', outOfStock: 'esgotado', buy: 'Comprar', cancel: 'Desistir', quantity: 'Quantidade',
     bought: '{qte} × {med} por {paye} {cur}.', take: 'Tomar', taken: 'Remédio tomado: cura no próximo Dormir.',
     drink: 'Beber', drunk: 'Você bebe: {nom}.',
+    spoiled: 'Parte dos seus alimentos estragou: {liste}.', a_viande: 'carne', a_viande_renne: 'carne de rena', a_laitages: 'laticínios', a_poisson: 'peixe', a_fruits_legumes: 'frutas e legumes', a_oeufs: 'ovos',
     r_aucune_maladie_a_traiter: 'Este remédio não trata nenhum dos seus males.',
     r_deja_traitee: 'Tratamento já tomado: cura no próximo Dormir.',
     r_rupture: 'Esgotado por hoje.', r_stock_insuffisant: 'Estoque insuficiente: restam {restant}.',
@@ -215,6 +223,7 @@ const T = {
     left: 'noch {n}', outOfStock: 'ausverkauft', buy: 'Kaufen', cancel: 'Verzichten', quantity: 'Menge',
     bought: '{qte} × {med} für {paye} {cur}.', take: 'Einnehmen', taken: 'Medikament eingenommen: Genesung beim nächsten Schlafen.',
     drink: 'Trinken', drunk: 'Sie trinken: {nom}.',
+    spoiled: 'Einige Ihrer Lebensmittel sind verdorben: {liste}.', a_viande: 'Fleisch', a_viande_renne: 'Rentierfleisch', a_laitages: 'Milchprodukte', a_poisson: 'Fisch', a_fruits_legumes: 'Obst und Gemüse', a_oeufs: 'Eier',
     r_aucune_maladie_a_traiter: 'Dieses Medikament hilft gegen keines Ihrer Leiden.',
     r_deja_traitee: 'Bereits eingenommen: Genesung beim nächsten Schlafen.',
     r_rupture: 'Für heute ausverkauft.', r_stock_insuffisant: 'Nicht genug Vorrat: noch {restant}.',
@@ -298,6 +307,11 @@ async function rafraichirMaladies() {
   }
   connues = cles;
   mesMaladies = liste;
+  // Aliments gâtés (lot 2a) : seul le propriétaire est prévenu, une fois ; aucune marque sur l'objet.
+  const g = un(await global.sbRpc('aliments_annonces_lire', {}).catch(() => null));
+  if (g && g.ok === true && Array.isArray(g.gates) && g.gates.length && global.showToast) {
+    global.showToast(texteMaladie('health'), texteMaladie('spoiled', { liste: g.gates.map(c => texteMaladie('a_' + c)).join(', ') }), false);
+  }
   rendreEtatSante();
   if (typeof global.updateUI === 'function') { try { global.updateUI(); } catch (_) {} rendreEtatSante(); }
   return liste;
