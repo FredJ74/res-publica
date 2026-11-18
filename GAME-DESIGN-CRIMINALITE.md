@@ -81,7 +81,60 @@ Trois façons d'agir :
 - **Masque de carnaval** : anonymat. Famille Habillement, sous-type *civil*. Coût de revient 25 FR, prix PNJ 50 FR ; 8 PSK en Sovarka.
 - **Gilet pare-balles** : 380 FR en Républia, **60 PSK en Sovarka** (aujourd'hui vendu au prix de Républia dans l'armurerie de Novomirsk et au Chasse et Pêche de Starovka).
 
+## 6. Cadre commun à tous les crimes (décisions du 18/11, soir)
+
+- Le cadre **visage découvert / caché / masqué** (ce que la victime apprend, malus de détection −20 caché / −10 masqué, trace sans nom avec masque, plainte contre X et enquête du commissaire) s'applique à **tous les crimes commis dans une pièce**.
+- **Neutraliser et voler peuvent viser un PNJ** (ex. employé à qui l'on a confié de la marchandise) : caractéristiques réelles du PNJ, sinon PER 8 ; l'**employeur** reçoit l'alerte (auteur désigné selon le mode) et porte plainte ; un PNJ neutralisé est hors service jusqu'au lendemain et garde la marchandise ; il peut se défendre (même risque de combat, ses caractéristiques ou des valeurs moyennes).
+- **Dissuasion des hommes armés** (#135, en production) : conservée pour tous les crimes, vol et cambriolage compris (sinon agents, policiers et soldats ne servent à rien).
+- **Peines automatiques** : 2 jours (assassin identifié) et 1 jour (voleur pris) sont les valeurs de **Républia** ; chaque empire aura les siennes selon son historique et sa sévérité (à fixer empire par empire).
+
+## 7. Vol sur une personne
+
+- Ordre « Voler » sur un PJ ou un PNJ présent. Trois cibles : **argent liquide** (jamais le compte en banque), **objet tiré au hasard**, **objet précis** (le voleur nomme un **type** — arme, clé, médicament… — sans voir l'inventaire ; si la victime n'en a pas, échec sans autre risque, PA perdus).
+- **Coût** : 2 PA (argent ou objet au hasard), 3 PA (objet précis).
+- **Réussite** : base argent **55 %**, objet au hasard **45 %**, objet précis **25 %** ; **+1 % par tranche de 3 de DIS du voleur au-dessus de 50** (−1 % en dessous) ; **−3 % par point de PER de la victime au-dessus de 8** (+3 % en dessous), **PER de groupe** si la victime est groupée (règle existante) ; **+15 %** carrière criminelle ; **5-85 %**. Être caché ne change pas la réussite, seulement l'anonymat. Pas de malus propre aux gardes du corps (PER de groupe et risque de combat suffisent ; la dissuasion des hommes armés présents s'applique).
+- **Butin en argent** : tirage **10 à 30 %** du liquide ; **+1 point par tranche de 10 de DIS au-dessus de 50** (−1 en dessous) ; **−1 point par point de PER (ou PER de groupe) au-dessus de 8** (+1 en dessous) ; **+5** carrière criminelle ; borné **10-30 %** et **2 000 FR** par vol.
+- **Objets volables** : tout l'inventaire non porté (armes non portées, médicaments, nourriture, clés, vêtements non revêtus, graisses). **Non volables** : ce qui est revêtu ou porté, biens immobiliers et titres, objets liés au poste. Une pile : **une unité** par vol. Objet au hasard : tirage parmi les volables ; aucun → échec sans risque, PA dépensés.
+- **Réussite** : la victime s'aperçoit du vol (« On vous a dérobé 340 FR / votre revolver »), auteur désigné selon le mode ; jet de détection **30 %** (−20 caché, −10 masqué, min 5 %).
+- **Réussite critique** (5 % des réussites, au-delà de 95 sur le jet) : la victime ne découvre le vol qu'**au prochain réveil**, sans pouvoir le relier à une rencontre ; **pas de jet de détection**.
+- **Échec ordinaire** : remarqué **50 %** de base, **+3 % par point de PER (ou PER de groupe) au-dessus de 8**, **−1 % par tranche de 3 de DIS au-dessus de 50** ; **10-90 %**. Remarqué : « X / Quelqu'un / Un individu masqué a tenté de vous voler ». Le voleur garde sa cachette et peut retenter.
+- **Échec critique** : 2 % des échecs (identifié sans masque, −15 moral ; avec masque −15 moral seulement).
+- **Combat** : 10 % des échecs, modificateurs de la neutralisation (+2 % par point de PER de la victime au-dessus de 10, +15 % garde du corps ou agence, −10 % caché ; 2-40 %).
+- **Voleur pris et arrêté** : **1 jour de prison d'office** (valeur Républia).
+
+## 8. Cambriolage
+
+- **Crochetage** (« Crocheter ») : 3 PA, **kit de crochetage** dans l'inventaire. Réussite **30 %**, **+1 % par tranche de 2 de DIS au-dessus de 50**, **+15 %** carrière criminelle ; **5-80 %**. Échec ordinaire : rien, on peut réessayer. Échec critique (2 % des échecs) : le kit casse dans la serrure, trace de tentative sans nom pour le propriétaire. Réussite : porte ouverte sans trace, serrure intacte et refermée derrière.
+- **Kit de crochetage** : quincaillerie (armureries et armureries-quincailleries qui vendent les serrures), vente libre mais **chaque achat laisse une trace** utilisable par l'enquête ; **80 FR / 15 PSK** ; détruit après **5 crochetages réussis**.
+- **Effraction** (« Forcer la porte ») : 2 PA, à mains nues ou au **pied-de-biche** (quincaillerie, achat tracé, **40 FR / 8 PSK**). Réussite **40 %**, **+3 % par point de FOR au-dessus de 8**, **+25 %** pied-de-biche, **+10 %** carrière criminelle ; **10-95 %**. Réussite : **serrure détruite** (règle existante : jamais récupérable), lieu ouvert, propriétaire prévenu aussitôt (« Votre porte a été forcée ») ; détection **60 %** (−10 masqué ; caché ne compte pas, le bruit trahit). Échec : la serrure tient, le propriétaire est alerté sans nom ; on peut réessayer.
+- **À l'intérieur** :
+  - **Objets déposés et souvenirs de l'armoire** : ils **se ramassent**, ce n'est pas un vol ; l'acte illégal est l'effraction (porte ou armoire). **Le propriétaire peut quand même porter plainte pour vol.**
+  - **Matériel installé** (ordinateur, box) : 2 PA pour le désinstaller et l'emporter, sans jet ; découvert au retour du propriétaire.
+  - **Stock d'un commerce** : vol, 2 PA, une pile par ordre, **10-20 % de la pile**, renouvelable.
+  - **Caisse d'un commerce** : vol, 2 PA, **10-30 % du contenu, 3 000 FR max**.
+  - Lieu vide : pas de jet de réussite, mais **jet de détection par vol** (30 %, −20 caché, −10 masqué, min 5 %) ; constat au prochain passage ou au prochain point de caisse. Personnes présentes (employé PNJ, gérant, client) : règles du vol sur une personne (réussite, remarqué, combat).
+- Idée pour plus tard : un **mot de passe** sur certains objets pour qu'un voleur ne puisse pas s'en servir.
+
+## 9. Empoisonnement (aligné sur la neutralisation)
+
+- L'**anonymat par nature** est conservé : même à visage découvert, la victime ne sait pas qui l'a empoisonnée (message mystérieux et annonce publique inchangés). Quatre poisons et quatre paliers conservés.
+- **La cachette n'est plus exigée ni consommée** : c'est un bonus.
+- **Réussite** : base **35 %** ; **+1 % par tranche de 3 de DIS au-dessus de 50** ; **−3 % par point de PER (ou PER de groupe) de la victime au-dessus de 8** (+3 % en dessous) ; **+10 %** caché ; **+15 %** carrière criminelle ; poison : **parapluie +5 %**, **GHB +10 % si la victime a bu dans la journée, −10 % sinon**, **polonium −10 %**, **vipère 0** ; pays conservés (Narco +20 %, Sovarka −10 %) ; dissuasion des hommes armés ; **5-85 %**.
+- **L'échec total ne rend plus recherché d'office** : règle commune (échec critique 2 % des échecs : identifié sans masque, −15 moral) et jet de détection habituel après réussite.
+
+## 10. Explosifs (risque plus élevé)
+
+- **Réussite** : base **35 %** ; **+1 % par tranche de 3 de DIS au-dessus de 50** ; **+2 % par point d'INT au-dessus de 8** (−2 % en dessous) ; **+10 %** caché ; **+15 %** carrière criminelle ; **−30 %** bâtiment officiel (existant) ; dissuasion des hommes armés ; **5-75 %**.
+- **Échec critique : 10 % des échecs** = **explosion prématurée** : le poseur tombe à 15 de santé comme les présents, identifié sans masque, −15 moral. Les autres échecs ne révèlent rien (fin du « recherché d'office » à chaque échec).
+- **Détection après réussite** : **65 %**, −10 masqué, −20 caché, **min 30 %**.
+- Inchangé : fermeture 5 jours, présents à 15 de santé.
+
+## 11. Incendie
+
+- **Réussite** : base **30 %** ; **+1 % par tranche de 3 de DIS au-dessus de 50** ; **+10 %** caché ; **+15 %** carrière criminelle ; **+15 %** avec un **bidon d'essence** ; **−15 %** pendant un **orage** dans la ville ; **+15 %** pendant une **canicule** ; dissuasion des hommes armés ; **5-80 %**.
+- Règle commune : échec critique 2 % des échecs ; **détection après réussite seulement** (fin du jet à chaque tentative) : **70 %**, −10 masqué, −20 caché, **min 20 %**. Fermeture 1 à 3 jours selon le jet, inchangée.
+
 ## Plus tard
 
 - Le moral pourrait influencer tous les ordres à jet aléatoire (à étudier).
-- Autres volets de la criminalité : à trancher avant le prompt complet.
+- Volets restant à trancher avant le prompt complet : **corruption** (policier, juge, douanier, gardien, journaliste, fonctionnaire), **délits d'information** (fausse rumeur, tracts calomnieux, scandale fabriqué, fuite), **mise en ordre des peines** (doublement « démasqué » incohérent, 11 barèmes jamais détectables), **carrière criminelle**.
