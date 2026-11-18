@@ -6320,7 +6320,9 @@ const BUILDINGS = {
           },
           {fn:'produire_arme', label:'Produire une arme', pa:0, cost:0, type:'legal', icon:'ti-hammer', successRate:100, desc:'Fabrication contre salaire fixe : 2 PA, 100 FR par arme. Necessite des matieres en stock et une caisse suffisante.'},
           {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', i18nKey:'variant.commerce_sell_business', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre à l\'armurerie, depuis votre inventaire, les matières de sa production d\'armes, au prix d\'achat fixé par le propriétaire.'},
-          {fn:'marche_noir', label:'Marché Noir', pa:1, cost:0, type:'illegal', icon:'ti-alert-triangle', successRate:100, desc:'Explosifs et le poison local de Victor Legall, entre deux boîtes d\'appâts. Rien de tout cela n\'est enregistré.'}
+          {fn:'marche_noir', label:'Marché Noir', pa:1, cost:0, type:'illegal', icon:'ti-alert-triangle', successRate:100, desc:'Explosifs et le poison local de Victor Legall, entre deux boîtes d\'appâts. Rien de tout cela n\'est enregistré.'},
+          // Furet renifleur (lot 2c des maladies, 18/11/2026) : vendu seulement chez Chasse et Pêche.
+          {fn:'acheter_furet', label:'Acheter un furet renifleur', pa:0, cost:0, type:'legal', icon:'ti-paw', successRate:100, desc:"Un furet de chasse au lapin, au nez infaillible : il éternue devant un aliment avarié. Deux par semaine au plus."}
         ]
       }
     }
@@ -12687,6 +12689,9 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
   chasse.roomOverrides = Object.assign({}, chasse.roomOverrides);
   chasse.roomOverrides.magasin = Object.assign({}, chasse.roomOverrides.magasin,
     { imageUrl: dir + 'Starovka_chasse_peche_magasin_v2.webp' });
+  // Furet renifleur (lot 2c des maladies, 18/11/2026) : seul autre point de vente, ajouté à cette seule armurerie.
+  chasse.roomOverrides.magasin.orders = (chasse.roomOverrides.magasin.orders || []).concat([
+    {fn:'acheter_furet', label:'Acheter un furet renifleur', pa:0, cost:0, type:'legal', icon:'ti-paw', successRate:100, desc:"Un furet de chasse au lapin, au nez infaillible : il éternue devant un aliment avarié. Deux par semaine au plus."}]);
   // Correctif du 17/11/2026 (Fred) : le local n°2 devient un bâtiment propre à la rue du magasin de
   // chasse. Dans « locaux-starovka », il s'ouvrait sur le local n°1 (face à l'imprimerie) et la sortie
   // pouvait ramener rue de l'imprimerie. Serveur : migration 20261117130000.

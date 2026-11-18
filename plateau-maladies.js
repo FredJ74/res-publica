@@ -25,6 +25,7 @@ const T = {
     drink: 'Boire', drunk: 'Vous buvez : {nom}.',
     spoiled: 'Certains de vos aliments se sont gâtés : {liste}.', a_viande: 'viande', a_viande_renne: 'viande de renne', a_laitages: 'laitages', a_poisson: 'poisson', a_fruits_legumes: 'fruits et légumes', a_oeufs: 'œufs',
     strips: 'Bandelettes réactives', stripsDeposit: 'Déposer dans ce commerce', stripsDeposited: '{n} bandelette(s) déposée(s) : réserve du commerce {reserve}.', foodRefused: 'Contrôle à la réception : {n} unité(s) avariée(s) refusée(s), détruite(s) et non payée(s).', r_pas_dans_un_commerce: 'Il faut être dans un commerce.', r_pas_de_bandelettes: 'Vous n’avez pas de bandelettes.',
+    ferret: 'Furet renifleur', ferretIntro: 'Un furet de chasse au lapin, au nez infaillible. Prix : {prix} {cur}. Encore {n} cette semaine.', ferretBuy: 'Acheter le furet', ferretBought: 'Le furet se love dans votre sac.', sniff: 'Faire renifler (1 PA)', sneeze: 'Atchoum ! Le furet éternue : cet aliment est avarié.', purr: 'Rrrr… Le furet ronronne : cet aliment est sain.', ferretDead: 'Un aliment avarié de trop : le furet s’éteint dans vos bras.', r_pas_a_la_boutique: 'Il faut être dans la boutique Chasse et Pêche.', r_plus_de_furet: 'Plus de furet cette semaine : revenez lundi.', r_pas_de_furet: 'Vous n’avez pas de furet.', r_pas_un_aliment: 'Le furet ne renifle que les aliments.',
     r_aucune_maladie_a_traiter: 'Ce médicament ne soigne aucun de vos maux.',
     r_deja_traitee: 'Traitement déjà pris : guérison au prochain Dormir.',
     r_rupture: 'Rupture de stock pour aujourd’hui.', r_stock_insuffisant: 'Stock insuffisant : il en reste {restant}.',
@@ -51,6 +52,7 @@ const T = {
     drink: 'Drink', drunk: 'You drink: {nom}.',
     spoiled: 'Some of your food has gone bad: {liste}.', a_viande: 'meat', a_viande_renne: 'reindeer meat', a_laitages: 'dairy', a_poisson: 'fish', a_fruits_legumes: 'fruit and vegetables', a_oeufs: 'eggs',
     strips: 'Reactive test strips', stripsDeposit: 'Leave them in this shop', stripsDeposited: '{n} strip(s) left: the shop now holds {reserve}.', foodRefused: 'Inspection on delivery: {n} spoiled unit(s) refused, destroyed and unpaid.', r_pas_dans_un_commerce: 'You must be inside a shop.', r_pas_de_bandelettes: 'You have no test strips.',
+    ferret: 'Sniffer ferret', ferretIntro: 'A rabbit-hunting ferret with an infallible nose. Price: {prix} {cur}. {n} left this week.', ferretBuy: 'Buy the ferret', ferretBought: 'The ferret curls up in your bag.', sniff: 'Let it sniff (1 AP)', sneeze: 'Achoo! The ferret sneezes: this food has gone bad.', purr: 'Purr… The ferret purrs: this food is fine.', ferretDead: 'One spoiled food too many: the ferret passes away in your arms.', r_pas_a_la_boutique: 'You must be in the Hunting and Fishing shop.', r_plus_de_furet: 'No ferret left this week: come back on Monday.', r_pas_de_furet: 'You have no ferret.', r_pas_un_aliment: 'The ferret only sniffs food.',
     r_aucune_maladie_a_traiter: 'This medicine treats none of your ailments.',
     r_deja_traitee: 'Treatment already taken: you will recover at your next Sleep.',
     r_rupture: 'Out of stock for today.', r_stock_insuffisant: 'Not enough stock: {restant} left.',
@@ -77,6 +79,7 @@ const T = {
     drink: 'Beber', drunk: 'Bebe: {nom}.',
     spoiled: 'Algunos de sus alimentos se han echado a perder: {liste}.', a_viande: 'carne', a_viande_renne: 'carne de reno', a_laitages: 'lácteos', a_poisson: 'pescado', a_fruits_legumes: 'frutas y verduras', a_oeufs: 'huevos',
     strips: 'Tiras reactivas', stripsDeposit: 'Dejarlas en este comercio', stripsDeposited: '{n} tira(s) entregada(s): reserva del comercio {reserve}.', foodRefused: 'Control en la recepción: {n} unidad(es) en mal estado rechazada(s), destruida(s) y no pagada(s).', r_pas_dans_un_commerce: 'Debe estar en un comercio.', r_pas_de_bandelettes: 'No tiene tiras reactivas.',
+    ferret: 'Hurón rastreador', ferretIntro: 'Un hurón de caza de conejos con un olfato infalible. Precio: {prix} {cur}. Quedan {n} esta semana.', ferretBuy: 'Comprar el hurón', ferretBought: 'El hurón se acurruca en su bolsa.', sniff: 'Hacerle olfatear (1 PA)', sneeze: '¡Achís! El hurón estornuda: este alimento está en mal estado.', purr: 'Rrrr… El hurón ronronea: este alimento está sano.', ferretDead: 'Un alimento en mal estado de más: el hurón se apaga en sus brazos.', r_pas_a_la_boutique: 'Debe estar en la tienda de Caza y Pesca.', r_plus_de_furet: 'No quedan hurones esta semana: vuelva el lunes.', r_pas_de_furet: 'No tiene hurón.', r_pas_un_aliment: 'El hurón solo olfatea alimentos.',
     r_aucune_maladie_a_traiter: 'Este medicamento no trata ninguno de sus males.',
     r_deja_traitee: 'Tratamiento ya tomado: curación en el próximo Dormir.',
     r_rupture: 'Agotado por hoy.', r_stock_insuffisant: 'Existencias insuficientes: quedan {restant}.',
@@ -103,6 +106,7 @@ const T = {
     drink: '喝', drunk: '你喝了：{nom}。',
     spoiled: '你的部分食物已經壞了：{liste}。', a_viande: '肉', a_viande_renne: '馴鹿肉', a_laitages: '乳製品', a_poisson: '魚', a_fruits_legumes: '蔬果', a_oeufs: '蛋',
     strips: '檢測試紙', stripsDeposit: '放在這家店', stripsDeposited: '已放下 {n} 張試紙：店內存量 {reserve}。', foodRefused: '收貨檢查：{n} 單位腐壞貨品被拒收、銷毀，不予付款。', r_pas_dans_un_commerce: '你必須在商店裡。', r_pas_de_bandelettes: '你沒有檢測試紙。',
+    ferret: '嗅探雪貂', ferretIntro: '一隻獵兔用的雪貂，嗅覺萬無一失。價格：{prix} {cur}。本週還剩 {n} 隻。', ferretBuy: '買下雪貂', ferretBought: '雪貂蜷縮進你的包裡。', sniff: '讓牠嗅一嗅（1 行動點）', sneeze: '哈啾！雪貂打了個噴嚏：這份食物壞了。', purr: '呼嚕……雪貂發出呼嚕聲：這份食物沒問題。', ferretDead: '又聞到一份壞掉的食物：雪貂在你懷中斷了氣。', r_pas_a_la_boutique: '你必須在狩獵與釣魚用品店裡。', r_plus_de_furet: '本週雪貂已售完：請週一再來。', r_pas_de_furet: '你沒有雪貂。', r_pas_un_aliment: '雪貂只嗅食物。',
     r_aucune_maladie_a_traiter: '這種藥治不了您的任何病痛。',
     r_deja_traitee: '已服過藥：下次睡覺時痊癒。',
     r_rupture: '今日缺貨。', r_stock_insuffisant: '庫存不足：剩餘 {restant}。',
@@ -129,6 +133,7 @@ const T = {
     drink: 'Выпить', drunk: 'Вы выпили: {nom}.',
     spoiled: 'Часть ваших продуктов испортилась: {liste}.', a_viande: 'мясо', a_viande_renne: 'оленина', a_laitages: 'молочные продукты', a_poisson: 'рыба', a_fruits_legumes: 'фрукты и овощи', a_oeufs: 'яйца',
     strips: 'Тест-полоски', stripsDeposit: 'Оставить в этом магазине', stripsDeposited: 'Оставлено полосок: {n}; запас магазина: {reserve}.', foodRefused: 'Проверка при приёмке: {n} испорченных единиц отклонено, уничтожено и не оплачено.', r_pas_dans_un_commerce: 'Нужно находиться в магазине.', r_pas_de_bandelettes: 'У вас нет тест-полосок.',
+    ferret: 'Хорёк-нюхач', ferretIntro: 'Хорёк для охоты на кроликов с безошибочным нюхом. Цена: {prix} {cur}. На этой неделе осталось: {n}.', ferretBuy: 'Купить хорька', ferretBought: 'Хорёк сворачивается клубком в вашей сумке.', sniff: 'Дать понюхать (1 ОД)', sneeze: 'Апчхи! Хорёк чихает: продукт испорчен.', purr: 'Мрр… Хорёк мурлычет: продукт свежий.', ferretDead: 'Ещё один испорченный продукт — и хорёк угасает у вас на руках.', r_pas_a_la_boutique: 'Нужно находиться в магазине «Охота и рыбалка».', r_plus_de_furet: 'На этой неделе хорьков больше нет: приходите в понедельник.', r_pas_de_furet: 'У вас нет хорька.', r_pas_un_aliment: 'Хорёк нюхает только еду.',
     r_aucune_maladie_a_traiter: 'Это лекарство не лечит ни одного из ваших недугов.',
     r_deja_traitee: 'Лекарство уже принято: выздоровление при следующем сне.',
     r_rupture: 'На сегодня товар закончился.', r_stock_insuffisant: 'Недостаточно запасов: осталось {restant}.',
@@ -155,6 +160,7 @@ const T = {
     drink: '마시기', drunk: '마셨습니다: {nom}.',
     spoiled: '음식 일부가 상했습니다: {liste}.', a_viande: '고기', a_viande_renne: '순록 고기', a_laitages: '유제품', a_poisson: '생선', a_fruits_legumes: '과일과 채소', a_oeufs: '달걀',
     strips: '검사 시험지', stripsDeposit: '이 가게에 맡기기', stripsDeposited: '시험지 {n}개를 맡겼습니다: 가게 보유량 {reserve}.', foodRefused: '입고 검사: 상한 물품 {n}개가 거부되어 폐기되었고 대금은 지급되지 않았습니다.', r_pas_dans_un_commerce: '가게 안에 있어야 합니다.', r_pas_de_bandelettes: '검사 시험지가 없습니다.',
+    ferret: '냄새 맡는 족제비', ferretIntro: '토끼 사냥용 족제비로, 코가 틀린 적이 없습니다. 가격: {prix} {cur}. 이번 주 남은 수: {n}.', ferretBuy: '족제비 사기', ferretBought: '족제비가 가방 속에 몸을 웅크립니다.', sniff: '냄새 맡게 하기 (1 AP)', sneeze: '에취! 족제비가 재채기합니다: 이 음식은 상했습니다.', purr: '그르릉… 족제비가 가르랑거립니다: 이 음식은 괜찮습니다.', ferretDead: '상한 음식을 하나 더 맡자 족제비가 당신 품에서 숨을 거둡니다.', r_pas_a_la_boutique: '사냥·낚시 용품점 안에 있어야 합니다.', r_plus_de_furet: '이번 주 족제비가 다 팔렸습니다: 월요일에 다시 오세요.', r_pas_de_furet: '족제비가 없습니다.', r_pas_un_aliment: '족제비는 음식만 냄새 맡습니다.',
     r_aucune_maladie_a_traiter: '이 약은 당신의 어떤 병도 치료하지 않습니다.',
     r_deja_traitee: '이미 약을 먹었습니다: 다음 잠자기 때 회복됩니다.',
     r_rupture: '오늘은 품절입니다.', r_stock_insuffisant: '재고 부족: {restant}개 남음.',
@@ -181,6 +187,7 @@ const T = {
     drink: 'اشرب', drunk: 'شربت: {nom}.',
     spoiled: 'فسد بعض طعامك: {liste}.', a_viande: 'لحم', a_viande_renne: 'لحم الرنة', a_laitages: 'ألبان', a_poisson: 'سمك', a_fruits_legumes: 'فواكه وخضروات', a_oeufs: 'بيض',
     strips: 'شرائط كاشفة', stripsDeposit: 'اتركها في هذا المتجر', stripsDeposited: 'تُركت {n} شريطة: مخزون المتجر {reserve}.', foodRefused: 'فحص عند الاستلام: رُفضت {n} وحدة فاسدة وأُتلفت ولم يُدفع ثمنها.', r_pas_dans_un_commerce: 'يجب أن تكون داخل متجر.', r_pas_de_bandelettes: 'ليست لديك شرائط كاشفة.',
+    ferret: 'نمس شمّام', ferretIntro: 'نمس لصيد الأرانب بأنف لا يخطئ. السعر: {prix} {cur}. المتبقي هذا الأسبوع: {n}.', ferretBuy: 'اشترِ النمس', ferretBought: 'يلتفّ النمس داخل حقيبتك.', sniff: 'دعه يشمّ (نقطة عمل واحدة)', sneeze: 'عطس! يعطس النمس: هذا الطعام فاسد.', purr: 'خرر… يخرخر النمس: هذا الطعام سليم.', ferretDead: 'طعام فاسد زائد: يموت النمس بين ذراعيك.', r_pas_a_la_boutique: 'يجب أن تكون في متجر الصيد البري والبحري.', r_plus_de_furet: 'لا نموس هذا الأسبوع: عد يوم الاثنين.', r_pas_de_furet: 'ليس لديك نمس.', r_pas_un_aliment: 'لا يشمّ النمس إلا الطعام.',
     r_aucune_maladie_a_traiter: 'هذا الدواء لا يعالج أيًّا من أمراضك.',
     r_deja_traitee: 'تم أخذ العلاج بالفعل: الشفاء عند النوم التالي.',
     r_rupture: 'نفد المخزون لهذا اليوم.', r_stock_insuffisant: 'المخزون غير كافٍ: المتبقي {restant}.',
@@ -207,6 +214,7 @@ const T = {
     drink: 'Beber', drunk: 'Você bebe: {nom}.',
     spoiled: 'Parte dos seus alimentos estragou: {liste}.', a_viande: 'carne', a_viande_renne: 'carne de rena', a_laitages: 'laticínios', a_poisson: 'peixe', a_fruits_legumes: 'frutas e legumes', a_oeufs: 'ovos',
     strips: 'Tiras reagentes', stripsDeposit: 'Deixar neste comércio', stripsDeposited: '{n} tira(s) entregue(s): estoque do comércio {reserve}.', foodRefused: 'Controle no recebimento: {n} unidade(s) estragada(s) recusada(s), destruída(s) e não paga(s).', r_pas_dans_un_commerce: 'É preciso estar em um comércio.', r_pas_de_bandelettes: 'Você não tem tiras reagentes.',
+    ferret: 'Furão farejador', ferretIntro: 'Um furão de caça a coelhos com faro infalível. Preço: {prix} {cur}. Restam {n} nesta semana.', ferretBuy: 'Comprar o furão', ferretBought: 'O furão se enrola na sua bolsa.', sniff: 'Deixar farejar (1 PA)', sneeze: 'Atchim! O furão espirra: este alimento está estragado.', purr: 'Rrrr… O furão ronrona: este alimento está bom.', ferretDead: 'Um alimento estragado a mais: o furão se apaga em seus braços.', r_pas_a_la_boutique: 'É preciso estar na loja de Caça e Pesca.', r_plus_de_furet: 'Acabaram os furões desta semana: volte na segunda-feira.', r_pas_de_furet: 'Você não tem furão.', r_pas_un_aliment: 'O furão só fareja alimentos.',
     r_aucune_maladie_a_traiter: 'Este remédio não trata nenhum dos seus males.',
     r_deja_traitee: 'Tratamento já tomado: cura no próximo Dormir.',
     r_rupture: 'Esgotado por hoje.', r_stock_insuffisant: 'Estoque insuficiente: restam {restant}.',
@@ -233,6 +241,7 @@ const T = {
     drink: 'Trinken', drunk: 'Sie trinken: {nom}.',
     spoiled: 'Einige Ihrer Lebensmittel sind verdorben: {liste}.', a_viande: 'Fleisch', a_viande_renne: 'Rentierfleisch', a_laitages: 'Milchprodukte', a_poisson: 'Fisch', a_fruits_legumes: 'Obst und Gemüse', a_oeufs: 'Eier',
     strips: 'Teststreifen', stripsDeposit: 'In diesem Geschäft lassen', stripsDeposited: '{n} Teststreifen abgegeben: Vorrat des Geschäfts {reserve}.', foodRefused: 'Wareneingangskontrolle: {n} verdorbene Einheit(en) abgelehnt, vernichtet und nicht bezahlt.', r_pas_dans_un_commerce: 'Sie müssen sich in einem Geschäft befinden.', r_pas_de_bandelettes: 'Sie haben keine Teststreifen.',
+    ferret: 'Schnüffelfrettchen', ferretIntro: 'Ein Frettchen für die Kaninchenjagd mit untrüglicher Nase. Preis: {prix} {cur}. Diese Woche noch {n}.', ferretBuy: 'Frettchen kaufen', ferretBought: 'Das Frettchen rollt sich in Ihrer Tasche ein.', sniff: 'Schnüffeln lassen (1 AP)', sneeze: 'Hatschi! Das Frettchen niest: Dieses Lebensmittel ist verdorben.', purr: 'Schnurr… Das Frettchen schnurrt: Dieses Lebensmittel ist einwandfrei.', ferretDead: 'Ein verdorbenes Lebensmittel zu viel: Das Frettchen stirbt in Ihren Armen.', r_pas_a_la_boutique: 'Sie müssen im Geschäft für Jagd und Fischerei sein.', r_plus_de_furet: 'Diese Woche keine Frettchen mehr: Kommen Sie am Montag wieder.', r_pas_de_furet: 'Sie haben kein Frettchen.', r_pas_un_aliment: 'Das Frettchen schnüffelt nur an Lebensmitteln.',
     r_aucune_maladie_a_traiter: 'Dieses Medikament hilft gegen keines Ihrer Leiden.',
     r_deja_traitee: 'Bereits eingenommen: Genesung beim nächsten Schlafen.',
     r_rupture: 'Für heute ausverkauft.', r_stock_insuffisant: 'Nicht genug Vorrat: noch {restant}.',
@@ -416,9 +425,73 @@ async function boireBoisson(idx) {
     setTimeout(() => { rafraichirMaladies().catch(() => {}); }, 400);
   } finally { boireEnCours = false; }
 }
+// ── Furet renifleur (lot 2c) ─────────────────────────────────────────────────────────────────────
+async function ouvrirFuret() {
+  const e = un(await global.sbRpc('furet_boutique_etat', {}).catch(() => null));
+  if (!e || e.ok !== true) { global.showToast(texteMaladie('ferret'), motif(e), false); return; }
+  const titre = global.document.getElementById('postes-modal-title');
+  if (titre) titre.textContent = texteMaladie('ferret');
+  global.document.getElementById('postes-body').innerHTML = '<div class="cpj-dialogue" style="padding:1rem">'
+    + '<div style="font-size:2.4rem;text-align:center"><i class="ti ti-paw"></i></div>'
+    + '<div class="cpj-note" style="margin:.6rem 0">' + esc(texteMaladie('ferretIntro', { prix: e.prix, cur: devise(), n: e.restant })) + '</div>'
+    + '<div style="display:flex;gap:.5rem"><button class="cpj-touche cpj-primaire" style="flex:1"' + (e.restant > 0 ? '' : ' disabled') + ' onclick="confirmerFuret()">' + esc(texteMaladie('ferretBuy')) + '</button>'
+    + '<button class="cpj-touche" style="flex:1" onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')">' + esc(texteMaladie('cancel')) + '</button></div></div>';
+  global.document.getElementById('modal-postes').classList.add('open');
+}
+let furetEnCours = false;
+async function confirmerFuret() {
+  if (furetEnCours) return;
+  furetEnCours = true;
+  try {
+    const r = un(await global.sbRpc('furet_acheter', { p_requete: uuid() }).catch(() => null));
+    if (!r || r.ok !== true) { global.showToast(texteMaladie('ferret'), motif(r), false); return; }
+    appliquerInventaire(r);
+    global.document.getElementById('modal-postes')?.classList.remove('open');
+    global.showToast(texteMaladie('ferret'), texteMaladie('ferretBought'), true);
+    if (typeof global.updateUI === 'function') global.updateUI();
+  } finally { furetEnCours = false; }
+}
+function aUnFuret() {
+  const inv = (typeof state !== 'undefined' && state && state.inventory) || [];
+  return inv.some(o => o && o.type === 'furet');
+}
+function estComestible(item) {
+  if (!item) return false;
+  return ['viande', 'viande_renne', 'laitages', 'poisson', 'fruits_legumes', 'oeufs'].includes(item.stackKey)
+    || item.familleProduitMarche === 'aliment' || (item.generique_id === 'encas-a-emporter' && !!item.recette_id);
+}
+function boutonRenifler(item, idx, style) {
+  if (!aUnFuret() || !estComestible(item) || !Number.isInteger(idx)) return '';
+  return '<button onclick="furetRenifler(' + idx + ')" style="' + (style || '') + '"><i class="ti ti-paw"></i> ' + esc(texteMaladie('sniff')) + '</button>';
+}
+let reniflementEnCours = false;
+async function furetRenifler(idx) {
+  if (reniflementEnCours) return;
+  const item = ((typeof state !== 'undefined' && state && state.inventory) || [])[idx];
+  if (!estComestible(item)) return;
+  reniflementEnCours = true;
+  try {
+    const signature = typeof global.signatureObjetInventaire === 'function' ? global.signatureObjetInventaire(item) : item;
+    const r = un(await global.sbRpc('furet_renifler', { p_requete: uuid(), p_index: idx, p_signature: signature }).catch(() => null));
+    if (!r || r.ok !== true) { global.showToast(texteMaladie('ferret'), motif(r), false); return; }
+    appliquerInventaire(r);
+    if (typeof r.pa === 'number' && typeof state !== 'undefined' && state) state.pa = r.pa;
+    const eternue = r.reaction === 'eternue';
+    const titre = global.document.getElementById('postes-modal-title');
+    if (titre) titre.textContent = texteMaladie('ferret');
+    global.document.getElementById('postes-body').innerHTML = '<style>@keyframes rpFuretEternue{0%,100%{transform:none}20%{transform:scale(1.25) rotate(-12deg)}40%{transform:translateX(-10px) rotate(8deg)}60%{transform:scale(.9)}}'
+      + '@keyframes rpFuretRonronne{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}</style>'
+      + '<div style="padding:1.2rem;text-align:center"><div style="font-size:3rem;display:inline-block;animation:' + (eternue ? 'rpFuretEternue .6s 3' : 'rpFuretRonronne 1s 3') + '"><i class="ti ti-paw"></i></div>'
+      + '<p class="cpj-note" style="margin-top:.8rem">' + esc(texteMaladie(eternue ? 'sneeze' : 'purr')) + '</p>'
+      + (r.mort ? '<p class="cpj-note" style="color:#c8604a">' + esc(texteMaladie('ferretDead')) + '</p>' : '') + '</div>';
+    global.document.getElementById('modal-postes').classList.add('open');
+    if (typeof global.updateUI === 'function') global.updateUI();
+  } finally { reniflementEnCours = false; }
+}
 // Nom affiché d'un médicament de maladie dans l'inventaire.
 function nomObjetMaladie(item) {
   if (item && item.type === 'bandelette_reactive') return texteMaladie('strips');
+  if (item && item.type === 'furet') return texteMaladie('ferret');
   return item && item.type === 'medicament_maladie' ? nomMedicament(item.medicament) : null;
 }
 // Bandelettes réactives (lot 2b) : déposées dans le commerce de la pièce (un don ; le serveur trouve le commerce).
@@ -504,6 +577,6 @@ else if (global.document) global.document.addEventListener('DOMContentLoaded', d
 Object.assign(global, {
   RPMaladies: { T, CLES, MEDICAMENTS, texte: texteMaladie, nomMaladie, symptomeSoi, symptomeAutre, nomMedicament, motif },
   rafraichirMaladies, rendreEtatSante, ouvrirPharmacie, confirmerPharmacie, prendreMedicament,
-  boutonMedicamentMaladie, nomObjetMaladie, afficherSymptomesDans, boutonBoire, boireBoisson, estBoisson, boutonBandelettes, deposerBandelettes
+  boutonMedicamentMaladie, nomObjetMaladie, afficherSymptomesDans, boutonBoire, boireBoisson, estBoisson, boutonBandelettes, deposerBandelettes, ouvrirFuret, confirmerFuret, boutonRenifler, furetRenifler
 });
 })(typeof window !== 'undefined' ? window : globalThis);

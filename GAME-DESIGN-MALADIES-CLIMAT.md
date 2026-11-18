@@ -238,3 +238,10 @@ bandelettes, plats cuisinés, furet renifleur).
   déposer dans le commerce de la pièce (c'est un don) ; chaque livraison d'aliments reçue en consomme une.
 - **Réglages du MJ** : section « Aliments » de la page d'administration (péremption, deux taux de détection, prix).
 - **Lot 2c (à venir)** : plats cuisinés avec un ingrédient avarié (20 %) et furet renifleur.
+- **Lot 2c — plats cuisinés** : quand un commerce produit en consommant des unités avariées passées inaperçues, les portions
+  produites par ce geste sont contaminées (invisible). Fonds PJ : l'objet emporté porte la marque et le tirage (20 %) se fait
+  quand on le mange, ou tout de suite s'il est consommé sur place. Moteur historique (tournées, dîners, service d'étage,
+  comptoir) : le tirage se fait pour l'acheteur au moment du service (les invités d'une tournée ou d'un dîner ne sont pas
+  tirés, à confirmer).
+- **Lot 2c — furet renifleur** : 250 (réglable), deux par boutique et par semaine, Chasse et Pêche de Port-Sainte-Marie et de
+  Starovka ; « Faire renifler » 1 PA depuis la fiche d'un aliment ; meurt au 11e aliment avarié reniflé.
