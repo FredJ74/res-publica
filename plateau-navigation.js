@@ -2729,8 +2729,15 @@ function ouvrirModalTransport(mode) {
     // Intra-empire
     const villes = villesDe(pays);
     html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem" >' + rpNavHtml('destination','DESTINATION') + '</div>';
+    // Starovka n'est accessible qu'en train (Fred, 18/11/2026) : ni bus ni taxi vers ou depuis Starovka
+    // (le serveur refuse aussi : « starovka_train_seulement »).
+    const starovkaSansBus = mode === 'bus' && pays === 'soviet';
+    if (starovkaSansBus && state.currentCity === 'ville_a') {
+      html += '<p class="cpj-note">' + rpNavHtml('starovkaTrainOnly', 'Starovka n\'est reliée aux autres villes qu\'en train.') + '</p>';
+    }
     villes.forEach(ville => {
       if (ville.id === state.currentCity) return;
+      if (starovkaSansBus && (ville.id === 'ville_a' || state.currentCity === 'ville_a')) return;
       html += '<div onclick="confirmerTransport(\'' + mode + '\',\'' + pays + '\',\'' + ville.id + '\')" style="padding:.6rem .8rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer" onmouseover="this.style.background=\'#151005\'" onmouseout="this.style.background=\'#0f0d05\'">';
       html += '<div style="font-size:.85rem;color:#c0b090">' + ville.nom + '</div>';
       html += '<div style="font-size:.7rem;color:#5a4030">' + (ville.capitale ? rpNavHtml('capital','Capitale') : rpNavHtml('city','Ville')) + '</div>';
@@ -2832,6 +2839,7 @@ async function commanderTransportServeur(mode,pays,ville) {
    }
    const motifs={
     controle_douanier_requis:'Le contrôle douanier doit être confirmé avant ce voyage.',
+    starovka_train_seulement:"Starovka n'est reliée aux autres villes qu'en train.",
     chef_de_groupe_requis:'Seul le chef du groupe peut engager ce voyage.',fonds_insuffisants:'Le chef du groupe ne dispose pas des fonds nécessaires pour tous les voyageurs.',
     pa_insuffisants:'Le chef du groupe ne dispose pas des PA nécessaires.'};
    showToast('Voyage non confirmé',motifs[v?.raison]||'Le voyage n’est pas confirmé. Le même reçu sera utilisé si vous réessayez.',false);return false;

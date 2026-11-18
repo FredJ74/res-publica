@@ -3492,6 +3492,7 @@ async function doRecruterMilitants(pa, cost) {
 // =====================
 
 const RAISONS_BLOCUS = {
+  syndicat_etat_sans_greve: 'Le syndicat de Sovarka est le syndicat de l\'État : il ne fait ni grève ni blocus.',
   acteur_non_authentifie: "Votre personnage n'est pas identifié.",
   hors_batiment: 'Placez-vous dans le bâtiment à bloquer.',
   batiment_inconnu: 'Ce lieu ne peut pas être bloqué.',
@@ -3533,6 +3534,8 @@ function blocusRefuser(r, titre) {
 }
 
 async function doOrganiserBlocusSyndical() {
+  // Sovarka (Fred, 18/11/2026) : syndicat unique d'État qui ne fait jamais grève (le serveur refuse aussi).
+  if (state.country === 'soviet') { showToast('Syndicat d\'État', 'Le travailleur ne bloque pas son propre outil : pas de blocus en Sovarka.', false); return; }
   const infos = getMonSyndicatEtGrade();
   if (!infos || !infos.dirigeant) { showToast('Accès refusé', RAISONS_BLOCUS.reserve_secretaire_general, false); return; }
   if (!state.currentBuilding) { showToast('Blocus impossible', RAISONS_BLOCUS.hors_batiment, false); return; }

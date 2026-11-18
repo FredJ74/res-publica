@@ -561,8 +561,11 @@ function switchSelfTab(tab, el) {
     // le joueur payait donc 4 PA pour un ordre annonce a 1. Le doublon du routeur est supprime, et
     // le montant unique passe ici correspond a l'affichage -- il gouverne aussi la garde de
     // suffisance (doOrder l.74), qu'un 0 aurait desactivee.
+    // Sovarka (Fred, 18/11/2026) : syndicat unique d'État, jamais de grève ni de blocus.
+    if (state.country !== 'soviet') {
     html += '<button onclick="doOrder(\'organiser_blocus\',1,0,\'Organiser un blocus\',\'Le groupe bloque l\\\'acces.\','+tauxBlocus+');closeSelfView()" style="display:flex;justify-content:space-between;align-items:center;padding:.5rem .8rem;border:1px solid #3a1a1a;background:#0d0808;color:#9a6a4a;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">';
     html += '<span><i class="ti ti-ban" style="font-size:.85rem"></i> ' + rpCharSheetLabel('organizeBlockade','Organiser un blocus') + '</span><span style="font-family:Bebas Neue,sans-serif;font-size:.68rem;color:#6a3a20">' + tauxBlocus + '% · 1 PA · groupe:' + groupSize + '</span></button>';
+    }
 
     // Blocus syndical reel — reserve au Secretaire General / Adjoint (decision de Fred,
     // 02/11/2026 ; le serveur revalide). Organiser : dans le batiment ou l'on se trouve.

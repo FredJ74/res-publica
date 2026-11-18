@@ -3830,6 +3830,50 @@ const PRODUITS_MARCHE = {
   },
   // Tabac/Presse de Krasnov (14/11/2026) : famille « Presse & papeterie », objets deposes en inventaire
   // par la vente (carte postale a ecrire ; revue d'integration locale, +1 ENT a Krasnov, non cumulable).
+  // Magasin du kolkhoze de Starovka (Fred, 18/11/2026) : six articles, alimentaire et non alimentaire, prix PNJ
+  // par la règle commune (×2). Moteur du commerce PNJ « tabac-presse » (caisse autonome). Jamais transmissible.
+  kolkhoze_viande_renne: {
+    id: 'kolkhoze_viande_renne', label: 'Viande de renne', familleProduitMarche: 'aliment',
+    desc: 'Un morceau de renne du kolkhoze, découpé le matin même.',
+    categorie: 'objet', image: null, icon: 'ti-meat',
+    materiaux: { viande: 1 }, pa: 1, portions: 4,
+    typesAutorises: ['tabac-presse'], paysAutorises: ['soviet'], villesAutorisees: ['ville_a'], buildingsAutorises: ['magasin-kolkhoze-starovka']
+  },
+  kolkhoze_lait_renne: {
+    id: 'kolkhoze_lait_renne', label: 'Lait de renne', familleProduitMarche: 'aliment',
+    desc: 'Un pot de lait de renne, épais et gras, tiré à la ferme.',
+    categorie: 'objet', image: null, icon: 'ti-milk',
+    materiaux: { laitages: 1 }, pa: 1, portions: 8,
+    typesAutorises: ['tabac-presse'], paysAutorises: ['soviet'], villesAutorisees: ['ville_a'], buildingsAutorises: ['magasin-kolkhoze-starovka']
+  },
+  kolkhoze_confiture_airelles: {
+    id: 'kolkhoze_confiture_airelles', label: 'Confiture d\'airelles', familleProduitMarche: 'aliment',
+    desc: 'Les airelles de la toundra, cuites au sucre par les femmes du kolkhoze.',
+    categorie: 'objet', image: null, icon: 'ti-jar',
+    materiaux: { fruits_legumes: 1 }, pa: 1, portions: 6,
+    typesAutorises: ['tabac-presse'], paysAutorises: ['soviet'], villesAutorisees: ['ville_a'], buildingsAutorises: ['magasin-kolkhoze-starovka']
+  },
+  kolkhoze_graisse_renne: {
+    id: 'kolkhoze_graisse_renne', label: 'Bocal de graisse de renne', familleProduitMarche: 'aliment',
+    desc: 'La graisse de renne fondue qui tient chaud tout l\'hiver.',
+    categorie: 'objet', image: null, icon: 'ti-jar',
+    materiaux: { viande: 1 }, pa: 1, portions: 6,
+    typesAutorises: ['tabac-presse'], paysAutorises: ['soviet'], villesAutorisees: ['ville_a'], buildingsAutorises: ['magasin-kolkhoze-starovka']
+  },
+  kolkhoze_peau_renne: {
+    id: 'kolkhoze_peau_renne', label: 'Peau de renne',
+    desc: 'Une peau tannée, douce et chaude, pour une couverture ou des bottes.',
+    categorie: 'objet', image: null, icon: 'ti-feather',
+    materiaux: { textile: 1 }, pa: 1, portions: 2,
+    typesAutorises: ['tabac-presse'], paysAutorises: ['soviet'], villesAutorisees: ['ville_a'], buildingsAutorises: ['magasin-kolkhoze-starovka']
+  },
+  kolkhoze_bois_renne: {
+    id: 'kolkhoze_bois_renne', label: 'Bois de renne',
+    desc: 'Une ramure tombée au printemps, polie à la main ; un souvenir de Starovka.',
+    categorie: 'objet', image: null, icon: 'ti-antenna',
+    materiaux: { viande: 1 }, pa: 1, portions: 3,
+    typesAutorises: ['tabac-presse'], paysAutorises: ['soviet'], villesAutorisees: ['ville_a'], buildingsAutorises: ['magasin-kolkhoze-starovka']
+  },
   carte_krasnov_place_ours: {
     id: 'carte_krasnov_place_ours', label: 'Carte postale — Krasnov, la place de l\'Ours', familleProduitMarche: 'carte_postale',
     desc: 'La statue de l\'Ours, ses bancs et la mairie, sous la neige. À écrire et à envoyer.',
@@ -4060,7 +4104,9 @@ const BUILDING_COMMERCE_TYPE = {
   'pavillon-ambassadeurs-novomirsk|bar': 'bar',
   // Tabac/Presse de Krasnov (14/11/2026, demande de Fred) : type 'tabac-presse', caisse autonome, cle
   // buildingId seule (une piece). Serveur : migration 20261114220000_krasnov_tabac_presse_articles.
-  'tabac-presse-krasnov': 'tabac-presse'
+  'tabac-presse-krasnov': 'tabac-presse',
+  // Magasin du kolkhoze de Starovka (18/11/2026) : même moteur, caisse autonome ; jamais transmissible à un PJ.
+  'magasin-kolkhoze-starovka': 'tabac-presse'
 };
 
 // Types de commerce sans caisse autonome (paiement client/salaire de production routes vers la

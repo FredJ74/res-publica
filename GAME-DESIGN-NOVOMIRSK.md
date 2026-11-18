@@ -1094,6 +1094,11 @@ Consigne culturelle commune des Bouriates de Starovka : [`GAME-DESIGN-STAROVKA-B
 - **Centre d'affaires** : Khasar Baljirov et Dorji Filatov supprimés ; Oyuuna Tsydenova, hôtesse.
 - À noter pour plus tard (non codé) : la presse en Sovarka (siège de La Voix de Sovarka à Novomirsk) ; le rôle du syndicat d'État.
 
+**Codé le 18/11/2026 (Claude)** — migration `20261118041000_starovka_train_syndicat_kolkhoze` (appliquée) :
+- **Train seulement** : `transport_effectuer` refuse le bus vers ou depuis Starovka en Sovarka (motif `starovka_train_seulement`) ; à l'écran, Starovka disparaît des destinations du bus et le guichet de bus de Starovka n'en propose aucune. Le train et les accès au goulag (taxis de la caserne et du QHS) sont inchangés.
+- **Pas de blocus en Sovarka** : `blocus_syndical_organiser` refuse en Sovarka (motif `syndicat_etat_sans_greve`) ; le bouton « Organiser un blocus » de la fiche et l'ordre syndical ne sont plus proposés en Sovarka. Le blocus portuaire des dockers (Républia) n'est pas concerné.
+- **Magasin du kolkhoze** : commerce PNJ (moteur des commerces « tabac-presse », caisse autonome), six articles, prix 2 × (coût moyen des matières + 15 PSK par PA) / portions : viande de renne 8 PSK, lait de renne 4, confiture d'airelles 5, bocal de graisse de renne 5 (aliments) ; peau de renne 16, bois de renne 11 (objets). Stock d'ouverture 10 de chaque. **Jamais transmissible** : marqueur `nonTransmissible` sur l'entreprise, compromis refusé par `entreprise_signer_compromis` (motif `commerce_kolkhoze_non_transmissible`), absent de la liste des rachats et de la gestion par un PJ. Effets des articles (moral, chaleur…) non définis : à décider.
+
 **PNJ (R = référent)**
 - *Mairie* : Sayana Tsydypova, secrétaire municipale (R démarches municipales) ; Tsyren-Dorji Bazarov, maire (R, poste) ; Munko Tsybenov, adjoint au maire (R, poste) ; Dugar Tsyrempilov, président de la commission électorale (R élections) ; Soyolma Ayusheeva, secrétaire de la commission ; Lieutenant Tsyden Zhalsaraev, cellule de validation et de surveillance des partis (R partis) ; Erdem Gombozhapov, archiviste de la salle des partis (R registres).
 - *Port* : Commandant Gleb Ledokolov (ex-Tömör Ochirov ; R commerce extérieur) ; Ganbaatar Tsybikov, chef de quai ; Stepan Vetrov, chef des douanes du port de Starovka (R expédition, retrait, déclaration).
