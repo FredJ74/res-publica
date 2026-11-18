@@ -24,6 +24,9 @@ test('bureau du syndicat national dans les trois mairies de Sovarka, un PNJ chac
     assert.equal(JSON.stringify(piece.persons.map(p => [p.name, p.profilId])), JSON.stringify([[nom, profil]]));
     assert.deepEqual([...piece.orders.map(o => o.fn)], ['se_syndiquer_etat', 'consulter_syndicat_etat', 'quitter_syndicat_etat', 'declencher_election_syndicat_etat', 'manifestation_soutien_president']);
     assert.ok(piece.orders.find(o => o.fn === 'manifestation_soutien_president').requiresChefSyndicatEtat);
+    const adh = piece.orders.find(o => o.fn === 'se_syndiquer_etat'); assert.equal(adh.cost, 15); assert.equal(adh.pa, 1);
+    assert.match(piece.imageUrl, /_mairie_bureau_syndicat_national\.webp$/, 'décor de Fred');
+    assert.match(piece.persons[0].photoUrl, /_portrait_mairie_/); assert.ok(fs.existsSync(path.join(R, piece.persons[0].photoUrl)));
     assert.ok(!cite.buildingContext['siege-syndical'], 'siège syndical retiré : ' + ville);
     assert.ok(fs.existsSync(path.join(R, piece.imageUrl)), piece.imageUrl);
   }
@@ -34,7 +37,7 @@ test('bureau du syndicat national dans les trois mairies de Sovarka, un PNJ chac
     const i = fiches.indexOf("'" + p + "':"); assert.ok(i > 0, p);
     const f = fiches.slice(i, fiches.indexOf('style:', i));
     assert.match(f, /le travailleur ne bloque pas son propre outil/);
-    assert.match(f, /1 PA et 50 PSK/); assert.match(f, /au moins 10 syndiqués/); assert.match(f, /2 PA chacun/);
+    assert.match(f, /1 PA et une cotisation unique de 15 PSK, jamais renouvelée/); assert.match(f, /au moins 10 syndiqués/); assert.match(f, /2 PA chacun/);
     assert.doesNotMatch(f, /référent/i, 'PNJ non référent');
   }
   assert.doesNotMatch(lire('plateau-pnj.js'), /lev_lozungov|anatoli_transparantov/, 'hors des listes de référents');
@@ -73,6 +76,8 @@ test('manifestation de soutien : règle du taux et de l\'effet sur la POP (serve
   assert.match(sql, /coalesce\(x\.pa, 0\) > 3/); assert.match(sql, /SET pa = pa - 2/);
   assert.match(sql, /< 10 THEN\s+RETURN jsonb_build_object\('ok', false, 'raison', 'syndicat_trop_petit'/);
   assert.match(sql, /PRIMARY KEY \(ville, jour\)/);
+  assert.match(lire('migrations/20261118056000_syndicat_cotisation_tutelle_complete.sql'), /SET pa = 1, cost = 15 WHERE fn = 'se_syndiquer_etat'/);
+  assert.doesNotMatch(lire('api/cron-minuit.js'), /orga_syndicat_etat_soviet/, 'cotisation jamais renouvelée');
   assert.match(sql, /INSERT INTO public\.evenements_globaux/); assert.match(sql, /INSERT INTO public\.journal_articles_en_attente/);
 });
 
@@ -100,5 +105,8 @@ test('départ d\'un maire : proposition à l\'adjoint (72 h), tutelle du ministr
   assert.equal(essai('republic', 'min_int', 'bureau_maire_local', { eluId: null, tutelle: {} }), true);
   assert.equal(essai('republic', 'min_int', 'bureau_maire_local', { eluId: 'X', tutelle: {} }), false, 'un maire est élu');
   const nat = lire('plateau-nationalite.js');
+  assert.match(pol, /regle\.nommePar === 'maire' && typeof tutelleMairieIci === 'function' && tutelleMairieIci\(/, 'nominations sous tutelle');
+  const tut = lire('migrations/20261118056000_syndicat_cotisation_tutelle_complete.sql');
+  assert.match(tut, /mairie_campagne_securite_interne/); assert.match(tut, /poste_autorite_de/);
   assert.match(nat, /sbRpcVerdict\('maire_succession_repondre', \{ p_id: String\(id \|\| ''\), p_accepte: oui \}\)/);
 });
