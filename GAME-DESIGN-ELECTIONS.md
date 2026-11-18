@@ -64,6 +64,10 @@ propre pays depuis une mairie étrangère.
 - **Partage des usages du « pays »** : par défaut, les **prix, les tarifs nationaux et la monnaie suivent le
   lieu** où l'on se trouve ; les **droits politiques, les postes et la conscription suivent la nationalité**.
   Un cas non tranché par ces règles est soumis à Fred.
+- **Précisions de Fred (18/11/2026)** :
+  - **Poste à l'étranger** : le PJ **garde** son poste quand il est à l'étranger mais **ne peut pas l'exercer** tant qu'il y est (refus « hors de son pays », déjà codé) ; aucune perte du poste, ni immédiate ni après une durée d'absence.
+  - **Forums et journal** : le PJ garde toujours les forums et le journal de **son pays** (nationalité), où qu'il soit. En plus, il voit ceux du **pays où il se trouve** : forum national de ce pays en **lecture seule** ; forums locaux de la **ville où il se trouve** en **lecture et écriture** ; journal du pays où il se trouve **lisible**.
+  - **Vote depuis l'étranger : non.** Il faut être dans son pays pour voter.
 
 ## Candidature (rappel des règles en vigueur)
 
