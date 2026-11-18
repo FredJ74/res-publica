@@ -1,0 +1,25 @@
+name: Starovka — huit portraits individuels WebP
+on:
+  push:
+    branches: [chatgpt/starovka-huit-portraits-20261118]
+    paths:
+      - data.js
+      - images/Sovarka/Starovka/**
+      - outils/bancs/banc-starovka-huit-portraits-20261118.cjs
+      - .github/workflows/starovka-huit-portraits-test-20261118.yml
+  pull_request:
+    paths:
+      - data.js
+      - images/Sovarka/Starovka/**
+      - outils/bancs/banc-starovka-huit-portraits-20261118.cjs
+permissions:
+  contents: read
+jobs:
+  portraits:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node outils/bancs/banc-starovka-huit-portraits-20261118.cjs

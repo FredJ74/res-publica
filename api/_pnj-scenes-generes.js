@@ -5989,21 +5989,29 @@ export const SCENES_PNJ = {
     "ville": "Starovka",
     "batiment": "Mairie",
     "piece": "Bureau du Maire Adjoint",
-    "personnes": []
+    "personnes": [
+      "Munko Tsybenov"
+    ]
   },
   "[\"soviet\",\"ville_a\",\"mairie\",\"salle_elections\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",
     "batiment": "Mairie",
     "piece": "Salle des élections",
-    "personnes": []
+    "personnes": [
+      "Dugar Tsyrempilov",
+      "Soyolma Ayusheeva"
+    ]
   },
   "[\"soviet\",\"ville_a\",\"mairie\",\"salle_partis\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",
     "batiment": "Mairie",
     "piece": "Salle des partis",
-    "personnes": []
+    "personnes": [
+      "Lieutenant Tsyden Zhalsaraev",
+      "Erdem Gombozhapov"
+    ]
   },
   "[\"soviet\",\"ville_a\",\"dispensaire-public-v\",\"attente\"]": {
     "pays": "Sovarka",
@@ -6107,7 +6115,9 @@ export const SCENES_PNJ = {
     "ville": "Starovka",
     "batiment": "Gare de Starovka",
     "piece": "Hall de la gare de Starovka",
-    "personnes": []
+    "personnes": [
+      "Gombo Zhigzhitov"
+    ]
   },
   "[\"soviet\",\"ville_a\",\"centre-artisanal\",\"travees\"]": {
     "pays": "Sovarka",
@@ -6145,7 +6155,7 @@ export const SCENES_PNJ = {
     "batiment": "Centre d'affaires de Starovka",
     "piece": "Accueil",
     "personnes": [
-      "Secrétaire du centre d'affaires de Starovka"
+      "Oyuuna Tsydenova"
     ]
   },
   "[\"soviet\",\"ville_a\",\"centre-affaires\",\"bureau_prestige\"]": {

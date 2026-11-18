@@ -12919,3 +12919,61 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     }
   }
 })();
+
+
+/* HUIT_PORTRAITS_STAROVKA_20261118 — identités et portraits photographiques.
+   Seulement Starovka. Préserve tous les ordres et les fiches déjà présentes. */
+(() => {
+  const cite = WORLD.soviet.ville_a;
+  const base = 'images/Sovarka/Starovka/';
+  const pnj = (name, role, job, filename) => ({
+    name, role, rel: 'neutral', job, photoUrl: base + filename + '.webp', photoPos: '50% 30%'
+  });
+  function installer(batiment, piece, personnes) {
+    const contexte = cite.buildingContext[batiment];
+    if (!BUILDINGS[batiment] || !contexte
+      || !(BUILDINGS[batiment].rooms?.[piece] || contexte.roomsExtra?.[piece])) {
+      throw new Error('Portrait Starovka : bâtiment/pièce absent ' + batiment + '/' + piece);
+    }
+    const ancien = contexte.roomOverrides?.[piece] || {};
+    contexte.roomOverrides = contexte.roomOverrides || {};
+    contexte.roomOverrides[piece] = { ...ancien, personsVides: false, persons: personnes };
+  }
+  installer('mairie', 'bureau_maire_adjoint', [
+    pnj('Munko Tsybenov (PNJ)', 'Adjoint au maire de Starovka', 'maire_adjoint',
+      'Starovka_portrait_mairie_munko-tsybenov')
+  ]);
+  installer('mairie', 'salle_elections', [
+    pnj('Dugar Tsyrempilov (PNJ)', 'Président de la commission électorale', 'responsable_electoral',
+      'Starovka_portrait_mairie_dugar-tsyrempilov'),
+    pnj('Soyolma Ayusheeva (PNJ)', 'Secrétaire de la commission électorale', 'secretaire',
+      'Starovka_portrait_mairie_soyolma-ayusheeva')
+  ]);
+  installer('mairie', 'salle_partis', [
+    pnj('Lieutenant Tsyden Zhalsaraev (PNJ)', 'Officier de validation et surveillance des partis', 'officier_securite',
+      'Starovka_portrait_mairie_tsyden-zhalsaraev'),
+    pnj('Erdem Gombozhapov (PNJ)', 'Archiviste de la salle des partis', 'archiviste',
+      'Starovka_portrait_mairie_erdem-gombozhapov')
+  ]);
+  // Le hall de gare masquait les deux PNJ du modèle commun ; installer seulement le chef de Starovka.
+  installer('centre-multinodal-montrouge', 'hall_gare_montrouge', [
+    pnj('Gombo Zhigzhitov (PNJ)', 'Chef de gare de Starovka', 'chef_gare',
+      'Starovka_portrait_gare_gombo-zhigzhitov')
+  ]);
+  // Une hôtesse figurait déjà à l'accueil : elle devient Oyuuna, sans doublon.
+  installer('centre-affaires', 'hall', [
+    pnj('Oyuuna Tsydenova (PNJ)', 'Hôtesse d’accueil du centre d’affaires', 'hotesse',
+      'Starovka_portrait_centre-affaires_oyuuna-tsydenova')
+  ]);
+  // Batbayar possède déjà sa fiche. Son siège n'est pas encore dans cite.buildings :
+  // portrait raccordé sans créer de bâtiment ni inventer son emplacement.
+  const syndicat = cite.buildingContext['siege-syndical']?.roomOverrides?.bureau_syndical?.persons;
+  if (!Array.isArray(syndicat) || syndicat.length !== 1
+      || syndicat[0].name !== 'Délégué Batbayar Dachiev (PNJ)') {
+    throw new Error('Portrait Starovka : délégué syndical inattendu');
+  }
+  installer('siege-syndical', 'bureau_syndical', [
+    { ...syndicat[0], photoUrl: base + 'Starovka_portrait_syndicat_batbayar-dachiev.webp',
+      photoPos: '50% 30%' }
+  ]);
+})();
