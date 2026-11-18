@@ -177,7 +177,7 @@ print('============================================================');
 att('le premier appel ne donne aucun accord',
     /sbCommunicationPublier\([\s\S]{0,260}blocs, false\)/.test(POL));
 att('le second n a lieu qu apres un oui explicite de l humain',
-    /const accepte = await demanderAccordFinancementTribune\(r\);[\s\S]{0,400}blocs, true\)/.test(POL));
+    /const accepte = await demanderAccordFinancementTribune\(r\);[\s\S]{0,800}blocs, true\)/.test(POL));
 att('un renoncement le dit clairement : rien n a ete preleve',
     contient(POL, "showToast('Communication annulée'")
     && contient(POL, 'Aucun franc et aucun PA n') && contient(POL, 'ont été prélevés.'));

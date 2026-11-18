@@ -631,7 +631,7 @@ async function seanceRetirerParole() {
 async function seanceDire() {
   const zone = document.getElementById('sc-intervention');
   const texte = (zone && zone.value || '').trim();
-  if (!texte) { showToast('Rien à dire', 'Votre intervention est vide.', false); return; }
+  if (!texte) { showToast('Rien à dire', 'Votre intervention est vide.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b0f5b84f4", 'Votre intervention est vide.', undefined, 'Rien à dire'); return; }
 
   const r = await assembleeActionServeur((requete) => sbAssembleeDire(texte, requete));
   if (!assembleeIssueAction(r)) return;
@@ -642,7 +642,7 @@ async function seanceDire() {
   if (r.res.autorise === false) {
     showToast('Intervention enregistrée',
       'Vous avez parlé sans avoir la parole. Votre intervention figure au débat, identifiée comme telle.',
-      true);
+      true); globalThis.RPI18nPlateau?.markToast("toastBodies.b04726aa2", 'Vous avez parlé sans avoir la parole. Votre intervention figure au débat, identifiée comme telle.', undefined, 'Intervention enregistrée');
     addJournalEntry('Intervention hors tour de parole à l\'Assemblée.', '');
   }
   await seanceRafraichir();
@@ -660,7 +660,7 @@ async function seanceProtester() {
     // ON NE LE CACHE PAS : sortir sans motif qualifiant est permis, mais ne compte pas.
     showToast('Vous quittez l\'hémicycle',
       'Votre sortie est enregistrée, mais elle n\'est pas qualifiée : elle ne compte pas dans le seuil de suspension.',
-      true);
+      true); globalThis.RPI18nPlateau?.markToast("toastBodies.b0120f264", 'Votre sortie est enregistrée, mais elle n\'est pas qualifiée : elle ne compte pas dans le seuil de suspension.', undefined, 'Vous quittez l\'hémicycle');
   }
   addJournalEntry('Vous quittez l\'hémicycle en signe de protestation.', '');
   seanceNaviguerVers(res.piece || 'accueil_assemblee');
@@ -670,7 +670,7 @@ async function seanceProtester() {
 async function seanceRevenir() {
   const r = await assembleeActionServeur(() => sbAssembleeRevenir());
   if (!assembleeIssueAction(r)) return;
-  showToast('Retour dans l\'hémicycle', 'Votre protestation est annulée.', true);
+  showToast('Retour dans l\'hémicycle', 'Votre protestation est annulée.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.b93026a41", 'Votre protestation est annulée.', undefined, 'Retour dans l\'hémicycle');
   addJournalEntry('Vous regagnez l\'hémicycle.', '');
   seanceNaviguerVers(r.res.piece || 'hemicycle');
   await seanceRafraichir();
@@ -721,7 +721,7 @@ async function seanceConfirmerFormulaire() {
   // LE MOTIF EST EXIGE ICI AUSSI, pour ne pas faire perdre un aller-retour au joueur. Le
   // serveur le reexige de toute facon : cette verification est une politesse, pas la regle.
   if ((f.genre === 'rappel' || f.genre === 'sanction') && !motif) {
-    showToast('Motif obligatoire', 'Un rappel et une sanction exigent un motif. Il sera public.', false);
+    showToast('Motif obligatoire', 'Un rappel et une sanction exigent un motif. Il sera public.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bbd5af87d", 'Un rappel et une sanction exigent un motif. Il sera public.', undefined, 'Motif obligatoire');
     return;
   }
 
@@ -745,7 +745,7 @@ async function seanceConfirmerFormulaire() {
     showToast('Sanction', cible + ' est sanctionné : −20 points de popularité et 100 FR versés à la caisse de l\'Assemblée.', true);
     addJournalEntry('Vous sanctionnez ' + cible + '.', '');
   } else if (f.genre === 'suspension') {
-    showToast('Séance suspendue', 'Vous suspendez la séance. −20 points de popularité.', true);
+    showToast('Séance suspendue', 'Vous suspendez la séance. −20 points de popularité.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.b128ac2d2", 'Vous suspendez la séance. −20 points de popularité.', undefined, 'Séance suspendue');
     addJournalEntry('Vous suspendez la séance.', '');
   } else {
     showToast('Vote reporté', 'L\'échéance passe au '

@@ -38,7 +38,7 @@ async function doRecolterMatiere(pa, cost) {
   const pays = state.country || 'republic';
   const ville = state.currentCity || 'capitale';
   const matieres = typeof getMatieresPremieresVille === 'function' ? getMatieresPremieresVille(pays, ville) : [];
-  if (!matieres.length) { showToast('Indisponible', 'Aucune ressource naturelle à récolter ici.', false); return; }
+  if (!matieres.length) { showToast('Indisponible', 'Aucune ressource naturelle à récolter ici.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b56661508", 'Aucune ressource naturelle à récolter ici.', undefined, 'Indisponible'); return; }
   const lecture = await regulationLire();
   const parMatiere = {};
   if (lecture && lecture.pays === pays && lecture.ville === ville) (lecture.matieres || []).forEach(m => { parMatiere[m.matiere] = m; });
@@ -61,10 +61,10 @@ async function confirmerRecolte(matiere, pa, cost) {
     ? await sbRpc('recolte_effectuer', { p_matiere: matiere, p_pa: 1, p_cost: 0 }).catch(() => null) : null;
   const r = Array.isArray(brut) ? brut[0] : brut;
   if (!r || r.ok !== true) {
-    if (r?.raison === 'regulation_joueur') showToast('Action impossible', 'La régulation de la production de cette ville limite vos récoltes de cette ressource aujourd\'hui.', false);
-    else if (r?.raison === 'regulation_ville') showToast('Action impossible', 'Le plafond de production de la ville est atteint pour aujourd\'hui.', false);
-    else if (r?.raison === 'rien_a_recolter_ici') showToast('Indisponible', 'Cette ressource ne se récolte pas ici.', false);
-    else if (r?.raison === 'inventaire_plein') showToast('Inventaire plein', 'Libérez de la place avant de récolter.', false);
+    if (r?.raison === 'regulation_joueur') { showToast('Action impossible', 'La régulation de la production de cette ville limite vos récoltes de cette ressource aujourd\'hui.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b637df782", 'La régulation de la production de cette ville limite vos récoltes de cette ressource aujourd\'hui.', undefined, 'Action impossible'); }
+    else if (r?.raison === 'regulation_ville') { showToast('Action impossible', 'Le plafond de production de la ville est atteint pour aujourd\'hui.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.be3cb73b2", 'Le plafond de production de la ville est atteint pour aujourd\'hui.', undefined, 'Action impossible'); }
+    else if (r?.raison === 'rien_a_recolter_ici') { showToast('Indisponible', 'Cette ressource ne se récolte pas ici.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b56da2d59", 'Cette ressource ne se récolte pas ici.', undefined, 'Indisponible'); }
+    else if (r?.raison === 'inventaire_plein') { showToast('Inventaire plein', 'Libérez de la place avant de récolter.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b8570e6ca", 'Libérez de la place avant de récolter.', undefined, 'Inventaire plein'); }
     else if (typeof signalerRefusCout === 'function') signalerRefusCout(r || { raison: 'paiement_indisponible' });
     return;
   }
@@ -81,7 +81,7 @@ async function confirmerRecolte(matiere, pa, cost) {
 async function ouvrirRegulationProduction(pa, cost) {
   const v = await regulationLire();
   if (!v || !v.est_adjoint) {
-    showToast('Action impossible', 'Seul l\'adjoint au maire de la ville peut régler la production, depuis la mairie.', false);
+    showToast('Action impossible', 'Seul l\'adjoint au maire de la ville peut régler la production, depuis la mairie.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b8835a03b", 'Seul l\'adjoint au maire de la ville peut régler la production, depuis la mairie.', undefined, 'Action impossible');
     return;
   }
   const mats = v.matieres || [];
@@ -118,22 +118,22 @@ async function enregistrerRegulationProduction(i) {
   const matiere = (window._regulationMatieres || [])[i];
   const joueur = regulationValeurChamp('reg-joueur-' + i);
   const ville = regulationValeurChamp('reg-ville-' + i);
-  if (!matiere || Number.isNaN(joueur) || Number.isNaN(ville)) { showToast('Action impossible', 'Valeur invalide.', false); return; }
+  if (!matiere || Number.isNaN(joueur) || Number.isNaN(ville)) { showToast('Action impossible', 'Valeur invalide.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b70dc7ce4", 'Valeur invalide.', undefined, 'Action impossible'); return; }
   regulationEnCours = true;
   try {
     const brut = (typeof sbRpc === 'function')
       ? await sbRpc('regulation_production_fixer', { p_matiere: matiere, p_max_joueur: joueur, p_plafond_ville: ville }).catch(() => null) : null;
     const r = Array.isArray(brut) ? brut[0] : brut;
     if (!r || r.ok !== true) {
-      if (r?.raison === 'poste_non_detenu' || r?.raison === 'pas_sur_place') showToast('Action impossible', 'Seul l\'adjoint au maire de la ville peut régler la production, depuis la mairie.', false);
-      else if (r?.raison === 'valeur_invalide') showToast('Action impossible', 'Valeur invalide.', false);
+      if (r?.raison === 'poste_non_detenu' || r?.raison === 'pas_sur_place') { showToast('Action impossible', 'Seul l\'adjoint au maire de la ville peut régler la production, depuis la mairie.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b8835a03b", 'Seul l\'adjoint au maire de la ville peut régler la production, depuis la mairie.', undefined, 'Action impossible'); }
+      else if (r?.raison === 'valeur_invalide') { showToast('Action impossible', 'Valeur invalide.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b70dc7ce4", 'Valeur invalide.', undefined, 'Action impossible'); }
       else if (typeof signalerRefusCout === 'function') signalerRefusCout(r || { raison: 'paiement_indisponible' });
       return;
     }
     if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: r.pa, liquide: r.liquide, arg: r.arg });
     else if (typeof r.pa === 'number') state.pa = r.pa;
     if (typeof updateUI === 'function') updateUI();
-    showToast('Régulation de la production', 'Régulation enregistrée.', true, true);
+    showToast('Régulation de la production', 'Régulation enregistrée.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.bab5a7f78", 'Régulation enregistrée.', undefined, 'Régulation de la production');
     await ouvrirRegulationProduction(1, 0);
   } finally { regulationEnCours = false; }
 }

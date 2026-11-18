@@ -426,7 +426,7 @@ async function sendMail(to, subject, body) {
   });
   saveMails(mails);
   addJournalEntry(`Mail envoyé à ${to} : "${subject}".`, 'event-info');
-  showToast('Mail envoyé', `À ${to} — "${subject}"`, true);
+  showToast('Mail envoyé', `À ${to} — "${subject}"`, true); globalThis.RPI18nPlateau?.markToast(null, `À ${to} — "${subject}"`, undefined, 'Mail envoyé');
 
   if ((to || '').replace(' (PNJ)', '').trim() === 'Jérémy' && typeof queteAccueilGenererReponseMailJeremy === 'function') {
     queteAccueilGenererReponseMailJeremy(subject, body);

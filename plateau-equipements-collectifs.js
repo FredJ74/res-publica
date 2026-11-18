@@ -11,7 +11,7 @@ function equipementsCollectifsContexteValide(c) {
   (typeof rpAuthSessionIdentifiant!=='function'||rpAuthSessionIdentifiant()===c.session);
 }
 async function equipementsCollectifsOuvrir(organisation) {
- if(typeof showToast==='function')showToast('Équipements collectifs indisponibles','Le service serveur n’est pas encore activé. Aucun objet ni paiement n’a été modifié.',false);
+ if(typeof showToast==='function'){ showToast('Équipements collectifs indisponibles','Le service serveur n’est pas encore activé. Aucun objet ni paiement n’a été modifié.',false); globalThis.RPI18nPlateau?.markToast("toastBodies.b9c1a8a99", 'Le service serveur n’est pas encore activé. Aucun objet ni paiement n’a été modifié.', undefined, 'Équipements collectifs indisponibles'); }
  return {ok:false,raison:'service_non_active'};
 }
 
