@@ -8,6 +8,11 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Maladies et climat — corrections du 19/11 (Claude, 19/11/2026)
+- **Branche `claude/climat-corrections-20261119`** (part de main ; lots 2c et 3 déjà fusionnés).
+- **Migration APPLIQUÉE** : `20261119110000_climat_corrections_fred` (essai annulé d'abord) : orages trimestriels avec propagation en Sovarka (Novomirsk 21/11 gardé, Starovka et Krasnov suivent, orages mensuels non annoncés annulés), jet unique de plat contaminé pour toute la tablée (tournées, dîners), furet à 150.
+- Décisions du 19/11 consignées dans `GAME-DESIGN-MALADIES-CLIMAT.md`.
+
 ### Maladies, péremption et climat — lot 3 : socle des événements climatiques (Claude, 18/11/2026, nuit)
 - **Branche `claude/climat-lot3-20261118`** (part du lot 2c). Décisions de Fred (points 6 à 8) et choix consignés dans `GAME-DESIGN-MALADIES-CLIMAT.md` § 11.
 - **Migration APPLIQUÉE** : `20261118080000_climat_socle` (+ correctif `climat_chantiers_apres_alerte`). Calendrier déjà planifié (trimestre en cours et suivant, mois en cours et suivant).
