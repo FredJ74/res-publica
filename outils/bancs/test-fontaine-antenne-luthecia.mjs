@@ -17,5 +17,7 @@ test('la suppression d antenne est uniquement dans le contexte de Luthecia',()=>
 test('la consommation sur place est possible pour les boissons',()=>{
  assert.match(commerce,/\['boisson','encas','encas-a-emporter'/);
  assert.match(commerce,/venteSurPlaceUniquement !== true/);
- assert.match(commerce,/venteSurPlaceUniquement === true/);
+ // 18/11/2026 : le contrôle « === true » recopié dans la vente de matières (variable inexistante) a été retiré ;
+ // la règle de consommation sur place reste celle des achats ci-dessus (« !== true »).
+ assert.doesNotMatch(commerce,/references\?\.\[referenceId\]/);
 });

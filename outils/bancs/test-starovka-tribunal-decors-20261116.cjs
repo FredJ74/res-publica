@@ -26,13 +26,17 @@ assert.ok(!/Starovka/.test(c.B['tribunal-local'].rooms.greffe.imageUrl || ''));
 const krasnov = c.W.soviet.ville_b.buildingContext['tribunal-local'];
 for (const piece of Object.keys(attendu))
   assert.ok(!/Starovka/.test(krasnov.roomOverrides?.[piece]?.imageUrl || ''), 'Krasnov intact : ' + piece);
-// Portrait de la juge.
-const juge = ctx.roomOverrides.salle_audience_locale.persons.find(p => p.name === 'Dulma Tsyrenova (PNJ)');
-assert.ok(juge, 'juge Dulma Tsyrenova présente');
-const photo = juge.photo || juge.photoUrl || juge.imageUrl || juge.portrait;
-assert.match(String(photo), /Starovka_portrait_tribunal-local_dulma-tsyrenova\.webp$/);
-assert.ok(fs.existsSync(path.join(root, photo)));
-console.log('OK : tribunal de Starovka, trois décors et portrait de la juge');
+// Juge Arkadi Prigovorov et greffière d'audience Bayarma Namsaraeva, recadrés du décor (Fred, 18/11/2026) ; plus de Dulma Tsyrenova.
+const audience = ctx.roomOverrides.salle_audience_locale.persons;
+assert.deepEqual(Array.from(audience, p => p.name), ['Arkadi Prigovorov (PNJ)', 'Bayarma Namsaraeva (PNJ)']);
+assert.equal(audience[0].job, 'juge'); assert.equal(audience[1].role, 'Greffière');
+for (const [p, f] of [[audience[0], 'arkadi-prigovorov'], [audience[1], 'bayarma-namsaraeva']]) {
+  const photo = p.photo || p.photoUrl || p.imageUrl || p.portrait;
+  assert.match(String(photo), new RegExp('Starovka_portrait_tribunal-local_' + f + '\\.webp$'));
+  assert.ok(fs.existsSync(path.join(root, photo)));
+}
+assert.ok(!fs.existsSync(path.join(root, 'images/Sovarka/Starovka/Starovka_portrait_tribunal-local_dulma-tsyrenova.webp')));
+console.log('OK : tribunal de Starovka, trois décors, juge et greffière d\'audience');
 
 // Centre artisanal (accueil + Box 1 à 3) et PNJ adaptés aux images (16/11/2026, soir).
 const centre = c.W.soviet.ville_a.buildingContext['centre-artisanal'];
@@ -42,7 +46,7 @@ for (const [piece, f] of Object.entries({ travees: 'accueil', echoppe_facade: 'b
   assert.equal(fs.readFileSync(path.join(root, url)).subarray(12, 16).toString('ascii'), 'VP8 ');
 }
 const noms = Array.from(centre.roomOverrides.travees.persons, p => p.name);
-assert.deepEqual(noms, ['Saryuna Dorjieva (PNJ)', 'Bayar Otchirov', 'Ganbold Garmaïev', 'Temür Dougarov']);
+assert.deepEqual([...noms], ['Saryuna Dorjieva (PNJ)']); // Fred, 18/11/2026 : seule la réceptionniste reste
 const greffiere = ctx.roomOverrides.greffe.persons[0];
 assert.equal(greffiere.name, 'Oyuna Tsybikova (PNJ)');
 for (const p of [centre.roomOverrides.travees.persons[0], greffiere]) assert.ok(fs.existsSync(path.join(root, p.photoUrl)));
