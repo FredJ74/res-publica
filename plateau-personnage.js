@@ -3494,6 +3494,7 @@ async function ouvrirDetailObjetInventaire(idx) {
   }
 
   // Boissons (Fred, 18/11/2026) : bouton Boire, étiquette alcoolisée ou non tranchée par le serveur.
+  if (typeof boutonRenifler === 'function') html += boutonRenifler(item, idx, 'font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
   if (typeof boutonBandelettes === 'function') html += boutonBandelettes(item, 'font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
   if (typeof boutonBoire === 'function') html += boutonBoire(item, idx, 'font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
 
@@ -4179,6 +4180,7 @@ function ouvrirDetailObjet(idx) {
   if (item.type === 'poison') {
     html += '<button onclick="ouvrirModalEmpoisonner();document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #6a2a20;background:transparent;color:#cc4444;cursor:pointer">Utiliser</button>';
   }
+  if (typeof boutonRenifler === 'function') html += boutonRenifler(item, idx, 'flex:1;font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.5rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
   if (typeof boutonBandelettes === 'function') html += boutonBandelettes(item, 'flex:1;font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.5rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
   if (typeof boutonBoire === 'function') html += boutonBoire(item, idx, 'flex:1;font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.5rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
   if (item.type === 'medicament_maladie' && typeof boutonMedicamentMaladie === 'function') {

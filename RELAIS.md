@@ -8,6 +8,11 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Maladies, péremption et climat — lot 2c : plats cuisinés et furet renifleur (Claude, 18/11/2026, nuit)
+- **Branche `claude/maladies-lot2c-20261118`** (part du lot 2b).
+- **Migration APPLIQUÉE** : `20261118072000_aliments_plats_furet` (essai annulé d'abord).
+- **Codé** : déclencheur `aliments_contamination_production` sur `entreprises` (avariés cachés consommés → portions contaminées), tirage 20 % (`plat_avarie`) à la consommation (fonds PJ) ou au service (moteur historique) ; furet (`furet_boutique_etat`, `furet_acheter`, `furet_renifler`), ordre « Acheter un furet renifleur » chez Chasse et Pêche (PSM, Starovka), bouton « Faire renifler », animation ; textes en neuf langues ; ordres_couts `acheter_furet` 0/0 et `furet_renifler` 1/0 (plans 97/219 : 584 lignes), seeds régénérés.
+
 ### Maladies, péremption et climat — lot 2b : contrôle à la réception et bandelettes (Claude, 18/11/2026, nuit)
 - **Branche `claude/maladies-lot2b-20261118`** (part du lot 2a).
 - **Migrations APPLIQUÉES** : `20261118071000_aliments_reception_bandelettes` (essai annulé d'abord), `20261118071500_aliments_parametres_mj`.

@@ -7,6 +7,7 @@ INSERT INTO public.ordres_couts (fn,pa,cost) VALUES
   ('acheter_bombe_illegale#reussite',0,1200),
   ('acheter_criee',0,0),
   ('acheter_entreprise',3,8000),
+  ('acheter_furet',0,0),
   ('acheter_ghb',0,300),
   ('acheter_gilet',0,380),
   ('acheter_gilet',1,600),
