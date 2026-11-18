@@ -74,12 +74,12 @@ test('sept rumeurs et deux conférences disposent de variantes sûres',()=>{
 });
 
 
-test('60 ordres de commerces et banque localisés par contexte, sans altérer leur coût',()=>{
+test('62 ordres de commerces et banque localisés par contexte, sans altérer leur coût',()=>{
  const source=fs.readFileSync(path.join(root,'data.js'),'utf8');
  // Résidence impériale (12/11/2026) : ses cinq appartements quittent la location de local.
  // Tabac/Presse de Krasnov (14/11/2026) : +1 Produire, +1 Vendre des matières.
  // Hôtel des Voyageurs de Starovka (17/11/2026) : +1 Cuisiner, +1 Consulter la carte.
- const expected={produire_commerce:16,consulter_carte_commerce:12,vendre_matiere_commerce:17,gerer_finances:3,gerer_local:14};
+ const expected={produire_commerce:17,consulter_carte_commerce:12,vendre_matiere_commerce:18,gerer_finances:3,gerer_local:14};
  const keys={
   produire_commerce:['commerce_produce_market','commerce_cook','commerce_prepare_drinks','commerce_serve','commerce_breakfast_prep','commerce_produce'],
   consulter_carte_commerce:['commerce_menu','commerce_breakfast_menu'],

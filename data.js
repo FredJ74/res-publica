@@ -12932,7 +12932,7 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
   const ville = WORLD.soviet && WORLD.soviet.ville_a;
   if (!ville) throw new Error('Starovka absente');
   const dir = 'images/Sovarka/Starovka/';
-  const slug = n => String(n).replace(' (PNJ)', '').normalize('NFD').replace(/[̀-ͯ]/g, '')
+  const slug = n => String(n).replace(' (PNJ)', '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
     .toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
   // Liste effective d'une pièce (surcharge de ville, pièce ajoutée par la ville, puis gabarit), recopiée.
   function personnes(batiment, piece) {
