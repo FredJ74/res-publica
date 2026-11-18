@@ -266,7 +266,7 @@ async function enigme1ExaminerCadre() {
   if (!v || v.ok !== true) { enigme1AdopterServeur(v); enigme1Refus('Cadre vide', v); return; }
   enigme1AdopterServeur(v);
   enigme1AfficherPopupCadreVide(salle);
-  if (v.nouveau && typeof showToast === 'function') showToast('Calepin mis à jour', 'Vous notez le nom inscrit sur la plaque.', true);
+  if (v.nouveau && typeof showToast === 'function') { showToast('Calepin mis à jour', 'Vous notez le nom inscrit sur la plaque.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.bc192e034", 'Vous notez le nom inscrit sur la plaque.', undefined, 'Calepin mis à jour'); }
   if (typeof renderInventory === 'function') renderInventory();
 }
 
@@ -384,7 +384,7 @@ function enigme1DossierCocherCase(cle) {
   if (state.char.enigme1.dossier[cle]) return;
   state.char.enigme1.dossier[cle] = true;
   if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
-  if (typeof showToast === 'function') showToast('Dossier mis à jour', 'Un élément de plus dans votre enquête.', true);
+  if (typeof showToast === 'function') { showToast('Dossier mis à jour', 'Un élément de plus dans votre enquête.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.bf5e98e6b", 'Un élément de plus dans votre enquête.', undefined, 'Dossier mis à jour'); }
 }
 
 // Recherche par nom (sous-chaine) et/ou par decennie (le mandat doit chevaucher la decennie).
@@ -962,7 +962,7 @@ function enigme1AfficherArticlePresse(idx) {
 async function doDemanderJugeInstruction(pa, cost) {
   // Hors enquete (ou autorisation deja obtenue), le juge ne recoit pas : refus avant tout cout.
   if (!enigme1EtapeActive() || state.char.enigme1.autorisationCoffre) {
-    showToast('Le juge ne vous recevra pas', "Vous n'avez aucun dossier en cours à lui présenter.", false);
+    showToast('Le juge ne vous recevra pas', "Vous n'avez aucun dossier en cours à lui présenter.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b860e682f", "Vous n'avez aucun dossier en cours à lui présenter.", undefined, 'Le juge ne vous recevra pas');
     return;
   }
   const r = await deduireCoutOrdre({ pa, cost });
@@ -1011,7 +1011,7 @@ async function doPresenterAutorisationCoffre(pa, cost) {
   document.getElementById('postes-modal-title').textContent = 'Banque Nationale — Coffre';
   document.getElementById('postes-body').innerHTML = '<div class="cpj-note">' + (textes[v.statut] || '') + '</div>';
   document.getElementById('modal-postes').classList.add('open');
-  if (v.statut === 'cle_remise') showToast('Clé obtenue', 'Une clé mystérieuse a été ajoutée à votre inventaire.', true);
+  if (v.statut === 'cle_remise') { showToast('Clé obtenue', 'Une clé mystérieuse a été ajoutée à votre inventaire.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.b92585b8b", 'Une clé mystérieuse a été ajoutée à votre inventaire.', undefined, 'Clé obtenue'); }
   updateUI(); renderInventory();
 }
 
@@ -1030,7 +1030,7 @@ function enigme1VerifierDebarras(buildingId, roomId) {
   if (!state.char) return;
 
   if (!enigme1APossessionCle()) {
-    if (typeof showToast === 'function') showToast('Verrouillé', "Cette porte est fermée à clé.", false);
+    if (typeof showToast === 'function') { showToast('Verrouillé', "Cette porte est fermée à clé.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.be949a2c8", "Cette porte est fermée à clé.", undefined, 'Verrouillé'); }
     return;
   }
 
@@ -1131,7 +1131,7 @@ async function enigme1VerifierDeclenchement() {
   if (!v) return;
   state.char.enigme1 = v.enigme;
   if (v.statut === 'declenchee' && (!avant || avant.etape === 'non_commencee') && v.enigme?.etape === 'declenchee') {
-    showToast("L'enquête commence", "Un calepin pour recueillir vos notes est apparu dans votre inventaire.", true);
+    showToast("L'enquête commence", "Un calepin pour recueillir vos notes est apparu dans votre inventaire.", true); globalThis.RPI18nPlateau?.markToast("toastBodies.b7f6a29a1", "Un calepin pour recueillir vos notes est apparu dans votre inventaire.", undefined, "L'enquête commence");
     addJournalEntry(ENIGME1_RUMEURS[v.enigme.variante] || ENIGME1_RUMEURS.maire, 'event-secret');
   } else if (v.changement && v.statut === 'relancee') {
     addJournalEntry("La rumeur persiste : le mystère du musée de la ville n'est toujours pas éclairci...", 'event-secret');
@@ -1265,7 +1265,7 @@ async function jodieEnqueteParler() {
     if (typeof pnjSocialNoterConversation === 'function') pnjSocialNoterConversation('jodie_moitout',message);
     jodieEnqueteAfficherAppel(typeof escapeHtmlText === 'function' ? escapeHtmlText(reponse) : reponse);
   } catch(e) {
-    if (typeof showToast === 'function') showToast('Appel interrompu','Jodie ne répond pas pour le moment.',false);
+    if (typeof showToast === 'function') { showToast('Appel interrompu','Jodie ne répond pas pour le moment.',false); globalThis.RPI18nPlateau?.markToast("toastBodies.bdaf14baa", 'Jodie ne répond pas pour le moment.', undefined, 'Appel interrompu'); }
     if (champ) champ.disabled = false;
   }
 }
@@ -1274,7 +1274,7 @@ async function jodieEnqueteRepondre(reponse, precision) {
   if (!jodieEnqueteFenetre) return;
   const appel = jodieEnqueteFenetre;
   const r = await jodieEnqueteRpc(appel.type === 'conclusion' ? 'conclusion' : 'choix',reponse);
-  if (!r) { if (typeof showToast === 'function') showToast('Appel non enregistré','Réessayez à votre prochaine connexion.',false); return; }
+  if (!r) { if (typeof showToast === 'function') { showToast('Appel non enregistré','Réessayez à votre prochaine connexion.',false); globalThis.RPI18nPlateau?.markToast("toastBodies.b9fe3edea", 'Réessayez à votre prochaine connexion.', undefined, 'Appel non enregistré'); } return; }
   if (state.char?.enigme1 && r.contact) state.char.enigme1.jodie = r.contact;
   if (typeof pnjSocialNoterConversation === 'function') pnjSocialNoterConversation('jodie_moitout');
   jodieEnqueteFenetre = null;

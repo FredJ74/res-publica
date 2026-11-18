@@ -692,8 +692,8 @@ async function verifierObjetsRecus() {
     && Number.isSafeInteger(v.revision) && v.revision >= 0;
   const conflit = () => {
     state._inventaireConflit = true;
-    if (typeof showToast === 'function') showToast('Inventaire à synchroniser',
-      'Des modifications concurrentes empêchent la synchronisation. Les livraisons restent protégées côté serveur.', false);
+    if (typeof showToast === 'function') { showToast('Inventaire à synchroniser',
+      'Des modifications concurrentes empêchent la synchronisation. Les livraisons restent protégées côté serveur.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b113c7908", 'Des modifications concurrentes empêchent la synchronisation. Les livraisons restent protégées côté serveur.', undefined, 'Inventaire à synchroniser'); }
   };
   const adopter = v => {
     if (typeof sbAdopterInventaireServeur === 'function') {
@@ -749,7 +749,7 @@ async function verifierObjetsRecus() {
       if (recu.rejeu || !recu.objet) continue;
       const objet = recu.objet, expediteur = recu.expediteur;
       if (objet.familleProduitMarche === 'carte_postale') {
-        if (typeof showToast === 'function') showToast('Courrier reçu', 'Une carte postale est arrivée dans votre inventaire.', true, true);
+        if (typeof showToast === 'function') { showToast('Courrier reçu', 'Une carte postale est arrivée dans votre inventaire.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.be9602f6f", 'Une carte postale est arrivée dans votre inventaire.', undefined, 'Courrier reçu'); }
         if (typeof addJournalEntry === 'function') addJournalEntry('Vous avez reçu une carte postale. Elle a été placée dans votre inventaire.', 'event-good');
       } else {
         const tracts = typeof id === 'string' && id.startsWith('don-tracts-');
@@ -775,7 +775,7 @@ function lotsTractsDonnables() {
 function donnerTracts(pjName) {
   const tracts = lotsTractsDonnables();
   if (tracts.length === 0) {
-    showToast('Aucun tract', 'Vous n\'avez pas de tracts en inventaire.', false);
+    showToast('Aucun tract', 'Vous n\'avez pas de tracts en inventaire.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b2b23c0ed", 'Vous n\'avez pas de tracts en inventaire.', undefined, 'Aucun tract');
     return;
   }
   document.getElementById('postes-modal-title').textContent = 'Donner des tracts a ' + pjName;
@@ -806,7 +806,7 @@ async function confirmerDonTracts(tractIdx, pjName) {
   const tract = lotsTractsDonnables()[tractIdx]; if (!tract) return;
   const index = state.inventory.indexOf(tract);
   const quantite = Number(document.getElementById('don-tract-' + tractIdx)?.value || 1);
-  if (!Number.isInteger(quantite) || quantite < 1) { showToast('Quantité invalide', '', false); return; }
+  if (!Number.isInteger(quantite) || quantite < 1) { showToast('Quantité invalide', '', false); globalThis.RPI18nPlateau?.markToast(null, '', undefined, 'Quantité invalide'); return; }
   const v = await executerReceptionInventaire('tracts_donner_joueur', { p_index: index, p_revision: state._inventaireRevision ?? null,
     p_destinataire: pjName, p_quantite: quantite });
   if (!v) return;
@@ -903,7 +903,7 @@ async function ouvrirTractageCollectifStade() {
   const choix = typeof tractsElectorauxDistribuablesIci === 'function' ? tractsElectorauxDistribuablesIci() : [];
   const entrees = choix.flatMap(o => o.scrutins.map(sc => ({tract:o.tract,scrutin:sc})));
   if (!entrees.length) {
-    showToast('Aucun scrutin ouvert', 'Aucun tract electoral utilisable ici actuellement.', false);
+    showToast('Aucun scrutin ouvert', 'Aucun tract electoral utilisable ici actuellement.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b2e977950", 'Aucun tract electoral utilisable ici actuellement.', undefined, 'Aucun scrutin ouvert');
     return;
   }
   window._tractageCollectifChoix = entrees;
@@ -947,16 +947,16 @@ async function confirmerDistribuerTractElectoral(indexEntree) {
   if (!e) return;
   const tract = e.tract;
   if ((state.inventory || []).indexOf(tract) < 0 || (tract.quantite || 0) < 1) {
-    showToast('Lot épuisé', 'Ce lot de tracts n\'est plus disponible.', false);
+    showToast('Lot épuisé', 'Ce lot de tracts n\'est plus disponible.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b501881fa", 'Ce lot de tracts n\'est plus disponible.', undefined, 'Lot épuisé');
     return;
   }
   if (typeof sbTractsElectorauxDistribuer !== 'function' || !state.char?.name) {
-    showToast('Action impossible', 'La distribution ne peut pas être effectuée pour le moment.', false);
+    showToast('Action impossible', 'La distribution ne peut pas être effectuée pour le moment.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b49faed95", 'La distribution ne peut pas être effectuée pour le moment.', undefined, 'Action impossible');
     return;
   }
   // 1 PA par tentative individuelle (regle validee) : verifie avant tout envoi.
   if (typeof TEST_MODE !== 'undefined' && !TEST_MODE && (state.pa || 0) < 1) {
-    showToast('PA insuffisants', MOTIFS_REFUS_TRACT_ELECTORAL.pa_insuffisants, false);
+    showToast('PA insuffisants', MOTIFS_REFUS_TRACT_ELECTORAL.pa_insuffisants, false); globalThis.RPI18nPlateau?.markToast(null, MOTIFS_REFUS_TRACT_ELECTORAL.pa_insuffisants, undefined, 'PA insuffisants');
     return;
   }
   // La base est la source de verite pour les ressources et la position.
@@ -968,7 +968,7 @@ async function confirmerDistribuerTractElectoral(indexEntree) {
   let res = await sbTractsElectorauxDistribuer(requete, state.char.name, e.scrutin.cycleId, tract.cible, sens, ctx.pnjName, vol).catch(() => null);
   if (!res) res = await sbTractsElectorauxDistribuer(requete, state.char.name, e.scrutin.cycleId, tract.cible, sens, ctx.pnjName, vol).catch(() => null);
   if (!res) {
-    showToast('Réseau indisponible', 'La distribution n\'a pas pu être vérifiée. Aucun tract n\'a été utilisé.', false);
+    showToast('Réseau indisponible', 'La distribution n\'a pas pu être vérifiée. Aucun tract n\'a été utilisé.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.ba716875a", 'La distribution n\'a pas pu être vérifiée. Aucun tract n\'a été utilisé.', undefined, 'Réseau indisponible');
     return;
   }
   if (!res.ok) {
@@ -1005,7 +1005,7 @@ async function confirmerDistribuerTractElectoral(indexEntree) {
 function distribuerTractCalomnieuxPNJ(pnjName, encodedPnj) {
   const tracts = (state.inventory || []).filter(i => i.type === 'tract_calomnieux' && (i.quantite || 0) > 0);
   if (tracts.length === 0) {
-    showToast('Aucun tract', 'Vous n\'avez pas de tract calomnieux en inventaire.', false);
+    showToast('Aucun tract', 'Vous n\'avez pas de tract calomnieux en inventaire.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b32ea2139", 'Vous n\'avez pas de tract calomnieux en inventaire.', undefined, 'Aucun tract');
     return;
   }
   window._calomnieEncodedPnj = encodedPnj || null;
@@ -1059,13 +1059,13 @@ async function confirmerDistribuerTractCalomnieux(cible, pnjName, encodedPnj) {
   document.getElementById('modal-postes')?.classList.remove('open');
   if (!encodedPnj) encodedPnj = window._calomnieEncodedPnj || null;
   const tract = (state.inventory || []).find(i => i.type === 'tract_calomnieux' && i.cible === cible && (i.quantite || 0) > 0);
-  if (!tract) { showToast('Lot épuisé', 'Ce lot de tracts n\'est plus disponible.', false); return; }
+  if (!tract) { showToast('Lot épuisé', 'Ce lot de tracts n\'est plus disponible.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b501881fa", 'Ce lot de tracts n\'est plus disponible.', undefined, 'Lot épuisé'); return; }
   if (typeof sbRpc !== 'function' || !state.char?.name) {
-    showToast('Action impossible', 'La distribution ne peut pas être effectuée pour le moment.', false);
+    showToast('Action impossible', 'La distribution ne peut pas être effectuée pour le moment.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b49faed95", 'La distribution ne peut pas être effectuée pour le moment.', undefined, 'Action impossible');
     return;
   }
   if (typeof TEST_MODE !== 'undefined' && !TEST_MODE && (state.pa || 0) < 1) {
-    showToast('PA insuffisants', MOTIFS_REFUS_TRACT_CALOMNIEUX.pa_insuffisants, false);
+    showToast('PA insuffisants', MOTIFS_REFUS_TRACT_CALOMNIEUX.pa_insuffisants, false); globalThis.RPI18nPlateau?.markToast(null, MOTIFS_REFUS_TRACT_CALOMNIEUX.pa_insuffisants, undefined, 'PA insuffisants');
     return;
   }
   // PAR LE SERVEUR (28/10/2026, chantier inventaire) : calomnie_distribuer_consommer tranche le jet
@@ -1079,7 +1079,7 @@ async function confirmerDistribuerTractCalomnieux(cible, pnjName, encodedPnj) {
   let res = await appeler();
   if (!res) res = await appeler();
   if (!res) {
-    showToast('Réseau indisponible', 'La distribution n\'a pas pu être vérifiée. Réessayez : aucun tract ne sera retiré deux fois.', false);
+    showToast('Réseau indisponible', 'La distribution n\'a pas pu être vérifiée. Réessayez : aucun tract ne sera retiré deux fois.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bfdb232be", 'La distribution n\'a pas pu être vérifiée. Réessayez : aucun tract ne sera retiré deux fois.', undefined, 'Réseau indisponible');
     return;
   }
   if (!res.ok) {
@@ -1127,7 +1127,7 @@ async function confirmerDistribuerTractCalomnieux(cible, pnjName, encodedPnj) {
       // ecroue le joueur (1 jour) dans la transaction du flagrant delit, immunite militaire
       // comprise. L'ecran adopte la peine et la position decidees.
       if (res.arrestation && res.arrestation.raison === 'immunite_militaire') {
-        showToast('Immunité militaire', 'Flagrant délit, mais votre immunité militaire vous protège de toute poursuite.', true);
+        showToast('Immunité militaire', 'Flagrant délit, mais votre immunité militaire vous protège de toute poursuite.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.ba6b291f0", 'Flagrant délit, mais votre immunité militaire vous protège de toute poursuite.', undefined, 'Immunité militaire');
         addJournalEntry('Distribution de tract calomnieux — flagrant délit, immunité militaire invoquée.', 'event-info');
       } else {
         const motifsTracts = [{ type: 'Distribution de tracts calomnieux', jour_fait: state.day, city: state.currentCity, jours: 1, source: 'flagrant_delit' }];
@@ -1166,7 +1166,7 @@ async function doLogePortail(pa, cost) {
     openPnjModal(encodePnjSafe(portier));
     addJournalEntry('Le portier de la Loge repond a votre appel.', '');
   } else {
-    showToast('Pas de reponse', 'Personne ne repond a votre frappe. Reessayez plus tard.', false);
+    showToast('Pas de reponse', 'Personne ne repond a votre frappe. Reessayez plus tard.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b7dc95d81", 'Personne ne repond a votre frappe. Reessayez plus tard.', undefined, 'Pas de reponse');
     addJournalEntry('Vous avez frappe a la porte de la Loge mais personne n\'a repondu.', '');
   }
 }
@@ -1228,7 +1228,7 @@ function voterElection(identifiant, candidatNom) {
   // Aucun vote n'est décidé ici, et aucun ID historique n'est converti en bulletin.
   if (arguments.length > 1) {
     if (typeof voterElectionOrganisation !== 'function') {
-      showToast('Vote indisponible', 'Rechargez la page avant de voter.', false);
+      showToast('Vote indisponible', 'Rechargez la page avant de voter.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.beb9c0899", 'Rechargez la page avant de voter.', undefined, 'Vote indisponible');
       return false;
     }
     return voterElectionOrganisation(identifiant, candidatNom);
@@ -1252,7 +1252,7 @@ function openMailbox() {
     switchToMail();
     document.getElementById('modal-forum').classList.add('open');
   } else {
-    showToast('Erreur', 'Messagerie indisponible.', false);
+    showToast('Erreur', 'Messagerie indisponible.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b4a4a9070", 'Messagerie indisponible.', undefined, 'Erreur');
   }
 }
 
@@ -1261,7 +1261,7 @@ function openMailbox() {
 // =====================
 function openForumView(forumId) {
   if (typeof hospitalisationEcritureInterdite === 'function' && hospitalisationEcritureInterdite()) {
-    showToast('Hospitalisé(e)', 'Le jour de votre hospitalisation, vous n\'êtes pas en état d\'accéder au forum.', false);
+    showToast('Hospitalisé(e)', 'Le jour de votre hospitalisation, vous n\'êtes pas en état d\'accéder au forum.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bcfbb5468", 'Le jour de votre hospitalisation, vous n\'êtes pas en état d\'accéder au forum.', undefined, 'Hospitalisé(e)');
     return;
   }
   // Le vrai systeme de forum (sujets, editeur riche, mail) vit dans forum.js (openForum_module).
@@ -1443,7 +1443,7 @@ async function recupererImpactsEnAttente() {
     updateUI();
     if (confirmes.length) {
       const physique = confirmes.some(x => ['hp_set','poison_start'].includes(x));
-      showToast('Événements confirmés', 'Votre état a été relu sur le serveur. Consultez votre journal.', !physique, true);
+      showToast('Événements confirmés', 'Votre état a été relu sur le serveur. Consultez votre journal.', !physique, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b42157821", 'Votre état a été relu sur le serveur. Consultez votre journal.', undefined, 'Événements confirmés');
       const libelles = {pop:'popularité',inf:'influence',dis:'discrétion',moral_carte_postale:'correspondance lue',hp_set:'agression',poison_start:'malaise suspect'};
       addJournalEntry('Événements confirmés par le serveur : ' + confirmes.map(x => libelles[x] || 'état personnel').join(', ') + '.', physique ? 'event-bad' : 'event-info');
     }
@@ -1923,7 +1923,7 @@ async function jodiePortraitRefuser() {
   window._jodieInterviewReponses = null;
   window._jodiePortraitTexte = null;
   window._jodiePortraitJeton = null;
-  showToast('Proposition déclinée', "Vous avez décliné l'interview de Jodie Moitout.", true);
+  showToast('Proposition déclinée', "Vous avez décliné l'interview de Jodie Moitout.", true); globalThis.RPI18nPlateau?.markToast("toastBodies.bd230e4fb", "Vous avez décliné l'interview de Jodie Moitout.", undefined, 'Proposition déclinée');
   if (typeof renderForumContent === 'function') {
     mailView = 'inbox';
     document.getElementById('forum-main').innerHTML = renderForumContent();
@@ -1941,11 +1941,11 @@ async function jodiePortraitOuvrirInterview() {
   const nom = state.char?.name;
   if (!nom) return;
   if (await jodiePortraitADejaRefuse(nom)) {
-    showToast('Proposition déclinée', 'Vous avez déjà décliné cette proposition — Jodie ne relance pas.', false);
+    showToast('Proposition déclinée', 'Vous avez déjà décliné cette proposition — Jodie ne relance pas.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bfb3861dc", 'Vous avez déjà décliné cette proposition — Jodie ne relance pas.', undefined, 'Proposition déclinée');
     return;
   }
   if (await jodiePortraitDejaPublie(nom)) {
-    showToast('Déjà publié', 'Jodie a déjà publié votre portrait dans Presse & Médias.', false);
+    showToast('Déjà publié', 'Jodie a déjà publié votre portrait dans Presse & Médias.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b0a4d8c37", 'Jodie a déjà publié votre portrait dans Presse & Médias.', undefined, 'Déjà publié');
     return;
   }
   // Reprise : les reponses deja saisies et un apercu deja redige (reponse arrivee apres que le
@@ -2049,7 +2049,7 @@ async function jodiePortraitAppelApi(payload) {
 async function jodiePortraitGenererApercu() {
   const reponses = (window._jodieInterviewReponses || []).map(r => (r || '').trim());
   if (reponses.length !== 5 || reponses.some(r => !r)) {
-    showToast('Réponses incomplètes', 'Merci de répondre à chacune des 5 questions.', false);
+    showToast('Réponses incomplètes', 'Merci de répondre à chacune des 5 questions.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bac82f616", 'Merci de répondre à chacune des 5 questions.', undefined, 'Réponses incomplètes');
     return;
   }
   // Cloture Luthecia (01/11) : un double clic ne lance qu'une redaction ; une reponse tardive
@@ -2075,7 +2075,7 @@ async function jodiePortraitGenererApercu() {
   window._jodiePortraitTexte = resultat.texte;
   window._jodiePortraitJeton = resultat.jeton;
   if (!toujoursIci) {
-    showToast('Portrait prêt', "Jodie a rédigé votre portrait : rouvrez sa proposition (« Accepter l'interview ») pour le relire avant publication.", true);
+    showToast('Portrait prêt', "Jodie a rédigé votre portrait : rouvrez sa proposition (« Accepter l'interview ») pour le relire avant publication.", true); globalThis.RPI18nPlateau?.markToast("toastBodies.be548d54d", "Jodie a rédigé votre portrait : rouvrez sa proposition (« Accepter l'interview ») pour le relire avant publication.", undefined, 'Portrait prêt');
     return;
   }
   mailView = 'jodie-preview';
@@ -2122,7 +2122,7 @@ function renderJodiePortraitPreview() {
 async function jodiePortraitPublier() {
   const nom = state.char?.name || '';
   if (!window._jodiePortraitTexte || !window._jodiePortraitJeton) {
-    showToast('Aperçu expiré', 'Veuillez régénérer le portrait avant de publier.', false); return;
+    showToast('Aperçu expiré', 'Veuillez régénérer le portrait avant de publier.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b51f81ab8", 'Veuillez régénérer le portrait avant de publier.', undefined, 'Aperçu expiré'); return;
   }
   if (window._jodiePublicationEnCours) return;
   window._jodiePublicationEnCours = true;
@@ -2135,7 +2135,7 @@ async function jodiePortraitPublier() {
     window._jodiePortraitTexte = null;
     window._jodiePortraitJeton = null;
     window._jodieInterviewReponses = null;
-    showToast('Portrait publié !', 'Jodie a publié votre portrait dans Presse & Médias.', true, true);
+    showToast('Portrait publié !', 'Jodie a publié votre portrait dans Presse & Médias.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.bbea10738", 'Jodie a publié votre portrait dans Presse & Médias.', undefined, 'Portrait publié !');
     mailView = 'inbox';
     document.getElementById('forum-main').innerHTML = renderForumContent();
   } finally {
@@ -2182,7 +2182,7 @@ async function ouvrirInterviewJodie(pa, cost) {
 
   const cooldown = await jodieAppelApi({ action: 'cooldown', personnage: nom });
   if (!cooldown || !cooldown.ok) {
-    showToast('Jodie est indisponible', "Impossible de vérifier la disponibilité de Jodie pour le moment. Réessayez plus tard.", false);
+    showToast('Jodie est indisponible', "Impossible de vérifier la disponibilité de Jodie pour le moment. Réessayez plus tard.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b0f0d6256", "Impossible de vérifier la disponibilité de Jodie pour le moment. Réessayez plus tard.", undefined, 'Jodie est indisponible');
     return;
   }
   if (cooldown.joursRestants > 0) {
@@ -2328,7 +2328,7 @@ function jodieEnvoyerReponse() {
   if (!it || it.soumission || !it.enAttenteReponse) return;
   const input = document.getElementById('jodie-reponse-input');
   const texte = (input?.value || '').trim();
-  if (!texte) { showToast('Réponse requise', 'Écrivez une réponse avant de continuer.', false); return; }
+  if (!texte) { showToast('Réponse requise', 'Écrivez une réponse avant de continuer.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b5633756d", 'Écrivez une réponse avant de continuer.', undefined, 'Réponse requise'); return; }
   it.reponses[it.questions.length - 1] = texte;
   it.enAttenteReponse = false;
   jodieGenererProchaineQuestion(texte);
@@ -2380,13 +2380,13 @@ async function jodieTerminerEtPublier() {
 
   if (dejaPubliee) {
     addJournalEntry('Votre interview avec Jodie Moitout a déjà été publiée.', 'event-info');
-    showToast('Déjà publiée', 'Cette interview a déjà été traitée.', true);
+    showToast('Déjà publiée', 'Cette interview a déjà été traitée.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.b1edeaecb", 'Cette interview a déjà été traitée.', undefined, 'Déjà publiée');
   } else if (data.statut === 'publiee') {
     addJournalEntry('Vous avez donné une interview à Jodie Moitout, publiée dans La Tribune de Républia : « ' + data.titre + ' ».', 'event-good');
-    showToast('Interview publiée !', 'Votre interview est parue dans La Tribune de Républia.', true, true);
+    showToast('Interview publiée !', 'Votre interview est parue dans La Tribune de Républia.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b5a91cf22", 'Votre interview est parue dans La Tribune de Républia.', undefined, 'Interview publiée !');
   } else if (data.statut === 'en_attente') {
     addJournalEntry('Vous avez donné une interview à Jodie Moitout. Elle paraîtra dans La Tribune de Républia dès la prochaine édition.', 'event-good');
-    showToast('Interview enregistrée !', "L'édition du jour n'est pas encore disponible ; votre interview paraîtra dans la prochaine édition de La Tribune de Républia.", true, true);
+    showToast('Interview enregistrée !', "L'édition du jour n'est pas encore disponible ; votre interview paraîtra dans la prochaine édition de La Tribune de Républia.", true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.bcd990e4e", "L'édition du jour n'est pas encore disponible ; votre interview paraîtra dans la prochaine édition de La Tribune de Républia.", undefined, 'Interview enregistrée !');
   }
 
   jodieRenderInterviewModal();
@@ -2444,13 +2444,13 @@ async function ouvrirFormulairePetiteAnnonce() {
 async function confirmerDepotPetiteAnnonce() {
   const texte = (document.getElementById('annonce-texte')?.value || '').trim();
   const categorie = document.getElementById('annonce-categorie')?.value || null;
-  if (!texte) { showToast('Texte manquant', 'Écrivez le texte de votre annonce.', false); return; }
+  if (!texte) { showToast('Texte manquant', 'Écrivez le texte de votre annonce.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.baadcf93b", 'Écrivez le texte de votre annonce.', undefined, 'Texte manquant'); return; }
   if (!TEST_MODE && state.pa < PETITE_ANNONCE_PA) {
     showToast('PA insuffisants', `Il vous manque ${PETITE_ANNONCE_PA - state.pa} PA.`, false); return;
   }
   const fondsDisponibles = typeof getFondsDisponiblesOrdinaires === 'function' ? getFondsDisponiblesOrdinaires() : state.arg;
   if (fondsDisponibles < PETITE_ANNONCE_COUT_FR) {
-    showToast('Fonds insuffisants', `Cette annonce coûte ${PETITE_ANNONCE_COUT_FR} FR.`, false); return;
+    showToast('Fonds insuffisants', `Cette annonce coûte ${PETITE_ANNONCE_COUT_FR} FR.`, false); globalThis.RPI18nPlateau?.markToast(null, `Cette annonce coûte ${PETITE_ANNONCE_COUT_FR} FR.`, undefined, 'Fonds insuffisants'); return;
   }
 
   // Reverification anti-doublon juste avant l'ecriture (meme doctrine que
@@ -2460,7 +2460,7 @@ async function confirmerDepotPetiteAnnonce() {
     ? await sbGetAnnonceActiveDuJoueur(state.char?.name).catch(() => null)
     : null;
   if (dejaActive) {
-    showToast('Déjà publiée', 'Vous avez déjà une annonce active.', false);
+    showToast('Déjà publiée', 'Vous avez déjà une annonce active.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b32fd3557", 'Vous avez déjà une annonce active.', undefined, 'Déjà publiée');
     ouvrirFormulairePetiteAnnonce();
     return;
   }
@@ -2469,7 +2469,7 @@ async function confirmerDepotPetiteAnnonce() {
     state.char.name, state.char?.country || 'republic', state.currentCity || 'capitale',
     categorie, texte, PETITE_ANNONCE_DUREE_JOURS, PETITE_ANNONCE_COUT_FR
   ).catch(() => false);
-  if (!ok) { showToast('Erreur', "L'annonce n'a pas pu être enregistrée. Réessayez plus tard.", false); return; }
+  if (!ok) { showToast('Erreur', "L'annonce n'a pas pu être enregistrée. Réessayez plus tard.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b60fa5c9f", "L'annonce n'a pas pu être enregistrée. Réessayez plus tard.", undefined, 'Erreur'); return; }
 
   if (!TEST_MODE) state.pa = Math.max(0, state.pa - PETITE_ANNONCE_PA);
   if (typeof debiterFondsOrdinaires === 'function') await debiterFondsOrdinaires(PETITE_ANNONCE_COUT_FR);
@@ -2490,8 +2490,8 @@ async function confirmerDepotPetiteAnnonce() {
 
 async function retirerPetiteAnnonce(id) {
   const ok = await sbRetirerPetiteAnnonce(id).catch(() => false);
-  if (!ok) { showToast('Erreur', "Le retrait n'a pas pu être enregistré. Réessayez plus tard.", false); return; }
-  showToast('Annonce retirée', 'Votre annonce a été retirée (aucun remboursement).', true);
+  if (!ok) { showToast('Erreur', "Le retrait n'a pas pu être enregistré. Réessayez plus tard.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b2d832681", "Le retrait n'a pas pu être enregistré. Réessayez plus tard.", undefined, 'Erreur'); return; }
+  showToast('Annonce retirée', 'Votre annonce a été retirée (aucun remboursement).', true); globalThis.RPI18nPlateau?.markToast("toastBodies.bfa4e70ab", 'Votre annonce a été retirée (aucun remboursement).', undefined, 'Annonce retirée');
   document.getElementById('modal-postes').classList.remove('open');
 }
 
@@ -2506,7 +2506,7 @@ async function openFinancesModal(pa, cost) {
     sbLoadPersonnage(nom).catch(() => null)
   ]);
   if (!Array.isArray(comptes) || !personnage || state.char?.name !== nom) {
-    showToast('Comptes indisponibles', 'La situation bancaire ne peut pas être lue auprès du serveur. Aucun solde local ne sera affiché.', false);
+    showToast('Comptes indisponibles', 'La situation bancaire ne peut pas être lue auprès du serveur. Aucun solde local ne sera affiché.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b2b6e60bb", 'La situation bancaire ne peut pas être lue auprès du serveur. Aucun solde local ne sera affiché.', undefined, 'Comptes indisponibles');
     return;
   }
   if (typeof construireMapComptesBancaires === 'function') {
@@ -2650,7 +2650,7 @@ async function mouvementBanqueNationale(sens, amount, pa, cost) {
 
 async function deposerArgent(pa, cost) {
   const amount = parseInt(document.getElementById('finance-amount-input').value);
-  if (!amount || amount <= 0) { showToast('Erreur', 'Montant invalide.', false); return; }
+  if (!amount || amount <= 0) { showToast('Erreur', 'Montant invalide.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b12169e64", 'Montant invalide.', undefined, 'Erreur'); return; }
   const v = await mouvementBanqueNationale('depot', amount, pa, cost);
   if (!v) return;
   document.getElementById('modal-finances').classList.remove('open');
@@ -2660,7 +2660,7 @@ async function deposerArgent(pa, cost) {
 
 async function retirerArgent(pa, cost) {
   const amount = parseInt(document.getElementById('finance-amount-input').value);
-  if (!amount || amount <= 0) { showToast('Erreur', 'Montant invalide.', false); return; }
+  if (!amount || amount <= 0) { showToast('Erreur', 'Montant invalide.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b12169e64", 'Montant invalide.', undefined, 'Erreur'); return; }
   const v = await mouvementBanqueNationale('retrait', amount, pa, cost);
   if (!v) return;
   document.getElementById('modal-finances').classList.remove('open');
@@ -2730,7 +2730,7 @@ function choisirSensManifSpontanee(sens) {
 async function confirmerManifestationSpontanee() {
   if (_manifSpontaneeEnvoi) return;
   const cible = document.getElementById('manif-sp-cible')?.value;
-  if (!cible) { showToast('Aucune cible', 'Choisissez la personne visée.', false); return; }
+  if (!cible) { showToast('Aucune cible', 'Choisissez la personne visée.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bf4b2f51c", 'Choisissez la personne visée.', undefined, 'Aucune cible'); return; }
   _manifSpontaneeEnvoi = true;
   const btn = document.getElementById('manif-sp-valider');
   if (btn) { btn.disabled = true; btn.textContent = 'Rassemblement...'; }
@@ -2746,7 +2746,7 @@ async function confirmerManifestationSpontanee() {
     } else if (RAISONS_MANIF_SPONTANEE[raison]) {
       showToast('Manifestation impossible', RAISONS_MANIF_SPONTANEE[raison], false);
     } else if (!v) {
-      showToast('Manifestation non confirmée', 'Le serveur n\'a pas répondu, ou la manifestation n\'est pas encore installée (elle attend les groupes de joueurs). Rien n\'a été prélevé.', false);
+      showToast('Manifestation non confirmée', 'Le serveur n\'a pas répondu, ou la manifestation n\'est pas encore installée (elle attend les groupes de joueurs). Rien n\'a été prélevé.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b81bc6cf7", 'Le serveur n\'a pas répondu, ou la manifestation n\'est pas encore installée (elle attend les groupes de joueurs). Rien n\'a été prélevé.', undefined, 'Manifestation non confirmée');
     } else if (typeof signalerRefusCout === 'function') {
       signalerRefusCout(v);
     }
@@ -2781,7 +2781,7 @@ async function suivreManifestationSpontanee() {
   if (typeof v.pop === 'number' && typeof adopterJaugeServeur === 'function') adopterJaugeServeur('pop', v.pop);
   state._manifSpontaneeActive = !!v.participe;
   if (v.participe && !etaitActive) {
-    showToast('Vous manifestez', 'Vous êtes hors-la-loi jusqu\'à la fin de la manifestation.', false, true);
+    showToast('Vous manifestez', 'Vous êtes hors-la-loi jusqu\'à la fin de la manifestation.', false, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b497eda94", 'Vous êtes hors-la-loi jusqu\'à la fin de la manifestation.', undefined, 'Vous manifestez');
   } else if (etaitActive && !v.participe) {
     const motif = v.manif && v.manif.motif_fin === 'chef_parti' ? 'le chef a quitté le groupe' : 'l\'heure est écoulée';
     showToast('Manifestation terminée', 'Fin de la manifestation (' + motif + ') : vous n\'êtes plus hors-la-loi pour ce motif.', true);

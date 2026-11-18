@@ -65,7 +65,7 @@ async function confirmerRecrutementCodetenu(nomCodetenu, tarif) {
     }
     // Un futur catalogue pourrait ouvrir ce métier : aucune reconstruction
     // locale d'employé, de salaire ou de caractéristiques dans cet adaptateur.
-    showToast('Recrutement enregistré', 'Consultez vos accompagnants pour retrouver l’état confirmé par le serveur.', true);
+    showToast('Recrutement enregistré', 'Consultez vos accompagnants pour retrouver l’état confirmé par le serveur.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.b07c43b27", 'Consultez vos accompagnants pour retrouver l’état confirmé par le serveur.', undefined, 'Recrutement enregistré');
     return true;
   } finally { if (RP_CODETENU_RECRUTEMENT === c) RP_CODETENU_RECRUTEMENT = null; }
 }
@@ -824,7 +824,7 @@ async function reprendreAgentIci(agentId) {
     return;
   }
   await rafraichirAgentsPortes();
-  showToast('Reprise en charge', 'Vous pouvez repartir ensemble.', true);
+  showToast('Reprise en charge', 'Vous pouvez repartir ensemble.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.bf90e468d", 'Vous pouvez repartir ensemble.', undefined, 'Reprise en charge');
   if (typeof renderEmployesPanel === 'function') renderEmployesPanel();
   rafraichirPresenceAgents();
 }
@@ -865,11 +865,11 @@ async function laisserAgentEnPlace(agentId) {
   const r = typeof sbRpc === 'function' ? await sbRpc('agent_deposer', { p_agent_id: agentId }).catch(() => null) : null;
   const res = Array.isArray(r) ? r[0] : r;
   if (!res || res.ok !== true) {
-    showToast('Impossible', 'Cette personne ne peut pas rester ici pour le moment.', false);
+    showToast('Impossible', 'Cette personne ne peut pas rester ici pour le moment.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b79c54642", 'Cette personne ne peut pas rester ici pour le moment.', undefined, 'Impossible');
     return;
   }
   await rafraichirAgentsPortes();
-  showToast('Reste sur place', 'Cette personne reste dans cette pièce.', false);
+  showToast('Reste sur place', 'Cette personne reste dans cette pièce.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.beeda6df9", 'Cette personne reste dans cette pièce.', undefined, 'Reste sur place');
   if (typeof renderEmployesPanel === 'function') renderEmployesPanel();
   if (typeof rafraichirPresenceAgents === 'function') rafraichirPresenceAgents();
 }
@@ -892,7 +892,7 @@ async function confierAgentA(agentId, destinataire) {
     return;
   }
   await rafraichirAgentsPortes();
-  showToast('Transfert effectué', destinataire + ' prend le relais.', true);
+  showToast('Transfert effectué', destinataire + ' prend le relais.', true); globalThis.RPI18nPlateau?.markToast(null, destinataire + ' prend le relais.', undefined, 'Transfert effectué');
   if (typeof renderEmployesPanel === 'function') renderEmployesPanel();
   rafraichirPresenceAgents();
 }
@@ -1006,7 +1006,7 @@ const INFORMATEURS_CATALOGUE = [
 async function doRecruterInformateurPNJ(pa) {
   if (!state.employes) state.employes = [];
   if (state.employes.some(e => e.job === 'informateur')) {
-    showToast('Déjà en poste', 'Vous employez déjà un informateur. Renvoyez-le avant d\'en recruter un autre.', false);
+    showToast('Déjà en poste', 'Vous employez déjà un informateur. Renvoyez-le avant d\'en recruter un autre.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b2f2bf707", 'Vous employez déjà un informateur. Renvoyez-le avant d\'en recruter un autre.', undefined, 'Déjà en poste');
     return;
   }
   const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
@@ -1033,7 +1033,7 @@ async function doRecruterInformateurPNJ(pa) {
   //
   // Le NOM reste tire au sort dans le catalogue : un nom n'est pas une caracteristique.
   if (!state.char?.name) {
-    showToast('Action impossible', 'Votre personnage n\'est pas chargé.', false);
+    showToast('Action impossible', 'Votre personnage n\'est pas chargé.', false); globalThis.RPI18nPlateau?.markToast("employmentAgency.characterMissing", 'Votre personnage n\'est pas chargé.', undefined, 'Action impossible');
     return;
   }
   const resEmp = (typeof sbEmployeRecruter === 'function')
@@ -1152,7 +1152,7 @@ function ouvrirModalRecrutPnj(encodedPnj) {
 
 function confirmerRecrutPnj(encodedPnj, cout) {
   document.getElementById('modal-postes').classList.remove('open');
-  showToast('Temporairement indisponible', 'Le recrutement de PNJ comme employé est en cours de refonte.', false);
+  showToast('Temporairement indisponible', 'Le recrutement de PNJ comme employé est en cours de refonte.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b5c324d8e", 'Le recrutement de PNJ comme employé est en cours de refonte.', undefined, 'Temporairement indisponible');
   return;
   // Code ci-dessous desactive temporairement (duplication de PNJ en cours de refonte)
   let pnj;
@@ -1164,7 +1164,7 @@ function confirmerRecrutPnj(encodedPnj, cout) {
   document.getElementById('modal-postes').classList.remove('open');
 
   if (state.arg < cout) {
-    showToast('Fonds insuffisants', cout + ' ' + cur + ' requis.', false);
+    showToast('Fonds insuffisants', cout + ' ' + cur + ' requis.', false); globalThis.RPI18nPlateau?.markToast(null, cout + ' ' + cur + ' requis.', undefined, 'Fonds insuffisants');
     return;
   }
   if (getEmployes().length >= MAX_EMPLOYES) {
@@ -1250,7 +1250,7 @@ async function payerEmployes() {
     addMailNotification('Ressources Humaines', p.nom + ' a quitté votre service',
       p.nom + ' n\'a pas été payé(e). Il/elle quitte votre groupe immédiatement.');
     addJournalEntry(p.nom + ' non payé(e). Départ.', 'event-bad');
-    showToast('Départ de ' + p.nom, 'Fonds insuffisants. -1 employé.', false);
+    showToast('Départ de ' + p.nom, 'Fonds insuffisants. -1 employé.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bf0f824ab", 'Fonds insuffisants. -1 employé.', undefined, 'Départ de ' + p.nom);
   }
   if (partis.length) state.employes = getEmployes().filter(e => !partis.includes(e.pnjId));
   updateUI();
@@ -1276,7 +1276,7 @@ let RP_EMPLOYE_MOUVEMENT = null;
 async function commanderMouvementEmploye(nomPnj, prendre) {
   const emp = getEmployes().find(e => e.nom === nomPnj);
   if (!emp?.pnjId) {
-    showToast('Mouvement non confirmé', 'Cet accompagnant doit être identifié par le serveur.', false);
+    showToast('Mouvement non confirmé', 'Cet accompagnant doit être identifié par le serveur.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b80741e81", 'Cet accompagnant doit être identifié par le serveur.', undefined, 'Mouvement non confirmé');
     return false;
   }
   const c = contexteGroupePj();
@@ -1294,7 +1294,7 @@ async function commanderMouvementEmploye(nomPnj, prendre) {
     const reel = etat?.employes?.find(e => e.pnj_id === emp.pnjId);
     adopterPresenceEmploye(emp, reel);
     if (!r || r.ok !== true || !reel || typeof reel.porte !== 'boolean') {
-      showToast('Mouvement non confirmé', 'Le serveur n’a pas confirmé le mouvement et son état. Réessayez la consultation.', false);
+      showToast('Mouvement non confirmé', 'Le serveur n’a pas confirmé le mouvement et son état. Réessayez la consultation.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bf993f5f8", 'Le serveur n’a pas confirmé le mouvement et son état. Réessayez la consultation.', undefined, 'Mouvement non confirmé');
       if (typeof renderEmployesPanel === 'function') renderEmployesPanel();
       return false;
     }
@@ -1346,7 +1346,7 @@ async function licencierPnj(nomPnj) {
   if (roomCourante && typeof renderPersonsList === 'function') {
     renderPersonsList(roomCourante.persons || []);
   }
-  showToast(nomPnj + ' licencié(e)', 'Il/elle retourne à ses activités.', false);
+  showToast(nomPnj + ' licencié(e)', 'Il/elle retourne à ses activités.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b065ba116", 'Il/elle retourne à ses activités.', undefined, nomPnj + ' licencié(e)');
   addJournalEntry('Licenciement : ' + nomPnj + '.', 'event-info');
 }
 
@@ -1376,7 +1376,7 @@ async function confirmerDebauchage() {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
 
   if (!montant || montant < 100) { showToast('Montant insuffisant', 'Minimum 100 ' + cur + '.', false); return; }
-  if (getFondsDisponiblesOrdinaires() < montant) { showToast('Fonds insuffisants', montant + ' ' + cur + ' requis.', false); return; }
+  if (getFondsDisponiblesOrdinaires() < montant) { showToast('Fonds insuffisants', montant + ' ' + cur + ' requis.', false); globalThis.RPI18nPlateau?.markToast(null, montant + ' ' + cur + ' requis.', undefined, 'Fonds insuffisants'); return; }
 
   // PAIEMENT, JET ET RETRAIT AU SERVEUR (05/11/2026) : pnj_debaucher verifie que le PNJ est encore
   // chez son employeur, preleve la somme, tire le de et, en cas de reussite seulement, retire le PNJ
@@ -1388,8 +1388,8 @@ async function confirmerDebauchage() {
     : null;
   const deb = Array.isArray(brutDeb) ? brutDeb[0] : brutDeb;
   if (!deb || deb.ok !== true) {
-    if (deb?.raison === 'fonds_insuffisants') showToast('Fonds insuffisants', montant + ' ' + cur + ' requis.', false);
-    else showToast('Débauchage impossible', 'Le débauchage n\'a pas pu être enregistré.', false);
+    if (deb?.raison === 'fonds_insuffisants') { showToast('Fonds insuffisants', montant + ' ' + cur + ' requis.', false); globalThis.RPI18nPlateau?.markToast(null, montant + ' ' + cur + ' requis.', undefined, 'Fonds insuffisants'); }
+    else { showToast('Débauchage impossible', 'Le débauchage n\'a pas pu être enregistré.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b6ea886b9", 'Le débauchage n\'a pas pu être enregistré.', undefined, 'Débauchage impossible'); }
     document.getElementById('modal-pnj')?.classList.remove('open');
     return;
   }
@@ -1588,7 +1588,7 @@ function ouvrirDonnerEmploye(nomEmploye) {
   const placeRestante = Math.max(0, PLAFOND_CHARGE_EMPLOYE - chargeActuelle);
 
   if ((state.inventory || []).length === 0) {
-    showToast('Inventaire vide', "Vous n'avez rien à donner.", false);
+    showToast('Inventaire vide', "Vous n'avez rien à donner.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b322a1e55", "Vous n'avez rien à donner.", undefined, 'Inventaire vide');
     return;
   }
 
@@ -1616,7 +1616,7 @@ function ouvrirDonnerEmploye(nomEmploye) {
 async function confirmerDonnerEmploye(nomEmploye, idx) {
   const emp = (state.employes || []).find(e => e.nom === nomEmploye);
   const item = state.inventory[idx];
-  if (!emp?.pnjId || !item) { showToast('Transfert indisponible', 'Ce porteur n’est pas disponible. Rouvrez sa fiche.', false); return; }
+  if (!emp?.pnjId || !item) { showToast('Transfert indisponible', 'Ce porteur n’est pas disponible. Rouvrez sa fiche.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b32afd566", 'Ce porteur n’est pas disponible. Rouvrez sa fiche.', undefined, 'Transfert indisponible'); return; }
   const v = await executerReceptionInventaire('pnj_objet_transferer', { p_pnj: emp.pnjId, p_index: idx, p_sens: 'donner',
     p_quantite: item.stackable ? Number(document.getElementById('donner-emp-qty-' + idx)?.value || 1) : 1,
     p_revision: state._inventaireRevision ?? null, p_possession: null });
@@ -1628,9 +1628,9 @@ async function confirmerDonnerEmploye(nomEmploye, idx) {
 
 async function ouvrirReprendreEmploye(nomEmploye) {
   const emp = (state.employes || []).find(e => e.nom === nomEmploye);
-  if (!emp?.pnjId) { showToast('Transfert indisponible', 'Ce porteur n’est pas disponible. Rouvrez sa fiche.', false); return; }
+  if (!emp?.pnjId) { showToast('Transfert indisponible', 'Ce porteur n’est pas disponible. Rouvrez sa fiche.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b32afd566", 'Ce porteur n’est pas disponible. Rouvrez sa fiche.', undefined, 'Transfert indisponible'); return; }
   if (Object.keys(emp.charge || {}).length || (emp.chargeUnique || []).length) {
-    showToast('Ancienne charge conservée', 'Ces objets sont conservés. Leur transfert est momentanément indisponible.', false); return;
+    showToast('Ancienne charge conservée', 'Ces objets sont conservés. Leur transfert est momentanément indisponible.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bab662214", 'Ces objets sont conservés. Leur transfert est momentanément indisponible.', undefined, 'Ancienne charge conservée'); return;
   }
   // Reutilise exactement l'ecran et les controles du groupe commun, pas un second inventaire.
   let i = RP_GROUPE_COURANT.findIndex(m => m.id === emp.pnjId);
@@ -1938,11 +1938,11 @@ async function commanderGroupePj(commande, titre) {
       return false;
     }
     if (!adopterGroupePj(r,c)) {
-      showToast('Groupe non confirmé', 'Le serveur ne fournit pas une appartenance valide.', false);
+      showToast('Groupe non confirmé', 'Le serveur ne fournit pas une appartenance valide.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bdbf0c67f", 'Le serveur ne fournit pas une appartenance valide.', undefined, 'Groupe non confirmé');
       return false;
     }
     closePnjModal();
-    showToast(titre, 'Appartenance confirmée par le serveur.', true);
+    showToast(titre, 'Appartenance confirmée par le serveur.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.b7ab46ce7", 'Appartenance confirmée par le serveur.', undefined, titre);
     addJournalEntry(titre + '.', 'event-info');
     return true;
   } finally {
@@ -1969,7 +1969,7 @@ function rejoindreJeremy() {
   if (typeof state === 'undefined' || !state.char) return;
   const etapesJeremyActif = ['jeremy_presentation', 'jeremy_groupe'];
   if (!state.char.queteAccueil || etapesJeremyActif.indexOf(state.char.queteAccueil.etape) === -1) {
-    if (typeof showToast === 'function') showToast('Indisponible', "Jérémy n'est plus disponible.", false);
+    if (typeof showToast === 'function') { showToast('Indisponible', "Jérémy n'est plus disponible.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b8e90e5cf", "Jérémy n'est plus disponible.", undefined, 'Indisponible'); }
     return;
   }
   if (!state.employes) state.employes = [];
@@ -1997,7 +1997,7 @@ function rejoindreJeremy() {
   if (roomActuelleJeremy && typeof renderPersonsList === 'function') {
     renderPersonsList(roomActuelleJeremy.persons || []);
   }
-  showToast('Jérémy vous accompagne', 'Il vous suit desormais dans vos deplacements.', true);
+  showToast('Jérémy vous accompagne', 'Il vous suit desormais dans vos deplacements.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.be152ca06", 'Il vous suit desormais dans vos deplacements.', undefined, 'Jérémy vous accompagne');
 }
 
 // Jeremy quitte le groupe a la fin de la quete d'accueil (separation, avec ou sans reprise
@@ -2517,7 +2517,7 @@ async function ouvrirGroupePnjDonner(i) {
 async function confirmerGroupePnjDonnerArgent(i) {
   const m = RP_GROUPE_COURANT[i]; if (!m) return;
   const v = parseInt(document.getElementById('grp-don-montant')?.value, 10);
-  if (!Number.isFinite(v) || v <= 0) { showToast('Montant invalide', 'Indiquez un montant positif.', false); return; }
+  if (!Number.isFinite(v) || v <= 0) { showToast('Montant invalide', 'Indiquez un montant positif.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b3d5bd73a", 'Indiquez un montant positif.', undefined, 'Montant invalide'); return; }
   const r = await sbPnjArgentTransferer(m.id, v, 'donner').catch(() => null);
   signalerResultatGroupePnj(r, 'Argent remis', v + ' remis à ' + m.nom + '.');
   await ouvrirGroupePnj();
@@ -2591,7 +2591,7 @@ async function ouvrirGroupePnjRetirer(i) {
 async function confirmerGroupePnjRetirerArgent(i) {
   const m = RP_GROUPE_COURANT[i]; if (!m) return;
   const v = parseInt(document.getElementById('grp-ret-montant')?.value, 10);
-  if (!Number.isFinite(v) || v <= 0) { showToast('Montant invalide', 'Indiquez un montant positif.', false); return; }
+  if (!Number.isFinite(v) || v <= 0) { showToast('Montant invalide', 'Indiquez un montant positif.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b3d5bd73a", 'Indiquez un montant positif.', undefined, 'Montant invalide'); return; }
   const r = await sbPnjArgentTransferer(m.id, v, 'retirer').catch(() => null);
   signalerResultatGroupePnj(r, 'Argent récupéré', v + ' récupéré sur ' + m.nom + '.');
   await ouvrirGroupePnj();
@@ -2615,7 +2615,7 @@ async function ordonnerGroupePnj(i, action) {
 async function confirmerGroupePnjRetirerObjet(i, index) {
   const m = RP_GROUPE_COURANT[i]; if (!m) return;
   const objet = (RP_GROUPE_POSSESSIONS[m.id] || []).find(o => o.index === index);
-  if (!objet?.possession_id) { showToast('Sélection périmée', 'Rouvrez les possessions du porteur.', false); return; }
+  if (!objet?.possession_id) { showToast('Sélection périmée', 'Rouvrez les possessions du porteur.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bf67e8f79", 'Rouvrez les possessions du porteur.', undefined, 'Sélection périmée'); return; }
   const r = await executerReceptionInventaire('pnj_objet_transferer', { p_pnj: m.id, p_index: index, p_sens: 'retirer',
     p_quantite: null, p_revision: null, p_possession: objet.possession_id });
   if (!r) return;
@@ -2661,7 +2661,7 @@ const MOTIFS_REFUS_GROUPE_PNJ = {
 };
 function signalerResultatGroupePnj(r, titreOk, messageOk) {
   if (r === null || r === undefined) {
-    showToast('Action impossible', 'L\'appel au serveur n\'a pas abouti. Réessayez.', false);
+    showToast('Action impossible', 'L\'appel au serveur n\'a pas abouti. Réessayez.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bb3f6a873", 'L\'appel au serveur n\'a pas abouti. Réessayez.', undefined, 'Action impossible');
     return false;
   }
   if (r.ok !== true) {
@@ -2807,7 +2807,7 @@ let guideMuseeRendreCourant = null;
 async function ouvrirGuideMusee() {
   const salle = state.currentRoom;
   if (!(await guideMuseeCharger())) {
-    if (typeof showToast === 'function') showToast('Ouliana Historiskaïa', 'La guide est momentanément indisponible. Réessayez dans un instant.', false);
+    if (typeof showToast === 'function') { showToast('Ouliana Historiskaïa', 'La guide est momentanément indisponible. Réessayez dans un instant.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b4bfb2afd", 'La guide est momentanément indisponible. Réessayez dans un instant.', undefined, 'Ouliana Historiskaïa'); }
     return;
   }
   // Fenêtre réaffichée au changement de langue (fenêtre commune de Sovarka) ; seulement dans la salle d'origine.

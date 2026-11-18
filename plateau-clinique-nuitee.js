@@ -50,7 +50,7 @@ function reserverNuiteeClinique(){
  const titre=document.getElementById('postes-modal-title');
  const corps=document.getElementById('postes-body');
  if(!modal||!titre||!corps){
-  showToast('Réservation indisponible','La fenêtre de réservation ne peut pas être affichée.',false);
+  showToast('Réservation indisponible','La fenêtre de réservation ne peut pas être affichée.',false); globalThis.RPI18nPlateau?.markToast("toastBodies.bdbe146a4", 'La fenêtre de réservation ne peut pas être affichée.', undefined, 'Réservation indisponible');
   return;
  }
  const cur=cliniqueDevise();

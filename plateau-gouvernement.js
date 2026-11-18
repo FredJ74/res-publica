@@ -140,7 +140,7 @@ async function enteteTitulaire(posteId, city) {
 // candidatures, qui existaient deja dans le blob mais qu'aucun ecran ne montrait au Ministre de
 // l'Interieur -- alors qu'il encourt la sanction de popularite du cron s'il ne repond pas sous 48 h.
 async function ouvrirGestionChefDouanes(pa, cost) {
-  if (state.poste?.id !== 'min_int') { showToast('Accès refusé', 'Réservé au Ministre de l\'Intérieur.', false); return; }
+  if (state.poste?.id !== 'min_int') { showToast('Accès refusé', 'Réservé au Ministre de l\'Intérieur.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b7e046c0b", 'Réservé au Ministre de l\'Intérieur.', undefined, 'Accès refusé'); return; }
   const entete = await enteteTitulaire('chef_douanes', null);
   const t = await titulaireOuNull('chef_douanes');
   const entrees = entreesPosteNomme(t, pa || 0, pa || 0,
@@ -165,7 +165,7 @@ async function ouvrirGestionChefDouanes(pa, cost) {
 // Remplace « Nommer un juge » + « Revoquer un juge ». Meme correction d'asymetrie que pour les
 // douanes : le Ministre de la Justice n'avait aucun ecran de candidatures.
 async function ouvrirGestionJuges(pa, cost) {
-  if (state.poste?.id !== 'min_just') { showToast('Accès refusé', 'Réservé au Ministre de la Justice.', false); return; }
+  if (state.poste?.id !== 'min_just') { showToast('Accès refusé', 'Réservé au Ministre de la Justice.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b68a422e7", 'Réservé au Ministre de la Justice.', undefined, 'Accès refusé'); return; }
   const entete = await enteteTitulaire('juge', null);
   const t = await titulaireOuNull('juge');
   const entrees = entreesPosteNomme(t, pa || 0, pa || 0,
@@ -233,7 +233,7 @@ function entreesGestionCommandement(titulaire) {
 }
 
 async function ouvrirGestionCommandement() {
-  if (state.poste?.id !== 'min_def') { showToast('Accès refusé', 'Réservé au Ministre de la Défense.', false); return; }
+  if (state.poste?.id !== 'min_def') { showToast('Accès refusé', 'Réservé au Ministre de la Défense.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bde79d500", 'Réservé au Ministre de la Défense.', undefined, 'Accès refusé'); return; }
   const titulaire = await titulaireOuNull('commandant');
   const entete = await enteteTitulaire('commandant', null);
   const entrees = entreesGestionCommandement(titulaire).map(function (e) {
@@ -270,7 +270,7 @@ async function ouvrirGestionCommandement() {
 const COUT_PA_OUVERTURE_COMMANDEMENT = 1;
 
 async function ouvrirGestionCaserne() {
-  if (state.poste?.id !== 'min_def') { showToast('Accès refusé', 'Réservé au Ministre de la Défense.', false); return; }
+  if (state.poste?.id !== 'min_def') { showToast('Accès refusé', 'Réservé au Ministre de la Défense.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bde79d500", 'Réservé au Ministre de la Défense.', undefined, 'Accès refusé'); return; }
   const entete = await enteteTitulaire('commandant', null);
   ouvrirPanneauFonction('Gestion de la caserne', [
     { label: 'Gestion des commandants', pa: COUT_PA_OUVERTURE_COMMANDEMENT,
@@ -290,7 +290,7 @@ async function ouvrirCommandementDepuisCaserne() {
     const r = await deduireCoutOrdre({ pa: COUT_PA_OUVERTURE_COMMANDEMENT, cost: 0, fn: 'gerer_commandement' });
     if (!r || r.ok !== true) {
       if (typeof signalerRefusCout === 'function') signalerRefusCout(r);
-      else showToast('Action impossible', 'Le paiement a été refusé.', false);
+      else { showToast('Action impossible', 'Le paiement a été refusé.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.ba426d4ae", 'Le paiement a été refusé.', undefined, 'Action impossible'); }
       return;
     }
   }
@@ -301,7 +301,7 @@ async function ouvrirCommandementDepuisCaserne() {
 // Trois boutons pour une seule fonction de pilotage financier : le taux national, le redressement et
 // la repartition. Aucune regle, aucun cout, aucun historique ne change -- seul le chemin change.
 function ouvrirPilotageFiscalBudgetaire(pa, cost) {
-  if (state.poste?.id !== 'min_fin') { showToast('Accès refusé', 'Réservé au Ministre des Finances.', false); return; }
+  if (state.poste?.id !== 'min_fin') { showToast('Accès refusé', 'Réservé au Ministre des Finances.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bcddc352b", 'Réservé au Ministre des Finances.', undefined, 'Accès refusé'); return; }
   // Le panneau s'ouvre TOUJOURS : le ministre doit pouvoir consulter sa fonction, meme quand aucune
   // action n'est immediatement executable. Aucune de ces trois entrees n'a d'ailleurs de condition
   // de disponibilite au-dela du poste -- verifie : leurs handlers ne controlent que min_fin. Les
@@ -325,7 +325,7 @@ function ouvrirPilotageFiscalBudgetaire(pa, cost) {
 // d'un cote, nationalisation financee par emprunt de l'autre, aucun code partage hormis les
 // primitives de caisse. Elles restent donc deux prerogatives distinctes et ne sont pas absorbees ici.
 async function ouvrirGestionIndustriellePortuaire(pa, cost) {
-  if (state.poste?.id !== 'min_fin') { showToast('Accès refusé', 'Réservé au Ministre des Finances.', false); return; }
+  if (state.poste?.id !== 'min_fin') { showToast('Accès refusé', 'Réservé au Ministre des Finances.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bcddc352b", 'Réservé au Ministre des Finances.', undefined, 'Accès refusé'); return; }
   const entete = await enteteTitulaire('capitaine_port', null);
   ouvrirPanneauFonction('Gestion industrielle et portuaire', [
     { label: 'Candidatures de directeurs', desc: 'Candidatures aux directions des trois usines nationales.',
@@ -349,7 +349,7 @@ async function ouvrirGestionIndustriellePortuaire(pa, cost) {
 // Nomination et révocation centralisées au ministère (et non dans les usines).
 function ouvrirGestionNominationsUsines(action) {
   if (state.poste?.id !== 'min_fin') {
-    showToast('Accès refusé', 'Réservé au Ministre des Finances.', false);
+    showToast('Accès refusé', 'Réservé au Ministre des Finances.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bcddc352b", 'Réservé au Ministre des Finances.', undefined, 'Accès refusé');
     return;
   }
   const postes = [
@@ -375,7 +375,7 @@ function ouvrirGestionNominationsUsines(action) {
 // la nomination ne peut viser qu'un contact du repertoire du ministre. Ce lot ne change pas cette
 // mecanique -- il la rassemble. L'absence de candidatures est donc SIGNALEE, pas comblee en douce.
 function ouvrirGestionAmbassades(pa, cost) {
-  if (state.poste?.id !== 'min_ae') { showToast('Accès refusé', 'Réservé au Ministre des Affaires Étrangères.', false); return; }
+  if (state.poste?.id !== 'min_ae') { showToast('Accès refusé', 'Réservé au Ministre des Affaires Étrangères.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b572774dc", 'Réservé au Ministre des Affaires Étrangères.', undefined, 'Accès refusé'); return; }
   ouvrirPanneauFonction('Ambassades et ambassadeurs', [
     { label: 'Ouvrir une ambassade', desc: 'Établir une représentation diplomatique auprès d\'un empire.',
       onclick: 'ouvrirModalEmpireCible(\'ouvrir_ambassade\',\'Ouvrir une ambassade a\',' + (pa || 0) + ',' + (cost || 0) + ')' },
@@ -558,7 +558,7 @@ function verdictVoteConseil(seance, posteId, choix) {
 // prime l'ecran de candidatures, qui existait deja sans qu'aucun bouton presidentiel n'y mene.
 async function ouvrirGestionPremierMinistre() {
   if (state.poste?.id !== 'president') {
-    showToast('Accès refusé', 'Seul le Président peut gérer le Premier ministre.', false); return;
+    showToast('Accès refusé', 'Seul le Président peut gérer le Premier ministre.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.ba2948604", 'Seul le Président peut gérer le Premier ministre.', undefined, 'Accès refusé'); return;
   }
   const entete = await enteteTitulaire('pm', null);
   const t = await titulaireOuNull('pm');
@@ -586,7 +586,7 @@ async function ouvrirGestionPremierMinistre() {
 // desormais lisible avant, l'etat etant deja disponible en memoire.
 function ouvrirPostesParDecret() {
   if (state.poste?.id !== 'president') {
-    showToast('Accès refusé', 'Seul le Président peut créer un poste par décret.', false); return;
+    showToast('Accès refusé', 'Seul le Président peut créer un poste par décret.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b25c00fea", 'Seul le Président peut créer un poste par décret.', undefined, 'Accès refusé'); return;
   }
   const custom = state.postesCustom || {};
   const rien = !custom.ministre && !custom.comite;
@@ -609,7 +609,7 @@ function ouvrirPostesParDecret() {
 // ne revient pas d'un clic. Ils restent trois entrees ; ils cessent d'etre trois boutons.
 function ouvrirPouvoirsExceptionnels() {
   if (state.poste?.id !== 'president') {
-    showToast('Accès refusé', 'Réservé au Président.', false); return;
+    showToast('Accès refusé', 'Réservé au Président.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bdd54617f", 'Réservé au Président.', undefined, 'Accès refusé'); return;
   }
   ouvrirPanneauFonction('Pouvoirs exceptionnels', [
     { label: 'État d\'urgence', pa: 3, desc: 'Déclarer ou lever l\'état d\'urgence.',
@@ -628,7 +628,7 @@ function ouvrirPouvoirsExceptionnels() {
 // l'attente de l'arbitrage demande a son sujet.
 function ouvrirAdresseALaNation() {
   if (state.poste?.id !== 'president') {
-    showToast('Accès refusé', 'Réservé au Président.', false); return;
+    showToast('Accès refusé', 'Réservé au Président.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bdd54617f", 'Réservé au Président.', undefined, 'Accès refusé'); return;
   }
   ouvrirPanneauFonction('S\'adresser à la Nation', [
     { label: 'Ordonner un référendum', pa: 3, desc: 'Soumettre une question au pays. Publié sur le forum présidentiel.',
@@ -653,7 +653,7 @@ function ouvrirAdresseALaNation() {
 // APRES le clic ; elle devient une indisponibilite lisible, lue sur le meme etat que le handler.
 function ouvrirGestionManifestations() {
   if (state.poste?.id !== 'min_int') {
-    showToast('Accès refusé', 'Réservé au Ministre de l\'Intérieur.', false); return;
+    showToast('Accès refusé', 'Réservé au Ministre de l\'Intérieur.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b7e046c0b", 'Réservé au Ministre de l\'Intérieur.', undefined, 'Accès refusé'); return;
   }
   const pays = state.country || 'republic';
   const policeEnGreve = (typeof syndicatPoliceEnGreve === 'function') && syndicatPoliceEnGreve(pays);
@@ -724,7 +724,7 @@ function entreesMobilisationNationale(mobilisee) {
 }
 
 async function ouvrirMobilisationNationale() {
-  if (state.poste?.id !== 'min_def') { showToast('Accès refusé', 'Réservé au Ministre de la Défense.', false); return; }
+  if (state.poste?.id !== 'min_def') { showToast('Accès refusé', 'Réservé au Ministre de la Défense.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bde79d500", 'Réservé au Ministre de la Défense.', undefined, 'Accès refusé'); return; }
   // LECTURE STRICTE, VOLONTAIREMENT PAS chargerBudgetNational : celle-ci CREE la ligne de budget
   // national quand elle n'existe pas encore (plateau-justice-economie.js:10910, sbSaveBudgetNational).
   // Ouvrir un panneau pour le consulter ne doit rien ecrire. Pas de ligne = pas de mobilisation.
@@ -789,7 +789,7 @@ const COUT_PA_REPONSE_DIPLO = 1;
 // vide : ouvrir la liste ne coute rien (le PA part a la reponse), et constater qu'on n'a rien recu
 // est precisement l'usage de cet ordre. La bloquer reviendrait a interdire de consulter.
 function ouvrirDiplomatieBilaterale() {
-  if (state.poste?.id !== 'min_ae') { showToast('Accès refusé', 'Réservé au Ministre des Affaires Étrangères.', false); return; }
+  if (state.poste?.id !== 'min_ae') { showToast('Accès refusé', 'Réservé au Ministre des Affaires Étrangères.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b572774dc", 'Réservé au Ministre des Affaires Étrangères.', undefined, 'Accès refusé'); return; }
   ouvrirPanneauFonction('Diplomatie bilatérale', [
     { label: 'Ouvrir des négociations diplomatiques', pa: COUT_PA_NEGOCIATION,
       desc: 'Établir un canal diplomatique avec un empire étranger.',

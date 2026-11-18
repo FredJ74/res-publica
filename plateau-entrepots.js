@@ -552,16 +552,16 @@ async function confirmerReversementEntrepot() {
   const champ = document.getElementById('entrepot-reversement');
   const montant = Math.max(0, parseInt((champ && champ.value) || '0', 10));
   if (montant <= 0) {
-    showToast('Montant invalide', 'Indiquez un montant superieur a zero.', false);
+    showToast('Montant invalide', 'Indiquez un montant superieur a zero.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b6610e2a9", 'Indiquez un montant superieur a zero.', undefined, 'Montant invalide');
     return;
   }
   const id = entrepotIdCourant();
   if (!id) {
-    showToast('Entrepot inconnu', 'Votre poste ne designe aucun entrepot.', false);
+    showToast('Entrepot inconnu', 'Votre poste ne designe aucun entrepot.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.be96fdb95", 'Votre poste ne designe aucun entrepot.', undefined, 'Entrepot inconnu');
     return;
   }
   if (typeof sbEntrepotVirementMairie !== 'function') {
-    showToast('Action impossible', 'Le reversement n\'est pas disponible dans cette version.', false);
+    showToast('Action impossible', 'Le reversement n\'est pas disponible dans cette version.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b9c2d4825", 'Le reversement n\'est pas disponible dans cette version.', undefined, 'Action impossible');
     return;
   }
 
@@ -584,7 +584,7 @@ async function confirmerReversementEntrepot() {
     return;
   }
   if (!(Number(r.verse) > 0)) {
-    showToast('Rien a reverser', 'Votre tresorerie ne permet aucun versement.', false);
+    showToast('Rien a reverser', 'Votre tresorerie ne permet aucun versement.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b06bc7d70", 'Votre tresorerie ne permet aucun versement.', undefined, 'Rien a reverser');
     return;
   }
 

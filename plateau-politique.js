@@ -258,7 +258,7 @@ function autoriteCouvre(posteAutorite, nommeParAttendu) {
 // quand l'autorite manque. Le patron est celui de confirmerEtatUrgence.
 function exigerPoste(posteAttendu, message) {
   if (state.poste?.id === posteAttendu) return true;
-  showToast('Accès refusé', message, false);
+  showToast('Accès refusé', message, false); globalThis.RPI18nPlateau?.markToast(null, message, undefined, 'Accès refusé');
   return false;
 }
 
@@ -307,7 +307,7 @@ async function postulerPosteAutoritePnj(posteId, posteName, villeCourante) {
     && (typeof rpAuthUid !== 'function' || rpAuthUid() === uidInitial)
     && (typeof rpAuthJeton !== 'function' || (typeof rpAuthSessionIdentifiant === 'function' ? rpAuthSessionIdentifiant() : (typeof rpAuthJeton === 'function' ? rpAuthJeton() : null)) === jetonInitial);
 
-  if (typeof sbRpc !== 'function') { showToast('Indisponible', 'Service momentanement indisponible.', false); return; }
+  if (typeof sbRpc !== 'function') { showToast('Indisponible', 'Service momentanement indisponible.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b7c3ec26a", 'Service momentanement indisponible.', undefined, 'Indisponible'); return; }
   const rows = await sbRpc('poste_postuler', { p_poste: posteId, p_city: villeCourante || null }).catch(() => null);
   if (!retourActif()) return;
   const v = Array.isArray(rows) ? rows[0] : rows;
@@ -341,7 +341,7 @@ async function postulerPosteAutoritePnj(posteId, posteName, villeCourante) {
   if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
 
   const lieu = villeCourante ? ' de ' + (WORLD[state.country]?.[villeCourante]?.name || villeCourante) : '';
-  showToast('Poste obtenu', 'Vous etes desormais ' + regle.label + lieu + '.', true, true);
+  showToast('Poste obtenu', 'Vous etes desormais ' + regle.label + lieu + '.', true, true); globalThis.RPI18nPlateau?.markToast(null, 'Vous etes desormais ' + regle.label + lieu + '.', undefined, 'Poste obtenu');
   addJournalEntry('Vous avez obtenu le poste de ' + regle.label + '.', 'event-good');
   addExternalEvent('🏛 ' + (state.char?.name || 'Anonyme') + ' est nomme(e) ' + regle.label + lieu + '.',
                    villeCourante ? 'local' : 'national');
@@ -363,7 +363,7 @@ async function demanderNominationPoste(posteId, posteName, villeCible) {
   // On refuse donc l'action et on dit au joueur quoi faire, plutot que d'ecrire une trace fausse.
   if (!state.char?.name) {
     showToast('Personnage non chargé',
-      "Votre personnage n'est pas encore chargé : rechargez la page avant de postuler.", false);
+      "Votre personnage n'est pas encore chargé : rechargez la page avant de postuler.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b52e1e306", "Votre personnage n'est pas encore chargé : rechargez la page avant de postuler.", undefined, 'Personnage non chargé');
     return;
   }
 
@@ -371,7 +371,7 @@ async function demanderNominationPoste(posteId, posteName, villeCible) {
   if (!regle) return;
 
   const check = peutAccepterPosteNomme(posteId);
-  if (!check.ok) { showToast('Impossible', check.raison, false); return; }
+  if (!check.ok) { showToast('Impossible', check.raison, false); globalThis.RPI18nPlateau?.markToast(null, check.raison, undefined, 'Impossible'); return; }
 
   const villeCourante = regle.scope === 'ville' ? (villeCible || state.currentCity) : null;
   // La ville du POSTE sert a identifier le siege ; celle de l'AUTORITE peut differer.
@@ -379,7 +379,7 @@ async function demanderNominationPoste(posteId, posteName, villeCible) {
     ? await getTitulaireActuel(regle.nommePar, villeDeLAutorite(regle, villeCourante)) : null;
 
   if (!titulaireAutorite) {
-    showToast('Poste vacant', "L'autorité de nomination pour ce poste est elle-même vacante. Votre candidature ne peut pas être transmise pour le moment.", false);
+    showToast('Poste vacant', "L'autorité de nomination pour ce poste est elle-même vacante. Votre candidature ne peut pas être transmise pour le moment.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b256b4ade", "L'autorité de nomination pour ce poste est elle-même vacante. Votre candidature ne peut pas être transmise pour le moment.", undefined, 'Poste vacant');
     return;
   }
 
@@ -411,16 +411,16 @@ async function demanderNominationPoste(posteId, posteName, villeCible) {
   if (!vT || vT.ok !== true) {
     const r = vT && vT.raison;
     if (r === 'recruteur_pnj') { await postulerPosteAutoritePnj(posteId, posteName, villeCourante); return; }
-    if (r === 'deja_candidat') { showToast('Déjà candidat', 'Votre candidature au poste de ' + posteName + ' est déjà enregistrée, en attente de décision.', false); return; }
-    if (r === 'poste_deja_occupe_par_un_joueur') { showToast('Poste pourvu', "Ce poste vient d'être pris par un autre joueur.", false); return; }
-    if (r === 'parti_requis') { showToast('Parti requis', "Vous ne pouvez pas obtenir un poste si vous n'adhérez pas à un parti.", false); return; }
-    if (r === 'recruteur_soi_meme') { showToast('Candidature inutile', 'Vous êtes vous-même le recruteur de ce poste.', false); return; }
+    if (r === 'deja_candidat') { showToast('Déjà candidat', 'Votre candidature au poste de ' + posteName + ' est déjà enregistrée, en attente de décision.', false); globalThis.RPI18nPlateau?.markToast(null, 'Votre candidature au poste de ' + posteName + ' est déjà enregistrée, en attente de décision.', undefined, 'Déjà candidat'); return; }
+    if (r === 'poste_deja_occupe_par_un_joueur') { showToast('Poste pourvu', "Ce poste vient d'être pris par un autre joueur.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b41858413", "Ce poste vient d'être pris par un autre joueur.", undefined, 'Poste pourvu'); return; }
+    if (r === 'parti_requis') { showToast('Parti requis', "Vous ne pouvez pas obtenir un poste si vous n'adhérez pas à un parti.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.be1c42d01", "Vous ne pouvez pas obtenir un poste si vous n'adhérez pas à un parti.", undefined, 'Parti requis'); return; }
+    if (r === 'recruteur_soi_meme') { showToast('Candidature inutile', 'Vous êtes vous-même le recruteur de ce poste.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b3a4b4fad", 'Vous êtes vous-même le recruteur de ce poste.', undefined, 'Candidature inutile'); return; }
     if (vT && !vT.transport && typeof signalerRefusCout === 'function') { signalerRefusCout(vT); return; }
-    showToast('Candidature non transmise', "L'opération n'a pas abouti : rien n'a été prélevé ni transmis.", false);
+    showToast('Candidature non transmise', "L'opération n'a pas abouti : rien n'a été prélevé ni transmis.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b681db516", "L'opération n'a pas abouti : rien n'a été prélevé ni transmis.", undefined, 'Candidature non transmise');
     return;
   }
   if (typeof vT.pa === 'number' && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: vT.pa });
-  showToast('Demande transmise', 'Votre candidature au poste de ' + posteName + ' a été transmise à ' + vT.recruteur + '.', true);
+  showToast('Demande transmise', 'Votre candidature au poste de ' + posteName + ' a été transmise à ' + vT.recruteur + '.', true); globalThis.RPI18nPlateau?.markToast(null, 'Votre candidature au poste de ' + posteName + ' a été transmise à ' + vT.recruteur + '.', undefined, 'Demande transmise');
   addJournalEntry('Demande de poste envoyée à ' + vT.recruteur + ' : ' + posteName + '. En attente de réponse.', 'event-info');
 }
 
@@ -784,7 +784,7 @@ function ouvrirRedactionProgramme(el) {
   const cle = getCleCycle(posteId, city);
   const cycle = CYCLES_ELECTORAUX[country]?.[cle];
   if (!cycle || !candidaturesOuvertes(cycle)) {
-    showToast('Candidatures closes', 'Les candidatures a ce scrutin sont closes.', false);
+    showToast('Candidatures closes', 'Les candidatures a ce scrutin sont closes.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b785bd334", 'Les candidatures a ce scrutin sont closes.', undefined, 'Candidatures closes');
     return;
   }
   const poste = [...POSTES_ELECTIFS.national, ...POSTES_ELECTIFS.departemental, ...POSTES_ELECTIFS.local]
@@ -812,7 +812,7 @@ function ouvrirRedactionProgramme(el) {
   if (typeof ouvrirForumSurEditeur === 'function') {
     ouvrirForumSurEditeur(forumCible, _candidatureEnRedaction.titreSuggere);
   } else {
-    showToast('Forum indisponible', "L'editeur du forum n'est pas accessible pour le moment.", false);
+    showToast('Forum indisponible', "L'editeur du forum n'est pas accessible pour le moment.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.bb1b23eec", "L'editeur du forum n'est pas accessible pour le moment.", undefined, 'Forum indisponible');
     _candidatureEnRedaction = null;
   }
 }
@@ -844,7 +844,7 @@ async function publierProgrammeCandidature(titre, contenu) {
     if (typeof updateUI === 'function') updateUI();
   }
   if (!rows.deja_candidat) {
-    showToast('Candidature enregistree', 'Votre programme est publie : vous etes officiellement candidat.', true, true);
+    showToast('Candidature enregistree', 'Votre programme est publie : vous etes officiellement candidat.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b75eeaa30", 'Votre programme est publie : vous etes officiellement candidat.', undefined, 'Candidature enregistree');
     addJournalEntry('🗳️ Candidature deposee et programme publie.', 'event-info');
   }
   if (typeof syncCyclesDepuisSupabase === 'function') await syncCyclesDepuisSupabase().catch(() => {});
@@ -888,7 +888,7 @@ function ouvrirProgrammeCandidat(topicId) {
   if (!topicId) return;
   document.getElementById('modal-postes')?.classList.remove('open');
   if (typeof ouvrirForumSurTopic === 'function') ouvrirForumSurTopic(topicId);
-  else showToast('Programme indisponible', "Le forum n'est pas accessible pour le moment.", false);
+  else { showToast('Programme indisponible', "Le forum n'est pas accessible pour le moment.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b09538907", "Le forum n'est pas accessible pour le moment.", undefined, 'Programme indisponible'); }
 }
 
 function deposerCandidatureBtn2Btn(el) { deposerCandidatureBtn2(el.dataset.poste, el.dataset.country, el.dataset.city); }
@@ -1453,7 +1453,7 @@ async function doPoulsPopulaire() {
 
   const actives = electionsLocalesEnCours(country, ville);
   if (actives.length === 0) {
-    showToast('Aucune élection', 'Aucune élection n\'est actuellement en cours dans cette ville.', false);
+    showToast('Aucune élection', 'Aucune élection n\'est actuellement en cours dans cette ville.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b9bcd4a91", 'Aucune élection n\'est actuellement en cours dans cette ville.', undefined, 'Aucune élection');
     return;
   }
 
@@ -1490,7 +1490,7 @@ async function deposerCandidature(posteId, country, city) {
   const domicile = state.domicile;
   const domicilePays = domicile?.country || state.country;
   if (domicilePays !== (country || state.country)) {
-    showToast('Non domicilié', 'Vous devez être domicilié dans cet empire pour vous présenter.', false);
+    showToast('Non domicilié', 'Vous devez être domicilié dans cet empire pour vous présenter.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bf265d197", 'Vous devez être domicilié dans cet empire pour vous présenter.', undefined, 'Non domicilié');
     return;
   }
 
@@ -1500,13 +1500,13 @@ async function deposerCandidature(posteId, country, city) {
 
   // Vérifier niveau d'influence requis
   if ((state.inf || 0) < (poste.minInf || 0)) {
-    showToast('Influence insuffisante', 'Il faut ' + poste.minInf + ' INF minimum pour ce poste.', false);
+    showToast('Influence insuffisante', 'Il faut ' + poste.minInf + ' INF minimum pour ce poste.', false); globalThis.RPI18nPlateau?.markToast(null, 'Il faut ' + poste.minInf + ' INF minimum pour ce poste.', undefined, 'Influence insuffisante');
     return;
   }
 
   if (posteId === 'depute') {
     if (state.posteDepute) {
-      showToast('Deja depute', 'Vous etes deja depute.', false);
+      showToast('Deja depute', 'Vous etes deja depute.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bc8b4bf94", 'Vous etes deja depute.', undefined, 'Deja depute');
       return;
     }
   } else if (state.poste && state.poste.id !== posteId) {
@@ -1515,7 +1515,7 @@ async function deposerCandidature(posteId, country, city) {
       pair.includes(state.poste.id) && pair.includes(posteId)
     );
     if (conflict) {
-      showToast('Cumul interdit', 'Vous ne pouvez pas cumuler ' + state.poste.name + ' et ' + poste.name + '.', false);
+      showToast('Cumul interdit', 'Vous ne pouvez pas cumuler ' + state.poste.name + ' et ' + poste.name + '.', false); globalThis.RPI18nPlateau?.markToast(null, 'Vous ne pouvez pas cumuler ' + state.poste.name + ' et ' + poste.name + '.', undefined, 'Cumul interdit');
       return;
     }
   }
@@ -1534,14 +1534,14 @@ async function deposerCandidature(posteId, country, city) {
   // le vote, ni le depouillement : une candidature deposee tardivement rejoint simplement
   // cycle.candidats avec 0 voix, comme n'importe quelle autre.
   if (cycle.candidats.find(ca => ca.nom === nom)) {
-    showToast('Déjà candidat', 'Vous êtes déjà candidat à ce poste.', false);
+    showToast('Déjà candidat', 'Vous êtes déjà candidat à ce poste.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bc53bba10", 'Vous êtes déjà candidat à ce poste.', undefined, 'Déjà candidat');
     return;
   }
   // Calendrier du dimanche (12 septembre 2026) : le verrou temporel retire le 17 aout revient --
   // candidatures fermees le lundi 00:01 precedant le vote (le serveur refuse aussi, trigger
   // candidatures_cloture). Aucun PA n'est debite pour une candidature refusee.
   if (!candidaturesOuvertes(cycle)) {
-    showToast('Candidatures closes', 'Les candidatures à ce scrutin sont closes. Elles rouvriront avec le prochain scrutin.', false);
+    showToast('Candidatures closes', 'Les candidatures à ce scrutin sont closes. Elles rouvriront avec le prochain scrutin.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b74624902", 'Les candidatures à ce scrutin sont closes. Elles rouvriront avec le prochain scrutin.', undefined, 'Candidatures closes');
     return;
   }
 
@@ -1558,7 +1558,7 @@ async function deposerCandidature(posteId, country, city) {
 // concret (vote garanti) que la distribution manuelle de prospectus.
 function doDonnerConference(pa, cost) {
   if (state.char?.derniereConferenceJour === state.day) {
-    showToast('Déjà fait aujourd\'hui', 'Une seule conférence par jour.', false);
+    showToast('Déjà fait aujourd\'hui', 'Une seule conférence par jour.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b54158684", 'Une seule conférence par jour.', undefined, 'Déjà fait aujourd\'hui');
     return;
   }
   document.getElementById('postes-modal-title').textContent = 'Donner une conférence';
@@ -1662,7 +1662,7 @@ async function confirmerConference(cle, candidatNom, pa, cost) {
 
   updateUI();
   if (convertis === 0) {
-    showToast('Conférence sans effet', 'Ces électeurs avaient déjà été convaincus.', false);
+    showToast('Conférence sans effet', 'Ces électeurs avaient déjà été convaincus.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b58a3b2b0", 'Ces électeurs avaient déjà été convaincus.', undefined, 'Conférence sans effet');
     addJournalEntry('Conférence donnée à l\'université en soutien à ' + candidatNom + ' — aucun nouvel électeur.', '');
     return;
   }
@@ -1714,7 +1714,7 @@ async function confirmerCandidature(el) {
   const nom = state.char?.name;
   const programme = document.getElementById('prog-texte')?.value?.trim() || '';
   const theme = document.getElementById('prog-theme')?.value || 'economie';
-  if (!programme) { showToast('Programme requis', 'Décrivez votre programme.', false); return; }
+  if (!programme) { showToast('Programme requis', 'Décrivez votre programme.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bc908cf4d", 'Décrivez votre programme.', undefined, 'Programme requis'); return; }
 
   // Garde du cycle electoral (correctif Lot 2C) -- meme controle que deposerCandidature()
   // (ligne 592) : initialise le cycle s'il n'existe pas encore, AVANT la deduction PA. Un cycle
@@ -1722,11 +1722,11 @@ async function confirmerCandidature(el) {
   // absence totale (init impossible) doit bloquer l'ordre sans debit.
   const cle = getCleCycle(posteId, city);
   if (!CYCLES_ELECTORAUX[country][cle]) await initCycleElectoral(country, posteId, city);
-  if (!CYCLES_ELECTORAUX[country][cle]) { showToast('Indisponible', 'Le cycle electoral n\'est pas exploitable pour ce poste.', false); return; }
+  if (!CYCLES_ELECTORAUX[country][cle]) { showToast('Indisponible', 'Le cycle electoral n\'est pas exploitable pour ce poste.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bae73692c", 'Le cycle electoral n\'est pas exploitable pour ce poste.', undefined, 'Indisponible'); return; }
 
   // Cloture du lundi 00:01 (12 septembre 2026), verifiee AVANT le debit des PA.
   if (!candidaturesOuvertes(CYCLES_ELECTORAUX[country][cle])) {
-    showToast('Candidatures closes', 'Les candidatures à ce scrutin sont closes.', false);
+    showToast('Candidatures closes', 'Les candidatures à ce scrutin sont closes.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bc0622a5f", 'Les candidatures à ce scrutin sont closes.', undefined, 'Candidatures closes');
     return;
   }
 
@@ -1857,12 +1857,12 @@ async function voterPour(candidatNom, posteId, country, city) {
   // des legislatives, limite aux candidats ex aequo pour le dernier siege d'une ville -- meme
   // fenetre de vote (24h) que VOTE/VOTE2, simple phase supplementaire reconnue ici.
   if (phaseVote !== PHASES_ELECTORALES.VOTE && phaseVote !== PHASES_ELECTORALES.VOTE2 && phaseVote !== PHASES_ELECTORALES.VOTE3E_SIEGE) {
-    showToast('Vote fermé', 'Le vote n\'est pas ouvert actuellement.', false);
+    showToast('Vote fermé', 'Le vote n\'est pas ouvert actuellement.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.be91deb3f", 'Le vote n\'est pas ouvert actuellement.', undefined, 'Vote fermé');
     return;
   }
 
   if (cycle.votes[votant]) {
-    showToast('Déjà voté', 'Vous avez déjà voté pour ce poste.', false);
+    showToast('Déjà voté', 'Vous avez déjà voté pour ce poste.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bf95e942c", 'Vous avez déjà voté pour ce poste.', undefined, 'Déjà voté');
     return;
   }
 
@@ -2138,7 +2138,7 @@ function ouvrirBureauDeVote(posteId, country, city) {
   const cle = getCleCycle(posteId, city);
   const cycle = CYCLES_ELECTORAUX[country]?.[cle];
   if (!cycle || !cycle.candidats.length) {
-    showToast('Aucun candidat', 'Personne ne s\'est présenté.', false);
+    showToast('Aucun candidat', 'Personne ne s\'est présenté.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b73bfccec", 'Personne ne s\'est présenté.', undefined, 'Aucun candidat');
     return;
   }
 
@@ -2206,7 +2206,7 @@ function ouvrirBureauDeVote(posteId, country, city) {
 // Consulter les résultats via informateur
 function consulterResultatsInformateur(posteId, country, city) {
   if (!state.informateurs?.length) {
-    showToast('Informateur requis', 'Recrutez un informateur pour connaître les résultats en temps réel.', false);
+    showToast('Informateur requis', 'Recrutez un informateur pour connaître les résultats en temps réel.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bdfe1927b", 'Recrutez un informateur pour connaître les résultats en temps réel.', undefined, 'Informateur requis');
     return;
   }
 
@@ -2514,7 +2514,7 @@ function htmlChoixCandidatFraude(fnConfirm, entree, pa, cost, extra) {
 async function ouvrirFalsifierListesElectorales(pa, cost) {
   const posteActuel = state.poste?.id;
   if (posteActuel !== 'maire' && posteActuel !== 'maire_adjoint') {
-    showToast('Accès refusé', 'Réservé au maire ou à l\'adjoint au maire en exercice.', false);
+    showToast('Accès refusé', 'Réservé au maire ou à l\'adjoint au maire en exercice.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b2797c4d8", 'Réservé au maire ou à l\'adjoint au maire en exercice.', undefined, 'Accès refusé');
     return;
   }
   const ville = state.currentCity || 'capitale';
@@ -2540,13 +2540,13 @@ async function confirmerFalsifierListes(posteId, city, candidatNom) {
   // jamais une fois le vote ouvert ou le scrutin depouille/resolu.
   const posteActuelExec = state.poste?.id;
   if (posteActuelExec !== 'maire' && posteActuelExec !== 'maire_adjoint') {
-    showToast('Accès refusé', 'Réservé au maire ou à l\'adjoint au maire en exercice.', false);
+    showToast('Accès refusé', 'Réservé au maire ou à l\'adjoint au maire en exercice.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b2797c4d8", 'Réservé au maire ou à l\'adjoint au maire en exercice.', undefined, 'Accès refusé');
     return;
   }
   const phaseFalsif = getPhaseActuelle(country, posteId, city);
   const phasesAutoriseesFalsif = [PHASES_ELECTORALES.CANDIDATURES, PHASES_ELECTORALES.CAMPAGNE, PHASES_ELECTORALES.SECOND_TOUR, PHASES_ELECTORALES.CAMPAGNE_3E_SIEGE];
   if (!phasesAutoriseesFalsif.includes(phaseFalsif)) {
-    showToast('Hors fenêtre', 'Les listes électorales ne se falsifient qu\'avant l\'ouverture du vote.', false);
+    showToast('Hors fenêtre', 'Les listes électorales ne se falsifient qu\'avant l\'ouverture du vote.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bdb36000a", 'Les listes électorales ne se falsifient qu\'avant l\'ouverture du vote.', undefined, 'Hors fenêtre');
     return;
   }
   // Controle A L'EXECUTION du candidat cible (correctif du 4 septembre 2026, audit dedie) :
@@ -2556,16 +2556,16 @@ async function confirmerFalsifierListes(posteId, city, candidatNom) {
   // candidat, un candidat d'une autre ville/election (cycle different, jamais celui-ci), et un
   // ancien candidat elimine qui ne fait plus partie du tour en cours.
   if (!cycle.candidats?.some(c => c.nom === candidatNom)) {
-    showToast('Candidat invalide', 'Ce candidat ne fait pas partie du tour actuellement en lice pour ce scrutin.', false);
+    showToast('Candidat invalide', 'Ce candidat ne fait pas partie du tour actuellement en lice pour ce scrutin.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b29047f09", 'Ce candidat ne fait pas partie du tour actuellement en lice pour ce scrutin.', undefined, 'Candidat invalide');
     return;
   }
   const v = await tenterFraudeServeur('falsification_listes', posteId, city, candidatNom);
   if (!v) return;
   if (v.reussi) {
-    showToast('Listes falsifiées', 'La fraude a réussi. Les voix seront comptabilisées au dépouillement.', true, true);
+    showToast('Listes falsifiées', 'La fraude a réussi. Les voix seront comptabilisées au dépouillement.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b383b6539", 'La fraude a réussi. Les voix seront comptabilisées au dépouillement.', undefined, 'Listes falsifiées');
     addJournalEntry('🗳️ Listes électorales falsifiées en faveur de ' + candidatNom + '.', 'event-good');
   } else {
-    showToast('Pris(e) sur le fait !', 'Aucune voix modifiée. Emprisonnement jusqu\'à la fin du processus électoral.', false);
+    showToast('Pris(e) sur le fait !', 'Aucune voix modifiée. Emprisonnement jusqu\'à la fin du processus électoral.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b2b71b258", 'Aucune voix modifiée. Emprisonnement jusqu\'à la fin du processus électoral.', undefined, 'Pris(e) sur le fait !');
     addJournalEntry('🚨 Tentative de falsification des listes électorales déjouée.', 'event-bad');
   }
   updateUI();
@@ -2604,23 +2604,23 @@ async function confirmerBourrerUrnes(posteId, city, candidatNom) {
   // fenetre de vote reelle, jamais compter uniquement sur le masquage cote interface.
   const phaseBourrage = getPhaseActuelle(country, posteId, city);
   if (phaseBourrage !== PHASES_ELECTORALES.VOTE && phaseBourrage !== PHASES_ELECTORALES.VOTE2 && phaseBourrage !== PHASES_ELECTORALES.VOTE3E_SIEGE) {
-    showToast('Hors fenêtre', 'Les urnes ne se bourrent que pendant une fenêtre de vote ouverte.', false);
+    showToast('Hors fenêtre', 'Les urnes ne se bourrent que pendant une fenêtre de vote ouverte.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b59e22af8", 'Les urnes ne se bourrent que pendant une fenêtre de vote ouverte.', undefined, 'Hors fenêtre');
     return;
   }
   // Controle A L'EXECUTION du candidat cible (correctif du 4 septembre 2026, audit dedie) : voir
   // le commentaire equivalent dans confirmerFalsifierListes -- cycle.candidats est toujours la
   // liste exacte du tour en cours pour ce scrutin precis.
   if (!cycle.candidats?.some(c => c.nom === candidatNom)) {
-    showToast('Candidat invalide', 'Ce candidat ne fait pas partie du tour actuellement en lice pour ce scrutin.', false);
+    showToast('Candidat invalide', 'Ce candidat ne fait pas partie du tour actuellement en lice pour ce scrutin.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b29047f09", 'Ce candidat ne fait pas partie du tour actuellement en lice pour ce scrutin.', undefined, 'Candidat invalide');
     return;
   }
   const v = await tenterFraudeServeur('bourrage_urnes', posteId, city, candidatNom);
   if (!v) return;
   if (v.reussi) {
-    showToast('Urnes bourrées', 'La fraude a réussi. Les voix seront comptabilisées au dépouillement.', true, true);
+    showToast('Urnes bourrées', 'La fraude a réussi. Les voix seront comptabilisées au dépouillement.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b383b6539", 'La fraude a réussi. Les voix seront comptabilisées au dépouillement.', undefined, 'Urnes bourrées');
     addJournalEntry('🗳️ Urnes bourrées en faveur de ' + candidatNom + '.', 'event-good');
   } else {
-    showToast('Pris(e) sur le fait !', 'Aucune voix modifiée. 24h de prison.', false);
+    showToast('Pris(e) sur le fait !', 'Aucune voix modifiée. 24h de prison.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bb0ea4cb8", 'Aucune voix modifiée. 24h de prison.', undefined, 'Pris(e) sur le fait !');
     addJournalEntry('🚨 Tentative de bourrage d\'urnes déjouée. 24h de prison.', 'event-bad');
   }
   updateUI();
@@ -2632,7 +2632,7 @@ async function ouvrirTruquerDepouillement(pa, cost) {
   const estCommissaire = posteActuel === 'commissaire';
   const estJuge = posteActuel === 'juge';
   if (!estCommissaire && !estJuge) {
-    showToast('Accès refusé', 'Réservé au commissaire ou au juge.', false);
+    showToast('Accès refusé', 'Réservé au commissaire ou au juge.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bd0f4f05e", 'Réservé au commissaire ou au juge.', undefined, 'Accès refusé');
     return;
   }
   // Commissaire : scrutins de SA ville uniquement (scope de sa fonction) ; juge : scope national,
@@ -2682,19 +2682,19 @@ async function confirmerTruquerDepouillement(posteId, city, candidatNom, sens) {
   // contournerait l'ecran de choix.
   const posteActuelTruq = state.poste?.id;
   if (posteActuelTruq !== 'commissaire' && posteActuelTruq !== 'juge') {
-    showToast('Accès refusé', 'Réservé au commissaire ou au juge.', false);
+    showToast('Accès refusé', 'Réservé au commissaire ou au juge.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bd0f4f05e", 'Réservé au commissaire ou au juge.', undefined, 'Accès refusé');
     return;
   }
   const phaseTruquage = getPhaseActuelle(country, posteId, city);
   if (phaseTruquage !== PHASES_ELECTORALES.VOTE && phaseTruquage !== PHASES_ELECTORALES.VOTE2 && phaseTruquage !== PHASES_ELECTORALES.VOTE3E_SIEGE) {
-    showToast('Hors fenêtre', 'Le dépouillement ne se truque que pendant une fenêtre de vote ouverte.', false);
+    showToast('Hors fenêtre', 'Le dépouillement ne se truque que pendant une fenêtre de vote ouverte.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b78d5f8e6", 'Le dépouillement ne se truque que pendant une fenêtre de vote ouverte.', undefined, 'Hors fenêtre');
     return;
   }
   // Controle A L'EXECUTION du candidat cible (correctif du 4 septembre 2026, audit dedie) : voir
   // le commentaire equivalent dans confirmerFalsifierListes -- cycle.candidats est toujours la
   // liste exacte du tour en cours pour ce scrutin precis.
   if (!cycle.candidats?.some(c => c.nom === candidatNom)) {
-    showToast('Candidat invalide', 'Ce candidat ne fait pas partie du tour actuellement en lice pour ce scrutin.', false);
+    showToast('Candidat invalide', 'Ce candidat ne fait pas partie du tour actuellement en lice pour ce scrutin.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b29047f09", 'Ce candidat ne fait pas partie du tour actuellement en lice pour ce scrutin.', undefined, 'Candidat invalide');
     return;
   }
   const v = await tenterFraudeServeur('trucage_depouillement', posteId, city, candidatNom, sens);
@@ -2704,7 +2704,7 @@ async function confirmerTruquerDepouillement(posteId, city, candidatNom, sens) {
     showToast('Dépouillement truqué', 'La fraude a réussi (' + (deltaVoix > 0 ? '+' : '') + deltaVoix + ' voix pour ' + candidatNom + ').', true, true);
     addJournalEntry('🗳️ Dépouillement truqué : ' + (deltaVoix > 0 ? '+' : '') + deltaVoix + ' voix pour ' + candidatNom + '.', 'event-good');
   } else {
-    showToast('Pris(e) sur le fait !', 'Aucune voix modifiée. Emprisonnement jusqu\'à la fin du processus électoral. Vous conservez votre poste.', false);
+    showToast('Pris(e) sur le fait !', 'Aucune voix modifiée. Emprisonnement jusqu\'à la fin du processus électoral. Vous conservez votre poste.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b436def2d", 'Aucune voix modifiée. Emprisonnement jusqu\'à la fin du processus électoral. Vous conservez votre poste.', undefined, 'Pris(e) sur le fait !');
     addJournalEntry('🚨 Tentative de trucage du dépouillement déjouée.', 'event-bad');
   }
   updateUI();
@@ -2776,7 +2776,7 @@ async function confirmerContesterResultats(posteId, city) {
   }
   if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v.paie || {});
   if (v.issue === 'rejetee') {
-    showToast('Contestation rejetée', 'Le dossier n\'a pas abouti.', false);
+    showToast('Contestation rejetée', 'Le dossier n\'a pas abouti.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b95476cf7", 'Le dossier n\'a pas abouti.', undefined, 'Contestation rejetée');
     addJournalEntry('⚖️ Contestation des résultats rejetée.', 'event-bad');
     return;
   }
@@ -3089,7 +3089,7 @@ async function verifierObjectifs() {
     // signature locale qui ferait oublier une nouvelle éligibilité au prochain geste.
     state._objectifsSignatureConfirmee=v.rejeu?null:signature;
     if(v.objectifs_nouveaux.length){
-      showToast('Objectifs accomplis','+2 INF pour ce nouveau lot (plafond 100).',true);
+      showToast('Objectifs accomplis','+2 INF pour ce nouveau lot (plafond 100).',true); globalThis.RPI18nPlateau?.markToast("toastBodies.bc13bc21f", '+2 INF pour ce nouveau lot (plafond 100).', undefined, 'Objectifs accomplis');
       addJournalEntry('Objectifs nouveaux reconnus par le serveur : +2 INF par lot.','event-good');
       updateUI();
     }
@@ -4766,7 +4766,7 @@ async function confirmerLoyerLotTerrain(lotId, index) {
   const id = state.currentBuilding;
   const brut = (document.getElementById('loyer-lot-' + index)?.value || '').trim();
   if (!/^[1-9][0-9]{0,5}$/.test(brut) || Number(brut) > 100000) {
-    showToast('Loyer refusé', 'Indiquez un loyer journalier en francs entiers, entre 1 et 100 000.', false);
+    showToast('Loyer refusé', 'Indiquez un loyer journalier en francs entiers, entre 1 et 100 000.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b9edda4b0", 'Indiquez un loyer journalier en francs entiers, entre 1 et 100 000.', undefined, 'Loyer refusé');
     return;
   }
   loyerLotEnCours = true;
@@ -4795,7 +4795,7 @@ async function confirmerLoyerLotTerrain(lotId, index) {
 }
 
 function expliquerAchatTerrainBloque() {
-  showToast('Achat impossible', 'Achat impossible, vous devez libérer le terrain en gérant les intrus', false);
+  showToast('Achat impossible', 'Achat impossible, vous devez libérer le terrain en gérant les intrus', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b25287a16", 'Achat impossible, vous devez libérer le terrain en gérant les intrus', undefined, 'Achat impossible');
 }
 
 // Les boutons restent au format standard ; seuls leurs sous-ordres s'affichent en pop-up.
@@ -4965,7 +4965,7 @@ function arreterAudioguide() {
 // =====================
 async function signerDecretInutile(pa, cost) {
   if (state.poste?.id !== 'president') {
-    showToast('Accès refusé', 'Seul le Président peut signer des décrets.', false);
+    showToast('Accès refusé', 'Seul le Président peut signer des décrets.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b882e2097", 'Seul le Président peut signer des décrets.', undefined, 'Accès refusé');
     return;
   }
 
@@ -5047,7 +5047,7 @@ async function publierDecret(texte, pa, cost, sujet) {
     posts: [{ id: 'p-' + Date.now(), author: from, time, content: texte }]
   });
 
-  showToast('Décret publié !', 'Visible sur La Presidence a la Nation.', true);
+  showToast('Décret publié !', 'Visible sur La Presidence a la Nation.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.b01503047", 'Visible sur La Presidence a la Nation.', undefined, 'Décret publié !');
 }
 
 
@@ -5422,7 +5422,7 @@ async function publierMessagePresidentiel(type, pa, cost) {
     const rep2 = document.getElementById('pres-ref-rep2')?.value?.trim();
     const rep3 = document.getElementById('pres-ref-rep3')?.value?.trim();
     const duree = parseInt(document.getElementById('pres-ref-duree')?.value || '5');
-    if (!titre || !rep1 || !rep2) { showToast('Champs requis', 'Question et au moins 2 réponses.', false); return; }
+    if (!titre || !rep1 || !rep2) { showToast('Champs requis', 'Question et au moins 2 réponses.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b28cdfd4d", 'Question et au moins 2 réponses.', undefined, 'Champs requis'); return; }
     const rRef = await executerOrdreJaugesServeur('message_presidentiel', { type: 'referendum' });
     if (!rRef) return;
     gainsServeur = { pop: rRef.gain_pop, inf: rRef.gain_inf };
@@ -5437,7 +5437,7 @@ async function publierMessagePresidentiel(type, pa, cost) {
     const brut = document.getElementById('pres-msg-contenu')?.innerHTML || '';
     contenu = (typeof sanitizeRichHtml === 'function') ? sanitizeRichHtml(brut.trim()) : brut.trim();
     const texteSeul = contenu.replace(/<[^>]*>/g, '').trim();
-    if (!titre || !texteSeul) { showToast('Champs requis', 'Titre et contenu obligatoires.', false); return; }
+    if (!titre || !texteSeul) { showToast('Champs requis', 'Titre et contenu obligatoires.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b6c7bdea8", 'Titre et contenu obligatoires.', undefined, 'Champs requis'); return; }
     blocs = (typeof htmlToBlocks === 'function') ? htmlToBlocks(contenu) : [];
 
     // LA TRIBUNE : UNE SEULE TRANSACTION AU SERVEUR. Autorite, prelevement, sujet et message
@@ -5458,7 +5458,7 @@ async function publierMessagePresidentiel(type, pa, cost) {
         const accepte = await demanderAccordFinancementTribune(r);
         surSaCaisse = accepte === true;
         if (!accepte) {
-          showToast('Communication annulée', 'Aucun franc et aucun PA n\'ont été prélevés.', false);
+          showToast('Communication annulée', 'Aucun franc et aucun PA n\'ont été prélevés.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b8c6b6053", 'Aucun franc et aucun PA n\'ont été prélevés.', undefined, 'Communication annulée');
           return;
         }
         r = await sbCommunicationPublier(
@@ -5652,7 +5652,7 @@ async function repondreConferenceDePresse(refus) {
   const champ = document.getElementById('conf-reponse');
   const texte = refus ? '' : String((champ && champ.value) || '').trim();
   if (!refus && !texte) {
-    showToast('Réponse vide', 'Répondez, ou refusez explicitement de répondre.', false);
+    showToast('Réponse vide', 'Répondez, ou refusez explicitement de répondre.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b9e212557", 'Répondez, ou refusez explicitement de répondre.', undefined, 'Réponse vide');
     return;
   }
   const rang = conferenceEnCours.rang;
@@ -6052,7 +6052,7 @@ async function traiterDemandeNaturalisation(demandeId, accepter) {
   if (typeof sbGetDemandesNaturalisationPour !== 'function') return;
   const demandes = await sbGetDemandesNaturalisationPour((typeof maNationalite === 'function' ? maNationalite() : state.country)).catch(() => []);
   const demande = (demandes || []).find(d => d.id === demandeId);
-  if (!demande) { showToast('Introuvable', 'Cette demande n\'existe plus.', false); return; }
+  if (!demande) { showToast('Introuvable', 'Cette demande n\'existe plus.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bed739f95", 'Cette demande n\'existe plus.', undefined, 'Introuvable'); return; }
 
   // SERVEUR AUTORITAIRE (17 septembre 2026, audit des frontieres d'autorite). Avant : le client
   // changeait le statut par un sbUpdate brut, puis, en cas de refus, deposait le remboursement
@@ -6075,7 +6075,7 @@ async function traiterDemandeNaturalisation(demandeId, accepter) {
     return;
   }
   if (r.rejeu) {
-    showToast('Déjà traitée', 'Cette demande a déjà été traitée.', false);
+    showToast('Déjà traitée', 'Cette demande a déjà été traitée.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b5779e46a", 'Cette demande a déjà été traitée.', undefined, 'Déjà traitée');
     ouvrirDemandesNaturalisation();
     return;
   }
@@ -6097,7 +6097,7 @@ async function traiterDemandeNaturalisation(demandeId, accepter) {
       sbSendMail('Service de l\'Immigration', demande.demandeur, 'Naturalisation refusée',
         'Votre demande de naturalisation a été refusée par le Ministre de l\'Intérieur. ' + remboursement + ' ' + (COUNTRIES[state.country]?.cur||'FR') + ' vous sont remboursés.', time).catch(() => {});
     }
-    showToast('Demande refusée', demande.demandeur + ' a été notifié(e), remboursement partiel envoyé.', false, true);
+    showToast('Demande refusée', demande.demandeur + ' a été notifié(e), remboursement partiel envoyé.', false, true); globalThis.RPI18nPlateau?.markToast(null, demande.demandeur + ' a été notifié(e), remboursement partiel envoyé.', undefined, 'Demande refusée');
   }
 
   ouvrirDemandesNaturalisation();
@@ -6408,7 +6408,7 @@ async function confirmerRevocationPosteNomme(posteId, nomTitulaire, estPJ, pa, c
   const villeNom = regle.scope === 'ville' ? (WORLD[state.country]?.[state.currentCity]?.name || state.currentCity) : null;
   addExternalEvent('🏛 ' + nomTitulaire + ' a ete revoque(e) du poste de ' + regle.label + (villeNom ? ' de ' + villeNom : '') + '.', villeNom ? 'local' : 'national');
   addJournalEntry('Revocation de ' + nomTitulaire + ' du poste de ' + regle.label + '.', 'event-info');
-  showToast('Poste revoque', nomTitulaire + ' n\'occupe plus le poste de ' + regle.label + '.', true);
+  showToast('Poste revoque', nomTitulaire + ' n\'occupe plus le poste de ' + regle.label + '.', true); globalThis.RPI18nPlateau?.markToast(null, nomTitulaire + ' n\'occupe plus le poste de ' + regle.label + '.', undefined, 'Poste revoque');
 }
 
 function peutAccepterPosteNomme(posteId) {
@@ -6506,7 +6506,7 @@ async function envoyerNominationPosteNomme(posteId, pa, cost) {
       fiche = (rows && rows[0]) || null;
     }
     if (!fiche) {
-      showToast('Nomination impossible', 'Impossible de vérifier l\'éligibilité de ' + destinataire + '.', false);
+      showToast('Nomination impossible', 'Impossible de vérifier l\'éligibilité de ' + destinataire + '.', false); globalThis.RPI18nPlateau?.markToast(null, 'Impossible de vérifier l\'éligibilité de ' + destinataire + '.', undefined, 'Nomination impossible');
       return;
     }
     const v = verdictNominationCommandant(fiche);
@@ -6550,7 +6550,7 @@ async function envoyerNominationPosteNomme(posteId, pa, cost) {
     if (posteId === 'commandant') {
       showToast('Nomination impossible',
         'Le Commandant doit justifier d\'études supérieures et d\'une qualification militaire : un PNJ ne peut pas être nommé à ce poste.',
-        false);
+        false); globalThis.RPI18nPlateau?.markToast("toastBodies.b596ed32d", 'Le Commandant doit justifier d\'études supérieures et d\'une qualification militaire : un PNJ ne peut pas être nommé à ce poste.', undefined, 'Nomination impossible');
       return;
     }
     // La table titulaires_pnj n'est plus ecrivable par un client (chantier « autorite des
@@ -6574,7 +6574,7 @@ async function envoyerNominationPosteNomme(posteId, pa, cost) {
         data: { poste: posteId, nomme: destinataire, nomme_pnj: true, nommeur: nommeurNom }
       }).catch(() => {});
     }
-    showToast('Nomination effectuee', destinataire + ' occupe desormais le poste de ' + regle.label + '.', true, true);
+    showToast('Nomination effectuee', destinataire + ' occupe desormais le poste de ' + regle.label + '.', true, true); globalThis.RPI18nPlateau?.markToast(null, destinataire + ' occupe desormais le poste de ' + regle.label + '.', undefined, 'Nomination effectuee');
     return;
   }
 
@@ -6599,10 +6599,10 @@ async function envoyerNominationPosteNomme(posteId, pa, cost) {
     const h = String(state.hour || 8).padStart(2,'0');
     const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
     await sbSendMail(nommeurNom, destinataire, sujet, corps, time);
-    showToast('Nomination envoyée', destinataire + ' a reçu votre proposition.', true);
+    showToast('Nomination envoyée', destinataire + ' a reçu votre proposition.', true); globalThis.RPI18nPlateau?.markToast(null, destinataire + ' a reçu votre proposition.', undefined, 'Nomination envoyée');
     addJournalEntry('Nomination de ' + destinataire + ' au poste de ' + regle.label + ' proposée.', 'event-info');
   } else {
-    showToast('Erreur', 'Système de mail indisponible.', false);
+    showToast('Erreur', 'Système de mail indisponible.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bd2a89fae", 'Système de mail indisponible.', undefined, 'Erreur');
   }
 }
 
@@ -6639,10 +6639,10 @@ function messageRefusNomination(verdict) {
 async function accepterNominationPosteNomme(idNomination) {
   if (!idNomination || typeof idNomination !== 'string' || idNomination.indexOf('nom-') !== 0) {
     // Ancien mail, envoye avant ce chantier : ses arguments ne prouvent rien.
-    showToast('Proposition perimee', 'Cette proposition date d\'avant la reforme des nominations. Demandez a l\'autorite de la renouveler.', false);
+    showToast('Proposition perimee', 'Cette proposition date d\'avant la reforme des nominations. Demandez a l\'autorite de la renouveler.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b18cff037", 'Cette proposition date d\'avant la reforme des nominations. Demandez a l\'autorite de la renouveler.', undefined, 'Proposition perimee');
     return;
   }
-  if (typeof sbRpc !== 'function') { showToast('Indisponible', 'Service momentanement indisponible.', false); return; }
+  if (typeof sbRpc !== 'function') { showToast('Indisponible', 'Service momentanement indisponible.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b7c3ec26a", 'Service momentanement indisponible.', undefined, 'Indisponible'); return; }
   const rows = await sbRpc('poste_accepter_nomination', { p_id: idNomination }).catch(() => null);
   const v = Array.isArray(rows) ? rows[0] : rows;
   if (!v || v.ok !== true) { showToast('Nomination refusee', messageRefusNomination(v), false); return; }
@@ -6733,7 +6733,7 @@ async function accepterCandidaturePoste(posteId, posteName, candidatNom) {
     if (ancienTitulaire?.estPJ && ancienTitulaire.nom !== candidatNom) {
       if (estPosteProtege(ancienTitulaire.posteComplet)) {
         const raison = 'Ce titulaire bénéficie encore de sa période de protection après nomination (' + tempsProtectionRestanteTexte(ancienTitulaire.posteComplet) + ' restant).';
-        showToast('Titulaire protégé', raison, false);
+        showToast('Titulaire protégé', raison, false); globalThis.RPI18nPlateau?.markToast(null, raison, undefined, 'Titulaire protégé');
         return { ok: false, raison };
       }
       // CETTE ECRITURE A ETE SUPPRIMEE (chantier 5, chaine 17, 10 octobre 2026), et elle etait
@@ -6958,7 +6958,7 @@ async function reconcilierPosteElu(posteId, city) {
 // dette technique deja identifiee, hors perimetre de ce lot.
 async function doDissoudreAssemblee(pa, cost) {
   if (state.poste?.id !== 'president') {
-    showToast('Accès refusé', 'Seul le Président peut dissoudre l\'Assemblée.', false);
+    showToast('Accès refusé', 'Seul le Président peut dissoudre l\'Assemblée.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bb971a171", 'Seul le Président peut dissoudre l\'Assemblée.', undefined, 'Accès refusé');
     return;
   }
   const pays = state.country || 'republic';
@@ -6970,11 +6970,11 @@ async function doDissoudreAssemblee(pa, cost) {
   if (cyclesFrais) CYCLES_ELECTORAUX[pays] = { ...(CYCLES_ELECTORAUX[pays] || {}), ...cyclesFrais };
   const cyclePresident = CYCLES_ELECTORAUX[pays]?.['president'];
   if (!cyclePresident) {
-    showToast('Erreur', 'Impossible de vérifier votre mandat présidentiel pour le moment. Réessayez.', false);
+    showToast('Erreur', 'Impossible de vérifier votre mandat présidentiel pour le moment. Réessayez.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b67a8fb38", 'Impossible de vérifier votre mandat présidentiel pour le moment. Réessayez.', undefined, 'Erreur');
     return;
   }
   if (cyclePresident.dissolutionUtilisee) {
-    showToast('Dissolution déjà utilisée', 'Vous avez déjà dissous l\'Assemblée pendant ce mandat présidentiel.', false);
+    showToast('Dissolution déjà utilisée', 'Vous avez déjà dissous l\'Assemblée pendant ce mandat présidentiel.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b158e00ce", 'Vous avez déjà dissous l\'Assemblée pendant ce mandat présidentiel.', undefined, 'Dissolution déjà utilisée');
     return;
   }
 
@@ -7016,7 +7016,7 @@ async function doDissoudreAssemblee(pa, cost) {
     // relancer des scrutins par-dessus une Assemblee toujours en place.
     if (vRevoc && vRevoc.raison === 'dissolution_deja_utilisee') {
       showToast('Dissolution déjà utilisée',
-        'Votre mandat ne permet qu\'une seule dissolution, et elle a déjà été prononcée.', false);
+        'Votre mandat ne permet qu\'une seule dissolution, et elle a déjà été prononcée.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b686c9094", 'Votre mandat ne permet qu\'une seule dissolution, et elle a déjà été prononcée.', undefined, 'Dissolution déjà utilisée');
     } else {
       showToast('Dissolution non enregistrée',
         "La dissolution n'a pas pu être enregistrée"
@@ -7079,7 +7079,7 @@ async function ouvrirModalDemandeMariage(pa, cost) {
     const mariageActuel = await sbGetMariageActif(state.char?.name);
     if (mariageActuel) {
       const conjoint = mariageActuel.conjoint1 === state.char?.name ? mariageActuel.conjoint2 : mariageActuel.conjoint1;
-      showToast('Déjà marié(e)', 'Vous êtes déjà marié(e) avec ' + conjoint + '.', false);
+      showToast('Déjà marié(e)', 'Vous êtes déjà marié(e) avec ' + conjoint + '.', false); globalThis.RPI18nPlateau?.markToast(null, 'Vous êtes déjà marié(e) avec ' + conjoint + '.', undefined, 'Déjà marié(e)');
       return;
     }
   }
@@ -7141,7 +7141,7 @@ async function confirmerDemandeMariage(pa, cost) {
   const cleDem = 'mariage-demande:' + (state.char?.name || '') + ':' + destinataire;
   let requete;
   try { requete = sessionStorage.getItem(cleDem) || crypto.randomUUID(); sessionStorage.setItem(cleDem, requete); }
-  catch (_) { showToast('Demande non envoyée', 'Le navigateur ne peut pas conserver la référence de cette demande.', false); return; }
+  catch (_) { showToast('Demande non envoyée', 'Le navigateur ne peut pas conserver la référence de cette demande.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b014ab486", 'Le navigateur ne peut pas conserver la référence de cette demande.', undefined, 'Demande non envoyée'); return; }
   const v = await sbRpcVerdict('mariage_demander', { p_requete: requete, p_destinataire: destinataire, p_relation: relation }).catch(() => null);
   if (!v || v.ok !== true) {
     if (v && !v.transport) { try { sessionStorage.removeItem(cleDem); } catch (_) {} }
@@ -7154,17 +7154,17 @@ async function confirmerDemandeMariage(pa, cost) {
   }
   try { sessionStorage.removeItem(cleDem); } catch (_) {}
   if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v);
-  if (v.rejeu) { showToast('Demande déjà traitée', 'Cette demande avait déjà été enregistrée.', true); return; }
+  if (v.rejeu) { showToast('Demande déjà traitée', 'Cette demande avait déjà été enregistrée.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.b331de581", 'Cette demande avait déjà été enregistrée.', undefined, 'Demande déjà traitée'); return; }
 
   if (v.pnj) {
     updateUI();
     if (!v.accepte) {
-      showToast('Demande refusée', destinataire + ' a decline votre demande en mariage.', false);
+      showToast('Demande refusée', destinataire + ' a decline votre demande en mariage.', false); globalThis.RPI18nPlateau?.markToast(null, destinataire + ' a decline votre demande en mariage.', undefined, 'Demande refusée');
       addJournalEntry('Demande en mariage a ' + destinataire + ' (PNJ) refusee.', 'event-info');
     } else if (!v.celebre) {
-      showToast('Fonds insuffisants', destinataire + ' a accepté, mais 200 FR sont requis pour officialiser.', false);
+      showToast('Fonds insuffisants', destinataire + ' a accepté, mais 200 FR sont requis pour officialiser.', false); globalThis.RPI18nPlateau?.markToast(null, destinataire + ' a accepté, mais 200 FR sont requis pour officialiser.', undefined, 'Fonds insuffisants');
     } else {
-      showToast('Félicitations !', destinataire + ' a accepté. Union officialisée sur le champ !', true, true);
+      showToast('Félicitations !', destinataire + ' a accepté. Union officialisée sur le champ !', true, true); globalThis.RPI18nPlateau?.markToast(null, destinataire + ' a accepté. Union officialisée sur le champ !', undefined, 'Félicitations !');
       addJournalEntry('Mariage celebre avec ' + destinataire + ' (PNJ).', 'event-good');
       addExternalEvent((state.char?.name || '') + ' et ' + destinataire + ' se sont maries.', 'local');
     }
@@ -7180,7 +7180,7 @@ async function confirmerDemandeMariage(pa, cost) {
     await sbSendMail(state.char?.name || 'Anonyme', destinataire, 'Demande en mariage 💍', corps, time).catch(() => {});
   }
 
-  showToast('Demande envoyée', 'Votre demande en mariage a été envoyée à ' + destinataire + '.', true, true);
+  showToast('Demande envoyée', 'Votre demande en mariage a été envoyée à ' + destinataire + '.', true, true); globalThis.RPI18nPlateau?.markToast(null, 'Votre demande en mariage a été envoyée à ' + destinataire + '.', undefined, 'Demande envoyée');
   addJournalEntry('Demande en mariage envoyée à ' + destinataire + '.', 'event-info');
 }
 
@@ -7192,7 +7192,7 @@ async function accepterDemandeMariage(demandeId) {
       : v?.raison === 'deja_repondu' ? 'Vous avez déjà répondu à cette demande.' : 'Réponse incertaine. Réessayez.', false);
     return;
   }
-  showToast('Demande acceptée !', 'Rendez-vous tous les deux à la mairie pour officialiser votre union.', true, true);
+  showToast('Demande acceptée !', 'Rendez-vous tous les deux à la mairie pour officialiser votre union.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b7d8d242b", 'Rendez-vous tous les deux à la mairie pour officialiser votre union.', undefined, 'Demande acceptée !');
   addJournalEntry('Vous avez accepté la demande en mariage. Rendez-vous à la mairie pour officialiser.', 'event-good');
 }
 
@@ -7203,7 +7203,7 @@ async function refuserDemandeMariage(demandeId) {
     showToast('Réponse non enregistrée', v?.raison === 'deja_repondu' ? 'Vous avez déjà répondu à cette demande.' : 'Réponse incertaine. Réessayez.', false);
     return;
   }
-  showToast('Demande refusée', '', false);
+  showToast('Demande refusée', '', false); globalThis.RPI18nPlateau?.markToast(null, '', undefined, 'Demande refusée');
   addJournalEntry('Vous avez refusé une demande en mariage.', '');
 }
 
@@ -7231,7 +7231,7 @@ async function ouvrirOfficialiserMariage(pa, cost) {
   }
 
   if (presents.length === 0) {
-    showToast('Personne ici', 'Votre futur(e) époux/épouse doit être présent(e) dans cette pièce.', false);
+    showToast('Personne ici', 'Votre futur(e) époux/épouse doit être présent(e) dans cette pièce.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b0eb74e12", 'Votre futur(e) époux/épouse doit être présent(e) dans cette pièce.', undefined, 'Personne ici');
     return;
   }
 
@@ -7257,7 +7257,7 @@ async function confirmerOfficialisationMariage(pa, cost) {
   const cleOff = 'mariage-officialiser:' + (state.char?.name || '') + ':' + conjoint;
   let requete;
   try { requete = sessionStorage.getItem(cleOff) || crypto.randomUUID(); sessionStorage.setItem(cleOff, requete); }
-  catch (_) { showToast('Union non célébrée', 'Le navigateur ne peut pas conserver la référence de cette cérémonie.', false); return; }
+  catch (_) { showToast('Union non célébrée', 'Le navigateur ne peut pas conserver la référence de cette cérémonie.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b076a4719", 'Le navigateur ne peut pas conserver la référence de cette cérémonie.', undefined, 'Union non célébrée'); return; }
   const v = await sbRpcVerdict('mariage_officialiser', { p_requete: requete, p_conjoint: conjoint }).catch(() => null);
   if (!v || v.ok !== true) {
     if (v && !v.transport) { try { sessionStorage.removeItem(cleOff); } catch (_) {} }
@@ -7274,7 +7274,7 @@ async function confirmerOfficialisationMariage(pa, cost) {
   if (v.rejeu) return;
 
   updateUI();
-  showToast('Félicitations !', 'Vous êtes désormais marié(e) à ' + conjoint + ' !', true, true);
+  showToast('Félicitations !', 'Vous êtes désormais marié(e) à ' + conjoint + ' !', true, true); globalThis.RPI18nPlateau?.markToast(null, 'Vous êtes désormais marié(e) à ' + conjoint + ' !', undefined, 'Félicitations !');
   addJournalEntry('💍 Mariage célébré avec ' + conjoint + ' !', 'event-good');
   addExternalEvent('💍 ' + (state.char?.name||'') + ' et ' + conjoint + ' se sont mariés !', 'local');
 
@@ -7289,7 +7289,7 @@ async function confirmerOfficialisationMariage(pa, cost) {
 
 async function doEtatUrgence(pa, cost) {
   if (state.poste?.id !== 'president') {
-    showToast('Acces refuse', 'Seul le President peut declarer l\'etat d\'urgence.', false);
+    showToast('Acces refuse', 'Seul le President peut declarer l\'etat d\'urgence.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.ba0333168", 'Seul le President peut declarer l\'etat d\'urgence.', undefined, 'Acces refuse');
     return;
   }
   const pays = state.country;
@@ -7316,7 +7316,7 @@ async function confirmerEtatUrgence(activer, pa, cost) {
   // declarer ou lever l'etat d'urgence de tout un pays. Meme correctif que doBlocusPortuaire
   // (plateau-navigation.js, 25 aout 2026).
   if (state.poste?.id !== 'president') {
-    showToast('Acces refuse', "Seul le President peut declarer ou lever l'etat d'urgence.", false);
+    showToast('Acces refuse', "Seul le President peut declarer ou lever l'etat d'urgence.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.bda5c2832", "Seul le President peut declarer ou lever l'etat d'urgence.", undefined, 'Acces refuse');
     return;
   }
   document.getElementById('modal-postes').classList.remove('open');
@@ -7346,7 +7346,7 @@ async function confirmerEtatUrgence(activer, pa, cost) {
   } else {
     addExternalEvent("Fin de l'etat d'urgence, annoncee par " + from + '.');
     addJournalEntry("Etat d'urgence leve.", 'event-good');
-    showToast("Etat d'urgence leve", 'Les mesures exceptionnelles sont levees.', true);
+    showToast("Etat d'urgence leve", 'Les mesures exceptionnelles sont levees.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.b36b0cf29", 'Les mesures exceptionnelles sont levees.', undefined, "Etat d'urgence leve");
   }
 }
 
@@ -7621,7 +7621,7 @@ async function executerOrdreEmpire(action, empireId, empireName, pa, cost) {
   } else if (action === 'sanctions') {
     // Plus aucun ordre du jeu n'arrive ici (l'action « Imposer des sanctions » a ete retiree) :
     // le navigateur ne touche plus a l'Indice Diplomatique, tenu par le serveur (25/10/2026).
-    showToast('Sanctions', 'Cette action n\'est plus disponible.', false);
+    showToast('Sanctions', 'Cette action n\'est plus disponible.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bf2464bfc", 'Cette action n\'est plus disponible.', undefined, 'Sanctions');
   } else {
     showToast(action.replace(/_/g,' '), 'Action menee envers ' + empireName, true);
     addJournalEntry(action.replace(/_/g,' ') + ' : ' + empireName, 'event-info');
@@ -7788,7 +7788,7 @@ async function confirmerGrace(demandeId, nomCondamne, accepte, pa, cost) {
 
   document.getElementById('modal-postes')?.classList.remove('open');
   if (v.rejoue === true) {
-    showToast('Demande déjà traitée', 'Cette grâce a déjà fait l’objet d’une décision : aucun nouvel effet.', true);
+    showToast('Demande déjà traitée', 'Cette grâce a déjà fait l’objet d’une décision : aucun nouvel effet.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.b9ebbee9e", 'Cette grâce a déjà fait l’objet d’une décision : aucun nouvel effet.', undefined, 'Demande déjà traitée');
     return;
   }
   if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v);
@@ -7808,10 +7808,10 @@ async function confirmerGrace(demandeId, nomCondamne, accepte, pa, cost) {
     addExternalEvent('⚖️ GRÂCE PRÉSIDENTIELLE : ' + cible +
       ' a été gracié(e) par le Président.');
   } else if (v.accepte === false) {
-    showToast('Grâce refusée', 'La recommandation du Ministre de la Justice a été rejetée.', false);
+    showToast('Grâce refusée', 'La recommandation du Ministre de la Justice a été rejetée.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.be31fe453", 'La recommandation du Ministre de la Justice a été rejetée.', undefined, 'Grâce refusée');
     addJournalEntry('Grâce de ' + cible + ' refusée par le Président.', 'event-info');
   } else {
-    showToast('Décision enregistrée', 'Le dossier a été traité par le serveur.', true);
+    showToast('Décision enregistrée', 'Le dossier a été traité par le serveur.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.b1ee17b1b", 'Le dossier a été traité par le serveur.', undefined, 'Décision enregistrée');
   }
 }
 
@@ -7998,7 +7998,7 @@ async function executerOrdreFiscalCible(action, typeCible, idCible) {
     // design (prelever reellement 2000 FR sur la fortune d'un joueur), pas un correctif : la RPC
     // ne couvre donc pas ce type, et l'arbitrage reste a rendre.
     if (typeCible === 'citoyen') {
-      showToast('Redressement impossible', 'Le prélèvement sur la fortune d\'un particulier n\'est pas en vigueur. Les 2 PA ont été engagés.', false);
+      showToast('Redressement impossible', 'Le prélèvement sur la fortune d\'un particulier n\'est pas en vigueur. Les 2 PA ont été engagés.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b6c9b045b", 'Le prélèvement sur la fortune d\'un particulier n\'est pas en vigueur. Les 2 PA ont été engagés.', undefined, 'Redressement impossible');
       addJournalEntry('Redressement fiscal contre ' + nomCible + ' : aucun prélèvement possible sur un particulier.', 'event-bad');
       return;
     }
@@ -8048,7 +8048,7 @@ async function confirmerSubventionMontant(typeCible, idCible, plafond) {
   // reussite partielle valide (le joueur choisit librement le montant demande), donc le
   // versement partiel via debiterCaisseBatimentPlafonne plus bas n'est pas touche.
   const caisseMinFin = typeof chargerCaisseBatiment === 'function' ? await chargerCaisseBatiment(pays, 'gouvernement-min_fin') : { solde: 0 };
-  if ((caisseMinFin?.solde || 0) <= 0) { showToast('Caisse insuffisante', 'Le budget du gouvernement ne peut pas financer cette subvention actuellement.', false); return; }
+  if ((caisseMinFin?.solde || 0) <= 0) { showToast('Caisse insuffisante', 'Le budget du gouvernement ne peut pas financer cette subvention actuellement.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b9fde9b59", 'Le budget du gouvernement ne peut pas financer cette subvention actuellement.', undefined, 'Caisse insuffisante'); return; }
 
   // Deduction PA centralisee (Lot 2C) -- c'est ICI, a la confirmation du montant, le veritable
   // point d'execution irreversible pour "subvention" (executerOrdreFiscalCible n'ouvre que ce
@@ -8105,7 +8105,7 @@ async function confirmerSubventionMontant(typeCible, idCible, plafond) {
     const resultat = Array.isArray(rows) ? rows[0] : rows;
     if (!resultat || resultat.ok !== true) {
       showToast('Subvention non confirmée',
-        'Aucun versement confirmé pour ce commerce. Ne recommencez pas avant de vérifier le solde.', false);
+        'Aucun versement confirmé pour ce commerce. Ne recommencez pas avant de vérifier le solde.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.beb7fe6fe", 'Aucun versement confirmé pour ce commerce. Ne recommencez pas avant de vérifier le solde.', undefined, 'Subvention non confirmée');
       return;
     }
     montantVerse = Number(resultat.verse || 0);
@@ -8137,7 +8137,7 @@ async function confirmerSubventionMontant(typeCible, idCible, plafond) {
     }
   } else {
     // Type de cible inconnu : aucune porte serveur, donc aucun versement (04/11/2026).
-    showToast('Subvention refusée', 'Ce bénéficiaire ne peut pas recevoir de subvention.', false);
+    showToast('Subvention refusée', 'Ce bénéficiaire ne peut pas recevoir de subvention.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b0b2655c1", 'Ce bénéficiaire ne peut pas recevoir de subvention.', undefined, 'Subvention refusée');
     return;
   }
   // Social +3 de la ville du ministre : pose par la porte de versement (03/11/2026), relu ici.
@@ -8187,7 +8187,7 @@ async function confirmerSubventionMontant(typeCible, idCible, plafond) {
 // =====================
 function doOuvrirVirementMinistereUsine(pa, cost) {
   if (state.poste?.id !== 'min_fin') {
-    showToast('Accès refusé', 'Seul le Ministre des Finances peut ordonner ce virement.', false);
+    showToast('Accès refusé', 'Seul le Ministre des Finances peut ordonner ce virement.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bb8dcb884", 'Seul le Ministre des Finances peut ordonner ce virement.', undefined, 'Accès refusé');
     return;
   }
   document.getElementById('postes-modal-title').textContent = 'Virement vers une usine';
@@ -8212,14 +8212,14 @@ async function confirmerVirementMinistereUsine(pa, cost) {
   // Re-verification complete du poste (pas seulement a l'ouverture du modal) : c'est ici, a la
   // confirmation, que la mutation reelle a lieu.
   if (state.poste?.id !== 'min_fin') {
-    showToast('Accès refusé', 'Seul le Ministre des Finances peut ordonner ce virement.', false);
+    showToast('Accès refusé', 'Seul le Ministre des Finances peut ordonner ce virement.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bb8dcb884", 'Seul le Ministre des Finances peut ordonner ce virement.', undefined, 'Accès refusé');
     return;
   }
   const posteCible = document.getElementById('virement-usine-cible')?.value;
   const cfg = (typeof directeurUsineInfo === 'function') ? directeurUsineInfo(posteCible) : DIRECTEUR_USINE_INFO[posteCible];
   if (!cfg) { showToast('Cible invalide', '', false); return; }
   const montant = Math.floor(Number(document.getElementById('virement-usine-montant')?.value));
-  if (!isFinite(montant) || montant <= 0) { showToast('Montant invalide', 'Le montant doit être un nombre entier positif.', false); return; }
+  if (!isFinite(montant) || montant <= 0) { showToast('Montant invalide', 'Le montant doit être un nombre entier positif.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b00db74a9", 'Le montant doit être un nombre entier positif.', undefined, 'Montant invalide'); return; }
 
   const pays = state.country || 'republic';
   const cur = COUNTRIES[pays]?.cur || 'FR';
@@ -8228,8 +8228,8 @@ async function confirmerVirementMinistereUsine(pa, cost) {
   // seule transaction.
   const v = await sbRpcVerdict('ministere_virer_vers_usine', { p_poste_usine: posteCible, p_montant: montant }).catch(() => null);
   if (!v || v.ok !== true) {
-    if (v?.raison === 'caisse_insuffisante') showToast('Caisse insuffisante', 'La caisse du Ministère ne peut pas couvrir ce virement.', false);
-    else if (v?.raison === 'reserve_ministre_finances') showToast('Accès refusé', 'Seul le Ministre des Finances peut ordonner ce virement.', false);
+    if (v?.raison === 'caisse_insuffisante') { showToast('Caisse insuffisante', 'La caisse du Ministère ne peut pas couvrir ce virement.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bd1ddc93b", 'La caisse du Ministère ne peut pas couvrir ce virement.', undefined, 'Caisse insuffisante'); }
+    else if (v?.raison === 'reserve_ministre_finances') { showToast('Accès refusé', 'Seul le Ministre des Finances peut ordonner ce virement.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bb8dcb884", 'Seul le Ministre des Finances peut ordonner ce virement.', undefined, 'Accès refusé'); }
     else signalerRefusCout(v || {});
     return;
   }
@@ -8257,9 +8257,9 @@ async function ouvrirCiblageFiscal(action, titre, selectionCible) {
       if(contexteSelection&&!Array.isArray(lus))throw Error('annuaire_indisponible');
       joueurs=lus||[];
     } catch(e) {
-      if(contexteSelection){showToast('Annuaire indisponible','Aucun ordre n’a été exécuté.',false);return;}
+      if(contexteSelection){showToast('Annuaire indisponible','Aucun ordre n’a été exécuté.',false); globalThis.RPI18nPlateau?.markToast("toastBodies.bbc14d198", 'Aucun ordre n’a été exécuté.', undefined, 'Annuaire indisponible');return;}
     }
-  } else if(contexteSelection){showToast('Annuaire indisponible','Aucun ordre n’a été exécuté.',false);return;}
+  } else if(contexteSelection){showToast('Annuaire indisponible','Aucun ordre n’a été exécuté.',false); globalThis.RPI18nPlateau?.markToast("toastBodies.bbc14d198", 'Aucun ordre n’a été exécuté.', undefined, 'Annuaire indisponible');return;}
   if(contexteSelection&&!contexteGroupePjValide(contexteSelection))return;
   const myName = state.char?.name;
   const cibles = joueurs.filter(j => {
@@ -8328,7 +8328,7 @@ function executerOrdreContact(action, nomCible) {
     // change pendant que la modale etait ouverte).
     (async () => {
       if (!(await estGrandPretreActuel(state.char?.name))) {
-        showToast('Pouvoir réservé', 'Seul le Grand Prêtre national en exercice peut exercer ce pouvoir.', false);
+        showToast('Pouvoir réservé', 'Seul le Grand Prêtre national en exercice peut exercer ce pouvoir.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bad36daad", 'Seul le Grand Prêtre national en exercice peut exercer ce pouvoir.', undefined, 'Pouvoir réservé');
         return;
       }
       if (action === 'excommunier') {
@@ -8388,7 +8388,7 @@ function executerOrdreContact(action, nomCible) {
     // ponctionner la fortune d'un joueur ? » reste entier, et le jour ou il sera rendu, il n'y
     // aura plus qu'UN endroit a ouvrir.
     // ==========================================================================================
-    showToast('Redressement impossible', 'Le prélèvement sur la fortune d\'un particulier n\'est pas en vigueur.', false);
+    showToast('Redressement impossible', 'Le prélèvement sur la fortune d\'un particulier n\'est pas en vigueur.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bebd4f6e7", 'Le prélèvement sur la fortune d\'un particulier n\'est pas en vigueur.', undefined, 'Redressement impossible');
     addJournalEntry('Redressement fiscal contre ' + nomCible + ' : aucun prélèvement possible sur un particulier.', 'event-bad');
   } else if (action === 'subvention') {
     // ANCIEN CHEMIN DU REPERTOIRE (subvention_cible, hors catalogue), ALIGNE SUR LA PORTE SERVEUR
@@ -8506,7 +8506,7 @@ async function ouvrirReprimerManif(pa, cost) {
   // (needsPoliceIndisponible) -- revalidee ici defensivement, ce modal pouvant en theorie etre
   // ouvert par un autre chemin que ce bouton.
   if (typeof syndicatPoliceEnGreve === 'function' && syndicatPoliceEnGreve(pays)) {
-    showToast('Répression impossible', 'Un syndicat de policiers est en grève : la répression policière est impossible tant qu\'il n\'y met pas fin.', false);
+    showToast('Répression impossible', 'Un syndicat de policiers est en grève : la répression policière est impossible tant qu\'il n\'y met pas fin.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.ba4aa9b76", 'Un syndicat de policiers est en grève : la répression policière est impossible tant qu\'il n\'y met pas fin.', undefined, 'Répression impossible');
     return;
   }
   document.getElementById('postes-modal-title').textContent = 'Reprimer une manifestation';
@@ -8565,7 +8565,7 @@ async function confirmerReprimerManif(pa, cost) {
 
 async function executerOrdreTexte(action) {
   const texte = document.getElementById('texte-libre-input')?.value?.trim();
-  if (!texte) { showToast('Champ requis', 'Veuillez remplir le champ.', false); return; }
+  if (!texte) { showToast('Champ requis', 'Veuillez remplir le champ.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bcf3d79b4", 'Veuillez remplir le champ.', undefined, 'Champ requis'); return; }
   document.getElementById('modal-postes').classList.remove('open');
   // interdire_manif / reprimer_manif retirés (#379) : aucun ordre ne les ouvrait (voir
   // ouvrirInterdireManif et ouvrirReprimerManif, commandes serveur).
@@ -8587,7 +8587,7 @@ async function executerOrdreTexte(action) {
 // mort silencieux -- l'ancien couple ouvrirModalSecteur/appliquerAllegement (ci-dessous) reste
 // en l'etat, non branche, pour reprise le jour ou ce chantier sera fait.
 function doAllegementFiscalIndisponible() {
-  showToast('Pas encore disponible', 'L\'allegement fiscal sera active une fois le systeme de taxation alimentant les caisses de l\'Etat finalise.', false);
+  showToast('Pas encore disponible', 'L\'allegement fiscal sera active une fois le systeme de taxation alimentant les caisses de l\'Etat finalise.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bf4867c75", 'L\'allegement fiscal sera active une fois le systeme de taxation alimentant les caisses de l\'Etat finalise.', undefined, 'Pas encore disponible');
 }
 
 // Le circuit sectoriel non raccordé a été retiré : aucun ordre de catalogue
@@ -8616,7 +8616,7 @@ function doAllegementFiscalIndisponible() {
 
 function ouvrirModalNommerDirecteurPharma() {
   if (state.poste?.id !== 'min_fin') {
-    showToast('Accès refusé', 'Seul le Ministre des Finances peut nommer un directeur.', false);
+    showToast('Accès refusé', 'Seul le Ministre des Finances peut nommer un directeur.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bed2c5e3d", 'Seul le Ministre des Finances peut nommer un directeur.', undefined, 'Accès refusé');
     return;
   }
   ouvrirNominerPosteNomme('directeur_pharma');
@@ -8624,7 +8624,7 @@ function ouvrirModalNommerDirecteurPharma() {
 
 function ouvrirModalNommerDirecteurTabacAlcools() {
   if (state.poste?.id !== 'min_fin') {
-    showToast('Accès refusé', 'Seul le Ministre des Finances peut nommer un directeur.', false);
+    showToast('Accès refusé', 'Seul le Ministre des Finances peut nommer un directeur.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bed2c5e3d", 'Seul le Ministre des Finances peut nommer un directeur.', undefined, 'Accès refusé');
     return;
   }
   ouvrirNominerPosteNomme('directeur_tabac_alcools');
@@ -8632,7 +8632,7 @@ function ouvrirModalNommerDirecteurTabacAlcools() {
 
 function ouvrirModalNommerDirecteurRaffinerie() {
   if (state.poste?.id !== 'min_fin') {
-    showToast('Accès refusé', 'Seul le Ministre des Finances peut nommer un directeur.', false);
+    showToast('Accès refusé', 'Seul le Ministre des Finances peut nommer un directeur.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bed2c5e3d", 'Seul le Ministre des Finances peut nommer un directeur.', undefined, 'Accès refusé');
     return;
   }
   ouvrirNominerPosteNomme('directeur_raffinerie');
@@ -8640,7 +8640,7 @@ function ouvrirModalNommerDirecteurRaffinerie() {
 
 function ouvrirModalNommerJuge() {
   if (state.poste?.id !== 'min_just') {
-    showToast('Accès refusé', 'Seul le Ministre de la Justice peut nommer un juge.', false);
+    showToast('Accès refusé', 'Seul le Ministre de la Justice peut nommer un juge.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b2ac52f4b", 'Seul le Ministre de la Justice peut nommer un juge.', undefined, 'Accès refusé');
     return;
   }
   ouvrirNominerPosteNomme('juge');
@@ -8650,7 +8650,7 @@ function ouvrirModalRevoquerJuge(pa, cost) { ouvrirRevoquerPosteNomme('juge', pa
 
 function ouvrirModalNommerChefDouanes() {
   if (state.poste?.id !== 'min_int') {
-    showToast('Accès refusé', "Seul le Ministre de l'Intérieur peut nommer un Chef des Douanes.", false);
+    showToast('Accès refusé', "Seul le Ministre de l'Intérieur peut nommer un Chef des Douanes.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.bc65fc789", "Seul le Ministre de l'Intérieur peut nommer un Chef des Douanes.", undefined, 'Accès refusé');
     return;
   }
   ouvrirNominerPosteNomme('chef_douanes');
@@ -8660,7 +8660,7 @@ function ouvrirModalRevoquerChefDouanes(pa, cost) { ouvrirRevoquerPosteNomme('ch
 
 function ouvrirModalNommerCommandantPort() {
   if (state.poste?.id !== 'min_fin') {
-    showToast('Accès refusé', 'Seul le Ministre des Finances peut nommer un Commandant du Port.', false);
+    showToast('Accès refusé', 'Seul le Ministre des Finances peut nommer un Commandant du Port.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b7c6314fc", 'Seul le Ministre des Finances peut nommer un Commandant du Port.', undefined, 'Accès refusé');
     return;
   }
   ouvrirNominerPosteNomme('capitaine_port');
@@ -8670,7 +8670,7 @@ function ouvrirModalRevoquerCommandantPort(pa, cost) { ouvrirRevoquerPosteNomme(
 
 function ouvrirModalNommerCommissaire() {
   if (!estPosteMaire(state.poste?.id)) {
-    showToast('Accès refusé', 'Seul le Maire peut nommer un commissaire.', false);
+    showToast('Accès refusé', 'Seul le Maire peut nommer un commissaire.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b93340a2e", 'Seul le Maire peut nommer un commissaire.', undefined, 'Accès refusé');
     return;
   }
   ouvrirNominerPosteNomme('commissaire');
@@ -8701,7 +8701,7 @@ function ouvrirModalRevoquerDirecteurEntrepot(pa, cost) { ouvrirRevoquerPosteNom
 // autres facades de nomination, qui restent hors perimetre de ce passage.
 function ouvrirModalNommerPM(pa, cost) {
   if (state.poste?.id !== 'president') {
-    showToast('Acces refuse', 'Seul le President peut nommer le Premier Ministre.', false);
+    showToast('Acces refuse', 'Seul le President peut nommer le Premier Ministre.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b523c431b", 'Seul le President peut nommer le Premier Ministre.', undefined, 'Acces refuse');
     return;
   }
   ouvrirNominerPosteNomme('pm', pa, cost);
@@ -8709,7 +8709,7 @@ function ouvrirModalNommerPM(pa, cost) {
 
 function ouvrirModalRevoquerPM(pa, cost) {
   if (state.poste?.id !== 'president') {
-    showToast('Acces refuse', 'Seul le President peut revoquer le Premier Ministre.', false);
+    showToast('Acces refuse', 'Seul le President peut revoquer le Premier Ministre.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.ba74d1df0", 'Seul le President peut revoquer le Premier Ministre.', undefined, 'Acces refuse');
     return;
   }
   ouvrirRevoquerPosteNomme('pm', pa, cost);
@@ -8717,7 +8717,7 @@ function ouvrirModalRevoquerPM(pa, cost) {
 
 function ouvrirModalRevoquerMinistre(pa, cost) {
   if (state.poste?.id !== 'pm') {
-    showToast('Acces refuse', 'Seul le Premier Ministre peut revoquer un ministre.', false);
+    showToast('Acces refuse', 'Seul le Premier Ministre peut revoquer un ministre.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.be38a8c41", 'Seul le Premier Ministre peut revoquer un ministre.', undefined, 'Acces refuse');
     return;
   }
   const postesMinisteriels = [
@@ -8907,7 +8907,7 @@ const CELLULE_REFUS = {
 };
 
 async function confirmerCelluleRenseignement(empireCible) {
-  if (!empireCible) { showToast('Couverture non choisie', 'Sélectionnez d\'abord une couverture.', false); return; }
+  if (!empireCible) { showToast('Couverture non choisie', 'Sélectionnez d\'abord une couverture.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bd25dd7bb", 'Sélectionnez d\'abord une couverture.', undefined, 'Couverture non choisie'); return; }
   document.getElementById('modal-postes')?.classList.remove('open');
   const r = typeof sbRpc === 'function'
     ? await sbRpc('cellule_renseignement_creer', { p_pays_cible: empireCible }).catch(() => null) : null;
@@ -9077,7 +9077,7 @@ async function prendreAgentRenseignement(agentId) {
     showToast('Prise en charge impossible', AGENT_REFUS[res?.raison] || ('Refus du serveur (' + (res?.raison || 'indisponible') + ').'), false);
     return;
   }
-  showToast('Agent pris en charge', 'Il vous suit désormais. Déposez-le sur place, dans l\'empire visé.', true);
+  showToast('Agent pris en charge', 'Il vous suit désormais. Déposez-le sur place, dans l\'empire visé.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.b63dae15c", 'Il vous suit désormais. Déposez-le sur place, dans l\'empire visé.', undefined, 'Agent pris en charge');
   addJournalEntry('Prise en charge d\'un agent de renseignement.', 'event-info');
   ouvrirPanneauCellules();
 }
@@ -9094,7 +9094,7 @@ async function deposerAgentRenseignement(agentId) {
         : (AGENT_REFUS[res?.raison] || ('Refus du serveur (' + (res?.raison || 'indisponible') + ').')), false);
     return;
   }
-  showToast('Agent en place', 'Il reste ici et commence à recueillir des informations.', true, true);
+  showToast('Agent en place', 'Il reste ici et commence à recueillir des informations.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b3361f2a5", 'Il reste ici et commence à recueillir des informations.', undefined, 'Agent en place');
   addJournalEntry('Un agent de renseignement a été déposé sur place.', 'event-info');
   ouvrirPanneauCellules();
 }
@@ -9278,7 +9278,7 @@ const MOTIFS_AMBASSADEUR = {
 function signalerRefusAmbassadeur(v, titre) {
   if (v && MOTIFS_AMBASSADEUR[v.raison]) { showToast(titre, MOTIFS_AMBASSADEUR[v.raison], false); return; }
   if (typeof signalerRefusCout === 'function' && v && v.raison) { signalerRefusCout(v); return; }
-  showToast(titre, 'Le serveur n\'a pas répondu. Rien n\'a été prélevé.', false);
+  showToast(titre, 'Le serveur n\'a pas répondu. Rien n\'a été prélevé.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b9d5398d2", 'Le serveur n\'a pas répondu. Rien n\'a été prélevé.', undefined, titre);
 }
 function appliquerResultatAmbassadeur(v) {
   if (v?.paie && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v.paie);
@@ -9300,7 +9300,7 @@ async function doOrganiserReceptionDiplomatique(pa, cost) {
   appliquerResultatAmbassadeur(v);
   const n = Number(v.invites) || 0;
   if (n === 0) {
-    showToast('Réception ratée', 'Personne n\'est venu dans la Salle de Réception. -3 Indice Diplomatique, -3 popularité.', false);
+    showToast('Réception ratée', 'Personne n\'est venu dans la Salle de Réception. -3 Indice Diplomatique, -3 popularité.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b70f59c7d", 'Personne n\'est venu dans la Salle de Réception. -3 Indice Diplomatique, -3 popularité.', undefined, 'Réception ratée');
   } else {
     showToast('Réception réussie', n + ' invité' + (n > 1 ? 's' : '') + ' présent' + (n > 1 ? 's' : '') + '. +' + v.delta_indice + ' Indice Diplomatique, +' + v.delta_pop + ' popularité.', true);
   }
@@ -9312,7 +9312,7 @@ async function doOrganiserReceptionDiplomatique(pa, cost) {
 async function doReserverSalleReception(pa, cost) {
   const monAmbassade = (state.ambassadesOuvertesCache || []).find(a => a.ambassadeur === state.char?.name);
   if (!monAmbassade) {
-    showToast('Réservation impossible', 'Seul un ambassadeur en poste ici peut réserver cette salle.', false);
+    showToast('Réservation impossible', 'Seul un ambassadeur en poste ici peut réserver cette salle.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b2edeebb2", 'Seul un ambassadeur en poste ici peut réserver cette salle.', undefined, 'Réservation impossible');
     return;
   }
   const v = typeof sbRpcVerdict === 'function' ? await sbRpcVerdict('ambassade_reserver_salle', { p_empire: monAmbassade.empire }).catch(() => null) : null;
@@ -9325,7 +9325,7 @@ async function doReserverSalleReception(pa, cost) {
     return;
   }
   appliquerResultatAmbassadeur(v);
-  showToast('Salle réservée', 'La Salle de Réception est réservée pour aujourd\'hui.', true);
+  showToast('Salle réservée', 'La Salle de Réception est réservée pour aujourd\'hui.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.bd240f535", 'La Salle de Réception est réservée pour aujourd\'hui.', undefined, 'Salle réservée');
   addJournalEntry('Réservation de la Salle de Réception du Quartier des Ambassades pour aujourd\'hui.', 'event-info');
 }
 
@@ -9337,7 +9337,7 @@ async function doFinancerOeuvreCulturelle(pa, cost) {
   const v = typeof sbRpcVerdict === 'function' ? await sbRpcVerdict('ambassade_mecenat', { p_empire: empireId }).catch(() => null) : null;
   if (!v || v.ok !== true) { signalerRefusAmbassadeur(v, 'Mécénat impossible'); return; }
   appliquerResultatAmbassadeur(v);
-  showToast('Mécénat culturel', 'Une œuvre a été financée localement. +8 popularité, +3 Indice Diplomatique.', true);
+  showToast('Mécénat culturel', 'Une œuvre a été financée localement. +8 popularité, +3 Indice Diplomatique.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.b0ec236ae", 'Une œuvre a été financée localement. +8 popularité, +3 Indice Diplomatique.', undefined, 'Mécénat culturel');
   // L'annonce publique est ecrite par le serveur (26/10/2026, audit R10).
 }
 
@@ -9401,7 +9401,7 @@ async function confirmerAudienceAmbassadeur(empireId) {
     const m = v && REFUS_AUDIENCE[v.raison];
     if (m) { showToast(m[0], m[1], false); return; }
     if (v && v.raison && !v.transport) { signalerRefusCout(v); return; }
-    showToast('Demande non transmise', "L'opération n'a pas abouti : rien n'a été prélevé ni enregistré.", false);
+    showToast('Demande non transmise', "L'opération n'a pas abouti : rien n'a été prélevé ni enregistré.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b62f8662d", "L'opération n'a pas abouti : rien n'a été prélevé ni enregistré.", undefined, 'Demande non transmise');
     return;
   }
   if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: v.pa });
@@ -9411,7 +9411,7 @@ async function confirmerAudienceAmbassadeur(empireId) {
     showToast('Audience accordée', nomCourt + ' vous reçoit : présentez-vous à son bureau dans les 48 heures.', true);
     addJournalEntry('Audience accordée par ' + nomCourt + '. Son bureau vous est ouvert pendant 48 heures.', 'event-good');
   } else {
-    showToast('Demande transmise', 'Votre demande d\'audience auprès de ' + nomCourt + ' a été transmise. La réponse vous parviendra par courrier.', true);
+    showToast('Demande transmise', 'Votre demande d\'audience auprès de ' + nomCourt + ' a été transmise. La réponse vous parviendra par courrier.', true); globalThis.RPI18nPlateau?.markToast(null, 'Votre demande d\'audience auprès de ' + nomCourt + ' a été transmise. La réponse vous parviendra par courrier.', undefined, 'Demande transmise');
     addJournalEntry('Demande d\'audience transmise à ' + nomCourt + '.', 'event-info');
   }
   if (typeof verifierNouveauxMails === 'function') verifierNouveauxMails();
@@ -9446,9 +9446,9 @@ async function verifierAccesBureauAmbassade(buildingId, roomId, tabEl) {
     // Texte decide par Fred (25/10/2026), le meme que l'infobulle des portes du hall.
     showToast('Accès limité', 'Il faut avoir une invitation. ' + nom + " ne reçoit que sur audience, à demander à l'accueil.", false);
   } else if (v && v.raison === 'acteur_non_authentifie') {
-    showToast('Personnage non chargé', 'Rechargez la page.', false);
+    showToast('Personnage non chargé', 'Rechargez la page.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bd41f9ca6", 'Rechargez la page.', undefined, 'Personnage non chargé');
   } else {
-    showToast('Vérification impossible', "L'accès au bureau n'a pas pu être vérifié. Réessayez dans un instant.", false);
+    showToast('Vérification impossible', "L'accès au bureau n'a pas pu être vérifié. Réessayez dans un instant.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b8131936f", "L'accès au bureau n'a pas pu être vérifié. Réessayez dans un instant.", undefined, 'Vérification impossible');
   }
   // Un rechargement de page dans un bureau dont l'audience a expire ramene a l'accueil.
   if (state.currentBuilding === buildingId && state.currentRoom === roomId) {
@@ -9658,7 +9658,7 @@ async function confirmerDemandeAsile(empireId) {
     const m = v && REFUS_ASILE[v.raison];
     if (m) { showToast(m[0], m[1], false); return; }
     if (v && v.raison && !v.transport) { signalerRefusCout(v); return; }
-    showToast('Demande non transmise', "L'opération n'a pas abouti : rien n'a été prélevé ni enregistré.", false);
+    showToast('Demande non transmise', "L'opération n'a pas abouti : rien n'a été prélevé ni enregistré.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b62f8662d", "L'opération n'a pas abouti : rien n'a été prélevé ni enregistré.", undefined, 'Demande non transmise');
     return;
   }
   if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: v.pa });
@@ -9671,7 +9671,7 @@ async function confirmerDemandeAsile(empireId) {
     addJournalEntry('Demande d\'asile refusée par l\'' + ambassade + '.', 'event-info');
   } else {
     state.audiencesEnAttente = true;
-    showToast('Demande transmise', 'Votre demande d\'asile auprès de l\'' + ambassade + ' a été transmise. La réponse vous parviendra par courrier.', true);
+    showToast('Demande transmise', 'Votre demande d\'asile auprès de l\'' + ambassade + ' a été transmise. La réponse vous parviendra par courrier.', true); globalThis.RPI18nPlateau?.markToast(null, 'Votre demande d\'asile auprès de l\'' + ambassade + ' a été transmise. La réponse vous parviendra par courrier.', undefined, 'Demande transmise');
     addJournalEntry('Demande d\'asile politique transmise à l\'' + ambassade + '.', 'event-info');
   }
   if (typeof verifierNouveauxMails === 'function') verifierNouveauxMails();
@@ -9717,7 +9717,7 @@ function signalerRefusAmbassadeMinistre(v) {
   const m = v && REFUS_AMBASSADE_MINISTRE[v.raison];
   if (m) { showToast(m[0], m[1], false); return; }
   if (v && v.raison && !v.transport && typeof signalerRefusCout === 'function') { signalerRefusCout(v); return; }
-  showToast('Action non effectuée', "L'opération n'a pas abouti : rien n'a été prélevé ni enregistré.", false);
+  showToast('Action non effectuée', "L'opération n'a pas abouti : rien n'a été prélevé ni enregistré.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b62f8662d", "L'opération n'a pas abouti : rien n'a été prélevé ni enregistré.", undefined, 'Action non effectuée');
 }
 
 async function confirmerAmbassadeur(pa, cost) {
@@ -9780,7 +9780,7 @@ async function confirmerDemissionAmbassadeur(empireId, pa, cost) {
   if (!v || v.ok !== true) { signalerRefusAmbassadeMinistre(v); return; }
   if (typeof appliquerPaiementServeur === 'function' && typeof v.pa === 'number') appliquerPaiementServeur({ pa: v.pa });
   addExternalEvent('DIPLOMATIE : ' + (COUNTRIES[state.country]?.n || state.country) + ' démet son ambassadeur auprès de ' + empireName + '.');
-  showToast('Ambassadeur démis', 'La mission a pris fin, poste perdu avec effet immédiat.', false);
+  showToast('Ambassadeur démis', 'La mission a pris fin, poste perdu avec effet immédiat.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b0f5c4600", 'La mission a pris fin, poste perdu avec effet immédiat.', undefined, 'Ambassadeur démis');
 }
 
 // EXPULSER : le pays hote expulse l'ambassadeur d'un autre pays stationne chez lui. Il garde
@@ -9819,13 +9819,13 @@ async function confirmerExpulsionAmbassadeur(empireId, pa, cost) {
   if (!v || v.ok !== true) { signalerRefusAmbassadeMinistre(v); return; }
   if (typeof appliquerPaiementServeur === 'function' && typeof v.pa === 'number') appliquerPaiementServeur({ pa: v.pa });
   addExternalEvent('DIPLOMATIE : ' + (COUNTRIES[state.country]?.n || state.country) + ' expulse l\'ambassadeur de ' + empireName + ' (24h avant la fin de sa mission).');
-  showToast('Ambassadeur expulsé', 'Sa mission prendra fin dans 24 heures.', false);
+  showToast('Ambassadeur expulsé', 'Sa mission prendra fin dans 24 heures.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b1e47bd0c", 'Sa mission prendra fin dans 24 heures.', undefined, 'Ambassadeur expulsé');
 }
 
 function ouvrirBanquetDiplomatique(pa, cost) {
   const contacts = state.contacts || [];
   if (contacts.length === 0) {
-    showToast('Répertoire vide', 'Enregistrez des contacts pour pouvoir les inviter.', false);
+    showToast('Répertoire vide', 'Enregistrez des contacts pour pouvoir les inviter.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bb1ba060d", 'Enregistrez des contacts pour pouvoir les inviter.', undefined, 'Répertoire vide');
     return;
   }
   document.getElementById('postes-modal-title').textContent = 'Banquet diplomatique';
@@ -9862,13 +9862,13 @@ async function confirmerBanquetDiplomatique(pa, cost) {
   // POP, INF et moral rendus par le serveur avec l'issue (#379).
   adopterJaugesReponse(r.jauges);
   if (venus.length === invites.length) {
-    showToast('Banquet réussi !', 'Tous les invités sont venus. +15 POP +12 INF +5 Moral +8 ID.', true, true);
+    showToast('Banquet réussi !', 'Tous les invités sont venus. +15 POP +12 INF +5 Moral +8 ID.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.beddd6975", 'Tous les invités sont venus. +15 POP +12 INF +5 Moral +8 ID.', undefined, 'Banquet réussi !');
     addJournalEntry('Banquet diplomatique réussi — tous les invités présents.', 'event-good');
   } else if (venus.length > 0) {
     showToast('Banquet mitigé', 'Seuls ' + venus.length + '/' + invites.length + ' invités sont venus. +5 POP +5 INF.', true);
     addJournalEntry('Banquet diplomatique mitigé (' + venus.length + '/' + invites.length + ' présents).', 'event-info');
   } else {
-    showToast('Fiasco !', 'Aucun invité ne s\'est présenté. -25 POP -20 INF -10 Moral.', false);
+    showToast('Fiasco !', 'Aucun invité ne s\'est présenté. -25 POP -20 INF -10 Moral.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b04c8d221", 'Aucun invité ne s\'est présenté. -25 POP -20 INF -10 Moral.', undefined, 'Fiasco !');
     addJournalEntry('Fiasco du banquet diplomatique — aucun invité présent.', 'event-bad');
     addExternalEvent('HUMILIATION : Le banquet diplomatique du Président s\'est tenu... sans aucun invité.');
   }
@@ -9885,7 +9885,7 @@ async function doReceptionAvecBonus(fn, cost) {
   // qu'un controle, et on ne debite b.solde qu'apres le succes de la deduction PA.
   const budgetPresidence = getBudgetInstitution('presidence');
   if (budgetPresidence.solde < budgetPresidence.coutOrdre) {
-    showToast('Budget insuffisant', 'Le budget de la Presidence est insuffisant. Le Ministre des Finances doit revoir la repartition budgetaire.', false);
+    showToast('Budget insuffisant', 'Le budget de la Presidence est insuffisant. Le Ministre des Finances doit revoir la repartition budgetaire.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b0e0018cb", 'Le budget de la Presidence est insuffisant. Le Ministre des Finances doit revoir la repartition budgetaire.', undefined, 'Budget insuffisant');
     return;
   }
   // PA ET ISSUE PAR LE SERVEUR (25/10/2026) -- apres verification du budget, avant tout debit.
@@ -9901,7 +9901,7 @@ async function doReceptionAvecBonus(fn, cost) {
   // L'issue a ete tiree par le serveur.
   adopterJaugesReponse(rPa.jauges);
   if (rPa.reussi === true) {
-    showToast(fn === 'reception_etat' ? 'Reception reussie !' : 'Banquet reussi !', '+10 POP +8 INF +5 Moral +5 ID.', true, true);
+    showToast(fn === 'reception_etat' ? 'Reception reussie !' : 'Banquet reussi !', '+10 POP +8 INF +5 Moral +5 ID.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.bff839f74", '+10 POP +8 INF +5 Moral +5 ID.', undefined, fn === 'reception_etat' ? 'Reception reussie !' : 'Banquet reussi !');
     addJournalEntry(fn === 'reception_etat' ? 'Reception d\'Etat reussie.' : 'Banquet diplomatique reussi.', 'event-good');
   } else {
     showToast('Echec !', 'Les invites ont boude votre ' + (fn === 'reception_etat' ? 'reception' : 'banquet') + '. -30 POP -30 INF -10 Moral.', false);
@@ -9974,7 +9974,7 @@ async function confirmerMobilisationPolice(id, label, isn, pop, fn) {
   }
 
   if (id === 'reprimer' && typeof syndicatPoliceEnGreve === 'function' && syndicatPoliceEnGreve(pays)) {
-    showToast('Répression impossible', 'Un syndicat de policiers est en grève : la répression policière est impossible tant qu\'il n\'y met pas fin.', false);
+    showToast('Répression impossible', 'Un syndicat de policiers est en grève : la répression policière est impossible tant qu\'il n\'y met pas fin.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.ba4aa9b76", 'Un syndicat de policiers est en grève : la répression policière est impossible tant qu\'il n\'y met pas fin.', undefined, 'Répression impossible');
     return;
   }
 
@@ -10000,7 +10000,7 @@ async function confirmerMobilisationPolice(id, label, isn, pop, fn) {
 async function ouvrirChoixBlocusCommissaire(mode) {
   const ville = state.poste?.city || state.currentCity;
   const liste = (typeof sbRpc === 'function') ? await sbRpc('blocus_syndicaux_actifs', { p_pays: state.country || 'republic' }).catch(() => null) : null;
-  if (!Array.isArray(liste)) { showToast('Liste indisponible', "Le serveur n'a pas répondu.", false); return; }
+  if (!Array.isArray(liste)) { showToast('Liste indisponible', "Le serveur n'a pas répondu.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.bf25f175d", "Le serveur n'a pas répondu.", undefined, 'Liste indisponible'); return; }
   const blocus = liste.filter(b => b.city === ville);
   const titre = mode === 'disperser' ? 'Disperser un blocus syndical' : 'Réprimer un blocus syndical';
   let html = '<div class="cpj-dialogue" style="padding:1rem">';
@@ -10035,7 +10035,7 @@ async function confirmerInterventionBlocus(mode, ville) {
   _interventionBlocusEnvoi = false;
   if (!r || r.ok !== true) {
     if (typeof blocusRefuser === 'function') blocusRefuser(r, 'Intervention refusée');
-    else showToast('Intervention refusée', "Le serveur n'a pas confirmé.", false);
+    else { showToast('Intervention refusée', "Le serveur n'a pas confirmé.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b85ab5a63", "Le serveur n'a pas confirmé.", undefined, 'Intervention refusée'); }
     return;
   }
   document.getElementById('modal-postes')?.classList.remove('open');
@@ -10055,7 +10055,7 @@ async function confirmerInterventionBlocus(mode, ville) {
     addJournalEntry('Le blocus syndical a été dispersé par la police.', 'event-info');
     addExternalEvent('🚔 Un blocus syndical a été dispersé par les forces de l\'ordre.');
   } else {
-    showToast('Échec', 'Les militants ont tenu bon face aux forces de l\'ordre (' + r.taux + ' % de chances).', false);
+    showToast('Échec', 'Les militants ont tenu bon face aux forces de l\'ordre (' + r.taux + ' % de chances).', false); globalThis.RPI18nPlateau?.markToast(null, 'Les militants ont tenu bon face aux forces de l\'ordre (' + r.taux + ' % de chances).', undefined, 'Échec');
     addJournalEntry('Tentative de dispersion du blocus syndical échouée.', 'event-bad');
   }
 }
@@ -10166,7 +10166,7 @@ async function verifierEffetsManifestationsEcoulees(pays) {
 
 async function doDementiOfficiel(pa, cost) {
   const postesAutorisesDementi = ['president', 'pm', 'min_int', 'min_fin', 'min_just', 'min_def', 'min_info', 'min_ae'];
-  if (!postesAutorisesDementi.includes(state.poste?.id)) { showToast('Réservé au gouvernement', 'Seuls le président et les membres du gouvernement peuvent démentir officiellement.', false); return; }
+  if (!postesAutorisesDementi.includes(state.poste?.id)) { showToast('Réservé au gouvernement', 'Seuls le président et les membres du gouvernement peuvent démentir officiellement.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bc690d27d", 'Seuls le président et les membres du gouvernement peuvent démentir officiellement.', undefined, 'Réservé au gouvernement'); return; }
 
   document.getElementById('postes-modal-title').textContent = 'Démenti officiel';
   document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement des rumeurs en cours...</div>';
@@ -10239,7 +10239,7 @@ async function confirmerDementi(rumeurId, cible, popPerdu, pa, cost) {
 
 function ouvrirNommerMinistresModal(pa, cost) {
   if (state.poste?.id !== 'pm') {
-    showToast('Acces refuse', 'Seul le Premier Ministre peut nommer des ministres.', false);
+    showToast('Acces refuse', 'Seul le Premier Ministre peut nommer des ministres.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b6f4b9a60", 'Seul le Premier Ministre peut nommer des ministres.', undefined, 'Acces refuse');
     return;
   }
   const postesMinisteriels = [
@@ -10280,7 +10280,7 @@ function getMalusISN() {
 function creerPosteMinistre(pa, cost) {
   if (!state.postesCustom) state.postesCustom = { ministre: null, comite: null };
   if (state.postesCustom.ministre) {
-    showToast('Limite atteinte', 'Vous avez deja cree un poste ministeriel custom. Supprimez-le d\'abord.', false);
+    showToast('Limite atteinte', 'Vous avez deja cree un poste ministeriel custom. Supprimez-le d\'abord.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b723bf385", 'Vous avez deja cree un poste ministeriel custom. Supprimez-le d\'abord.', undefined, 'Limite atteinte');
     return;
   }
   document.getElementById('postes-modal-title').textContent = 'Creer un poste ministeriel';
@@ -10296,7 +10296,7 @@ function creerPosteMinistre(pa, cost) {
 function creerComite(pa, cost) {
   if (!state.postesCustom) state.postesCustom = { ministre: null, comite: null };
   if (state.postesCustom.comite) {
-    showToast('Limite atteinte', 'Vous avez deja cree un comite. Supprimez-le d\'abord.', false);
+    showToast('Limite atteinte', 'Vous avez deja cree un comite. Supprimez-le d\'abord.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b2c325883", 'Vous avez deja cree un comite. Supprimez-le d\'abord.', undefined, 'Limite atteinte');
     return;
   }
   document.getElementById('postes-modal-title').textContent = 'Creer un comite';
@@ -10312,7 +10312,7 @@ function creerComite(pa, cost) {
 async function validerCreationPoste(type, pa, cost) {
   if (!exigerPoste('president', 'Seul le Président peut créer un poste ou un comité par décret.')) return;
   const nom = document.getElementById('custom-poste-nom')?.value?.trim();
-  if (!nom) { showToast('Nom requis', 'Donnez un nom a ce poste.', false); return; }
+  if (!nom) { showToast('Nom requis', 'Donnez un nom a ce poste.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b347af892", 'Donnez un nom a ce poste.', undefined, 'Nom requis'); return; }
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }
   if (!state.postesCustom) state.postesCustom = { ministre: null, comite: null };
@@ -10325,7 +10325,7 @@ async function validerCreationPoste(type, pa, cost) {
 
 function supprimerPosteCustom() {
   if (!state.postesCustom || (!state.postesCustom.ministre && !state.postesCustom.comite)) {
-    showToast('Aucun poste custom', 'Vous n\'avez pas cree de poste ou comite a supprimer.', false);
+    showToast('Aucun poste custom', 'Vous n\'avez pas cree de poste ou comite a supprimer.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.be77c0791", 'Vous n\'avez pas cree de poste ou comite a supprimer.', undefined, 'Aucun poste custom');
     return;
   }
   document.getElementById('postes-modal-title').textContent = 'Supprimer un poste';
@@ -10372,13 +10372,13 @@ function confirmerSupprPoste(type) {
 // =====================
 async function ouvrirDeclencherVoteConfiance(pa, cost) {
   if (state.poste?.id !== 'pm') {
-    showToast('Accès refusé', 'Seul le Premier Ministre peut déclencher un vote de confiance.', false);
+    showToast('Accès refusé', 'Seul le Premier Ministre peut déclencher un vote de confiance.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bd9e25755", 'Seul le Premier Ministre peut déclencher un vote de confiance.', undefined, 'Accès refusé');
     return;
   }
 
   const voteExistant = (typeof sbGetVoteConfianceEnCours === 'function') ? await sbGetVoteConfianceEnCours(state.country) : null;
   if (voteExistant) {
-    showToast('Vote déjà en cours', 'Un vote de confiance est déjà en cours à l\'Assemblée.', false);
+    showToast('Vote déjà en cours', 'Un vote de confiance est déjà en cours à l\'Assemblée.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bec732e39", 'Un vote de confiance est déjà en cours à l\'Assemblée.', undefined, 'Vote déjà en cours');
     return;
   }
 
@@ -10410,7 +10410,7 @@ async function confirmerDeclenchementVoteConfiance(pa, cost) {
     return;
   }
   if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v.paie || {});
-  showToast('Vote de confiance déclenché', 'L\'Assemblée se prononcera dans 48h.', true, true);
+  showToast('Vote de confiance déclenché', 'L\'Assemblée se prononcera dans 48h.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b047b1616", 'L\'Assemblée se prononcera dans 48h.', undefined, 'Vote de confiance déclenché');
   addJournalEntry('Vote de confiance déclenché par le Premier Ministre.', 'event-info');
 }
 
@@ -10423,7 +10423,7 @@ async function voterConfiance(voteId, choix) {
   document.getElementById('modal-pnj')?.classList.remove('open');
 
   if (state.posteDepute?.id !== 'depute') {
-    showToast('Accès refusé', 'Seuls les députés peuvent voter.', false);
+    showToast('Accès refusé', 'Seuls les députés peuvent voter.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b8769a2d8", 'Seuls les députés peuvent voter.', undefined, 'Accès refusé');
     return;
   }
 
@@ -10445,7 +10445,7 @@ async function voterConfiance(voteId, choix) {
 // =====================
 async function demissionnerDuPoste() {
   if (!state.poste) {
-    showToast('Aucun poste', 'Vous n\'occupez actuellement aucun poste.', false);
+    showToast('Aucun poste', 'Vous n\'occupez actuellement aucun poste.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b4ee3af30", 'Vous n\'occupez actuellement aucun poste.', undefined, 'Aucun poste');
     return;
   }
 
@@ -10472,7 +10472,7 @@ async function demissionnerDuPoste() {
 
 function ouvrirConfirmationDemission() {
   if (!state.poste) {
-    showToast('Aucun poste', 'Vous n\'occupez actuellement aucun poste.', false);
+    showToast('Aucun poste', 'Vous n\'occupez actuellement aucun poste.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b4ee3af30", 'Vous n\'occupez actuellement aucun poste.', undefined, 'Aucun poste');
     return;
   }
   document.getElementById('postes-modal-title').textContent = 'Démissionner';
@@ -10713,7 +10713,7 @@ async function confirmerRepartitionBudget(pa, cost) {
     .sort((x, y) => (x.part - (x.ancienne || 0)) - (y.part - (y.ancienne || 0)));
 
   if (!aEcrire.length) {
-    showToast('Rien à modifier', 'Aucune part n\'a changé.', false);
+    showToast('Rien à modifier', 'Aucune part n\'a changé.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bdb73530f", 'Aucune part n\'a changé.', undefined, 'Rien à modifier');
     return;
   }
 
@@ -10730,7 +10730,7 @@ async function confirmerRepartitionBudget(pa, cost) {
     addJournalEntry('Répartition du budget municipal : ' + echecs.length + ' ligne(s) refusée(s).', 'event-bad');
     return;
   }
-  showToast('Budget mis à jour', 'La nouvelle répartition s\'appliquera à la mise à jour de minuit.', true, true);
+  showToast('Budget mis à jour', 'La nouvelle répartition s\'appliquera à la mise à jour de minuit.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.be40b8999", 'La nouvelle répartition s\'appliquera à la mise à jour de minuit.', undefined, 'Budget mis à jour');
   addJournalEntry('Nouvelle répartition du budget municipal validée.', 'event-good');
 }
 
@@ -10987,7 +10987,7 @@ async function confirmerPropositionTreve(guerreId, adversaire, pa, cost) {
     showToast('Trêve refusée', motifs[rT && rT.raison] || 'Le serveur a refusé la proposition.', false);
     return;
   }
-  showToast('Trêve proposée', 'En attente de la réponse de l\'homologue.', true, true);
+  showToast('Trêve proposée', 'En attente de la réponse de l\'homologue.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b3b0a1d26", 'En attente de la réponse de l\'homologue.', undefined, 'Trêve proposée');
   addJournalEntry('Trêve proposée à ' + (COUNTRIES[adversaire]?.n||adversaire) + '.', 'event-info');
 }
 
@@ -11012,10 +11012,10 @@ async function repondreTreve(guerreId, accepte) {
     return;
   }
   if (r.accepte) {
-    showToast('Trêve acceptée', 'Chaque Ministre de la Défense doit maintenant activer le cessez-le-feu de son côté.', true, true);
+    showToast('Trêve acceptée', 'Chaque Ministre de la Défense doit maintenant activer le cessez-le-feu de son côté.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.bf1d1f3a2", 'Chaque Ministre de la Défense doit maintenant activer le cessez-le-feu de son côté.', undefined, 'Trêve acceptée');
     addExternalEvent('🕊️ Une trêve a été négociée entre les deux Ministères des Affaires Étrangères.');
   } else {
-    showToast('Trêve refusée', 'La proposition a été déclinée.', false);
+    showToast('Trêve refusée', 'La proposition a été déclinée.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b3e0962a8", 'La proposition a été déclinée.', undefined, 'Trêve refusée');
     addExternalEvent('⚔️ Une proposition de trêve a été refusée.');
   }
 }
@@ -11078,10 +11078,10 @@ async function confirmerActivationCessezLeFeu(guerreId, adversaire, pa, cost) {
   chargerIndicesDiplomatiques().catch(() => {});
   updateUI();
   if (tousActifs) {
-    showToast('Cessez-le-feu total !', 'Les deux camps ont activé le cessez-le-feu. Le conflit est terminé.', true, true);
+    showToast('Cessez-le-feu total !', 'Les deux camps ont activé le cessez-le-feu. Le conflit est terminé.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.be8f42947", 'Les deux camps ont activé le cessez-le-feu. Le conflit est terminé.', undefined, 'Cessez-le-feu total !');
     addExternalEvent('🕊️ Cessez-le-feu total entre ' + (COUNTRIES[pays]?.n) + ' et ' + (COUNTRIES[adversaire]?.n) + '.');
   } else {
-    showToast('Cessez-le-feu activé de votre côté', 'L\'adversaire n\'a pas encore fait de même — confusion sur le terrain probable.', true, true);
+    showToast('Cessez-le-feu activé de votre côté', 'L\'adversaire n\'a pas encore fait de même — confusion sur le terrain probable.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.befe22d19", 'L\'adversaire n\'a pas encore fait de même — confusion sur le terrain probable.', undefined, 'Cessez-le-feu activé de votre côté');
     addExternalEvent('⚠️ ' + (COUNTRIES[pays]?.n) + ' active unilatéralement le cessez-le-feu avec ' + (COUNTRIES[adversaire]?.n) + ' — l\'autre camp n\'a pas suivi.');
   }
 }
@@ -11109,7 +11109,7 @@ async function ouvrirNommerCapitaine(pa, cost) {
   const pays = state.country || 'republic';
   const compagnies = await sbGetCompagnies(pays).catch(() => []);
   const dispo = compagnies.filter(c => !c.capitaineNom);
-  if (dispo.length === 0) { showToast('Aucune compagnie disponible', 'Toutes les compagnies ont déjà un capitaine, ou aucune n\'existe.', false); return; }
+  if (dispo.length === 0) { showToast('Aucune compagnie disponible', 'Toutes les compagnies ont déjà un capitaine, ou aucune n\'existe.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b1ec153a2", 'Toutes les compagnies ont déjà un capitaine, ou aucune n\'existe.', undefined, 'Aucune compagnie disponible'); return; }
   const habitants = typeof listerHabitantsEligibles === 'function' ? await listerHabitantsEligibles('capitaine') : [];
 
   document.getElementById('postes-modal-title').textContent = 'Nommer un Capitaine';
@@ -11152,7 +11152,7 @@ async function envoyerNominationCapitaine(pa, cost) {
   const corps = (state.char?.name||'Le Commandant') + ' vous propose le poste de <strong>Capitaine</strong> de la compagnie ' + compagnieId + '.<br><br>' +
     marqueurActionMail('capitaine', prop.id);
   if (typeof sbSendMail === 'function') await sbSendMail(state.char?.name || 'Anonyme', destinataire, 'Nomination au poste de Capitaine', corps, time).catch(() => {});
-  showToast('Nomination envoyée', '', true, true);
+  showToast('Nomination envoyée', '', true, true); globalThis.RPI18nPlateau?.markToast(null, '', undefined, 'Nomination envoyée');
 }
 
 // L'acceptation ne s'ecrit plus depuis le navigateur : c'est la NOMINATION ENREGISTREE qui fait
@@ -11171,7 +11171,7 @@ async function accepterNominationCapitaine(nominationId) {
   state.poste = { id: 'capitaine', name: 'Capitaine', compagnieId: r.compagnie };
   if (state.char) state.char.poste = state.poste;
   updateUI();
-  showToast('Poste accepté !', 'Vous êtes désormais Capitaine de la compagnie ' + r.compagnie + '.', true, true);
+  showToast('Poste accepté !', 'Vous êtes désormais Capitaine de la compagnie ' + r.compagnie + '.', true, true); globalThis.RPI18nPlateau?.markToast(null, 'Vous êtes désormais Capitaine de la compagnie ' + r.compagnie + '.', undefined, 'Poste accepté !');
   addExternalEvent('🎖 ' + (state.char?.name||'Un officier') + ' est nommé Capitaine.');
 }
 
@@ -11180,7 +11180,7 @@ async function ouvrirNommerLieutenant(pa, cost) {
   const compagnie = (await sbGetCompagnies(state.country).catch(() => [])).find(c => c.id === state.poste.compagnieId);
   if (!compagnie) return;
   const dispo = (compagnie.sections || []).filter(s => !s.lieutenantNom);
-  if (dispo.length === 0) { showToast('Aucune section disponible', 'Toutes les sections de votre compagnie ont déjà un lieutenant.', false); return; }
+  if (dispo.length === 0) { showToast('Aucune section disponible', 'Toutes les sections de votre compagnie ont déjà un lieutenant.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b3affe355", 'Toutes les sections de votre compagnie ont déjà un lieutenant.', undefined, 'Aucune section disponible'); return; }
   const habitants = typeof listerHabitantsEligibles === 'function' ? await listerHabitantsEligibles('lieutenant') : [];
 
   document.getElementById('postes-modal-title').textContent = 'Nommer un Lieutenant';
@@ -11222,7 +11222,7 @@ async function envoyerNominationLieutenant(compagnieId, pa, cost) {
   const corps = (state.char?.name||'Le Capitaine') + ' vous propose le poste de <strong>Lieutenant</strong> de la section ' + sectionId + '.<br><br>' +
     marqueurActionMail('lieutenant', prop.id);
   if (typeof sbSendMail === 'function') await sbSendMail(state.char?.name || 'Anonyme', destinataire, 'Nomination au poste de Lieutenant', corps, time).catch(() => {});
-  showToast('Nomination envoyée', '', true, true);
+  showToast('Nomination envoyée', '', true, true); globalThis.RPI18nPlateau?.markToast(null, '', undefined, 'Nomination envoyée');
 }
 
 // Acceptation attestee : le serveur verifie que l'acceptant est le destinataire de CETTE
@@ -11240,7 +11240,7 @@ async function accepterNominationLieutenant(nominationId) {
   state.poste = { id: 'lieutenant', name: 'Lieutenant', compagnieId: r.compagnie, sectionId: r.section };
   if (state.char) state.char.poste = state.poste;
   updateUI();
-  showToast('Poste accepté !', 'Vous êtes désormais Lieutenant de la section ' + r.section + '.', true, true);
+  showToast('Poste accepté !', 'Vous êtes désormais Lieutenant de la section ' + r.section + '.', true, true); globalThis.RPI18nPlateau?.markToast(null, 'Vous êtes désormais Lieutenant de la section ' + r.section + '.', undefined, 'Poste accepté !');
   addExternalEvent('🎖 ' + (state.char?.name||'Un officier') + ' est nommé Lieutenant.');
 }
 
@@ -11465,8 +11465,8 @@ function creerSoldatsSection(numeroSection) {
 // VIDES, et chaque Lieutenant reellement installe y fait entrer jusqu'a 24 hommes pris dans ce
 // contingent. Un contingent entame par des pertes donne une section incomplete -- c'est voulu.
 async function doRecruterCompagnie() {
-  if (state.poste?.id !== 'commandant') { showToast('Réservé au Commandant', 'Le recrutement d\'une compagnie relève du Commandant de la Caserne, pas du Ministre.', false); return; }
-  if (typeof sbMilitaireCompagnieCreer !== 'function') { showToast('Indisponible', '', false); return; }
+  if (state.poste?.id !== 'commandant') { showToast('Réservé au Commandant', 'Le recrutement d\'une compagnie relève du Commandant de la Caserne, pas du Ministre.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b4a6a8cc6", 'Le recrutement d\'une compagnie relève du Commandant de la Caserne, pas du Ministre.', undefined, 'Réservé au Commandant'); return; }
+  if (typeof sbMilitaireCompagnieCreer !== 'function') { showToast('Indisponible', '', false); globalThis.RPI18nPlateau?.markToast(null, '', undefined, 'Indisponible'); return; }
   const r = await sbMilitaireCompagnieCreer();
   if (!r || r.ok !== true) {
     const motif = r?.raison;
@@ -11574,7 +11574,7 @@ async function ouvrirSEngagerArmee() {
   const etat = typeof sbMilitaireMesCandidatures === 'function'
     ? await sbMilitaireMesCandidatures().catch(() => null) : null;
   if (!etat || etat.ok !== true) {
-    showToast('Indisponible', 'Le bureau de recrutement ne répond pas.', false); return;
+    showToast('Indisponible', 'Le bureau de recrutement ne répond pas.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.ba749c1d8", 'Le bureau de recrutement ne répond pas.', undefined, 'Indisponible'); return;
   }
   const miennes = etat.candidatures || [];
   const deja = g => miennes.find(c => c.grade === g);
@@ -11637,7 +11637,7 @@ async function ouvrirSEngagerArmee() {
 
 async function confirmerCandidatureEngagement(grade) {
   document.getElementById('modal-postes')?.classList.remove('open');
-  if (typeof sbMilitaireCandidatureDeposer !== 'function') { showToast('Indisponible', '', false); return; }
+  if (typeof sbMilitaireCandidatureDeposer !== 'function') { showToast('Indisponible', '', false); globalThis.RPI18nPlateau?.markToast(null, '', undefined, 'Indisponible'); return; }
   const r = await sbMilitaireCandidatureDeposer(grade);
   if (!r || r.ok !== true) {
     const m = r?.raison;
@@ -11669,7 +11669,7 @@ async function confirmerRetraitCandidature(id) {
         : 'Refus du serveur (' + (r?.raison || 'indisponible') + ').', false);
     return;
   }
-  showToast('Candidature retirée', 'Les 2 PA dépensés ne sont pas remboursés.', true);
+  showToast('Candidature retirée', 'Les 2 PA dépensés ne sont pas remboursés.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.bf00e2dd5", 'Les 2 PA dépensés ne sont pas remboursés.', undefined, 'Candidature retirée');
   addJournalEntry('Candidature militaire retirée.', 'event-info');
 }
 
@@ -11742,7 +11742,7 @@ async function confirmerAcceptationCandidature(id, selectId) {
   const el = document.getElementById(selectId);
   const p = places[el ? Number(el.value) : 0];
   document.getElementById('modal-postes')?.classList.remove('open');
-  if (!p) { showToast('Aucune place', 'Plus aucune place à offrir.', false); return; }
+  if (!p) { showToast('Aucune place', 'Plus aucune place à offrir.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b6730c9df", 'Plus aucune place à offrir.', undefined, 'Aucune place'); return; }
   const r = await sbMilitaireCandidatureAccepter(id, p.compagnie_id, p.section_id || null);
   if (!r || r.ok !== true) {
     const m = r?.raison;
@@ -11778,7 +11778,7 @@ async function confirmerRefusCandidature(id, nomEncode) {
 // C'est le seul moment ou le joueur apprend ou il sert, et le seul ou la compagnie est ecrite.
 // ---------------------------------------------------------------------------------------------
 async function doDecouvrirAffectation() {
-  if (typeof sbMilitaireAffectationDecouvrir !== 'function') { showToast('Indisponible', '', false); return; }
+  if (typeof sbMilitaireAffectationDecouvrir !== 'function') { showToast('Indisponible', '', false); globalThis.RPI18nPlateau?.markToast(null, '', undefined, 'Indisponible'); return; }
   const r = await sbMilitaireAffectationDecouvrir();
   if (!r || r.ok !== true) {
     const m = r?.raison;
@@ -11997,8 +11997,8 @@ async function confirmerConfierConduite(compagnieId, sectionId, nomEncode) {
   const nom = decodeURIComponent(nomEncode || '');
   const nb = parseInt(document.getElementById('nb-confier')?.value || '0', 10);
   document.getElementById('modal-postes')?.classList.remove('open');
-  if (!(nb > 0)) { showToast('Nombre invalide', 'Indiquez au moins un soldat.', false); return; }
-  if (typeof sbMilitaireAffecterLeader !== 'function') { showToast('Indisponible', '', false); return; }
+  if (!(nb > 0)) { showToast('Nombre invalide', 'Indiquez au moins un soldat.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b1987b2ee", 'Indiquez au moins un soldat.', undefined, 'Nombre invalide'); return; }
+  if (typeof sbMilitaireAffecterLeader !== 'function') { showToast('Indisponible', '', false); globalThis.RPI18nPlateau?.markToast(null, '', undefined, 'Indisponible'); return; }
 
   const r = await sbMilitaireAffecterLeader(compagnieId, sectionId, nb, nom).catch(() => null);
   if (!r || r.ok !== true) {
@@ -12143,7 +12143,7 @@ async function ouvrirPanneauCombat(batailleId, options) {
   const contexte = contexteGroupePj();
   const e = await sbMilitaireBatailleEtat(batailleId || null);
   if (!contexteGroupePjValide(contexte)) return;
-  if (!e || e.ok !== true) { showToast('Combat indisponible', 'Le serveur n\'a pas répondu.', false); return; }
+  if (!e || e.ok !== true) { showToast('Combat indisponible', 'Le serveur n\'a pas répondu.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bf25f175d", 'Le serveur n\'a pas répondu.', undefined, 'Combat indisponible'); return; }
   const b = e.bataille;
 
   document.getElementById('postes-modal-title').textContent = b ? (b.statut==='en_cours' ? 'Combat en cours' : 'Rapport de combat') : 'Engagement';
@@ -12304,7 +12304,7 @@ async function rafraichirApresRound(batailleId) {
   ]);
   if (!contexteGroupePjValide(c)) return false;
   if (!frais || frais.userId !== c.uid || !Number.isInteger(frais.pa) || frais.pa < 0) {
-    showToast('État non confirmé','Le résultat du combat doit encore être relu.',false); return false;
+    showToast('État non confirmé','Le résultat du combat doit encore être relu.',false); globalThis.RPI18nPlateau?.markToast("toastBodies.b60baf55e", 'Le résultat du combat doit encore être relu.', undefined, 'État non confirmé'); return false;
   }
   state.pa = frais.pa;
   if (typeof sbFicheBaseAdopter==='function') {
@@ -12331,7 +12331,7 @@ async function rafraichirApresRound(batailleId) {
       const room=typeof BUILDINGS!=='undefined' ? BUILDINGS[terrain.id]?.rooms?.[terrain.piece] : null;
       if (room && typeof renderPersonsList==='function') renderPersonsList(room.persons || []);
       if (room && typeof renderRoomActions==='function') renderRoomActions(room,terrain.id,terrain.piece);
-    } else if (typeof sbGetTerrainState==='function') showToast('Occupation non confirmée','Le combat est enregistré ; la situation du terrain doit encore être relue.',false);
+    } else if (typeof sbGetTerrainState==='function') { showToast('Occupation non confirmée','Le combat est enregistré ; la situation du terrain doit encore être relue.',false); globalThis.RPI18nPlateau?.markToast("toastBodies.bcddd3eb0", 'Le combat est enregistré ; la situation du terrain doit encore être relue.', undefined, 'Occupation non confirmée'); }
   }
   updateUI();
   await ouvrirPanneauCombat(batailleId, { journaliser: true });
@@ -12382,7 +12382,7 @@ async function confirmerDecoration() {
   const intitule = (document.getElementById('deco-intitule')?.value || '').trim();
   const citation = (document.getElementById('deco-citation')?.value || '').trim();
   document.getElementById('modal-postes')?.classList.remove('open');
-  if (!nom || !intitule) { showToast('Décoration incomplète', 'Il faut un nom et un intitulé.', false); return; }
+  if (!nom || !intitule) { showToast('Décoration incomplète', 'Il faut un nom et un intitulé.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bd25389f3", 'Il faut un nom et un intitulé.', undefined, 'Décoration incomplète'); return; }
 
   const r = await sbMilitaireDecorer(nom, intitule, citation);
   if (!r || r.ok !== true) {
@@ -12410,7 +12410,7 @@ async function ouvrirCalepinCampagne() {
   const contexteCombat=contexteGroupePj();
   const c = await sbMilitaireCalepin();
   if (!contexteGroupePjValide(contexteCombat)) return;
-  if (!c || c.ok !== true) { showToast('Calepin indisponible', 'Le serveur n\'a pas répondu.', false); return; }
+  if (!c || c.ok !== true) { showToast('Calepin indisponible', 'Le serveur n\'a pas répondu.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bf25f175d", 'Le serveur n\'a pas répondu.', undefined, 'Calepin indisponible'); return; }
 
   document.getElementById('postes-modal-title').textContent = 'Calepin de campagne';
   let html = '<div style="padding:1rem">';
@@ -12771,7 +12771,7 @@ async function confirmerMobilisation(pa, cost) {
   const empireCible = document.getElementById('mobil-empire')?.value;
   const villeCible = document.getElementById('mobil-ville')?.value?.trim();
   const route = document.getElementById('mobil-route')?.value?.trim();
-  if (!empireCible || !villeCible || !route) { showToast('Champs requis', '', false); return; }
+  if (!empireCible || !villeCible || !route) { showToast('Champs requis', '', false); globalThis.RPI18nPlateau?.markToast(null, '', undefined, 'Champs requis'); return; }
   document.getElementById('modal-postes')?.classList.remove('open');
   // `fn` explicite (21 septembre 2026) : les trois actions de la mobilisation facturent sous
   // l'ordre de facade `mobilisation_nationale`, dont le miroir declare desormais les couples
@@ -13349,7 +13349,7 @@ function renderInspectionDetaillee(etat) {
 // retire du magasin, et seulement pour SA section. Le Capitaine n'a plus cette prerogative --
 // ce que le code notait deja pour les explosifs (« seul le chef de section peut les sortir »).
 async function ouvrirRepartirArmement() {
-  if (state.poste?.id !== 'lieutenant') { showToast('Réservé au chef de section', 'Le retrait au magasin relève du Lieutenant, pas du Capitaine.', false); return; }
+  if (state.poste?.id !== 'lieutenant') { showToast('Réservé au chef de section', 'Le retrait au magasin relève du Lieutenant, pas du Capitaine.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bbb2abacc", 'Le retrait au magasin relève du Lieutenant, pas du Capitaine.', undefined, 'Réservé au chef de section'); return; }
   const pays = state.country || 'republic';
   const compagnie = (await sbGetCompagnies(pays).catch(() => [])).find(c => c.id === state.poste.compagnieId);
   if (!compagnie) return;
@@ -13391,7 +13391,7 @@ async function ouvrirRepartirArmement() {
 }
 
 async function confirmerTransfertArmement(compagnieId, sectionId, categorie, sens) {
-  if (state.poste?.id !== 'lieutenant') { showToast('Réservé au chef de section', 'Le retrait au magasin relève du Lieutenant.', false); return; }
+  if (state.poste?.id !== 'lieutenant') { showToast('Réservé au chef de section', 'Le retrait au magasin relève du Lieutenant.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.ba7f7e3f3", 'Le retrait au magasin relève du Lieutenant.', undefined, 'Réservé au chef de section'); return; }
   const qte = parseInt(document.getElementById('qte-' + sectionId + '-' + categorie)?.value || '0');
   if (qte <= 0) return;
   const pays = state.country || 'republic';
@@ -13546,11 +13546,11 @@ async function confirmerEntrainementSection(compagnieId, sectionId, stat, pa, co
 // PAS DE deduireCoutOrdre : l'ordre est declare 0 PA / 0 FR, et la RPC ne preleve rien.
 async function doReposerSection() {
   if (state.poste?.id !== 'lieutenant') { showToast('Réservé à un Lieutenant', '', false); return; }
-  if (typeof sbMilitaireReposerSection !== 'function') { showToast('Indisponible', 'Service momentanément indisponible.', false); return; }
+  if (typeof sbMilitaireReposerSection !== 'function') { showToast('Indisponible', 'Service momentanément indisponible.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b03206516", 'Service momentanément indisponible.', undefined, 'Indisponible'); return; }
   const compagnie = (await sbGetCompagnies(state.country || 'republic').catch(() => []))
     .find(c => c.id === state.poste.compagnieId);
   const section = getSectionDuLieutenant(compagnie);
-  if (!section) { showToast('Section introuvable', 'Vous ne commandez aucune section.', false); return; }
+  if (!section) { showToast('Section introuvable', 'Vous ne commandez aucune section.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b8782f7c7", 'Vous ne commandez aucune section.', undefined, 'Section introuvable'); return; }
 
   const r = await sbMilitaireReposerSection(compagnie.id, section.id);
   if (!r || r.ok !== true) {
@@ -13589,7 +13589,7 @@ async function doReposerSection() {
 // Le client ne calcule RIEN : ni le nombre de rallies, ni qui suit. Il demande, le serveur
 // tranche, et il rapporte le resultat reel.
 async function doDeclencherMutinerie() {
-  if (state.poste?.id !== 'lieutenant') { showToast('Réservé à un Lieutenant', 'Seul un chef de section peut retourner ses hommes.', false); return; }
+  if (state.poste?.id !== 'lieutenant') { showToast('Réservé à un Lieutenant', 'Seul un chef de section peut retourner ses hommes.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b7f907811", 'Seul un chef de section peut retourner ses hommes.', undefined, 'Réservé à un Lieutenant'); return; }
   document.getElementById('postes-modal-title').textContent = 'Déclencher une mutinerie';
   let html = '<div style="padding:1rem">';
   html += '<div style="border:1px solid #6a2a20;background:#140a08;padding:.8rem;margin-bottom:.9rem">';
@@ -13616,7 +13616,7 @@ async function doDeclencherMutinerie() {
 
 async function confirmerMutinerie() {
   document.getElementById('modal-postes')?.classList.remove('open');
-  if (typeof sbMutinerieDeclencher !== 'function') { showToast('Indisponible', 'Service momentanément indisponible.', false); return; }
+  if (typeof sbMutinerieDeclencher !== 'function') { showToast('Indisponible', 'Service momentanément indisponible.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b03206516", 'Service momentanément indisponible.', undefined, 'Indisponible'); return; }
   const r = await sbMutinerieDeclencher();
   if (!r || r.ok !== true) {
     const m = r && r.raison;
@@ -13842,7 +13842,7 @@ async function doDemobiliser() {
   const pays = state.country || 'republic';
   const budgetNat = await chargerBudgetNational(pays);
   if (!budgetNat.mobilisationNationaleActive) {
-    showToast('Aucune mobilisation', 'Aucune mobilisation nationale n\'est en cours.', false);
+    showToast('Aucune mobilisation', 'Aucune mobilisation nationale n\'est en cours.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bd0d1ad2b", 'Aucune mobilisation nationale n\'est en cours.', undefined, 'Aucune mobilisation');
     return;
   }
   // Cout lu dans la table declarative de la facade (plateau-gouvernement.js), jamais re-code en
@@ -13952,9 +13952,9 @@ async function accepterTransfertCaserne() {
 
 async function doAccepterIncorporation() {
   const req = state.char?.requisition;
-  if (!state.estEmprisonne) { showToast('Impossible', 'Vous n\'êtes pas détenu(e).', false); return; }
-  if (!req || req.statut !== 'deserteur') { showToast('Sans objet', 'Vous n\'êtes pas détenu(e) comme déserteur(se).', false); return; }
-  if (!state.mobilisationNationaleCache) { showToast('Mobilisation levée', 'Plus aucune incorporation n\'est possible.', false); return; }
+  if (!state.estEmprisonne) { showToast('Impossible', 'Vous n\'êtes pas détenu(e).', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b7be7cda4", 'Vous n\'êtes pas détenu(e).', undefined, 'Impossible'); return; }
+  if (!req || req.statut !== 'deserteur') { showToast('Sans objet', 'Vous n\'êtes pas détenu(e) comme déserteur(se).', false); globalThis.RPI18nPlateau?.markToast("toastBodies.ba8000bd9", 'Vous n\'êtes pas détenu(e) comme déserteur(se).', undefined, 'Sans objet'); return; }
+  if (!state.mobilisationNationaleCache) { showToast('Mobilisation levée', 'Plus aucune incorporation n\'est possible.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b7388df59", 'Plus aucune incorporation n\'est possible.', undefined, 'Mobilisation levée'); return; }
 
   // LE SERVEUR DECIDE (04/11/2026). L'ecran n'appelait la porte que si `motifDesertionSeul` etait
   // vrai -- drapeau que personne ne pose : aucun deserteur n'etait jamais incorpore. La porte lit
@@ -13973,7 +13973,7 @@ async function doAccepterIncorporation() {
   }
   state.char.requisition = Object.assign({}, req, { statut: 'incorpore', incorporeJour: state.day || 1 });
   if (v.differee === true) {
-    showToast('Transfert accepté', 'Vous serez incorporé(e) à votre libération : d\'autres peines restent à purger.', true, true);
+    showToast('Transfert accepté', 'Vous serez incorporé(e) à votre libération : d\'autres peines restent à purger.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b4ec38300", 'Vous serez incorporé(e) à votre libération : d\'autres peines restent à purger.', undefined, 'Transfert accepté');
   } else {
     state.estEmprisonne = null;
     if (state.char) state.char.joursDetenuDeserteur = 0;
@@ -13989,7 +13989,7 @@ async function doAccepterIncorporation() {
         if (typeof enterRoom === 'function') enterRoom('caserne-militaire', 'corps_garde', null);
       }
     }
-    showToast('Transfert accepté', 'Vous êtes conduit(e) à la caserne et incorporé(e).', true, true);
+    showToast('Transfert accepté', 'Vous êtes conduit(e) à la caserne et incorporé(e).', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b932fdadc", 'Vous êtes conduit(e) à la caserne et incorporé(e).', undefined, 'Transfert accepté');
   }
   // Le motif « desertion » est retire par la porte elle-meme (20261104023000) ; l'ecran relit l'avis.
   const fiche = (typeof sbLoadPersonnage === 'function' && state.char?.name)
@@ -14051,7 +14051,7 @@ async function confirmerCouvreFeu(activer, pa, cost) {
   if (activer) {
     budgetNat.couvreFeu = { actif: true, jourDebut: state.day || 1, jourFin: (state.day || 1) + 2, dateFin: Date.now() + 2 * 86400000 };
     await sbSaveBudgetNational(pays, budgetNat);
-    showToast('Couvre-feu instauré', '20h-6h. Couvre-feu en vigueur.', false, true);
+    showToast('Couvre-feu instauré', '20h-6h. Couvre-feu en vigueur.', false, true); globalThis.RPI18nPlateau?.markToast("toastBodies.be38306df", '20h-6h. Couvre-feu en vigueur.', undefined, 'Couvre-feu instauré');
     addExternalEvent('🌙 COUVRE-FEU instauré par le Ministère de l\'Intérieur, de 20h à 6h.');
   } else {
     budgetNat.couvreFeu = { actif: false };
@@ -14114,7 +14114,7 @@ async function confirmerRechercheMilitaire(arme, pa, cost) {
   if (!r.ok) { signalerRefusCout(r); return; }
   const pays = state.country || 'republic';
   const montantVerse = await debiterCaisseBatimentAtomique(pays, 'caserne-militaire', COUT_RECHERCHE);
-  if (montantVerse < COUT_RECHERCHE) { showToast('Budget insuffisant', 'La caisse de la caserne ne couvre pas le coût de la recherche.', false); return; }
+  if (montantVerse < COUT_RECHERCHE) { showToast('Budget insuffisant', 'La caisse de la caserne ne couvre pas le coût de la recherche.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b8e85d10b", 'La caisse de la caserne ne couvre pas le coût de la recherche.', undefined, 'Budget insuffisant'); return; }
 
   const budgetNat = await chargerBudgetNational(pays);
   budgetNat.rechercheMilitaire = { enCours: { arme, jourDebut: state.day, jourFin: state.day + DUREE_RECHERCHE_JOURS, dateFin: Date.now() + DUREE_RECHERCHE_JOURS * 86400000 } };
@@ -14170,9 +14170,9 @@ async function ouvrirCaisseCaserne() {
 async function confirmerReversementCaserne() {
   const champ = document.getElementById('caserne-reversement-montant');
   const montant = Math.floor(Number(champ && champ.value) || 0);
-  if (montant <= 0) { showToast('Montant invalide', 'Indiquez un montant supérieur à zéro.', false); return; }
+  if (montant <= 0) { showToast('Montant invalide', 'Indiquez un montant supérieur à zéro.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b4e0726d2", 'Indiquez un montant supérieur à zéro.', undefined, 'Montant invalide'); return; }
   document.getElementById('modal-postes')?.classList.remove('open');
-  if (typeof sbCaserneReverserAuMinistere !== 'function') { showToast('Action impossible', '', false); return; }
+  if (typeof sbCaserneReverserAuMinistere !== 'function') { showToast('Action impossible', '', false); globalThis.RPI18nPlateau?.markToast(null, '', undefined, 'Action impossible'); return; }
 
   // AUCUNE VERIFICATION DE SOLDE ICI. Le serveur verrouille la caisse, compare, et refuse sans
   // rien ecrire : un test cote navigateur ne serait qu'une politesse d'affichage, et deux
@@ -14239,7 +14239,7 @@ async function ouvrirGardeRepublicaine() {
 
 async function confirmerGardeRenfort(facteur) {
   document.getElementById('modal-postes')?.classList.remove('open');
-  if (typeof sbGardeRenfortNational !== 'function') { showToast('Action impossible', '', false); return; }
+  if (typeof sbGardeRenfortNational !== 'function') { showToast('Action impossible', '', false); globalThis.RPI18nPlateau?.markToast(null, '', undefined, 'Action impossible'); return; }
 
   // AUCUNE VERIFICATION DE CAISSE ICI, pour la meme raison qu'au reversement de la caserne : le
   // serveur verrouille, compare et refuse sans rien ecrire. Deux sources de verite sur un meme
@@ -14304,7 +14304,7 @@ async function ouvrirRequisitionCivile(pa, cost) {
   if (state.poste?.id !== 'min_def') { showToast('Réservé au Ministre de la Défense', '', false); return; }
   const pays = state.country || 'republic';
   const budgetNat = await chargerBudgetNational(pays);
-  if (!budgetNat.mobilisationNationaleActive) { showToast('Aucune mobilisation nationale active', 'La réquisition n\'est possible que pendant une mobilisation nationale.', false); return; }
+  if (!budgetNat.mobilisationNationaleActive) { showToast('Aucune mobilisation nationale active', 'La réquisition n\'est possible que pendant une mobilisation nationale.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bc837aed2", 'La réquisition n\'est possible que pendant une mobilisation nationale.', undefined, 'Aucune mobilisation nationale active'); return; }
 
   const compagnies = await sbGetCompagnies(pays).catch(() => []);
   const sections = [];
@@ -14344,7 +14344,7 @@ async function ouvrirRequisitionCivile(pa, cost) {
 // il n'envoie que les mails, et n'annonce un succes que si le serveur en a confirme un.
 async function confirmerRequisitionCivile(compagnieId, sectionId, pa, cost) {
   document.getElementById('modal-postes')?.classList.remove('open');
-  if (typeof sbRpc !== 'function') { showToast('Indisponible', 'Serveur injoignable.', false); return; }
+  if (typeof sbRpc !== 'function') { showToast('Indisponible', 'Serveur injoignable.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.ba134fa89", 'Serveur injoignable.', undefined, 'Indisponible'); return; }
   const rows = await sbRpc('militaire_requisition_civile', {
     p_compagnie_id: compagnieId, p_section_id: sectionId
   }).catch(() => null);
@@ -14390,7 +14390,7 @@ async function doSePresenterAffectation(pa, cost) {
   // c'est precisement ce qui fait de la reddition une option de jeu.
   const estDeserteur = !!req && req.statut === 'deserteur';
   if (!req || (req.statut !== 'convoque' && !estDeserteur)) { showToast('Aucune convocation en attente', '', false); return; }
-  if (!estDeserteur && Date.now() > req.deadline) { showToast('Trop tard', 'Le délai de présentation est dépassé. Vous êtes désormais déserteur(se) : présentez-vous pour être incorporé(e).', false); return; }
+  if (!estDeserteur && Date.now() > req.deadline) { showToast('Trop tard', 'Le délai de présentation est dépassé. Vous êtes désormais déserteur(se) : présentez-vous pour être incorporé(e).', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b2182c6b9", 'Le délai de présentation est dépassé. Vous êtes désormais déserteur(se) : présentez-vous pour être incorporé(e).', undefined, 'Trop tard'); return; }
   if (state.currentBuilding !== 'caserne-militaire') { showToast('Présentez-vous à la caserne', '', false); return; }
 
   // TOUT SE PASSE AU SERVEUR (21 septembre 2026), PAIEMENT COMPRIS.
@@ -14405,7 +14405,7 @@ async function doSePresenterAffectation(pa, cost) {
   // militaire_presentation_affectation reverifie tout (convocation, presence a la caserne, delai),
   // ecrit le blob et la fiche cote serveur, eteint les seules poursuites pour desertion, puis
   // preleve le PA contre le miroir des couts. AUCUN succes n'est affiche si elle refuse.
-  if (typeof sbRpc !== 'function') { showToast('Indisponible', 'Serveur injoignable.', false); return; }
+  if (typeof sbRpc !== 'function') { showToast('Indisponible', 'Serveur injoignable.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.ba134fa89", 'Serveur injoignable.', undefined, 'Indisponible'); return; }
   const rows = await sbRpc('militaire_presentation_affectation', {}).catch(() => null);
   const r = Array.isArray(rows) ? rows[0] : rows;
   if (!r || r.ok !== true) {
@@ -14529,7 +14529,7 @@ async function confirmerRemonteeRenseignement(rapportId, pa, cost) {
   document.getElementById('modal-postes')?.classList.remove('open');
   const compagnie = (await sbGetCompagnies(state.country).catch(() => [])).find(c => c.id === state.poste.compagnieId);
   const capitaineNom = compagnie?.capitaineNom;
-  if (!capitaineNom) { showToast('Aucun Capitaine en poste', 'Impossible de transmettre pour l\'instant.', false); return; }
+  if (!capitaineNom) { showToast('Aucun Capitaine en poste', 'Impossible de transmettre pour l\'instant.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b94241058", 'Impossible de transmettre pour l\'instant.', undefined, 'Aucun Capitaine en poste'); return; }
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }
 
@@ -14540,7 +14540,7 @@ async function confirmerRemonteeRenseignement(rapportId, pa, cost) {
       rapport.contenu, typeof formatDateHeureJeu==='function'?formatDateHeureJeu():'').catch(()=>{});
   }
   await sbMarquerRapportRemonte(rapportId);
-  showToast('Rapport transmis', 'Votre Capitaine a été informé.', true, true);
+  showToast('Rapport transmis', 'Votre Capitaine a été informé.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b2f130018", 'Votre Capitaine a été informé.', undefined, 'Rapport transmis');
   addJournalEntry('Rapport de renseignement transmis à mon Capitaine.', 'event-info');
 }
 
@@ -14704,7 +14704,7 @@ async function doTransfererPrisonNormale(prisonnierId) {
   const rT = await sbRpc('qhs_pouvoir', { p_prisonnier_id: prisonnierId, p_acte: 'transferer' })
     .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
   if (!rT || rT.ok !== true) { showToast('Transfert impossible', messageRefusQhs(rT), false); return; }
-  showToast('Transfert effectué', p.nom + ' est transféré(e) vers une prison normale. Éligible à un bonus de réduction de peine via avocat.', true, true);
+  showToast('Transfert effectué', p.nom + ' est transféré(e) vers une prison normale. Éligible à un bonus de réduction de peine via avocat.', true, true); globalThis.RPI18nPlateau?.markToast(null, p.nom + ' est transféré(e) vers une prison normale. Éligible à un bonus de réduction de peine via avocat.', undefined, 'Transfert effectué');
   addJournalEntry(p.nom + ' transféré(e) du QHS vers une prison normale.', 'event-info');
 }
 

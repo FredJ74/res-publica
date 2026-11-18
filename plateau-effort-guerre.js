@@ -322,7 +322,7 @@ async function totauxReserveMilitaire(pays) {
 // ---------------------------------------------------------------------------
 function ouvrirEffortNational() {
   if (state.poste?.id !== 'president') {
-    showToast('Accès refusé', 'Réservé au Président de la République.', false);
+    showToast('Accès refusé', 'Réservé au Président de la République.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bf7b59933", 'Réservé au Président de la République.', undefined, 'Accès refusé');
     return;
   }
   rafraichirCacheEffortGuerre().then(function () { rendreEffortNational(); });
@@ -418,7 +418,7 @@ async function confirmerDeclenchementEffort() {
 
   document.getElementById('modal-postes')?.classList.remove('open');
   updateUI();
-  showToast('Effort de guerre déclenché', 'Période de 3 jours ouverte. Le Ministre de la Guerre dispose de son tableau de contrôle.', true, true);
+  showToast('Effort de guerre déclenché', 'Période de 3 jours ouverte. Le Ministre de la Guerre dispose de son tableau de contrôle.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b418843e6", 'Période de 3 jours ouverte. Le Ministre de la Guerre dispose de son tableau de contrôle.', undefined, 'Effort de guerre déclenché');
   addJournalEntry('Effort de guerre déclenché pour 3 jours.', 'event-info');
   if (typeof addExternalEvent === 'function') {
     addExternalEvent('Le Président a décrété l\'Effort de guerre. L\'économie du pays passe en régime militaire.');
@@ -470,7 +470,7 @@ async function confirmerArretEffort() {
   await cloturerEffortGuerre(pays, effort, state.char?.name || 'Le Président', 'decision');
   document.getElementById('modal-postes')?.classList.remove('open');
   updateUI();
-  showToast('Effort de guerre arrêté', 'Matières libérées, reliquats annulés. Les marchandises produites restent acquises.', true, true);
+  showToast('Effort de guerre arrêté', 'Matières libérées, reliquats annulés. Les marchandises produites restent acquises.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b9468145b", 'Matières libérées, reliquats annulés. Les marchandises produites restent acquises.', undefined, 'Effort de guerre arrêté');
   addJournalEntry('Effort de guerre arrêté. Réserve libérée, reliquats annulés.', 'event-info');
 }
 
@@ -497,12 +497,12 @@ async function cloturerEffortGuerre(pays, effort, auteur, motif) {
 // ---------------------------------------------------------------------------
 function ouvrirTableauEffortMinistre() {
   if (state.poste?.id !== 'min_def') {
-    showToast('Accès refusé', 'Réservé au Ministre de la Défense.', false);
+    showToast('Accès refusé', 'Réservé au Ministre de la Défense.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bde79d500", 'Réservé au Ministre de la Défense.', undefined, 'Accès refusé');
     return;
   }
   rafraichirCacheEffortGuerre().then(function () {
     if (!effortGuerreEstActif()) {
-      showToast('Effort inactif', 'Le tableau de contrôle n\'est disponible que pendant un Effort de guerre décrété par le Président.', false);
+      showToast('Effort inactif', 'Le tableau de contrôle n\'est disponible que pendant un Effort de guerre décrété par le Président.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bcf40e11f", 'Le tableau de contrôle n\'est disponible que pendant un Effort de guerre décrété par le Président.', undefined, 'Effort inactif');
       return;
     }
     rendreTableauEffortMinistre();
@@ -611,12 +611,12 @@ function blocCurseur(id, libelle, valeur, aide) {
 
 async function confirmerCurseursEffort() {
   const pays = state.country || 'republic';
-  if (state.poste?.id !== 'min_def') { showToast('Accès refusé', 'Réservé au Ministre de la Défense.', false); return; }
+  if (state.poste?.id !== 'min_def') { showToast('Accès refusé', 'Réservé au Ministre de la Défense.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bde79d500", 'Réservé au Ministre de la Défense.', undefined, 'Accès refusé'); return; }
   const rav = Math.max(0, Math.min(100, parseInt(document.getElementById('curseur-ravitaillement')?.value || '0', 10)));
   const pro = Math.max(0, Math.min(100, parseInt(document.getElementById('curseur-production')?.value || '0', 10)));
 
   const effort = await chargerEffortGuerre(pays);
-  if (!effortDeGuerreActif(effort, Date.now())) { showToast('Effort inactif', 'L\'Effort de guerre n\'est plus actif.', false); return; }
+  if (!effortDeGuerreActif(effort, Date.now())) { showToast('Effort inactif', 'L\'Effort de guerre n\'est plus actif.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bef5bd97f", 'L\'Effort de guerre n\'est plus actif.', undefined, 'Effort inactif'); return; }
 
   const maj = Object.assign({}, effort, { prioriteRavitaillement: rav, prioriteProductionMilitaire: pro });
   await ecrireEffortGuerre(pays, maj);
@@ -626,7 +626,7 @@ async function confirmerCurseursEffort() {
   // jamais de reliquat reserve au-dela du nouveau pourcentage.
   const r = await appliquerReserveMilitaire(pays, pro);
   if (!r || r.ok !== true) {
-    showToast('Réglages enregistrés', 'Les curseurs sont à jour, mais la réserve n\'a pas pu être recalculée. Elle le sera à la prochaine nuit.', false);
+    showToast('Réglages enregistrés', 'Les curseurs sont à jour, mais la réserve n\'a pas pu être recalculée. Elle le sera à la prochaine nuit.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.baf5ccbbb", 'Les curseurs sont à jour, mais la réserve n\'a pas pu être recalculée. Elle le sera à la prochaine nuit.', undefined, 'Réglages enregistrés');
   } else {
     showToast('Réglages appliqués', 'Ravitaillement ' + rav + ' % · Production ' + pro + ' %.', true);
   }
@@ -659,14 +659,14 @@ const MOTIFS_COMMANDE_MILITAIRE = {
 
 async function confirmerCommandeMilitaire() {
   const pays = state.country || 'republic';
-  if (state.poste?.id !== 'min_def') { showToast('Accès refusé', 'Réservé au Ministre de la Défense.', false); return; }
+  if (state.poste?.id !== 'min_def') { showToast('Accès refusé', 'Réservé au Ministre de la Défense.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bde79d500", 'Réservé au Ministre de la Défense.', undefined, 'Accès refusé'); return; }
   const produit = document.getElementById('cmd-mil-produit')?.value;
   const qte = parseInt(document.getElementById('cmd-mil-qte')?.value || '0', 10);
   if (!recetteMilitaire(produit)) { showToast('Produit inconnu', '', false); return; }
-  if (!(qte > 0)) { showToast('Quantité invalide', 'Indiquez une quantité supérieure à zéro.', false); return; }
+  if (!(qte > 0)) { showToast('Quantité invalide', 'Indiquez une quantité supérieure à zéro.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b5990c8d0", 'Indiquez une quantité supérieure à zéro.', undefined, 'Quantité invalide'); return; }
 
   const effort = await chargerEffortGuerre(pays);
-  if (!effortDeGuerreActif(effort, Date.now())) { showToast('Effort inactif', 'Aucune commande militaire hors Effort de guerre.', false); return; }
+  if (!effortDeGuerreActif(effort, Date.now())) { showToast('Effort inactif', 'Aucune commande militaire hors Effort de guerre.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b5dae4371", 'Aucune commande militaire hors Effort de guerre.', undefined, 'Effort inactif'); return; }
 
   // LES VERIFICATIONS CI-DESSUS RESTENT, MAIS ELLES NE DECIDENT PLUS (chantier 4D).
   // Elles servent a expliquer vite au joueur, pas a autoriser : le poste, le catalogue, la
@@ -685,14 +685,14 @@ async function confirmerCommandeMilitaire() {
 }
 
 async function confirmerAnnulationCommande(id) {
-  if (state.poste?.id !== 'min_def') { showToast('Accès refusé', 'Réservé au Ministre de la Défense.', false); return; }
+  if (state.poste?.id !== 'min_def') { showToast('Accès refusé', 'Réservé au Ministre de la Défense.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bde79d500", 'Réservé au Ministre de la Défense.', undefined, 'Accès refusé'); return; }
   const r = await sbAnnulerCommandeMilitaire(id).catch(function () { return null; });
   if (!r || r.ok !== true) {
     showToast('Annulation refusée', MOTIFS_COMMANDE_MILITAIRE[r && r.raison] ||
               'Le serveur n\'a pas accepté l\'annulation. Rien n\'a changé.', false);
     return;
   }
-  showToast('Reliquat annulé', 'Ce qui a déjà été produit, payé et livré reste acquis.', true);
+  showToast('Reliquat annulé', 'Ce qui a déjà été produit, payé et livré reste acquis.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.b621ae2a6", 'Ce qui a déjà été produit, payé et livré reste acquis.', undefined, 'Reliquat annulé');
   addJournalEntry('Reliquat d\'une commande militaire annulé.', 'event-info');
   rendreTableauEffortMinistre();
 }
@@ -776,7 +776,7 @@ function doRetirerEquipementsMilitaires() {
 
 async function ouvrirRetraitMilitaire(produits, titre) {
   if (state.poste?.id !== 'lieutenant') {
-    showToast('Accès refusé', 'Le retrait de matériel est réservé au Lieutenant chef de section.', false);
+    showToast('Accès refusé', 'Le retrait de matériel est réservé au Lieutenant chef de section.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b546e9908", 'Le retrait de matériel est réservé au Lieutenant chef de section.', undefined, 'Accès refusé');
     return;
   }
   const pays = state.country || 'republic';
@@ -820,7 +820,7 @@ async function confirmerRetraitMilitaire(produit) {
   const r = recetteMilitaire(produit);
   if (!r) return;
   const qte = parseInt(document.getElementById('retrait-qte-' + produit)?.value || '0', 10);
-  if (!(qte > 0)) { showToast('Quantité invalide', 'Indiquez une quantité supérieure à zéro.', false); return; }
+  if (!(qte > 0)) { showToast('Quantité invalide', 'Indiquez une quantité supérieure à zéro.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b5990c8d0", 'Indiquez une quantité supérieure à zéro.', undefined, 'Quantité invalide'); return; }
 
   const section = await sectionDuJoueurLieutenant();
   // FAIL-CLOSED : la RPC est l'autorite. Elle revalide le poste, la presence physique et le
@@ -893,10 +893,10 @@ async function doMangerRation() {
   const res = await sbRefectoireRepas(pays, state.char?.name || '', state.day || 1, paMax, 2);
   if (!res || res.ok !== true) {
     const raison = res && res.raison;
-    if (raison === 'deja_mange') showToast('Déjà servi', 'Une seule ration par jour et par personne.', false);
-    else if (raison === 'ingredients_insuffisants') showToast('Réfectoire vide', 'Plus aucune ration, et pas de quoi en préparer. Le ravitaillement dépend de l\'Effort de guerre.', false);
-    else if (raison === 'pas_sur_place') showToast('Impossible', 'Vous devez être à la caserne.', false);
-    else showToast('Impossible', 'Le réfectoire n\'a rien pu servir.', false);
+    if (raison === 'deja_mange') { showToast('Déjà servi', 'Une seule ration par jour et par personne.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bcabb377b", 'Une seule ration par jour et par personne.', undefined, 'Déjà servi'); }
+    else if (raison === 'ingredients_insuffisants') { showToast('Réfectoire vide', 'Plus aucune ration, et pas de quoi en préparer. Le ravitaillement dépend de l\'Effort de guerre.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bc3ae2f5c", 'Plus aucune ration, et pas de quoi en préparer. Le ravitaillement dépend de l\'Effort de guerre.', undefined, 'Réfectoire vide'); }
+    else if (raison === 'pas_sur_place') { showToast('Impossible', 'Vous devez être à la caserne.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b2aba712f", 'Vous devez être à la caserne.', undefined, 'Impossible'); }
+    else { showToast('Impossible', 'Le réfectoire n\'a rien pu servir.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b44becd50", 'Le réfectoire n\'a rien pu servir.', undefined, 'Impossible'); }
     return;
   }
   state.pa = res.pa;

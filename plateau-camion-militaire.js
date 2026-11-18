@@ -239,7 +239,7 @@ function camionAppliquerEtat(e) {
     camionNaviguerVers(moi.ville, moi.building_id, moi.room_id);
     if (typeof showToast === 'function') {
       showToast('Vous n\'êtes plus à bord',
-        'Le camion est reparti sans vous. Vous êtes resté(e) sur place.', false);
+        'Le camion est reparti sans vous. Vous êtes resté(e) sur place.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b5bf1ccab", 'Le camion est reparti sans vous. Vous êtes resté(e) sur place.', undefined, 'Vous n\'êtes plus à bord');
     }
     return true;
   }
@@ -334,7 +334,7 @@ function camionArreterVeille() {
 function doCamionMilitaire() {
   if (!RP_CAMIONS_ICI.length) {
     if (typeof showToast === 'function') {
-      showToast('Aucun camion ici', 'Le camion n\'est plus stationné à cet endroit.', false);
+      showToast('Aucun camion ici', 'Le camion n\'est plus stationné à cet endroit.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b237ab5a0", 'Le camion n\'est plus stationné à cet endroit.', undefined, 'Aucun camion ici');
     }
     camionRafraichirContexte().catch(() => {});
     return;
@@ -421,7 +421,7 @@ function doCamionConduire() {
   if (!e || !e.peut_commander) return;
   const dests = e.destinations || [];
   if (!dests.length) {
-    if (typeof showToast === 'function') showToast('Aucune destination', 'Ce camion est déjà partout où il peut aller.', false);
+    if (typeof showToast === 'function') { showToast('Aucune destination', 'Ce camion est déjà partout où il peut aller.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b62d6513b", 'Ce camion est déjà partout où il peut aller.', undefined, 'Aucune destination'); }
     return;
   }
   camionChoisir('Conduire le camion vers…', dests, 'camionPartir', true);
@@ -436,7 +436,7 @@ function doCamionAVide() {
   if (e.grade === 'lieutenant') { camionPartirAVide('__caserne__'); return; }
   const dests = e.destinations || [];
   if (!dests.length) {
-    if (typeof showToast === 'function') showToast('Aucune destination', 'Ce camion est déjà partout où il peut aller.', false);
+    if (typeof showToast === 'function') { showToast('Aucune destination', 'Ce camion est déjà partout où il peut aller.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b62d6513b", 'Ce camion est déjà partout où il peut aller.', undefined, 'Aucune destination'); }
     return;
   }
   camionChoisir('Envoyer le camion à vide vers…', dests, 'camionPartirAVide', true);
