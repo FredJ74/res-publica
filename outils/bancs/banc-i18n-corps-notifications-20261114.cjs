@@ -60,7 +60,8 @@ test('provenance des phrases actives et de l’unique phrase retirée de navigat
  assert.ok(ancien.includes(retire));assert.equal(present(retire),false);
  // 16/11/2026 : la limite fixe de 2 récoltes par jour n'existe plus (régulation de la production).
  // 17/11/2026 : le +5 DIS du don au banquier PNJ est suspendu (failles de l'audit, la DIS ne monte plus à l'écran).
- assert.deepEqual(rows.map(r=>r[0]).filter(fr=>!present(fr)),[retire,'Maximum 2 récoltes par jour.','+5 DIS.'].filter(fr=>rows.some(r=>r[0]===fr)).sort((a,b)=>rows.findIndex(r=>r[0]===a)-rows.findIndex(r=>r[0]===b)));
+ // 18/11/2026 : le refus de vote vient désormais des motifs serveur (nationalite_requise, hors_de_son_pays, non_domicilie).
+ assert.deepEqual(rows.map(r=>r[0]).filter(fr=>!present(fr)),[retire,'Maximum 2 récoltes par jour.','+5 DIS.','Vous ne pouvez pas voter dans cet empire.'].filter(fr=>rows.some(r=>r[0]===fr)).sort((a,b)=>rows.findIndex(r=>r[0]===a)-rows.findIndex(r=>r[0]===b)));
 });
 
 test('aucun recouvrement avec les catalogues déjà raccordés (pas de double traduction ni de markToast contrarié)',()=>{
