@@ -40,6 +40,8 @@ function showToast(t, m) { TOASTS.push(t + ' | ' + m); }
 function addJournalEntry(m) { JOURNAL.push(m); }
 function getCleCycle(posteId, city) { return city ? posteId + '_' + city : posteId; }
 function getPhaseActuelle() { return PHASE; }
+// Nationalité et domicile (18/11/2026) : municipales selon le domicile, vérifiées avant la porte.
+function posteEstLocal(p) { return p === 'maire'; }
 
 eval(bloc('voterPour'));
 
@@ -55,7 +57,7 @@ function sync(p) {
 function neuf() {
   RPC = []; ECRITURES = []; TOASTS = []; JOURNAL = []; REPONSES = {};
   PHASE = PHASES_ELECTORALES.VOTE;
-  state = { char: { name: 'Ben' }, country: 'republic', domicile: { country: 'republic' } };
+  state = { char: { name: 'Ben' }, country: 'republic', nationalite: 'republic', domicile: { country: 'republic', city: 'capitale' } };
   CYCLES_ELECTORAUX = { republic: { maire_capitale: {
     votes: {}, candidats: [{ nom: 'Arnie' }, { nom: 'Marsault' }] } } };
 }
