@@ -28,7 +28,7 @@ test('Histoire d’amour dans les fiches de trinquer et de dialogue', () => {
 });
 
 test('Référents ET sociaux, hors fonctionnaires ; portraits raccordés', () => {
-  assert.match(read('plateau-pnj.js'), /'kouzma_lapchine', 'praskovia_pakhomova'\n\];/);
+  assert.match(read('plateau-pnj.js'), /'kouzma_lapchine', 'praskovia_pakhomova',?\n[^\]]*\];/);
   const s = read('plateau-social-pnj.js');
   assert.match(s, /'ville_b\|kolkhoze-spirituel\|grange_sainte':\s+'kouzma_lapchine'/);
   assert.match(s, /'ville_b\|maison-krasnov-eglise\|piece_maison':\s+'kouzma_lapchine'/);

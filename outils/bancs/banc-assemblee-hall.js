@@ -1,5 +1,5 @@
 // BANC DU HALL DE L'ASSEMBLEE NATIONALE — PREMIERE PASSE PNJ (11 octobre 2026)
-// SOURCES: data.js api/_bible-assemblee.js api/_bible-gouvernement.js api/_bible-militaire.js api/_bible-presidence.js api/_pnj-personnalites.js api/_pnj-referents.js api/_pnj-profils.js
+// SOURCES: data.js api/_bible-assemblee.js api/_bible-gouvernement.js api/_bible-militaire.js api/_bible-presidence.js api/_pnj-personnalites.js api/_pnj-referents.js api/_pnj-culture-bouriate.js api/_pnj-profils.js
 //
 // CE QU'IL PROUVE. Le hall comptait trois PNJ muets. Ce banc verifie :
 //   . que le GARDE ne pretend plus etre a l'Elysee -- sa fiche l'y placait pour les TROIS halls,

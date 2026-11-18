@@ -89,7 +89,7 @@ var STUBS = [
 // fichiers dans un autre ordre fabriquerait une fausse panne -- ou en masquerait une vraie.
 var CLIENT = ['data.js', 'forum.js', 'plateau-core.js', 'plateau-pnj.js'];
 var SERVEUR = ['api/_bible-militaire.js', 'api/_bible-presidence.js', 'api/_bible-gouvernement.js',
-               'api/_bible-assemblee.js', 'api/_pnj-personnalites.js', 'api/_pnj-referents.js',
+               'api/_bible-assemblee.js', 'api/_pnj-personnalites.js', 'api/_pnj-referents.js', 'api/_pnj-culture-bouriate.js',
                'api/_pnj-profils.js'];
 
 var src = STUBS + '\n;\n'

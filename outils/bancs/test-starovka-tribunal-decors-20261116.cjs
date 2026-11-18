@@ -26,11 +26,11 @@ assert.ok(!/Starovka/.test(c.B['tribunal-local'].rooms.greffe.imageUrl || ''));
 const krasnov = c.W.soviet.ville_b.buildingContext['tribunal-local'];
 for (const piece of Object.keys(attendu))
   assert.ok(!/Starovka/.test(krasnov.roomOverrides?.[piece]?.imageUrl || ''), 'Krasnov intact : ' + piece);
-// Juge Arkadi Prigovorov et greffière d'audience Bayarma Namsaraeva, recadrés du décor (Fred, 18/11/2026) ; plus de Dulma Tsyrenova.
+// Juge Arkadi Prigovorov et greffière d'audience Lidia Protokolova (ex-Bayarma Namsaraeva), recadrés du décor (Fred, 18/11/2026) ; plus de Dulma Tsyrenova.
 const audience = ctx.roomOverrides.salle_audience_locale.persons;
-assert.deepEqual(Array.from(audience, p => p.name), ['Arkadi Prigovorov (PNJ)', 'Bayarma Namsaraeva (PNJ)']);
+assert.deepEqual(Array.from(audience, p => p.name), ['Arkadi Prigovorov (PNJ)', 'Lidia Protokolova (PNJ)']);
 assert.equal(audience[0].job, 'juge'); assert.equal(audience[1].role, 'Greffière');
-for (const [p, f] of [[audience[0], 'arkadi-prigovorov'], [audience[1], 'bayarma-namsaraeva']]) {
+for (const [p, f] of [[audience[0], 'arkadi-prigovorov'], [audience[1], 'lidia-protokolova']]) {
   const photo = p.photo || p.photoUrl || p.imageUrl || p.portrait;
   assert.match(String(photo), new RegExp('Starovka_portrait_tribunal-local_' + f + '\\.webp$'));
   assert.ok(fs.existsSync(path.join(root, photo)));

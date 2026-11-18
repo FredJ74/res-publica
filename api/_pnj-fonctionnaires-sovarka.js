@@ -19,6 +19,8 @@ const NON_FONCTIONNAIRES = new Set([
   // Pensionnaires, retraités et détenus
   'sovarka_antonina_doubrova', 'sovarka_matvei_tcherkassov', 'sovarka_nikolai_zakharov', 'evgueni_sudakov',
   'sovarka_timofei_fomine',
+  // Habitants des chalets de Starovka (Fred, 18/11/2026)
+  'dolgor_tsybikova', 'zorigto_badmaev',
   // Habitués, saltimbanques, revendeurs, artisans et mécaniciens des centres
   'sovarka_ksenia_makarova', 'sovarka_tuya_sanjieva', 'sovarka_varvara_kozlova',
   'sovarka_arkhip_voronine', 'sovarka_altan_namsaraiev', 'sovarka_efim_iakovlev',
