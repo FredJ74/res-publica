@@ -1,0 +1,177 @@
+✖ L1 : bureau 1440 strictement identique au témoin avant mobile (3711.291551ms)
+✖ L1 : coque 375×667, panneaux uniques et navigation UI sans RPC (1345.578837ms)
+✖ L1 : coque 393×852, panneaux uniques et navigation UI sans RPC (1470.273592ms)
+✖ L1 : coque 412×915, panneaux uniques et navigation UI sans RPC (1550.940944ms)
+✖ L1 : coque 852×393, panneaux uniques et navigation UI sans RPC (1295.43107ms)
+✖ L1 : coque 768×1024, panneaux uniques et navigation UI sans RPC (1451.739869ms)
+✖ L2 : pas de panneau Lieux visibles, zones et clavier actifs (6308.411442ms)
+✔ L2 : pièces et actions accessibles en paysage (1588.869587ms)
+✔ L3 : longue modale, focus, fermeture existante et retour sans action métier (1649.220505ms)
+✔ L3 : chat paysage contenu dans l’écran, fenêtres au-dessus des flèches (1393.691026ms)
+✔ L6 contre-épreuve : ancien contrôleur immobile au toucher, contrôleur corrigé mobile et souris (2482.314022ms)
+✔ L6 : resize, pointeur étranger, annulation et perte de focus ne laissent aucun geste actif (1331.676695ms)
+✖ L6 : rubriques, liste et lecture sans débordement mobile ; bureau forum 1440 identique (11509.512602ms)
+✔ L6 : boutons historiques et champs dans une poignée ne déclenchent pas de déplacement (1385.814397ms)
+✔ L5 : inventaire long et tableau financier restent consultables sans mutation (1805.020177ms)
+✔ L8 : retour, panne et autre onglet bloquent le premier ordre sans le rejouer (1800.273783ms)
+✔ L4 : création réelle dans les six langues, explications et caractéristiques conservées (9636.680971ms)
+✔ L7 : rapport et décisions réels respectent les droits fournis par le serveur (1656.31509ms)
+✔ L9 : portraits réels différés dans le panneau fermé puis demandés à son ouverture (2012.139776ms)
+✔ L10 : téléphone masqué ne lit rien, retour visible attend la confirmation (1598.51695ms)
+✔ L8 : session refusée et authentification hors délai ne déclenchent aucun ordre ni chargement tardif (1450.764845ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 13
+ℹ fail 8
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 58787.595373
+
+✖ failing tests:
+
+test at outils/bancs/banc-mobile-coque.cjs:7:1
+✖ L1 : bureau 1440 strictement identique au témoin avant mobile (3711.291551ms)
+  AssertionError [ERR_ASSERTION]: pixels du plateau bureau inchangés
+      at /workspace/work/i18n-reprise-reference/outils/bancs/banc-mobile-coque.cjs:11:147
+      at async avecJeu (/workspace/work/i18n-reprise-reference/outils/bancs/mobile-navigateur.cjs:15:200)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-mobile-coque.cjs:13:73
+✖ L1 : coque 375×667, panneaux uniques et navigation UI sans RPC (1345.578837ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(await p.locator('#rue-image').evaluate(e=>e.getBoundingClientRect().width)>100)
+  
+      at /workspace/work/i18n-reprise-reference/outils/bancs/banc-mobile-coque.cjs:16:9
+      at async avecJeu (/workspace/work/i18n-reprise-reference/outils/bancs/mobile-navigateur.cjs:15:200)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-mobile-coque.cjs:13:73
+✖ L1 : coque 393×852, panneaux uniques et navigation UI sans RPC (1470.273592ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(await p.locator('#rue-image').evaluate(e=>e.getBoundingClientRect().width)>100)
+  
+      at /workspace/work/i18n-reprise-reference/outils/bancs/banc-mobile-coque.cjs:16:9
+      at async avecJeu (/workspace/work/i18n-reprise-reference/outils/bancs/mobile-navigateur.cjs:15:200)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-mobile-coque.cjs:13:73
+✖ L1 : coque 412×915, panneaux uniques et navigation UI sans RPC (1550.940944ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(await p.locator('#rue-image').evaluate(e=>e.getBoundingClientRect().width)>100)
+  
+      at /workspace/work/i18n-reprise-reference/outils/bancs/banc-mobile-coque.cjs:16:9
+      at async avecJeu (/workspace/work/i18n-reprise-reference/outils/bancs/mobile-navigateur.cjs:15:200)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-mobile-coque.cjs:13:73
+✖ L1 : coque 852×393, panneaux uniques et navigation UI sans RPC (1295.43107ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(await p.locator('#rue-image').evaluate(e=>e.getBoundingClientRect().width)>100)
+  
+      at /workspace/work/i18n-reprise-reference/outils/bancs/banc-mobile-coque.cjs:16:9
+      at async avecJeu (/workspace/work/i18n-reprise-reference/outils/bancs/mobile-navigateur.cjs:15:200)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-mobile-coque.cjs:13:73
+✖ L1 : coque 768×1024, panneaux uniques et navigation UI sans RPC (1451.739869ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(await p.locator('#rue-image').evaluate(e=>e.getBoundingClientRect().width)>100)
+  
+      at /workspace/work/i18n-reprise-reference/outils/bancs/banc-mobile-coque.cjs:16:9
+      at async avecJeu (/workspace/work/i18n-reprise-reference/outils/bancs/mobile-navigateur.cjs:15:200)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-mobile-coque.cjs:21:1
+✖ L2 : pas de panneau Lieux visibles, zones et clavier actifs (6308.411442ms)
+  locator.click: Timeout 5000ms exceeded.
+  Call log:
+  [2m  - waiting for locator('.rc-zone')[22m
+  [2m    - locator resolved to <div tabindex="0" class="rc-zone" aria-label="Lieu de test"></div>[22m
+  [2m  - attempting click action[22m
+  [2m    2 × waiting for element to be visible, enabled and stable[22m
+  [2m      - element is not visible[22m
+  [2m    - retrying click action[22m
+  [2m    - waiting 20ms[22m
+  [2m    2 × waiting for element to be visible, enabled and stable[22m
+  [2m      - element is not visible[22m
+  [2m    - retrying click action[22m
+  [2m      - waiting 100ms[22m
+  [2m    10 × waiting for element to be visible, enabled and stable[22m
+  [2m       - element is not visible[22m
+  [2m     - retrying click action[22m
+  [2m       - waiting 500ms[22m
+  
+      at /workspace/work/i18n-reprise-reference/outils/bancs/banc-mobile-coque.cjs:25:30
+      at async avecJeu (/workspace/work/i18n-reprise-reference/outils/bancs/mobile-navigateur.cjs:15:200) {
+    name: 'TimeoutError',
+    log: [ "  - waiting for locator('.rc-zone')", '    - locator resolved to <div tabindex="0" class="rc-zone" aria-label="Lieu de test"></div>', '  - attempting click action', '    2 × waiting for element to be visible, enabled and stable', '      - element is not visible', '    - retrying click action', '    - waiting 20ms', '    2 × waiting for element to be visible, enabled and stable', '      - element is not visible', '    - retrying click action', '      - waiting 100ms', '    10 × waiting for element to be visible, enabled and stable', '       - element is not visible', '     - retrying click action', '       - waiting 500ms' ]
+  }
+
+test at outils/bancs/banc-mobile-coque.cjs:72:1
+✖ L6 : rubriques, liste et lecture sans débordement mobile ; bureau forum 1440 identique (11509.512602ms)
+  AssertionError [ERR_ASSERTION]: forum bureau identique pixel pour pixel
+      at /workspace/work/i18n-reprise-reference/outils/bancs/banc-mobile-coque.cjs:74:489
+      at async avecJeu (/workspace/work/i18n-reprise-reference/outils/bancs/mobile-navigateur.cjs:15:200)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

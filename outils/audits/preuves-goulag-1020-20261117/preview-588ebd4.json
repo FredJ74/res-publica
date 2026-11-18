@@ -1,0 +1,92 @@
+{
+  "deployment": "dpl_E9mzBY8MQMRQY4DBnFPTPeaQYenH",
+  "sha": "588ebd47d775ad775ef7bf2f48e5b86dba12ff04",
+  "target": "preview",
+  "normalisation_html": "retrait de la seule barre Vercel",
+  "ressources": [
+    {
+      "fichier": "plateau.html",
+      "http": 200,
+      "identique": true,
+      "sha256_source": "f03e566000e3fff1237005cb61e6019e0b15279c658690700f19a5eeeae47157",
+      "sha256_servi_normalise": "f03e566000e3fff1237005cb61e6019e0b15279c658690700f19a5eeeae47157"
+    },
+    {
+      "fichier": "plateau-goulag-toundra.js",
+      "http": 200,
+      "identique": true,
+      "sha256_source": "6e571ee9a36cf328e126ac3ce519f3b266583a9490cd701f93e75b67f08a3354",
+      "sha256_servi_normalise": "6e571ee9a36cf328e126ac3ce519f3b266583a9490cd701f93e75b67f08a3354"
+    },
+    {
+      "fichier": "plateau-interieurs-mobile.css",
+      "http": 200,
+      "identique": true,
+      "sha256_source": "1bd524861d32487546464ddac26052e53da878977cbecd7198bcdd43fbe5e47b",
+      "sha256_servi_normalise": "1bd524861d32487546464ddac26052e53da878977cbecd7198bcdd43fbe5e47b"
+    },
+    {
+      "fichier": "i18n/sovarka-descriptions-resources.js",
+      "http": 200,
+      "identique": true,
+      "sha256_source": "095f71e2f85e7a0a7d4bd7f542d9696202e8d3dde583cf46be6e3100e2b6a0ba",
+      "sha256_servi_normalise": "095f71e2f85e7a0a7d4bd7f542d9696202e8d3dde583cf46be6e3100e2b6a0ba"
+    },
+    {
+      "fichier": "plateau-goulag-transports.js",
+      "http": 200,
+      "identique": true,
+      "sha256_source": "e1d8db8c9aa53d4344510a0e87e39676dc16c54951b8210178e81b8dbd6ca5cb",
+      "sha256_servi_normalise": "e1d8db8c9aa53d4344510a0e87e39676dc16c54951b8210178e81b8dbd6ca5cb"
+    },
+    {
+      "fichier": "plateau-goulag-refuge.js",
+      "http": 200,
+      "identique": true,
+      "sha256_source": "cf9f1012397593d4f22cc87ca4b822615c49e5fdf493508ec7760f64b2ed4c85",
+      "sha256_servi_normalise": "cf9f1012397593d4f22cc87ca4b822615c49e5fdf493508ec7760f64b2ed4c85"
+    },
+    {
+      "fichier": "plateau-navigation.js",
+      "http": 200,
+      "identique": true,
+      "sha256_source": "ce28e7f7e39e2308e80b70414f28244a37b05ece4ba6c5e2fabc8baa29b78371",
+      "sha256_servi_normalise": "ce28e7f7e39e2308e80b70414f28244a37b05ece4ba6c5e2fabc8baa29b78371"
+    },
+    {
+      "fichier": "style.css",
+      "http": 200,
+      "identique": true,
+      "sha256_source": "f2ccec689cf4be9d1b9c668f163d70063f0ff83d1c8b1647ae2a790e5bb3a8f1",
+      "sha256_servi_normalise": "f2ccec689cf4be9d1b9c668f163d70063f0ff83d1c8b1647ae2a790e5bb3a8f1"
+    },
+    {
+      "fichier": "rue-centrale.css",
+      "http": 200,
+      "identique": true,
+      "sha256_source": "35caddf63aa07bc5fb0d4e9e0fd614b658dc41f1509cb9cbcf1598506f925dcd",
+      "sha256_servi_normalise": "35caddf63aa07bc5fb0d4e9e0fd614b658dc41f1509cb9cbcf1598506f925dcd"
+    },
+    {
+      "fichier": "plateau-exploration-mobile.css",
+      "http": 200,
+      "identique": true,
+      "sha256_source": "6c74d2f9b7477bfb04c50399522270ebc7e62517d3e830de1a9783aa2b7d3cfb",
+      "sha256_servi_normalise": "6c74d2f9b7477bfb04c50399522270ebc7e62517d3e830de1a9783aa2b7d3cfb"
+    },
+    {
+      "fichier": "plateau-mobile-refonte-visible.css",
+      "http": 200,
+      "identique": true,
+      "sha256_source": "f3c5541cf46554eddcb68e0e94ba5263b91c40ea3649bcb3f6a73ba3acb56333",
+      "sha256_servi_normalise": "f3c5541cf46554eddcb68e0e94ba5263b91c40ea3649bcb3f6a73ba3acb56333"
+    },
+    {
+      "fichier": "plateau-mobile-prototype.css",
+      "http": 200,
+      "identique": true,
+      "sha256_source": "ebe07c267579d198e4da219c244268e4c0bec94b5319ed791c9d56c1d98c9a99",
+      "sha256_servi_normalise": "ebe07c267579d198e4da219c244268e4c0bec94b5319ed791c9d56c1d98c9a99"
+    }
+  ]
+}

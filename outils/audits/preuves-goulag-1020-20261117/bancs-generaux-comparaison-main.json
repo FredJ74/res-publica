@@ -1,0 +1,37 @@
+{
+  "main": "f32d0163e9107e9464959dbaee682ddbad130100",
+  "bancs_termines": 386,
+  "reussis": 383,
+  "echecs": 3,
+  "reproductions_sur_clone_main_exact": [
+    {
+      "banc": "banc-i18n-explications-creation-navigateur-20261114.cjs",
+      "memes_echecs": true,
+      "tests_en_echec": [
+        "explications : six messages entiers en neuf langues, 320/390/1280, français/appels identiques à main et 270 bascules sans dépense ni requête"
+      ]
+    },
+    {
+      "banc": "banc-i18n-titres-creation-navigateur-20261114.cjs",
+      "memes_echecs": true,
+      "tests_en_echec": [
+        "création : 54 bascules par le vrai sélecteur et le rafraîchissement du récapitulatif, sans répéter la création",
+        "création : neuf langues, 320/390/1280, attente et six refus, français et appels identiques à main, aucune répétition ni saisie perdue"
+      ]
+    },
+    {
+      "banc": "banc-mobile-coque.cjs",
+      "memes_echecs": true,
+      "tests_en_echec": [
+        "L1 : bureau 1440 strictement identique au témoin avant mobile",
+        "L1 : coque 375×667, panneaux uniques et navigation UI sans RPC",
+        "L1 : coque 393×852, panneaux uniques et navigation UI sans RPC",
+        "L1 : coque 412×915, panneaux uniques et navigation UI sans RPC",
+        "L1 : coque 768×1024, panneaux uniques et navigation UI sans RPC",
+        "L1 : coque 852×393, panneaux uniques et navigation UI sans RPC",
+        "L2 : pas de panneau Lieux visibles, zones et clavier actifs",
+        "L6 : rubriques, liste et lecture sans débordement mobile ; bureau forum 1440 identique"
+      ]
+    }
+  ]
+}

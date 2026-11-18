@@ -1,0 +1,80 @@
+{
+  "deployment": "dpl_BuTWWiPsKftt6kQsMdeN7FbNtzaw",
+  "sha": "45aee72c14eefab40205a579a5985d70281ae579",
+  "target": "preview",
+  "normalisation_html": "retrait de la seule barre Vercel",
+  "ressources": [
+    {
+      "fichier": "plateau.html",
+      "http": 200,
+      "identique": true,
+      "sha256": "591d22c591786b2c271e22c63014d00af66549deff54de14be9e36e3c3e37cde"
+    },
+    {
+      "fichier": "plateau-goulag-toundra.js",
+      "http": 200,
+      "identique": true,
+      "sha256": "6e571ee9a36cf328e126ac3ce519f3b266583a9490cd701f93e75b67f08a3354"
+    },
+    {
+      "fichier": "plateau-interieurs-mobile.css",
+      "http": 200,
+      "identique": true,
+      "sha256": "1bd524861d32487546464ddac26052e53da878977cbecd7198bcdd43fbe5e47b"
+    },
+    {
+      "fichier": "i18n/sovarka-descriptions-resources.js",
+      "http": 200,
+      "identique": true,
+      "sha256": "50a38904ceb81efaceabf1b015981e258aaa059f32e37a53f6204e0d1c6cc0b9"
+    },
+    {
+      "fichier": "plateau-goulag-transports.js",
+      "http": 200,
+      "identique": true,
+      "sha256": "e1d8db8c9aa53d4344510a0e87e39676dc16c54951b8210178e81b8dbd6ca5cb"
+    },
+    {
+      "fichier": "plateau-goulag-refuge.js",
+      "http": 200,
+      "identique": true,
+      "sha256": "cf9f1012397593d4f22cc87ca4b822615c49e5fdf493508ec7760f64b2ed4c85"
+    },
+    {
+      "fichier": "plateau-navigation.js",
+      "http": 200,
+      "identique": true,
+      "sha256": "f5aad70e4f7141a0c5031f33572e0befba46e55f487adab023f97006d0223851"
+    },
+    {
+      "fichier": "style.css",
+      "http": 200,
+      "identique": true,
+      "sha256": "f2ccec689cf4be9d1b9c668f163d70063f0ff83d1c8b1647ae2a790e5bb3a8f1"
+    },
+    {
+      "fichier": "rue-centrale.css",
+      "http": 200,
+      "identique": true,
+      "sha256": "35caddf63aa07bc5fb0d4e9e0fd614b658dc41f1509cb9cbcf1598506f925dcd"
+    },
+    {
+      "fichier": "plateau-exploration-mobile.css",
+      "http": 200,
+      "identique": true,
+      "sha256": "6c74d2f9b7477bfb04c50399522270ebc7e62517d3e830de1a9783aa2b7d3cfb"
+    },
+    {
+      "fichier": "plateau-mobile-refonte-visible.css",
+      "http": 200,
+      "identique": true,
+      "sha256": "f3c5541cf46554eddcb68e0e94ba5263b91c40ea3649bcb3f6a73ba3acb56333"
+    },
+    {
+      "fichier": "plateau-mobile-prototype.css",
+      "http": 200,
+      "identique": true,
+      "sha256": "ebe07c267579d198e4da219c244268e4c0bec94b5319ed791c9d56c1d98c9a99"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "transactionAnnulee": {
+    "active": false,
+    "migrations": 17,
+    "anon_moteur": false,
+    "refus_sans_auth": {
+      "ok": false,
+      "raison": "non_authentifie"
+    },
+    "tables_preparees": 6
+  },
+  "controleApres": {
+    "tables_moteur": 0,
+    "depart": null,
+    "jugement": null
+  },
+  "appliqueDurablement": false
+}

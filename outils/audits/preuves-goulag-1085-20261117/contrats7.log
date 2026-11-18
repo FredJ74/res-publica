@@ -1,0 +1,50 @@
+/workspace/work/missions-venv/lib/python3.12/site-packages/platformdirs/api.py:467: RuntimeDirWarning: XDG_RUNTIME_DIR is not set, falling back to /tmp/runtime-1000
+  return Path(self.user_runtime_dir)
+Source #1085 : 4a1ced9b96bec3cb2bf867dd602de87456a7383c
+test_contrat_corruption_base_soixante_dix (__main__.Contrats.test_contrat_corruption_base_soixante_dix) ... ok
+test_contrat_interrogateur_un_pa (__main__.Contrats.test_contrat_interrogateur_un_pa) ... ok
+test_contrat_juge_sanction_un_pa (__main__.Contrats.test_contrat_juge_sanction_un_pa) ... ok
+test_contrat_peine_ajoutee_en_detention (__main__.Contrats.test_contrat_peine_ajoutee_en_detention) ... FAIL
+test_contrat_reincarceration_et_nouvelle_peine (__main__.Contrats.test_contrat_reincarceration_et_nouvelle_peine) ... FAIL
+test_contrat_rejeu_lie_a_interrogateur (__main__.Contrats.test_contrat_rejeu_lie_a_interrogateur) ... FAIL
+test_contrat_rejeu_sanction_lie_au_juge (__main__.Contrats.test_contrat_rejeu_sanction_lie_au_juge) ... FAIL
+
+======================================================================
+FAIL: test_contrat_peine_ajoutee_en_detention (__main__.Contrats.test_contrat_peine_ajoutee_en_detention)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/work/i18n-reprise-reference/outils/bancs/test-goulag-integration-1085-20261117.py", line 61, in test_contrat_peine_ajoutee_en_detention
+    self.detenu(jours=5);self.nouveau_jugement();self.assertEqual(self.sql("SELECT jours_restants FROM public.sovarka_goulag_registre WHERE detention_id='fx-det'"),35)
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 5 != 35
+
+======================================================================
+FAIL: test_contrat_reincarceration_et_nouvelle_peine (__main__.Contrats.test_contrat_reincarceration_et_nouvelle_peine)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/work/i18n-reprise-reference/outils/bancs/test-goulag-integration-1085-20261117.py", line 65, in test_contrat_reincarceration_et_nouvelle_peine
+    self.assertEqual(self.sql("SELECT r.jours_restants FROM public.sovarka_goulag_registre r JOIN public.detentions d ON d.id=r.detention_id WHERE r.nom=%s AND d.mode_fin IS NULL",(D,)),35)
+AssertionError: 5 != 35
+
+======================================================================
+FAIL: test_contrat_rejeu_lie_a_interrogateur (__main__.Contrats.test_contrat_rejeu_lie_a_interrogateur)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/work/i18n-reprise-reference/outils/bancs/test-goulag-integration-1085-20261117.py", line 68, in test_contrat_rejeu_lie_a_interrogateur
+    self.client(4);r=self.sql('SELECT public.sovarka_goulag_interroger(%s,%s)',(D,req));self.assertFalse(r['ok'],r)
+                                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false : {'ok': True, 'pa': 19, 'jet': 65, 'rejeu': True, 'detenu': '__goulag_detenu', 'reussi': False, 'pa_detenu': 13, 'revelation': False, 'probabilite': 50, 'transmis_au_juge': False}
+
+======================================================================
+FAIL: test_contrat_rejeu_sanction_lie_au_juge (__main__.Contrats.test_contrat_rejeu_sanction_lie_au_juge)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/work/i18n-reprise-reference/outils/bancs/test-goulag-integration-1085-20261117.py", line 75, in test_contrat_rejeu_sanction_lie_au_juge
+    self.client(2);r=self.sql('SELECT public.sovarka_goulag_sanctionner(%s,1,%s)',(D,req));self.assertFalse(r['ok'],r)
+                                                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false : {'ok': True, 'rejeu': True, 'detenu': '__goulag_detenu'}
+
+----------------------------------------------------------------------
+Ran 7 tests in 4.711s
+
+FAILED (failures=4)

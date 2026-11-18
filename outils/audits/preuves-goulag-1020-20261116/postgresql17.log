@@ -1,0 +1,24 @@
+/workspace/work/missions-venv/lib/python3.12/site-packages/platformdirs/api.py:467: RuntimeDirWarning: XDG_RUNTIME_DIR is not set, falling back to /tmp/runtime-1000
+  return Path(self.user_runtime_dir)
+test_activation_interdite_et_aucun_effet (__main__.Goulag.test_activation_interdite_et_aucun_effet) ... ok
+test_departs_visiteur_seuils_et_absence_de_sanction (__main__.Goulag.test_departs_visiteur_seuils_et_absence_de_sanction) ... ok
+test_deux_arrivees_bois_et_refuge (__main__.Goulag.test_deux_arrivees_bois_et_refuge) ... ok
+test_evasion_reliquat_et_perte_depot (__main__.Goulag.test_evasion_reliquat_et_perte_depot) ... ok
+test_geographie_bidirectionnelle (__main__.Goulag.test_geographie_bidirectionnelle) ... ok
+test_inventaire_confiscation_restitution_et_perte (__main__.Goulag.test_inventaire_confiscation_restitution_et_perte) ... ok
+test_jugement_atomique_et_double_clic (__main__.Goulag.test_jugement_atomique_et_double_clic) ... ok
+test_migrations_rejouables (__main__.Goulag.test_migrations_rejouables) ... ok
+test_ministre_ne_condamne_pas (__main__.Goulag.test_ministre_ne_condamne_pas) ... ok
+test_pas_de_bonus_civil_en_toundra (__main__.Goulag.test_pas_de_bonus_civil_en_toundra) ... ok
+test_permissions_et_rls (__main__.Goulag.test_permissions_et_rls) ... ok
+test_rep_reste_inchangee (__main__.Goulag.test_rep_reste_inchangee) ... ok
+test_second_refuge_reinitialise (__main__.Goulag.test_second_refuge_reinitialise) ... ok
+test_survie_plancher_et_repetition (__main__.Goulag.test_survie_plancher_et_repetition) ... ok
+test_transport_habilite_tarif_national (__main__.Goulag.test_transport_habilite_tarif_national) ... ok
+test_transport_sans_habilitation_refuse (__main__.Goulag.test_transport_sans_habilitation_refuse) ... ok
+test_zz_concurrence_progression (__main__.Goulag.test_zz_concurrence_progression) ... ok
+
+----------------------------------------------------------------------
+Ran 17 tests in 6.387s
+
+OK
