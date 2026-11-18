@@ -13085,10 +13085,10 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
 // SYNDICAT_NATIONAL_SOVARKA_20261118 — décisions de Fred (18/11/2026, « Décisions du 18/11 », points 3 et 7).
 // Une pièce « Bureau du syndicat national » dans les mairies de Novomirsk, Krasnov et Starovka (pas la salle
 // des partis) : adhérer, consulter, quitter, élire le chef, « Manifestation de soutien au président » (chef).
-// Un PNJ non référent par bureau. Images provisoires : celles de la salle des partis de chaque mairie.
+// Un PNJ non référent par bureau. Décors de Fred (18/11/2026) ; portraits tirés de l'homme visible dans chaque décor.
 (function () {
   const ordres = [
-    {fn:'se_syndiquer_etat', label:'Adhérer au syndicat national', i18nKey:'variant.union_state_join', pa:1, cost:50, type:'legal', icon:'ti-users-group', successRate:100, desc:'Adhérer au Syndicat national de Sovarka (1 PA, 50 PSK). Aucune appartenance à un parti n’est demandée.'},
+    {fn:'se_syndiquer_etat', label:'Adhérer au syndicat national', i18nKey:'variant.union_state_join', pa:1, cost:15, type:'legal', icon:'ti-users-group', successRate:100, desc:'Adhérer au Syndicat national de Sovarka : cotisation unique de 15 PSK et 1 PA, jamais renouvelée. Aucune appartenance à un parti n’est demandée.'},
     {fn:'consulter_syndicat_etat', label:'Consulter le syndicat', i18nKey:'variant.union_state_view', pa:0, cost:0, type:'legal', icon:'ti-list-details', successRate:100, desc:'Chef, effectif et membres du Syndicat national, et règle de la manifestation de soutien au président.'},
     {fn:'quitter_syndicat_etat', label:'Quitter le syndicat', i18nKey:'variant.union_state_leave', pa:0, cost:0, type:'legal', icon:'ti-door-exit', successRate:100, desc:'Rendre sa carte du Syndicat national.'},
     {fn:'declencher_election_syndicat_etat', label:'Déclencher une élection', i18nKey:'variant.union_state_election', pa:1, cost:0, type:'legal', icon:'ti-ballot', successRate:100, desc:'Réservé aux syndiqués : élection du chef du Syndicat national, 3 jours de candidatures puis 3 jours de vote.'},
@@ -13096,9 +13096,9 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
   ];
   const desc = 'Le bureau du Syndicat national de Sovarka, à la mairie : drapeaux rouges, tableau des médailles du travail et affiches des colonies de vacances. On y adhère, on y élit le chef et on y prépare les manifestations de soutien au président.';
   const bureaux = [
-    ['capitale', 'mairie-capitale', 'images/Sovarka/Novomirsk/Novomirsk_mairie_salle_partis_politiques.webp', 'Lev Lozungov', 'lev_lozungov', null],
-    ['ville_b', 'mairie', 'images/Sovarka/Krasnov/Krasnov_mairie_salle_partis.webp', 'Anatoli Transparantov', 'anatoli_transparantov', null],
-    ['ville_a', 'mairie', 'images/Sovarka/Starovka/Starovka_mairie_salle_partis.webp', 'Tserenjav Dachiev', 'tserenjav_dachiev', 'images/Sovarka/Starovka/Starovka_portrait_syndicat_tserenjav-dachiev.webp']
+    ['capitale', 'mairie-capitale', 'images/Sovarka/Novomirsk/Novomirsk_mairie_bureau_syndicat_national.webp', 'Lev Lozungov', 'lev_lozungov', 'images/Sovarka/Novomirsk/Novomirsk_portrait_mairie_lev-lozungov.webp'],
+    ['ville_b', 'mairie', 'images/Sovarka/Krasnov/Krasnov_mairie_bureau_syndicat_national.webp', 'Anatoli Transparantov', 'anatoli_transparantov', 'images/Sovarka/Krasnov/Krasnov_portrait_mairie_anatoli-transparantov.webp'],
+    ['ville_a', 'mairie', 'images/Sovarka/Starovka/Starovka_mairie_bureau_syndicat_national.webp', 'Tserenjav Dachiev', 'tserenjav_dachiev', 'images/Sovarka/Starovka/Starovka_portrait_mairie_tserenjav-dachiev.webp']
   ];
   for (const [ville, batiment, image, nom, profil, portrait] of bureaux) {
     const cite = WORLD.soviet && WORLD.soviet[ville];

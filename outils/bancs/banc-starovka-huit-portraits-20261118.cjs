@@ -38,7 +38,7 @@ assert.equal(city.buildingContext['centre-affaires'].roomOverrides.hall.persons.
 // Siège syndical retiré le 18/11 (Fred, point 7) : Tserenjav Dachiev et son portrait sont au Bureau du syndicat national.
 const bureau = city.buildingContext.mairie.roomsExtra.bureau_syndicat_national.persons;
 assert.equal(bureau.length, 1); assert.equal(bureau[0].name, 'Tserenjav Dachiev (PNJ)'); assert.equal(bureau[0].profilId, 'tserenjav_dachiev');
-assert.equal(bureau[0].photoUrl, 'images/Sovarka/Starovka/Starovka_portrait_syndicat_tserenjav-dachiev.webp');
+assert.equal(bureau[0].photoUrl, 'images/Sovarka/Starovka/Starovka_portrait_mairie_tserenjav-dachiev.webp');
 assert.ok(fs.existsSync(path.join(root, bureau[0].photoUrl)));
 assert.ok(!city.buildingContext['siege-syndical'], 'plus de siège syndical à Starovka');
 assert.ok(!city.buildings.includes('siege-syndical'),'ne pas inventer un bâtiment syndical dans les rues');

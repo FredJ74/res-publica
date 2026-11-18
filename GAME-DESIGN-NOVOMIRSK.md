@@ -1158,7 +1158,7 @@ Consigne culturelle commune des Bouriates de Starovka : [`GAME-DESIGN-STAROVKA-B
 - Une pièce séparée **« Bureau du syndicat national »** dans les mairies de Novomirsk, Krasnov et Starovka (pas la salle des partis).
 - Toutes les prérogatives du syndicat d'État y sont : adhérer, quitter, gestion par le chef, ordre « Manifestation de soutien au président » (lancé dans la ville du bureau). Fonctionnement des syndicats de Républia, adapté au syndicat unique d'État (un seul syndicat national, sans blocus). L'adhésion ne demande pas d'être membre d'un parti.
 - Un PNJ par bureau, non référent, relié à DeepSeek, bureaucrate jovial et fier, qui ne comprend pas l'idée de grève (« le travailleur ne bloque pas son propre outil ») et vante fêtes du travail, médailles et colonies de vacances : Starovka **Tserenjav Dachiev** (déplacé de l'ancien siège) ; Krasnov **Anatoli Transparantov** ; Novomirsk **Lev Lozungov**. Fiches limitées aux règles réellement codées.
-- Chef initial : Lev Lozungov (PNJ, Novomirsk), remplaçable par l'élection du chef (moteur générique des organisations) — choix de Claude. Adhésion 1 PA + 50 PSK, comme le syndicat des dockers.
+- Chef initial : Lev Lozungov (PNJ, Novomirsk), remplaçable par l'élection du chef (moteur générique des organisations) — choix de Claude. Adhésion : 1 PA et cotisation unique de 15 PSK, jamais renouvelée (Fred, 18/11/2026, après-midi). En Sovarka, il n'existe aucun autre syndicat (pas de syndicat des dockers).
 - L'ancien siège syndical sans façade de Starovka est retiré (et tout siège syndical de Sovarka devenu inutile), sans toucher à la Républia.
 - Images : provisoires (cohérentes avec les pièces de la mairie) ; pièce et portraits à faire générer par ChatGPT.
 

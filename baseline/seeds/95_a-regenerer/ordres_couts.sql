@@ -475,7 +475,7 @@ INSERT INTO public.ordres_couts (fn,pa,cost) VALUES
   ('se_renseigner',0,0),
   ('se_reposer',0,0),
   ('se_syndiquer',1,50),
-  ('se_syndiquer_etat',1,50),
+  ('se_syndiquer_etat',1,15),
   ('seance_parlementaire',0,0),
   ('service_etage',0,50),
   ('service_etage',0,150),
