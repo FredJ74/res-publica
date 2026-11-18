@@ -5972,7 +5972,7 @@ export const SCENES_PNJ = {
     "batiment": "Mairie",
     "piece": "Accueil",
     "personnes": [
-      "Secretaire Municipal"
+      "Sayana Tsydypova"
     ]
   },
   "[\"soviet\",\"ville_a\",\"mairie\",\"bureau_maire_local\"]": {
@@ -5981,7 +5981,7 @@ export const SCENES_PNJ = {
     "batiment": "Mairie",
     "piece": "Bureau du Maire",
     "personnes": [
-      "Le Maire"
+      "Tsyren-Dorji Bazarov"
     ]
   },
   "[\"soviet\",\"ville_a\",\"mairie\",\"bureau_maire_adjoint\"]": {
@@ -6019,7 +6019,7 @@ export const SCENES_PNJ = {
     "batiment": "Dispensaire Public",
     "piece": "Salle d'attente",
     "personnes": [
-      "Infirmiere"
+      "Raïssa Bintova"
     ]
   },
   "[\"soviet\",\"ville_a\",\"dispensaire-public-v\",\"ehpad\"]": {
@@ -6042,7 +6042,7 @@ export const SCENES_PNJ = {
     "batiment": "Commissariat Local",
     "piece": "Accueil",
     "personnes": [
-      "Brigadier Local"
+      "Brigadier Erdeni Galsanov"
     ]
   },
   "[\"soviet\",\"ville_a\",\"commissariat-local\",\"geoles\"]": {
@@ -6058,7 +6058,7 @@ export const SCENES_PNJ = {
     "batiment": "Commissariat Local",
     "piece": "Bureau du Commissaire",
     "personnes": [
-      "Bato Dashiev"
+      "Zhargal Dashiev"
     ]
   },
   "[\"soviet\",\"ville_a\",\"tribunal-local\",\"salle_audience_locale\"]": {
@@ -6068,7 +6068,7 @@ export const SCENES_PNJ = {
     "piece": "Salle d'audience",
     "personnes": [
       "Arkadi Prigovorov",
-      "Bayarma Namsaraeva"
+      "Lidia Protokolova"
     ]
   },
   "[\"soviet\",\"ville_a\",\"tribunal-local\",\"bureau_magistrats\"]": {
@@ -6220,8 +6220,8 @@ export const SCENES_PNJ = {
     "batiment": "Stade de Starovka",
     "piece": "Terrain",
     "personnes": [
-      "Entraineur Local",
-      "Commentatrice Sportive"
+      "Viktor Morozko",
+      "Altana Tsyrendashieva"
     ]
   },
   "[\"soviet\",\"ville_a\",\"stade\",\"vestiaires\"]": {
@@ -6230,7 +6230,7 @@ export const SCENES_PNJ = {
     "batiment": "Stade de Starovka",
     "piece": "Vestiaires",
     "personnes": [
-      "Entraineur Local"
+      "Viktor Morozko"
     ]
   },
   "[\"soviet\",\"ville_a\",\"stade\",\"buvette\"]": {
@@ -6239,7 +6239,7 @@ export const SCENES_PNJ = {
     "batiment": "Stade de Starovka",
     "piece": "Buvette",
     "personnes": [
-      "Tenancière de Buvette"
+      "Nastia Ponchikova"
     ]
   },
   "[\"soviet\",\"ville_a\",\"stade\",\"guichet_paris\"]": {
@@ -6248,7 +6248,7 @@ export const SCENES_PNJ = {
     "batiment": "Stade de Starovka",
     "piece": "Guichet de Paris",
     "personnes": [
-      "Bookmaker Officiel"
+      "Chingis Balzhinimaev"
     ]
   },
   "[\"soviet\",\"ville_a\",\"stade\",\"siege_supporters\"]": {
@@ -6257,7 +6257,7 @@ export const SCENES_PNJ = {
     "batiment": "Stade de Starovka",
     "piece": "Siege des Supporters",
     "personnes": [
-      "Meneur des Supporters"
+      "Solbon Radnaev"
     ]
   },
   "[\"soviet\",\"ville_a\",\"stade\",\"bureau_president\"]": {
@@ -6273,7 +6273,7 @@ export const SCENES_PNJ = {
     "batiment": "Stade de Starovka",
     "piece": "Stand des accessoires du Partizan",
     "personnes": [
-      "Vendeur des accessoires de Starovka"
+      "Semion Charfov"
     ]
   },
   "[\"soviet\",\"ville_a\",\"zone-production\",\"zone_recolte\"]": {
@@ -6321,7 +6321,7 @@ export const SCENES_PNJ = {
     "batiment": "Port Industriel de Starovka",
     "piece": "Douanes",
     "personnes": [
-      "Douanier Stepan Vetrov"
+      "Stepan Vetrov"
     ]
   },
   "[\"soviet\",\"ville_a\",\"port-starovka\",\"administration_portuaire\"]": {
@@ -6330,7 +6330,7 @@ export const SCENES_PNJ = {
     "batiment": "Port Industriel de Starovka",
     "piece": "Administration Portuaire",
     "personnes": [
-      "Commandant Tömör Ochirov"
+      "Commandant Gleb Ledokolov"
     ]
   },
   "[\"soviet\",\"ville_a\",\"marche\",\"marche_ext\"]": {
@@ -6339,7 +6339,7 @@ export const SCENES_PNJ = {
     "batiment": "Marché de Starovka",
     "piece": "Etals du marche",
     "personnes": [
-      "Tuyana Dashieva"
+      "Tsypilma Dashieva"
     ]
   },
   "[\"soviet\",\"ville_a\",\"armurerie\",\"magasin\"]": {
@@ -6545,7 +6545,7 @@ export const SCENES_PNJ = {
     "batiment": "Poste de Vigilance Glaciale",
     "piece": "Salle d’écoute",
     "personnes": [
-      "Sergent Bair Dorjiev"
+      "Sergent Oleg Sloukhov"
     ]
   },
   "[\"soviet\",\"ville_a\",\"maison-starovka\",\"piece_maison\"]": {

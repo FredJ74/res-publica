@@ -20,7 +20,7 @@ const pol=ctx.B['commissariat-local'].rooms;
 assert.deepEqual(Array.from(Object.keys(pol)),['accueil_loc','geoles','bureau_commissaire']);
 assert.ok(pol.accueil_loc.orders.some(o=>o.fn==='plainte_police'));
 assert.ok(pol.bureau_commissaire.orders.some(o=>o.requiresPost==='commissaire'));
-assert.ok(star['commissariat-local'].roomOverrides.bureau_commissaire.persons.some(x=>x.name.includes('Bato Dashiev')));
+assert.ok(star['commissariat-local'].roomOverrides.bureau_commissaire.persons.some(x=>x.name.includes('Zhargal Dashiev')));
 assert.ok(star.universite.roomOverrides.amphi.persons.some(x=>x.name.includes('Darima Zhambalova')));
 assert.ok(ctx.B.universite.rooms.salle_reunion.orders.length>0);
 for(const city of ['capitale','ville_b']){

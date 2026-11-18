@@ -36,7 +36,7 @@ for (const [building, room, name, filename] of expected) {
 assert.equal(city.buildingContext.mairie.roomOverrides.salle_elections.persons.length, 2);
 assert.equal(city.buildingContext.mairie.roomOverrides.salle_partis.persons.length, 2);
 assert.equal(city.buildingContext['centre-affaires'].roomOverrides.hall.persons.length, 1,'pas deux hôtesses');
-assert.equal(city.buildingContext['siege-syndical'].roomOverrides.bureau_syndical.persons[0].profilId,'sovarka_delegue_batbayar_dachiev','profil Batbayar préservé');
+assert.equal(city.buildingContext['siege-syndical'].roomOverrides.bureau_syndical.persons[0].profilId,'batbayar_dachiev','fiche Batbayar (PNJ de Starovka, 18/11)');
 assert.ok(!city.buildings.includes('siege-syndical'),'ne pas inventer un bâtiment syndical dans les rues');
 assert.ok(!fs.existsSync(path.join(root,'images/Sovarka/Starovka/Starovka_8_portraits_individuels.zip')),'ZIP source supprimé');
 assert.ok(!js.includes('HUIT_PORTRAITS_STAROVKA_20261118') || js.includes('HUIT_PORTRAITS_STAROVKA_20261118'));

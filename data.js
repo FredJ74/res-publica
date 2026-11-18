@@ -11286,7 +11286,7 @@ function slugPnjSovarka(nom) {
         imageBg: "linear-gradient(135deg,#120f12,#1c171c)",
         desc: "Le poste de douane du port. Le tampon est lourd, le formulaire en trois exemplaires.",
         imageUrl: "images/Sovarka/Starovka/Starovka_port_douanes_bureau_chef.webp", // image de Fred (17/11/2026, 19 h 05) : le bureau du chef des douanes
-        persons: [{name:'Douanier Stepan Vetrov (PNJ)', role:'Douanier du port', rel:'neutral', job:'agent_portuaire'}],
+        persons: [{name:'Stepan Vetrov (PNJ)', role:'Chef des douanes du port de Starovka', rel:'neutral', job:'agent_portuaire'}],
         orders: []
       },
       // Bureau du Commandant du Port de Sovarka (Fred, 16/11/2026, GAME-DESIGN-REGULATION-PRODUCTION.md) :
@@ -11297,7 +11297,7 @@ function slugPnjSovarka(nom) {
         imageBg: "linear-gradient(135deg,#0b1016,#16212c)",
         desc: "Le bureau du Commandant du Port, au-dessus des quais. Par la grande baie vitrée, les grues chargent les cargos ; au mur, le plan du port de Starovka. Les douaniers y déposent leurs dossiers.",
         imageUrl: "images/Sovarka/Starovka/Starovka_port_administration_portuaire.webp",
-        persons: [{name:'Commandant Tömör Ochirov (PNJ)', role:'Commandant de Port', rel:'neutral', job:'capitaine_port'}],
+        persons: [{name:'Commandant Gleb Ledokolov (PNJ)', role:'Commandant de Port', rel:'neutral', job:'capitaine_port'}],
         orders: copie(psm.administration_portuaire.orders).filter(o => o.fn !== 'consulter_manifeste').map(o => Object.assign(o,
           o.fn === 'consulter_administration_port'
             ? { desc: 'Caisse du port, balance commerciale, marchandises, contrats de la nuit et registre du port. Consultation publique, gratuite.' }
@@ -11387,7 +11387,7 @@ function slugPnjSovarka(nom) {
     // ils restent référents justice quand un PJ prend le poste. Novomirsk : déclarés plus haut.
     if (!capitale) {
       // Starovka : juge Arkadi Prigovorov, l'homme du décor de la salle d'audience (Fred, 18/11/2026 ; remplace Dulma Tsyrenova).
-      const local = { ville_a: { juge: 'Arkadi Prigovorov (PNJ)', comm: 'Bato Dashiev (PNJ)', nom: 'Starovka' },
+      const local = { ville_a: { juge: 'Arkadi Prigovorov (PNJ)', comm: 'Zhargal Dashiev (PNJ)', nom: 'Starovka' },
                       ville_b: { juge: 'Anatoli Gromov (PNJ)', comm: 'Egor Tikhonov (PNJ)', nom: 'Krasnov' } }[ville];
       surcharge(ville, 'tribunal-local', 'salle_audience_locale').persons = [
         { name: local.juge, role: 'Juge Populaire de ' + local.nom, rel: 'neutral', job: 'juge', resteApresPourvoi: true,
@@ -11395,7 +11395,7 @@ function slugPnjSovarka(nom) {
       // Starovka : la femme qui prend des notes à l'audience est la greffière d'audience (Fred, 18/11/2026) ;
       // ce n'est pas Oyuna Tsybikova (greffe) : nom bouriate proposé par Claude.
       if (ville === 'ville_a') surcharge(ville, 'tribunal-local', 'salle_audience_locale').persons.push(
-        { name: 'Bayarma Namsaraeva (PNJ)', role: 'Greffière', rel: 'neutral', job: 'secretaire' });
+        { name: 'Lidia Protokolova (PNJ)', role: 'Greffière', rel: 'neutral', job: 'secretaire' });
       surcharge(ville, 'commissariat-local', 'bureau_commissaire').persons = [
         { name: local.comm, role: 'Commissaire de ' + local.nom, rel: 'neutral', job: 'commissaire', resteApresPourvoi: true,
           posteCity: ville, roleSiPnjTitulaire: 'Commissaire de ' + local.nom, roleSiPjTitulaire: 'Référent justice — adjoint du commissaire' }];
@@ -11958,7 +11958,7 @@ function CHAMBRE_HOPITAL_ORDRES_SOVARKA() { return CHAMBRE_HOPITAL_ORDRES(); }
   if (agence) Object.assign(agence, { name: 'La Voix de Sovarka', desc: 'L\'agence officielle de La Voix de Sovarka, le journal du pays : nouvelles de la production, communiqués du Parti et censure à l\'étage.' });
 
   // Starovka.
-  Object.assign(contexte('ville_a', 'marche'), { name: 'Marché de Starovka', desc: 'Des étals couverts de bâches sur la place de la mairie : poisson gelé, viande de renne, thé et bonnets de fourrure.', persons: [pnj('Tuyana Dashieva', 'Marchande', 'commercant')] });
+  Object.assign(contexte('ville_a', 'marche'), { name: 'Marché de Starovka', desc: 'Des étals couverts de bâches sur la place de la mairie : poisson gelé, viande de renne, thé et bonnets de fourrure.', persons: [pnj('Tsypilma Dashieva', 'Marchande', 'commercant')] });
   Object.assign(contexte('ville_a', 'armurerie'), { name: 'Chasse et Pêche', desc: 'Le magasin de chasse de Starovka (« Охота и рыбалка ») : fusils, couteaux, filets et hameçons pour la pêche sous la glace.', persons: [pnj('Bato Tsyrenov', 'Armurier', 'commercant')] });
   Object.assign(contexte('ville_a', 'capitaine-sauvage'), { name: 'Restaurant « Entre terre et mer »', desc: 'Le restaurant de Starovka (« Между землёй и морем ») : poisson de la mer de glace et viande de renne, servis près du poêle.' });
   Object.assign(piece(contexte('ville_a', 'capitaine-sauvage'), 'salle_principale'), { persons: [pnj('Sesegma Badmaeva', 'Serveuse', 'serveur')] });
@@ -12199,7 +12199,7 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
       } }
     };
   };
-  centre('poste-vigilance-glaciale', 'Poste de Vigilance Glaciale', 'Poste militaire', 'Sergent Bair Dorjiev', 'Opérateur d’écoute',
+  centre('poste-vigilance-glaciale', 'Poste de Vigilance Glaciale', 'Poste militaire', 'Sergent Oleg Sloukhov', 'Opérateur d’écoute',
     'Un poste militaire planté dans la glace, hérissé d’antennes : il écoute la ville et, au-delà de l’océan, El Estado.',
     'Des casques, des bandes magnétiques, un poêle et des classeurs alignés : le sergent Dorjiev écoute en silence.');
   BUILDINGS['poste-vigilance-glaciale'].rooms.salle_ecoute.imageUrl = 'images/Sovarka/Starovka/Starovka_centre_ecoute_salle.webp';
@@ -12611,7 +12611,7 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     ['ville_a', 'mairie', 'bureau_maire_local', "Le Maire (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_mairie_le-maire.webp'],
     ['ville_a', 'dispensaire-public-v', 'attente', "Infirmiere (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_dispensaire-public-v_infirmiere.webp'],
     ['ville_a', 'commissariat-local', 'accueil_loc', "Brigadier Local (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_commissariat-local_brigadier-local.webp'],
-    ['ville_a', 'commissariat-local', 'bureau_commissaire', "Bato Dashiev (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_commissariat-local_bato-dashiev.webp'],
+    ['ville_a', 'commissariat-local', 'bureau_commissaire', "Zhargal Dashiev (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_commissariat-local_bato-dashiev.webp'],
     ['ville_a', 'stade', 'terrain', "Entraineur Local (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_stade_entraineur-local.webp'],
     ['ville_a', 'stade', 'vestiaires', "Entraineur Local (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_stade_entraineur-local.webp'],
     ['ville_a', 'stade', 'terrain', "Commentatrice Sportive (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_stade_commentatrice-sportive.webp'],
@@ -12619,13 +12619,13 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     ['ville_a', 'stade', 'guichet_paris', "Bookmaker Officiel (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_stade_bookmaker-officiel.webp'],
     ['ville_a', 'stade', 'boutique', "Vendeur des accessoires de Starovka (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_stade_vendeur-des-accessoires-de-starovka.webp'],
     ['ville_a', 'port-starovka', 'quai_principal', "Chef de quai Ganbaatar Tsybikov (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_port-starovka_ganbaatar-tsybikov.webp'],
-    ['ville_a', 'port-starovka', 'douanes', "Douanier Stepan Vetrov (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_port-starovka_chef-des-douanes.webp'],
+    ['ville_a', 'port-starovka', 'douanes', "Stepan Vetrov (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_port-starovka_chef-des-douanes.webp'],
     ['ville_a', 'entrepot-logistique-starovka', 'bureau_direction', "Batzorig Dorjiev (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_entrepot-logistique-starovka_batzorig-dorjiev_v2.webp'],
-    ['ville_a', 'port-starovka', 'administration_portuaire', "Commandant Tömör Ochirov (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_port-starovka_commandant-tomor-ochirov.webp'],
-    ['ville_a', 'marche', 'marche_ext', "Tuyana Dashieva (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_marche_tuyana-dashieva.webp'],
+    ['ville_a', 'port-starovka', 'administration_portuaire', "Commandant Gleb Ledokolov (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_port-starovka_commandant-tomor-ochirov.webp'],
+    ['ville_a', 'marche', 'marche_ext', "Tsypilma Dashieva (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_marche_tuyana-dashieva.webp'],
     ['ville_a', 'capitaine-sauvage', 'salle_principale', "Sesegma Badmaeva (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_capitaine-sauvage_sesegma-badmaeva.webp'],
     ['ville_a', 'tribunal-local', 'salle_audience_locale', "Arkadi Prigovorov (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_tribunal-local_arkadi-prigovorov.webp'],
-    ['ville_a', 'tribunal-local', 'salle_audience_locale', "Bayarma Namsaraeva (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_tribunal-local_bayarma-namsaraeva.webp'],
+    ['ville_a', 'tribunal-local', 'salle_audience_locale', "Lidia Protokolova (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_tribunal-local_lidia-protokolova.webp'],
     ['ville_a', 'universite', 'amphi', "Darima Zhambalova (PNJ)",'images/Sovarka/Starovka/Starovka_portrait_universite_darima-zhambalova.webp'],
     ['ville_a', 'armurerie', 'magasin', "Bato Tsyrenov (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_armurerie_bato-tsyrenov_v2.webp'],
     ['ville_b', 'mairie', 'accueil_mairie', "Galina Dokladova (PNJ)", 'images/Sovarka/Krasnov/Krasnov_portrait_mairie_galina-dokladova.webp'],
@@ -12784,7 +12784,12 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
       desc: 'Une vitrine réfrigérée pleine de bœuf, de mouton et de renne, des bidons de lait, des fromages et des peaux pendues au mur. Par la fenêtre, les rennes grattent la neige.',
       persons: [{ name: 'Tuyana Sambueva (PNJ)', role: 'Vendeuse du kolkhoze', rel: 'friendly', job: 'commercant',
         photoUrl: dir + 'Starovka_portrait_ferme-starovka_tuyana-sambueva.webp', photoPos: '50% 30%' }],
-      orders: []
+      // Fred, 18/11/2026 : commerce PNJ du kolkhoze (moteur « tabac-presse »), six articles, jamais transmissible.
+      orders: [
+        {fn:'faire_achats_marche', label:'Faire des achats', pa:0, cost:0, type:'legal', icon:'ti-shopping-bag', successRate:100, desc:"Viande et lait de renne, confiture d'airelles, graisse de renne, peaux et bois de renne du kolkhoze."},
+        {fn:'produire_commerce', label:'Produire', i18nKey:'variant.commerce_produce', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:"Préparer les articles en vente (consomme les matières en stock, rémunéré par la caisse du commerce)."},
+        {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', i18nKey:'variant.commerce_sell_business', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'}
+      ]
     } }
   };
   BUILDINGS['compagnie-petrole-starovka'] = {
@@ -12828,7 +12833,7 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     ['maison-starovka', 'piece_maison', 'Dolgor Tsybikova (PNJ)', 'images/Sovarka/Starovka/Starovka_portrait_maison-starovka_dolgor-tsybikova.webp'],
     ['maison-starovka-ouvrier', 'piece_maison', 'Zorigto Badmaev (PNJ)', 'images/Sovarka/Starovka/Starovka_portrait_maison-starovka-ouvrier_zorigto-badmaev.webp'],
     ['ferme-starovka', 'cour_ferme', 'Bair Sambuev (PNJ)', 'images/Sovarka/Starovka/Starovka_portrait_ferme-starovka_bair-sambuev.webp'],
-    ['poste-vigilance-glaciale', 'salle_ecoute', 'Sergent Bair Dorjiev (PNJ)', 'images/Sovarka/Starovka/Starovka_portrait_poste-vigilance-glaciale_bair-dorjiev.webp']
+    ['poste-vigilance-glaciale', 'salle_ecoute', 'Sergent Oleg Sloukhov (PNJ)', 'images/Sovarka/Starovka/Starovka_portrait_poste-vigilance-glaciale_bair-dorjiev.webp']
   ];
   for (const [batiment, piece, nom, url] of portraits) {
     const original = BUILDINGS[batiment];
@@ -12976,4 +12981,115 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     { ...syndicat[0], photoUrl: base + 'Starovka_portrait_syndicat_batbayar-dachiev.webp',
       photoPos: '50% 30%' }
   ]);
+})();
+
+// PNJ_STAROVKA_PERSONNALITES_20261118 — décisions de Fred (18/11/2026, nuit ; GAME-DESIGN-NOVOMIRSK.md,
+// « PNJ de Starovka : personnalités et référents »). Noms, rôles et fiches de dialogue (profilId = clé de
+// api/_pnj-personnalites.js). Seule Starovka change : chaque liste est copiée avant modification.
+(function () {
+  const ville = WORLD.soviet && WORLD.soviet.ville_a;
+  if (!ville) throw new Error('Starovka absente');
+  const dir = 'images/Sovarka/Starovka/';
+  const slug = n => String(n).replace(' (PNJ)', '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+  // Liste effective d'une pièce (surcharge de ville, pièce ajoutée par la ville, puis gabarit), recopiée.
+  function personnes(batiment, piece) {
+    const ctx = ville.buildingContext[batiment] = ville.buildingContext[batiment] || {};
+    if (ctx.roomsExtra && ctx.roomsExtra[piece]) {
+      ctx.roomsExtra = Object.assign({}, ctx.roomsExtra);
+      const salle = ctx.roomsExtra[piece] = Object.assign({}, ctx.roomsExtra[piece]);
+      salle.persons = (salle.persons || []).map(p => Object.assign({}, p));
+      return salle.persons;
+    }
+    ctx.roomOverrides = ctx.roomOverrides || {};
+    const ro = ctx.roomOverrides[piece] = Object.assign({}, ctx.roomOverrides[piece] || {});
+    const base = ro.persons || (BUILDINGS[batiment] && BUILDINGS[batiment].rooms && BUILDINGS[batiment].rooms[piece]
+      && BUILDINGS[batiment].rooms[piece].persons) || [];
+    ro.persons = base.map(p => Object.assign({}, p));
+    return ro.persons;
+  }
+  function renommer(batiment, piece, ancien, nouveau, role, profil) {
+    const liste = personnes(batiment, piece);
+    const p = liste.find(x => x.name === ancien || x.name === ancien + ' (PNJ)');
+    if (!p) throw new Error('PNJ Starovka absent : ' + ancien + ' (' + batiment + '/' + piece + ')');
+    p.name = nouveau + ' (PNJ)';
+    if (role) p.role = role;
+    p.profilId = profil || slug(nouveau);
+  }
+  function ajouter(batiment, piece, nom, role, job, portrait) {
+    const liste = personnes(batiment, piece);
+    // Déjà installé (portraits de #1116) : on complète la fiche sans recréer le PNJ.
+    const deja = liste.find(x => x.name === nom + ' (PNJ)');
+    if (deja) { if (!deja.profilId) deja.profilId = slug(nom); return; }
+    liste.push(Object.assign({ name: nom + ' (PNJ)', role, rel: 'neutral', job, profilId: slug(nom) },
+      portrait ? { photoUrl: dir + portrait, photoPos: '50% 30%' } : {}));
+  }
+  function fiche(batiment, piece, nom, profil) {
+    const p = personnes(batiment, piece).find(x => x.name === nom || x.name === nom + ' (PNJ)');
+    if (!p) throw new Error('PNJ Starovka absent : ' + nom + ' (' + batiment + '/' + piece + ')');
+    p.profilId = profil || slug(p.name);
+  }
+  // Mairie
+  renommer('mairie', 'accueil_mairie', 'Secretaire Municipal', 'Sayana Tsydypova', 'Secrétaire municipale');
+  renommer('mairie', 'bureau_maire_local', 'Le Maire', 'Tsyren-Dorji Bazarov', 'Maire de Starovka');
+  ajouter('mairie', 'bureau_maire_adjoint', 'Munko Tsybenov', 'Adjoint au maire', 'adjoint', 'Starovka_portrait_mairie_munko-tsybenov.webp');
+  ajouter('mairie', 'salle_elections', 'Dugar Tsyrempilov', 'Président de la commission électorale', 'secretaire', 'Starovka_portrait_mairie_dugar-tsyrempilov.webp');
+  ajouter('mairie', 'salle_elections', 'Soyolma Ayusheeva', 'Secrétaire de la commission électorale', 'secretaire', 'Starovka_portrait_mairie_soyolma-ayusheeva.webp');
+  ajouter('mairie', 'salle_partis', 'Lieutenant Tsyden Zhalsaraev', 'Cellule de validation et de surveillance des partis', 'policier', 'Starovka_portrait_mairie_tsyden-zhalsaraev.webp');
+  ajouter('mairie', 'salle_partis', 'Erdem Gombozhapov', 'Archiviste de la salle des partis', 'secretaire');
+  // Port
+  fiche('port-starovka', 'administration_portuaire', 'Commandant Gleb Ledokolov', 'gleb_ledokolov');
+  fiche('port-starovka', 'quai_principal', 'Chef de quai Ganbaatar Tsybikov', 'ganbaatar_tsybikov');
+  fiche('port-starovka', 'douanes', 'Stepan Vetrov');
+  // Économie
+  fiche('entrepot-logistique-starovka', 'bureau_direction', 'Batzorig Dorjiev');
+  fiche('usine-principale', 'direction_usine', 'Damdin Mazoutov');
+  fiche('compagnie-petrole-starovka', 'bureau', 'Dashi Burilov');
+  fiche('magasin-kolkhoze-starovka', 'magasin', 'Tuyana Sambueva');
+  fiche('ferme-starovka', 'cour_ferme', 'Bair Sambuev');
+  // Commerces et services
+  fiche('hotel-mineur', 'hall_mineur', 'Erzhena Dambaeva');
+  fiche('hotel-mineur', 'hall_mineur', 'Aldar Zhamsuev');
+  fiche('capitaine-sauvage', 'salle_principale', 'Sesegma Badmaeva');
+  fiche('armurerie', 'magasin', 'Bato Tsyrenov');
+  fiche('marche', 'marche_ext', 'Tsypilma Dashieva');
+  fiche('presse-starovka', 'presse', 'Saran Batbayar');
+  fiche('centre-artisanal', 'travees', 'Saryuna Dorjieva');
+  fiche('centre-affaires', 'hall', 'Oyuuna Tsydenova');
+  // Justice, ordre, défense
+  fiche('tribunal-local', 'salle_audience_locale', 'Arkadi Prigovorov');
+  fiche('tribunal-local', 'salle_audience_locale', 'Lidia Protokolova');
+  fiche('tribunal-local', 'greffe', 'Oyuna Tsybikova');
+  fiche('commissariat-local', 'bureau_commissaire', 'Zhargal Dashiev');
+  renommer('commissariat-local', 'accueil_loc', 'Brigadier Local', 'Brigadier Erdeni Galsanov', 'Brigadier', 'erdeni_galsanov');
+  fiche('poste-vigilance-glaciale', 'salle_ecoute', 'Sergent Oleg Sloukhov', 'oleg_sloukhov');
+  // Santé, éducation, transport
+  renommer('dispensaire-public-v', 'attente', 'Infirmiere', 'Raïssa Bintova', 'Infirmière');
+  fiche('universite', 'amphi', 'Darima Zhambalova');
+  // Gare : Gombo Zhigzhitov remplace les PNJ du gabarit de Républia (chef de gare syndiqué, délégué syndical).
+  ajouter('centre-multinodal-montrouge', 'hall_gare_montrouge', 'Gombo Zhigzhitov', 'Chef de gare', 'agent_transport');
+  // Stade (Partizan de Starovka)
+  renommer('stade', 'terrain', 'Entraineur Local', 'Viktor Morozko', 'Entraîneur du Partizan de Starovka');
+  renommer('stade', 'vestiaires', 'Entraineur Local', 'Viktor Morozko', 'Entraîneur du Partizan de Starovka');
+  renommer('stade', 'terrain', 'Commentatrice Sportive', 'Altana Tsyrendashieva', 'Commentatrice sportive');
+  renommer('stade', 'buvette', 'Tenancière de Buvette', 'Nastia Ponchikova', 'Tenancière de la buvette');
+  renommer('stade', 'guichet_paris', 'Bookmaker Officiel', 'Chingis Balzhinimaev', 'Bookmaker officiel');
+  renommer('stade', 'siege_supporters', 'Meneur des Supporters', 'Solbon Radnaev', 'Meneur des supporters');
+  renommer('stade', 'boutique', 'Vendeur des accessoires de Starovka', 'Semion Charfov', 'Vendeur des accessoires');
+  fiche('siege-syndical', 'bureau_syndical', 'Délégué Batbayar Dachiev', 'batbayar_dachiev');
+  // Règle 1 (Fred, 18/11/2026) : un PNJ en poste reste dans sa pièce quand un PJ prend le poste, et devient
+  // conseiller du titulaire (toujours référent) ; son rôle affiché suit le titulaire réel.
+  function conseiller(batiment, piece, nom, job, posteCity, rolePnj, rolePj) {
+    const p = personnes(batiment, piece).find(x => x.name === nom + ' (PNJ)');
+    if (!p) throw new Error('PNJ Starovka absent : ' + nom);
+    Object.assign(p, { job, resteApresPourvoi: true, posteCity, roleSiPnjTitulaire: rolePnj, roleSiPjTitulaire: rolePj, role: rolePnj });
+  }
+  conseiller('mairie', 'bureau_maire_local', 'Tsyren-Dorji Bazarov', 'maire', 'ville_a', 'Maire de Starovka', 'Conseiller du maire — référent municipal');
+  conseiller('mairie', 'bureau_maire_adjoint', 'Munko Tsybenov', 'maire_adjoint', 'ville_a', 'Adjoint au maire', 'Conseiller de l\'adjoint — référent de la production');
+  conseiller('port-starovka', 'administration_portuaire', 'Commandant Gleb Ledokolov', 'capitaine_port', null, 'Commandant du Port', 'Conseiller du Commandant du Port — référent du commerce extérieur');
+  conseiller('entrepot-logistique-starovka', 'bureau_direction', 'Batzorig Dorjiev', 'directeur_entrepot', 'ville_a', "Directeur de l'Entrepôt Logistique", "Conseiller du directeur — référent de l'entrepôt");
+  conseiller('usine-principale', 'direction_usine', 'Damdin Mazoutov', 'directeur_raffinerie', 'ville_a', 'Directeur de la raffinerie', 'Conseiller du directeur — référent de la raffinerie');
+  // Habitants
+  fiche('maison-starovka', 'piece_maison', 'Dolgor Tsybikova');
+  fiche('maison-starovka-ouvrier', 'piece_maison', 'Zorigto Badmaev');
 })();

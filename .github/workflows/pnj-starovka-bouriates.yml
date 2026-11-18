@@ -1,0 +1,29 @@
+name: "PNJ Starovka — identité bouriate"
+on:
+  pull_request:
+    paths:
+      - "api/_pnj-culture-bouriate.js"
+      - "api/_pnj-profils.js"
+      - "api/_reaction-habitant.js"
+      - "outils/bancs/test-starovka-bouriates-20261117.cjs"
+      - ".github/workflows/pnj-starovka-bouriates.yml"
+  push:
+    branches: [main]
+    paths:
+      - "api/_pnj-culture-bouriate.js"
+      - "api/_pnj-profils.js"
+      - "api/_reaction-habitant.js"
+      - "outils/bancs/test-starovka-bouriates-20261117.cjs"
+      - ".github/workflows/pnj-starovka-bouriates.yml"
+jobs:
+  validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: node --check api/_pnj-culture-bouriate.js
+      - run: node --check api/_pnj-profils.js
+      - run: node --check api/_reaction-habitant.js
+      - run: node outils/bancs/test-starovka-bouriates-20261117.cjs
