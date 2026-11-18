@@ -12787,7 +12787,7 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
       // Fred, 18/11/2026 : commerce PNJ du kolkhoze (moteur « tabac-presse »), six articles, jamais transmissible.
       orders: [
         {fn:'faire_achats_marche', label:'Faire des achats', pa:0, cost:0, type:'legal', icon:'ti-shopping-bag', successRate:100, desc:"Viande et lait de renne, confiture d'airelles, graisse de renne, peaux et bois de renne du kolkhoze."},
-        {fn:'produire_commerce', label:'Produire', i18nKey:'variant.commerce_produce', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:"Préparer les articles en vente (consomme les matières en stock, payé par la caisse du magasin)."},
+        {fn:'produire_commerce', label:'Produire', i18nKey:'variant.commerce_produce', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:"Préparer les articles en vente (consomme les matières en stock, rémunéré par la caisse du commerce)."},
         {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', i18nKey:'variant.commerce_sell_business', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'}
       ]
     } }

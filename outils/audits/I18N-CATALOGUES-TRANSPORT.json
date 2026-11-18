@@ -302,10 +302,10 @@
     {
       "source": "i18n/navigation-resources.js",
       "packed": "i18n/packed/navigation-resources.js.br",
-      "sourceBytes": 41778,
-      "packedBytes": 11611,
-      "sourceSha256": "776b3479a47ab11ecf758428557ada2f9cdf18b24aade7732ea08ecfbc4c57c0",
-      "packedSha256": "b6cf21fb257d8ab2ff898f8e52b8f69f35e820ab84f69d35f5a68767843696c9"
+      "sourceBytes": 42619,
+      "packedBytes": 11881,
+      "sourceSha256": "dc869a54f22b33280ac19e9f00ad7f357decf3b6186d5c8ee8fab2117c81dcb6",
+      "packedSha256": "608233e5049599fe2e3e8ff680eb6846af06e09ffad81b96c1910a4b1bd079c3"
     },
     {
       "source": "i18n/occupation-resources.js",
@@ -566,10 +566,10 @@
     {
       "source": "i18n/sovarka-infobulles-resources.js",
       "packed": "i18n/packed/sovarka-infobulles-resources.js.br",
-      "sourceBytes": 173500,
-      "packedBytes": 56550,
-      "sourceSha256": "7719fe68c2c64e94e00c75084a05588c52f0017c27f8566b2fe04913b7cca2d4",
-      "packedSha256": "1ce4198860d26946ab3e8dbe7cde0d65ad3c9107f49eb1d1f2a54c9b274767c9"
+      "sourceBytes": 174594,
+      "packedBytes": 56959,
+      "sourceSha256": "70cdcbf722daf52cc84b483b9fc1cc44f3f81539e230693eb2f82ee01fb14f22",
+      "packedSha256": "3c91feeea7447cad25ee112807e96bd4299954da26b3acd165e03f40f5f37124"
     },
     {
       "source": "i18n/sovarka-justice-resources.js",
