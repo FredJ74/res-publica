@@ -113,6 +113,11 @@ class Goulag(unittest.TestCase):
   self.q.execute("UPDATE public.personnages_donnees SET current_city='ville_a',current_building=NULL,current_room=NULL,current_street='starovka-rue-stade',est_emprisonne=NULL WHERE name='__goulag_detenu'")
   self.q.execute("INSERT INTO public.detentions(id,nom,country,city,qhs,jour_debut,jour_fin,mode_fin,jour_fin_effective) VALUES('fixture-origine','__goulag_detenu','soviet','ville_a',true,1,11,'evasion',1)")
   self.q.execute("INSERT INTO public.sovarka_goulag_traversees(nom,destination,statut,en_cours,progressions,detention_id,peine_gelee_secondes,recherche_id) VALUES('__goulag_detenu','starovka','detenu',false,7,'fixture-origine',3600,'fixture-recherche')")
+ def sortie_reussie(self):
+  # Ordres internes (17/11/2026) : jet de sortie du camp à 80 % ; graine d'un jet réussi.
+  for n in [i/50 for i in range(-50,51)]:
+   self.sql('SELECT setseed(%s)',(n,))
+   if int(self.sql('SELECT random()')*100)+1<=80:self.sql('SELECT setseed(%s)',(n,));return
  def graine(self,capture):
   for n in [i/50 for i in range(-50,51)]:
    self.sql('SELECT setseed(%s)',(n,));v=self.sql('SELECT random()')
@@ -285,7 +290,8 @@ class Goulag(unittest.TestCase):
   self.q.execute("UPDATE public.personnages_donnees SET est_emprisonne=jsonb_build_object('debutTs',extract(epoch from statement_timestamp())*1000,'jours',0.125,'qhs',true),inventory='[{\"id\":\"depot-unique\"}]' WHERE name='__goulag_detenu'")
   self.q.execute("INSERT INTO public.detentions(id,nom,country,city,qhs,jour_debut,jour_fin) VALUES('fixture-fuite','__goulag_detenu','soviet','capitale',true,1,100)")
   self.assertTrue(self.sql("SELECT public.sovarka_goulag_confisquer_interne('__goulag_detenu','fixture-fuite')")['ok'])
-  self.client();r=self.sql("SELECT public.goulag_toundra_demarrer('starovka')");self.assertTrue(r['ok']);self.assertGreater(r['peine_gelee_secondes'],0);self.assertLessEqual(r['peine_gelee_secondes'],10801);self.assertEqual(r['pa'],20)
+  self.q.execute('SET CONSTRAINTS ALL IMMEDIATE');self.sortie_reussie()
+  self.client();r=self.sql("SELECT public.goulag_toundra_demarrer('starovka')");self.assertTrue(r['ok']);self.assertEqual(float(r['peine_gelee_secondes']),99*86400);self.assertEqual(r['pa'],20)
   self.admin();self.assertEqual(self.sql("SELECT etat FROM public.sovarka_goulag_depots WHERE detention_id='fixture-fuite'"),'perdu')
   self.assertIsNone(self.sql("SELECT est_emprisonne FROM public.personnages_donnees WHERE name='__goulag_detenu'"))
   self.assertFalse(self.sql("SELECT public.sovarka_goulag_depot_clore_interne('__goulag_detenu','fixture-fuite','liberation')")['ok'])
@@ -365,6 +371,7 @@ class Goulag(unittest.TestCase):
     self.q.execute("UPDATE public.personnages_donnees SET est_emprisonne=jsonb_build_object('debutTs',extract(epoch from statement_timestamp())*1000,'jours',0.125,'qhs',true) WHERE name=%s",(nom,))
     self.q.execute("INSERT INTO public.detentions(id,nom,country,city,qhs,jour_debut,jour_fin) VALUES('parcours-complet','__goulag_detenu','soviet','capitale',true,1,100)")
     self.assertTrue(self.sql("SELECT public.sovarka_goulag_confisquer_interne('__goulag_detenu','parcours-complet')")['ok'])
+    self.q.execute('SET CONSTRAINTS ALL IMMEDIATE');self.sortie_reussie()
    else:self.q.execute("INSERT INTO public.sovarka_goulag_visites(nom,origine) VALUES(%s,'ville_b')",(nom,))
    self.client(i);depart=self.sql('SELECT public.goulag_toundra_demarrer(%s)',(destination,));self.assertTrue(depart['ok'],depart);self.assertEqual(depart['pa'],20)
    for jour in range(total):
