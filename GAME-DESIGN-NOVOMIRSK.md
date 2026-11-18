@@ -1075,6 +1075,35 @@ Krasnov est terminée ; priorité de Fred : finir la navigation dans les bâtime
    - Le **magasin du kolkhoze** (vendeuse Tuyana Sambueva) **vendra de la nourriture** (liste et prix à décider).
    - L'**hôpital de Starovka** aura des **PNJ pensionnaires de l'EHPAD**, « **la mémoire de la ville** » : nombre et contenu (souvenirs, dialogues) à décider avec Fred.
 
+## PNJ de Starovka : personnalités et référents (décisions de Fred, 18/11/2026, nuit)
+
+Consigne culturelle commune des Bouriates de Starovka : [`GAME-DESIGN-STAROVKA-BOURIATES.md`](GAME-DESIGN-STAROVKA-BOURIATES.md) (fiers et heureux d'appartenir à Sovarka : progrès, emploi, travail collectif pour le bien commun). Elle ne s'applique pas aux PNJ slaves (Gleb Ledokolov, Stepan Vetrov, Lidia Protokolova, Oleg Sloukhov, Raïssa Bintova, Viktor Morozko, Nastia Ponchikova, Semion Charfov, Arkadi Prigovorov). Les fiches de dialogue ne contiennent que des règles réellement codées : le PNJ n'invente ni règle, ni prix, ni ordre.
+
+**Règles générales**
+1. Un PNJ en poste est automatiquement **référent** de son domaine. Quand un PJ prend le poste, le PNJ reste dans sa pièce et devient **conseiller** du titulaire (toujours référent).
+2. Tout autre PNJ peut aussi être référent (liste ci-dessous, « R ») ; les autres ne le sont pas.
+3. Tout **Commandant de Port** est référent du commerce extérieur.
+4. Les commerces des **kolkhozes** ne sont jamais transmissibles à un PJ.
+5. Dans tous les **centres d'écoute** de Sovarka, les PNJ disent écouter la faune sauvage, les mouvements de la croûte terrestre et l'espace, de façon peu convaincante (on doit sentir qu'ils mentent).
+6. Les habitants des **chalets** (Dolgor, Zorigto) ne dénoncent jamais un évadé du goulag ; sans en rajouter, ils disent savoir combien la vie y est dure et ajoutent : « Ne dites jamais que je vous ai aidé, je serais sévèrement sanctionné. »
+
+**Décisions de jeu**
+- Starovka n'est accessible **qu'en train** (ni véhicule personnel, ni bus/taxi entre villes) ; le goulag reste accessible depuis la gare.
+- **Syndicat de Sovarka** = syndicat unique d'État qui ne fait jamais grève (« le travailleur ne bloque pas son propre outil ») : plus d'ordres de blocus en Sovarka. Rôle de remplacement à définir.
+- **Magasin du kolkhoze** (Tuyana Sambueva) : commerce PNJ au format premium (alimentaire + non alimentaire), six articles — viande de renne, lait de renne, confiture d'airelles, bocaux de graisse de renne, peau de renne, bois de renne — prix PNJ par la règle commune (×2), non transmissible ; à compléter plus tard.
+- **Centre d'affaires** : Khasar Baljirov et Dorji Filatov supprimés ; Oyuuna Tsydenova, hôtesse.
+- À noter pour plus tard (non codé) : la presse en Sovarka (siège de La Voix de Sovarka à Novomirsk) ; le rôle du syndicat d'État.
+
+**PNJ (R = référent)**
+- *Mairie* : Sayana Tsydypova, secrétaire municipale (R démarches municipales) ; Tsyren-Dorji Bazarov, maire (R, poste) ; Munko Tsybenov, adjoint au maire (R, poste) ; Dugar Tsyrempilov, président de la commission électorale (R élections) ; Soyolma Ayusheeva, secrétaire de la commission ; Lieutenant Tsyden Zhalsaraev, cellule de validation et de surveillance des partis (R partis) ; Erdem Gombozhapov, archiviste de la salle des partis (R registres).
+- *Port* : Commandant Gleb Ledokolov (ex-Tömör Ochirov ; R commerce extérieur) ; Ganbaatar Tsybikov, chef de quai ; Stepan Vetrov, chef des douanes du port de Starovka (R expédition, retrait, déclaration).
+- *Économie* : Batzorig Dorjiev, entrepôt (R, poste, entrepôt et trading) ; Damdin Mazoutov, raffinerie (R, poste, raffinerie et carburant) ; Dashi Burilov, Compagnie (R récolte du pétrole) ; Tuyana Sambueva, kolkhoze (R kolkhoze) ; Bair Sambuev, éleveur de rennes.
+- *Commerces et services* : Erzhena Dambaeva et Aldar Zhamsuev (Hôtel des Voyageurs) ; Sesegma Badmaeva (restaurant) ; Bato Tsyrenov (Chasse et Pêche) ; Tsypilma Dashieva (ex-Tuyana Dashieva, marché) ; Saran Batbayar, Presse Metel (R presse) ; Saryuna Dorjieva, centre artisanal (R location des locaux) ; Oyuuna Tsydenova, centre d'affaires.
+- *Justice, ordre, défense* : Arkadi Prigovorov, juge (R justice) ; Lidia Protokolova (ex-Bayarma Namsaraeva), greffière d'audience ; Oyuna Tsybikova, greffière du greffe ; Zhargal Dashiev (ex-Bato Dashiev), commissaire (R police) ; Brigadier Erdeni Galsanov ; Sergent Oleg Sloukhov (ex-Bair Dorjiev), Poste de Vigilance Glaciale.
+- *Santé, éducation, transport* : Raïssa Bintova, infirmière ; Darima Zhambalova, directrice du lycée (R enseignement) ; Gombo Zhigzhitov, chef de gare (nouveau ; R transport).
+- *Stade (Partizan de Starovka)* : Viktor Morozko, entraîneur (R football) ; Altana Tsyrendashieva, commentatrice ; Nastia Ponchikova, buvette ; Chingis Balzhinimaev, bookmaker ; Solbon Radnaev, meneur des supporters ; Semion Charfov, accessoires.
+- *Habitants et syndicat* : Dolgor Tsybikova (chalet vert) ; Zorigto Badmaev (chalet bleu) ; Batbayar Dachiev, délégué du syndicat d'État.
+
 ## Production et logistique de Sovarka (Fred, 15/11/2026, 19 h 24 – 22 h 11)
 
 Session de décisions de Fred, avec Claude ; feu vert donné pour un codage pendant la pause de Fred (« tu coderas pendant que je m'arrêterai »). Chantier `claude/sovarka-production-logistique-20261115`.
