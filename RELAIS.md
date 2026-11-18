@@ -8,6 +8,12 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Maladies, péremption et climat — lot 2b : contrôle à la réception et bandelettes (Claude, 18/11/2026, nuit)
+- **Branche `claude/maladies-lot2b-20261118`** (part du lot 2a).
+- **Migrations APPLIQUÉES** : `20261118071000_aliments_reception_bandelettes` (essai annulé d'abord), `20261118071500_aliments_parametres_mj`.
+- **Codé** : contrôle 70/95 % dans `commerce_apporter_matiere` et `fonds_matiere_apporter` (refusés détruits et non payés, avariés cachés comptés dans `matieresAvariees`), trace `fraude_alimentaire`, bandelettes (achat en pharmacie, dépôt dans le commerce de la pièce), message des refus (neuf langues), section MJ « Aliments ».
+- **Reste (lot 2c)** : plats cuisinés 20 %, furet renifleur.
+
 ### Maladies, péremption et climat — lot 2a : piles d'aliments datées (Claude, 18/11/2026, nuit)
 - **Branche `claude/maladies-lot2a-20261118`** (part du lot 1). Choix dans `GAME-DESIGN-MALADIES-CLIMAT.md` § 11 « Lot 2 ».
 - **Migration APPLIQUÉE** : `20261118070000_aliments_piles_datees` (essai en transaction annulée d'abord).
