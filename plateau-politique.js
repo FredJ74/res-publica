@@ -431,14 +431,14 @@ async function demanderNominationPoste(posteId, posteName, villeCible) {
 const DEMARCHES_ETAT_CIVIL_PAR_BATIMENT = {
   'mairie-capitale': [
     { fn:'acte_officiel', label:'Demander un acte officiel', pa:1, cost:50, icon:'ti-file-certificate', successRate:100, desc:'Naissance, mariage, document administratif.' },
-    { fn:'demander_naturalisation', label:'Demander la naturalisation', pa:2, cost:50, icon:'ti-passport', successRate:100, desc:'Demander la nationalite du pays ou vous vous trouvez. Decision du ministre de l\'Interieur de ce pays ; acceptee au bout de 7 jours sans ministre joueur.' },
+    { fn:'demander_naturalisation', label:'Demander la naturalisation', pa:2, cost:50, icon:'ti-passport', successRate:100, desc:'Demander la nationalite du pays ou vous vous trouvez. Le ministre de l\'Interieur de ce pays peut repondre a partir de 48 h ; sans reponse, acceptee 7 jours apres le depot.' },
     { fn:'changer_domicile', label:'Se domicilier ici', pa:1, cost:50, icon:'ti-home', successRate:100, desc:'Faire de cette ville votre domicile officiel : municipales, candidature a la mairie, logements reserves.' },
     { fn:'demander_mariage', label:'Demander en mariage', pa:1, cost:0, icon:'ti-heart', successRate:100, desc:'Envoyer une demande en mariage a un autre PJ. Necessitera une ceremonie a la mairie pour officialiser.' },
     { fn:'officialiser_mariage', label:'Officialiser un mariage', pa:2, cost:200, icon:'ti-heart-handshake', successRate:100, desc:'Celebrer le mariage. Les deux futurs epoux doivent etre presents.' }
   ],
   'mairie': [
     { fn:'acte_officiel', label:'Demander un acte officiel', pa:1, cost:50, icon:'ti-file-certificate', successRate:100, desc:'Naissance, mariage, document administratif.' },
-    { fn:'demander_naturalisation', label:'Demander la naturalisation', pa:2, cost:50, icon:'ti-passport', successRate:100, desc:'Demander la nationalite du pays ou vous vous trouvez. Decision du ministre de l\'Interieur de ce pays ; acceptee au bout de 7 jours sans ministre joueur.' },
+    { fn:'demander_naturalisation', label:'Demander la naturalisation', pa:2, cost:50, icon:'ti-passport', successRate:100, desc:'Demander la nationalite du pays ou vous vous trouvez. Le ministre de l\'Interieur de ce pays peut repondre a partir de 48 h ; sans reponse, acceptee 7 jours apres le depot.' },
     { fn:'changer_domicile', label:'Se domicilier ici', pa:1, cost:50, icon:'ti-home', successRate:100, desc:'Faire de cette ville votre domicile officiel : municipales, candidature a la mairie, logements reserves.' },
     { fn:'demander_mariage', label:'Demander en mariage', pa:1, cost:0, icon:'ti-heart', successRate:100, desc:'Envoyer une demande en mariage a un autre PJ. Necessitera une ceremonie a la mairie pour officialiser.' },
     { fn:'officialiser_mariage', label:'Officialiser un mariage', pa:2, cost:200, icon:'ti-heart-handshake', successRate:100, desc:'Celebrer le mariage. Les deux futurs epoux doivent etre presents.' }
