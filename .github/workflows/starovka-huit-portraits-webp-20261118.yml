@@ -1,0 +1,28 @@
+name: Starovka — convertir huit portraits en WebP
+on:
+  push:
+    branches: [chatgpt/starovka-huit-portraits-20261118]
+    paths:
+      - outils/images/convertir_huit_portraits_starovka_20261118.py
+      - .github/workflows/starovka-huit-portraits-webp-20261118.yml
+permissions:
+  contents: write
+jobs:
+  conversion:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install Pillow==11.3.0
+      - name: Extraire le ZIP, vérifier les huit portraits, supprimer le ZIP
+        run: python outils/images/convertir_huit_portraits_starovka_20261118.py
+      - name: Commit des WebP sans l'archive
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add images/Sovarka/Starovka
+          git diff --cached --check
+          git commit -m "Starovka : huit portraits PNJ WebP, ZIP supprimé"
+          git push
