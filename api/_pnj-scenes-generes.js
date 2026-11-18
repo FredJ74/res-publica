@@ -6330,7 +6330,7 @@ export const SCENES_PNJ = {
     "batiment": "Port Industriel de Starovka",
     "piece": "Administration Portuaire",
     "personnes": [
-      "Commandant Gleb Ledokolov"
+      "Commandant Arseni Ledokolov"
     ]
   },
   "[\"soviet\",\"ville_a\",\"marche\",\"marche_ext\"]": {

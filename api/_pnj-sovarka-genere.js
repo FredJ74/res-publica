@@ -435,9 +435,9 @@ export const PNJ_SOVARKA_RENOMMES = [
  {
   "ville": "Starovka",
   "ancien": "Delegue Morel",
-  "nouveau": "Délégué Batbayar Dachiev",
+  "nouveau": "Délégué Tserenjav Dachiev",
   "role": null,
-  "id": "sovarka_delegue_batbayar_dachiev",
+  "id": "sovarka_delegue_tserenjav_dachiev",
   "source": "delegue_morel"
  },
  {

@@ -11106,7 +11106,7 @@ const PNJ_SOVARKA = {
     // réalité des images »).
     'Tenancier de Buvette (PNJ)': ['Tenancière de Buvette (PNJ)', 'Tenancière de la buvette'],
     'Commentateur Sportif (PNJ)': ['Commentatrice Sportive (PNJ)', 'Commentatrice du stade'],
-    'Delegue Morel (PNJ)': 'Délégué Batbayar Dachiev (PNJ)',
+    'Delegue Morel (PNJ)': 'Délégué Tserenjav Dachiev (PNJ)',
     'Directeur Fabre (PNJ)': 'Directeur Tsyren Badmaïev (PNJ)',
     'Francisca Brel': 'Tuya Sanjieva',
     'Edgar Simore': 'Altan Namsaraïev',
@@ -11297,7 +11297,7 @@ function slugPnjSovarka(nom) {
         imageBg: "linear-gradient(135deg,#0b1016,#16212c)",
         desc: "Le bureau du Commandant du Port, au-dessus des quais. Par la grande baie vitrée, les grues chargent les cargos ; au mur, le plan du port de Starovka. Les douaniers y déposent leurs dossiers.",
         imageUrl: "images/Sovarka/Starovka/Starovka_port_administration_portuaire.webp",
-        persons: [{name:'Commandant Gleb Ledokolov (PNJ)', role:'Commandant de Port', rel:'neutral', job:'capitaine_port'}],
+        persons: [{name:'Commandant Arseni Ledokolov (PNJ)', role:'Commandant de Port', rel:'neutral', job:'capitaine_port'}],
         orders: copie(psm.administration_portuaire.orders).filter(o => o.fn !== 'consulter_manifeste').map(o => Object.assign(o,
           o.fn === 'consulter_administration_port'
             ? { desc: 'Caisse du port, balance commerciale, marchandises, contrats de la nuit et registre du port. Consultation publique, gratuite.' }
@@ -12621,7 +12621,7 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     ['ville_a', 'port-starovka', 'quai_principal', "Chef de quai Ganbaatar Tsybikov (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_port-starovka_ganbaatar-tsybikov.webp'],
     ['ville_a', 'port-starovka', 'douanes', "Stepan Vetrov (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_port-starovka_chef-des-douanes.webp'],
     ['ville_a', 'entrepot-logistique-starovka', 'bureau_direction', "Batzorig Dorjiev (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_entrepot-logistique-starovka_batzorig-dorjiev_v2.webp'],
-    ['ville_a', 'port-starovka', 'administration_portuaire', "Commandant Gleb Ledokolov (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_port-starovka_commandant-tomor-ochirov.webp'],
+    ['ville_a', 'port-starovka', 'administration_portuaire', "Commandant Arseni Ledokolov (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_port-starovka_commandant-tomor-ochirov.webp'],
     ['ville_a', 'marche', 'marche_ext', "Tsypilma Dashieva (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_marche_tuyana-dashieva.webp'],
     ['ville_a', 'capitaine-sauvage', 'salle_principale', "Sesegma Badmaeva (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_capitaine-sauvage_sesegma-badmaeva.webp'],
     ['ville_a', 'tribunal-local', 'salle_audience_locale', "Arkadi Prigovorov (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_tribunal-local_arkadi-prigovorov.webp'],
@@ -12974,11 +12974,11 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
   // portrait raccordé sans créer de bâtiment ni inventer son emplacement.
   const syndicat = cite.buildingContext['siege-syndical']?.roomOverrides?.bureau_syndical?.persons;
   if (!Array.isArray(syndicat) || syndicat.length !== 1
-      || syndicat[0].name !== 'Délégué Batbayar Dachiev (PNJ)') {
+      || syndicat[0].name !== 'Délégué Tserenjav Dachiev (PNJ)') {
     throw new Error('Portrait Starovka : délégué syndical inattendu');
   }
   installer('siege-syndical', 'bureau_syndical', [
-    { ...syndicat[0], photoUrl: base + 'Starovka_portrait_syndicat_batbayar-dachiev.webp',
+    { ...syndicat[0], photoUrl: base + 'Starovka_portrait_syndicat_tserenjav-dachiev.webp',
       photoPos: '50% 30%' }
   ]);
 })();
@@ -13038,7 +13038,7 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
   ajouter('mairie', 'salle_partis', 'Lieutenant Tsyden Zhalsaraev', 'Cellule de validation et de surveillance des partis', 'policier', 'Starovka_portrait_mairie_tsyden-zhalsaraev.webp');
   ajouter('mairie', 'salle_partis', 'Erdem Gombozhapov', 'Archiviste de la salle des partis', 'secretaire');
   // Port
-  fiche('port-starovka', 'administration_portuaire', 'Commandant Gleb Ledokolov', 'gleb_ledokolov');
+  fiche('port-starovka', 'administration_portuaire', 'Commandant Arseni Ledokolov', 'arseni_ledokolov');
   fiche('port-starovka', 'quai_principal', 'Chef de quai Ganbaatar Tsybikov', 'ganbaatar_tsybikov');
   fiche('port-starovka', 'douanes', 'Stepan Vetrov');
   // Économie
@@ -13076,7 +13076,7 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
   renommer('stade', 'guichet_paris', 'Bookmaker Officiel', 'Chingis Balzhinimaev', 'Bookmaker officiel');
   renommer('stade', 'siege_supporters', 'Meneur des Supporters', 'Solbon Radnaev', 'Meneur des supporters');
   renommer('stade', 'boutique', 'Vendeur des accessoires de Starovka', 'Semion Charfov', 'Vendeur des accessoires');
-  fiche('siege-syndical', 'bureau_syndical', 'Délégué Batbayar Dachiev', 'batbayar_dachiev');
+  fiche('siege-syndical', 'bureau_syndical', 'Délégué Tserenjav Dachiev', 'tserenjav_dachiev');
   // Règle 1 (Fred, 18/11/2026) : un PNJ en poste reste dans sa pièce quand un PJ prend le poste, et devient
   // conseiller du titulaire (toujours référent) ; son rôle affiché suit le titulaire réel.
   function conseiller(batiment, piece, nom, job, posteCity, rolePnj, rolePj) {
@@ -13086,7 +13086,7 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
   }
   conseiller('mairie', 'bureau_maire_local', 'Tsyren-Dorji Bazarov', 'maire', 'ville_a', 'Maire de Starovka', 'Conseiller du maire — référent municipal');
   conseiller('mairie', 'bureau_maire_adjoint', 'Munko Tsybenov', 'maire_adjoint', 'ville_a', 'Adjoint au maire', 'Conseiller de l\'adjoint — référent de la production');
-  conseiller('port-starovka', 'administration_portuaire', 'Commandant Gleb Ledokolov', 'capitaine_port', null, 'Commandant du Port', 'Conseiller du Commandant du Port — référent du commerce extérieur');
+  conseiller('port-starovka', 'administration_portuaire', 'Commandant Arseni Ledokolov', 'capitaine_port', null, 'Commandant du Port', 'Conseiller du Commandant du Port — référent du commerce extérieur');
   conseiller('entrepot-logistique-starovka', 'bureau_direction', 'Batzorig Dorjiev', 'directeur_entrepot', 'ville_a', "Directeur de l'Entrepôt Logistique", "Conseiller du directeur — référent de l'entrepôt");
   conseiller('usine-principale', 'direction_usine', 'Damdin Mazoutov', 'directeur_raffinerie', 'ville_a', 'Directeur de la raffinerie', 'Conseiller du directeur — référent de la raffinerie');
   // Habitants
