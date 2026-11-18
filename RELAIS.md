@@ -8,6 +8,12 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Maladies, péremption et climat — lot 2a : piles d'aliments datées (Claude, 18/11/2026, nuit)
+- **Branche `claude/maladies-lot2a-20261118`** (part du lot 1). Choix dans `GAME-DESIGN-MALADIES-CLIMAT.md` § 11 « Lot 2 ».
+- **Migration APPLIQUÉE** : `20261118070000_aliments_piles_datees` (essai en transaction annulée d'abord).
+- **Codé** : date de pile `recu` sur les matières périssables, fusion le même jour seulement ; retraits sur les piles les plus anciennes (`inventaire_retirer_depuis`, corrige aussi l'ancien `inventaire_retirer` qui retirait la quantité de chaque pile) ; `inventaire_ajouter`, `inventaire_deposer_interne`, réception des livraisons et achat en entrepôt datés ; maisons d'hospitalité, kolkhoze, jardins et offres d'achat comptent toutes les piles ; péremption 10 jours (réglable), aliment avarié = PA + 50 % d'intoxication ; passe de nuit `aliments_passe_nuit` (pg_cron) et message au propriétaire (neuf langues).
+- **Reste du lot 2 (2b)** : contrôle à réception 70/95 % et bandelettes, plats cuisinés 20 %, furet renifleur.
+
 ### Maladies, péremption et climat — lot 1 : socle des maladies (Claude, 18/11/2026, soir)
 - **Branche `claude/maladies-lot1-20261118`** ; décisions et découpage en 5 lots dans `GAME-DESIGN-MALADIES-CLIMAT.md` § 11.
 - **Migrations APPLIQUÉES** : `20261118060000_maladies_socle` (essai en transaction annulée d'abord), `20261118060500_maladies_nom_medicament`.

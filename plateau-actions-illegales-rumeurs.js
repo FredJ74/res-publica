@@ -5802,8 +5802,9 @@ async function confirmerVenteMatiere(matiere, mode) {
   if (!qte || qte <= 0) { venteRefusDansFenetre('Quantité invalide',
     'Indiquez un nombre entier d\'unités supérieur à zéro.'); return; }
 
-  const lot = (state.inventory || []).find(i => i.stackKey === matiere && (i.qty || 0) > 0);
-  if (!lot || lot.qty < qte) { venteRefusDansFenetre('Stock personnel insuffisant', 'Vous n\'avez pas ' + qte + ' unité(s) de ' + nom + '.'); return; }
+  // Piles datées (lot 2a, 18/11/2026) : une matière peut tenir en plusieurs piles ; la quantité détenue est leur somme.
+  const detenu = (state.inventory || []).filter(i => i && i.stackKey === matiere).reduce((t, i) => t + (Number(i.qty) || 0), 0);
+  if (detenu < qte) { venteRefusDansFenetre('Stock personnel insuffisant', 'Vous n\'avez pas ' + qte + ' unité(s) de ' + nom + '.'); return; }
 
   const data = await chargerArmurerieLocale();
   if (!data) { venteRefusDansFenetre('Armurerie injoignable',
