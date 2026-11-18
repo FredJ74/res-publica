@@ -11386,11 +11386,16 @@ function slugPnjSovarka(nom) {
     // Juge et commissaire PNJ titulaires de Starovka et Krasnov (noms validés par Fred, 08/11/2026) ;
     // ils restent référents justice quand un PJ prend le poste. Novomirsk : déclarés plus haut.
     if (!capitale) {
-      const local = { ville_a: { juge: 'Dulma Tsyrenova (PNJ)', comm: 'Bato Dashiev (PNJ)', nom: 'Starovka' },
+      // Starovka : juge Arkadi Prigovorov, l'homme du décor de la salle d'audience (Fred, 18/11/2026 ; remplace Dulma Tsyrenova).
+      const local = { ville_a: { juge: 'Arkadi Prigovorov (PNJ)', comm: 'Bato Dashiev (PNJ)', nom: 'Starovka' },
                       ville_b: { juge: 'Anatoli Gromov (PNJ)', comm: 'Egor Tikhonov (PNJ)', nom: 'Krasnov' } }[ville];
       surcharge(ville, 'tribunal-local', 'salle_audience_locale').persons = [
         { name: local.juge, role: 'Juge Populaire de ' + local.nom, rel: 'neutral', job: 'juge', resteApresPourvoi: true,
           posteCity: ville, roleSiPnjTitulaire: 'Juge Populaire de ' + local.nom, roleSiPjTitulaire: 'Référent justice — assistant du juge' }];
+      // Starovka : la femme qui prend des notes à l'audience est la greffière d'audience (Fred, 18/11/2026) ;
+      // ce n'est pas Oyuna Tsybikova (greffe) : nom bouriate proposé par Claude.
+      if (ville === 'ville_a') surcharge(ville, 'tribunal-local', 'salle_audience_locale').persons.push(
+        { name: 'Bayarma Namsaraeva (PNJ)', role: 'Greffière', rel: 'neutral', job: 'secretaire' });
       surcharge(ville, 'commissariat-local', 'bureau_commissaire').persons = [
         { name: local.comm, role: 'Commissaire de ' + local.nom, rel: 'neutral', job: 'commissaire', resteApresPourvoi: true,
           posteCity: ville, roleSiPnjTitulaire: 'Commissaire de ' + local.nom, roleSiPjTitulaire: 'Référent justice — adjoint du commissaire' }];
@@ -12585,8 +12590,10 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
   const travees = centre.roomOverrides.travees;
   const avant = travees.persons || gabarit.rooms.travees.persons || [];
   travees.persons = [{ name: 'Saryuna Dorjieva (PNJ)', role: 'Réceptionniste', rel: 'neutral', job: 'secretaire',
-    photoUrl: dir + 'Starovka_portrait_centre-artisanal_saryuna-dorjieva.webp', photoPos: '50% 30%' },
-    ...avant.map(p => Object.assign({}, p))];
+    photoUrl: dir + 'Starovka_portrait_centre-artisanal_saryuna-dorjieva.webp', photoPos: '50% 30%' }];
+  // Fred, 18/11/2026 : Bayar Otchirov, Ganbold Garmaïev et Temür Dougarov retirés des travées (dialogue seul,
+  // aucune mécanique en Sovarka : le marché du dealer est réservé à la Républia).
+  void avant;
   const greffe = tribunal.roomOverrides.greffe = tribunal.roomOverrides.greffe || {};
   greffe.persons = [{ name: 'Oyuna Tsybikova (PNJ)', role: 'Greffière', rel: 'neutral', job: 'secretaire',
     photoUrl: dir + 'Starovka_portrait_tribunal-local_oyuna-tsybikova.webp', photoPos: '50% 30%' }];
@@ -12617,7 +12624,8 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     ['ville_a', 'port-starovka', 'administration_portuaire', "Commandant Tömör Ochirov (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_port-starovka_commandant-tomor-ochirov.webp'],
     ['ville_a', 'marche', 'marche_ext', "Tuyana Dashieva (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_marche_tuyana-dashieva.webp'],
     ['ville_a', 'capitaine-sauvage', 'salle_principale', "Sesegma Badmaeva (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_capitaine-sauvage_sesegma-badmaeva.webp'],
-    ['ville_a', 'tribunal-local', 'salle_audience_locale', "Dulma Tsyrenova (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_tribunal-local_dulma-tsyrenova.webp'],
+    ['ville_a', 'tribunal-local', 'salle_audience_locale', "Arkadi Prigovorov (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_tribunal-local_arkadi-prigovorov.webp'],
+    ['ville_a', 'tribunal-local', 'salle_audience_locale', "Bayarma Namsaraeva (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_tribunal-local_bayarma-namsaraeva.webp'],
     ['ville_a', 'universite', 'amphi', "Darima Zhambalova (PNJ)",'images/Sovarka/Starovka/Starovka_portrait_universite_darima-zhambalova.webp'],
     ['ville_a', 'armurerie', 'magasin', "Bato Tsyrenov (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_armurerie_bato-tsyrenov_v2.webp'],
     ['ville_b', 'mairie', 'accueil_mairie', "Galina Dokladova (PNJ)", 'images/Sovarka/Krasnov/Krasnov_portrait_mairie_galina-dokladova.webp'],
@@ -12815,9 +12823,6 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
   if (!ville) throw new Error('Starovka absente');
   const portraits = [
     ['usine-principale', 'direction_usine', 'Damdin Mazoutov (PNJ)', 'images/Sovarka/Starovka/Starovka_portrait_usine-principale_damdin-mazoutov.webp'],
-    ['centre-artisanal', 'travees', 'Bayar Otchirov', 'images/Sovarka/Starovka/Starovka_portrait_centre-artisanal_bayar-otchirov.webp'],
-    ['centre-artisanal', 'travees', 'Ganbold Garmaïev', 'images/Sovarka/Starovka/Starovka_portrait_centre-artisanal_ganbold-garmaiev.webp'],
-    ['centre-artisanal', 'travees', 'Temür Dougarov', 'images/Sovarka/Starovka/Starovka_portrait_centre-artisanal_temur-dougarov.webp'],
     ['stade', 'siege_supporters', 'Meneur des Supporters (PNJ)', 'images/Sovarka/Starovka/Starovka_portrait_stade_meneur-supporters.webp'],
     ['presse-starovka', 'presse', 'Saran Batbayar (PNJ)', 'images/Sovarka/Starovka/Starovka_portrait_presse-starovka_saran-batbayar.webp'],
     ['maison-starovka', 'piece_maison', 'Dolgor Tsybikova (PNJ)', 'images/Sovarka/Starovka/Starovka_portrait_maison-starovka_dolgor-tsybikova.webp'],

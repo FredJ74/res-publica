@@ -6059,7 +6059,8 @@ export const SCENES_PNJ = {
     "batiment": "Tribunal Municipal",
     "piece": "Salle d'audience",
     "personnes": [
-      "Dulma Tsyrenova"
+      "Arkadi Prigovorov",
+      "Bayarma Namsaraeva"
     ]
   },
   "[\"soviet\",\"ville_a\",\"tribunal-local\",\"bureau_magistrats\"]": {
@@ -6114,10 +6115,7 @@ export const SCENES_PNJ = {
     "batiment": "Centre Artisanal",
     "piece": "Travées",
     "personnes": [
-      "Saryuna Dorjieva",
-      "Bayar Otchirov",
-      "Ganbold Garmaïev",
-      "Temür Dougarov"
+      "Saryuna Dorjieva"
     ]
   },
   "[\"soviet\",\"ville_a\",\"centre-artisanal\",\"echoppe_facade\"]": {
