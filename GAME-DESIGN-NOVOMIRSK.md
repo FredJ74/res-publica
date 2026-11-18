@@ -1115,6 +1115,52 @@ Consigne culturelle commune des Bouriates de Starovka : [`GAME-DESIGN-STAROVKA-B
 - *Stade (Partizan de Starovka)* : Viktor Morozko, entraîneur (R football) ; Altana Tsyrendashieva, commentatrice ; Nastia Ponchikova, buvette ; Chingis Balzhinimaev, bookmaker ; Solbon Radnaev, meneur des supporters ; Semion Charfov, accessoires.
 - *Habitants et syndicat* : Dolgor Tsybikova (chalet vert) ; Zorigto Badmaev (chalet bleu) ; Batbayar Dachiev, délégué du syndicat d'État.
 
+## Décisions du 18/11/2026 (Fred, feu vert de codage) — EN COURS DE CODAGE (Claude)
+
+### 1. PNJ de Starovka
+- Renommages (doublons de noms) : Commandant Gleb Ledokolov → **Commandant Arseni Ledokolov** ; Batbayar Dachiev → **Tserenjav Dachiev**. Écran, serveur (titulaire PNJ, référents), fiches.
+- Fiche de Ganbaatar Tsybikov (écrite par Claude) validée telle quelle.
+- Sayana Tsydypova annonce la domiciliation à 1 PA + 50 PSK (règle en vigueur, pas 200).
+
+### 2. Kolkhoze et alimentation
+- Toute **viande** et tous les **laitages bruts** (matières `viande` et `laitages`, partout dans le jeu) se mangent : ordre « Manger », gratuit, **+1 PA au prochain Dormir**. Un seul repas brut compte entre deux Dormir (le suivant est refusé, rien n'est perdu).
+- **Confiture d'airelles** : +1 PA au prochain Dormir, cumulable avec un repas brut (une confiture comptée entre deux Dormir).
+- Articles du magasin du kolkhoze : viande de renne = matière `viande` ; lait de renne = matière `laitages` ; **peau de renne = matière `textile`** ; **bois de renne = matière `bois`** (le travail « renne » de la ferme donne déjà viande, textile et bois : vérifié) ; **bocal de graisse de renne** : objet sans effet, non consommable pour l'instant.
+- **Pour plus tard, NE PAS CODER** :
+  - (a) maladies : manger de la viande crue augmentera le risque de tomber malade ;
+  - (b) coups de blizzard à Starovka : toutes les personnes présentes perdent 3 PA, sauf celles qui ont un bocal de graisse de renne sur elles (immunisées, le bocal est consommé).
+
+### 3. Syndicat d'État : « Manifestation de soutien au président »
+- Remplace le rôle vide du syndicat d'État (qui reste sans blocus ni grève).
+- Ordre du **chef du syndicat d'État**, possible seulement si le syndicat compte **au moins 10 syndiqués**. **Une seule par jour et par ville.** Lancée dans la ville du bureau du syndicat national (point 7).
+- Tous les syndiqués présents dans la ville participent automatiquement, quel que soit leur domicile, et paient **2 PA** chacun. Un syndiqué qui a **3 PA ou moins** ne participe pas et compte comme absent.
+- **Taux** = syndiqués présents ÷ syndiqués domiciliés dans la ville (les renforts peuvent faire dépasser 100 %).
+- **Effet sur la POP du président** : au-dessus de 50 %, +1 par tranche de 5 % (plafond +10) ; à 50 % pile, rien ; en dessous, −1 par tranche de 5 % (désaveu). Ex. 100 % → +10 ; 40 % → −2. Sans domiciliés dans la ville, le taux est compté à 100 % si au moins un syndiqué participe.
+- Résultat publié dans le journal d'événements et dans la presse du jour (participation, effet sur le président).
+- Légale : personne ne devient hors-la-loi.
+
+### 4. Nationalité (choix de Claude confirmés, deux compléments)
+- Investiture gratuite : confirmée.
+- Programme par défaut de l'investi : « X est investi par le parti Y, qui viendra détailler son programme personnellement. »
+- Naturalisation : un ministre joueur a 48 h pour répondre ; **sans réponse, la demande est acceptée 7 jours après son dépôt** (comme sans ministre).
+- À l'étranger, lecture du forum Local de sa ville de domicile : confirmée.
+
+### 5. Départ d'un maire (tous motifs, tous les empires)
+- Motifs : décès, démission, destitution, emprisonnement, naturalisation, etc.
+- L'adjoint reçoit une **proposition de devenir maire, valable 72 h**. S'il accepte, il devient maire (fin du mandat en cours) et nomme un nouvel adjoint. S'il refuse ou ne répond pas, il reste adjoint et la mairie reste **sans maire** jusqu'à la prochaine municipale (l'adjoint assure les fonctions déjà prévues).
+- Pas d'élection partielle.
+- Sans adjoint : la mairie passe **sous tutelle du ministre** — ministre de l'Économie collective en Sovarka (`min_fin`), ministre de l'Intérieur en Républia (`min_int`, équivalent retenu par Claude : naturalisations, ordre public). Le ministre a accès aux boutons du bureau du maire, pas à ceux de l'adjoint.
+
+### 6. Traduction : rattrapage du branchement (Claude, jusqu'au retour de Codex le 20/11 au soir)
+- Brancher les textes dont la ressource existe déjà (état `resource-review-binding` de `outils/audits/audit-i18n-global.cjs`), sans écrire de nouvelles traductions. Un fichier ou groupe de fichiers par PR. Fichiers du goulag exclus (chantier de Codex).
+
+### 7. Bureau du syndicat national (Sovarka)
+- Une pièce séparée **« Bureau du syndicat national »** dans les mairies de Novomirsk, Krasnov et Starovka (pas la salle des partis).
+- Toutes les prérogatives du syndicat d'État y sont : adhérer, quitter, gestion par le chef, ordre « Manifestation de soutien au président » (lancé dans la ville du bureau). Fonctionnement des syndicats de Républia, adapté au syndicat unique d'État (un seul syndicat national, sans blocus). L'adhésion ne demande pas d'être membre d'un parti.
+- Un PNJ par bureau, non référent, relié à DeepSeek, bureaucrate jovial et fier, qui ne comprend pas l'idée de grève (« le travailleur ne bloque pas son propre outil ») et vante fêtes du travail, médailles et colonies de vacances : Starovka **Tserenjav Dachiev** (déplacé de l'ancien siège) ; Krasnov **Anatoli Transparantov** ; Novomirsk **Lev Lozungov**. Fiches limitées aux règles réellement codées.
+- L'ancien siège syndical sans façade de Starovka est retiré (et tout siège syndical de Sovarka devenu inutile), sans toucher à la Républia.
+- Images : provisoires (cohérentes avec les pièces de la mairie) ; pièce et portraits à faire générer par ChatGPT.
+
 ## Production et logistique de Sovarka (Fred, 15/11/2026, 19 h 24 – 22 h 11)
 
 Session de décisions de Fred, avec Claude ; feu vert donné pour un codage pendant la pause de Fred (« tu coderas pendant que je m'arrêterai »). Chantier `claude/sovarka-production-logistique-20261115`.

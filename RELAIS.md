@@ -8,6 +8,11 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Décisions du 18/11 — Starovka, kolkhoze, syndicat d'État, nationalité, départ du maire, branchement i18n (Claude, 18/11/2026)
+- **Branche `claude/decisions-20261118`** (part de #1115 et #1114). Décisions consignées dans `GAME-DESIGN-NOVOMIRSK.md` (« Décisions du 18/11/2026 », points 1 à 7) et `GAME-DESIGN-ELECTIONS.md`.
+- **Traduction (point 6)** : le branchement des textes dont la traduction existe déjà (`resource-review-binding`) est **confié à Claude jusqu'au retour de Codex le 20/11 au soir**. Un fichier ou groupe de fichiers par PR ; fichiers du goulag exclus (chantier de Codex).
+- Avancement tenu ci-dessous à chaque push.
+
 ### PNJ de Starovka — personnalités, référents, train, syndicat, kolkhoze (Claude, 18/11/2026, nuit)
 - **Branche `claude/starovka-pnj-referents-20261118`** (inclut la PR #1100 de Codex, culture bouriate, prérequis demandé par Fred). Décisions de Fred consignées dans `GAME-DESIGN-NOVOMIRSK.md`, section « PNJ de Starovka : personnalités et référents ».
 - **Fiches** : 41 fiches de personnalité ajoutées dans `api/_pnj-personnalites.js` (traits donnés par Fred), fiche d'Arkadi Prigovorov mise à jour ; `bouriate:false` sur les PNJ slaves de Starovka (la consigne culturelle bouriate ne leur est plus ajoutée, `api/_pnj-culture-bouriate.js`).
