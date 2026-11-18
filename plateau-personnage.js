@@ -127,7 +127,7 @@ async function openCharSheet() {
         ? '<div style="font-size:.75rem;color:#9a8a68;font-style:italic">' + rpCharSheetLabel('noItems','Aucun objet') + '</div>'
         : state.inventory.map(item => `
             <div style="display:flex;align-items:center;gap:.4rem;font-size:.78rem;color:#c0b090;padding:.2rem 0">
-              <i class="ti ${item.icon}" style="font-size:.8rem;color:#8a6a20"></i> ${item.name}
+              <i class="ti ${item.icon}" style="font-size:.8rem;color:#8a6a20"></i> ${((typeof nomObjetMaladie === 'function' && nomObjetMaladie(item)) || item.name)}
             </div>`).join('')}
     </div>
     </div>
@@ -656,7 +656,7 @@ function switchSelfTab(tab, el) {
           html += '</div>';
         }
         html += '<div style="flex:1;min-width:0">';
-        html += '<div class="hg-inventaire-nom" style="font-size:.8rem;color:#c0b090;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + item.name + ((Number(item.quantite ?? item.qty) > 1) ? ' × ' + Number(item.quantite ?? item.qty) : '') + '</div>';
+        html += '<div class="hg-inventaire-nom" style="font-size:.8rem;color:#c0b090;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + ((typeof nomObjetMaladie === 'function' && nomObjetMaladie(item)) || item.name) + ((Number(item.quantite ?? item.qty) > 1) ? ' × ' + Number(item.quantite ?? item.qty) : '') + '</div>';
         html += '<div style="font-size:.85rem;color:#9a8a68">' + (item.legal !== undefined ? (item.legal ? 'Légal' : 'Non enregistré') : '') + (item.usageUnique ? ' · Usage unique' : '') + '</div>';
         html += '</div>';
         html += '<button onclick="event.stopPropagation();jeterObjetInventaire(' + i + ')" style="font-size:.85rem;color:#a0905a;background:transparent;border:none;cursor:pointer;padding:.2rem .4rem;flex-shrink:0">Déposer</button>';
@@ -3419,7 +3419,7 @@ async function ouvrirDetailObjetInventaire(idx) {
     return;
   }
 
-  document.getElementById('postes-modal-title').textContent = typeof herosObjetTexte === 'function' ? herosObjetTexte(item, 'name') : item.name;
+  document.getElementById('postes-modal-title').textContent = (typeof nomObjetMaladie === 'function' && nomObjetMaladie(item)) || (typeof herosObjetTexte === 'function' ? herosObjetTexte(item, 'name') : item.name);
   document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic"><span data-i18n="inventoryUi.loading">Chargement...</span></div>';
   document.getElementById('modal-postes').classList.add('open');
   if (typeof window !== 'undefined') window.RPI18nPlateau?.apply?.(document.getElementById('postes-body'));
@@ -3492,6 +3492,9 @@ async function ouvrirDetailObjetInventaire(idx) {
   if (item.familleProduitMarche === 'aliment' || (item.generique_id === 'encas-a-emporter' && item.recette_id)) {
     html += '<button onclick="consommerAliment(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer"><i class="ti ti-meat"></i> <span data-i18n="inventoryUi.consume">Consommer</span></button>';
   }
+
+  // Boissons (Fred, 18/11/2026) : bouton Boire, étiquette alcoolisée ou non tranchée par le serveur.
+  if (typeof boutonBoire === 'function') html += boutonBoire(item, idx, 'font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
 
   // Guide des baies sauvages de Krasnov (Fred, 15/11/2026) : se lit partout, 2 PA, +1 INT 24 h, sans cumul ; reste dans l'inventaire.
   if (item.type === 'guide_baies_krasnov' && typeof lireGuideBaies === 'function') {
@@ -4174,6 +4177,10 @@ function ouvrirDetailObjet(idx) {
   }
   if (item.type === 'poison') {
     html += '<button onclick="ouvrirModalEmpoisonner();document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #6a2a20;background:transparent;color:#cc4444;cursor:pointer">Utiliser</button>';
+  }
+  if (typeof boutonBoire === 'function') html += boutonBoire(item, idx, 'flex:1;font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.5rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
+  if (item.type === 'medicament_maladie' && typeof boutonMedicamentMaladie === 'function') {
+    html += boutonMedicamentMaladie(item, 'flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #2a6a2a;background:transparent;color:#4a8a4a;cursor:pointer');
   }
   if (item.type === 'medicament') {
     html += '<button onclick="doSesoigner();document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #2a6a2a;background:transparent;color:#4a8a4a;cursor:pointer">Utiliser (+20 PV)</button>';
