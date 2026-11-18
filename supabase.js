@@ -1047,6 +1047,8 @@ async function sbLoadPersonnage(name) {
     historiqueCrimes: r.historique_crimes || [],
     enquetesEnCours:  r.enquetes_en_cours || [],
     domicile:      r.domicile || null,
+    // Nationalité stable (18/11/2026) : `country` est le pays où l'on se trouve, il change en voyage.
+    nationalite:   r.nationalite || r.country || null,
     employes:      r.employes || [],
     escortActive:  r.escort_active || [],
     locationsActives: r.locations_actives || [],
@@ -1096,7 +1098,7 @@ async function sbListPersonnages() {
   if (!_sbAnnuaireEnVol) {
     // Portraits hors de la requete (04/11/2026, #55/#60) : ils viennent du cache des portraits,
     // qui ne relit que ceux dont l'empreinte serveur a change. Meme forme de reponse qu'avant.
-    _sbAnnuaireEnVol = sbGet('personnages', 'select=name,country,current_city,poste,domicile&order=created_at.asc')
+    _sbAnnuaireEnVol = sbGet('personnages', 'select=name,country,nationalite,current_city,poste,domicile&order=created_at.asc')
       .then(async rows => {
         if (!Array.isArray(rows)) return rows;
         const portraits = await sbPortraitsPour(rows.map(r => r.name)).catch(() => ({}));
@@ -1202,7 +1204,7 @@ function sbForumSujetDansPays(forumId, paysSujet, paysCourant) {
   return !sbForumEstTerritorial(forumId) || (paysSujet === paysCourant);
 }
 async function sbLoadForumTopics(forumId) {
-  const filtrePays = sbForumEstTerritorial(forumId) ? '&country=eq.' + encodeURIComponent(state.country) : '';
+  const filtrePays = sbForumEstTerritorial(forumId) ? '&country=eq.' + encodeURIComponent(typeof paysForums === 'function' ? paysForums() : state.country) : '';
   return sbGet('forum_topics', 'forum_id=eq.' + encodeURIComponent(forumId) + filtrePays + '&order=created_at.desc');
 }
 
@@ -1220,7 +1222,7 @@ async function sbCompterSujetsForums(idsForums) {
   const compteurs = Object.fromEntries(ids.map(id => [id, 0]));
   if (!ids.length) return compteurs;
   const filtre = ids.map(encodeURIComponent).join(',');
-  const paysLecture = state.country;
+  const paysLecture = (typeof paysForums === 'function' ? paysForums() : state.country);
   const taillePage = 200;
   let debut = 0;
   while (true) {
@@ -1242,7 +1244,7 @@ async function sbLoadForumTopicsVerdict(forumId) {
   // Lecture seule : borne indépendante du transport générique, sans toucher aux écritures.
   // AbortController arrête effectivement la requête, contrairement à Promise.race.
   const controller = new AbortController();
-  const paysLecture = state.country;
+  const paysLecture = (typeof paysForums === 'function' ? paysForums() : state.country);
   const timer = setTimeout(() => controller.abort(), 8000);
   try {
     const url = SUPABASE_URL + '/rest/v1/forum_topics?forum_id=eq.' +
@@ -1252,7 +1254,7 @@ async function sbLoadForumTopicsVerdict(forumId) {
     const response = await fetch(url, { method: 'GET', headers: sbEnTetes(), signal: controller.signal });
     if (!response.ok) return { ok: false, raison: 'http_' + response.status };
     const rows = await response.json();
-    if (paysLecture !== state.country) return { ok: false, raison: 'territoire_change' };
+    if (paysLecture !== (typeof paysForums === 'function' ? paysForums() : state.country)) return { ok: false, raison: 'territoire_change' };
     return { ok: true, donnees: Array.isArray(rows) ? rows : [] };
   } catch (e) {
     return { ok: false, raison: controller.signal.aborted ? 'delai_depasse' : 'reseau_indisponible' };
@@ -1336,7 +1338,7 @@ async function sbActiviteForumCibles(idsForums, pageSize) {
   const cibles = new Set(idsForums || []);
   if (cibles.size === 0) return {};
   const idsFiltre = Array.from(cibles).map(encodeURIComponent).join(',');
-  const paysLecture = state.country;
+  const paysLecture = (typeof paysForums === 'function' ? paysForums() : state.country);
 
   async function dernierParForum(table, select, filtre, extraireForumId) {
     const resultats = {};
@@ -1391,7 +1393,7 @@ async function sbActiviteForumDepuis(idsAccessibles, curseurTopics, curseurPosts
   const ids = new Set(idsAccessibles || []);
   if (ids.size === 0) return { parForum: {}, curseurTopics, curseurPosts };
   const idsFiltre = Array.from(ids).map(encodeURIComponent).join(',');
-  const paysLecture = state.country;
+  const paysLecture = (typeof paysForums === 'function' ? paysForums() : state.country);
 
   async function depuis(table, select, filtreScope, extraireForumId, curseur) {
     const parForum = {};

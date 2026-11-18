@@ -42,29 +42,24 @@ function rendreEtatCivil(batiment) {
   return elements['postes-body'].innerHTML;
 }
 
+// Naturalisation et domiciliation ouvertes (Fred, 18/11/2026, chantier « Nationalité, domicile et élections ») :
+// la naturalisation n'est plus grisée ; l'examen des demandes par le ministre de l'Intérieur non plus.
 for (const batiment of ['mairie-capitale', 'mairie']) {
-  test('État civil (' + batiment + ') : naturalisation grisée, autres démarches actives', () => {
+  test('État civil (' + batiment + ') : naturalisation et domiciliation actives, aucune démarche grisée', () => {
     const html = rendreEtatCivil(batiment);
     const boutons = html.split('<button').slice(1);
-    assert.strictEqual(boutons.length, 4);
-    const natu = boutons.find(b => b.includes('Demander la naturalisation'));
-    assert.ok(natu, 'bouton de naturalisation absent : il doit rester visible');
-    assert.ok(!natu.includes('doOrder'), 'le bouton grisé ne doit appeler aucune porte');
-    assert.ok(natu.includes('opacity:.45') && natu.includes('not-allowed'));
-    assert.ok(natu.includes('voyage entre empires'));
-    // Le motif est échappé : aucun guillemet double brut ne casse l'attribut onclick.
-    const onclick = natu.match(/onclick="([^"]*)"/)[1];
-    assert.ok(onclick.startsWith("showToast('Bientôt disponible'"), onclick);
-    for (const autre of ['Demander un acte officiel', 'Demander en mariage', 'Officialiser un mariage']) {
-      const b = boutons.find(x => x.includes(autre));
-      assert.ok(b && b.includes('doOrder('), autre + ' doit rester actif');
+    assert.strictEqual(boutons.length, 5);
+    for (const libelle of ['Demander un acte officiel', 'Demander la naturalisation', 'Se domicilier ici', 'Demander en mariage', 'Officialiser un mariage']) {
+      const b = boutons.find(x => x.includes(libelle));
+      assert.ok(b, libelle + ' absent');
+      assert.ok(!b.includes("showToast('Bientôt disponible'"), libelle + ' ne doit pas être grisé');
     }
   });
 }
 
-test('data.js : examen des naturalisations grisé pour le ministre de l\'Intérieur', () => {
+test('data.js : examen des naturalisations ouvert pour le ministre de l\'Intérieur', () => {
   const ligne = data.split('\n').find(l => l.includes("fn:'demandes_naturalisation'"));
-  assert.ok(ligne && /bientot:'Bientôt disponible/.test(ligne));
+  assert.ok(ligne && !/bientot:/.test(ligne));
 });
 
 test('data.js : transfert d\'un détenu visible et grisé dans les trois bureaux d\'ambassadeur', () => {
