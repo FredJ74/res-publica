@@ -5684,12 +5684,12 @@ async function ouvrirVendreBoisImprimerie(pa, cost) {
 
 async function confirmerVendreBoisImprimerie(pa, cost) {
   const qteVoulue = parseInt(document.getElementById('vendre-bois-qte')?.value || '0');
-  document.getElementById('modal-postes')?.classList.remove('open');
-  if (!qteVoulue || qteVoulue <= 0) { showToast('Quantité invalide', '', false); return; }
+  // Règle des fenêtres de vente (18/11/2026) : la fenêtre reste ouverte jusqu'à la réponse du serveur.
+  if (!qteVoulue || qteVoulue <= 0) { venteRefusDansFenetre('Quantité invalide', ''); return; }
 
   const lot = (state.inventory || []).find(i => i.stackKey === 'bois' && (i.qty || 0) > 0);
   if (!lot || lot.qty < qteVoulue) {
-    showToast('Stock personnel insuffisant', 'Vous n\'avez pas ' + qteVoulue + ' bois.', false);
+    venteRefusDansFenetre('Stock personnel insuffisant', 'Vous n\'avez pas ' + qteVoulue + ' bois.');
     return;
   }
 
@@ -5712,11 +5712,11 @@ async function confirmerVendreBoisImprimerie(pa, cost) {
   finally { VENTE_BOIS_EN_COURS = false; }
   if (!r || r.ok !== true) {
     if (!r) return;
-    showToast(r && r.raison === 'stock_plafond' ? 'Entrepôt plein' : r && r.raison === 'stock_personnel_insuffisant' ? 'Stock personnel insuffisant' : 'Caisse vide',
+    venteRefusDansFenetre(r && r.raison === 'stock_plafond' ? 'Entrepôt plein' : r && r.raison === 'stock_personnel_insuffisant' ? 'Stock personnel insuffisant' : 'Caisse vide',
       r && r.raison === 'stock_plafond'
         ? (imprimeur || 'L\'imprimerie') + ' a déjà ' + (r.plafond || plafond) + ' bois en stock : elle ne peut plus en prendre.'
         : r && r.raison === 'stock_personnel_insuffisant' ? 'Vous n\'avez pas ' + qteVoulue + ' bois.'
-        : (imprimeur || 'L\'imprimerie') + ' n\'a pas les moyens d\'acheter du bois pour le moment.', false);
+        : (imprimeur || 'L\'imprimerie') + ' n\'a pas les moyens d\'acheter du bois pour le moment.');
     return;
   }
   const qte = Number(r.qte) || 0;
@@ -5726,9 +5726,9 @@ async function confirmerVendreBoisImprimerie(pa, cost) {
   updateUI();
 
   if (qte < qteVoulue) {
-    showToast('Vente partielle', (imprimeur || 'L\'imprimerie') + ' n\'a pu acheter que ' + qte + ' bois (capacité ou caisse limitée). +' + montantPaye + ' ' + cur + '.', true);
+    venteReussieFermer('Vente partielle', (imprimeur || 'L\'imprimerie') + ' n\'a pu acheter que ' + qte + ' bois (capacité ou caisse limitée). +' + montantPaye + ' ' + cur + '.');
   } else {
-    showToast('Vente effectuée', '+' + montantPaye + ' ' + cur + ' pour ' + qte + ' bois.', true, true);
+    venteReussieFermer('Vente effectuée', '+' + montantPaye + ' ' + cur + ' pour ' + qte + ' bois.');
   }
   addJournalEntry('Vente de ' + qte + ' bois à ' + (imprimeur || 'l\'imprimerie') + ' (+' + montantPaye + ' ' + cur + ').', 'event-good');
 }
@@ -6429,8 +6429,8 @@ async function confirmerVendreMatierePremiereUsineUI(buildingId, matiere) {
   const pays = state.country || 'republic';
   const ville = state.currentCity || 'capitale';
   const qte = parseInt(document.getElementById('vendre-usine-qte-' + matiere)?.value || '0');
-  document.getElementById('modal-postes')?.classList.remove('open');
-  if (!qte || qte <= 0) { showToast('Quantité invalide', '', false); return; }
+  // Règle des fenêtres de vente (18/11/2026) : la fenêtre reste ouverte jusqu'à la réponse du serveur.
+  if (!qte || qte <= 0) { venteRefusDansFenetre('Quantité invalide', ''); return; }
 
   const res = await vendreMatierePremiereUsine(buildingId, pays, ville, matiere, qte);
   const label = RESSOURCES_ECONOMIE[matiere]?.label || matiere;
@@ -6443,13 +6443,12 @@ async function confirmerVendreMatierePremiereUsineUI(buildingId, matiere) {
       stock_plein: 'Le stock maximum de cette matière est atteint pour cette usine.',
       caisse_insuffisante: "L'usine ne peut pas acheter cette quantité actuellement."
     };
-    if (!res.dejaSignale) showToast('Vente refusée', messages[res.raison] || '', false);
+    if (!res.dejaSignale) venteRefusDansFenetre('Vente refusée', messages[res.raison] || '');
     return;
   }
   updateUI();
-  showToast('Vente effectuée', '+' + res.total.toLocaleString('fr-FR') + ' FR pour ' + res.qte + ' ' + label + '.', true, true);
+  venteReussieFermer('Vente effectuée', '+' + res.total.toLocaleString('fr-FR') + ' FR pour ' + res.qte + ' ' + label + '.');
   addJournalEntry('Vente de ' + res.qte + ' ' + label + " à l'usine (+" + res.total.toLocaleString('fr-FR') + ' FR).', 'event-good');
-  doOuvrirVendreMatierePremiereUsine(buildingId, 0, 0); // rafraichit, meme pattern que vendre_matiere_commerce
 }
 
 // =====================
@@ -12007,7 +12006,7 @@ async function confirmerVenteMateriauxChantier(mode = 'vente') {
   const matiere = document.getElementById('vente-matiere')?.value;
   const saisie = document.getElementById('vente-quantite')?.value || '';
   if (!/^[1-9][0-9]*$/.test(saisie) || !Number.isSafeInteger(Number(saisie)) || Number(saisie) > 2147483647 || !['bois','minerai','metal'].includes(matiere)) {
-    showToast('Quantité invalide', 'Indiquez un nombre entier positif de matériaux.', false); return;
+    venteRefusDansFenetre('Quantité invalide', 'Indiquez un nombre entier positif de matériaux.'); return;
   }
   const key = JSON.stringify([state.country,state.currentCity,state.char?.name,typeof rpAuthUid === 'function' ? rpAuthUid() : null,id,matiere,saisie,mode]);
   let intent = CONSTRUCTION_TRANSFERTS.get(key);
@@ -12029,12 +12028,12 @@ async function confirmerVenteMateriauxChantier(mode = 'vente') {
     }, {encoreValide:() => contexteNavigationRueValide(contexte)});
     if (!contexteNavigationRueValide(contexte)) return;
     if (!verdict || verdict.transport && verdict.transport.etat !== 'ok' && !verdict.ok) {
-      showToast('Confirmation incertaine', 'Le résultat ne peut pas être confirmé. Réessayez cette même opération ; aucun second transfert ne sera demandé.', false); return;
+      venteRefusDansFenetre('Confirmation incertaine', 'Le résultat ne peut pas être confirmé. Réessayez cette même opération ; aucun second transfert ne sera demandé.'); return;
     }
     CONSTRUCTION_TRANSFERTS.delete(key);
     try{sessionStorage.removeItem('chantier-transfert:'+key);}catch(_){}
     if (!verdict.ok) {
-      showToast('Transfert refusé', 'Le serveur a refusé ce transfert (' + (verdict.raison || 'indisponible') + ').', false); return;
+      venteRefusDansFenetre('Transfert refusé', 'Le serveur a refusé ce transfert (' + (verdict.raison || 'indisponible') + ').'); return;
     }
     // Un reçu rejoué peut être ancien : relire les miroirs, ne jamais appliquer ses deltas.
     const relu = await commercePjActualiserPersonnage({inventaire:true});

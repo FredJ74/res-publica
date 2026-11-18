@@ -4284,9 +4284,9 @@ async function confirmerVendreMatiereCommerceUI(commerceType, buildingId, roomId
   // `don` ou `vente`. Ancien appel sans mode = vente, pour ne rien casser.
   const don = (mode === 'don');
   const qte = parseInt(document.getElementById('vendre-commerce-qte-' + matiere)?.value || '0');
-  document.getElementById('modal-postes')?.classList.remove('open');
-  if (!qte || qte <= 0) { showToast('Quantité invalide',
-    texteVenteMatiere('inputInvalid', 'Indiquez un nombre entier d\'unités supérieur à zéro.'), false); return; }
+  // Règle des fenêtres de vente (18/11/2026) : la fenêtre reste ouverte jusqu'à la réponse du serveur.
+  if (!qte || qte <= 0) { venteRefusDansFenetre('Quantité invalide',
+    texteVenteMatiere('inputInvalid', 'Indiquez un nombre entier d\'unités supérieur à zéro.')); return; }
 
   const res = await vendreMatiereCommerce(commerceType, pays, ville, buildingId, roomIdReel, matiere, qte, don ? 'don' : 'vente');
   const label = (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[matiere]) ? RESSOURCES_ECONOMIE[matiere].label : matiere;
@@ -4335,9 +4335,8 @@ async function confirmerVendreMatiereCommerceUI(commerceType, buildingId, roomId
     if (!res.dejaSignale) {
       const titre = estTransport ? (don ? 'Don non abouti' : 'Vente non aboutie')
                                  : (don ? 'Don refusé'    : 'Vente refusée');
-      showToast(titre,
-        messages[res.raison] || texteVenteMatiere(don ? 'unknownDonation' : 'unknownSale', 'Le commerce a refusé ' + acte + ' (' + (res.raison || 'motif inconnu') + ').', {reason:res.raison || 'motif inconnu'}),
-        false);
+      venteRefusDansFenetre(titre,
+        messages[res.raison] || texteVenteMatiere(don ? 'unknownDonation' : 'unknownSale', 'Le commerce a refusé ' + acte + ' (' + (res.raison || 'motif inconnu') + ').', {reason:res.raison || 'motif inconnu'}));
     }
     return;
   }
@@ -4349,7 +4348,8 @@ async function confirmerVendreMatiereCommerceUI(commerceType, buildingId, roomId
     showToast('Vente effectuée', texteVenteMatiere('saleSuccess', '+' + res.total.toLocaleString('fr-FR') + ' FR pour ' + res.qte + ' ' + label + '.', {quantity:res.qte,material:typeof window !== 'undefined' && window.RPEconomicCatalogI18n ? window.RPEconomicCatalogI18n.text('material',matiere,'label',label) : label,total:res.total.toLocaleString('fr-FR')}), true, true);
     addJournalEntry(texteVenteMatiere('saleJournal', 'Vente de ' + res.qte + ' ' + label + ' au commerce (+' + res.total.toLocaleString('fr-FR') + ' FR).', {quantity:res.qte,material:typeof window !== 'undefined' && window.RPEconomicCatalogI18n ? window.RPEconomicCatalogI18n.text('material',matiere,'label',label) : label,total:res.total.toLocaleString('fr-FR')}), 'event-good');
   }
-  doVendreMatiereCommerce(commerceType, buildingId, roomIdReel, 0, 0); // rafraichit, meme pattern que les autres interfaces de commerce
+  // Règle des fenêtres de vente (18/11/2026) : succès = fenêtre fermée ; pour revendre, on reclique sur l'ordre.
+  fermerModalPostes();
 }
 
 // Dotations de depart par commerce pilote (meme principe que defautArmurerie : un commerce ne
@@ -5749,16 +5749,16 @@ async function confirmerVenteMatiere(matiere, mode) {
   const nom = (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[matiere])
     ? RESSOURCES_ECONOMIE[matiere].label : matiere;
   const qte = parseInt(document.getElementById('vendre-qte-' + matiere)?.value || '0');
-  document.getElementById('modal-postes')?.classList.remove('open');
-  if (!qte || qte <= 0) { showToast('Quantité invalide',
-    'Indiquez un nombre entier d\'unités supérieur à zéro.', false); return; }
+  // Règle des fenêtres de vente (18/11/2026) : la fenêtre reste ouverte jusqu'à la réponse du serveur.
+  if (!qte || qte <= 0) { venteRefusDansFenetre('Quantité invalide',
+    'Indiquez un nombre entier d\'unités supérieur à zéro.'); return; }
 
   const lot = (state.inventory || []).find(i => i.stackKey === matiere && (i.qty || 0) > 0);
-  if (!lot || lot.qty < qte) { showToast('Stock personnel insuffisant', 'Vous n\'avez pas ' + qte + ' unité(s) de ' + nom + '.', false); return; }
+  if (!lot || lot.qty < qte) { venteRefusDansFenetre('Stock personnel insuffisant', 'Vous n\'avez pas ' + qte + ' unité(s) de ' + nom + '.'); return; }
 
   const data = await chargerArmurerieLocale();
-  if (!data) { showToast('Armurerie injoignable',
-    "Les informations de cette armurerie n'ont pas pu être chargées. Réessayez dans un instant.", false); return; }
+  if (!data) { venteRefusDansFenetre('Armurerie injoignable',
+    "Les informations de cette armurerie n'ont pas pu être chargées. Réessayez dans un instant."); return; }
 
   // Meme operation metier que vendreMatiereCommerce, et desormais la meme RPC :
   // commerce_apporter_matiere tranche la vente comme le don.
@@ -5782,9 +5782,9 @@ async function confirmerVenteMatiere(matiere, mode) {
       transport_indisponible: 'Le serveur n\'a pas répondu. ' + (don ? 'Le don' : 'La vente') + ' n\'a pas eu lieu.',
       reseau_indisponible: 'Connexion interrompue. ' + (don ? 'Le don' : 'La vente') + ' n\'a pas eu lieu.'
     };
-    showToast(estTransport ? (don ? 'Don non abouti' : 'Vente non aboutie')
+    venteRefusDansFenetre(estTransport ? (don ? 'Don non abouti' : 'Vente non aboutie')
                            : (don ? 'Don refusé'    : 'Vente refusée'),
-      messages[r.raison] || ('L\'armurerie a refusé ' + acte + ' (' + (r.raison || 'motif inconnu') + ').'), false);
+      messages[r.raison] || ('L\'armurerie a refusé ' + acte + ' (' + (r.raison || 'motif inconnu') + ').'));
     return;
   }
   updateUI();
@@ -5796,6 +5796,7 @@ async function confirmerVenteMatiere(matiere, mode) {
     showToast('Vente effectuée', '+' + total + ' FR pour ' + qte + ' ' + nom + '.', true, true);
     addJournalEntry('Vente de ' + qte + ' ' + nom + ' à l\'armurerie (+' + total + ' FR).', 'event-good');
   }
+  fermerModalPostes(); // règle des fenêtres de vente (18/11/2026)
 }
 
 // =====================
