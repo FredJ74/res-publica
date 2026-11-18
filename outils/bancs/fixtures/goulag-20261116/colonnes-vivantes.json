@@ -1,0 +1,5016 @@
+[
+  {
+    "name": "acces_intrusions",
+    "columns": [
+      {
+        "name": "acteur",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "batiment",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "cree_le",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": true
+      }
+    ],
+    "constraints": [
+      {
+        "name": "acces_intrusions_pkey",
+        "definition": "PRIMARY KEY (acteur, batiment)"
+      }
+    ]
+  },
+  {
+    "name": "acquisitions_transactions_internes",
+    "columns": [
+      {
+        "name": "transaction_id",
+        "type": "bigint",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "acteur",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "terrain",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "ordre",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "pa",
+        "type": "integer",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "montant",
+        "type": "integer",
+        "default": null,
+        "notnull": false
+      }
+    ],
+    "constraints": [
+      {
+        "name": "acquisitions_transactions_internes_pkey",
+        "definition": "PRIMARY KEY (transaction_id, acteur)"
+      }
+    ]
+  },
+  {
+    "name": "actions_tracables",
+    "columns": [
+      {
+        "name": "id",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "auteur",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "cible",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "type_action",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "country",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "city",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "jour",
+        "type": "integer",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "jour_expiration",
+        "type": "integer",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": false
+      },
+      {
+        "name": "decouvert",
+        "type": "boolean",
+        "default": "false",
+        "notnull": false
+      }
+    ],
+    "constraints": [
+      {
+        "name": "actions_tracables_pkey",
+        "definition": "PRIMARY KEY (id)"
+      }
+    ]
+  },
+  {
+    "name": "administrateurs",
+    "columns": [
+      {
+        "name": "user_id",
+        "type": "uuid",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "libelle",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "actif",
+        "type": "boolean",
+        "default": "true",
+        "notnull": true
+      },
+      {
+        "name": "cree_le",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": true
+      }
+    ],
+    "constraints": [
+      {
+        "name": "administrateurs_pk",
+        "definition": "PRIMARY KEY (user_id)"
+      }
+    ]
+  },
+  {
+    "name": "agents_renseignement",
+    "columns": [
+      {
+        "name": "id",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "cellule_id",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "role",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "vrai_nom",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "dup",
+        "type": "integer",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "pays_couverture",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "nom_couverture",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "statut",
+        "type": "text",
+        "default": "'actif'::text",
+        "notnull": true
+      },
+      {
+        "name": "leader_courant",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "ville",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "building_id",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "room_id",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "cree_le",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": true
+      },
+      {
+        "name": "maj_le",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": true
+      },
+      {
+        "name": "detention_id",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "detenu_depuis",
+        "type": "timestamp with time zone",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "pays",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "pnj_id",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "equipe",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      }
+    ],
+    "constraints": [
+      {
+        "name": "agent_position_deux_etats",
+        "definition": "CHECK ((((leader_courant IS NOT NULL) AND (ville IS NULL)) OR (leader_courant IS NULL)))"
+      },
+      {
+        "name": "agents_renseignement_dup_check",
+        "definition": "CHECK (((dup >= 1) AND (dup <= 20)))"
+      },
+      {
+        "name": "agents_renseignement_pkey",
+        "definition": "PRIMARY KEY (id)"
+      },
+      {
+        "name": "agents_renseignement_role_check",
+        "definition": "CHECK ((role = ANY (ARRAY['conseiller'::text, 'traducteur'::text, 'garde'::text, 'coordinateur'::text])))"
+      },
+      {
+        "name": "agents_renseignement_statut_check",
+        "definition": "CHECK ((statut = ANY (ARRAY['actif'::text, 'detenu'::text, 'mort'::text, 'disparu'::text])))"
+      }
+    ]
+  },
+  {
+    "name": "ambassades_asiles",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "default": "gen_random_uuid()",
+        "notnull": true
+      },
+      {
+        "name": "demandeur",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "pays_hote",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "empire",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "statut",
+        "type": "text",
+        "default": "'demandee'::text",
+        "notnull": true
+      },
+      {
+        "name": "demandee_le",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": true
+      },
+      {
+        "name": "decision_prevue_le",
+        "type": "timestamp with time zone",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "decide_le",
+        "type": "timestamp with time zone",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "ambassadeur_pj",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      }
+    ],
+    "constraints": [
+      {
+        "name": "ambassades_asiles_check",
+        "definition": "CHECK (((statut = 'demandee'::text) OR (decide_le IS NOT NULL)))"
+      },
+      {
+        "name": "ambassades_asiles_empire_check",
+        "definition": "CHECK ((empire = ANY (ARRAY['khalija'::text, 'soviet'::text, 'narco'::text])))"
+      },
+      {
+        "name": "ambassades_asiles_pkey",
+        "definition": "PRIMARY KEY (id)"
+      },
+      {
+        "name": "ambassades_asiles_statut_check",
+        "definition": "CHECK ((statut = ANY (ARRAY['demandee'::text, 'accorde'::text, 'refuse'::text])))"
+      }
+    ]
+  },
+  {
+    "name": "ambassades_audiences",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "default": "gen_random_uuid()",
+        "notnull": true
+      },
+      {
+        "name": "demandeur",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "pays_hote",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "empire",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "ambassadeur_pj",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "statut",
+        "type": "text",
+        "default": "'demandee'::text",
+        "notnull": true
+      },
+      {
+        "name": "demandee_le",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": true
+      },
+      {
+        "name": "accord_prevu_le",
+        "type": "timestamp with time zone",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "accordee_le",
+        "type": "timestamp with time zone",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "expire_le",
+        "type": "timestamp with time zone",
+        "default": null,
+        "notnull": false
+      }
+    ],
+    "constraints": [
+      {
+        "name": "ambassades_audiences_check",
+        "definition": "CHECK (((ambassadeur_pj IS NOT NULL) OR (accord_prevu_le IS NOT NULL)))"
+      },
+      {
+        "name": "ambassades_audiences_check1",
+        "definition": "CHECK (((statut = 'demandee'::text) OR ((accordee_le IS NOT NULL) AND (expire_le IS NOT NULL))))"
+      },
+      {
+        "name": "ambassades_audiences_empire_check",
+        "definition": "CHECK ((empire = ANY (ARRAY['khalija'::text, 'soviet'::text, 'narco'::text])))"
+      },
+      {
+        "name": "ambassades_audiences_pkey",
+        "definition": "PRIMARY KEY (id)"
+      },
+      {
+        "name": "ambassades_audiences_statut_check",
+        "definition": "CHECK ((statut = ANY (ARRAY['demandee'::text, 'accordee'::text, 'expiree'::text])))"
+      }
+    ]
+  },
+  {
+    "name": "ambassades_ouvertes",
+    "columns": [
+      {
+        "name": "id",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "pays_hote",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "empire",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "data",
+        "type": "jsonb",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": true
+      }
+    ],
+    "constraints": [
+      {
+        "name": "ambassades_ouvertes_pkey",
+        "definition": "PRIMARY KEY (id)"
+      }
+    ]
+  },
+  {
+    "name": "batailles",
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "default": "nextval('batailles_id_seq'::regclass)",
+        "notnull": true
+      },
+      {
+        "name": "pays",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "ville",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "batiment",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "piece",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "debut_ts",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": true
+      },
+      {
+        "name": "fin_ts",
+        "type": "timestamp with time zone",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "issue",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "resume",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "chronique_id",
+        "type": "bigint",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "statut",
+        "type": "text",
+        "default": "'en_cours'::text",
+        "notnull": true
+      },
+      {
+        "name": "round_courant",
+        "type": "integer",
+        "default": "0",
+        "notnull": true
+      },
+      {
+        "name": "camp_a",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "camp_b",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "effectif_initial_a",
+        "type": "integer",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "effectif_initial_b",
+        "type": "integer",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "initiative",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "decision_a",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "decision_b",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "doctrine_a",
+        "type": "text",
+        "default": "'tenir'::text",
+        "notnull": true
+      },
+      {
+        "name": "doctrine_b",
+        "type": "text",
+        "default": "'tenir'::text",
+        "notnull": true
+      },
+      {
+        "name": "leader_a",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "leader_b",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "repli_a",
+        "type": "jsonb",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "repli_b",
+        "type": "jsonb",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "contact_id",
+        "type": "bigint",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "termine_raison",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "contexte",
+        "type": "jsonb",
+        "default": "'{}'::jsonb",
+        "notnull": true
+      }
+    ],
+    "constraints": [
+      {
+        "name": "batailles_pkey",
+        "definition": "PRIMARY KEY (id)"
+      },
+      {
+        "name": "batailles_statut_valide",
+        "definition": "CHECK ((statut = ANY (ARRAY['en_cours'::text, 'terminee'::text])))"
+      }
+    ]
+  },
+  {
+    "name": "batailles_engagements",
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "default": "nextval('batailles_engagements_id_seq'::regclass)",
+        "notnull": true
+      },
+      {
+        "name": "bataille_id",
+        "type": "bigint",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "camp",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "personnage",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "compagnie_id",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "section_id",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "matricule",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "grade",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "etat_final",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "pa_initial",
+        "type": "integer",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "saute_round",
+        "type": "integer",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "sorti_round",
+        "type": "integer",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "groupe_id",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "pnj_id",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      }
+    ],
+    "constraints": [
+      {
+        "name": "batailles_engagements_identite",
+        "definition": "CHECK ((((personnage IS NOT NULL) AND (matricule IS NULL)) OR ((personnage IS NULL) AND (matricule IS NOT NULL))))"
+      },
+      {
+        "name": "batailles_engagements_pkey",
+        "definition": "PRIMARY KEY (id)"
+      }
+    ]
+  },
+  {
+    "name": "batiments_etat",
+    "columns": [
+      {
+        "name": "id",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "country",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "city",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "building_id",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "data",
+        "type": "jsonb",
+        "default": "'{}'::jsonb",
+        "notnull": false
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": false
+      }
+    ],
+    "constraints": [
+      {
+        "name": "batiments_etat_pkey",
+        "definition": "PRIMARY KEY (id)"
+      }
+    ]
+  },
+  {
+    "name": "batiments_fermes",
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "pays",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "ville",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "batiment_id",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "jour_fin",
+        "type": "integer",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "motif",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "auteur",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": true
+      },
+      {
+        "name": "date_fin_universelle",
+        "type": "date",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "duree_jours",
+        "type": "integer",
+        "default": null,
+        "notnull": false
+      }
+    ],
+    "constraints": [
+      {
+        "name": "batiments_fermes_pkey",
+        "definition": "PRIMARY KEY (id)"
+      }
+    ]
+  },
+  {
+    "name": "blocus_ordres_batiments",
+    "columns": [
+      {
+        "name": "pays",
+        "type": "text",
+        "default": "'republic'::text",
+        "notnull": true
+      },
+      {
+        "name": "ville",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "batiment",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "fn",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      }
+    ],
+    "constraints": [
+      {
+        "name": "blocus_ordres_batiments_pkey",
+        "definition": "PRIMARY KEY (pays, ville, batiment, fn)"
+      }
+    ]
+  },
+  {
+    "name": "budgets_nationaux",
+    "columns": [
+      {
+        "name": "id",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "data",
+        "type": "jsonb",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": true
+      }
+    ],
+    "constraints": [
+      {
+        "name": "budgets_nationaux_pkey",
+        "definition": "PRIMARY KEY (id)"
+      }
+    ]
+  },
+  {
+    "name": "cellules_renseignement",
+    "columns": [
+      {
+        "name": "id",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "pays_proprietaire",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "pays_cible",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "ministre",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "statut",
+        "type": "text",
+        "default": "'active'::text",
+        "notnull": true
+      },
+      {
+        "name": "mode_fin",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "cout_fr",
+        "type": "numeric",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "caisse",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "cree_le",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": true
+      },
+      {
+        "name": "echeance_le",
+        "type": "timestamp with time zone",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "terminee_le",
+        "type": "timestamp with time zone",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "ministere",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      }
+    ],
+    "constraints": [
+      {
+        "name": "cellule_fin_coherente",
+        "definition": "CHECK ((((statut = 'active'::text) AND (mode_fin IS NULL) AND (terminee_le IS NULL)) OR ((statut <> 'active'::text) AND (mode_fin IS NOT NULL) AND (terminee_le IS NOT NULL))))"
+      },
+      {
+        "name": "cellules_renseignement_mode_fin_check",
+        "definition": "CHECK ((mode_fin = ANY (ARRAY['naturelle'::text, 'volontaire'::text, 'echec_agents'::text])))"
+      },
+      {
+        "name": "cellules_renseignement_pkey",
+        "definition": "PRIMARY KEY (id)"
+      },
+      {
+        "name": "cellules_renseignement_statut_check",
+        "definition": "CHECK ((statut = ANY (ARRAY['active'::text, 'terminee'::text, 'echec'::text])))"
+      }
+    ]
+  },
+  {
+    "name": "compagnies_militaires",
+    "columns": [
+      {
+        "name": "id",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "data",
+        "type": "jsonb",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": true
+      }
+    ],
+    "constraints": [
+      {
+        "name": "compagnies_militaires_pkey",
+        "definition": "PRIMARY KEY (id)"
+      }
+    ]
+  },
+  {
+    "name": "comptes_bancaires",
+    "columns": [
+      {
+        "name": "id",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "personnage",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "pays",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "banque",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "solde",
+        "type": "numeric",
+        "default": "0",
+        "notnull": true
+      },
+      {
+        "name": "ouvert_le",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": true
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": true
+      }
+    ],
+    "constraints": [
+      {
+        "name": "comptes_bancaires_banque_check",
+        "definition": "CHECK ((banque = ANY (ARRAY['nationale'::text, 'helvetia'::text])))"
+      },
+      {
+        "name": "comptes_bancaires_pays_check",
+        "definition": "CHECK ((pays <> ''::text))"
+      },
+      {
+        "name": "comptes_bancaires_personnage_check",
+        "definition": "CHECK ((personnage <> ''::text))"
+      },
+      {
+        "name": "comptes_bancaires_pkey",
+        "definition": "PRIMARY KEY (id)"
+      },
+      {
+        "name": "comptes_bancaires_solde_check",
+        "definition": "CHECK ((solde >= (0)::numeric))"
+      }
+    ]
+  },
+  {
+    "name": "cycles_electoraux",
+    "columns": [
+      {
+        "name": "id",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "country",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "poste_id",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "data",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": false
+      },
+      {
+        "name": "city",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      }
+    ],
+    "constraints": [
+      {
+        "name": "cycles_electoraux_pkey",
+        "definition": "PRIMARY KEY (id)"
+      }
+    ]
+  },
+  {
+    "name": "detentions",
+    "columns": [
+      {
+        "name": "id",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "country",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "city",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "nom",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "raison",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "jour_debut",
+        "type": "integer",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "jour_fin",
+        "type": "integer",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "qhs",
+        "type": "boolean",
+        "default": "false",
+        "notnull": false
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": false
+      },
+      {
+        "name": "motifs",
+        "type": "jsonb",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "jour_affaire",
+        "type": "integer",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "issue_judiciaire",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "autorite",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "ville_condamnation",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "jour_fin_effective",
+        "type": "integer",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "mode_fin",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "detention_precedente_id",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "reliquat_jours",
+        "type": "integer",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "date_fin_effective",
+        "type": "timestamp with time zone",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "provenance",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "derniere_tentative_evasion",
+        "type": "date",
+        "default": null,
+        "notnull": false
+      }
+    ],
+    "constraints": [
+      {
+        "name": "detentions_pkey",
+        "definition": "PRIMARY KEY (id)"
+      }
+    ]
+  },
+  {
+    "name": "dossiers_informatiques",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "default": "gen_random_uuid()",
+        "notnull": true
+      },
+      {
+        "name": "objet_id",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "support",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "type",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "titre",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "contenu",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "donnees",
+        "type": "jsonb",
+        "default": "'{}'::jsonb",
+        "notnull": true
+      },
+      {
+        "name": "auteur",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "cree_le",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": true
+      }
+    ],
+    "constraints": [
+      {
+        "name": "dossiers_informatiques_pkey",
+        "definition": "PRIMARY KEY (id)"
+      },
+      {
+        "name": "dossiers_informatiques_support_check",
+        "definition": "CHECK ((support = ANY (ARRAY['ordinateur'::text, 'stockage'::text])))"
+      }
+    ]
+  },
+  {
+    "name": "dossiers_judiciaires_actes",
+    "columns": [
+      {
+        "name": "id",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "affaire",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "pays",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "ville",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "rang",
+        "type": "integer",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "type",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "acteur",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "acteur_poste",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "qualif_avant",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "qualif_apres",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "donnees",
+        "type": "jsonb",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "fait_le",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": true
+      }
+    ],
+    "constraints": [
+      {
+        "name": "dossiers_actes_un_rang_par_affaire",
+        "definition": "UNIQUE (affaire, rang)"
+      },
+      {
+        "name": "dossiers_judiciaires_actes_pkey",
+        "definition": "PRIMARY KEY (id)"
+      },
+      {
+        "name": "dossiers_judiciaires_actes_rang_check",
+        "definition": "CHECK ((rang >= 1))"
+      }
+    ]
+  },
+  {
+    "name": "dossiers_judiciaires_actes_types",
+    "columns": [
+      {
+        "name": "type",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "libelle",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "pose_par",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "note",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      }
+    ],
+    "constraints": [
+      {
+        "name": "dossiers_judiciaires_actes_types_pkey",
+        "definition": "PRIMARY KEY (type)"
+      },
+      {
+        "name": "dossiers_judiciaires_actes_types_pose_par_check",
+        "definition": "CHECK ((pose_par = ANY (ARRAY['plaignant'::text, 'police'::text, 'parquet'::text, 'juge'::text, 'accuse'::text, 'avocat'::text, 'temoin'::text, 'serveur'::text])))"
+      }
+    ]
+  },
+  {
+    "name": "equipements_installes",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "default": "gen_random_uuid()",
+        "notnull": true
+      },
+      {
+        "name": "proprietaire",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "pays",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "ville",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "batiment",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "piece",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "generique_id",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "objet",
+        "type": "jsonb",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "installe_le",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": true
+      },
+      {
+        "name": "jouissance_perdue_le",
+        "type": "timestamp with time zone",
+        "default": null,
+        "notnull": false
+      }
+    ],
+    "constraints": [
+      {
+        "name": "equipements_installes_pkey",
+        "definition": "PRIMARY KEY (id)"
+      }
+    ]
+  },
+  {
+    "name": "escort_piratages_nuits",
+    "columns": [
+      {
+        "name": "nom",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "jour",
+        "type": "date",
+        "default": null,
+        "notnull": true
+      }
+    ],
+    "constraints": [
+      {
+        "name": "escort_piratages_nuits_pkey",
+        "definition": "PRIMARY KEY (nom, jour)"
+      }
+    ]
+  },
+  {
+    "name": "fonds_en_transit",
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "default": "nextval('fonds_en_transit_id_seq'::regclass)",
+        "notnull": true
+      },
+      {
+        "name": "acteur",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "montant",
+        "type": "numeric",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "origine",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "cree_le",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": true
+      }
+    ],
+    "constraints": [
+      {
+        "name": "fonds_en_transit_montant_check",
+        "definition": "CHECK ((montant >= (0)::numeric))"
+      },
+      {
+        "name": "fonds_en_transit_pkey",
+        "definition": "PRIMARY KEY (id)"
+      }
+    ]
+  },
+  {
+    "name": "groupes_pj_adhesions",
+    "columns": [
+      {
+        "name": "membre",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "chef",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "cree_le",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": true
+      }
+    ],
+    "constraints": [
+      {
+        "name": "groupes_pj_adhesions_pkey",
+        "definition": "PRIMARY KEY (membre)"
+      },
+      {
+        "name": "groupes_pj_pas_auto_adhesion",
+        "definition": "CHECK ((membre <> chef))"
+      }
+    ]
+  },
+  {
+    "name": "infractions",
+    "columns": [
+      {
+        "name": "id",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "libelle",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "categorie",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "jours_reference",
+        "type": "integer",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "amende_reference",
+        "type": "integer",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "detect_rate",
+        "type": "integer",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "bareme_propre",
+        "type": "boolean",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "detectable",
+        "type": "boolean",
+        "default": null,
+        "notnull": true
+      }
+    ],
+    "constraints": [
+      {
+        "name": "infractions_amende_reference_check",
+        "definition": "CHECK ((amende_reference >= 0))"
+      },
+      {
+        "name": "infractions_delit_exige_bareme_propre",
+        "definition": "CHECK (((categorie <> 'delit'::text) OR bareme_propre))"
+      },
+      {
+        "name": "infractions_detect_rate_check",
+        "definition": "CHECK (((detect_rate IS NULL) OR ((detect_rate >= 0) AND (detect_rate <= 100))))"
+      },
+      {
+        "name": "infractions_jours_reference_check",
+        "definition": "CHECK ((jours_reference >= 1))"
+      },
+      {
+        "name": "infractions_pkey",
+        "definition": "PRIMARY KEY (id)"
+      }
+    ]
+  },
+  {
+    "name": "infractions_alias",
+    "columns": [
+      {
+        "name": "alias",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "canonique",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "note",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      }
+    ],
+    "constraints": [
+      {
+        "name": "infractions_alias_pas_sur_soi",
+        "definition": "CHECK ((alias <> canonique))"
+      },
+      {
+        "name": "infractions_alias_pkey",
+        "definition": "PRIMARY KEY (alias)"
+      }
+    ]
+  },
+  {
+    "name": "interieur_dossiers",
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "default": "nextval('interieur_dossiers_id_seq'::regclass)",
+        "notnull": true
+      },
+      {
+        "name": "pays",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "type",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "cible",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "titre",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "contenu",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "donnees",
+        "type": "jsonb",
+        "default": "'{}'::jsonb",
+        "notnull": true
+      },
+      {
+        "name": "statut",
+        "type": "text",
+        "default": "'nouveau'::text",
+        "notnull": true
+      },
+      {
+        "name": "decide_par",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "decide_le",
+        "type": "timestamp with time zone",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "cree_le",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": true
+      }
+    ],
+    "constraints": [
+      {
+        "name": "interieur_dossiers_pkey",
+        "definition": "PRIMARY KEY (id)"
+      },
+      {
+        "name": "interieur_dossiers_statut_check",
+        "definition": "CHECK ((statut = ANY (ARRAY['nouveau'::text, 'lu'::text, 'en_attente'::text, 'publie'::text])))"
+      },
+      {
+        "name": "interieur_dossiers_type_check",
+        "definition": "CHECK ((type = ANY (ARRAY['projet_article'::text, 'secret_escort'::text, 'dossier_pirate'::text])))"
+      }
+    ]
+  },
+  {
+    "name": "journal_articles_en_attente",
+    "columns": [
+      {
+        "name": "id",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "country",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "rubrique",
+        "type": "text",
+        "default": "'Portraits'::text",
+        "notnull": true
+      },
+      {
+        "name": "titre",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "texte",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "image_url",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "ville",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": true
+      },
+      {
+        "name": "integree_le",
+        "type": "timestamp with time zone",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "dedup_key",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "priorite",
+        "type": "text",
+        "default": "'normale'::text",
+        "notnull": false
+      },
+      {
+        "name": "expire_le",
+        "type": "timestamp with time zone",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "statut",
+        "type": "text",
+        "default": "'attente'::text",
+        "notnull": true
+      },
+      {
+        "name": "origine",
+        "type": "text",
+        "default": "'ia'::text",
+        "notnull": false
+      },
+      {
+        "name": "fait_json",
+        "type": "jsonb",
+        "default": null,
+        "notnull": false
+      }
+    ],
+    "constraints": [
+      {
+        "name": "journal_articles_en_attente_pkey",
+        "definition": "PRIMARY KEY (id)"
+      },
+      {
+        "name": "journal_articles_en_attente_statut_check",
+        "definition": "CHECK ((statut = ANY (ARRAY['attente'::text, 'integre'::text, 'expire'::text])))"
+      }
+    ]
+  },
+  {
+    "name": "jugements",
+    "columns": [
+      {
+        "name": "id",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "country",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "city",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "accuse",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "motif",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "peine",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "juge",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "jour",
+        "type": "integer",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "executee",
+        "type": "boolean",
+        "default": "false",
+        "notnull": false
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": false
+      },
+      {
+        "name": "data",
+        "type": "jsonb",
+        "default": null,
+        "notnull": false
+      }
+    ],
+    "constraints": [
+      {
+        "name": "jugements_pkey",
+        "definition": "PRIMARY KEY (id)"
+      }
+    ]
+  },
+  {
+    "name": "locations_actives",
+    "columns": [
+      {
+        "name": "id",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "country",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "data",
+        "type": "jsonb",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": true
+      }
+    ],
+    "constraints": [
+      {
+        "name": "locations_actives_pkey",
+        "definition": "PRIMARY KEY (id)"
+      },
+      {
+        "name": "locations_actives_salle_reunion_non_louable",
+        "definition": "CHECK ((id !~~ '%:universite:salle_reunion:%'::text))"
+      }
+    ]
+  },
+  {
+    "name": "logements_colocations",
+    "columns": [
+      {
+        "name": "bail_id",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "pays",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "ville",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "batiment",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "piece",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "titulaire",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "colocataire",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "depuis",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": true
+      }
+    ],
+    "constraints": [
+      {
+        "name": "logements_colocations_colocataire_key",
+        "definition": "UNIQUE (colocataire)"
+      },
+      {
+        "name": "logements_colocations_pkey",
+        "definition": "PRIMARY KEY (bail_id)"
+      }
+    ]
+  },
+  {
+    "name": "logements_premium",
+    "columns": [
+      {
+        "name": "pays",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "ville",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "batiment",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "piece",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "active_par",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "active_le",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": true
+      },
+      {
+        "name": "chambres",
+        "type": "smallint",
+        "default": null,
+        "notnull": false
+      }
+    ],
+    "constraints": [
+      {
+        "name": "logements_premium_pkey",
+        "definition": "PRIMARY KEY (pays, ville, batiment, piece)"
+      }
+    ]
+  },
+  {
+    "name": "logements_reprises",
+    "columns": [
+      {
+        "name": "bail_id",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "pays",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "ville",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "batiment",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "piece",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "colocataire",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "ancien_titulaire",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "bail",
+        "type": "jsonb",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "offerte_le",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": true
+      },
+      {
+        "name": "expire_le",
+        "type": "timestamp with time zone",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "statut",
+        "type": "text",
+        "default": "'en_attente'::text",
+        "notnull": true
+      }
+    ],
+    "constraints": [
+      {
+        "name": "logements_reprises_pkey",
+        "definition": "PRIMARY KEY (bail_id)"
+      },
+      {
+        "name": "logements_reprises_statut_check",
+        "definition": "CHECK ((statut = ANY (ARRAY['en_attente'::text, 'acceptee'::text, 'refusee'::text, 'caduque'::text])))"
+      }
+    ]
+  },
+  {
+    "name": "logements_sociaux_historiques",
+    "columns": [
+      {
+        "name": "pays",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "ville",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "batiment",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "piece",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "label",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "type_logement",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "loyer",
+        "type": "integer",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "bonus_moral",
+        "type": "integer",
+        "default": "0",
+        "notnull": true
+      },
+      {
+        "name": "bonus_sante",
+        "type": "integer",
+        "default": "0",
+        "notnull": true
+      }
+    ],
+    "constraints": [
+      {
+        "name": "logements_sociaux_historiques_loyer_check",
+        "definition": "CHECK ((loyer >= 1))"
+      },
+      {
+        "name": "logements_sociaux_historiques_pkey",
+        "definition": "PRIMARY KEY (pays, ville, batiment, piece)"
+      }
+    ]
+  },
+  {
+    "name": "mails",
+    "columns": [
+      {
+        "name": "id",
+        "type": "text",
+        "default": "((('mail-'::text || ((EXTRACT(epoch FROM clock_timestamp()) * (1000)::numeric))::bigint) || '-'::text) || substr(md5((random())::text), 1, 6))",
+        "notnull": true
+      },
+      {
+        "name": "from_player",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "to_player",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "subject",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "body",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "time",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "read",
+        "type": "boolean",
+        "default": "false",
+        "notnull": false
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp without time zone",
+        "default": "now()",
+        "notnull": false
+      },
+      {
+        "name": "archived",
+        "type": "boolean",
+        "default": "false",
+        "notnull": false
+      },
+      {
+        "name": "from_real",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "from_org_id",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "from_org_icon",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      }
+    ],
+    "constraints": [
+      {
+        "name": "mails_pkey",
+        "definition": "PRIMARY KEY (id)"
+      }
+    ]
+  },
+  {
+    "name": "mails_envois_systeme",
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "default": "nextval('mails_envois_systeme_id_seq'::regclass)",
+        "notnull": true
+      },
+      {
+        "name": "auteur_reel",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "expediteur",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "destinataire",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "sujet",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "vu_le",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": true
+      },
+      {
+        "name": "echec",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      }
+    ],
+    "constraints": [
+      {
+        "name": "mails_envois_systeme_pkey",
+        "definition": "PRIMARY KEY (id)"
+      }
+    ]
+  },
+  {
+    "name": "mariages",
+    "columns": [
+      {
+        "name": "id",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "conjoint1",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "conjoint2",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "country",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "statut",
+        "type": "text",
+        "default": "'actif'::text",
+        "notnull": true
+      },
+      {
+        "name": "jour_union",
+        "type": "integer",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": false
+      },
+      {
+        "name": "city",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "dissous_at",
+        "type": "timestamp with time zone",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "raison_dissolution",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      }
+    ],
+    "constraints": [
+      {
+        "name": "mariages_pkey",
+        "definition": "PRIMARY KEY (id)"
+      }
+    ]
+  },
+  {
+    "name": "navigation_lieux_regles",
+    "columns": [
+      {
+        "name": "pays",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "ville",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "batiment",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "pieces",
+        "type": "jsonb",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "ferme",
+        "type": "boolean",
+        "default": "false",
+        "notnull": true
+      },
+      {
+        "name": "membership",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      }
+    ],
+    "constraints": [
+      {
+        "name": "navigation_lieux_regles_pieces_check",
+        "definition": "CHECK ((jsonb_typeof(pieces) = 'array'::text))"
+      },
+      {
+        "name": "navigation_lieux_regles_pkey",
+        "definition": "PRIMARY KEY (pays, ville, batiment)"
+      }
+    ]
+  },
+  {
+    "name": "navigation_passages_douaniers",
+    "columns": [
+      {
+        "name": "personnage",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "pays",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "ville",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "batiment",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "mode",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "corruption",
+        "type": "boolean",
+        "default": "false",
+        "notnull": true
+      },
+      {
+        "name": "controle_le",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": true
+      }
+    ],
+    "constraints": [
+      {
+        "name": "navigation_passages_douaniers_mode_check",
+        "definition": "CHECK ((mode = ANY (ARRAY['avion'::text, 'bateau'::text])))"
+      },
+      {
+        "name": "navigation_passages_douaniers_pkey",
+        "definition": "PRIMARY KEY (personnage)"
+      }
+    ]
+  },
+  {
+    "name": "ordres_couts",
+    "columns": [
+      {
+        "name": "fn",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "pa",
+        "type": "integer",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "cost",
+        "type": "integer",
+        "default": null,
+        "notnull": true
+      }
+    ],
+    "constraints": [
+      {
+        "name": "ordres_couts_pkey",
+        "definition": "PRIMARY KEY (fn, pa, cost)"
+      }
+    ]
+  },
+  {
+    "name": "ordres_couts_ecarts",
+    "columns": [
+      {
+        "name": "fn",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "pa",
+        "type": "integer",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "cost",
+        "type": "integer",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "occurrences",
+        "type": "integer",
+        "default": "1",
+        "notnull": true
+      },
+      {
+        "name": "vu_le",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": true
+      }
+    ],
+    "constraints": [
+      {
+        "name": "ordres_couts_ecarts_pkey",
+        "definition": "PRIMARY KEY (fn, pa, cost)"
+      }
+    ]
+  },
+  {
+    "name": "ordres_couts_inconnus",
+    "columns": [
+      {
+        "name": "fn",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "pa",
+        "type": "integer",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "cost",
+        "type": "integer",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "vu_le",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": false
+      },
+      {
+        "name": "occurrences",
+        "type": "bigint",
+        "default": "1",
+        "notnull": false
+      }
+    ],
+    "constraints": [
+      {
+        "name": "ordres_couts_inconnus_pkey",
+        "definition": "PRIMARY KEY (fn)"
+      }
+    ]
+  },
+  {
+    "name": "ordres_couts_pays",
+    "columns": [
+      {
+        "name": "fn",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "pays",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "pa",
+        "type": "integer",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "cost",
+        "type": "integer",
+        "default": null,
+        "notnull": true
+      }
+    ],
+    "constraints": [
+      {
+        "name": "ordres_couts_pays_cost_check",
+        "definition": "CHECK ((cost >= 0))"
+      },
+      {
+        "name": "ordres_couts_pays_pa_check",
+        "definition": "CHECK ((pa >= 0))"
+      },
+      {
+        "name": "ordres_couts_pays_pkey",
+        "definition": "PRIMARY KEY (fn, pays)"
+      }
+    ]
+  },
+  {
+    "name": "organisations",
+    "columns": [
+      {
+        "name": "id",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "country_origine",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "data",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": false
+      }
+    ],
+    "constraints": [
+      {
+        "name": "organisations_pkey",
+        "definition": "PRIMARY KEY (id)"
+      }
+    ]
+  },
+  {
+    "name": "pavillon_baux",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "default": "gen_random_uuid()",
+        "notnull": true
+      },
+      {
+        "name": "piece",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "locataire",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "pays_payeur",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "poste_payeur",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "caisse_payeur",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "debut",
+        "type": "date",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "fin_excl",
+        "type": "date",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "prix_jour",
+        "type": "integer",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "statut",
+        "type": "text",
+        "default": "'actif'::text",
+        "notnull": true
+      },
+      {
+        "name": "signe_le",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": true
+      }
+    ],
+    "constraints": [
+      {
+        "name": "pavillon_baux_check",
+        "definition": "CHECK ((fin_excl > debut))"
+      },
+      {
+        "name": "pavillon_baux_piece_check",
+        "definition": "CHECK ((piece = ANY (ARRAY['suite_parti'::text, 'suite_privee'::text, 'suite_presidentielle'::text])))"
+      },
+      {
+        "name": "pavillon_baux_pkey",
+        "definition": "PRIMARY KEY (id)"
+      },
+      {
+        "name": "pavillon_baux_prix_jour_check",
+        "definition": "CHECK ((prix_jour = ANY (ARRAY[500, 650, 800])))"
+      },
+      {
+        "name": "pavillon_baux_statut_check",
+        "definition": "CHECK ((statut = ANY (ARRAY['actif'::text, 'expire'::text, 'resilie'::text])))"
+      }
+    ]
+  },
+  {
+    "name": "permis_transactions_internes",
+    "columns": [
+      {
+        "name": "transaction_id",
+        "type": "bigint",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "acteur",
+        "type": "uuid",
+        "default": null,
+        "notnull": true
+      }
+    ],
+    "constraints": [
+      {
+        "name": "permis_transactions_internes_pkey",
+        "definition": "PRIMARY KEY (transaction_id)"
+      }
+    ]
+  },
+  {
+    "name": "personnages_donnees",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "default": "gen_random_uuid()",
+        "notnull": true
+      },
+      {
+        "name": "name",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "country",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "archetype",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "career",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "stats",
+        "type": "jsonb",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "resources",
+        "type": "jsonb",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "arg",
+        "type": "integer",
+        "default": "0",
+        "notnull": false
+      },
+      {
+        "name": "liquide",
+        "type": "integer",
+        "default": "0",
+        "notnull": false
+      },
+      {
+        "name": "banque",
+        "type": "integer",
+        "default": "0",
+        "notnull": false
+      },
+      {
+        "name": "hp",
+        "type": "integer",
+        "default": "100",
+        "notnull": false
+      },
+      {
+        "name": "pa",
+        "type": "integer",
+        "default": "10",
+        "notnull": false
+      },
+      {
+        "name": "moral",
+        "type": "integer",
+        "default": "75",
+        "notnull": false
+      },
+      {
+        "name": "poste",
+        "type": "jsonb",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "current_city",
+        "type": "text",
+        "default": "'capitale'::text",
+        "notnull": false
+      },
+      {
+        "name": "current_building",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "inventory",
+        "type": "jsonb",
+        "default": "'[]'::jsonb",
+        "notnull": false
+      },
+      {
+        "name": "informateurs",
+        "type": "jsonb",
+        "default": "'[]'::jsonb",
+        "notnull": false
+      },
+      {
+        "name": "poison_actif",
+        "type": "jsonb",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "day",
+        "type": "integer",
+        "default": "1",
+        "notnull": false
+      },
+      {
+        "name": "recherche",
+        "type": "jsonb",
+        "default": "'[]'::jsonb",
+        "notnull": false
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp without time zone",
+        "default": "now()",
+        "notnull": false
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp without time zone",
+        "default": "now()",
+        "notnull": false
+      },
+      {
+        "name": "photo_url",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "photo_pos",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "bio",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "current_room",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "contacts",
+        "type": "jsonb",
+        "default": "'[]'::jsonb",
+        "notnull": false
+      },
+      {
+        "name": "historique_crimes",
+        "type": "jsonb",
+        "default": "'[]'::jsonb",
+        "notnull": false
+      },
+      {
+        "name": "enquetes_en_cours",
+        "type": "jsonb",
+        "default": "'[]'::jsonb",
+        "notnull": false
+      },
+      {
+        "name": "domicile",
+        "type": "jsonb",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "employes",
+        "type": "jsonb",
+        "default": "'[]'::jsonb",
+        "notnull": false
+      },
+      {
+        "name": "locations_actives",
+        "type": "jsonb",
+        "default": "'[]'::jsonb",
+        "notnull": false
+      },
+      {
+        "name": "dernier_objet_trouve_jour",
+        "type": "integer",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "convocations",
+        "type": "jsonb",
+        "default": "'[]'::jsonb",
+        "notnull": false
+      },
+      {
+        "name": "est_emprisonne",
+        "type": "jsonb",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "motto",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "signature_html",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "signature_blocks",
+        "type": "jsonb",
+        "default": "'[]'::jsonb",
+        "notnull": false
+      },
+      {
+        "name": "licence_sportive",
+        "type": "jsonb",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "performance_sportive",
+        "type": "jsonb",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "blessure_sportive",
+        "type": "jsonb",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "requisition",
+        "type": "jsonb",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "detention_qhs",
+        "type": "jsonb",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "dernier_dormir",
+        "type": "integer",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "salaire_touche",
+        "type": "boolean",
+        "default": "false",
+        "notnull": false
+      },
+      {
+        "name": "reputation_criminelle",
+        "type": "integer",
+        "default": "0",
+        "notnull": false
+      },
+      {
+        "name": "salutations_du_jour",
+        "type": "jsonb",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "invitation_sociale_en_attente",
+        "type": "jsonb",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "poste_depute",
+        "type": "jsonb",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "escort_active",
+        "type": "jsonb",
+        "default": "'[]'::jsonb",
+        "notnull": false
+      },
+      {
+        "name": "quete_accueil",
+        "type": "jsonb",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "enigme1",
+        "type": "jsonb",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "maxence",
+        "type": "jsonb",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "succes_maxence",
+        "type": "jsonb",
+        "default": "'{}'::jsonb",
+        "notnull": false
+      },
+      {
+        "name": "journal",
+        "type": "jsonb",
+        "default": "'[]'::jsonb",
+        "notnull": false
+      },
+      {
+        "name": "origin",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "school",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "free_pts_restants",
+        "type": "integer",
+        "default": "0",
+        "notnull": false
+      },
+      {
+        "name": "carte_postale_moral_jour",
+        "type": "jsonb",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "excommunie",
+        "type": "jsonb",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "reservation_hotel",
+        "type": "jsonb",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "qualifications",
+        "type": "jsonb",
+        "default": "'[]'::jsonb",
+        "notnull": true
+      },
+      {
+        "name": "effets_actifs",
+        "type": "jsonb",
+        "default": "'[]'::jsonb",
+        "notnull": true
+      },
+      {
+        "name": "demandeur_emploi",
+        "type": "boolean",
+        "default": "false",
+        "notnull": true
+      },
+      {
+        "name": "bonus_lobbyiste",
+        "type": "integer",
+        "default": "0",
+        "notnull": true
+      },
+      {
+        "name": "hospitalisation",
+        "type": "jsonb",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "stats_affaiblies",
+        "type": "jsonb",
+        "default": "'{}'::jsonb",
+        "notnull": true
+      },
+      {
+        "name": "regen_jour",
+        "type": "integer",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "user_id",
+        "type": "uuid",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "quete_carriere",
+        "type": "jsonb",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "bonus_pa_differe",
+        "type": "integer",
+        "default": "0",
+        "notnull": true
+      },
+      {
+        "name": "pa_repos_le",
+        "type": "date",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "competences_militaires",
+        "type": "jsonb",
+        "default": "'{}'::jsonb",
+        "notnull": true
+      },
+      {
+        "name": "current_street",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "inventory_revision",
+        "type": "bigint",
+        "default": "0",
+        "notnull": true
+      },
+      {
+        "name": "current_street_from",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      }
+    ],
+    "constraints": [
+      {
+        "name": "personnages_name_key",
+        "definition": "UNIQUE (name)"
+      },
+      {
+        "name": "personnages_pkey",
+        "definition": "PRIMARY KEY (id)"
+      }
+    ]
+  },
+  {
+    "name": "plaintes_en_cours",
+    "columns": [
+      {
+        "name": "id",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "country",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "city",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "data",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": false
+      }
+    ],
+    "constraints": [
+      {
+        "name": "plaintes_en_cours_pkey",
+        "definition": "PRIMARY KEY (id)"
+      }
+    ]
+  },
+  {
+    "name": "pnj_employes_metier",
+    "columns": [
+      {
+        "name": "pnj_id",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "job",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "role_libelle",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "cout_jour",
+        "type": "integer",
+        "default": "0",
+        "notnull": true
+      },
+      {
+        "name": "genre",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "photo_url",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "photo_pos",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "loyaute",
+        "type": "integer",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "depuis_jour",
+        "type": "integer",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "escort_id",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "candidat_id",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      }
+    ],
+    "constraints": [
+      {
+        "name": "pnj_employes_metier_pkey",
+        "definition": "PRIMARY KEY (pnj_id)"
+      }
+    ]
+  },
+  {
+    "name": "pnj_membres",
+    "columns": [
+      {
+        "name": "id",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "famille",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "nom",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "pays",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "proprietaire_pj",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "leader_pj",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "leader_pnj_id",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "ville",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "building_id",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "room_id",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "rue_noeud_id",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "pa",
+        "type": "integer",
+        "default": "12",
+        "notnull": true
+      },
+      {
+        "name": "liquide",
+        "type": "numeric",
+        "default": "0",
+        "notnull": true
+      },
+      {
+        "name": "statut",
+        "type": "text",
+        "default": "'actif'::text",
+        "notnull": true
+      },
+      {
+        "name": "car_ent",
+        "type": "integer",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "car_cha",
+        "type": "integer",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "car_dup",
+        "type": "integer",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "car_int",
+        "type": "integer",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "car_per",
+        "type": "integer",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "car_vol",
+        "type": "integer",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "cree_le",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": true
+      },
+      {
+        "name": "maj_le",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": true
+      },
+      {
+        "name": "proprietaire_institution",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "proprietaire_perimetre",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "classe",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "position_pays",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "rue_depuis",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      }
+    ],
+    "constraints": [
+      {
+        "name": "pnj_car_bornes",
+        "definition": "CHECK ((((COALESCE(car_int, 0) >= 0) AND (COALESCE(car_int, 0) <= 100)) AND ((COALESCE(car_cha, 0) >= 0) AND (COALESCE(car_cha, 0) <= 100)) AND ((COALESCE(car_vol, 0) >= 0) AND (COALESCE(car_vol, 0) <= 100)) AND ((COALESCE(car_per, 0) >= 0) AND (COALESCE(car_per, 0) <= 100)) AND ((COALESCE(car_dup, 0) >= 0) AND (COALESCE(car_dup, 0) <= 100)) AND ((COALESCE(car_ent, 0) >= 0) AND (COALESCE(car_ent, 0) <= 100))))"
+      },
+      {
+        "name": "pnj_famille_connue",
+        "definition": "CHECK ((famille = ANY (ARRAY['soldat'::text, 'employe'::text, 'agent'::text, 'policier'::text, 'douanier'::text, 'militant'::text, 'garde_republicain'::text])))"
+      },
+      {
+        "name": "pnj_membres_classe_connue",
+        "definition": "CHECK (((classe IS NULL) OR (classe = ANY (ARRAY['alpha'::text, 'beta'::text, 'gamma'::text]))))"
+      },
+      {
+        "name": "pnj_membres_pkey",
+        "definition": "PRIMARY KEY (id)"
+      },
+      {
+        "name": "pnj_mort_sans_leader",
+        "definition": "CHECK (((statut <> 'mort'::text) OR ((leader_pj IS NULL) AND (leader_pnj_id IS NULL))))"
+      },
+      {
+        "name": "pnj_pa_positif",
+        "definition": "CHECK ((pa >= 0))"
+      },
+      {
+        "name": "pnj_pas_son_propre_leader",
+        "definition": "CHECK ((leader_pnj_id IS DISTINCT FROM id))"
+      },
+      {
+        "name": "pnj_position_deux_etats",
+        "definition": "CHECK (((((leader_pj IS NOT NULL) OR (leader_pnj_id IS NOT NULL)) AND (ville IS NULL) AND (building_id IS NULL) AND (room_id IS NULL) AND (rue_noeud_id IS NULL)) OR ((leader_pj IS NULL) AND (leader_pnj_id IS NULL))))"
+      },
+      {
+        "name": "pnj_propriete_exclusive",
+        "definition": "CHECK ((((classe = 'gamma'::text) AND (proprietaire_pj IS NULL) AND (proprietaire_institution IS NULL) AND (proprietaire_perimetre IS NULL)) OR ((classe IS DISTINCT FROM 'gamma'::text) AND (((proprietaire_pj IS NOT NULL) AND (proprietaire_institution IS NULL) AND (proprietaire_perimetre IS NULL)) OR ((proprietaire_pj IS NULL) AND (proprietaire_institution IS NOT NULL) AND (proprietaire_perimetre IS NOT NULL))))))"
+      },
+      {
+        "name": "pnj_statut_connu",
+        "definition": "CHECK ((statut = ANY (ARRAY['actif'::text, 'detenu'::text, 'mort'::text, 'disparu'::text])))"
+      },
+      {
+        "name": "pnj_un_seul_leader",
+        "definition": "CHECK (((leader_pj IS NULL) OR (leader_pnj_id IS NULL)))"
+      }
+    ]
+  },
+  {
+    "name": "pnj_soldats_metier",
+    "columns": [
+      {
+        "name": "pnj_id",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "matricule",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "section_id",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "en_reserve",
+        "type": "boolean",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "arme",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "formation",
+        "type": "jsonb",
+        "default": "'{}'::jsonb",
+        "notnull": true
+      },
+      {
+        "name": "mutin",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "dernier_ration",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "nb_ration",
+        "type": "integer",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "dernier_bivouac",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "dernier_sommeil",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "compagnie_id",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      }
+    ],
+    "constraints": [
+      {
+        "name": "pnj_soldats_compteurs_bien_formes",
+        "definition": "CHECK ((((dernier_ration IS NULL) OR (dernier_ration ~ '^\\d{4}-\\d{2}-\\d{2}$'::text)) AND ((dernier_bivouac IS NULL) OR (dernier_bivouac ~ '^\\d{4}-\\d{2}-\\d{2}$'::text)) AND ((dernier_sommeil IS NULL) OR (dernier_sommeil ~ '^\\d{4}-\\d{2}-\\d{2}$'::text)) AND ((nb_ration IS NULL) OR (nb_ration >= 0))))"
+      },
+      {
+        "name": "pnj_soldats_metier_pkey",
+        "definition": "PRIMARY KEY (pnj_id)"
+      },
+      {
+        "name": "pnj_soldats_section_dans_sa_compagnie",
+        "definition": "CHECK ((((en_reserve = true) AND (section_id IS NULL)) OR ((en_reserve = false) AND (section_id IS NOT NULL) AND ((compagnie_id IS NULL) OR (section_id ~~ (compagnie_id || '-%'::text))))))"
+      },
+      {
+        "name": "soldat_reserve_coherente",
+        "definition": "CHECK ((en_reserve = (section_id IS NULL)))"
+      }
+    ]
+  },
+  {
+    "name": "police_interceptions",
+    "columns": [
+      {
+        "name": "personnage",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "rencontre",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "country",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "city",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "building",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "room",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "street",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "expires_at",
+        "type": "timestamp with time zone",
+        "default": "(now() + '00:10:00'::interval)",
+        "notnull": true
+      },
+      {
+        "name": "fuite_tentee",
+        "type": "boolean",
+        "default": "false",
+        "notnull": true
+      },
+      {
+        "name": "intervenants",
+        "type": "jsonb",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "combattants_victimes",
+        "type": "jsonb",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "combattants_forces",
+        "type": "jsonb",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "nature",
+        "type": "text",
+        "default": "'judiciaire'::text",
+        "notnull": true
+      },
+      {
+        "name": "controle",
+        "type": "jsonb",
+        "default": null,
+        "notnull": false
+      }
+    ],
+    "constraints": [
+      {
+        "name": "police_interceptions_pkey",
+        "definition": "PRIMARY KEY (personnage, rencontre)"
+      }
+    ]
+  },
+  {
+    "name": "postes_attribues",
+    "columns": [
+      {
+        "name": "id",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "country",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "poste_id",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "city",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "titulaire",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "depuis",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": true
+      },
+      {
+        "name": "source",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": true
+      }
+    ],
+    "constraints": [
+      {
+        "name": "postes_attribues_jamais_greffier",
+        "definition": "CHECK ((poste_id <> 'greffier'::text))"
+      },
+      {
+        "name": "postes_attribues_pkey",
+        "definition": "PRIMARY KEY (id)"
+      }
+    ]
+  },
+  {
+    "name": "presidence_memoire",
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "default": "nextval('presidence_memoire_id_seq'::regclass)",
+        "notnull": true
+      },
+      {
+        "name": "pays",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "president",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "mandat_depuis",
+        "type": "timestamp with time zone",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "genre",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "source",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "sujet",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "detail",
+        "type": "jsonb",
+        "default": "'{}'::jsonb",
+        "notnull": true
+      },
+      {
+        "name": "jour",
+        "type": "integer",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "le",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": true
+      }
+    ],
+    "constraints": [
+      {
+        "name": "presidence_memoire_genre_connu",
+        "definition": "CHECK ((genre = ANY (ARRAY['contexte'::text, 'reaction'::text])))"
+      },
+      {
+        "name": "presidence_memoire_pkey",
+        "definition": "PRIMARY KEY (id)"
+      }
+    ]
+  },
+  {
+    "name": "presidence_memoire_ordres",
+    "columns": [
+      {
+        "name": "fn",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "pa",
+        "type": "integer",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "cost",
+        "type": "integer",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "sujet",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      }
+    ],
+    "constraints": [
+      {
+        "name": "presidence_memoire_ordres_pkey",
+        "definition": "PRIMARY KEY (fn, pa, cost)"
+      }
+    ]
+  },
+  {
+    "name": "presidence_memoire_sources",
+    "columns": [
+      {
+        "name": "source",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "genre",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "note",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      }
+    ],
+    "constraints": [
+      {
+        "name": "presidence_memoire_sources_genre_connu",
+        "definition": "CHECK ((genre = ANY (ARRAY['contexte'::text, 'reaction'::text])))"
+      },
+      {
+        "name": "presidence_memoire_sources_pkey",
+        "definition": "PRIMARY KEY (source)"
+      }
+    ]
+  },
+  {
+    "name": "prisonniers_qhs",
+    "columns": [
+      {
+        "name": "id",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "statut",
+        "type": "text",
+        "default": "'detenu'::text",
+        "notnull": false
+      },
+      {
+        "name": "data",
+        "type": "jsonb",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": true
+      }
+    ],
+    "constraints": [
+      {
+        "name": "prisonniers_qhs_pkey",
+        "definition": "PRIMARY KEY (id)"
+      }
+    ]
+  },
+  {
+    "name": "renseignements_connus",
+    "columns": [
+      {
+        "name": "id",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "titulaire",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "contenu",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "cible",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "categorie",
+        "type": "text",
+        "default": "'autre'::text",
+        "notnull": true
+      },
+      {
+        "name": "source",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "mode_acquisition",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "fait_objectif_ref",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "jour_acquisition",
+        "type": "integer",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "jour_derniere_reactivation",
+        "type": "integer",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "jour_expiration",
+        "type": "integer",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": true
+      },
+      {
+        "name": "jour_observe",
+        "type": "date",
+        "default": "(((now() AT TIME ZONE 'Europe/Paris'::text))::date - 1)",
+        "notnull": false
+      },
+      {
+        "name": "pays",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "ville",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "building_id",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "room_id",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      }
+    ],
+    "constraints": [
+      {
+        "name": "renseignements_connus_mode_acquisition_check",
+        "definition": "CHECK ((mode_acquisition = ANY (ARRAY['action_personnelle'::text, 'observation'::text, 'document_consulte'::text, 'confidence'::text, 'transmission'::text, 'interrogatoire'::text])))"
+      },
+      {
+        "name": "renseignements_connus_pkey",
+        "definition": "PRIMARY KEY (id)"
+      }
+    ]
+  },
+  {
+    "name": "residence_locations",
+    "columns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "default": "nextval('residence_locations_id_seq'::regclass)",
+        "notnull": true
+      },
+      {
+        "name": "piece",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "locataire",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "debut",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": true
+      },
+      {
+        "name": "fin",
+        "type": "timestamp with time zone",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "minibar",
+        "type": "integer",
+        "default": "3",
+        "notnull": true
+      },
+      {
+        "name": "nuit_bonus",
+        "type": "date",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "cree_le",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": true
+      }
+    ],
+    "constraints": [
+      {
+        "name": "residence_locations_minibar_check",
+        "definition": "CHECK (((minibar >= 0) AND (minibar <= 3)))"
+      },
+      {
+        "name": "residence_locations_pkey",
+        "definition": "PRIMARY KEY (id)"
+      }
+    ]
+  },
+  {
+    "name": "rp_epoques",
+    "columns": [
+      {
+        "name": "pays",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "jour_un",
+        "type": "date",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "note",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      }
+    ],
+    "constraints": [
+      {
+        "name": "rp_epoques_pkey",
+        "definition": "PRIMARY KEY (pays)"
+      }
+    ]
+  },
+  {
+    "name": "rue_noeuds_serveur",
+    "columns": [
+      {
+        "name": "country",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "city",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "noeud",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "voisins",
+        "type": "text[]",
+        "default": "'{}'::text[]",
+        "notnull": true
+      },
+      {
+        "name": "directions",
+        "type": "jsonb",
+        "default": null,
+        "notnull": false
+      }
+    ],
+    "constraints": [
+      {
+        "name": "rue_noeuds_serveur_pkey",
+        "definition": "PRIMARY KEY (country, city, noeud)"
+      }
+    ]
+  },
+  {
+    "name": "rue_sorties_batiments",
+    "columns": [
+      {
+        "name": "country",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "city",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "noeud",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "building",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      }
+    ],
+    "constraints": [
+      {
+        "name": "rue_sorties_batiments_pkey",
+        "definition": "PRIMARY KEY (country, city, noeud, building)"
+      }
+    ]
+  },
+  {
+    "name": "serrures",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "default": "gen_random_uuid()",
+        "notnull": true
+      },
+      {
+        "name": "statut",
+        "type": "text",
+        "default": "'neuve'::text",
+        "notnull": true
+      },
+      {
+        "name": "fermee",
+        "type": "boolean",
+        "default": "false",
+        "notnull": true
+      },
+      {
+        "name": "cible",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "pays",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "ville",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "batiment",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "piece",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "armoire_objet",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "bail_ref",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "bail_titulaire",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "poseur",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "posee_le",
+        "type": "timestamp with time zone",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "detruite_le",
+        "type": "timestamp with time zone",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "motif_destruction",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "achetee_par",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "entreprise",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "cree_le",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": true
+      }
+    ],
+    "constraints": [
+      {
+        "name": "serrures_armoire_objet",
+        "definition": "CHECK (((cible IS DISTINCT FROM 'armoire'::text) OR (armoire_objet IS NOT NULL)))"
+      },
+      {
+        "name": "serrures_cible_check",
+        "definition": "CHECK ((cible = ANY (ARRAY['lieu'::text, 'armoire'::text, 'batiment'::text, 'vehicule'::text])))"
+      },
+      {
+        "name": "serrures_lieu_bail",
+        "definition": "CHECK (((cible IS DISTINCT FROM 'lieu'::text) OR ((bail_ref IS NOT NULL) AND (bail_titulaire IS NOT NULL))))"
+      },
+      {
+        "name": "serrures_pkey",
+        "definition": "PRIMARY KEY (id)"
+      },
+      {
+        "name": "serrures_posee_cible",
+        "definition": "CHECK (((statut <> 'posee'::text) OR (cible IS NOT NULL)))"
+      },
+      {
+        "name": "serrures_statut_check",
+        "definition": "CHECK ((statut = ANY (ARRAY['neuve'::text, 'posee'::text, 'detruite'::text])))"
+      }
+    ]
+  },
+  {
+    "name": "sovarka_musee_billets",
+    "columns": [
+      {
+        "name": "jour",
+        "type": "date",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "personnage",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "paye",
+        "type": "numeric",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "cree_le",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": true
+      }
+    ],
+    "constraints": [
+      {
+        "name": "sovarka_musee_billets_pkey",
+        "definition": "PRIMARY KEY (jour, personnage)"
+      }
+    ]
+  },
+  {
+    "name": "ssm_rendezvous",
+    "columns": [
+      {
+        "name": "personnage",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "user_id",
+        "type": "uuid",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "demande_le",
+        "type": "date",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "rendezvous_le",
+        "type": "date",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "cree_le",
+        "type": "timestamp with time zone",
+        "default": "clock_timestamp()",
+        "notnull": true
+      }
+    ],
+    "constraints": [
+      {
+        "name": "ssm_rendezvous_pkey",
+        "definition": "PRIMARY KEY (personnage)"
+      },
+      {
+        "name": "ssm_rendezvous_sept_jours",
+        "definition": "CHECK (((rendezvous_le > demande_le) AND (rendezvous_le <= (demande_le + 7))))"
+      }
+    ]
+  },
+  {
+    "name": "terrains_etat",
+    "columns": [
+      {
+        "name": "id",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "country",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "building_id",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "proprietaire",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "data",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": false
+      },
+      {
+        "name": "niveau_construction",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "valeur_totale",
+        "type": "integer",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "coproprietaire",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      }
+    ],
+    "constraints": [
+      {
+        "name": "terrains_etat_pkey",
+        "definition": "PRIMARY KEY (id)"
+      }
+    ]
+  },
+  {
+    "name": "titulaires_pnj",
+    "columns": [
+      {
+        "name": "id",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "country",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "poste_id",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "city",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "nom_pnj",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": false
+      }
+    ],
+    "constraints": [
+      {
+        "name": "titulaires_pnj_pkey",
+        "definition": "PRIMARY KEY (id)"
+      }
+    ]
+  },
+  {
+    "name": "vehicules",
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "default": "gen_random_uuid()",
+        "notnull": true
+      },
+      {
+        "name": "modele",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "proprietaire",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "serrure",
+        "type": "uuid",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "pays",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "ville",
+        "type": "text",
+        "default": null,
+        "notnull": true
+      },
+      {
+        "name": "carburant",
+        "type": "integer",
+        "default": "0",
+        "notnull": true
+      },
+      {
+        "name": "cargaison",
+        "type": "jsonb",
+        "default": "'[]'::jsonb",
+        "notnull": true
+      },
+      {
+        "name": "trajets_depuis_revision",
+        "type": "integer",
+        "default": "0",
+        "notnull": true
+      },
+      {
+        "name": "statut",
+        "type": "text",
+        "default": "'pret'::text",
+        "notnull": true
+      },
+      {
+        "name": "panne",
+        "type": "jsonb",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "entreprise",
+        "type": "text",
+        "default": null,
+        "notnull": false
+      },
+      {
+        "name": "achete_le",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": true
+      },
+      {
+        "name": "modifie_le",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "notnull": true
+      }
+    ],
+    "constraints": [
+      {
+        "name": "vehicules_carburant_check",
+        "definition": "CHECK ((carburant >= 0))"
+      },
+      {
+        "name": "vehicules_cargaison_check",
+        "definition": "CHECK ((jsonb_typeof(cargaison) = 'array'::text))"
+      },
+      {
+        "name": "vehicules_panne_decrite",
+        "definition": "CHECK (((statut <> 'en_panne'::text) OR (panne IS NOT NULL)))"
+      },
+      {
+        "name": "vehicules_pkey",
+        "definition": "PRIMARY KEY (id)"
+      },
+      {
+        "name": "vehicules_serrure_key",
+        "definition": "UNIQUE (serrure)"
+      },
+      {
+        "name": "vehicules_statut_check",
+        "definition": "CHECK ((statut = ANY (ARRAY['pret'::text, 'en_panne'::text])))"
+      },
+      {
+        "name": "vehicules_trajets_depuis_revision_check",
+        "definition": "CHECK ((trajets_depuis_revision >= 0))"
+      }
+    ]
+  }
+]

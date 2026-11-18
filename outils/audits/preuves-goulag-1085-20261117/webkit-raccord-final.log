@@ -1,0 +1,2 @@
+Skipping host requirements validation logic because `PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS` env variable is set.
+{"moteur":"webkit","scenarios":27,"largeurs":[320,390,1280],"langues":9,"rtl":true,"ref1085":"4bb8f42a11bf9e5c2ce8e891445cf162d44d5adf","modules":["plateau-goulag-ordres.js","plateau-goulag-toundra.js","plateau-goulag-transports.js","plateau-goulag-refuge.js"],"serveur":"simulé","personnageConnecte":false}

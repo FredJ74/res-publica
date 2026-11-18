@@ -1,0 +1,30 @@
+Goulag : ordres exclusivement sovarkiens et images progressives 1–10 vérifiés
+✔ outils/bancs/test-goulag-decor-runtime-20261116.cjs (89.425092ms)
+Goulag : 10 images WebP, poids/dimensions/ordre, suppression PNG, routes et interface vérifiés
+✔ outils/bancs/test-goulag-decors-20261116.cjs (49.052538ms)
+Goulag : écran, 3 ordres, RPC serveur et passage visuel 01 → 02 testés
+✔ outils/bancs/test-goulag-ecran-interactif-20261116.cjs (41.173582ms)
+Goulag interface : modules chargés, demandes, transport, refuge, champignons, juge seul : OK
+✔ outils/bancs/test-goulag-interface-circuits-20261116.cjs (39.099515ms)
+✔ arrestation personnelle : position relue, aucune entrée cliente fictive (12.813454ms)
+✔ membre arrêté : chef relu sans afficher sa propre condamnation (11.024516ms)
+✔ entrée ordinaire : même navigation, aucun rechargement ni dépense (11.139761ms)
+✔ double clic arrêté : une seule mutation et une seule relecture (11.227723ms)
+✔ seul juge sovarkien, jugement QHS réel validé (1.838942ms)
+✔ transport nominatif et pays du poste, détenu bloqué (0.429668ms)
+✔ confiscation, clés conservées, restitution idempotente, perte irréversible (1.188822ms)
+✔ parcours visiteur et détenu, destination géographique, PA et peine (0.564651ms)
+✔ refuge : 5 et 3 bois, deux nuits maximum, aucun doublon (0.39795ms)
+✔ quatre décisions définitives du 16/11, aucune règle supposée (0.213372ms)
+Goulag : migration préparatoire verrouillée, juge seul, clés, refuge, non-activation : OK
+✔ outils/bancs/test-goulag-sql-structure-20261116.cjs (39.169079ms)
+Goulag Sovarka : seuils, survie, double-clic, jours, bois, arrivée et fatigue : OK
+✔ outils/bancs/test-goulag-survie-20261116.cjs (53.532781ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 498.006721

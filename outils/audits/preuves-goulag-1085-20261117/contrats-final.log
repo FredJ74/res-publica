@@ -1,0 +1,15 @@
+/workspace/work/missions-venv/lib/python3.12/site-packages/platformdirs/api.py:467: RuntimeDirWarning: XDG_RUNTIME_DIR is not set, falling back to /tmp/runtime-1000
+  return Path(self.user_runtime_dir)
+Source #1085 : 4bb8f42a11bf9e5c2ce8e891445cf162d44d5adf
+test_contrat_corruption_base_soixante_dix (__main__.Contrats.test_contrat_corruption_base_soixante_dix) ... ok
+test_contrat_interrogateur_un_pa (__main__.Contrats.test_contrat_interrogateur_un_pa) ... ok
+test_contrat_juge_sanction_un_pa (__main__.Contrats.test_contrat_juge_sanction_un_pa) ... ok
+test_contrat_peine_ajoutee_en_detention (__main__.Contrats.test_contrat_peine_ajoutee_en_detention) ... ok
+test_contrat_reincarceration_et_nouvelle_peine (__main__.Contrats.test_contrat_reincarceration_et_nouvelle_peine) ... ok
+test_contrat_rejeu_lie_a_interrogateur (__main__.Contrats.test_contrat_rejeu_lie_a_interrogateur) ... ok
+test_contrat_rejeu_sanction_lie_au_juge (__main__.Contrats.test_contrat_rejeu_sanction_lie_au_juge) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 4.661s
+
+OK

@@ -1,0 +1,22 @@
+{
+  "pr": 1085,
+  "commit": "4a1ced9b96bec3cb2bf867dd602de87456a7383c",
+  "migrations": [
+    {
+      "path": "migrations/20261117170000_goulag_ordres_internes_registre.sql",
+      "sha256": "3c04b40b6eabc69ac811e8b588d65fc80bb20adb5f1fd03aa3b1cc0b528f5672"
+    },
+    {
+      "path": "migrations/20261117170500_goulag_ordres_internes_detention.sql",
+      "sha256": "ba979be462f7e3a1642e1fe395b119b4dcce2e30e29946178176f87e67fe918b"
+    },
+    {
+      "path": "migrations/20261117171000_goulag_ordres_internes_bureau_mirador.sql",
+      "sha256": "9804425325ba3ad5767e78a15ca695a7c06cf4d602cab32e3fa00d6e61bba65e"
+    },
+    {
+      "path": "migrations/20261117171500_goulag_ordres_internes_raccord_evasion.sql",
+      "sha256": "974e4c156f26e368572544bbc4286f51e07486865987b880f73ff6f700c3f664"
+    }
+  ]
+}
