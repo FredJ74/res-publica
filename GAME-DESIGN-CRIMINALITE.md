@@ -134,7 +134,27 @@ Trois façons d'agir :
 - **Réussite** : base **30 %** ; **+1 % par tranche de 3 de DIS au-dessus de 50** ; **+10 %** caché ; **+15 %** carrière criminelle ; **+15 %** avec un **bidon d'essence** ; **−15 %** pendant un **orage** dans la ville ; **+15 %** pendant une **canicule** ; dissuasion des hommes armés ; **5-80 %**.
 - Règle commune : échec critique 2 % des échecs ; **détection après réussite seulement** (fin du jet à chaque tentative) : **70 %**, −10 masqué, −20 caché, **min 20 %**. Fermeture 1 à 3 jours selon le jet, inchangée.
 
+## 12. Corruption (décisions du 18/11, 22 h)
+
+- **Principe** : on ne code que la corruption de **PNJ**. Corrompre un poste tenu par un joueur (commissaire, policier, juge…) se joue entre joueurs, sans ordre (même règle que les ambassades, 25/10). La corruption se fait **face à face** : le cadre caché / masqué ne s'y applique pas.
+- **Règle commune à toutes les corruptions de PNJ** (directeur et gardien du QHS, douanier, greffier, journaliste, armurier, gardien du goulag) :
+  - **Réussite** : −5 DIS et rumeur de corruption (existante), **plus de jet de détection** (le PNJ acheté a intérêt à se taire).
+  - **Échec critique = 2 % des échecs : dénonciation** — corrupteur identifié, recherché, **1 jour de prison d'office** (valeur Républia, à revoir par empire), −15 moral.
+  - **Pas de bonus de carrière criminelle** sur la corruption (charme et influence, pas métier) : retirer aussi le +15 envisagé pour le gardien.
+- **Directeur du QHS** (« Corrompre le directeur », 3 PA, 1 500 FR) : il ne peut pas renvoyer le détenu en geôle (le placement au QHS relève de l'autorité supérieure), mais **divise par deux la peine restante**, une seule réussite par détention. Échec : **+1 jour de peine**, les **1 500 FR confisqués** (caisse du QHS, sinon ministère), **plus aucune tentative** auprès du directeur jusqu'à la fin de la détention. Taux : formule actuelle à remplacer par la formule du gardien ci-dessous (sans carrière criminelle) sauf avis contraire.
+- **Gardien de couloir du QHS** (« Corrompre un gardien », 2 PA, 800 FR) : trois services au choix —
+  - **évasion facilitée** : **+25 %** à la prochaine tentative d'évasion (une seule tentative) ;
+  - **message ou objet passé** : courrier à un joueur extérieur, ou remise d'un objet confié au gardien ;
+  - **protection** : **pas de torture jusqu'au prochain ordre « Dormir »**.
+  - Réussite : **30 % + 2 par point de CHA au-dessus de 8, −(ISN − 45)/3, bornes 5-75 %**.
+  - Échec : les **800 FR confisqués** (caisse du QHS), **une tentative par jour**, retenter dès le lendemain.
+- **« Falsifier un procès-verbal »** (salle d'interrogatoire du QHS) : **supprimé**.
+- **Route `corrompre_police`** (orpheline, aucune pièce) : **supprimée**.
+- **Douanier** : le +20 « zone transport » ne vaut plus que dans une zone de transport (correctif technique). Échec : les **300 FR confisqués au profit des douanes**, retenter dès le lendemain.
+- **Le temps ne s'achète pas** dans les empires actuels : **suppression** de « Corrompre un fonctionnaire (accélérer) » (permis), « Accélérer le rendez-vous (corruption) » (notaire) et du bouton mort « Accélérer le chantier (corruption) ». Le temps s'achètera dans les futurs empires P2W.
+- **Inchangés** (hors règle commune ci-dessus) : journaliste, greffier, armurier, gardien du goulag.
+
 ## Plus tard
 
 - Le moral pourrait influencer tous les ordres à jet aléatoire (à étudier).
-- Volets restant à trancher avant le prompt complet : **corruption** (policier, juge, douanier, gardien, journaliste, fonctionnaire), **délits d'information** (fausse rumeur, tracts calomnieux, scandale fabriqué, fuite), **mise en ordre des peines** (doublement « démasqué » incohérent, 11 barèmes jamais détectables), **carrière criminelle**.
+- Volets restant à trancher avant le prompt complet : **délits d'information** (fausse rumeur, tracts calomnieux, scandale fabriqué, fuite), **mise en ordre des peines** (doublement « démasqué » incohérent, 11 barèmes jamais détectables), **carrière criminelle**.
