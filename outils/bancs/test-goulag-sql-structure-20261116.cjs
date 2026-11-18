@@ -1,0 +1,33 @@
+'use strict';
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const dir='migrations/';
+const lire=n=>fs.readFileSync(dir+n,'utf8');
+const dep=lire('20261116163500_goulag_depots_internes.sql');
+const juge=lire('20261116164000_goulag_juge_sentence.sql');
+const autor=lire('20261116164500_goulag_autorisations_ministre.sql');
+const refuge=lire('20261116165000_goulag_refuge_recuperation.sql');
+const trav=lire('20261116104500_goulag_toundra_etats_serveur.sql');
+for (const [nom,sql] of Object.entries({dep,juge,autor,refuge})) {
+  assert.match(sql,/ENABLE ROW LEVEL SECURITY|goulag_sovarka_juge_seul/);
+  assert.doesNotMatch(sql,/\bDROP TABLE\b|\bTRUNCATE\b/i,nom);
+}
+assert.match(dep,/cle_serrure','cle_vierge/);
+assert.match(dep,/FROM PUBLIC,anon,authenticated,service_role/);
+assert.match(dep,/WHERE name=p_nom FOR UPDATE/);
+assert.match(dep,/v_inv\|\|v_objets/);
+assert.match(dep,/depot_deja_clos/);
+assert.match(juge,/v_pays = ''soviet'' AND p_genre = ''qhs''/);
+assert.match(juge,/justice_rendre_sentence/);
+assert.match(juge,/sovarka_goulag_confisquer_interne/);
+assert.doesNotMatch(juge,/min_just/);
+assert.match(autor,/sovarka_est_titulaire_interne\(v_nom,'min_just'\)/);
+assert.match(autor,/demande_deja_traitee/);
+assert.match(autor,/sovarka_goulag_visite_lire/);
+assert.match(refuge,/CASE WHEN v_r.nuits=0 THEN 5 ELSE 3 END/);
+assert.match(refuge,/nuits BETWEEN 0 AND 2/);
+assert.match(refuge,/SELECT least\(2,greatest/);
+assert.match(refuge,/bois_paye=bois_paye\+v_total/);
+assert.match(refuge,/inventory_revision/);
+assert.match(trav,/'goulag_non_active'/);
+console.log('Goulag : migration préparatoire verrouillée, juge seul, clés, refuge, non-activation : OK');

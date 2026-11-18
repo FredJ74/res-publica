@@ -1125,11 +1125,22 @@ const RUE_CENTRALE_NOEUDS = {
     'krasnov-rue-ecole-foret': {
       image: 'images/Sovarka/Krasnov/Krasnov rue école foret.webp',
       zones: [],
+      // La flèche « droite » vers la cour des bûcherons n'est posée que goulag ouvert (plateau-goulag-ouverture.js).
       liens: { arriere: 'krasnov-rue-stade-commissariat', toutDroit: 'krasnov-rue-distillerie-radar' },
       flechesStyle: {
         arriere: 'bottom:10px; left:50%; transform:translateX(-50%);',
-        toutDroit: 'top:10px; left:50%; transform:translateX(-50%);'
+        toutDroit: 'top:10px; left:50%; transform:translateX(-50%);',
+        droite: 'top:66.6667%; right:10px; transform:translateY(-50%);'
       }
+    },
+
+    // Point d'arrivée validé du goulag : cour existante de l'exploitation.
+    // Aucun PNJ, dialogue ou ordre local supplémentaire.
+    'krasnov-camp-bucherons': {
+      image: 'images/Sovarka/Krasnov/Krasnov_exploitation_forestiere_cour.webp',
+      zones: [],
+      liens: { arriere: 'krasnov-rue-ecole-foret' },
+      flechesStyle: { arriere: 'bottom:10px; left:50%; transform:translateX(-50%);' }
     },
 
     // Krasnov : retour vers l'école / forêt, puis route vers les immeubles.

@@ -1,0 +1,24 @@
+test_detecteur_identique_sous_python_optimise (__main__.Globaux.test_detecteur_identique_sous_python_optimise) ... ok
+test_dotation_ville_capturee_et_ancienne_extraction_incomplete (__main__.Globaux.test_dotation_ville_capturee_et_ancienne_extraction_incomplete) ... ok
+test_extension_signature_et_contre_epreuves (__main__.Globaux.test_extension_signature_et_contre_epreuves) ... ok
+test_ressources_ordre_exhaustif_et_copie_alteree (__main__.Globaux.test_ressources_ordre_exhaustif_et_copie_alteree) ... ok
+test_seed_miroir_altere_est_refuse (__main__.Globaux.test_seed_miroir_altere_est_refuse) ... ERROR
+test_seeds_preservent_cle_ville_depuis_un_export (__main__.Globaux.test_seeds_preservent_cle_ville_depuis_un_export) ... ok
+
+======================================================================
+ERROR: test_seed_miroir_altere_est_refuse (__main__.Globaux.test_seed_miroir_altere_est_refuse)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/work/goulag-main-reference/outils/bancs/test-controles-globaux-20261107.py", line 57, in test_seed_miroir_altere_est_refuse
+    m.rendre(verifier=True)
+  File "/workspace/work/goulag-main-reference/outils/baseline/regenerer-seeds-miroirs.py", line 31, in rendre
+    raise ValueError('Seed miroir différent du générateur : '+table)
+ValueError: Seed miroir différent du générateur : ordres_couts
+
+----------------------------------------------------------------------
+Ran 6 tests in 5.840s
+
+FAILED (errors=1)
+1 tables seedees, 1 lignes d'INSERT
+0 tables a regenerer depuis leur source canonique
+0 tables en etat initial a construire

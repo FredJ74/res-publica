@@ -1,0 +1,37 @@
+✖ explications : six messages entiers en neuf langues, 320/390/1280, français/appels identiques à main et 270 bascules sans dépense ni requête (5200.685453ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6387.899811
+
+✖ failing tests:
+
+test at ../../../tmp/goulag-main-f32d-cible17/outils/bancs/banc-i18n-explications-creation-navigateur-20261114.cjs:6:1
+✖ explications : six messages entiers en neuf langues, 320/390/1280, français/appels identiques à main et 270 bascules sans dépense ni requête (5200.685453ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+  +   business: '{"calls":[],"cache":{},"G":{"country":"republic","city":"ville_b","origin":"fixture","school":"fixture","archetype":"fixture","career":"fixture","freeStats":{},"freePts":2,"name":"PJ Fixture","bio":"Récit libre conservé","motto":"Devise libre"},"playerState":{"pa":17,"arg":3000,"inventory":[{"id":"fixture"}],"progression":{"stage":3}},"lock":false}',
+  +   button: 'Valider et entrer dans le jeu',
+  +   disabled: false,
+  -   business: '{"calls":[["cache-owner"],["create",{"char":{"country":"republic","origin":"fixture","school":"fixture","archetype":"fixture","career":"fixture","stats":{},"freeStats":{},"freePtsRestants":2,"name":"PJ Fixture","bio":"Récit libre conservé","motto":"Devise libre","arg":1000,"resources":{"inf":25,"pop":30,"dis":85},"createdAt":"2026-11-14T00:00:00.000Z","currentCity":"ville_b","queteAccueil":{"etape":"non_commencee"}},"country":"republic","currentCity":"ville_b","arg":1000,"liquide":150,"inf":25,"pop":30,"dis":85,"hp":100,"pa":10,"moral":75,"poste":null,"inventory":[],"informateurs":[],"day":1,"recherche":[],"domicile":{"country":"republic","city":"ville_b","depuis":1},"organisations":[],"objectifs_completes":[],"votes_pnj":{}}]],"cache":{"respublica_char_PJ Fixture":"{\\"country\\":\\"republic\\",\\"origin\\":\\"fixture\\",\\"school\\":\\"fixture\\",\\"archetype\\":\\"fixture\\",\\"career\\":\\"fixture\\",\\"stats\\":{},\\"freeStats\\":{},\\"freePtsRestants\\":2,\\"name\\":\\"PJ Fixture\\",\\"bio\\":\\"Récit libre conservé\\",\\"motto\\":\\"Devise libre\\",\\"arg\\":1000,\\"resources\\":{\\"inf\\":25,\\"pop\\":30,\\"dis\\":85},\\"createdAt\\":\\"2026-11-14T00:00:00.000Z\\",\\"currentCity\\":\\"ville_b\\",\\"queteAccueil\\":{\\"etape\\":\\"non_commencee\\"}}","respublica_char":"{\\"country\\":\\"republic\\",\\"origin\\":\\"fixture\\",\\"school\\":\\"fixture\\",\\"archetype\\":\\"fixture\\",\\"career\\":\\"fixture\\",\\"stats\\":{},\\"freeStats\\":{},\\"freePtsRestants\\":2,\\"name\\":\\"PJ Fixture\\",\\"bio\\":\\"Récit libre conservé\\",\\"motto\\":\\"Devise libre\\",\\"arg\\":1000,\\"resources\\":{\\"inf\\":25,\\"pop\\":30,\\"dis\\":85},\\"createdAt\\":\\"2026-11-14T00:00:00.000Z\\",\\"currentCity\\":\\"ville_b\\",\\"queteAccueil\\":{\\"etape\\":\\"non_commencee\\"}}","respublica_last_char":"PJ Fixture"},"G":{"country":"republic","city":"ville_b","origin":"fixture","school":"fixture","archetype":"fixture","career":"fixture","freeStats":{},"freePts":2,"name":"PJ Fixture","bio":"Récit libre conservé","motto":"Devise libre"},"playerState":{"pa":17,"arg":3000,"inventory":[{"id":"fixture"}],"progression":{"stage":3}},"lock":true}',
+  -   button: 'Creation en cours...',
+  -   disabled: true,
+      ui: '{"draft":"Brouillon à conserver","focus":"draft","start":2,"end":5,"scroll":[0,0]}'
+    }
+  
+      at TestContext.<anonymous> (/tmp/goulag-main-f32d-cible17/outils/bancs/banc-i18n-explications-creation-navigateur-20261114.cjs:10:129)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { business: '{"calls":[],"cache":{},"G":{"country":"republic","city":"ville_b","origin":"fixture","school":"fixture","archetype":"fixture","career":"fixture","freeStats":{},"freePts":2,"name":"PJ Fixture","bio":"Récit libre conservé","motto":"Devise libre"},"playerState":{"pa":17,"arg":3000,"inventory":[{"id":"fixture"}],"progression":{"stage":3}},"lock":false}', ui: '{"draft":"Brouillon à conserver","focus":"draft","start":2,"end":5,"scroll":[0,0]}', button: 'Valider et entrer dans le jeu', disabled: false },
+    expected: { business: '{"calls":[["cache-owner"],["create",{"char":{"country":"republic","origin":"fixture","school":"fixture","archetype":"fixture","career":"fixture","stats":{},"freeStats":{},"freePtsRestants":2,"name":"PJ Fixture","bio":"Récit libre conservé","motto":"Devise libre","arg":1000,"resources":{"inf":25,"pop":30,"dis":85},"createdAt":"2026-11-14T00:00:00.000Z","currentCity":"ville_b","queteAccueil":{"etape":"non_commencee"}},"country":"republic","currentCity":"ville_b","arg":1000,"liquide":150,"inf":25,"pop":30,"dis":85,"hp":100,"pa":10,"moral":75,"poste":null,"inventory":[],"informateurs":[],"day":1,"recherche":[],"domicile":{"country":"republic","city":"ville_b","depuis":1},"organisations":[],"objectifs_completes":[],"votes_pnj":{}}]],"cache":{"respublica_char_PJ Fixture":"{\\"country\\":\\"republic\\",\\"origin\\":\\"fixture\\",\\"school\\":\\"fixture\\",\\"archetype\\":\\"fixture\\",\\"career\\":\\"fixture\\",\\"stats\\":{},\\"freeStats\\":{},\\"freePtsRestants\\":2,\\"name\\":\\"PJ Fixture\\",\\"bio\\":\\"Récit libre conservé\\",\\"motto\\":\\"Devise libre\\",\\"arg\\":1000,\\"resources\\":{\\"inf\\":25,\\"pop\\":30,\\"dis\\":85},\\"createdAt\\":\\"2026-11-14T00:00:00.000Z\\",\\"currentCity\\":\\"ville_b\\",\\"queteAccueil\\":{\\"etape\\":\\"non_commencee\\"}}","respublica_char":"{\\"country\\":\\"republic\\",\\"origin\\":\\"fixture\\",\\"school\\":\\"fixture\\",\\"archetype\\":\\"fixture\\",\\"career\\":\\"fixture\\",\\"stats\\":{},\\"freeStats\\":{},\\"freePtsRestants\\":2,\\"name\\":\\"PJ Fixture\\",\\"bio\\":\\"Récit libre conservé\\",\\"motto\\":\\"Devise libre\\",\\"arg\\":1000,\\"resources\\":{\\"inf\\":25,\\"pop\\":30,\\"dis\\":85},\\"createdAt\\":\\"2026-11-14T00:00:00.000Z\\",\\"currentCity\\":\\"ville_b\\",\\"queteAccueil\\":{\\"etape\\":\\"non_commencee\\"}}","respublica_last_char":"PJ Fixture"},"G":{"country":"republic","city":"ville_b","origin":"fixture","school":"fixture","archetype":"fixture","career":"fixture","freeStats":{},"freePts":2,"name":"PJ Fixture","bio":"Récit libre conservé","motto":"Devise libre"},"playerState":{"pa":17,"arg":3000,"inventory":[{"id":"fixture"}],"progression":{"stage":3}},"lock":true}', ui: '{"draft":"Brouillon à conserver","focus":"draft","start":2,"end":5,"scroll":[0,0]}', button: 'Creation en cours...', disabled: true },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

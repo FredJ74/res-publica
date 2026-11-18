@@ -1,0 +1,10 @@
+test_ajouts_goulag_non_conformes_refuses (__main__.Plan.test_ajouts_goulag_non_conformes_refuses) ... ok
+test_ajouts_sovarka_non_conformes_refuses (__main__.Plan.test_ajouts_sovarka_non_conformes_refuses) ... ok
+test_omission_inversion_et_source_alteree_refusees (__main__.Plan.test_omission_inversion_et_source_alteree_refusees) ... ok
+test_ordre_exact_et_sources_verifiees (__main__.Plan.test_ordre_exact_et_sources_verifiees) ... ok
+test_variante_diner_sans_exclure_les_tarifs_historiques (__main__.Plan.test_variante_diner_sans_exclure_les_tarifs_historiques) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 27.488s
+
+OK
