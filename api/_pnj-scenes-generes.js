@@ -4745,6 +4745,15 @@ export const SCENES_PNJ = {
       "Capitaine Igor Balatov"
     ]
   },
+  "[\"soviet\",\"capitale\",\"mairie-capitale\",\"bureau_syndicat_national\"]": {
+    "pays": "Sovarka",
+    "ville": "Novomirsk",
+    "batiment": "Mairie de Novomirsk",
+    "piece": "Bureau du syndicat national",
+    "personnes": [
+      "Lev Lozungov"
+    ]
+  },
   "[\"soviet\",\"capitale\",\"kolkhoze-spirituel\",\"grange_sainte\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
@@ -6013,6 +6022,15 @@ export const SCENES_PNJ = {
       "Erdem Gombozhapov"
     ]
   },
+  "[\"soviet\",\"ville_a\",\"mairie\",\"bureau_syndicat_national\"]": {
+    "pays": "Sovarka",
+    "ville": "Starovka",
+    "batiment": "Mairie",
+    "piece": "Bureau du syndicat national",
+    "personnes": [
+      "Tserenjav Dachiev"
+    ]
+  },
   "[\"soviet\",\"ville_a\",\"dispensaire-public-v\",\"attente\"]": {
     "pays": "Sovarka",
     "ville": "Starovka",
@@ -6692,6 +6710,15 @@ export const SCENES_PNJ = {
     "piece": "Salle des partis",
     "personnes": [
       "Lieutenant Fiodor Doznaïev"
+    ]
+  },
+  "[\"soviet\",\"ville_b\",\"mairie\",\"bureau_syndicat_national\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Mairie de Krasnov",
+    "piece": "Bureau du syndicat national",
+    "personnes": [
+      "Anatoli Transparantov"
     ]
   },
   "[\"soviet\",\"ville_b\",\"dispensaire-public-v\",\"attente\"]": {

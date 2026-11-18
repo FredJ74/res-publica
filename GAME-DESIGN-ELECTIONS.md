@@ -77,7 +77,7 @@ propre pays depuis une mairie étrangère.
 ## Départ d'un maire (Fred, 18/11/2026 ; tous motifs, tous les empires)
 - Motifs : décès, démission, destitution, emprisonnement, naturalisation, etc. Pas d'élection partielle.
 - L'adjoint reçoit une proposition de devenir maire, valable 72 h. S'il accepte, il devient maire jusqu'à la fin du mandat en cours et nomme un nouvel adjoint. S'il refuse ou ne répond pas, il reste adjoint ; la mairie reste sans maire jusqu'à la prochaine municipale (l'adjoint assure les fonctions déjà prévues).
-- Sans adjoint : la mairie passe sous tutelle du ministre — Économie collective (`min_fin`) en Sovarka ; Intérieur (`min_int`) en Républia (équivalent retenu par Claude). Le ministre a les boutons du bureau du maire, pas ceux de l'adjoint. La tutelle cesse à l'élection d'un maire.
+- Sans adjoint : la mairie passe sous tutelle du ministre — Économie collective (`min_fin`) en Sovarka ; Intérieur (`min_int`) en Républia (équivalent retenu par Claude). Le ministre a les boutons du bureau du maire, pas ceux de l'adjoint. La tutelle cesse à l'élection d'un maire. Codé : au serveur, le ministre présent dans le bureau du maire est reconnu comme maire de la ville (acteur_poste_courant) pour les impôts locaux, le budget et les subventions ; la campagne de sécurité et les nominations relisent encore le poste de la fiche et restent réservées au maire élu (à reprendre).
 - Détail complet : [`GAME-DESIGN-NOVOMIRSK.md`](GAME-DESIGN-NOVOMIRSK.md), « Décisions du 18/11/2026 ».
 
 ## Candidature (rappel des règles en vigueur)

@@ -921,7 +921,9 @@
     "greve_non": "✗ Refuser",
     "ecrire_a": "✉ Écrire à cette personne",
     "premium_oui": "✓ Accepter l'option premium",
-    "premium_non": "✗ Refuser"
+    "premium_non": "✗ Refuser",
+    "maire_oui": "✓ Devenir maire",
+    "maire_non": "✗ Rester adjoint"
   },
   "en": {
     "audience_accorder": "✓ Grant the audience",
@@ -941,7 +943,9 @@
     "greve_non": "✗ Decline",
     "ecrire_a": "✉ Write to this person",
     "premium_oui": "✓ Accept the premium option",
-    "premium_non": "✗ Decline"
+    "premium_non": "✗ Decline",
+    "maire_oui": "✓ Become mayor",
+    "maire_non": "✗ Remain deputy"
   },
   "es": {
     "audience_accorder": "✓ Conceder la audiencia",
@@ -961,7 +965,9 @@
     "greve_non": "✗ Rechazar",
     "ecrire_a": "✉ Escribir a esta persona",
     "premium_oui": "✓ Aceptar la opción premium",
-    "premium_non": "✗ Rechazar"
+    "premium_non": "✗ Rechazar",
+    "maire_oui": "✓ Ser alcalde",
+    "maire_non": "✗ Seguir de teniente de alcalde"
   },
   "zh-TW": {
     "audience_accorder": "✓ 批准接見",
@@ -981,7 +987,9 @@
     "greve_non": "✗ 拒絕",
     "ecrire_a": "✉ 寫信給此人",
     "premium_oui": "✓ Aceptar la opción premium",
-    "premium_non": "✗ Rechazar"
+    "premium_non": "✗ Rechazar",
+    "maire_oui": "✓ 出任市長",
+    "maire_non": "✗ 留任副市長"
   },
   "ru": {
     "audience_accorder": "✓ Назначить аудиенцию",
@@ -1001,7 +1009,9 @@
     "greve_non": "✗ Отказать",
     "ecrire_a": "✉ Написать этому человеку",
     "premium_oui": "✓ Принять премиум-опцию",
-    "premium_non": "✗ Отказать"
+    "premium_non": "✗ Отказать",
+    "maire_oui": "✓ Стать мэром",
+    "maire_non": "✗ Остаться заместителем"
   },
   "ko": {
     "audience_accorder": "✓ 면담 승인",
@@ -1021,7 +1031,9 @@
     "greve_non": "✗ 거절",
     "ecrire_a": "✉ 이 사람에게 편지 쓰기",
     "premium_oui": "✓ 프리미엄 옵션 수락",
-    "premium_non": "✗ 거절"
+    "premium_non": "✗ 거절",
+    "maire_oui": "✓ 시장 되기",
+    "maire_non": "✗ 부시장으로 남기"
   },
   "ar": {
     "audience_accorder": "✓ الموافقة على المقابلة",
@@ -1041,7 +1053,9 @@
     "greve_non": "✗ رفض",
     "ecrire_a": "✉ مراسلة هذا الشخص",
     "premium_oui": "✓ قبول الخيار المميز",
-    "premium_non": "✗ رفض"
+    "premium_non": "✗ رفض",
+    "maire_oui": "✓ تولي رئاسة البلدية",
+    "maire_non": "✗ البقاء نائبًا"
   },
   "pt-BR": {
     "audience_accorder": "✓ Conceder a audiência",
@@ -1061,7 +1075,9 @@
     "greve_non": "✗ Recusar",
     "ecrire_a": "✉ Escrever para esta pessoa",
     "premium_oui": "✓ قبول الخيار المميز",
-    "premium_non": "✗ رفض"
+    "premium_non": "✗ رفض",
+    "maire_oui": "✓ Tornar-se prefeito",
+    "maire_non": "✗ Continuar vice"
   },
   "de": {
     "audience_accorder": "✓ Audienz gewähren",
@@ -1081,7 +1097,9 @@
     "greve_non": "✗ Ablehnen",
     "ecrire_a": "✉ Dieser Person schreiben",
     "premium_oui": "✓ Premium-Option annehmen",
-    "premium_non": "✗ Ablehnen"
+    "premium_non": "✗ Ablehnen",
+    "maire_oui": "✓ Bürgermeister werden",
+    "maire_non": "✗ Stellvertreter bleiben"
   }
 };
  for(const [locale,labels] of Object.entries(mailActions)){

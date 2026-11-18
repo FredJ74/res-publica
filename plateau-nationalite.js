@@ -36,7 +36,16 @@
       natAction: 'Déposer la demande',
       natOk: 'Votre demande de naturalisation est transmise.',
       domOk: 'Vous êtes domicilié à {ville}.',
-      domTitre: 'Domiciliation'
+      domTitre: 'Domiciliation',
+      mairieTitre: "Mairie",
+      mairieAccepteOk: "Vous êtes maintenant maire de {ville}. Nommez un nouvel adjoint depuis le bureau du maire.",
+      mairieRefusOk: "Vous restez adjoint ; la mairie reste sans maire jusqu’à la prochaine municipale.",
+      proposition_expiree: "La proposition a expiré (72 h).",
+      proposition_close: "Cette proposition a déjà reçu une réponse.",
+      reserve_a_l_adjoint: "Seul l’adjoint concerné peut répondre.",
+      plus_adjoint: "Vous n’êtes plus adjoint de cette ville.",
+      mairie_pourvue: "Un maire a déjà été élu.",
+      proposition_introuvable: "Proposition introuvable."
     },
     en: {
       hors_de_son_pays: 'You must be in your own country to do this.',
@@ -68,7 +77,16 @@
       natAction: 'File the application',
       natOk: 'Your naturalisation application has been sent.',
       domOk: 'You now live in {ville}.',
-      domTitre: 'Registering your home'
+      domTitre: 'Registering your home',
+      mairieTitre: "Town hall",
+      mairieAccepteOk: "You are now mayor of {ville}. Appoint a new deputy from the mayor’s office.",
+      mairieRefusOk: "You remain deputy; the town hall stays without a mayor until the next municipal election.",
+      proposition_expiree: "The offer has expired (72 h).",
+      proposition_close: "This offer has already been answered.",
+      reserve_a_l_adjoint: "Only the deputy concerned can answer.",
+      plus_adjoint: "You are no longer deputy of this town.",
+      mairie_pourvue: "A mayor has already been elected.",
+      proposition_introuvable: "Offer not found."
     },
     es: {
       hors_de_son_pays: 'Debe estar en su país para hacerlo.',
@@ -100,7 +118,16 @@
       natAction: 'Presentar la solicitud',
       natOk: 'Su solicitud de naturalización ha sido enviada.',
       domOk: 'Ahora está domiciliado en {ville}.',
-      domTitre: 'Domiciliación'
+      domTitre: 'Domiciliación',
+      mairieTitre: "Ayuntamiento",
+      mairieAccepteOk: "Ahora es alcalde de {ville}. Nombre un nuevo teniente de alcalde desde el despacho del alcalde.",
+      mairieRefusOk: "Sigue siendo teniente de alcalde; el ayuntamiento queda sin alcalde hasta las próximas municipales.",
+      proposition_expiree: "La propuesta ha caducado (72 h).",
+      proposition_close: "Esta propuesta ya tiene respuesta.",
+      reserve_a_l_adjoint: "Solo puede responder el teniente de alcalde afectado.",
+      plus_adjoint: "Ya no es teniente de alcalde de esta ciudad.",
+      mairie_pourvue: "Ya se ha elegido un alcalde.",
+      proposition_introuvable: "Propuesta no encontrada."
     },
     'zh-TW': {
       hors_de_son_pays: '必須身在本國才能這麼做。',
@@ -132,7 +159,16 @@
       natAction: '提出申請',
       natOk: '您的歸化申請已送出。',
       domOk: '您的戶籍已設在 {ville}。',
-      domTitre: '設立戶籍'
+      domTitre: '設立戶籍',
+      mairieTitre: "市政廳",
+      mairieAccepteOk: "您現在是 {ville} 的市長。請在市長辦公室任命新的副市長。",
+      mairieRefusOk: "您仍是副市長；市政廳在下次市長選舉前沒有市長。",
+      proposition_expiree: "此提議已過期（72 小時）。",
+      proposition_close: "此提議已經答覆。",
+      reserve_a_l_adjoint: "只有相關的副市長可以答覆。",
+      plus_adjoint: "您已不再是本市副市長。",
+      mairie_pourvue: "已經選出市長。",
+      proposition_introuvable: "找不到此提議。"
     },
     ru: {
       hors_de_son_pays: 'Для этого нужно находиться в своей стране.',
@@ -164,7 +200,16 @@
       natAction: 'Подать заявление',
       natOk: 'Ваше заявление о натурализации отправлено.',
       domOk: 'Теперь вы прописаны в городе {ville}.',
-      domTitre: 'Прописка'
+      domTitre: 'Прописка',
+      mairieTitre: "Мэрия",
+      mairieAccepteOk: "Теперь вы мэр города {ville}. Назначьте нового заместителя в кабинете мэра.",
+      mairieRefusOk: "Вы остаётесь заместителем; мэрия остаётся без мэра до следующих муниципальных выборов.",
+      proposition_expiree: "Срок предложения истёк (72 ч).",
+      proposition_close: "На это предложение уже дан ответ.",
+      reserve_a_l_adjoint: "Ответить может только соответствующий заместитель.",
+      plus_adjoint: "Вы больше не заместитель мэра этого города.",
+      mairie_pourvue: "Мэр уже избран.",
+      proposition_introuvable: "Предложение не найдено."
     },
     ko: {
       hors_de_son_pays: '자국에 있어야 할 수 있습니다.',
@@ -196,7 +241,16 @@
       natAction: '신청하기',
       natOk: '귀화 신청이 접수되었습니다.',
       domOk: '이제 {ville}에 주소지가 있습니다.',
-      domTitre: '주소지 등록'
+      domTitre: '주소지 등록',
+      mairieTitre: "시청",
+      mairieAccepteOk: "이제 {ville}의 시장입니다. 시장실에서 새 부시장을 임명하세요.",
+      mairieRefusOk: "부시장으로 남습니다. 다음 시장 선거까지 시청은 시장이 없습니다.",
+      proposition_expiree: "제안이 만료되었습니다(72시간).",
+      proposition_close: "이미 답변한 제안입니다.",
+      reserve_a_l_adjoint: "해당 부시장만 답할 수 있습니다.",
+      plus_adjoint: "더 이상 이 도시의 부시장이 아닙니다.",
+      mairie_pourvue: "이미 시장이 선출되었습니다.",
+      proposition_introuvable: "제안을 찾을 수 없습니다."
     },
     ar: {
       hors_de_son_pays: 'يجب أن تكون في بلدك للقيام بذلك.',
@@ -228,7 +282,16 @@
       natAction: 'تقديم الطلب',
       natOk: 'تم إرسال طلب التجنيس.',
       domOk: 'أصبحت مقيمًا في {ville}.',
-      domTitre: 'تسجيل الإقامة'
+      domTitre: 'تسجيل الإقامة',
+      mairieTitre: "البلدية",
+      mairieAccepteOk: "أصبحت الآن رئيس بلدية {ville}. عيّن نائبًا جديدًا من مكتب رئيس البلدية.",
+      mairieRefusOk: "تبقى نائبًا؛ وتبقى البلدية بلا رئيس حتى الانتخابات البلدية المقبلة.",
+      proposition_expiree: "انتهت صلاحية العرض (72 ساعة).",
+      proposition_close: "تم الرد على هذا العرض بالفعل.",
+      reserve_a_l_adjoint: "لا يرد إلا النائب المعني.",
+      plus_adjoint: "لم تعد نائبًا لرئيس بلدية هذه المدينة.",
+      mairie_pourvue: "تم انتخاب رئيس بلدية بالفعل.",
+      proposition_introuvable: "العرض غير موجود."
     },
     'pt-BR': {
       hors_de_son_pays: 'É preciso estar no seu país para isso.',
@@ -260,7 +323,16 @@
       natAction: 'Enviar o pedido',
       natOk: 'Seu pedido de naturalização foi enviado.',
       domOk: 'Agora você tem domicílio em {ville}.',
-      domTitre: 'Domicílio'
+      domTitre: 'Domicílio',
+      mairieTitre: "Prefeitura",
+      mairieAccepteOk: "Agora você é prefeito de {ville}. Nomeie um novo vice no gabinete do prefeito.",
+      mairieRefusOk: "Você continua vice; a prefeitura fica sem prefeito até a próxima eleição municipal.",
+      proposition_expiree: "A proposta expirou (72 h).",
+      proposition_close: "Esta proposta já foi respondida.",
+      reserve_a_l_adjoint: "Somente o vice em questão pode responder.",
+      plus_adjoint: "Você não é mais vice desta cidade.",
+      mairie_pourvue: "Um prefeito já foi eleito.",
+      proposition_introuvable: "Proposta não encontrada."
     },
     de: {
       hors_de_son_pays: 'Dafür müssen Sie in Ihrem eigenen Land sein.',
@@ -292,7 +364,16 @@
       natAction: 'Antrag stellen',
       natOk: 'Ihr Einbürgerungsantrag wurde übermittelt.',
       domOk: 'Sie sind jetzt in {ville} gemeldet.',
-      domTitre: 'Wohnsitz anmelden'
+      domTitre: 'Wohnsitz anmelden',
+      mairieTitre: "Rathaus",
+      mairieAccepteOk: "Sie sind jetzt Bürgermeister von {ville}. Ernennen Sie im Bürgermeisterbüro einen neuen Stellvertreter.",
+      mairieRefusOk: "Sie bleiben Stellvertreter; das Rathaus bleibt bis zur nächsten Kommunalwahl ohne Bürgermeister.",
+      proposition_expiree: "Das Angebot ist abgelaufen (72 Std.).",
+      proposition_close: "Dieses Angebot wurde bereits beantwortet.",
+      reserve_a_l_adjoint: "Nur der betroffene Stellvertreter kann antworten.",
+      plus_adjoint: "Sie sind nicht mehr Stellvertreter dieser Stadt.",
+      mairie_pourvue: "Es wurde bereits ein Bürgermeister gewählt.",
+      proposition_introuvable: "Angebot nicht gefunden."
     }
   };
   function langue() {
@@ -312,7 +393,7 @@
   }
   // Motif d'un refus serveur ; null si la raison n'est pas l'une des nouvelles règles.
   function motifNationalite(raison) {
-    return raison && T.fr[raison] && !/^(investir|nat|dom)[A-Z]/.test(raison) ? texteNationalite(raison) : null;
+    return raison && T.fr[raison] && !/^(investir|nat|dom|mairie)[A-Z]/.test(raison) ? texteNationalite(raison) : null;
   }
   // Nationalité du joueur courant (repli sur le pays courant tant que la fiche n'est pas relue).
   function maNationalite() {
@@ -320,6 +401,23 @@
     const s = (typeof state !== 'undefined' && state) || global.state || {};
     return s.nationalite || (s.char && s.char.nationalite) || s.country || null;
   }
+  // Départ d'un maire (Fred, 18/11/2026) : réponse de l'adjoint à la proposition (boutons du courrier).
+  async function repondreSuccessionMairie(id, accepte) {
+    const oui = accepte === true || accepte === 'true';
+    const r = typeof global.sbRpcVerdict === 'function'
+      ? await global.sbRpcVerdict('maire_succession_repondre', { p_id: String(id || ''), p_accepte: oui }).catch(() => null) : null;
+    if (!r || r.ok !== true) {
+      global.showToast(texteNationalite('mairieTitre'), (r && motifNationalite(r.raison)) || (r && r.raison) || '—', false);
+      return;
+    }
+    const s = (typeof state !== 'undefined' && state) || global.state;
+    if (oui && r.poste && s) { s.poste = r.poste; if (s.char) s.char.poste = r.poste; }
+    const villeNom = (oui && s && global.WORLD && global.WORLD[s.country] && global.WORLD[s.country][r.ville]?.name) || r.ville || '';
+    global.showToast(texteNationalite('mairieTitre'), oui ? texteNationalite('mairieAccepteOk', { ville: villeNom }) : texteNationalite('mairieRefusOk'), true, oui);
+    if (typeof global.addJournalEntry === 'function') global.addJournalEntry(oui ? 'Vous devenez maire de ' + villeNom + '.' : 'Vous déclinez la mairie et restez adjoint.', oui ? 'event-good' : 'event-info');
+    if (typeof global.updateUI === 'function') global.updateUI();
+  }
+  global.repondreSuccessionMairie = repondreSuccessionMairie;
   global.RPNationaliteI18n = { textes: T, langue, texte: texteNationalite };
   global.texteNationalite = texteNationalite;
   global.motifNationalite = motifNationalite;

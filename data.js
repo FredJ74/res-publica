@@ -11106,7 +11106,6 @@ const PNJ_SOVARKA = {
     // réalité des images »).
     'Tenancier de Buvette (PNJ)': ['Tenancière de Buvette (PNJ)', 'Tenancière de la buvette'],
     'Commentateur Sportif (PNJ)': ['Commentatrice Sportive (PNJ)', 'Commentatrice du stade'],
-    'Delegue Morel (PNJ)': 'Délégué Tserenjav Dachiev (PNJ)',
     'Directeur Fabre (PNJ)': 'Directeur Tsyren Badmaïev (PNJ)',
     'Francisca Brel': 'Tuya Sanjieva',
     'Edgar Simore': 'Altan Namsaraïev',
@@ -11124,7 +11123,6 @@ const PNJ_SOVARKA = {
     'Tenancier de Buvette (PNJ)': ['Avdotia Doubova (PNJ)', 'Tenancière de la buvette'],
     'Bookmaker Officiel (PNJ)': ['Iossif Borissov (PNJ)', 'Guichetier du Bureau d\'État des pronostics'],
     'Meneur des Supporters (PNJ)': ['Stiopa « le Tambour » Ossipov (PNJ)', 'Meneur des supporters'],
-    'Delegue Morel (PNJ)': 'Délégué Prokofi Panov (PNJ)',
     'Directeur Fabre (PNJ)': 'Directeur Platon Iermakov (PNJ)',
     'Francisca Brel': 'Varvara Kozlova',
     'Edgar Simore': 'Efim Iakovlev',
@@ -11669,8 +11667,6 @@ function CHAMBRE_HOPITAL_ORDRES_SOVARKA() { return CHAMBRE_HOPITAL_ORDRES(); }
   for (const [ville, nom] of Object.entries(cites)) {
     let ctx = contexte(ville, 'hotel-mineur');
     if (ctx) ctx.desc = ctx.desc || ('Hôtel modeste de ' + nom + '. Clientèle ouvrière.');
-    ctx = contexte(ville, 'siege-syndical');
-    if (ctx) ctx.desc = ctx.desc || ('Le siège du syndicat ouvrier de ' + nom + '.');
     ctx = contexte(ville, 'usine-principale');
     if (ctx) ctx.desc = ctx.desc || ('L\'usine principale de ' + nom + ', propriété de l\'État.');
     ctx = contexte(ville, 'dispensaire-public-v');
@@ -12970,17 +12966,8 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     pnj('Oyuuna Tsydenova (PNJ)', 'Hôtesse d’accueil du centre d’affaires', 'hotesse',
       'Starovka_portrait_centre-affaires_oyuuna-tsydenova')
   ]);
-  // Batbayar possède déjà sa fiche. Son siège n'est pas encore dans cite.buildings :
-  // portrait raccordé sans créer de bâtiment ni inventer son emplacement.
-  const syndicat = cite.buildingContext['siege-syndical']?.roomOverrides?.bureau_syndical?.persons;
-  if (!Array.isArray(syndicat) || syndicat.length !== 1
-      || syndicat[0].name !== 'Délégué Tserenjav Dachiev (PNJ)') {
-    throw new Error('Portrait Starovka : délégué syndical inattendu');
-  }
-  installer('siege-syndical', 'bureau_syndical', [
-    { ...syndicat[0], photoUrl: base + 'Starovka_portrait_syndicat_tserenjav-dachiev.webp',
-      photoPos: '50% 30%' }
-  ]);
+  // Siège syndical de Starovka retiré le 18/11/2026 (Fred) : Tserenjav Dachiev et son portrait passent au
+  // Bureau du syndicat national de la mairie (bloc SYNDICAT_NATIONAL_SOVARKA_20261118).
 })();
 
 // PNJ_STAROVKA_PERSONNALITES_20261118 — décisions de Fred (18/11/2026, nuit ; GAME-DESIGN-NOVOMIRSK.md,
@@ -13076,7 +13063,6 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
   renommer('stade', 'guichet_paris', 'Bookmaker Officiel', 'Chingis Balzhinimaev', 'Bookmaker officiel');
   renommer('stade', 'siege_supporters', 'Meneur des Supporters', 'Solbon Radnaev', 'Meneur des supporters');
   renommer('stade', 'boutique', 'Vendeur des accessoires de Starovka', 'Semion Charfov', 'Vendeur des accessoires');
-  fiche('siege-syndical', 'bureau_syndical', 'Délégué Tserenjav Dachiev', 'tserenjav_dachiev');
   // Règle 1 (Fred, 18/11/2026) : un PNJ en poste reste dans sa pièce quand un PJ prend le poste, et devient
   // conseiller du titulaire (toujours référent) ; son rôle affiché suit le titulaire réel.
   function conseiller(batiment, piece, nom, job, posteCity, rolePnj, rolePj) {
@@ -13092,4 +13078,40 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
   // Habitants
   fiche('maison-starovka', 'piece_maison', 'Dolgor Tsybikova');
   fiche('maison-starovka-ouvrier', 'piece_maison', 'Zorigto Badmaev');
+})();
+
+// SYNDICAT_NATIONAL_SOVARKA_20261118 — décisions de Fred (18/11/2026, « Décisions du 18/11 », points 3 et 7).
+// Une pièce « Bureau du syndicat national » dans les mairies de Novomirsk, Krasnov et Starovka (pas la salle
+// des partis) : adhérer, consulter, quitter, élire le chef, « Manifestation de soutien au président » (chef).
+// Un PNJ non référent par bureau. Images provisoires : celles de la salle des partis de chaque mairie.
+(function () {
+  const ordres = [
+    {fn:'se_syndiquer_etat', label:'Adhérer au syndicat national', i18nKey:'variant.union_state_join', pa:1, cost:50, type:'legal', icon:'ti-users-group', successRate:100, desc:'Adhérer au Syndicat national de Sovarka (1 PA, 50 PSK). Aucune appartenance à un parti n’est demandée.'},
+    {fn:'consulter_syndicat_etat', label:'Consulter le syndicat', i18nKey:'variant.union_state_view', pa:0, cost:0, type:'legal', icon:'ti-list-details', successRate:100, desc:'Chef, effectif et membres du Syndicat national, et règle de la manifestation de soutien au président.'},
+    {fn:'quitter_syndicat_etat', label:'Quitter le syndicat', i18nKey:'variant.union_state_leave', pa:0, cost:0, type:'legal', icon:'ti-door-exit', successRate:100, desc:'Rendre sa carte du Syndicat national.'},
+    {fn:'declencher_election_syndicat_etat', label:'Déclencher une élection', i18nKey:'variant.union_state_election', pa:1, cost:0, type:'legal', icon:'ti-ballot', successRate:100, desc:'Réservé aux syndiqués : élection du chef du Syndicat national, 3 jours de candidatures puis 3 jours de vote.'},
+    {fn:'manifestation_soutien_president', label:'Manifestation de soutien au président', i18nKey:'variant.union_state_rally', pa:0, cost:0, type:'legal', icon:'ti-flag', successRate:100, requiresChefSyndicatEtat:true, desc:'Réservé au chef du syndicat, depuis ce bureau : 10 syndiqués au moins, une par jour et par ville. Les syndiqués présents dans la ville défilent (2 PA chacun, sauf à 3 PA ou moins).'}
+  ];
+  const desc = 'Le bureau du Syndicat national de Sovarka, à la mairie : drapeaux rouges, tableau des médailles du travail et affiches des colonies de vacances. On y adhère, on y élit le chef et on y prépare les manifestations de soutien au président.';
+  const bureaux = [
+    ['capitale', 'mairie-capitale', 'images/Sovarka/Novomirsk/Novomirsk_mairie_salle_partis_politiques.webp', 'Lev Lozungov', 'lev_lozungov', null],
+    ['ville_b', 'mairie', 'images/Sovarka/Krasnov/Krasnov_mairie_salle_partis.webp', 'Anatoli Transparantov', 'anatoli_transparantov', null],
+    ['ville_a', 'mairie', 'images/Sovarka/Starovka/Starovka_mairie_salle_partis.webp', 'Tserenjav Dachiev', 'tserenjav_dachiev', 'images/Sovarka/Starovka/Starovka_portrait_syndicat_tserenjav-dachiev.webp']
+  ];
+  for (const [ville, batiment, image, nom, profil, portrait] of bureaux) {
+    const cite = WORLD.soviet && WORLD.soviet[ville];
+    if (!cite || !cite.buildings.includes(batiment)) throw new Error('Bureau du syndicat national : mairie absente (' + ville + ')');
+    cite.buildingContext = cite.buildingContext || {};
+    // L'ancien siège syndical sans façade (hors de cite.buildings) disparaît de Sovarka.
+    delete cite.buildingContext['siege-syndical'];
+    const ctx = cite.buildingContext[batiment] = cite.buildingContext[batiment] || {};
+    ctx.roomsExtra = Object.assign({}, ctx.roomsExtra || {}, {
+      bureau_syndicat_national: {
+        name: 'Bureau du syndicat national', imageBg: 'linear-gradient(135deg,#1a0808,#2a0e0e)', desc, imageUrl: image,
+        persons: [Object.assign({ name: nom + ' (PNJ)', role: 'Délégué du Syndicat national', rel: 'neutral', job: 'syndicaliste', profilId: profil },
+          portrait ? { photoUrl: portrait, photoPos: '50% 30%' } : {})],
+        orders: ordres.map(o => Object.assign({}, o))
+      }
+    });
+  }
 })();

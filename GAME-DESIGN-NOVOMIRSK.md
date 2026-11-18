@@ -1115,7 +1115,7 @@ Consigne culturelle commune des Bouriates de Starovka : [`GAME-DESIGN-STAROVKA-B
 - *Stade (Partizan de Starovka)* : Viktor Morozko, entraîneur (R football) ; Altana Tsyrendashieva, commentatrice ; Nastia Ponchikova, buvette ; Chingis Balzhinimaev, bookmaker ; Solbon Radnaev, meneur des supporters ; Semion Charfov, accessoires.
 - *Habitants et syndicat* : Dolgor Tsybikova (chalet vert) ; Zorigto Badmaev (chalet bleu) ; Batbayar Dachiev, délégué du syndicat d'État.
 
-## Décisions du 18/11/2026 (Fred, feu vert de codage) — EN COURS DE CODAGE (Claude)
+## Décisions du 18/11/2026 (Fred, feu vert de codage) — CODÉ le 18/11/2026 (Claude, branche `claude/decisions-20261118`)
 
 ### 1. PNJ de Starovka
 - Renommages (doublons de noms) : Commandant Gleb Ledokolov → **Commandant Arseni Ledokolov** ; Batbayar Dachiev → **Tserenjav Dachiev**. Écran, serveur (titulaire PNJ, référents), fiches.
@@ -1135,7 +1135,7 @@ Consigne culturelle commune des Bouriates de Starovka : [`GAME-DESIGN-STAROVKA-B
 - Ordre du **chef du syndicat d'État**, possible seulement si le syndicat compte **au moins 10 syndiqués**. **Une seule par jour et par ville.** Lancée dans la ville du bureau du syndicat national (point 7).
 - Tous les syndiqués présents dans la ville participent automatiquement, quel que soit leur domicile, et paient **2 PA** chacun. Un syndiqué qui a **3 PA ou moins** ne participe pas et compte comme absent.
 - **Taux** = syndiqués présents ÷ syndiqués domiciliés dans la ville (les renforts peuvent faire dépasser 100 %).
-- **Effet sur la POP du président** : au-dessus de 50 %, +1 par tranche de 5 % (plafond +10) ; à 50 % pile, rien ; en dessous, −1 par tranche de 5 % (désaveu). Ex. 100 % → +10 ; 40 % → −2. Sans domiciliés dans la ville, le taux est compté à 100 % si au moins un syndiqué participe.
+- **Effet sur la POP du président** : au-dessus de 50 %, +1 par tranche de 5 % (plafond +10) ; à 50 % pile, rien ; en dessous, −1 par tranche de 5 % (désaveu). Ex. 100 % → +10 ; 40 % → −2. Au dénominateur, au moins 1 (sans domiciliés, chaque participant compte pour 100 %). Président PNJ ou présidence vacante : aucun effet (la popularité n'est suivie que pour un joueur) — choix de Claude.
 - Résultat publié dans le journal d'événements et dans la presse du jour (participation, effet sur le président).
 - Légale : personne ne devient hors-la-loi.
 
@@ -1158,6 +1158,7 @@ Consigne culturelle commune des Bouriates de Starovka : [`GAME-DESIGN-STAROVKA-B
 - Une pièce séparée **« Bureau du syndicat national »** dans les mairies de Novomirsk, Krasnov et Starovka (pas la salle des partis).
 - Toutes les prérogatives du syndicat d'État y sont : adhérer, quitter, gestion par le chef, ordre « Manifestation de soutien au président » (lancé dans la ville du bureau). Fonctionnement des syndicats de Républia, adapté au syndicat unique d'État (un seul syndicat national, sans blocus). L'adhésion ne demande pas d'être membre d'un parti.
 - Un PNJ par bureau, non référent, relié à DeepSeek, bureaucrate jovial et fier, qui ne comprend pas l'idée de grève (« le travailleur ne bloque pas son propre outil ») et vante fêtes du travail, médailles et colonies de vacances : Starovka **Tserenjav Dachiev** (déplacé de l'ancien siège) ; Krasnov **Anatoli Transparantov** ; Novomirsk **Lev Lozungov**. Fiches limitées aux règles réellement codées.
+- Chef initial : Lev Lozungov (PNJ, Novomirsk), remplaçable par l'élection du chef (moteur générique des organisations) — choix de Claude. Adhésion 1 PA + 50 PSK, comme le syndicat des dockers.
 - L'ancien siège syndical sans façade de Starovka est retiré (et tout siège syndical de Sovarka devenu inutile), sans toucher à la Républia.
 - Images : provisoires (cohérentes avec les pièces de la mairie) ; pièce et portraits à faire générer par ChatGPT.
 
