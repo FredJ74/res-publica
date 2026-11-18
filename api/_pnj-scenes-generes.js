@@ -6115,7 +6115,9 @@ export const SCENES_PNJ = {
     "ville": "Starovka",
     "batiment": "Gare de Starovka",
     "piece": "Hall de la gare de Starovka",
-    "personnes": []
+    "personnes": [
+      "Gombo Zhigzhitov"
+    ]
   },
   "[\"soviet\",\"ville_a\",\"centre-artisanal\",\"travees\"]": {
     "pays": "Sovarka",
