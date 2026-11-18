@@ -784,6 +784,7 @@ function openPnjModal(encodedPnj, options = null) {
     decoEl.textContent = '';
     herosDecorationsDans(decoEl, pnjKey);
   }
+  if (typeof afficherSymptomesDans === 'function' && traitEl) afficherSymptomesDans(traitEl, pnjKey);
   (async () => {
     if (typeof sbGetMariageActif !== 'function') return;
     const mariage = await sbGetMariageActif(pnjKey).catch(() => null);

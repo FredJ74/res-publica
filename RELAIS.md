@@ -8,6 +8,12 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Maladies, péremption et climat — lot 1 : socle des maladies (Claude, 18/11/2026, soir)
+- **Branche `claude/maladies-lot1-20261118`** ; décisions et découpage en 5 lots dans `GAME-DESIGN-MALADIES-CLIMAT.md` § 11.
+- **Migrations APPLIQUÉES** : `20261118060000_maladies_socle` (essai en transaction annulée d'abord), `20261118060500_maladies_nom_medicament`.
+- **Codé** : catalogue `maladies_parametres` (4 maladies, tout réglable par le MJ), `personnages_maladies`, malus via `effets_actifs`, plafond 15 PA (grippe) au Dormir et sur les aliments, bonus d'arme supprimé dans les batailles (gueule de bois), guérison au Dormir après médicament (refusé sans la maladie), viande crue 15 %, alcool 30 % dès le 3e verre (tournées, trinquer chez l'habitant), pharmacie (Novomirsk + salle des ventes de l'usine de Luthécia, stock journalier, prix 2 × prix de base = 44), symptômes des présents dans la fenêtre d'un personnage, état de santé sous les caractéristiques, page MJ « Maladies » (`admin-maladies.js`).
+- **À valider par Fred** : point de vente en Républia (usine de Luthécia faute de pharmacie) ; prix unique 44 ; autres façons de boire (verre offert du restaurant, minibar) non encore comptées.
+- **Lots suivants** : 2 péremption/avarie/réception/furet ; 3 socle climat ; 4 blizzard et contagion ; 5 brouillard, orage, crue, canicule.
 ### Décisions du 18/11 — Starovka, kolkhoze, syndicat d'État, nationalité, départ du maire, branchement i18n (Claude, 18/11/2026)
 - **Branche `claude/decisions-20261118`** (part de #1115 et #1114). Décisions consignées dans `GAME-DESIGN-NOVOMIRSK.md` (« Décisions du 18/11/2026 », points 1 à 7) et `GAME-DESIGN-ELECTIONS.md`.
 - **Traduction (point 6)** : le branchement des textes dont la traduction existe déjà (`resource-review-binding`) est **confié à Claude jusqu'au retour de Codex le 20/11 au soir**. Un fichier ou groupe de fichiers par PR ; fichiers du goulag exclus (chantier de Codex).

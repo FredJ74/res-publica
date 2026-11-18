@@ -1,8 +1,7 @@
 # Maladies, péremption des aliments et événements climatiques
 
 Décisions de Fred du 18/11/2026 (après-midi), consignées depuis claude.ai.
-**État : rien n'est codé.** Le chantier est confié à Claude Code, après son chantier en cours
-(« Décisions du 18/11 » et branchement des traductions). Socle commun : tous les empires,
+**État : en cours (Claude Code, à partir du 18/11/2026 au soir), par lots — voir § 11.** Socle commun : tous les empires,
 sauf mention contraire. Tout texte affiché est écrit dans les neuf langues.
 
 ## 1. Principe d'architecture
@@ -161,3 +160,36 @@ sauf mention contraire. Tout texte affiché est écrit dans les neuf langues.
 - **Gel tardif à Krasnov** : chute de la production des fermes (fruits et légumes, œufs), pénurie.
 - Autres empires : **tempête de sable** à Al-Khalija (port fermé, gastro-entérite) ; **ouragan** et
   **dengue** à El Estado (port fermé, moustiquaire comme protection).
+
+## 11. Mise en œuvre (Claude Code, 18/11/2026)
+
+Découpage en lots, **une PR par lot**, textes dans les neuf langues, fichiers du goulag jamais touchés.
+
+| Lot | Contenu |
+|---|---|
+| 1 | Socle des maladies : catalogue paramétrable, maladies des personnages, malus, guérison, médicaments en pharmacie, risques viande crue et alcool, symptômes visibles, outils de MJ des maladies |
+| 2 | Péremption à 10 jours, aliments avariés, contrôle à réception et bandelettes, furet renifleur |
+| 3 | Socle des événements climatiques : calendrier, alerte 24 h, filtres visuels, chantiers bloqués, outils de MJ |
+| 4 | Blizzard (graisses, tableau de grippe) et contagion de la grippe |
+| 5 | Brouillard, orage et groupe électrogène, crue et sacs de sable, canicule et coup de chaleur |
+
+### Choix d'implémentation du lot 1
+
+- **Catalogue** `maladies_parametres` (une ligne par maladie) : tous les paramètres du § 2 y sont, modifiables par le MJ (page
+  d'administration) ; le nom et le symptôme **temporaires** du MJ s'affichent tels quels (texte libre), sinon le texte des
+  neuf langues du catalogue client.
+- **Maladies des personnages** `personnages_maladies` (une maladie active au plus par sorte) ; les malus de caractéristiques
+  passent par le mécanisme existant des effets temporaires (`effets_actifs`), déjà lu par `getStatEffective`.
+- **Grippe** : plafond de 15 PA appliqué au Dormir et aux gains immédiats ; les PA déjà au-dessus de 15 à la contraction ne
+  sont pas retirés.
+- **Médicament** : consommé, il marque la maladie « traitée » ; elle disparaît au prochain Dormir. Sans la maladie
+  correspondante, le médicament est refusé (il n'est pas gaspillé ; pas de prise préventive).
+- **Points de vente** : la pharmacie d'État de Novomirsk (Sovarka) et, faute de pharmacie en Républia, la **salle des ventes
+  de l'usine pharmaceutique de Luthécia** (proposition, à valider par Fred). Stock journalier par point de vente,
+  réglable par le MJ (0 = pénurie).
+- **Alcool** : compteur de verres par personnage et par jour de Paris, alimenté par chaque façon de boire (tournées, trinquer,
+  verre offert) ; les deux premiers sont sans risque.
+- **Symptômes** : lus par le serveur pour les seules personnes présentes dans la pièce de l'observateur ; le nom de la maladie
+  n'est jamais transmis aux autres joueurs.
+- **Règle des 7 jours retrouvée** : `inventaire_consommer` donnait +1 PA à un aliment de 7 jours ou moins et −1 PA au-delà.
+  Elle sera remplacée au lot 2 par la péremption à 10 jours.

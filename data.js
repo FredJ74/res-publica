@@ -2429,7 +2429,7 @@ const WORLD = {
           imagesAVenir: false,
           desc: "L'usine pharmaceutique d'État de Sovarka. Des cheminées propres, des blouses blanches et un slogan au fronton : « La santé du peuple est un devoir du Plan ».",
           roomOverrides: {
-            salle_ventes: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_Pharmanov_accueil.webp', excludeOrders: ['acheter_sels_ammoniaque'] },
+            salle_ventes: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_Pharmanov_accueil.webp', excludeOrders: ['acheter_sels_ammoniaque', 'pharmacie_medicaments'] },
             // Salaire de production a l'echelle de Sovarka (Fred, 06/11/2026 : entre 15 et 20 PSK ;
             // serveur : salaires_production_pays, migration 20261106184000).
             salle_production: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_Pharmanov_production.webp', excludeOrders: ['produire_medicaments', 'produire_desinfectant'], orders: [
@@ -8078,7 +8078,7 @@ const BUILDINGS = {
         desc: "Un long comptoir de bois verni, une balance de précision et un registre où chaque boîte vendue est consignée.",
         persons: [{name:'Valentina Pilioulkina (PNJ)', role:'Pharmacienne', rel:'neutral', job:'pharmacienne'}],
         orders: [
-          {fn:'pharmacie_medicaments', label:'Acheter des médicaments', pa:0, cost:0, type:'legal', icon:'ti-pill', successRate:100, desc:"Médicaments vendus au comptoir.", bientot:"Bientôt disponible : les médicaments de la pharmacie seront définis prochainement."}
+          {fn:'pharmacie_medicaments', label:'Acheter des médicaments', pa:0, cost:0, type:'legal', icon:'ti-pill', successRate:100, desc:"Médicaments vendus au comptoir."}
         ]
       }
     }
@@ -8690,6 +8690,8 @@ const BUILDINGS = {
           // "Reveiller" est une mecanique centrale du scrutin, la rendre dependante de la
           // production du jour la couperait sans raison lisible. Le prix alimente malgre tout la
           // caisse de l'usine, comme la vente directe : aucun circuit economique n'est contourne.
+          // Maladies (Fred, 18/11/2026) : faute de pharmacie en Républia, les médicaments se vendent ici (lot 1).
+          {fn:'pharmacie_medicaments', label:'Acheter des médicaments', pa:0, cost:0, type:'legal', icon:'ti-pill', successRate:100, desc:"Médicaments vendus au comptoir."},
           {fn:'acheter_sels_ammoniaque', label:'Acheter des sels d\'ammoniaque', pa:0, cost:0, type:'legal', icon:'ti-flask', successRate:100, desc:'30 FR le flacon. Ranime un député endormi à l\'Assemblée. Aucune limite de stock propre.'}
         ]
       },
