@@ -11962,6 +11962,13 @@ function CHAMBRE_HOPITAL_ORDRES_SOVARKA() { return CHAMBRE_HOPITAL_ORDRES(); }
   Object.assign(contexte('ville_a', 'armurerie'), { name: 'Chasse et Pêche', desc: 'Le magasin de chasse de Starovka (« Охота и рыбалка ») : fusils, couteaux, filets et hameçons pour la pêche sous la glace.', persons: [pnj('Bato Tsyrenov', 'Armurier', 'commercant')] });
   Object.assign(contexte('ville_a', 'capitaine-sauvage'), { name: 'Restaurant « Entre terre et mer »', desc: 'Le restaurant de Starovka (« Между землёй и морем ») : poisson de la mer de glace et viande de renne, servis près du poêle.' });
   Object.assign(piece(contexte('ville_a', 'capitaine-sauvage'), 'salle_principale'), { persons: [pnj('Sesegma Badmaeva', 'Serveuse', 'serveur')] });
+  // Dîner d'affaires du restaurant de Starovka à 40 PSK (prix validé par Fred, 18/11/2026) ; le serveur
+  // tarife le même lieu à 40 (diner_commerce_lieu_interne, migration 20261118010000).
+  (function () {
+    const salle = piece(contexte('ville_a', 'capitaine-sauvage'), 'salle_principale');
+    salle.excludeOrders = (salle.excludeOrders || []).concat(['diner_affaires']);
+    salle.orders = (salle.orders || []).concat([{fn:'diner_affaires', label:'Diner d\'affaires', pa:2, cost:40, type:'legal', icon:'ti-wine', successRate:100, desc:'Invitez un PJ present dans la piece a diner, a vos frais. Si accepte : consomme 2 menus + 1 biere du restaurant. +10 Sante, +2 Moral, +5 INF, +3 PA au prochain Dormir pour chacun. Aucun cout si refuse ou si le restaurant n\'a pas de quoi servir.'}]);
+  })();
   // STAROVKA_COMMERCES_DEUX_WEBP_20261116 — les seules images des commerces de Starovka.
   Object.assign(piece(contexte('ville_a', 'capitaine-sauvage'), 'salle_principale'), {
     imageUrl: 'images/Sovarka/Starovka/Starovka_restaurant_entre_terre_mer_salle_principale.webp'

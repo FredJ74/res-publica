@@ -396,12 +396,13 @@ async function offreServir(id) {
     p_organisation: directeur ? null : ((document.getElementById('offre-orga') || {}).value || null),
     p_fonds: src[1] || null
   }).catch(function () { return null; });
-  if (!r || r.ok !== true) { showToast(texteEquip('refuseT', 'Refusé'), equipementsRefus(r), false); return; }
+  // Règle des fenêtres de vente (18/11/2026) : refus = fenêtre ouverte avec le motif ; vente conclue = fenêtre fermée.
+  if (!r || r.ok !== true) { venteRefusDansFenetre(texteEquip('refuseT', 'Refusé'), equipementsRefus(r)); return; }
   if (src[0] === 'inventaire' && typeof sbAdopterInventaireServeur === 'function') {
     sbAdopterInventaireServeur(r); if (typeof renderInventory === 'function') renderInventory();
   }
   showToast(texteEquip('venteConclue', 'Vente conclue'), texteEquip('venteDetail', '{q} {res} vendus {montant} ({vendeur}). Livraison au cron de minuit.', {q: r.quantite, res: offresLibelleRessource(r.ressource), montant: r.montant, vendeur: r.vendeur}), true, true);
-  ouvrirOffresAchat();
+  fermerModalPostes();
 }
 
 // ---------------------------------------------------------------------------
