@@ -319,6 +319,25 @@ async function mangerOeufs() {
   if (typeof addJournalEntry === 'function') addJournalEntry('Vous mangez trois œufs : +' + v.bonus + ' PA au prochain sommeil.', 'event-good');
 }
 
+// Viande et laitages bruts (Fred, 18/11/2026) : se mangent partout, gratuits, +1 PA au prochain sommeil ;
+// un seul repas brut compté entre deux sommeils (migration 20261118050000, le serveur décide).
+Object.assign(PROV_MOTIFS, provRaisons(['repas_brut_deja_pris', 'pas_de_matiere', 'matiere_non_comestible', 'confiture_deja_prise']));
+const PROV_MATIERES_COMESTIBLES = ['viande', 'laitages'];
+async function mangerMatiereBrute(cle) {
+  if (!PROV_MATIERES_COMESTIBLES.includes(cle)) return;
+  const v = await provActe('matiere_brute_manger', { p_matiere: cle }, 'manger_' + cle);
+  if (!v) return;
+  if (v.ok !== true) { provRefus(provT('tRawMeal'), v); return; }
+  document.getElementById('modal-postes')?.classList.remove('open');
+  showToast(provT('tRawMeal'), provT('bonusSleep', { bonus: v.bonus }), true, true);
+  if (typeof addJournalEntry === 'function') addJournalEntry('Repas brut (' + cle + ') : +' + v.bonus + ' PA au prochain sommeil.', 'event-good');
+}
+function boutonMangerMatiereBrute(item, style) {
+  if (!item || !PROV_MATIERES_COMESTIBLES.includes(item.stackKey || (item.type === 'matiere_premiere' ? item.matiere : ''))) return '';
+  const cle = item.stackKey || item.matiere;
+  return '<button onclick="mangerMatiereBrute(\'' + cle + '\')" style="' + style + '"><i class="ti ti-tools-kitchen-2"></i> ' + provT('eatRaw_' + cle) + '</button>';
+}
+
 // ---------- GUIDE DES BAIES SAUVAGES (Fred, 15/11/2026 ; migration 20261115103000) ----------
 // 2 PA, +1 INT pendant 24 h, sans cumul ; le guide reste dans l'inventaire. Le serveur décide de tout.
 Object.assign(PROV_MOTIFS, provRaisons(['pas_de_guide', 'effet_deja_actif']));

@@ -622,10 +622,10 @@
     {
       "source": "i18n/sovarka-provinces-resources.js",
       "packed": "i18n/packed/sovarka-provinces-resources.js.br",
-      "sourceBytes": 127767,
-      "packedBytes": 35224,
-      "sourceSha256": "3551fe288a5a2f9716bde24bfff382dc5231685e828bb635b1fd86227f0b04ea",
-      "packedSha256": "54a986d7c9b335b8b0d661c7f497a34bce9c01d94c19feab2750f993c3f04d21"
+      "sourceBytes": 132007,
+      "packedBytes": 36065,
+      "sourceSha256": "159251459f7528b49ac8f7ea5d7621ac33ae4b9505721a1baa2d819aade04662",
+      "packedSha256": "b1e9e909fef88e8bd3e869efb8b4aae0e6913e69cafefd832b82cce51dbbdae8"
     },
     {
       "source": "i18n/sovarka-roles-resources.js",
