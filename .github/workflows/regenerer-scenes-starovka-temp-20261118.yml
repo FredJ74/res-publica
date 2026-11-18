@@ -1,0 +1,31 @@
+name: Regenerer les scenes PNJ pour Starovka
+on:
+  push:
+    branches: [chatgpt/starovka-huit-portraits-20261118]
+    paths:
+      - .github/workflows/regenerer-scenes-starovka-temp-20261118.yml
+permissions:
+  contents: write
+jobs:
+  scenes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Régénérer les scènes PNJ canoniques
+        run: |
+          node outils/generateurs/generer-pnj-lieux-metiers.cjs --scenes-js > /tmp/pnj-scenes-new.js
+          mv /tmp/pnj-scenes-new.js api/_pnj-scenes-generes.js
+          test -s api/_pnj-scenes-generes.js
+          grep -q 'Munko Tsybenov' api/_pnj-scenes-generes.js
+          grep -q 'Soyolma Ayusheeva' api/_pnj-scenes-generes.js
+          grep -q 'Gombo Zhigzhitov' api/_pnj-scenes-generes.js
+      - name: Versionner la synchronisation
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add api/_pnj-scenes-generes.js
+          git diff --cached --check
+          git diff --cached --quiet || (git commit -m "Starovka : synchroniser les scènes serveur avec huit nouveaux PNJ" && git push)
