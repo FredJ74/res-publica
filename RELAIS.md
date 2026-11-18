@@ -8,6 +8,20 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Décisions du 18/11 — Starovka, kolkhoze, syndicat d'État, nationalité, départ du maire, branchement i18n (Claude, 18/11/2026)
+- **Branche `claude/decisions-20261118`** (part de #1115 et #1114). Décisions consignées dans `GAME-DESIGN-NOVOMIRSK.md` (« Décisions du 18/11/2026 », points 1 à 7) et `GAME-DESIGN-ELECTIONS.md`.
+- **Traduction (point 6)** : le branchement des textes dont la traduction existe déjà (`resource-review-binding`) est **confié à Claude jusqu'au retour de Codex le 20/11 au soir**. Un fichier ou groupe de fichiers par PR ; fichiers du goulag exclus (chantier de Codex).
+- **Codé** :
+  - Point 1 : Commandant Arseni Ledokolov et Tserenjav Dachiev (écran, fiches, référent, titulaire) ; fiche de Sayana vérifiée (1 PA + 50 PSK).
+  - Point 2 : « Manger » viande et laitages bruts (+1 PA au prochain Dormir, un repas brut par nuit), confiture (+1, une par nuit) ; articles du kolkhoze livrés en matières (viande, laitages, textile, bois), graisse = objet sans effet ; peau et bois de renne n'étaient pas déposés en inventaire (corrigé).
+  - Point 3 et 7 : syndicat national de Sovarka (`orga_syndicat_etat_soviet`, chef initial Lev Lozungov PNJ), « Bureau du syndicat national » dans les trois mairies (`plateau-sovarka-syndicat.js`), manifestation de soutien au président ; anciens sièges syndicaux de Starovka et Krasnov retirés.
+  - Point 4 : programme par défaut de l'investi ; naturalisation acceptée 7 jours après le dépôt sans réponse.
+  - Point 5 : départ d'un maire (déclencheurs démission, prison, naturalisation, décès ; passe de nuit `maires_departs`), proposition 72 h à l'adjoint (courrier à boutons), tutelle du ministre (min_fin / min_int) ; pas de maire PNJ de secours sur une mairie vacante.
+- **Migrations APPLIQUÉES** : `20261118050000` (alimentation), `20261118051000` (renommages), `20261118052000` (nationalité), `20261118053000` (syndicat), `20261118054000` (départ du maire), `20261118055000` (navigation du bureau syndical).
+- **Tutelle, reste à faire** : la campagne de sécurité et les nominations relisent le poste de la fiche ; elles restent au maire élu.
+- **Traduction** : branches `claude/i18n-branchement-lot1/2/3-20261118` (empilées) ; outil `outils/generateurs/brancher-toasts-i18n.cjs` (markToast après chaque showToast dont la traduction existe, fichiers du goulag refusés).
+- **Bancs anciens** : 31 bancs `.js` lisent `/Users/fredericjasseron/ResPublica/` en dur ; en local ils lisent une vieille copie. Pour les éprouver : copie temporaire avec le chemin remplacé. Les bancs navigateur demandent `CHROMIUM_PATH`.
+
 ### PNJ de Starovka — personnalités, référents, train, syndicat, kolkhoze (Claude, 18/11/2026, nuit)
 - **Branche `claude/starovka-pnj-referents-20261118`** (inclut la PR #1100 de Codex, culture bouriate, prérequis demandé par Fred). Décisions de Fred consignées dans `GAME-DESIGN-NOVOMIRSK.md`, section « PNJ de Starovka : personnalités et référents ».
 - **Fiches** : 41 fiches de personnalité ajoutées dans `api/_pnj-personnalites.js` (traits donnés par Fred), fiche d'Arkadi Prigovorov mise à jour ; `bouriate:false` sur les PNJ slaves de Starovka (la consigne culturelle bouriate ne leur est plus ajoutée, `api/_pnj-culture-bouriate.js`).

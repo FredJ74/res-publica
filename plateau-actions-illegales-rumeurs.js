@@ -3830,17 +3830,20 @@ const PRODUITS_MARCHE = {
   },
   // Tabac/Presse de Krasnov (14/11/2026) : famille « Presse & papeterie », objets deposes en inventaire
   // par la vente (carte postale a ecrire ; revue d'integration locale, +1 ENT a Krasnov, non cumulable).
+  // Kolkhoze (Fred, 18/11/2026, décisions du soir) : viande et lait de renne = matières viande et laitages
+  // (+1 PA au prochain sommeil en les mangeant), peau = textile, bois de renne = bois, graisse = objet sans effet ;
+  // déposés par le serveur (livraisonServeur). La confiture reste un aliment : +1 PA au prochain sommeil.
   // Magasin du kolkhoze de Starovka (Fred, 18/11/2026) : six articles, alimentaire et non alimentaire, prix PNJ
   // par la règle commune (×2). Moteur du commerce PNJ « tabac-presse » (caisse autonome). Jamais transmissible.
   kolkhoze_viande_renne: {
-    id: 'kolkhoze_viande_renne', label: 'Viande de renne', familleProduitMarche: 'aliment',
+    id: 'kolkhoze_viande_renne', label: 'Viande de renne', livraisonServeur: true, effets: { matiere: 'viande' },
     desc: 'Un morceau de renne du kolkhoze, découpé le matin même.',
     categorie: 'objet', image: null, icon: 'ti-meat',
     materiaux: { viande: 1 }, pa: 1, portions: 4,
     typesAutorises: ['tabac-presse'], paysAutorises: ['soviet'], villesAutorisees: ['ville_a'], buildingsAutorises: ['magasin-kolkhoze-starovka']
   },
   kolkhoze_lait_renne: {
-    id: 'kolkhoze_lait_renne', label: 'Lait de renne', familleProduitMarche: 'aliment',
+    id: 'kolkhoze_lait_renne', label: 'Lait de renne', livraisonServeur: true, effets: { matiere: 'laitages' },
     desc: 'Un pot de lait de renne, épais et gras, tiré à la ferme.',
     categorie: 'objet', image: null, icon: 'ti-milk',
     materiaux: { laitages: 1 }, pa: 1, portions: 8,
@@ -3854,24 +3857,24 @@ const PRODUITS_MARCHE = {
     typesAutorises: ['tabac-presse'], paysAutorises: ['soviet'], villesAutorisees: ['ville_a'], buildingsAutorises: ['magasin-kolkhoze-starovka']
   },
   kolkhoze_graisse_renne: {
-    id: 'kolkhoze_graisse_renne', label: 'Bocal de graisse de renne', familleProduitMarche: 'aliment',
+    id: 'kolkhoze_graisse_renne', label: 'Bocal de graisse de renne', livraisonServeur: true, effets: { objetSimple: true },
     desc: 'La graisse de renne fondue qui tient chaud tout l\'hiver.',
     categorie: 'objet', image: null, icon: 'ti-jar',
     materiaux: { viande: 1 }, pa: 1, portions: 6,
     typesAutorises: ['tabac-presse'], paysAutorises: ['soviet'], villesAutorisees: ['ville_a'], buildingsAutorises: ['magasin-kolkhoze-starovka']
   },
   kolkhoze_peau_renne: {
-    id: 'kolkhoze_peau_renne', label: 'Peau de renne',
+    id: 'kolkhoze_peau_renne', label: 'Peau de renne', livraisonServeur: true, effets: { matiere: 'textile' },
     desc: 'Une peau tannée, douce et chaude, pour une couverture ou des bottes.',
     categorie: 'objet', image: null, icon: 'ti-feather',
     materiaux: { textile: 1 }, pa: 1, portions: 2,
     typesAutorises: ['tabac-presse'], paysAutorises: ['soviet'], villesAutorisees: ['ville_a'], buildingsAutorises: ['magasin-kolkhoze-starovka']
   },
   kolkhoze_bois_renne: {
-    id: 'kolkhoze_bois_renne', label: 'Bois de renne',
+    id: 'kolkhoze_bois_renne', label: 'Bois de renne', livraisonServeur: true, effets: { matiere: 'bois' },
     desc: 'Une ramure tombée au printemps, polie à la main ; un souvenir de Starovka.',
     categorie: 'objet', image: null, icon: 'ti-antenna',
-    materiaux: { viande: 1 }, pa: 1, portions: 3,
+    materiaux: { bois: 1 }, pa: 1, portions: 3,
     typesAutorises: ['tabac-presse'], paysAutorises: ['soviet'], villesAutorisees: ['ville_a'], buildingsAutorises: ['magasin-kolkhoze-starovka']
   },
   carte_krasnov_place_ours: {
@@ -4971,8 +4974,8 @@ async function commanderProduitCommerce(commerceType, pays, ville, buildingId, r
   // quelle depuis la recette, utilisee uniquement par getStatEffective, Lot 2). Pas de
   // stackable : addToInventory (deja generique, plateau-divers.js) pousse alors un objet a part,
   // charge 1 naturelle, aucune extension du systeme d'inventaire.
-  const effets = recette.familleProduitMarche ? {} : (recette.effets || {});
-  if (recette.familleProduitMarche) {
+  const effets = (recette.familleProduitMarche || recette.livraisonServeur) ? {} : (recette.effets || {});
+  if (recette.familleProduitMarche || recette.livraisonServeur) {
     // L'OBJET EST DEPOSE PAR LA VENTE ELLE-MEME (27 octobre 2026, chantier inventaire) :
     // commerce_vendre_produit_interne pose l'exemplaire (id unique, ville d'origine, dateAchat
     // d'un aliment, carte postale vierge) et rend l'inventaire, que l'ecran adopte.

@@ -323,6 +323,12 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'rejoindre_club_supporters') { doRejoindreClubSupporters(pa, cost); return; }
   if (fn === 'consulter_organigramme_supporters') { doConsulterOrganigrammeSupporters(); return; }
   if (fn === 'se_syndiquer') { doRejoindreSyndicatDockers(pa, cost); return; }
+  // Syndicat national de Sovarka (Fred, 18/11/2026) : bureau du syndicat national des mairies.
+  if (fn === 'se_syndiquer_etat') { if (typeof doAdhererSyndicatEtat === 'function') doAdhererSyndicatEtat(); return; }
+  if (fn === 'consulter_syndicat_etat') { if (typeof doConsulterSyndicatEtat === 'function') doConsulterSyndicatEtat(); return; }
+  if (fn === 'quitter_syndicat_etat') { if (typeof doQuitterSyndicatEtat === 'function') doQuitterSyndicatEtat(); return; }
+  if (fn === 'declencher_election_syndicat_etat') { if (typeof doDeclencherElectionSyndicatEtat === 'function') doDeclencherElectionSyndicatEtat(pa, cost); return; }
+  if (fn === 'manifestation_soutien_president') { if (typeof doManifestationSoutienPresident === 'function') doManifestationSoutienPresident(); return; }
   if (fn === 'consulter_organigramme_syndicat') { doConsulterOrganigrammeSyndicat(); return; }
   if (fn === 'declencher_election_syndicat') { doDeclencherElectionSyndicat(pa, cost); return; }
   if (fn === 'organiser_manifestation_syndicat') { doOrganiserManifestationSyndicat(); return; }

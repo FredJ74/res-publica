@@ -3485,6 +3485,8 @@ async function ouvrirDetailObjetInventaire(idx) {
   if (item.stackKey === 'oeufs' && typeof mangerOeufs === 'function') {
     html += '<button onclick="mangerOeufs()" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer"><i class="ti ti-egg"></i> Manger 3 œufs</button>';
   }
+  // Viande et laitages bruts (Fred, 18/11/2026) : +1 PA au prochain sommeil.
+  if (typeof boutonMangerMatiereBrute === 'function') html += boutonMangerMatiereBrute(item, 'font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
   // Énigme du trésor des Tsars (12/11/2026) : lire le livre, manger un gâteau.
   if (typeof boutonsTresorTsarsObjet === 'function') html += boutonsTresorTsarsObjet(item, 'font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
   if (item.familleProduitMarche === 'aliment' || (item.generique_id === 'encas-a-emporter' && item.recette_id)) {
@@ -3564,6 +3566,7 @@ async function consommerAliment(idx) {
   // L'effet (peremption, PA) reste ici : c'est une regle de jeu, pas une quantite d'inventaire.
   const r = await removeFromInventory(idx, 'consommer');
   if (!r.ok) {
+    if (r.raison === 'confiture_deja_prise' && typeof texteSovProvinces === 'function') { showToast(texteSovProvinces('tJam'), texteSovProvinces('m_confiture_deja_prise'), false); return; }
     showToast('Consommation impossible', messageRefusSortieInventaire(r.raison), false);
     return;
   }
@@ -3577,6 +3580,15 @@ async function consommerAliment(idx) {
   // Ne jamais annoncer une intoxication sans confirmation de fraicheur par le serveur.
   // En cas de reponse ancienne/incomplete, la consommation a eu lieu mais son
   // effet reste inconnu : ne pas inventer un malus.
+  // Confiture d'airelles du kolkhoze (Fred, 18/11/2026) : +1 PA au prochain sommeil, une par nuit.
+  if (r.bonus_differe) {
+    const tp = typeof texteSovProvinces === 'function' ? texteSovProvinces : (k => k);
+    showToast(tp('tJam'), tp('bonusSleep', { bonus: r.bonus_differe }), true, true);
+    addJournalEntry('Vous avez mangé "' + item.name + '" : +' + r.bonus_differe + ' PA au prochain sommeil.', 'event-good');
+    updateUI();
+    if (typeof switchSelfTab === 'function') switchSelfTab('inventaire', null);
+    return;
+  }
   const fraicheurConnue = typeof r.aliment_frais === 'boolean';
   const perime = fraicheurConnue && !r.aliment_frais;
   if (typeof r.pa === 'number') state.pa = r.pa;
@@ -4152,6 +4164,7 @@ function ouvrirDetailObjet(idx) {
   if (item.type === 'drogue') {
     html += '<button onclick="consommerDrogue(' + idx + ')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.5rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer">' + (item.drogue === 'estadine' ? 'Consommer' : 'Fumer') + '</button>';
   }
+  if (typeof boutonMangerMatiereBrute === 'function') html += boutonMangerMatiereBrute(item, 'flex:1;font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.5rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
   if (item.stackKey === 'oeufs' && typeof mangerOeufs === 'function') {
     html += '<button onclick="mangerOeufs()" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.5rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer">Manger 3 œufs</button>';
   }

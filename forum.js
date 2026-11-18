@@ -2959,7 +2959,11 @@ const ACTIONS_MAIL = {
   // OPTION PREMIUM DEMANDÉE PAR LE COLOCATAIRE (13/11/2026) : marqueurs posés par le SERVEUR
   // (logement_premium_demander) ; le titulaire répond d'où qu'il soit. L'argument est le bail.
   premium_oui:      { fn:'logementPremiumDemandeRepondre', n:1, apres:['true'],  label:'✓ Accepter l\'option premium' },
-  premium_non:      { fn:'logementPremiumDemandeRepondre', n:1, apres:['false'], label:'✗ Refuser', refus:true }
+  premium_non:      { fn:'logementPremiumDemandeRepondre', n:1, apres:['false'], label:'✗ Refuser', refus:true },
+  // DÉPART D'UN MAIRE (18/11/2026) : marqueurs posés par le SERVEUR (maire_depart_ouvrir_interne) ; l'adjoint
+  // répond d'où qu'il soit, dans les 72 h. L'argument est l'identifiant de la proposition.
+  maire_oui:        { fn:'repondreSuccessionMairie', n:1, apres:['true'],  label:'✓ Devenir maire' },
+  maire_non:        { fn:'repondreSuccessionMairie', n:1, apres:['false'], label:'✗ Rester adjoint', refus:true }
 };
 
 // Pose un marqueur dans un corps de mail. Les arguments sont nettoyes des separateurs pour qu'un

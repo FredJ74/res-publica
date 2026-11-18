@@ -434,14 +434,6 @@ export const PNJ_SOVARKA_RENOMMES = [
  },
  {
   "ville": "Starovka",
-  "ancien": "Delegue Morel",
-  "nouveau": "Délégué Batbayar Dachiev",
-  "role": null,
-  "id": "sovarka_delegue_batbayar_dachiev",
-  "source": "delegue_morel"
- },
- {
-  "ville": "Starovka",
   "ancien": "Directeur Fabre",
   "nouveau": "Directeur Tsyren Badmaïev",
   "role": null,
@@ -559,14 +551,6 @@ export const PNJ_SOVARKA_RENOMMES = [
   "role": "Meneur des supporters",
   "id": "sovarka_stiopa_le_tambour_ossipov",
   "source": "meneur_des_supporters"
- },
- {
-  "ville": "Krasnov",
-  "ancien": "Delegue Morel",
-  "nouveau": "Délégué Prokofi Panov",
-  "role": null,
-  "id": "sovarka_delegue_prokofi_panov",
-  "source": "delegue_morel"
  },
  {
   "ville": "Krasnov",

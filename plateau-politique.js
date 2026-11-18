@@ -203,6 +203,17 @@ const COUT_PA_NOMINATION_DEFAUT = 1;
 // avec ses propres prerogatives.
 //
 // Un seul point de verite : toute garde « est-ce le Maire ? » passe par ici.
+// DÉPART D'UN MAIRE (Fred, 18/11/2026) : sans maire ni adjoint, la mairie passe sous la tutelle du ministre
+// (Économie collective en Sovarka, Intérieur ailleurs). Il a les boutons du bureau du maire de cette ville,
+// jamais ceux de l'adjoint ; le serveur revérifie (maire_tutelle_ici_interne).
+function tutelleMairieIci(posteId) {
+  if (typeof state === 'undefined' || !state) return false;
+  const ministre = state.country === 'soviet' ? 'min_fin' : 'min_int';
+  if (posteId !== ministre || !['bureau_maire', 'bureau_maire_local'].includes(state.currentRoom)) return false;
+  const cycle = (typeof CYCLES_ELECTORAUX !== 'undefined' && CYCLES_ELECTORAUX[state.country]) ? CYCLES_ELECTORAUX[state.country]['maire_' + (state.currentCity || 'capitale')] : null;
+  return !!(cycle && !cycle.eluId && cycle.tutelle);
+}
+
 function estPosteMaire(posteId) {
   if (typeof posteId !== 'string' || posteId === '') return false;
   if (posteId === 'maire_adjoint') return false;
@@ -431,14 +442,14 @@ async function demanderNominationPoste(posteId, posteName, villeCible) {
 const DEMARCHES_ETAT_CIVIL_PAR_BATIMENT = {
   'mairie-capitale': [
     { fn:'acte_officiel', label:'Demander un acte officiel', pa:1, cost:50, icon:'ti-file-certificate', successRate:100, desc:'Naissance, mariage, document administratif.' },
-    { fn:'demander_naturalisation', label:'Demander la naturalisation', pa:2, cost:50, icon:'ti-passport', successRate:100, desc:'Demander la nationalite du pays ou vous vous trouvez. Decision du ministre de l\'Interieur de ce pays ; acceptee au bout de 7 jours sans ministre joueur.' },
+    { fn:'demander_naturalisation', label:'Demander la naturalisation', pa:2, cost:50, icon:'ti-passport', successRate:100, desc:'Demander la nationalite du pays ou vous vous trouvez. Le ministre de l\'Interieur de ce pays peut repondre a partir de 48 h ; sans reponse, acceptee 7 jours apres le depot.' },
     { fn:'changer_domicile', label:'Se domicilier ici', pa:1, cost:50, icon:'ti-home', successRate:100, desc:'Faire de cette ville votre domicile officiel : municipales, candidature a la mairie, logements reserves.' },
     { fn:'demander_mariage', label:'Demander en mariage', pa:1, cost:0, icon:'ti-heart', successRate:100, desc:'Envoyer une demande en mariage a un autre PJ. Necessitera une ceremonie a la mairie pour officialiser.' },
     { fn:'officialiser_mariage', label:'Officialiser un mariage', pa:2, cost:200, icon:'ti-heart-handshake', successRate:100, desc:'Celebrer le mariage. Les deux futurs epoux doivent etre presents.' }
   ],
   'mairie': [
     { fn:'acte_officiel', label:'Demander un acte officiel', pa:1, cost:50, icon:'ti-file-certificate', successRate:100, desc:'Naissance, mariage, document administratif.' },
-    { fn:'demander_naturalisation', label:'Demander la naturalisation', pa:2, cost:50, icon:'ti-passport', successRate:100, desc:'Demander la nationalite du pays ou vous vous trouvez. Decision du ministre de l\'Interieur de ce pays ; acceptee au bout de 7 jours sans ministre joueur.' },
+    { fn:'demander_naturalisation', label:'Demander la naturalisation', pa:2, cost:50, icon:'ti-passport', successRate:100, desc:'Demander la nationalite du pays ou vous vous trouvez. Le ministre de l\'Interieur de ce pays peut repondre a partir de 48 h ; sans reponse, acceptee 7 jours apres le depot.' },
     { fn:'changer_domicile', label:'Se domicilier ici', pa:1, cost:50, icon:'ti-home', successRate:100, desc:'Faire de cette ville votre domicile officiel : municipales, candidature a la mairie, logements reserves.' },
     { fn:'demander_mariage', label:'Demander en mariage', pa:1, cost:0, icon:'ti-heart', successRate:100, desc:'Envoyer une demande en mariage a un autre PJ. Necessitera une ceremonie a la mairie pour officialiser.' },
     { fn:'officialiser_mariage', label:'Officialiser un mariage', pa:2, cost:200, icon:'ti-heart-handshake', successRate:100, desc:'Celebrer le mariage. Les deux futurs epoux doivent etre presents.' }
@@ -4162,7 +4173,7 @@ function renderRoomActions(room, buildingId, roomId) {
           const infoAmbassade = (state.ambassadesOuvertesCache || []).find(a => a.empire === empireDuBureau);
           needsPost = !(infoAmbassade && infoAmbassade.ambassadeur === state.char?.name);
         }
-        else if (reqPost === 'maire') needsPost = !estPosteMaire(posteId); // exclut maire_adjoint (correctif Lot 4.3)
+        else if (reqPost === 'maire') needsPost = !estPosteMaire(posteId) && !tutelleMairieIci(posteId); // exclut maire_adjoint (correctif Lot 4.3)
         else needsPost = posteId !== reqPost;
       }
     }
@@ -4212,6 +4223,10 @@ function renderRoomActions(room, buildingId, roomId) {
     if (o.requiresChefSyndicatDockers) {
       const chefReel = typeof getChefSyndicatDockersPSM === 'function' ? getChefSyndicatDockersPSM() : null;
       needsChefSyndicat = chefReel !== (state.char?.name || '');
+    }
+    // Syndicat national de Sovarka (18/11/2026) : même garde UI ; le serveur revérifie le chef.
+    if (o.requiresChefSyndicatEtat) {
+      needsChefSyndicat = (typeof getChefSyndicatEtat === 'function' ? getChefSyndicatEtat() : null) !== (state.char?.name || '');
     }
     // §9 du cahier des charges "Greves" (3 septembre 2026) : la repression policiere devient
     // INDISPONIBLE (pas un malus, pas un jet d'echec) des qu'un syndicat corpsMetier==='police'
@@ -4431,6 +4446,9 @@ function renderRoomActions(room, buildingId, roomId) {
     } else if (needsCadavre) {
       infoBlocage = "Aucun cadavre a dissimuler sur ce terrain pour l'instant.";
       onclickFn = "showToast('Aucun cadavre', 'Aucun cadavre a dissimuler sur ce terrain pour l\\'instant.', false)";
+    } else if (needsChefSyndicat && o.requiresChefSyndicatEtat && typeof texteSyndicatEtat === 'function') {
+      infoBlocage = texteSyndicatEtat('chefOnly');
+      onclickFn = "showToast(" + JSON.stringify(texteSyndicatEtat('title')) + ", " + JSON.stringify(texteSyndicatEtat('chefOnly')) + ", false)";
     } else if (needsChefSyndicat) {
       infoBlocage = 'Seul le chef du Syndicat des Dockers peut declencher un blocus portuaire.';
       onclickFn = "showToast('Réservé au chef', 'Seul le chef du Syndicat des Dockers peut declencher un blocus portuaire.', false)";
