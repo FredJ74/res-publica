@@ -2698,6 +2698,22 @@ async function traiterHerosTravailHebdomadaire() {
   return v;
 }
 
+// Nationalité, domicile et élections (Fred, 18/11/2026) : naturalisations acceptées d'office au bout
+// de 7 jours sans ministre de l'Intérieur joueur ; chef de parti de Sovarka élu président remplacé par
+// le plus ancien membre s'il n'a pas désigné de successeur sous 3 jours. Tout est décidé au serveur.
+async function traiterNaturalisationsQuotidien() {
+  const r = await sbRpc('naturalisations_passe', {}, HEADERS_SERVICE).catch(() => null);
+  const v = Array.isArray(r) ? r[0] : r;
+  if (!v || v.ok !== true) throw new Error('naturalisations:' + ((v && v.raison) || 'verdict_absent'));
+  return v;
+}
+async function traiterPartisPresidenceSovarkaQuotidien() {
+  const r = await sbRpc('sovarka_partis_presidence_passe', {}, HEADERS_SERVICE).catch(() => null);
+  const v = Array.isArray(r) ? r[0] : r;
+  if (!v || v.ok !== true) throw new Error('sovarka_partis_presidence:' + ((v && v.raison) || 'verdict_absent'));
+  return v;
+}
+
 async function traiterUrbanismeSovarkaQuotidien() {
   const r = await sbRpc('sovarka_urbanisme_passe', { p_jour: jourParisISO(new Date()) }, HEADERS_SERVICE).catch(() => null);
   const v = Array.isArray(r) ? r[0] : r;
@@ -6617,6 +6633,8 @@ export default async function handler(req, res) {
     // dossiers de commerce acceptes qui attendent un local. Tout est decide par sovarka_urbanisme_passe.
     const urbanismeSovarka = await tacheQuotidienne('urbanisme_sovarka', traiterUrbanismeSovarkaQuotidien);
     const herosTravail = await tacheQuotidienne('heros_travail', traiterHerosTravailHebdomadaire);
+    const naturalisations = await tacheQuotidienne('naturalisations', traiterNaturalisationsQuotidien);
+    const partisPresidence = await tacheQuotidienne('sovarka_partis_presidence', traiterPartisPresidenceSovarkaQuotidien);
 
     // 12c. Arrivage quotidien de poisson propre a la Criee de PSM (arbitrage du 25 aout 2026) :
     // independant de livrerEntrepotsQuotidien ci-dessus, ne touche aucun entrepot.
@@ -6699,7 +6717,7 @@ export default async function handler(req, res) {
     // alerter -- un console.error, non. Le corps reste identique par ailleurs : tout ce qui a
     // abouti est conserve et documente, rien n'est annule. Le rejeu qui suivra est sur, chaque
     // tache financiere portant desormais son marqueur de journee (voir tacheQuotidienne).
-    const corps = { ok: ECHECS_PASSE.length === 0, traites: results.length, details: results, echecs: ECHECS_PASSE, nbEchecs: ECHECS_PASSE.length, detentionsLiberees, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, cascadeMunicipale, subventionsExpirees, delaisJudiciaires, convocationsTemoins, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, permis, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, productionSovarka, commerceInternational, entrepotsSovarka, urbanismeSovarka, herosTravail, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, effortDeGuerre, journalDuJour, detentionsPnj, cellulesRenseignement, collecteAgents, rapportsCellules, payeDouane, syncGloireSovarka, bonsEtatSovarka, ecoutesSovarka, pouvoirSovarka, releveDouaneAeroport, payePolice, bataillesEchues, affectationsExpirees, candidaturesRelancees };
+    const corps = { ok: ECHECS_PASSE.length === 0, traites: results.length, details: results, echecs: ECHECS_PASSE, nbEchecs: ECHECS_PASSE.length, detentionsLiberees, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, cascadeMunicipale, subventionsExpirees, delaisJudiciaires, convocationsTemoins, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, permis, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, productionSovarka, commerceInternational, entrepotsSovarka, urbanismeSovarka, herosTravail, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, effortDeGuerre, journalDuJour, detentionsPnj, cellulesRenseignement, collecteAgents, rapportsCellules, payeDouane, syncGloireSovarka, bonsEtatSovarka, ecoutesSovarka, pouvoirSovarka, releveDouaneAeroport, payePolice, bataillesEchues, affectationsExpirees, candidaturesRelancees, naturalisations, partisPresidence };
     if (ECHECS_PASSE.length > 0) {
       console.error('[cron-minuit] PASSE INCOMPLETE : ' + ECHECS_PASSE.length + ' etape(s) en echec -> ' + ECHECS_PASSE.map(e => e.etape).join(', '));
       await journaliserCron('_passe', jourPasse, 'echec',

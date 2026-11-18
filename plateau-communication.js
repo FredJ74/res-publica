@@ -91,9 +91,12 @@ async function ouvrirRepertoirePJ() {
 
   // Grouper par empire
   const byEmpire = {};
+  // Par NATIONALITÉ (18/11/2026) : la colonne `country` est le pays où le joueur se trouve et change
+  // quand il voyage ; un républicain en séjour en Sovarka reste rangé avec les républicains.
   joueurs.forEach(j => {
-    if (!byEmpire[j.country]) byEmpire[j.country] = [];
-    byEmpire[j.country].push(j);
+    const nat = j.nationalite || j.country;
+    if (!byEmpire[nat]) byEmpire[nat] = [];
+    byEmpire[nat].push(j);
   });
 
   const html = Object.entries(byEmpire).map(([country, pjs]) => {
@@ -107,7 +110,8 @@ async function ouvrirRepertoirePJ() {
         const isMe = j.name === myName;
         const posteLabel = j.poste?.name || '';
         const villeDomicileId = j.domicile?.city;
-        const villeDomicileNom = villeDomicileId ? (WORLD[j.country]?.[villeDomicileId]?.name || villeDomicileId) : null;
+        // La ville du domicile se lit dans le pays du DOMICILE (les identifiants de ville sont partagés entre pays).
+        const villeDomicileNom = villeDomicileId ? (WORLD[j.domicile?.country || j.nationalite || j.country]?.[villeDomicileId]?.name || villeDomicileId) : null;
         return `
           <div style="display:flex;align-items:center;gap:.8rem;padding:.5rem 1rem;border-bottom:1px solid #1a1810;${isMe ? 'background:rgba(201,168,76,0.05)' : ''}">
             <div style="width:32px;height:32px;border-radius:50%;border:1px solid ${isMe ? col : '#2a2010'};background:#0a0a07;display:flex;align-items:center;justify-content:center;flex-shrink:0">

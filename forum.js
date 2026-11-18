@@ -84,8 +84,46 @@ const FORUMS_BASE = {
 // Identifiant du forum Local d'une ville. Point unique : tout producteur ou consommateur de
 // contenu local passe par ici, si bien qu'aucun appelant n'a a connaitre la convention.
 function idForumLocal(villeId) {
-  const v = villeId || (typeof state !== 'undefined' && state.currentCity) || 'capitale';
+  const v = villeId || villeForumLocal() || (typeof state !== 'undefined' && state.currentCity) || 'capitale';
   return 'local_' + v;
+}
+
+// FORUMS ET NATIONALITÉ (Fred, 18/11/2026). Le joueur garde toujours les forums de SON pays ; à
+// l'étranger, il voit aussi ceux du pays où il se trouve (national en lecture seule, Local de la ville
+// où il est). `state.forumPays` mémorise le pays choisi ; par défaut, la nationalité.
+function paysForums() {
+  if (typeof state === 'undefined') return null;
+  const nat = (typeof maNationalite === 'function' ? maNationalite() : null) || state.country;
+  const choix = state.forumPays;
+  return (choix && (choix === nat || choix === state.country)) ? choix : nat;
+}
+// Ville du forum Local : celle où l'on se trouve dans le pays où l'on est ; dans son pays vu de
+// l'étranger, sa ville de domicile (si elle est dans ce pays), sinon aucun Local.
+function villeForumLocal() {
+  if (typeof state === 'undefined') return null;
+  const p = paysForums();
+  if (p === state.country) return state.currentCity || 'capitale';
+  return (state.domicile && state.domicile.country === p) ? state.domicile.city : null;
+}
+function forumNationalLectureSeule(forumId) {
+  const nat = (typeof maNationalite === 'function' ? maNationalite() : null) || state.country;
+  return forumId === 'national' && paysForums() !== nat;
+}
+function choisirPaysForums(pays) {
+  state.forumPays = pays;
+  if (typeof synchroniserCachesForumsTerritoriaux === 'function') synchroniserCachesForumsTerritoriaux();
+  if (typeof renderForumSidebar === 'function' && document.getElementById('forum-sidebar'))
+    document.getElementById('forum-sidebar').innerHTML = renderForumSidebar();
+}
+// Sélecteur affiché seulement à l'étranger (nationalité différente du pays où l'on se trouve).
+function htmlSelecteurPaysForums() {
+  const nat = (typeof maNationalite === 'function' ? maNationalite() : null) || state.country;
+  if (!nat || nat === state.country) return '';
+  const nom = c => (typeof COUNTRIES !== 'undefined' && COUNTRIES[c]?.n) || c;
+  const actuel = paysForums();
+  return '<div class="forum-pays-choix" style="display:flex;gap:.3rem;padding:.4rem .6rem;flex-wrap:wrap" dir="auto">'
+    + [nat, state.country].map(c => '<button type="button" class="cpj-touche' + (c === actuel ? ' cpj-primaire' : '') + '" onclick="choisirPaysForums(\'' + c + '\')">' + nom(c) + '</button>').join('')
+    + '</div>';
 }
 
 // Le catalogue global des organisations peut inclure celles auxquelles le PJ
@@ -105,7 +143,7 @@ function cleContexteAccesForums() {
   return JSON.stringify([
     typeof rpAuthUid==='function'?rpAuthUid():null,
     typeof rpAuthSessionIdentifiant==='function'?rpAuthSessionIdentifiant():null,
-    state.char?.name||null,state.country||null,state.currentCity||null,
+    state.char?.name||null,state.country||null,state.currentCity||null,paysForums()||null,
     state.poste?.id||null,groupes
   ]);
 }
@@ -117,6 +155,8 @@ function getForums() {
   const villeNom = (typeof WORLD !== 'undefined' && typeof state !== 'undefined')
     ? (WORLD[state.country]?.[villeId]?.name || villeId)
     : villeId;
+  const villeLocal = villeForumLocal();
+  const villeLocalNom = villeLocal ? ((typeof WORLD !== 'undefined' && WORLD[paysForums()]?.[villeLocal]?.name) || villeLocal) : null;
 
   const orgForums = {};
   ((typeof state !== 'undefined' && state.organisations) || []).forEach(o => {
@@ -135,8 +175,8 @@ function getForums() {
     ...FORUMS_BASE,
     // Le Local de LA ville ou se trouve le joueur. Son libelle reste « Local » : le cloisonnement
     // est une affaire de donnees, pas d'etiquette a rallonge dans la liste des forums.
-    [idForumLocal(villeId)]: { name: 'Forum Local', icon: 'ti-home',
-      desc: 'Discussions de ' + villeNom, private: false, cat: 'intra' },
+    ...(villeLocal ? { [idForumLocal(villeLocal)]: { name: 'Forum Local', icon: 'ti-home',
+      desc: 'Discussions de ' + villeLocalNom, private: false, cat: 'intra' } } : {}),
     [tribunalKey]: { name: '⚖️ Tribunal — ' + villeNom, icon: 'ti-gavel', desc: 'Plaintes et affaires judiciaires de ' + villeNom, private: false, cat: 'intra', sousGroupe: 'institutions' },
     ...orgForums
   };
@@ -176,7 +216,7 @@ let forumPaysCache = null;
 let forumContexteCache = null;
 let forumPaysGeneration = 0;
 function synchroniserCachesForumsTerritoriaux() {
-  const pays = typeof state !== 'undefined' ? state.country : null;
+  const pays = typeof state !== 'undefined' ? paysForums() : null;
   const contexte=cleContexteAccesForums();
   if (!pays || contexte===forumContexteCache) return;
   const ancien=forumPaysCache, precedent=forumContexteCache;
@@ -227,7 +267,7 @@ async function rafraichirCompteursForums() {
   const ids = Object.keys(forums).filter(id => !forums[id].private || canAccessForum(id));
   const contexteCompteurs=cleContexteAccesForums();
   const nomAuDepart = state.char?.name || '';
-  const paysAuDepart = state.country || '';
+  const paysAuDepart = paysForums() || '';
   const villeAuDepart = state.currentCity || '';
   const identite = nomAuDepart + '|' + paysAuDepart + '|' + villeAuDepart + '|' + ids.join(',');
   if (forumCompteursChargement && forumCompteursIdentite === identite)
@@ -244,7 +284,7 @@ async function rafraichirCompteursForums() {
       // Si le PJ a changé de ville ou de personnage entre deux réponses, ignorer
       // l'ancienne liste sans afficher de nombres potentiellement interdits.
       if (contexteCompteurs!==cleContexteAccesForums() || identite !== forumCompteursIdentite || (state.char?.name || '') !== nomAuDepart ||
-          (state.country || '') !== paysAuDepart || (state.currentCity || '') !== villeAuDepart) return;
+          (paysForums() || '') !== paysAuDepart || (state.currentCity || '') !== villeAuDepart) return;
       Object.keys(forumCompteursServeur).forEach(id => delete forumCompteursServeur[id]);
       ids.forEach(id => {
         if (Number.isInteger(compteurs[id]) && compteurs[id] >= 0)
@@ -684,7 +724,7 @@ function _cleDernierPassageForumId(forumId) {
   // réutiliser une marque de lecture d'un pays pour acquitter celle d'un autre.
   // Conserver la clé historique pour Républia (premier pays en production).
   const territoire = forumId === 'national' || forumId.startsWith('local_');
-  const pays = (typeof state !== 'undefined' && state.country) || 'republic';
+  const pays = (typeof state !== 'undefined' && paysForums()) || 'republic';
   return cle + '_' + (territoire && pays !== 'republic' ? pays + '_' : '') + forumId;
 }
 
@@ -718,7 +758,7 @@ function _dernierPassageForumId(forumId) {
   // Migration douce de l'ancienne clé globale : conserver son horodatage.
   try {
     const territorialisé = forumId === 'national' || forumId.startsWith('local_');
-    const pays = (typeof state !== 'undefined' && state.country) || 'republic';
+    const pays = (typeof state !== 'undefined' && paysForums()) || 'republic';
     // L'ancien marqueur global n'était pas séparé par pays : l'importer dans
     // un autre empire masquerait des publications jamais lues.
     const globale = territorialisé && pays !== 'republic' ? null : _cleDernierPassageForum();
@@ -987,7 +1027,7 @@ function renderForumSidebar() {
   // pointant vers une boite ou il n'apparaissait jamais. Les deux passent desormais par
   // mailsRecusVisibles(), seule definition de « ce que le joueur peut reellement ouvrir ».
   const unreadCount = mailsRecusVisibles().filter(m => !m.read).length;
-  return `
+  return htmlSelecteurPaysForums() + `
     <div class="forum-nav-item forum-mail-item ${forumView === 'mail' ? 'active' : ''}" onclick="switchToMail()">
       <i class="ti ti-mail" style="font-size:.85rem"></i>
       <div>
@@ -3141,11 +3181,17 @@ async function forumPublierAvecJauges(topic,titre,contenu,blocs,miseEnPage,ident
   const forumId = currentForumId;
   // Controle du forum local juste avant l'envoi : un voyage peut rendre le
   // forum de l'editeur perime, meme si son affichage n'a pas encore change.
-  if (!forumId || (forumId.startsWith('local_') && forumId !== idForumLocal(state.currentCity))) {
+  if (!forumId || (forumId.startsWith('local_') && forumId !== idForumLocal())) {
     showToast('Forum local à rouvrir', 'La ville du forum a changé. Rouvrez le forum local pour publier dans la bonne ville.', false); window.RPI18nPlateau?.markToast("forumFeedback.localForumChanged", 'La ville du forum a changé. Rouvrez le forum local pour publier dans la bonne ville.', undefined, "Forum local à rouvrir");
     return null;
   }
-  const v=await executerOrdreJaugesServeur('forum_publier',{forum:forumId,topic,titre,contenu,blocs,mise_en_page:miseEnPage,organisation:identite.idOrga||null,secret:!!identite.authorSecret,icone:identite.orgIcon||null});
+  // Forum national d'un pays visité : lecture seule (le serveur refuse aussi, forum_ecriture_autorisee).
+  if (forumNationalLectureSeule(forumId)) {
+    showToast('Forum National', (typeof texteNationalite === 'function' && texteNationalite('nationalite_requise')) || 'Lecture seule.', false);
+    return null;
+  }
+  const territorial = forumId === 'national' || forumId.startsWith('local_');
+  const v=await executerOrdreJaugesServeur('forum_publier',{forum:forumId,topic,titre,contenu,blocs,mise_en_page:miseEnPage,organisation:identite.idOrga||null,secret:!!identite.authorSecret,icone:identite.orgIcon||null,...(territorial&&!topic?{pays:paysForums()}:{})});
   if(!v||typeof v.topic!=='string'||typeof v.post!=='string')return null;
   return v;
 }
