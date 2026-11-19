@@ -12261,11 +12261,12 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     // Image de Fred (13/11/2026) : la cuisine de Stepan, poêle, bocaux d'herbes et fusil au mur.
     'images/Sovarka/Krasnov/Krasnov_maison_stepan_interieur.webp');
   // Maisonnettes en bois des vues de rue de Krasnov (Fred, 14/11/2026 : « un habitant chacune » ; migration
-  // 20261114180000). Habitants proposés par Claude, à valider par Fred ; images d'intérieur à venir.
+  // 20261114180000). Habitants proposés par Claude, à valider par Fred ; images d'intérieur renseignées selon disponibilité.
   const MAISONNETTES_KRASNOV = [
     ['maison-krasnov-bureaux', 'Maison d’Antonina', 'Antonina Merkoulova', 'Habitante de Krasnov',
       'Une maison de bois bleue aux fenêtres ourlées de dentelle de bois, face au centre d’affaires.',
-      'Une machine à coudre à pédale, des coupons de tissu pliés sur le divan et une couturière à la retraite qui met déjà la bouilloire en route.'],
+      'Une machine à coudre à pédale, des coupons de tissu pliés sur le divan et une couturière à la retraite qui met déjà la bouilloire en route.',
+      'images/Sovarka/Krasnov/Krasnov_maison_antonina_interieur.webp'],
     ['maison-krasnov-rouge', 'Maison de Matveï', 'Matveï Rybakov', 'Habitant de Krasnov',
       'Une isba rouge au toit de tôle, la cheminée qui fume en toute saison.',
       'Une hache accrochée près du poêle, des bûches empilées jusqu’au plafond et un ancien bûcheron au dos voûté qui vous tend un tabouret.',
@@ -12282,7 +12283,8 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
       'images/Sovarka/Krasnov/Krasnov_maison_kouzma_interieur.webp', 'images/Sovarka/Krasnov/Kouzma.webp'],
     ['maison-krasnov-terrains', 'Maison d’Ignat', 'Ignat Lykov', 'Habitant de Krasnov',
       'Une vieille maison de bois au bord des terrains vagues, des peaux tendues sous l’auvent.',
-      'Des pièges pendus aux poutres, un samovar cabossé et un vieux trappeur taiseux qui vous observe longuement avant de sourire.']
+      'Des pièges pendus aux poutres, un samovar cabossé et un vieux trappeur taiseux qui vous observe longuement avant de sourire.',
+      'images/Sovarka/Krasnov/Krasnov_maison_ignat_interieur.webp', 'images/Sovarka/Krasnov/Ignat.webp']
   ];
   MAISONNETTES_KRASNOV.forEach(m => maison(...m));
   const cite = v => WORLD.soviet && WORLD.soviet[v];
