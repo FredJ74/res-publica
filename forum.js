@@ -2963,7 +2963,11 @@ const ACTIONS_MAIL = {
   // DÉPART D'UN MAIRE (18/11/2026) : marqueurs posés par le SERVEUR (maire_depart_ouvrir_interne) ; l'adjoint
   // répond d'où qu'il soit, dans les 72 h. L'argument est l'identifiant de la proposition.
   maire_oui:        { fn:'repondreSuccessionMairie', n:1, apres:['true'],  label:'✓ Devenir maire' },
-  maire_non:        { fn:'repondreSuccessionMairie', n:1, apres:['false'], label:'✗ Rester adjoint', refus:true }
+  maire_non:        { fn:'repondreSuccessionMairie', n:1, apres:['false'], label:'✗ Rester adjoint', refus:true },
+  // ÉTAT DE CATASTROPHE NATURELLE (19/11/2026) : marqueurs posés par le SERVEUR après une crue (climat_crue_appliquer_interne,
+  // catastrophe_proposer). L'argument est l'identifiant de la crue ; le serveur vérifie le poste et le délai de 72 h.
+  catastrophe_proposer: { fn:'catastropheProposer', n:1, label:'Proposer l’état de catastrophe naturelle' },
+  catastrophe_examiner: { fn:'catastropheExaminer', n:1, label:'Examiner les deux options' }
 };
 
 // Pose un marqueur dans un corps de mail. Les arguments sont nettoyes des separateurs pour qu'un

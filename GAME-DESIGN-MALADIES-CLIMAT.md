@@ -303,6 +303,48 @@ bandelettes, plats cuisinés, furet renifleur).
   au niveau le plus élevé, une fois la journée terminée.
 - **Images** de la planche de Fred : furet (achat et objet), graisses de castor et d'ours (objets) ; sac de sable au lot 5.
 
+### Lot 5 : choix d'implémentation (19/11/2026)
+
+- **Canicule** : au début de l'événement, −3 PA pour tous les présents de la ville sauf avec une bouteille d'eau (consommée),
+  puis coup de chaleur selon le tableau des PA (eau : −5 points). À la fin, la nourriture portée sur soi (piles et aliments
+  manufacturés) devient avariée (marque invisible) et le joueur en est prévenu dans sa langue.
+- **Orage** : ordinateurs, box et caméras de la ville hors service pendant l'événement. Un groupe électrogène installé dans le
+  bureau (équipement, comme l'ordinateur) le maintient en service s'il contient 5 bidons au début de la coupure ; le
+  propriétaire le remplit avec les bidons de carburant de son inventaire.
+- **Crue** : les 2 ou 3 lieux nommés refusent l'entrée (les personnes déjà à l'intérieur y restent) ; entrepôts et commerces
+  qui s'y trouvent perdent 20 % de chaque stock (arrondi inférieur), réduits par les sacs de sable posés (voir la décision
+  du 19/11 sur les sacs de sable ci-dessous). Pertes valorisées au prix de base des matières (prix fixe de la recette pour les produits qui en
+  ont un, sinon 0).
+- **Sacs de sable** : quincailleries de Républia (armureries de Luthécia et de Montrouge, Chasse et Pêche de Port-Sainte-Marie) ;
+  posés par le propriétaire d'un commerce du bâtiment ou par le directeur de l'entrepôt, 1 PA pour poser d'un coup tous les
+  sacs portés (9 au plus par bâtiment), consommés par la crue.
+- **Groupe électrogène** : garage de Novomirsk ; en Républia, faute de garagiste, armureries-quincailleries de Luthécia et de
+  Montrouge (à confirmer). **Bouteilles d'eau** : marchés des trois villes de Républia.
+- **État de catastrophe naturelle** : courrier au ministre de l'Intérieur à la crue (bouton « Proposer ») ; courrier au Premier
+  ministre (bouton « Examiner les deux options ») qui ouvre une fenêtre avec les deux options, le nombre de sinistrés, le coût
+  de chacune, la caisse disponible et la limite des 72 h. Le paiement sort de la **caisse du gouvernement tenue par le Premier
+  ministre** (la réserve journalière de `budgets_nationaux` est vide en pratique) et va à la caisse de chaque commerce ou
+  entrepôt indemnisé.
+- **Brouillard** : filtre visuel (lot 3) ; ses modificateurs (+10 % de réussite, −20 % de détection) sont exposés par
+  `climat_brouillard_modificateurs_interne` mais **pas branchés** dans les actes illégaux : la criminalité est en cours de
+  conception (consigne de Fred du 19/11), on n'y touche pas.
+
+### Décision de Fred du 19/11 — sacs de sable proportionnels
+
+- **Chaque sac posé réduit la perte de 10 %** de la perte normale (20 % du stock) : 3 sacs = 14 % du stock perdu ;
+  5 sacs = 10 %.
+- **Plafond : 9 sacs**, soit 90 % de protection. Il reste toujours au moins 2 % de perte, pour que l'indemnisation garde
+  un sens.
+- La **taille du local n'intervient pas** (les superficies ne sont pas déclarées partout).
+- **Indemnisation inchangée** : par défaut, ceux qui ont posé au moins un sac sont indemnisés à 50 % de ce qu'ils ont perdu ;
+  le Premier ministre peut choisir d'indemniser tout le monde.
+- **Réglages MJ** : `sacs_protection_pct` (100 %) est remplacé par `sac_protection_pct` (10 % par sac) et `sacs_plafond` (9).
+- **Choix d'implémentation** (migration `20261119101000_sacs_sable_proportionnels.sql`, appliquée) :
+  - un sac = une unité « Sac de sable » de l'inventaire (l'objet s'appelait « Lot de sacs de sable ») ; prix inchangé (60) ;
+  - « Poser » coûte 1 PA et pose d'un coup tous les sacs portés, dans la limite des places restantes devant le bâtiment ;
+    les sacs en trop restent dans l'inventaire ; plusieurs exploitants d'un même bâtiment s'additionnent ;
+  - le message indique les sacs posés, le total devant le bâtiment et la perte attendue à la prochaine crue.
+
 ### Décisions de Fred du 19/11 — points en attente
 
 1. **Canicule** : tirage au hasard dans le trimestre, sans contrainte de saison (le jeu se joue partout dans le monde).
