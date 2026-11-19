@@ -1,0 +1,32 @@
+name: I18n — économie et politique hors justice (19 novembre)
+on:
+  push:
+    branches: [chatgpt/i18n-economie-politique-20261119]
+    paths:
+      - plateau.html
+      - plateau-politique.js
+      - i18n/commerce-pj-complements-20261119.js
+      - i18n/political-org-resources-20261119.js
+      - outils/bancs/banc-i18n-economie-politique-20261119.cjs
+      - .github/workflows/i18n-economie-politique-20261119.yml
+  pull_request:
+    paths:
+      - plateau.html
+      - plateau-politique.js
+      - i18n/commerce-pj-complements-20261119.js
+      - i18n/political-org-resources-20261119.js
+      - outils/bancs/banc-i18n-economie-politique-20261119.cjs
+permissions:
+  contents: read
+jobs:
+  interface:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check plateau-politique.js
+      - run: node --check i18n/commerce-pj-complements-20261119.js
+      - run: node --check i18n/political-org-resources-20261119.js
+      - run: node --test outils/bancs/banc-i18n-economie-politique-20261119.cjs
