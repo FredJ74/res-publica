@@ -22,7 +22,7 @@ jobs:
           src=Path('images/Sovarka/Krasnov/Salon sovie\u0301tique rustique aux affiches pre\u0301serve\u0301es.png')
           dest=Path('images/Sovarka/Krasnov/Krasnov_maison_ignat_interieur.webp')
           data=src.read_bytes()
-          sha=hashlib.sha1(b'blob '+str(len(data)).encode()+b'\\0'+data).hexdigest()
+          sha=hashlib.sha1(b'blob '+str(len(data)).encode()+bytes([0])+data).hexdigest()
           assert sha=='a60d2a01bfb1f9d42cdf5162031538d990162b7d',sha
           im=Image.open(src).convert('RGB')
           assert im.size==(1448,1086),im.size
