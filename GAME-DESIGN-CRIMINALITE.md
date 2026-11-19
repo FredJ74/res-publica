@@ -167,7 +167,17 @@ Trois façons d'agir :
 - **Fabriquer un scandale** : inchangé (auteur public ; la victime réplique par une plainte en diffamation, jugée par un juge joueur).
 - **Produire une fuite** : inchangée (fait réel uniquement, commanditaire secret, légal).
 
+## 14. Mise en ordre des peines (décisions du 19/11, nuit)
+
+- **Doublement « démasqué » conservé** : la peine d'office est **simple** quand le coupable est identifié sur le moment (visage découvert, échec critique, détection immédiate, défaite au combat), **doublée** quand il est démasqué plus tard par une enquête (celui qui a donné du fil à retordre à la police paie plus cher). Ex. assassin : 2 j sur le moment, 4 j démasqué ; voleur ou corrupteur : 1 j, 2 j démasqué.
+- **Fin des catégories génériques lourdes** (délit grave 4 j, crime 8 j, crime d'État 30 j, héritées des débuts) : trop dissuasives, contraires à l'esprit du jeu. L'échelle de Républia est celle des barèmes propres (1 j délit, 2 j crime), doublement compris.
+- **Seuil du procès : 4 jours.** Une peine automatique va jusqu'à 4 jours. Au-delà (cumul, cas lourds), le coupable fait **4 jours d'office**, puis un **procès** décide d'un éventuel complément.
+- **Peine du juge** : en régime normal, **fourchette de ±50 %** autour de la somme des peines de référence, contrôlée par le serveur (il refuse ce qui en sort). **Sous l'état d'urgence : liberté totale du juge.**
+- **État d'urgence limité à 7 jours**, renouvelable par le Président (chaque renouvellement : 3 PA et la perte de POP habituelle). Aujourd'hui il n'expire jamais : à corriger.
+- **Correctifs techniques** (sans décision de game design) : une seule nomenclature par infraction (`assassinat` / `assassiner_*`, `corruption_fonctionnaire` / `corrompre_fonct`, `achat_arme_illegal` / `acheter_arme_illegale`…), rattacher les 11 barèmes jamais détectables à leurs actes, supprimer les durées en dur qui contournent le barème (garde à vue 2 j, évasion 2 j, rébellion 1 j) au profit de la résolution unique.
+- **À trancher à la fin du chantier** : QHS automatique de 30 jours après une rébellion matée (au-dessus du seuil de 4 jours).
+
 ## Plus tard
 
 - Le moral pourrait influencer tous les ordres à jet aléatoire (à étudier).
-- Volets restant à trancher avant le prompt complet : **mise en ordre des peines** (doublement « démasqué » incohérent, 11 barèmes jamais détectables), **carrière criminelle**.
+- Volets restant à trancher avant le prompt complet : **carrière criminelle**.
