@@ -302,3 +302,16 @@ bandelettes, plats cuisinés, furet renifleur).
   dîners (saluer et parler n'ont pas de geste serveur à raccorder aujourd'hui) ; tirage unique par malade croisé et par jour,
   au niveau le plus élevé, une fois la journée terminée.
 - **Images** de la planche de Fred : furet (achat et objet), graisses de castor et d'ours (objets) ; sac de sable au lot 5.
+
+### Décisions de Fred du 19/11 — points en attente
+
+1. **Canicule** : tirage au hasard dans le trimestre, sans contrainte de saison (le jeu se joue partout dans le monde).
+2. **Orages** : une fois par trimestre et par ville, avec propagation (1 à 2 jours entre deux villes), dans **tous les pays**,
+   Sovarka comprise (fin du « une fois par mois » de Sovarka). Mise en œuvre : l'orage déjà annoncé à Novomirsk le 21/11
+   devient celui du trimestre, Starovka et Krasnov suivent ; les autres orages mensuels, pas encore annoncés, sont annulés.
+3. **Denrées périssables** (10 jours) : viande, viande de renne, laitages, poisson, fruits et légumes, œufs. Ne se périment
+   pas : céréales, sucre, produits exotiques. Liste validée.
+4. **Plats contaminés** (moteur historique : tournées, dîners) : **un seul jet pour la tablée** ; s'il touche, l'acheteur et
+   ses invités joueurs tombent malades ensemble.
+5. **Prix et taux** (réglables par le MJ) : bandelette 4 ; furet renifleur **150**, deux par boutique et par semaine, meurt au
+   11e aliment avarié reniflé ; détection à la réception 70 % sans bandelette, 95 % avec.
