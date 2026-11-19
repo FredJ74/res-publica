@@ -194,7 +194,8 @@ async function vehTravailler(entreprise) {
   state._zeroPaConfirme = null;
   const v = await vehActe('travailler', { entreprise, pa: q }, entreprise + '-' + (state.pa || 0) + '-' + q);
   if (!v || v.ok !== true) {
-    const m = { journee_complete: vehGT('labourAlreadyComplete','La main-d’œuvre du jour est déjà complète.'), caisse_insuffisante: vehGT('garageCannotPay','La caisse du garage ne peut pas vous payer.'),
+    // Ces motifs fixes sont traduits à l'affichage par le catalogue toastBodies (showToast) : pas de double traduction.
+    const m = { journee_complete: 'La main-d’œuvre du jour est déjà complète.', caisse_insuffisante: 'La caisse du garage ne peut pas vous payer.',
       aucune_fabrication: vehGT('buildEmpty','Aucun véhicule en fabrication.') };
     showToast(vehGT('workRefused','Travail refusé'), m[v?.raison] || vehMotif(v), false); return;
   }
@@ -275,7 +276,7 @@ async function vehConditionner(entreprise) {
   if (typeof commerceProduire !== 'function') return;
   const r = await commerceProduire(entreprise, 'bidon_carburant');
   if (!r || r.ok !== true) {
-    const m = { matieres_insuffisantes: vehGT('stationLowFuel','La station n’a pas assez de carburant en réserve.'), stock_plein: vehGT('cansStockFull','Le stock de bidons est plein.') };
+    const m = { matieres_insuffisantes: 'La station n’a pas assez de carburant en réserve.', stock_plein: 'Le stock de bidons est plein.' };
     showToast(vehGT('conditioningRefused','Conditionnement refusé'), m[r?.raison] || vehTT('refusedByServer','Refusé par le serveur.'), false); return;
   }
   showToast(vehGT('cansConditioned','Bidons conditionnés'),vehGT('fuelUnits','{count} bidons mis en rayon.',{count:vehNombre(r.portions)}),true);

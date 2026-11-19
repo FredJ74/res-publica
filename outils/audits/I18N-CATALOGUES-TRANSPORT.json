@@ -678,10 +678,10 @@
     {
       "source": "i18n/vehicle-garage-resources.js",
       "packed": "i18n/packed/vehicle-garage-resources.js.br",
-      "sourceBytes": 33843,
-      "packedBytes": 9456,
-      "sourceSha256": "7f9cca4dfdc5874c4a2dc8b3120b98b89987cd399cc1682875b416130a17a2eb",
-      "packedSha256": "860bb2c835e4a93b9e002d3292d7ed6436d92b7cb888943579c237bcf7eb1540"
+      "sourceBytes": 31321,
+      "packedBytes": 8851,
+      "sourceSha256": "687af4115d38e9d8d14fe17e742bca0161098659e1f0042da04b6a33b4dc343a",
+      "packedSha256": "1cbba48f762b88dfc6cc188a86bcf4e7bc23f18d58f5ddc466727b427d1b9ac8"
     },
     {
       "source": "i18n/vehicle-travel-resources.js",

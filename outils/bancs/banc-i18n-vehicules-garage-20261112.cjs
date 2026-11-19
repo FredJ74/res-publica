@@ -36,10 +36,10 @@ function harness(lang='fr',type='garage'){
  vm.runInContext(source,ctx,{filename:'plateau-vehicules.js'});
  return{ctx,calls,pop};
 }
-test('60 libellés et variables intacts dans les neuf langues (41 + 19 atelier et station, 19/11/2026)',()=>{
+test('56 libellés et variables intacts dans les neuf langues (41 + 15 atelier et station, 19/11/2026)',()=>{
  const f=harness();
  const reference=f.ctx.RP_I18N_RESOURCES.fr.translation.vehicleGarage;
- assert.equal(Object.keys(reference).length,60);
+ assert.equal(Object.keys(reference).length,56);
  const vars=x=>(x.match(/\{[a-z]+\}/g)||[]).sort().join(',');
  for(const l of locales){
   const r=f.ctx.RP_I18N_RESOURCES[l].translation.vehicleGarage;
