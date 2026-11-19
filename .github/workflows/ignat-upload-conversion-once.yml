@@ -1,0 +1,41 @@
+name: One-time replace Ignat interior with uploaded image
+on:
+  push:
+    branches: [chatgpt/ignat-replace-uploaded-image-20261119]
+    paths: [.github/workflows/ignat-upload-conversion-once.yml]
+permissions:
+  contents: write
+jobs:
+  convert:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Convert uploaded source to game WebP
+        run: |
+          python -m pip install --disable-pip-version-check pillow
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          import hashlib
+          src=Path('images/Sovarka/Krasnov/Salon sovie\u0301tique rustique aux affiches pre\u0301serve\u0301es.png')
+          dest=Path('images/Sovarka/Krasnov/Krasnov_maison_ignat_interieur.webp')
+          data=src.read_bytes()
+          sha=hashlib.sha1(b'blob '+str(len(data)).encode()+b'\\0'+data).hexdigest()
+          assert sha=='a60d2a01bfb1f9d42cdf5162031538d990162b7d',sha
+          im=Image.open(src).convert('RGB')
+          assert im.size==(1448,1086),im.size
+          im.save(dest,'WEBP',quality=90,method=6)
+          verify=Image.open(dest)
+          assert verify.size==im.size and verify.format=='WEBP'
+          print('Verified exact upload',sha,'converted to',dest,'bytes',dest.stat().st_size)
+          src.unlink()
+          PY
+      - name: Commit WebP replacement and removal of uploaded PNG
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add --all images/Sovarka/Krasnov/
+          git commit -m 'fix(krasnov): replace Ignat interior with uploaded WebP and remove PNG'
+          git push
