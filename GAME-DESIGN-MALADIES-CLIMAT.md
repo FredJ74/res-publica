@@ -276,3 +276,16 @@ bandelettes, plats cuisinés, furet renifleur).
 - **Lot 4** : blizzard (une fois par mandat présidentiel et par ville de Sovarka), graisses, tableau de grippe, contagion.
 - **Lot 5** : effets du brouillard, de l'orage (groupe électrogène), de la crue (2 ou 3 lieux, sacs de sable, 20 % de stock)
   et de la canicule (bouteille d'eau, coup de chaleur, nourriture portée avariée).
+
+### Décisions de Fred du 19/11 — points en attente
+
+1. **Canicule** : tirage au hasard dans le trimestre, sans contrainte de saison (le jeu se joue partout dans le monde).
+2. **Orages** : une fois par trimestre et par ville, avec propagation (1 à 2 jours entre deux villes), dans **tous les pays**,
+   Sovarka comprise (fin du « une fois par mois » de Sovarka). Mise en œuvre : l'orage déjà annoncé à Novomirsk le 21/11
+   devient celui du trimestre, Starovka et Krasnov suivent ; les autres orages mensuels, pas encore annoncés, sont annulés.
+3. **Denrées périssables** (10 jours) : viande, viande de renne, laitages, poisson, fruits et légumes, œufs. Ne se périment
+   pas : céréales, sucre, produits exotiques. Liste validée.
+4. **Plats contaminés** (moteur historique : tournées, dîners) : **un seul jet pour la tablée** ; s'il touche, l'acheteur et
+   ses invités joueurs tombent malades ensemble.
+5. **Prix et taux** (réglables par le MJ) : bandelette 4 ; furet renifleur **150**, deux par boutique et par semaine, meurt au
+   11e aliment avarié reniflé ; détection à la réception 70 % sans bandelette, 95 % avec.
