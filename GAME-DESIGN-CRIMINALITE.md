@@ -265,9 +265,65 @@ Relevé en production (`pg_proc` du projet `jxpwoosmmhohoihxpbuc`, lecture seule
 - **Démasquage** : l'animation est montrée au PJ arrêté seulement ; elle se déclenche à l'entrée en détention (`est_emprisonne`) ; hôpital et QHS rendent les vêtements sans animation. — *valeur provisoire choisie par l'agent, à valider par Fred*
 - **Masqués numérotés** : numéro stable tant que la composition de la pièce ne change pas (ordre d'empreinte du nom). — *valeur provisoire choisie par l'agent, à valider par Fred*
 
+## Lot 2 — ce qui est en place (19/11)
+
+- Migration `20261119160000_crim_lot2_resolution_commune_neutraliser` (appliquée après essai annulé).
+- **Résolution commune** `crim_resoudre_interne(acte, auteur, cible, params jsonb) → jsonb`, une seule fonction pour tous les actes :
+  jet de réussite (taux fourni par l'acte, **dissuasion #135 retranchée une seule fois ici**, bornes `min`/`max`), réussite critique optionnelle
+  (`critique_reussite_part`, `critique_sans_detection`), échec critique (`critique_echec_part`, 2 % des échecs : −15 moral, identifié sans masque),
+  passage au combat (`combat: true` ; 10 % +2/PER > 10 +15 garde −10 caché, 2-40), victime qui remarque l'échec (`remarque_echec`, 100 % par défaut),
+  **visage découvert = identifié dès que la victime s'aperçoit de l'acte** (§§ 1, 3), détection après réussite (`detection_base`, −20 caché,
+  −10 masqué, `detection_min` ; sans masque identifie, avec masque trace sans nom), message à la victime selon le mode (`{Auteur}` = nom /
+  « Quelqu'un » / « Un individu masqué », `{auteur}` = nom / « un inconnu » / « un individu masqué »), employeur d'un PNJ alerté et plainte
+  déposée (`plaintes_en_cours`, origine `crim_affaire`), **affaire** enregistrée dans `crim_affaires` (mode, issue, trace, identifié, plafond
+  d'identification 5 / 15 %, indices : genre, arme) pour l'enquête du lot 6, peine d'office si identifié (avis de recherche, barème).
+  Suite d'un combat : `crim_resoudre_suite_interne(affaire, 'vainqueur' | 'vaincu' | 'sans_combat')`, appelée par `combat_finaliser_interne`.
+- Briques : `crim_cible_resoudre_interne(auteur, cible)` (nom de PJ, **jeton d'un individu masqué**, PNJ référencé ; un PJ caché ou masqué
+  n'est pas désignable par son nom), `crim_combat_taux_interne`, `crim_detection_taux_interne`, `crim_peine_jours_interne(acte, pays)`,
+  `crim_designation_interne`, `crim_message_interne`, `crim_garde_cible_interne`, `crim_identifier_interne`, `crim_detection_interne`,
+  `crim_affaire_notifier_interne`, `crim_neutraliser_taux_interne`.
+- **Neutraliser** : `crime_neutraliser(cible, mode, requete)` (idempotent) ; jet serveur rétabli avec la formule historique (base 15 / 25 / 35
+  + 2 × FOR / DUP / PER, 8 par défaut, +15 carrière criminelle, − PER de la cible / 2, plafonds 65 / 75 / 85, PA 2 / 2 / 3, −20 DIS à l'arme à
+  feu), +10 depuis la cachette, gilet revêtu −20 / −5. Réussite : la victime tombe à 0 PA (hospitalisation existante), un PNJ est hors service
+  jusqu'au lendemain. Combat (moteur inchangé) seulement par le passage au combat d'un échec : l'assassin perd sa cachette (garde son masque),
+  vaincu = identifié, vainqueur = réussite (détection). Échec sans combat : cachette gardée, on peut retenter. L'ancienne signature
+  `crime_neutraliser(text, text, integer)` répond `requete_requise`.
+- **Peines** : `peine_jours_<acte>_<empire>` dans `crim_parametres` (Républia : assassinat et tentative 2 j) ; `peine_acte_interne` (barème des
+  arrestations) lit la même valeur : **les autres empires reprennent Républia** (2 j au lieu de la catégorie « crime » 8 j) tant qu'ils n'ont pas
+  leurs valeurs.
+- Combat : un affrontement « civil » contre une personne ne s'ouvre plus directement par `combat_ouvrir` (`neutraliser_requis`) ; squatteurs,
+  faune et gardes d'accès inchangés.
+- Écran : Neutraliser (PJ, individu masqué par jeton, PNJ) passe par `crime_neutraliser` (`plateau-criminalite.js`, aucun taux calculé) ;
+  bouton Neutraliser rétabli sur la fiche d'un joueur ; « Individu masqué n°X » visé par son jeton.
+
+### Valeurs provisoires du lot 2 (choisies par l'agent, à valider par Fred)
+- **Échec critique et passage au combat** : un seul jet ; l'échec critique est la part haute des échecs (2 % de l'intervalle d'échec), la réussite
+  critique la part basse des réussites. Le jet de combat s'applique à **tous** les échecs, critiques compris (le document ne le précise que pour
+  le masque). — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Victime d'une neutralisation réussie** : PA à 0 (hôpital par la règle existante), PV inchangés. — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **PER de la cible PJ** : sa vraie PER (10 si absente) au lieu du 10 fixe de l'ancien écran. — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Détection qui identifie** : −10 DIS à l'auteur (règle existante de `crime_detecter_interne` conservée). — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Garde du corps ou agence** : agents de sécurité / maîtres-chiens employés par la victime (ou par l'employeur du PNJ visé), ou soldats qu'elle
+  mène, présents au même endroit. — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Peine d'office** : l'identification pose un avis de recherche (`assassinat` après réussite, `tentative_assassinat` après échec) ; les 2 jours
+  s'appliquent à l'arrestation par le barème. — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Combat qui ne peut pas s'ouvrir** (groupe dispersé, PNJ sans profil de combat…) : échec ordinaire. — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **PNJ visables** : seulement les PNJ référencés (`pnj_membres`, classes alpha et beta) ; « hors service » = PA du PNJ à 0, rechargés par le cycle
+  quotidien existant ; plainte de l'employeur déposée aussi après un échec remarqué. — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Messages** : courrier système « Événement » à la victime ou à l'employeur. — *valeur provisoire choisie par l'agent, à valider par Fred*
+
+### Points relevés pour les lots suivants
+- `minuit_decouverte_crimes` découvre encore chaque nuit, au hasard, les crimes tracés dans `historique_crimes` (assassinat, meurtre, agression…),
+  ce qui contredit « pas d'enquête automatique » (§ 3). La neutralisation n'écrit plus dans `historique_crimes` ; les actes anciens si. Lot 6.
+- Pendant un combat, les rapports de combat montrent les noms des participants : un assassin masqué passé au combat y est nommé. À traiter
+  côté affichage du combat (le moteur ne change pas).
+- `crime_detecter_interne` ajoute toujours la dissuasion #135 pour les actes non encore passés à la résolution commune (voler, empoisonner,
+  explosifs, incendie…) : le double compte disparaît acte par acte (lots 3 à 5).
+- La fiche d'un individu masqué propose encore « Parler », « Rejoindre », « Envoyer un mail » (sans effet utile sous un pseudonyme).
+
 ## Tableau de correspondance (règle → statut → fonction serveur)
 
-Statuts : **décidé** (dans le document), **implémenté** (en production), **testé** (essai en production annulé + banc `outils/bancs/test-crim-lot1-equipement.cjs`).
+Statuts : **décidé** (dans le document), **implémenté** (en production), **testé** (essai en production annulé + bancs `outils/bancs/test-crim-lot1-equipement.cjs`, `outils/bancs/test-crim-lot2-resolution.cjs`).
 
 | § | Règle | Statut | Lot | Fonction serveur |
 |---|---|---|---|---|
@@ -279,15 +335,16 @@ Statuts : **décidé** (dans le document), **implémenté** (en production), **t
 | 1 | Cachette jusqu'à la sortie de la pièce, conservée après une tentative | implémenté, testé | 1 | déclencheur `crim_personnage_etat`, raccord `crime_empoisonner` |
 | 1 | Fouiller : 1 PA, 40 + 2 PER − DIS/10 − 15 ninja + 20 police/sécurité, 10-90 | implémenté, testé | 1 | `crim_fouiller_cachettes`, `crim_fouiller_taux_interne` |
 | 1 | Débusqué : perd la cachette, garde le masque | implémenté, testé | 1 | `crim_debusquer_interne` |
-| 2 | Neutraliser ouvert à tous, +15 carrière, PA 2/2/3, formule actuelle | décidé | — | (`combat_ouvrir` aujourd'hui, sans jet) |
-| 2 | +10 depuis la cachette ; masque sans bonus | décidé (helper prêt) | — | `crim_cache_interne` |
-| 2 | Gilet revêtu : −20 arme à feu, −5 mains nues / arme blanche | décidé (helper prêt) | — | `crim_objet_porte_interne(cible,'gilet')` |
-| 2 | Réussite : hôpital ; message selon le mode ; détection 30/40/60 −20 caché −10 masqué, min 5 ; masque = trace sans nom | décidé | — | — |
-| 2 | Échec critique 2 % des échecs (avec / sans masque) | décidé | — | — |
-| 2 | Combat 10 % des échecs (+2/PER > 10, +15 garde, −10 caché, 2-40) | décidé | — | — |
-| 2 | Échec sans combat : cachette gardée, message selon le mode | décidé | — | — |
-| 2 | Combat : vaincu identifié ; vainqueur = réussite, perd la cachette, garde le masque | décidé | — | `crim_debusquer_interne` |
-| 3 | Pas d'enquête automatique ; identifié = recherché + 2 j d'office ; dommages et intérêts | décidé | — | — |
+| 2 | Neutraliser ouvert à tous, +15 carrière, PA 2/2/3, formule actuelle | implémenté, testé | 2 | `crime_neutraliser(text,text,uuid)`, `crim_neutraliser_taux_interne` |
+| 2 | +10 depuis la cachette ; masque sans bonus | implémenté, testé | 2 | `crim_neutraliser_taux_interne`, `crim_cache_interne` |
+| 2 | Gilet revêtu : −20 arme à feu, −5 mains nues / arme blanche | implémenté, testé | 2 | `crim_neutraliser_taux_interne`, `crim_objet_porte_interne(cible,'gilet')` |
+| 2 | Réussite : hôpital ; message selon le mode ; détection 30/40/60 −20 caché −10 masqué, min 5 ; masque = trace sans nom | implémenté, testé | 2 | `crim_resoudre_interne`, `crim_detection_interne`, `crim_affaire_notifier_interne` |
+| 2 | Échec critique 2 % des échecs (avec / sans masque) | implémenté, testé | 2 | `crim_resoudre_interne` |
+| 2 | Combat 10 % des échecs (+2/PER > 10, +15 garde, −10 caché, 2-40) | implémenté, testé | 2 | `crim_combat_taux_interne`, `crim_garde_cible_interne` |
+| 2 | Échec sans combat : cachette gardée, message selon le mode | implémenté, testé | 2 | `crim_resoudre_interne`, `crim_affaire_notifier_interne` |
+| 2 | Combat : vaincu identifié ; vainqueur = réussite, perd la cachette, garde le masque | implémenté, testé (ouverture et suite ; issue réelle d'un combat non jouée) | 2 | `crim_resoudre_suite_interne`, raccord `combat_finaliser_interne`, `crim_debusquer_interne` |
+| 3 | Pas d'enquête automatique ; identifié = recherché + 2 j d'office ; dommages et intérêts | identifié → recherché + 2 j : implémenté, testé ; `minuit_decouverte_crimes` à retirer (lot 6) ; dommages et intérêts : décidé | 2 | `crim_identifier_interne`, `crim_peine_jours_interne`, raccord `peine_acte_interne` |
+| 3 | Affaire enregistrée à chaque crime (trace, plafond 5 / 15 %, indices) ; plainte de l'employeur d'un PNJ | implémenté, testé | 2 | `crim_affaires`, `crim_affaire_notifier_interne` |
 | 3 | Plainte contre X : commissaire de la ville, « Enquêter » 2 PA, 1/jour/plainte, plafonds 5/15 %, bonus (trace, rumeurs, informateur, traces d'achat) | décidé | 6 | (`crim_traces_achat` alimentée dès le lot 1) |
 | 3 | Première enquête ratée : message, −20 DIS, −15 moral | décidé | 6 | — |
 | 4 | Rumeurs à indices partiels (genre, arme) ; fausse piste | décidé | — | — |
@@ -297,10 +354,10 @@ Statuts : **décidé** (dans le document), **implémenté** (en production), **t
 | 5 | Tenue ninja 240 FR / 30 PSK, habillement civil + militaire | implémenté, testé | 1 | `crim_objet_interne`, `boutique_discretion_acheter` |
 | 5 | Masque de carnaval 50 FR / 8 PSK, habillement civil | implémenté, testé | 1 | idem |
 | 5 | Gilet 380 FR / 60 PSK | implémenté, testé | 1 | `crim_prix_interne` |
-| 6 | Cadre des trois modes pour tous les crimes en pièce | décidé (helpers prêts) | — | `crim_mode_action_interne` |
-| 6 | Neutraliser et voler un PNJ (employeur alerté, hors service jusqu'au lendemain) | décidé | — | — |
-| 6 | Dissuasion #135 conservée pour tous les crimes (une seule fois) | décidé | — | `securite_malus_lieu_interne` |
-| 6 | Peines automatiques par empire (Républia : 2 j / 1 j) | décidé | — | — |
+| 6 | Cadre des trois modes pour tous les crimes en pièce | implémenté dans la résolution commune ; branché sur Neutraliser | 2 | `crim_resoudre_interne`, `crim_designation_interne` |
+| 6 | Neutraliser et voler un PNJ (employeur alerté, hors service jusqu'au lendemain) | neutraliser : implémenté (essai sans PNJ référencé dans la pièce) ; voler : lot 3 | 2 | `crim_cible_resoudre_interne`, `crim_affaire_notifier_interne`, `pnj_pa_fixer` |
+| 6 | Dissuasion #135 conservée pour tous les crimes (une seule fois) | implémenté dans la résolution commune (actes anciens : double compte jusqu'à leur lot) | 2 | `crim_resoudre_interne`, `securite_malus_lieu_interne` |
+| 6 | Peines automatiques par empire (Républia : 2 j / 1 j) | assassin 2 j : implémenté, testé ; voleur 1 j : lot 3 | 2 | `crim_peine_jours_interne`, `crim_parametres.peine_jours_<acte>_<empire>` |
 | 7 | Voler : cibles, coûts, formules de réussite, butin, objets volables, réussite critique, échecs, combat, 1 j d'office | décidé | — | (objet revêtu non volable : `crim_porte_ligne_interne`) |
 | 8 | Crochetage 3 PA, kit, 30 % +1/2 DIS > 50, +15, 5-80 ; kit cassé ; 5 usages | décidé (kit vendu, `usages_restants`) | — | `crim_objet_interne('kit_crochetage')` |
 | 8 | Effraction 2 PA, 40 % +3/FOR > 8, +25 pied-de-biche, +10, 10-95 ; serrure détruite ; détection 60 | décidé (pied-de-biche vendu) | — | — |

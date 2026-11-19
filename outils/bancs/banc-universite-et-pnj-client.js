@@ -246,7 +246,8 @@ att('un depute PNJ garde une entree distincte, nommee Assemblee',
     codePnj.indexOf('Endormir ce député (Assemblée)') >= 0
     && codePnj.indexOf('} else if (siegeGamma) {') >= 0);
 att('elle mene a la meme fonction qu avant -- rien de l Assemblee n est reecrit',
-    compte(codePnj, /ouvrirModalAssassinat\(/g) === 2);
+    // Criminalité lot 2 (19/11/2026) : troisième appel, le bouton Neutraliser d'un joueur (ou d'un individu masqué, par jeton).
+    compte(codePnj, /ouvrirModalAssassinat\(/g) === 3);
 // LA DISTINCTION QUE LE BOUTON PROMET DOIT ETRE CELLE QUE LE GESTIONNAIRE APPLIQUE. Les deux
 // predicats ne disent pas la meme chose : assembleeSiegeParNomPnj repond oui des que le NOM
 // figure sur un siege, meme tenu aujourd'hui par un assistant parlementaire joueur ;

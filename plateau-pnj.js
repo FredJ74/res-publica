@@ -716,6 +716,14 @@ function choisirCibleCombatPnj(pnj,cibles,batiment) {
   return memes.length===1 && memes[0].classe!=='gamma' ? {...pnj,socleId:memes[0].id} : null;
 }
 async function actualiserCibleCombatPnj(pnj) {
+  // Criminalité lot 2 : un joueur (ou un individu masqué, visé par son jeton) se neutralise sans liste de cibles PNJ.
+  if (pnj && pnj.isPJ) {
+    const zonePj=document.getElementById('combat-cible-pnj');
+    if (!zonePj || (pnj.masque && !pnj.jeton)) { if (zonePj) zonePj.textContent='Cette personne ne peut pas être ciblée ici.'; return false; }
+    const b=document.createElement('button');b.className='cpj-touche';b.textContent='Neutraliser';
+    b.onclick=()=>{document.getElementById('modal-pnj').classList.remove('open');ouvrirModalAssassinat(encodePnjSafe(pnj));};
+    zonePj.replaceChildren(b);return true;
+  }
   const c=contexteGroupePj(),zone=document.getElementById('combat-cible-pnj');
   if (!zone || typeof sbRpcVerdict!=='function') return false;
   const lieu=[state.country,state.currentCity,state.currentBuilding,state.currentRoom].join('|');
@@ -1142,7 +1150,7 @@ function openPnjModal(encodedPnj, options = null) {
 
   // Stocker l'enc pour envoyerQuestion
   state._currentPnjEnc = enc;
-  if (!isPJ && !gammaCible && typeof actualiserCibleCombatPnj==='function') actualiserCibleCombatPnj(pnj).catch(()=>{});
+  if (!gammaCible && typeof actualiserCibleCombatPnj==='function') actualiserCibleCombatPnj(pnj).catch(()=>{});
 
   // Recharger l'historique de la conversation du jour (uniquement pour les PNJ — jamais pour un vrai joueur)
   if (!isPJ) {

@@ -241,6 +241,10 @@ function ouvrirModalAssassinat(encodedCible) {
 
   const siegeDepute = neutraliserCibleEstDepute(cible);
   const estDepute = !!siegeDepute;
+  // Criminalité lot 2 (19/11/2026) : PJ, individu masqué (jeton) ou PNJ → crime_neutraliser (jet serveur, combat seulement
+  // sur un échec qui tourne mal). Les squatteurs d'un terrain gardent l'affrontement direct.
+  const estSquatter = /^squatter_/.test(cible.terrainPnjId || cible.id || '');
+  if (!estDepute && !estSquatter && typeof ouvrirNeutraliser === 'function') { ouvrirNeutraliser(encodedCible); return; }
   if (!estDepute) {
     document.getElementById('postes-modal-title').textContent = 'Affronter — ' + cible.name;
     let choix = '<div class="cpj-dialogue"><p class="cpj-note">Le serveur ouvre un affrontement par rounds. Les conséquences dépendent de son issue réelle. Aucun taux de réussite instantanée ne s’applique.</p>';

@@ -1,4 +1,5 @@
 // Criminalité — lot 1 : équipement et dissimulation (GAME-DESIGN-CRIMINALITE.md §§ 1 et 5, décisions de Fred des 18-19/11/2026).
+// Lot 2 : Neutraliser par crime_neutraliser (résolution commune crim_resoudre_interne), cible masquée visée par jeton.
 // Le serveur tranche tout : jets (se_cacher, crim_fouiller_cachettes), objet porté (crim_revetir / crim_retirer, marque
 // `porte_par` dans l'inventaire), liste des présents (crim_presents : caché absent, masqué numéroté sans portrait),
 // boutique « Équipement discret » (boutique_discretion_etat / _acheter), événements d'écran (crim_evenements_lire :
@@ -27,7 +28,21 @@ const T = {
     r_inventaire_plein: 'Inventaire plein.', r_objet_non_revetable: 'Cet objet ne se revêt pas.', r_deja_revetu: 'Vous le portez déjà.',
     r_pas_revetu: 'Vous ne le portez pas.', r_objet_introuvable: 'Objet introuvable : rouvrez votre inventaire.',
     r_emprisonne: 'Impossible en détention.', r_hospitalise: 'Impossible à l’hôpital.', r_pa_insuffisants: 'Pas assez de PA.',
-    refused: 'Le serveur a refusé l’opération.'
+    refused: 'Le serveur a refusé l’opération.',
+    nTitle: 'Neutraliser — {nom}',
+    nIntro: 'Le serveur tranche tout : réussite, détection, risque d’affrontement. Frapper depuis votre cachette aide ; un gilet pare-balles revêtu protège la cible. Le masque ne donne aucun bonus, mais cache votre identité.',
+    nMode: '{label} — {pa} PA', nFeu: ' · −20 DIS', nArmeAbsente: ' (arme absente)',
+    nOk: 'Cible neutralisée', nOkText: 'Votre cible s’effondre ; elle est conduite à l’hôpital.',
+    nFail: 'Raté', nFailText: 'Votre tentative échoue. Vous pouvez retenter si vous avez encore des PA.',
+    nCrit: 'Échec critique', nCritText: 'Maladresse : votre moral en prend un coup (−15).',
+    nCombat: 'Affrontement !', nCombatText: 'Votre cible se défend : l’affrontement commence.',
+    nIdent: 'Vous avez été identifié(e) : la police vous recherche ({jours} jour(s) de prison d’office).',
+    nTrace: 'Quelqu’un vous a repéré(e), mais votre masque a préservé votre identité.',
+    r_cible_introuvable: 'Cette personne n’est plus là.', r_pas_au_meme_endroit: 'Votre cible n’est plus dans la pièce.',
+    r_arme_manquante: 'Vous n’avez pas l’arme nécessaire.', r_cible_indisponible: 'Cette personne est hors service.',
+    r_meme_groupe: 'Vous ne pouvez pas viser un membre de votre groupe.', r_cible_protegee: 'Cette personne ne peut pas être visée.',
+    r_cible_non_referencee: 'Cette personne ne peut pas être visée ici.', r_cible_invalide: 'Cible invalide.',
+    r_cible_ambigue: 'Plusieurs personnes portent ce nom : impossible de viser.'
   }
 };
 const etat = () => (typeof state !== 'undefined' && state) ? state : {};
@@ -177,6 +192,58 @@ async function fouilleCachettesConfirmer() {
   if (typeof global.chargerVraisJoueursPresents === 'function') global.chargerVraisJoueursPresents();
 }
 
+// ── Neutraliser (lot 2) : crime_neutraliser tranche tout (jet, détection, passage au combat) ─────────────────────
+// Aucun taux calculé ici. Un individu masqué est visé par son jeton (crim_presents), jamais par un nom.
+function cibleNeutraliser(enc) { try { return JSON.parse(decodeURIComponent(enc)); } catch (_) { return null; } }
+function identifiantCible(c) {
+  if (!c) return '';
+  if (c.jeton) return c.jeton;
+  if (c.isPJ) return c.name;
+  return c.socleId || c.pnjSocleId || (c.name ? String(c.name).replace(/ \(PNJ\)$/, '') : c.id);
+}
+function possedeArme(m) {
+  if (!m || !m.sousTypes) return true;
+  return (etat().inventory || []).some(i => i && i.type === 'arme' && m.sousTypes.includes(i.sousType));
+}
+function ouvrirNeutraliser(enc) {
+  const c = cibleNeutraliser(enc);
+  if (!c) return;
+  const modes = (typeof global.NEUTRALISER_MODES === 'object' && global.NEUTRALISER_MODES) ? global.NEUTRALISER_MODES
+    : (typeof NEUTRALISER_MODES === 'object' ? NEUTRALISER_MODES : {});
+  const titre = global.document.getElementById('postes-modal-title');
+  if (titre) titre.textContent = texte('nTitle', { nom: String(c.name || '').replace(/ \(PNJ\)$/, '') });
+  let html = '<div class="cpj-dialogue"><p class="cpj-note">' + esc(texte('nIntro')) + '</p>';
+  for (const [cle, m] of Object.entries(modes)) {
+    const dispo = possedeArme(m);
+    html += '<button class="cpj-touche" ' + (dispo ? '' : 'disabled ') + 'onclick="crimNeutraliserConfirmer(\'' + enc + '\',\'' + cle + '\')">'
+      + esc(texte('nMode', { label: m.label, pa: m.paPJ })) + (cle === 'feu' ? esc(texte('nFeu')) : '') + (dispo ? '' : esc(texte('nArmeAbsente'))) + '</button>';
+  }
+  global.document.getElementById('postes-body').innerHTML = html + '</div>';
+  global.document.getElementById('modal-postes').classList.add('open');
+}
+async function crimNeutraliserConfirmer(enc, mode) {
+  fermerModale();
+  const c = cibleNeutraliser(enc);
+  if (!c) return;
+  const r = await rpc('crime_neutraliser', { p_cible: identifiantCible(c), p_mode: mode, p_requete: uuid() });
+  if (!r || r.ok !== true) { toast(texte('nFail'), motif(r), false); return; }
+  if (r.paie && typeof global.appliquerPaiementServeur === 'function') global.appliquerPaiementServeur(r.paie);
+  const e = etat();
+  if (typeof r.dis === 'number') e.dis = r.dis;
+  if (typeof r.moral === 'number') e.moral = r.moral;
+  if (Array.isArray(r.recherche)) e.recherche = r.recherche;
+  let suite = '';
+  if (r.identifie) suite = ' ' + texte('nIdent', { jours: r.peine_jours == null ? '?' : r.peine_jours });
+  else if (r.trace) suite = ' ' + texte('nTrace');
+  if (r.issue === 'reussite') toast(texte('nOk'), texte('nOkText') + suite, true);
+  else if (r.issue === 'combat') toast(texte('nCombat'), texte('nCombatText'), false);
+  else if (r.echec_critique) toast(texte('nCrit'), texte('nCritText') + suite, false);
+  else toast(texte('nFail'), texte('nFailText') + suite, false);
+  if (typeof global.updateUI === 'function') global.updateUI();
+  if (r.issue === 'combat' && Number.isSafeInteger(Number(r.bataille)) && typeof global.ouvrirPanneauCombat === 'function')
+    await global.ouvrirPanneauCombat(Number(r.bataille));
+}
+
 // ── Événements d'écran : « Bas les masques ! » (arrestation d'un PJ masqué), débusqué ───────────────────────────
 function injecterStyle() {
   const doc = global.document;
@@ -241,7 +308,8 @@ if (global.document && global.setTimeout) {
   else global.document.addEventListener('DOMContentLoaded', demarrer);
 }
 
-global.RPCriminalite = { T, texte, objetRevetable, objetPorte, ordresBoutiqueDiscretion, LIEUX_BOUTIQUE };
+global.RPCriminalite = { T, texte, objetRevetable, objetPorte, ordresBoutiqueDiscretion, LIEUX_BOUTIQUE, identifiantCible };
 Object.assign(global, { ouvrirBoutiqueDiscretion, acheterDiscretion, boutonRevetir, badgeRevetu, crimRevetir, crimRetirer,
-  messageSeCacher, ouvrirFouilleCachettes, fouilleCachettesConfirmer, lireEvenementsCrim, animationDemasquage });
+  messageSeCacher, ouvrirFouilleCachettes, fouilleCachettesConfirmer, lireEvenementsCrim, animationDemasquage,
+  ouvrirNeutraliser, crimNeutraliserConfirmer });
 })(typeof window !== 'undefined' ? window : globalThis);
