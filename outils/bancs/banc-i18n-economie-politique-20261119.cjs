@@ -17,12 +17,12 @@ const canonical=vm.runInNewContext(source.slice(begin,end+3)+'\nI18N_COMMERCE_PJ
 const commercial=flat(config.RP_I18N_RESOURCES.fr.translation.commercepj);
 const keyStart='// Human Gambit — compléments';
 const supplement=read('i18n/commerce-pj-complements-20261119.js');
-test('70 textes de commerce complétés, français exactement conservé et 8 langues',()=>{
+test('100 textes de commerce complétés, français exactement conservé et 8 langues',()=>{
   const extras=[...supplement.matchAll(/"([a-zA-Z]+(?:\.[a-zA-Z]+)*)":/g)];
   const dataStart=supplement.indexOf('const words='),dataEnd=supplement.indexOf(';\n function assign',dataStart);
   assert.ok(dataStart>0&&dataEnd>dataStart);
   const entries=JSON.parse(supplement.slice(dataStart+'const words='.length,dataEnd));
-  assert.equal(Object.keys(entries.fr).length,70);
+  assert.equal(Object.keys(entries.fr).length,100);
   for(const [k,v]of Object.entries(entries.fr)){
     assert.equal(v,canonical['commercepj.'+k],k);
   }
