@@ -1,6 +1,6 @@
 # Criminalité — règles du game designer
 
-Décisions de Fred, 18 novembre 2026, session claude.ai. **Document en cours : la criminalité ne se limite pas à la neutralisation, d'autres volets restent à trancher. NE PAS CODER avant le prompt complet « Criminalité » de Fred.**
+Décisions de Fred, 18-19 novembre 2026, session claude.ai. **Codage lancé le 19/11/2026.**
 
 Remplace la note « Assassinats discrets » de `GAME-DESIGN-QUESTIONS-APRES-SOVARKA.md`.
 
