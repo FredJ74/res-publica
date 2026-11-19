@@ -9,6 +9,7 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 ### Maladies, péremption et climat — lot 5 : effets du climat, état de catastrophe naturelle (Claude, 19/11/2026)
+- **Sacs de sable proportionnels (décision de Fred du 19/11)** : 10 % de perte en moins par sac, plafond 9 (reste 2 %) ; « Poser » (1 PA) pose tous les sacs portés ; réglages `sac_protection_pct` et `sacs_plafond` ; migration `20261119101000_sacs_sable_proportionnels.sql` appliquée (essai Arnie : 3 sacs → 14 %, 9 → 2 %, 10e refusé) ; banc `test-climat-effets-20261119.cjs`.
 - **Branche `claude/climat-lot5-20261119`** (part du lot 4).
 - **Migrations APPLIQUÉES** : `20261119100000_climat_effets` (structure contrôlée à l'application, puis scénario complet en transaction annulée : bouteille d'eau, crue de l'entrepôt de Montrouge, viande gâtée en fin de canicule, coûts des deux options), `20261119100500_catastrophe_caisse_pm` (paiement sur la caisse du gouvernement tenue par le PM, vérifié en transaction annulée).
 - **Codé** : canicule, orage et groupe électrogène (équipement), crue (lieux fermés, 20 % de stock, sacs de sable), état de catastrophe naturelle (proposition du min_int, déclaration du PM, deux options avec coûts), boutique « Équipements contre les intempéries », brouillard exposé sans être branché (criminalité non touchée) ; textes en neuf langues ; ordre `boutique_climat` (plans 97/219 : 586 lignes ; 425 identifiants d'ordres).
