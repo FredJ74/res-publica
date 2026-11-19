@@ -80,7 +80,7 @@ async function ouvrirRepertoirePJ() {
 
   // Ajouter soi-même si pas dans la liste
   if (myName && !joueurs.find(j => j.name === myName)) {
-    joueurs.unshift({ name: myName, country: state.country, current_city: state.currentCity, poste: state.poste, domicile: state.domicile });
+    joueurs.unshift({ name: myName, country: state.country, poste: state.poste, domicile: state.domicile });
   }
 
   if (joueurs.length === 0) {

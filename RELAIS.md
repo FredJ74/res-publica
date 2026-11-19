@@ -13,6 +13,11 @@ Règles : voir `AGENTS.md`.
 - Traduire les trois boutons de courrier du référendum QHS (`qhs_decider`, `qhs_oui`, `qhs_non` dans `forum.js`) : compléter les catalogues `mailActions` de `i18n/forum-ui.js` (et le compte du banc correspondant).
 - Claude n'a rien traduit (consigne de Fred).
 
+### Criminalité — correctifs du 20/11 (Claude, branche `claude/criminalite-correctifs-20261120`)
+- Migration APPLIQUÉE `20261120140000_crim_discretion` : rapports de combat sans nom de masqué (« Individu masqué n°X », même numéro que `crim_presents`, figé à l'ouverture du combat) ; `batailles`, `batailles_engagements`, `batailles_groupes` retirées de la lecture directe (anon, authenticated) ; vue `personnages` : `current_city`, `current_building`, `current_room` NULL pour les autres joueurs (lisibles par le propriétaire, la clé de service et les fonctions SECURITY DEFINER) ; politique `personnages_lecture` = ligne du propriétaire.
+- Écran : annuaire sans `current_city` (`supabase.js`, `forum.js`, `plateau-politique.js`, `plateau-communication.js`) ; fiche d'un masqué sans Parler / Rejoindre / courrier (`plateau-pnj.js`). Banc : `outils/bancs/test-crim-discretion-20261120.cjs`.
+- Reste : `country` (pays courant), `reservation_hotel`, `employes`, `locations_actives` exposent encore des lieux dans la vue ; `api/journal-interview.js` retombe sur la clé anon sans clé de service (ville alors vide).
+
 ### Maladies, péremption et climat — lot 3 : socle des événements climatiques (Claude, 18/11/2026, nuit)
 - **Branche `claude/climat-lot3-20261118`** (part du lot 2c). Décisions de Fred (points 6 à 8) et choix consignés dans `GAME-DESIGN-MALADIES-CLIMAT.md` § 11.
 - **Migration APPLIQUÉE** : `20261118080000_climat_socle` (+ correctif `climat_chantiers_apres_alerte`). Calendrier déjà planifié (trimestre en cours et suivant, mois en cours et suivant).

@@ -821,7 +821,8 @@ function openPnjModal(encodedPnj, options = null) {
   const pnjSafeRole = (pnj.role||'').replace(/'/g, '');
   const pnjRel = pnj.rel || 'neutral';
 
-  if (isPJ) {
+  // Individu masqué (crim_presents) : ni Parler, ni Rejoindre, ni courrier -- son nom n'est pas connu.
+  if (isPJ && pnj.masque !== true) {
     const inGroup = state.group && state.group.members && state.group.members.includes(pnj.name);
     const pnjJson = encodePnjSafe(pnj);
     actionBtns += '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');ouvrirConversationAvec(\'' + pnjSafeName + '\')" style="color:#6ada6a;border-color:#2a5a2a"><i class="ti ti-message-circle" style="font-size:.85rem"></i> Parler</button>';
