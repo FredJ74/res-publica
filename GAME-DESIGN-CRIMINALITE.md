@@ -154,7 +154,20 @@ Trois façons d'agir :
 - **Le temps ne s'achète pas** dans les empires actuels : **suppression** de « Corrompre un fonctionnaire (accélérer) » (permis), « Accélérer le rendez-vous (corruption) » (notaire) et du bouton mort « Accélérer le chantier (corruption) ». Le temps s'achètera dans les futurs empires P2W.
 - **Inchangés** (hors règle commune ci-dessus) : journaliste, greffier, armurier, gardien du goulag.
 
+## 13. Délits d'information (décisions du 19/11, nuit)
+
+- **Rumeur** (« Lancer une rumeur », 1 PA, gratuit) : anonyme par défaut, mais l'auteur doit être **plus facile à démasquer** que pour les autres crimes.
+  - Réussite : **60 % + 1 par tranche de 3 de DIS au-dessus de 50 + 2 par point de CHA au-dessus de 8**, bornes **10-90 %** (remplace le 75 % fixe). Effets sur la cible inchangés.
+  - **Échec critique : 10 % des échecs** — auteur identifié, la cible apprend son nom, la rumeur se retourne contre lui (« X a tenté de répandre des calomnies »), perte de POP pour l'auteur.
+  - **Détection même après réussite** : **15 %, −1 par tranche de 10 de DIS, minimum 5 %** (remplace le jet actuel à chaque tentative).
+  - **Bouche-à-oreille** : quand un joueur écoute les rumeurs (barman, tables, serveuse…), **10 %** de chances d'apprendre l'origine d'une rumeur récente (« On dit que c'est X qui fait courir ce bruit sur Y »).
+  - **Plainte contre X** possible, enquête du commissaire (cadre commun).
+  - Valeurs à ajuster après la bêta.
+- **Tracts calomnieux** : inchangés (échec critique 10 % des échecs, flagrant délit ou mandat), **plus le bouche-à-oreille** : 10 % de chances, en écoutant les rumeurs, d'apprendre qui distribue des tracts contre qui.
+- **Fabriquer un scandale** : inchangé (auteur public ; la victime réplique par une plainte en diffamation, jugée par un juge joueur).
+- **Produire une fuite** : inchangée (fait réel uniquement, commanditaire secret, légal).
+
 ## Plus tard
 
 - Le moral pourrait influencer tous les ordres à jet aléatoire (à étudier).
-- Volets restant à trancher avant le prompt complet : **délits d'information** (fausse rumeur, tracts calomnieux, scandale fabriqué, fuite), **mise en ordre des peines** (doublement « démasqué » incohérent, 11 barèmes jamais détectables), **carrière criminelle**.
+- Volets restant à trancher avant le prompt complet : **mise en ordre des peines** (doublement « démasqué » incohérent, 11 barèmes jamais détectables), **carrière criminelle**.
