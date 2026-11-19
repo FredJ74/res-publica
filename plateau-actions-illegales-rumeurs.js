@@ -6,10 +6,18 @@
 
 // TRACAGE DES ACTIONS (pour le systeme de rumeurs vraies)
 // =====================
+// Identifiants de requete et de trace (Criminalite lot 8) : aucun tirage au hasard dans ce fichier ; le hasard
+// de jeu est tire par le serveur, les identifiants viennent de crypto.randomUUID.
+let compteurIdRumeurs = 0;
+function idRumeurs(prefixe) {
+  const c = globalThis.crypto;
+  return prefixe + '-' + (c && typeof c.randomUUID === 'function' ? c.randomUUID()
+    : Date.now().toString(36) + '-' + (++compteurIdRumeurs).toString(36));
+}
 function tracerActionPourRumeur(typeAction, cibleNom) {
   if (typeof sbTracerAction !== 'function') return;
   const action = {
-    id: 'action-' + Date.now() + '-' + Math.floor(Math.random()*1000),
+    id: idRumeurs('action'),
     auteur: state.char?.name || 'Anonyme',
     cible: cibleNom || null,
     type_action: typeAction,
@@ -21,127 +29,14 @@ function tracerActionPourRumeur(typeAction, cibleNom) {
   sbTracerAction(action).catch(() => {});
 }
 
-
-// LE GENRE DE BUTIN EST CHOISI PAR LE JOUEUR (12 octobre 2026), PLUS TIRE AU SORT.
-//
-// Avant, `confirmerVol` tirait 60 % argent / 40 % objet et basculait d'un genre a l'autre quand
-// la cible n'avait rien du genre tire. Ce repli etait une FUITE D'INFORMATION : reussir un vol
-// « d'objet » sur une cible sans objet rapportait de l'argent, donc l'issue renseignait sur ce
-// que la cible possede. Le joueur annonce desormais ce qu'il cherche, et il n'y a plus de repli :
-// s'il n'y en a pas, le vol reussit et ne rapporte rien.
-//
-// L'INVENTAIRE DE LA CIBLE N'EST JAMAIS MONTRE, ni ici ni a l'etape suivante : on choisit un
-// GENRE, pas un objet. Et la tentative reste possible sur une cible qui ne possede rien -- elle
-// peut echouer en etant detectee, echouer sans l'etre, ou reussir sans butin.
+// VOLER SUR UNE PERSONNE (Criminalité lot 3, 19/11/2026, GAME-DESIGN-CRIMINALITE.md § 7) : l'ordre passe par
+// crime_voler(cible, butin, type, requete) — argent liquide, objet au hasard ou objet précis (un TYPE, sans voir
+// l'inventaire) — et la résolution commune des crimes. Le serveur tranche tout (jet, butin, détection, combat,
+// messages, peine) ; l'écran (plateau-criminalite.js) ne calcule rien. L'ancien jet à paliers (estimation affichée,
+// bénédiction, amende d'empire) et l'ancienne route crime_voler(p_genre…) sont retirés.
 function ouvrirModalVolerChoix(encodedCible) {
-  let cible;
-  try { cible = JSON.parse(decodeURIComponent(encodedCible)); } catch (e) { return; }
-  document.getElementById('postes-modal-title').textContent = 'Voler — ' + cible.name;
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.82rem;color:#aa7a30;font-style:italic;margin-bottom:1rem;padding:.55rem;background:#0f0d05;border:1px solid #3a2810">'
-       +  'Que cherchez-vous ? Vous ne saurez ce qu\'elle porte qu\'en le prenant.</div>';
-  html += '<div style="display:flex;flex-direction:column;gap:.5rem">';
-  html += '<button onclick="ouvrirModalVoler(\'' + encodedCible + '\',\'argent\')" style="text-align:left;padding:.6rem .8rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.85rem"><i class="ti ti-coins"></i> Voler de l\'argent</button>';
-  html += '<button onclick="ouvrirModalVoler(\'' + encodedCible + '\',\'objet\')" style="text-align:left;padding:.6rem .8rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.85rem"><i class="ti ti-package"></i> Voler un objet</button>';
-  html += '</div></div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
+  if (typeof crimOuvrirVoler === 'function') crimOuvrirVoler(encodedCible);
 }
-
-function ouvrirModalVoler(encodedCible, genre) {
-  let cible;
-  try { cible = JSON.parse(decodeURIComponent(encodedCible)); } catch(e) { return; }
-
-  const char = state.char;
-  const per = getStatEffective('PER');
-  const cha = getStatEffective('CHA');
-  const bonusCarriere = BONUS_CARRIERE_VOL[char?.career] || 0;
-  const isPays = (typeof getIndiceVille === 'function') ? getIndiceVille(state.country, state.currentCity || 'capitale', 'isn') : (INDICES_NATIONAUX[state.country]?.ISN || 30);
-
-  // Stats de la cible — si PJ reel on n'a que des stats par defaut raisonnables (PNJ ont parfois des stats definies)
-  const perCible = cible.stats?.PER || 9;
-  const intCible = cible.stats?.INT || 9;
-
-  // Jet final a 4 paliers (refonte du 22 aout 2026, decision de game design arretee -- remplace
-  // l'ancien couple tauxReussite/roll et la variable voitButin, jamais utilisee depuis sa
-  // creation, voir audit dedie). Base neutre 50, deplacee par exactement les memes influences
-  // qu'avant (PER/CHA effectives du groupe -- un informateur recrute inGroupe continue donc de
-  // les faire progresser via getStatEffective -- PER/INT de la cible, carriere, ISN local).
-  // Seule la part aleatoire est ajoutee plus tard, dans confirmerVol() : jamais ici, pour ne pas
-  // consommer la benediction avant la confirmation reelle (meme doctrine que l'ancien code).
-  // Paliers arretes : jetFinal <25 echec complet ; 25-49 reussite, voleur identifie ; 50-74
-  // reussite, vol detecte mais auteur inconnu ; >=75 reussite sans detection.
-  const jetBase = 50 + (per + cha) - (perCible + intCible) + bonusCarriere - (isPays / 3);
-
-  document.getElementById('postes-modal-title').textContent = 'Voler — ' + cible.name;
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.82rem;color:#aa7a30;font-style:italic;margin-bottom:1rem;padding:.5rem;background:#0f0d05;border:1px solid #3a2810">Acte illegal. En cas d\'echec, des consequences variables selon l\'empire s\'appliquent. Une part de hasard reste toujours decisive.</div>';
-  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Estimation avant hasard : <strong style="color:#C9A84C">' + Math.round(jetBase) + ' / 100</strong> (echec &lt;25 · identifie 25-49 · detecte 50-74 · discret &ge;75)</div>';
-  const genreButin = (genre === 'objet') ? 'objet' : 'argent';
-  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Cible du vol : <strong style="color:#C9A84C">'
-       + (genreButin === 'objet' ? 'un objet' : 'de l\'argent') + '</strong></div>';
-  html += '<button onclick="confirmerVol(\'' + encodedCible + '\',' + jetBase + ',\'' + genreButin + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #aa7a30;background:transparent;color:#C9A84C;cursor:pointer">🤏 Tenter le vol (2 PA)</button>';
-  html += '</div>';
-
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
-}
-
-// VOLER PAR LE SERVEUR (27 octobre 2026) : crime_voler fait le jet, lit le butin sur la fiche
-// reelle de la victime (eligibilite : matieres empilables, objets trouves, armes ; jamais les
-// actes officiels ni le colis de quete), applique la sanction d'echec de l'empire, credite
-// l'argent au voleur, depose le retrait differe chez la victime (vols_en_attente) et la previent
-// selon le palier. L'ecran ne fait plus qu'annoncer le resultat. La benediction (+5) reste tenue
-// par l'ecran : elle est consommee ici et signalee au serveur.
-async function confirmerVol(encodedCible, jetBase, genre) {
-  let cible;
-  try { cible = JSON.parse(decodeURIComponent(encodedCible)); } catch(e) { return; }
-  document.getElementById('modal-postes').classList.remove('open');
-  const nomCible = cible.name.replace(' (PNJ)', '');
-  const benediction = (typeof consommerBonusBenediction === 'function') ? consommerBonusBenediction(0) > 0 : false;
-  const brut = (typeof sbRpc === 'function')
-    ? await sbRpc('crime_voler', { p_cible: nomCible, p_genre: genre === 'objet' ? 'objet' : 'argent', p_benediction: benediction,
-        p_per_pnj: Math.round(cible.stats?.PER || 9), p_int_pnj: Math.round(cible.stats?.INT || 9) }).catch(() => null)
-    : null;
-  const v = Array.isArray(brut) ? brut[0] : brut;
-  if (!v || v.ok !== true) {
-    if (v && v.raison === 'pas_au_meme_endroit') showToast('Vol impossible', nomCible + ' n\'est plus là.', false);
-    else signalerRefusCout(v || { raison: 'paiement_indisponible' });
-    return;
-  }
-  if (v.paie && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v.paie);
-  if (typeof v.arg === 'number') appliquerPaiementServeur({ arg: v.arg });
-  if (typeof v.pop === 'number' && typeof adopterJaugeServeur === 'function') adopterJaugeServeur('pop', v.pop);
-
-  if (v.issue === 'echec') {
-    updateUI();
-    showToast('Vol échoué !', v.message || '', false, true);
-    addJournalEntry('Tentative de vol sur ' + nomCible + ' échouée. ' + (v.message || ''), 'event-bad');
-    return;
-  }
-  if (v.issue === 'rien') {
-    updateUI();
-    showToast('Vol infructueux', nomCible + ' n\'avait rien de volable pour l\'instant.', false);
-    addJournalEntry('Tentative de vol sur ' + nomCible + ' : rien a voler.', 'event-info');
-    return;
-  }
-  // Depuis le 28/10/2026, le serveur transfere le butin dans la meme transaction que le jet :
-  // l'inventaire rendu est celui du voleur, adopte tel quel (reponse marquee par sbRpc).
-  if (v.livre && Array.isArray(v.inventory) && typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(v);
-  updateUI();
-  if (v.butin === 'argent') {
-    showToast('Vol réussi !', v.description + ' dérobé(s) à ' + nomCible + '.', true, true);
-    addJournalEntry('Vol réussi sur ' + nomCible + '. ' + v.description + '.', 'event-good');
-  } else if (v.livre) {
-    if (typeof renderInventory === 'function') renderInventory();
-    showToast('Vol réussi !', v.description + ' dérobé(s) à ' + nomCible + '.', true, true);
-    addJournalEntry('Vol réussi sur ' + nomCible + '. ' + v.description + '.', 'event-good');
-  } else {
-    showToast('Vol tenté avec succès !', v.description + ' — butin en cours de récupération.', true, true);
-    addJournalEntry('Vol réussi sur ' + nomCible + '. ' + v.description + ' (livraison différée, confirmation a la prochaine connexion de la cible).', 'event-good');
-  }
-}
-
 
 // =====================
 // NEUTRALISER (ex-"Assassiner") — chantier du 10 septembre 2026
@@ -241,6 +136,10 @@ function ouvrirModalAssassinat(encodedCible) {
 
   const siegeDepute = neutraliserCibleEstDepute(cible);
   const estDepute = !!siegeDepute;
+  // Criminalité lot 2 (19/11/2026) : PJ, individu masqué (jeton) ou PNJ → crime_neutraliser (jet serveur, combat seulement
+  // sur un échec qui tourne mal). Les squatteurs d'un terrain gardent l'affrontement direct.
+  const estSquatter = /^squatter_/.test(cible.terrainPnjId || cible.id || '');
+  if (!estDepute && !estSquatter && typeof ouvrirNeutraliser === 'function') { ouvrirNeutraliser(encodedCible); return; }
   if (!estDepute) {
     document.getElementById('postes-modal-title').textContent = 'Affronter — ' + cible.name;
     let choix = '<div class="cpj-dialogue"><p class="cpj-note">Le serveur ouvre un affrontement par rounds. Les conséquences dépendent de son issue réelle. Aucun taux de réussite instantanée ne s’applique.</p>';
@@ -431,7 +330,10 @@ const FORMULATIONS_RUMEUR_VRAIE = {
   // "l'organisation « XYZ »", "l'etablissement « Cafe de la Gare »", "le gouvernement de Sovarka",
   // "Sovarka"), construite par confirmerLancerRumeur() selon le type de cible choisi -- jamais de
   // detail supplementaire invente ici, meme principe evasif que les autres formulations.
-  fausse_rumeur: (a, c) => 'On raconte que ' + a + ' aurait lance une rumeur visant ' + c + '.',
+  // Bouche-a-oreille (Criminalite lot 8, § 13) : ces deux traces ne sortent que par le jet serveur de 10 %
+  // (rumeur_ecoute_jauges_interne) ; l'ecran ne fait que formuler.
+  fausse_rumeur: (a, c) => 'On dit que c\'est ' + a + ' qui fait courir ce bruit sur ' + c + '.',
+  tract_calomnieux: (a, c) => 'On dit que c\'est ' + a + ' qui distribue des tracts contre ' + c + '.',
 
   // Trace laissee par un agent de renseignement etranger apres une collecte
   // productive (RPC serveur agent_trace_deposer). `a` est son IDENTITE DE
@@ -607,7 +509,7 @@ async function confirmerFuite(pa, cost) {
       showToast('Action impossible', 'Votre situation n\'a pas pu être enregistrée. Aucun PA n\'a été consommé.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bdae214ac", 'Votre situation n\'a pas pu être enregistrée. Aucun PA n\'a été consommé.', undefined, 'Action impossible');
       return;
     }
-    const requete = 'fuite-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+    const requete = idRumeurs('fuite');
     let res = await sbFuiteReserver(requete, state.char.name, cible).catch(() => null);
     if (!res) res = await sbFuiteReserver(requete, state.char.name, cible).catch(() => null);
     if (!res) {
@@ -744,7 +646,7 @@ async function confirmerCorrompreJournaliste(pa, cost) {
     const sauve = await sbSavePersonnage(state).catch(() => null);
     if (!sauve) { showToast('Action impossible', 'Votre situation n\'a pas pu être enregistrée. Rien n\'a été prélevé.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b44543e95", 'Votre situation n\'a pas pu être enregistrée. Rien n\'a été prélevé.', undefined, 'Action impossible'); return; }
 
-    const requete = 'corrpresse-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+    const requete = idRumeurs('corrpresse');
     const malusISN = typeof getMalusISN === 'function' ? getMalusISN() : 0;
     let res = await sbCorruptionPresseTenter(requete, state.char.name, affaire, option, malusISN).catch(() => null);
     if (!res) res = await sbCorruptionPresseTenter(requete, state.char.name, affaire, option, malusISN).catch(() => null);
@@ -893,7 +795,7 @@ async function confirmerScandale(pa, cost) {
     const sauve = await sbSavePersonnage(state).catch(() => null);
     if (!sauve) { showToast('Action impossible', 'Votre situation n\'a pas pu être enregistrée. Rien n\'a été prélevé.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b44543e95", 'Votre situation n\'a pas pu être enregistrée. Rien n\'a été prélevé.', undefined, 'Action impossible'); return; }
 
-    const requete = 'scandale-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+    const requete = idRumeurs('scandale');
     const malusISN = typeof getMalusISN === 'function' ? getMalusISN() : 0;
     let res = await sbScandaleTenter(requete, state.char.name, cible, accusation, malusISN).catch(() => null);
     if (!res) res = await sbScandaleTenter(requete, state.char.name, cible, accusation, malusISN).catch(() => null);
@@ -1585,6 +1487,8 @@ async function afficherRegistreArmes(pays, city, viaCorruption) {
 // GILET PARE-BALLES (achat legal, modal avec image, comme le parapluie)
 // =====================
 function doAcheterGilet() {
+  // Criminalité lot 1 (19/11/2026) : prix par empire (380 FR, 60 PSK) tranché par la boutique serveur « Équipement discret ».
+  if (typeof ouvrirBoutiqueDiscretion === 'function') { ouvrirBoutiqueDiscretion(); return; }
   const pays = state.country || 'republic';
   const cur = COUNTRIES[pays]?.cur || 'FR';
   const prix = 600;
@@ -1672,8 +1576,8 @@ async function doSubtiliserExplosifsMilitaires(pa, cost) {
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.82rem;color:#cc8844;font-style:italic;margin-bottom:1rem;padding:.5rem;background:#0f0d05;border:1px solid #3a2810">'
        + 'Acte criminel. Vous tentez de faire disparaître un explosif du stock de l\'armurerie militaire. '
-       + 'Rien ne sera inscrit au registre — mais si la garde vous repère, c\'est le Quartier Haute Sécurité pour '
-       + JOURS_QHS_SUBTILISATION + ' jours.</div>';
+       + 'Rien ne sera inscrit au registre — mais si la garde vous repère, c\'est l\'arrestation et la prison '
+       + (pays === 'soviet' ? '(Quartier Haute Sécurité, ' + JOURS_QHS_SUBTILISATION + ' jours).' : 'au barème.') + '</div>';
   html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Stock de l\'armurerie : <strong style="color:#C9A84C">'
        + dispo + '</strong> explosif(s).</div>';
   if (dispo <= 0) {
@@ -1731,7 +1635,7 @@ async function confirmerSubtilisationExplosif() {
     // registre reglementaire -- c'est toute la difference avec un retrait.
     if (typeof sbTracerAction === 'function') {
       await sbTracerAction({
-        id: 'subtilisation-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+        id: idRumeurs('subtilisation'),
         auteur: state.char?.name, cible: null, type_action: 'subtilisation_explosif',
         country: pays, city: ville, jour: state.day || 1, jour_expiration: (state.day || 1) + 15
       }).catch(() => {});
@@ -1753,23 +1657,35 @@ async function confirmerSubtilisationExplosif() {
   }
 
   if (verdict.detecte) {
-    // ECHEC DETECTE : arrestation immediate, QHS 3 jours, retour a la caserne a la sortie.
+    // ECHEC DETECTE : arrestation immediate (QHS 3 jours en Sovarka seulement, retour a la caserne a la sortie).
     // Ne passe PAS par procederArrestation : celui-ci telporte au commissariat de la ville et
     // applique un bareme de peine, alors qu'il s'agit ici d'une sanction militaire propre.
     // Les autres motifs de recherche et de detention sont integralement preserves.
     // Peine QHS ouverte par le serveur dans la transaction du vol (03/11/2026).
-    await placerAuQHS(verdict.arrestation);
-    showToast('Pris sur le fait', 'La garde vous a surpris. Quartier Haute Sécurité, '
-      + JOURS_QHS_SUBTILISATION + ' jours.', false, true);
-    addJournalEntry('Subtilisation d\'explosifs : pris sur le fait. ' + JOURS_QHS_SUBTILISATION
-      + ' jours de QHS, puis retour à la caserne.', 'event-bad');
+    // Criminalité lot 10 (§ 16) : hors Sovarka, plus de QHS automatique — détention ordinaire au barème
+    // (crim_peine_jours_interne) ; le serveur dit si la peine est au QHS (arrestation.qhs) et sa durée.
+    const arr = verdict.arrestation || {};
+    const joursPris = arr.jours != null ? arr.jours : JOURS_QHS_SUBTILISATION;
+    if (arr.qhs === true) {
+      await placerAuQHS(verdict.arrestation);
+      showToast('Pris sur le fait', 'La garde vous a surpris. Quartier Haute Sécurité, '
+        + joursPris + ' jours.', false, true);
+      addJournalEntry('Subtilisation d\'explosifs : pris sur le fait. ' + joursPris
+        + ' jours de QHS, puis retour à la caserne.', 'event-bad');
+    } else {
+      if (typeof adopterArrestationServeur === 'function') await adopterArrestationServeur(arr);
+      showToast('Pris sur le fait', 'La garde vous a surpris. Détention : '
+        + joursPris + ' jour(s).', false, true);
+      addJournalEntry('Subtilisation d\'explosifs : pris sur le fait. ' + joursPris
+        + ' jour(s) de détention.', 'event-bad');
+    }
     return;
   }
 
   // ECHEC DISCRET : rien obtenu, aucune identification, mais le fait reste constatable.
   if (typeof sbTracerAction === 'function') {
     await sbTracerAction({
-      id: 'subtilisationratee-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+      id: idRumeurs('subtilisationratee'),
       auteur: state.char?.name, cible: null, type_action: 'tentative_subtilisation_explosif',
       country: pays, city: ville, jour: state.day || 1, jour_expiration: (state.day || 1) + 15
     }).catch(() => {});
@@ -1874,129 +1790,16 @@ async function confirmerAchatExplosifs(pa, cost) {
 }
 
 // =====================
-// INCENDIER (bâtiment courant)
+// INCENDIER / UTILISER DES EXPLOSIFS (Criminalité lot 5, 19/11/2026, GAME-DESIGN-CRIMINALITE.md §§ 10, 11)
 // =====================
+// Le serveur tranche tout (crime_incendier / crime_explosifs sur la résolution commune crim_resoudre_interne :
+// jet, bidon de carburant, orage, canicule, brouillard, bâtiment officiel, échec critique, détection, peine).
+// L'écran n'estime rien : pop-up et messages dans plateau-criminalite.js (crimOuvrirSabotage).
 function doIncendier() {
-  const b = BUILDINGS[state.currentBuilding];
-  if (!b) { showToast('Impossible', 'Vous devez être dans un bâtiment pour tenter ceci.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bf656cf07", 'Vous devez être dans un bâtiment pour tenter ceci.', undefined, 'Impossible'); return; }
-
-  const malusCentre = BATIMENTS_CENTRES_POUVOIR.includes(state.currentBuilding) ? MALUS_CENTRE_POUVOIR : 0;
-
-  document.getElementById('postes-modal-title').textContent = 'Incendier — ' + b.name;
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.82rem;color:#cc4444;font-style:italic;margin-bottom:1rem;padding:.5rem;background:#0f0505;border:1px solid #3a1010">Acte criminel. Un incendie ravage ce bâtiment, le fermant temporairement (1 à 3 jours selon la réussite).' + (malusCentre ? ' Bâtiment stratégique : surveillance renforcée, malus important.' : '') + '</div>';
-  html += '<button onclick="confirmerIncendier()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a3a20;background:transparent;color:#cc6a44;cursor:pointer">🔥 Mettre le feu (3 PA)</button>';
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
+  if (typeof crimOuvrirSabotage === 'function') crimOuvrirSabotage('incendie');
 }
-
-async function confirmerIncendier() {
-  document.getElementById('modal-postes').classList.remove('open');
-  const buildingId = state.currentBuilding;
-  const b = BUILDINGS[buildingId];
-  if (!b) return;
-  // PAR LE SERVEUR (27 octobre 2026) : PA, jet, fermeture du batiment, annonce, detection et trace
-  // -- crime_incendier. L'ecran ecrivait lui-meme la fermeture (table ouverte a tous).
-  const brut = (typeof sbRpc === 'function') ? await sbRpc('crime_incendier', { p_nom_batiment: b.name }).catch(() => null) : null;
-  const v = Array.isArray(brut) ? brut[0] : brut;
-  if (!v || v.ok !== true) { signalerRefusCout(v || { raison: 'paiement_indisponible' }); return; }
-  if (v.paie && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v.paie);
-  const joursFermeture = Number(v.jours) || 0;
-  if (joursFermeture > 0) {
-    if (typeof chargerBatimentsFermes === 'function') await chargerBatimentsFermes();
-    showToast('Incendie déclenché', b.name + ' fermé ' + joursFermeture + ' jour(s).', true, true);
-    addJournalEntry('Incendie déclenché sur ' + b.name + '. Fermeture : ' + joursFermeture + ' jour(s).', 'event-bad');
-    if (!v.repere) tracerActionPourRumeur('incendier', b.name);
-  } else {
-    showToast('Incendie raté', 'Le feu ne prend pas. Rien ne se passe.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.ba1293687", 'Le feu ne prend pas. Rien ne se passe.', undefined, 'Incendie raté');
-    addJournalEntry('Tentative d\'incendie ratée sur ' + b.name + '.', 'event-bad');
-  }
-  if (v.repere) addJournalEntry('Un témoin vous a reconnu près de l\'incendie. Vous êtes recherché(e).', 'event-bad');
-  updateUI();
-}
-
-// =====================
-// UTILISER DES EXPLOSIFS (bâtiment + occupants de la pièce)
-// =====================
 function doUtiliserExplosifs() {
-  const explosifIdx = (state.inventory || []).findIndex(i => i.type === 'explosif');
-  if (explosifIdx === -1) {
-    showToast('Objet manquant', 'Vous n\'avez pas d\'explosifs dans votre inventaire. Procurez-vous en à l\'armurerie.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b57277d24", 'Vous n\'avez pas d\'explosifs dans votre inventaire. Procurez-vous en à l\'armurerie.', undefined, 'Objet manquant');
-    return;
-  }
-  const b = BUILDINGS[state.currentBuilding];
-  if (!b) { showToast('Impossible', 'Vous devez être dans un bâtiment pour tenter ceci.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bf656cf07", 'Vous devez être dans un bâtiment pour tenter ceci.', undefined, 'Impossible'); return; }
-
-  const malusCentre = BATIMENTS_CENTRES_POUVOIR.includes(state.currentBuilding) ? MALUS_CENTRE_POUVOIR : 0;
-  const autresPresents = getCurrentRoomPersons().filter(p => p.isPJ && p.name !== state.char?.name);
-
-  document.getElementById('postes-modal-title').textContent = 'Utiliser les explosifs — ' + b.name;
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.82rem;color:#cc4444;font-style:italic;margin-bottom:1rem;padding:.5rem;background:#0f0505;border:1px solid #3a1010">Acte criminel grave. Fermeture du bâtiment 5 jours en cas de réussite. Toute personne présente dans la pièce (hormis vous) sera blessée.' + (autresPresents.length ? ' Actuellement présent(s) : ' + autresPresents.map(p=>p.name).join(', ') + '.' : ' Personne d\'autre présent pour le moment.') + (malusCentre ? ' Bâtiment stratégique : surveillance renforcée, malus important.' : '') + ' En cas d\'échec, seul(e) vous serez blessé(e), progressivement.</div>';
-  html += '<button onclick="confirmerUtiliserExplosifs()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a3a20;background:transparent;color:#cc6a44;cursor:pointer">💣 Déclencher (3 PA)</button>';
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
-}
-
-async function confirmerUtiliserExplosifs() {
-  document.getElementById('modal-postes').classList.remove('open');
-  const buildingId = state.currentBuilding;
-  const b = BUILDINGS[buildingId];
-  if (!b) return;
-  // PAR LE SERVEUR (27 octobre 2026) : explosif consomme, PA, jet, fermeture, blessures des
-  // personnes presentes, annonce, detection et trace -- crime_explosifs. L'ecran ecrivait lui-meme
-  // la fermeture et deposait les degats chez les victimes.
-  const brut = (typeof sbRpc === 'function') ? await sbRpc('crime_explosifs', { p_nom_batiment: b.name }).catch(() => null) : null;
-  const v = Array.isArray(brut) ? brut[0] : brut;
-  if (!v || v.ok !== true) {
-    if (v && v.raison === 'explosif_manquant') { showToast('Objet manquant', 'Vous n\'avez pas d\'explosifs dans votre inventaire.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b7650389e", 'Vous n\'avez pas d\'explosifs dans votre inventaire.', undefined, 'Objet manquant'); }
-    else signalerRefusCout(v || { raison: 'paiement_indisponible' });
-    return;
-  }
-  if (v.paie && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v.paie);
-  if (Array.isArray(v.inventory) && typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(v);
-  const reussi = !!v.reussi, repere = !!v.repere;
-  const autresPresents = (Array.isArray(v.victimes) ? v.victimes : []).map(n => ({ name: n }));
-  if (reussi) {
-    if (typeof chargerBatimentsFermes === 'function') await chargerBatimentsFermes();
-    showToast('Explosifs déclenchés', b.name + ' fermé 5 jours.' + (autresPresents.length ? ' ' + autresPresents.length + ' victime(s).' : ''), true, true);
-    addJournalEntry('Explosifs utilisés sur ' + b.name + '. Fermeture : 5 jours.', 'event-bad');
-    if (!repere) tracerActionPourRumeur('utiliser_explosifs', b.name);
-  } else {
-    // Echec : l'auteur seul est blesse, progressivement (a partir du prochain dormir)
-    state.explosifBlesse = { jourDebut: state.day };
-    showToast('Explosifs ratés', 'Le dispositif vous explose entre les mains. Vous êtes blessé(e).', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b47293e48", 'Le dispositif vous explose entre les mains. Vous êtes blessé(e).', undefined, 'Explosifs ratés');
-    addJournalEntry('Tentative ratée d\'utilisation d\'explosifs sur ' + b.name + '. Vous êtes blessé(e).', 'event-bad');
-  }
-  updateUI();
-
-  // Resolution spectaculaire (chantier "animations de resolution d'ordres", 26 aout 2026) :
-  // presentation uniquement, appelee APRES que toute la logique metier ci-dessus s'est deja
-  // executee -- ne conditionne jamais le resultat reel (§8). N'utilise que des valeurs deja
-  // calculees ci-dessus (aucun chiffre invente).
-  if (typeof ouvrirResolutionSpectaculaire === 'function') {
-    let resultatHtml;
-    if (reussi) {
-      resultatHtml =
-        '<div><strong style="color:#e0d5b8">Bâtiment touché :</strong> ' + b.name + '</div>' +
-        '<div style="margin-top:.3rem"><strong style="color:#e0d5b8">Fermeture :</strong> 5 jours</div>' +
-        '<div style="margin-top:.3rem"><strong style="color:#e0d5b8">Victimes :</strong> ' + (autresPresents.length ? autresPresents.length + ' personne(s) blessée(s)' : 'aucune autre personne présente') + '</div>' +
-        (repere ? '<div style="margin-top:.6rem;color:#cc8844">Un témoin vous a reconnu près de l\'explosion.</div>' : '');
-    } else {
-      resultatHtml =
-        '<div>Le dispositif ne s\'est pas déclenché correctement : il vous a explosé entre les mains.</div>' +
-        '<div style="margin-top:.3rem"><strong style="color:#e0d5b8">Conséquence :</strong> vous êtes blessé(e), progressivement.</div>' +
-        '<div style="margin-top:.6rem;color:#cc4444"><strong>L\'incident a été signalé à la police.</strong></div>';
-    }
-    ouvrirResolutionSpectaculaire({
-      type: 'bombe',
-      succes: reussi,
-      titre: reussi ? 'EXPLOSION RÉUSSIE' : 'OUPS…',
-      resultatHtml
-    });
-  }
+  if (typeof crimOuvrirSabotage === 'function') crimOuvrirSabotage('explosifs');
 }
 
 function doAcheterPoisonObjet(type, pa, cost) {
@@ -2081,88 +1884,13 @@ async function confirmerAchatPoison(type, pa, cost) {
 // dupliquees dont seule la derniere chargee comptait (checkArrestationAuDeplacement).
 
 // =====================
-// EMPOISONNER
+// EMPOISONNER (Criminalité lot 5, 19/11/2026, GAME-DESIGN-CRIMINALITE.md § 9)
 // =====================
-const POISON_MESSAGES = {
-  parapluie: 'Quelque chose vous pique dans le dos. Une douleur irradie dans tout votre corps et s\'intensifie d\'heure en heure. Était-ce en lien avec cette personne qui vous a touché avec le bout de son parapluie et s\'est excusée ? Vous perdez 2 PA.',
-  ghb:       'Votre esprit devient confus. Vous avez la tête qui tourne et vos sens sont perturbés. Vous avez l\'impression d\'avoir été drogué(e), mais par qui ? Vous perdez 2 PA.',
-  polonium:  'Vous vous sentez subitement faible. En passant la main dans vos cheveux, ils se décrochent par paquets de votre crâne, comme si vous aviez été mis(e) en contact avec quelque chose de radioactif. Vous perdez 2 PA.',
-  vipere:    'Vous ressentez une violente douleur au niveau du mollet. Deux petits trous douloureux et rouges sont visibles. Un serpent vous aurait-il mordu(e) ? Vous perdez 2 PA.'
-};
-
-const POISON_STAT_PERDUE = {
-  republic: 'VOL',
-  narco:    'PER',
-  soviet:   'INT',
-  khalija:  'CHA'
-};
-
+// crime_empoisonner(cible, requete) sur la résolution commune : la cachette n'est plus exigée (bonus), la cible est
+// choisie parmi les présents (crim_presents : caché absent, individu masqué par jeton). Anonymat par nature : la
+// victime ne sait jamais qui. Plus de « recherché d'office » ni d'arrestation à l'échec. Pop-up dans plateau-criminalite.js.
 function ouvrirModalEmpoisonner() {
-  if (!state.estCache) {
-    showToast('Prérequis manquant', 'Vous devez d\'abord réussir l\'ordre "Se cacher" dans cette pièce.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bbe269133", 'Vous devez d\'abord réussir l\'ordre "Se cacher" dans cette pièce.', undefined, 'Prérequis manquant');
-    return;
-  }
-  const poisonInventaire = (state.inventory || []).find(i => i.type === 'poison');
-  if (!poisonInventaire) {
-    showToast('Objet manquant', 'Vous n\'avez pas d\'objet poison dans votre inventaire. Procurez-vous en dans votre empire.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.be4072bf2", 'Vous n\'avez pas d\'objet poison dans votre inventaire. Procurez-vous en dans votre empire.', undefined, 'Objet manquant');
-    return;
-  }
-  const personnesPresentes = getCurrentRoomPersons().filter(p => p.isPJ && p.name !== state.char?.name);
-  if (personnesPresentes.length === 0) {
-    showToast('Personne à cibler', 'Aucun PJ dans cette pièce.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b35b26c93", 'Aucun PJ dans cette pièce.', undefined, 'Personne à cibler');
-    return;
-  }
-
-  document.getElementById('postes-modal-title').textContent = 'Empoisonner';
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.8rem;color:#cc4444;font-style:italic;margin-bottom:.8rem">Acte illégal. Objet : ' + poisonInventaire.name + ' (usage unique). Effets progressifs sur 3 jours.</div>';
-  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">CIBLE</div>';
-  personnesPresentes.forEach(p => {
-    html += '<div onclick="confirmerEmpoisonnement(\'' + p.name + '\')" style="padding:.7rem;border:1px solid #2a1a30;background:#0f050f;margin-bottom:.4rem;cursor:pointer" onmouseover="this.style.background=\'#1a0818\'" onmouseout="this.style.background=\'#0f050f\'">';
-    html += '<div style="font-size:.85rem;color:#c0b090">' + p.name + '</div>';
-    html += '</div>';
-  });
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
-}
-
-// EMPOISONNER PAR LE SERVEUR (27 octobre 2026) : crime_empoisonner consomme le poison, fait le jet
-// (4 paliers), depose l'effet chez la victime (poison_start, type de poison et deux statistiques
-// touchees), la previent, annonce le malaise, trace le crime et tire la detection. Avant, tout
-// etait decide ici -- et l'effet n'atteignait jamais la victime (impact refuse par le serveur).
-// Le prealable « Se cacher » reste verifie par l'ecran (ouvrirModalEmpoisonner).
-async function confirmerEmpoisonnement(cibleNom) {
-  document.getElementById('modal-postes').classList.remove('open');
-  const brut = (typeof sbRpc === 'function') ? await sbRpc('crime_empoisonner', { p_cible: cibleNom }).catch(() => null) : null;
-  const v = Array.isArray(brut) ? brut[0] : brut;
-  if (!v || v.ok !== true) {
-    const raison = v?.raison;
-    if (raison === 'pas_cache') { state.estCache = false; showToast('Prérequis manquant', 'Vous devez d\'abord réussir l\'ordre "Se cacher" dans cette pièce.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bbe269133", 'Vous devez d\'abord réussir l\'ordre "Se cacher" dans cette pièce.', undefined, 'Prérequis manquant'); }
-    else if (raison === 'poison_manquant') { showToast('Objet manquant', 'Vous n\'avez pas d\'objet poison dans votre inventaire.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bd1bcec25", 'Vous n\'avez pas d\'objet poison dans votre inventaire.', undefined, 'Objet manquant'); }
-    else if (raison === 'pas_au_meme_endroit') showToast('Cible absente', cibleNom + ' n\'est plus dans la pièce.', false);
-    else { showToast('Impossible', 'L\'empoisonnement n\'a pas pu avoir lieu.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b99f2fd2e", 'L\'empoisonnement n\'a pas pu avoir lieu.', undefined, 'Impossible'); }
-    return;
-  }
-  if (Array.isArray(v.inventory) && typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(v);
-  state.estCache = false;
-  const palier = v.palier;
-  if (palier !== 'echec_total') {
-    const reussi = !!v.reussi;
-    showToast('Poison administré', reussi
-      ? cibleNom + ' commence à ressentir les effets du poison. Objet utilisé.'
-      : cibleNom + ' ressent une légère gêne mais l\'empoisonnement est partiel.', true, reussi);
-    addJournalEntry('Empoisonnement de ' + cibleNom + ' (' + palier + '). Objet utilisé.', 'event-bad');
-    if (v.repere) {
-      showToast('Repéré(e) !', 'Un témoin vous a vu(e). Vous êtes désormais recherché(e).', false, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b5c922ab6", 'Un témoin vous a vu(e). Vous êtes désormais recherché(e).', undefined, 'Repéré(e) !');
-      addJournalEntry('Vous avez été repéré(e) après l\'empoisonnement.', 'event-bad');
-    }
-  } else {
-    showToast('Échec ! Repéré(e)', 'L\'empoisonnement a échoué. Objet perdu. Vous avez été identifié(e).', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bcdc1e52d", 'L\'empoisonnement a échoué. Objet perdu. Vous avez été identifié(e).', undefined, 'Échec ! Repéré(e)');
-    addJournalEntry('Tentative d\'empoisonnement échouée. Recherché(e).', 'event-bad');
-    setTimeout(() => ouvrirModalArrestation('tentative_empoisonnement'), 800);
-  }
-  updateUI();
+  if (typeof crimOuvrirEmpoisonner === 'function') crimOuvrirEmpoisonner();
 }
 
 // =====================
@@ -2192,7 +1920,7 @@ function getInfomateurInfo(niveau) {
       'Le vote de mercredi prochain semble déjà arrangé par deux députés.'
     ],
     3: [
-      'L\'auteur du crime récent semble venir de ' + (['Républia','El Estado','Sovarka','Al-Khalija'][Math.floor(Math.random()*4)]) + '.',
+      'Les milieux criminels parlent d\'un crime récent, sans avancer de nom.',
       'Une cargaison suspecte est attendue au port dans les prochaines 24h.',
       'Des échanges d\'argent non déclarés ont eu lieu entre deux PJ.',
       'Un contrat a été passé dans les milieux criminels contre un élu.'
@@ -2205,7 +1933,8 @@ function getInfomateurInfo(niveau) {
     ]
   };
   const list = infos[niveau] || infos[1];
-  return list[Math.floor(Math.random() * list.length)];
+  // Aucun tirage au navigateur (Criminalite lot 8) : la phrase tourne avec le jour de jeu.
+  return list[Math.abs(Number(state.day) || 0) % list.length];
 }
 
 function ouvrirRecruterInformateur(niveau, pa, cost) {
@@ -2362,11 +2091,14 @@ function congediерInformateur(idx) {
 
 
 // SE CACHER PAR LE SERVEUR (05/11/2026) : se_cacher preleve 1 PA, tire le de et enregistre la
-// cachette pour la piece courante ; crime_empoisonner l'exige et la consomme. state.estCache n'est
+// cachette pour la piece courante (bonus de l'empoisonnement depuis le lot 5, plus exigee). state.estCache n'est
 // plus qu'un rappel d'affichage.
 async function doSeCacher() {
   const brut = (typeof sbRpc === 'function') ? await sbRpc('se_cacher', {}).catch(() => null) : null;
   const v = Array.isArray(brut) ? brut[0] : brut;
+  // Criminalité lot 1 : formule et échec critique au serveur ; messages par plateau-criminalite.js.
+  if (v && v.ok === true && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: v.pa, liquide: v.liquide, arg: v.arg });
+  if (typeof messageSeCacher === 'function' && messageSeCacher(v)) { state.estCache = !!(v && v.cache); if (typeof updateUI === 'function') updateUI(); return; }
   if (!v || v.ok !== true) {
     if (v?.raison === 'hors_batiment') { showToast('Impossible', 'Il faut être dans une pièce pour s\'y cacher.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bd834f603", 'Il faut être dans une pièce pour s\'y cacher.', undefined, 'Impossible'); }
     else if (v && typeof signalerRefusCout === 'function') signalerRefusCout(v);

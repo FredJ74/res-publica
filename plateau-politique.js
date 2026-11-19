@@ -7287,6 +7287,16 @@ async function confirmerOfficialisationMariage(pa, cost) {
 
 
 
+// Textes de l'etat d'urgence a duree limitee (criminalite lot 6) : catalogue francais de plateau-criminalite.js.
+function texteUrgence(cle, v) {
+  const t = globalThis.RPCriminalite && typeof globalThis.RPCriminalite.texte === 'function' ? globalThis.RPCriminalite.texte(cle, v) : '';
+  return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+function dateUrgence(iso) {
+  const d = iso ? new Date(iso) : null;
+  return d && !isNaN(d) ? d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '?';
+}
+
 async function doEtatUrgence(pa, cost) {
   if (state.poste?.id !== 'president') {
     showToast('Acces refuse', 'Seul le President peut declarer l\'etat d\'urgence.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.ba0333168", 'Seul le President peut declarer l\'etat d\'urgence.', undefined, 'Acces refuse');
@@ -7300,10 +7310,13 @@ async function doEtatUrgence(pa, cost) {
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:1rem">' +
     (actif
-      ? '<div style="font-size:.82rem;color:#c0b090;margin-bottom:.8rem">' +
-        "L'etat d'urgence est actuellement en vigueur. Declare par " + (etatActuel.active_par || 'le President') + '.</div>' +
-        '<button onclick="confirmerEtatUrgence(false,' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.5rem 1rem;border:1px solid #8a3a2a;background:transparent;color:#8a3a2a;cursor:pointer">Lever l\'etat d\'urgence</button>'
+      // Criminalite lot 6 (§ 14) : 7 jours, renouvelable par le President ; l'echeance vient du registre (etats_urgence.expire_le).
+      ? '<div class="cpj-dialogue"><p class="cpj-note">' + texteUrgence('uEnVigueur', { date: dateUrgence(etatActuel.expire_le), par: etatActuel.active_par || 'le President' }) + '</p>' +
+        '<p class="cpj-note">' + texteUrgence('uDuree') + '</p>' +
+        '<button class="cpj-touche cpj-primaire" onclick="confirmerEtatUrgence(true,' + pa + ',' + cost + ')">' + texteUrgence('uRenouveler') + '</button>' +
+        '<button class="cpj-touche" onclick="confirmerEtatUrgence(false,' + pa + ',' + cost + ')">' + texteUrgence('uLever') + '</button></div>'
       : '<div style="font-size:.82rem;color:#c0b090;margin-bottom:.8rem">Suspend certaines libertes publiques. Fort impact sur INF et POP. Autorise des mesures exceptionnelles (arrestations sans plainte prealable).</div>' +
+        '<p class="cpj-note">' + texteUrgence('uDuree') + '</p>' +
         '<button onclick="confirmerEtatUrgence(true,' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.5rem 1rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Declarer l\'etat d\'urgence</button>'
     ) +
     '</div>';
@@ -7336,6 +7349,16 @@ async function confirmerEtatUrgence(activer, pa, cost) {
   }
   if (r.paiement && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(r.paiement);
 
+  if (activer && r.renouvele) {
+    if (typeof r.pop === 'number' && typeof adopterJaugeServeur === 'function') adopterJaugeServeur('pop', r.pop);
+    if (typeof r.inf === 'number' && typeof adopterJaugeServeur === 'function') adopterJaugeServeur('inf', r.inf);
+    updateUI();
+    const T6 = globalThis.RPCriminalite;
+    const corps = T6 ? T6.texte('uRenouveleText', { date: dateUrgence(r.expire_le), pop: r.delta_pop, inf: r.delta_inf }) : '';
+    addJournalEntry(corps, 'event-bad');
+    showToast(T6 ? T6.texte('uRenouvele') : '', corps, true);
+    return;
+  }
   if (activer) {
     if (typeof r.pop === 'number' && typeof adopterJaugeServeur === 'function') adopterJaugeServeur('pop', r.pop);
     if (typeof r.inf === 'number' && typeof adopterJaugeServeur === 'function') adopterJaugeServeur('inf', r.inf);
@@ -14616,6 +14639,8 @@ async function ouvrirGestionQHS() {
   html += '<div style="font-size:.74rem;color:#8a8060;font-style:italic;margin-bottom:.6rem">'
        + 'Le financement du QHS relève du Ministère de l\'Intérieur.</div>';
   html += '<button onclick="ouvrirListePrisonniersQHS()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.06em;padding:.55rem;border:1px solid #5a8ad0;background:transparent;color:#5a8ad0;cursor:pointer">Liste des prisonniers</button>';
+  // Criminalité lot 10 (§ 16) : demandes d'envoi des juges, initiative du Ministre, référendum (plateau-criminalite.js).
+  if (typeof crimOuvrirEnvoisQhs === 'function') html += '<button class="cpj-touche cpj-primaire" style="width:100%;margin-top:.4rem" onclick="crimOuvrirEnvoisQhs()">' + (window.RPCriminalite ? window.RPCriminalite.texte('hBouton') : 'Envois au QHS') + '</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
@@ -14684,6 +14709,7 @@ function messageRefusQhs(r) {
   const raison = r && r.raison;
   if (raison === 'cible_non_detenue') return "Cette personne n'est plus détenue : aucun pouvoir ne s'exerce sur elle.";
   if (raison === 'prisonnier_introuvable') return "Ce prisonnier n'est plus au registre du QHS.";
+  if (raison === 'detenu_protege') return "Un gardien veille sur ce détenu jusqu'à son prochain repos : l'interrogatoire est impossible.";
   if (raison === 'autorite_insuffisante' || raison === 'acteur_non_authentifie') {
     return 'Seul le Ministre de la Justice en exercice peut agir sur le QHS.';
   }

@@ -716,6 +716,14 @@ function choisirCibleCombatPnj(pnj,cibles,batiment) {
   return memes.length===1 && memes[0].classe!=='gamma' ? {...pnj,socleId:memes[0].id} : null;
 }
 async function actualiserCibleCombatPnj(pnj) {
+  // Criminalité lot 2 : un joueur (ou un individu masqué, visé par son jeton) se neutralise sans liste de cibles PNJ.
+  if (pnj && pnj.isPJ) {
+    const zonePj=document.getElementById('combat-cible-pnj');
+    if (!zonePj || (pnj.masque && !pnj.jeton)) { if (zonePj) zonePj.textContent='Cette personne ne peut pas être ciblée ici.'; return false; }
+    const b=document.createElement('button');b.className='cpj-touche';b.textContent='Neutraliser';
+    b.onclick=()=>{document.getElementById('modal-pnj').classList.remove('open');ouvrirModalAssassinat(encodePnjSafe(pnj));};
+    zonePj.replaceChildren(b);return true;
+  }
   const c=contexteGroupePj(),zone=document.getElementById('combat-cible-pnj');
   if (!zone || typeof sbRpcVerdict!=='function') return false;
   const lieu=[state.country,state.currentCity,state.currentBuilding,state.currentRoom].join('|');
@@ -1142,7 +1150,7 @@ function openPnjModal(encodedPnj, options = null) {
 
   // Stocker l'enc pour envoyerQuestion
   state._currentPnjEnc = enc;
-  if (!isPJ && !gammaCible && typeof actualiserCibleCombatPnj==='function') actualiserCibleCombatPnj(pnj).catch(()=>{});
+  if (!gammaCible && typeof actualiserCibleCombatPnj==='function') actualiserCibleCombatPnj(pnj).catch(()=>{});
 
   // Recharger l'historique de la conversation du jour (uniquement pour les PNJ — jamais pour un vrai joueur)
   if (!isPJ) {
@@ -2083,9 +2091,10 @@ const RUMEUR_POSTES_GOUVERNEMENT = ['pm', 'min_int', 'min_fin', 'min_just', 'min
 const RUMEUR_LOCAUX_PREFIXE_EXCLU = 'terrain-a-batir';
 const RUMEUR_ZONES_LOCAL = ['capitale', 'ville_a', 'ville_b', 'caserne', 'qhs'];
 
-function ouvrirModalLancerRumeur(pa, cost, successRate) {
+// Pop-up aux classes communes cpj-* (Criminalité lot 8) : aucun taux affiché ni calculé ici, le serveur tranche (rumeur_lancer).
+function ouvrirModalLancerRumeur(pa, cost) {
   _rumeur = {
-    pa, cost, successRate: successRate || 75,
+    pa, cost,
     type: 'pj',
     cibleValue: null, cibleLabel: null,
     texte: '', soumission: false
@@ -2094,21 +2103,21 @@ function ouvrirModalLancerRumeur(pa, cost, successRate) {
 
   document.getElementById('postes-modal-title').textContent = '🗯 Lancer une rumeur';
   document.getElementById('postes-body').innerHTML =
-    '<div style="padding:.8rem 1rem">' +
-    '<div style="font-size:.75rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Acte illégal — un jet raté se retourne contre vous. Rédigez votre propre texte ; il sera publié tel quel en cas de réussite.</div>' +
-    '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem">TYPE DE CIBLE</div>' +
-    '<select id="rumeur-type-select" onchange="changerTypeRumeur(this.value)" style="width:100%;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;padding:.4rem;font-family:\'Crimson Pro\',serif;font-size:.85rem;outline:none;margin-bottom:.7rem">' +
+    '<div class="cpj-dialogue">' +
+    '<p class="cpj-note">Acte illégal — un jet raté se retourne contre vous. Rédigez votre propre texte ; il sera publié tel quel en cas de réussite.</p>' +
+    '<p class="cpj-note"><strong>TYPE DE CIBLE</strong></p>' +
+    '<select id="rumeur-type-select" class="cpj-champ" onchange="changerTypeRumeur(this.value)" style="width:100%;text-align:left">' +
       '<option value="pj">PJ</option>' +
       '<option value="organisation">Organisation</option>' +
       '<option value="local">Local</option>' +
       '<option value="gouvernement">Gouvernement</option>' +
       '<option value="pays">Pays</option>' +
     '</select>' +
-    '<div id="rumeur-cible-zone" style="margin-bottom:.5rem"></div>' +
-    '<div id="rumeur-cible-recap" style="font-size:.72rem;color:#9a8a68;font-style:italic;margin-bottom:.8rem">Aucune cible sélectionnée.</div>' +
-    '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem">TEXTE DE LA RUMEUR</div>' +
-    '<textarea id="rumeur-texte-input" oninput="majTexteRumeur(this.value)" placeholder="Rédigez votre rumeur..." style="width:100%;min-height:90px;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;padding:.5rem;font-family:\'Crimson Pro\',serif;font-size:.85rem;outline:none;resize:vertical;margin-bottom:.9rem;box-sizing:border-box"></textarea>' +
-    '<button id="rumeur-btn-valider" onclick="validerLancementRumeur()" style="width:100%;font-family:\'Bebas Neue\',sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.6rem;border:1px solid #8a3a3a;background:transparent;color:#cc6a6a;cursor:pointer">Lancer la rumeur — 1 PA</button>' +
+    '<div id="rumeur-cible-zone" style="margin:.5rem 0"></div>' +
+    '<p id="rumeur-cible-recap" class="cpj-note">Aucune cible sélectionnée.</p>' +
+    '<p class="cpj-note"><strong>TEXTE DE LA RUMEUR</strong></p>' +
+    '<textarea id="rumeur-texte-input" class="cpj-champ" oninput="majTexteRumeur(this.value)" placeholder="Rédigez votre rumeur..." rows="4" style="width:100%;text-align:left;box-sizing:border-box"></textarea>' +
+    '<button id="rumeur-btn-valider" class="cpj-touche cpj-primaire" onclick="validerLancementRumeur()" style="margin-top:.6rem">Lancer la rumeur — 1 PA</button>' +
     '</div>';
   document.getElementById('modal-postes').classList.add('open');
 
@@ -2190,17 +2199,17 @@ async function changerTypeRumeur(nouveauType) {
 
   if (nouveauType === 'pj') {
     zone.innerHTML =
-      '<input type="text" id="rumeur-pj-search" autocomplete="off" oninput="rechercherPjRumeur(this.value)" placeholder="Rechercher un PJ par nom (2 caractères min)..." style="width:100%;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;padding:.4rem;font-family:\'Crimson Pro\',serif;font-size:.85rem;outline:none;box-sizing:border-box">' +
+      '<input type="text" id="rumeur-pj-search" autocomplete="off" oninput="rechercherPjRumeur(this.value)" placeholder="Rechercher un PJ par nom (2 caractères min)..." class="cpj-champ" style="width:100%;text-align:left;box-sizing:border-box">' +
       '<div id="rumeur-pj-suggestions" style="margin-top:.3rem"></div>';
     chargerPjPourRumeur();
     return;
   }
 
   if (nouveauType === 'organisation') {
-    zone.innerHTML = '<div style="font-size:.78rem;color:#9a8a68">Chargement des organisations...</div>';
+    zone.innerHTML = '<p class="cpj-note">Chargement des organisations...</p>';
     const orgas = await chargerOrganisationsPourRumeur();
     if (_rumeur.type !== 'organisation') return; // le joueur a change de type entre-temps
-    zone.innerHTML = '<select id="rumeur-cible-select" onchange="choisirCibleSimpleRumeur(this)" style="width:100%;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;padding:.4rem;font-family:\'Crimson Pro\',serif;font-size:.85rem;outline:none">' +
+    zone.innerHTML = '<select id="rumeur-cible-select" onchange="choisirCibleSimpleRumeur(this)" class="cpj-champ" style="width:100%;text-align:left">' +
       '<option value="">— Choisir une organisation —</option>' +
       orgas.map(o => '<option value="' + o.id + '" data-label="' + escapeHtmlText(o.nom) + '">' + escapeHtmlText(o.nom) + ' (' + escapeHtmlText(COUNTRIES[o.country]?.n || o.country) + ')</option>').join('') +
       '</select>';
@@ -2209,7 +2218,7 @@ async function changerTypeRumeur(nouveauType) {
 
   if (nouveauType === 'local') {
     const locaux = construireListeLocauxCibles();
-    zone.innerHTML = '<select id="rumeur-cible-select" onchange="choisirCibleSimpleRumeur(this)" style="width:100%;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;padding:.4rem;font-family:\'Crimson Pro\',serif;font-size:.85rem;outline:none">' +
+    zone.innerHTML = '<select id="rumeur-cible-select" onchange="choisirCibleSimpleRumeur(this)" class="cpj-champ" style="width:100%;text-align:left">' +
       '<option value="">— Choisir un local —</option>' +
       locaux.map(l => '<option value="' + l.value + '" data-label="' + escapeHtmlText(l.labelCourt) + '">' + escapeHtmlText(l.labelListe) + '</option>').join('') +
       '</select>';
@@ -2218,7 +2227,7 @@ async function changerTypeRumeur(nouveauType) {
 
   // gouvernement / pays : meme liste de pays, seule la semantique de l'effet differe ensuite
   const paysListe = Object.keys(COUNTRIES).sort((a, b) => (COUNTRIES[a].n || a).localeCompare(COUNTRIES[b].n || b, 'fr'));
-  zone.innerHTML = '<select id="rumeur-cible-select" onchange="choisirCibleSimpleRumeur(this)" style="width:100%;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;padding:.4rem;font-family:\'Crimson Pro\',serif;font-size:.85rem;outline:none">' +
+  zone.innerHTML = '<select id="rumeur-cible-select" onchange="choisirCibleSimpleRumeur(this)" class="cpj-champ" style="width:100%;text-align:left">' +
     '<option value="">— Choisir un pays —</option>' +
     paysListe.map(p => '<option value="' + p + '" data-label="' + escapeHtmlText(COUNTRIES[p].n || p) + '">' + escapeHtmlText(COUNTRIES[p].n || p) + '</option>').join('') +
     '</select>';
@@ -2231,11 +2240,11 @@ function rechercherPjRumeur(query) {
   if (q.length < 2) { suggestionsDiv.innerHTML = ''; return; }
   const resultats = (_rumeurPjCache || []).filter(p => (p.name || '').toLowerCase().includes(q)).slice(0, 8);
   if (resultats.length === 0) {
-    suggestionsDiv.innerHTML = '<div style="font-size:.75rem;color:#7a6a50;padding:.3rem">Aucun résultat.</div>';
+    suggestionsDiv.innerHTML = '<p class="cpj-note">Aucun résultat.</p>';
     return;
   }
   suggestionsDiv.innerHTML = resultats.map(p =>
-    '<div onclick="choisirCiblePjRumeur(\'' + p.name.replace(/'/g, "\\'") + '\')" style="padding:.4rem .6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.25rem;cursor:pointer;font-size:.8rem;color:#c0b090" onmouseover="this.style.background=\'#1a1005\'" onmouseout="this.style.background=\'#0f0d05\'">' +
+    '<div onclick="choisirCiblePjRumeur(\'' + p.name.replace(/'/g, "\\'") + '\')" class="cpj-touche" style="text-align:left">' +
       escapeHtmlText(p.name) + (p.country ? ' <span style="color:#7a6a50">(' + escapeHtmlText(COUNTRIES[p.country]?.n || p.country) + ')</span>' : '') +
     '</div>'
   ).join('');
@@ -2292,10 +2301,10 @@ async function validerLancementRumeur() {
   if (btn) { btn.disabled = true; btn.style.opacity = '.5'; btn.textContent = 'Lancement...'; }
 
   const { pa, cost, type, cibleValue, cibleLabel } = _rumeur;
-  // PAR LE SERVEUR (27 octobre 2026) : rumeur_lancer preleve les PA, tire le jet (75 %), applique
-  // l'effet (POP du joueur vise, des ministres, indice social du pays), le retour de baton, publie
-  // l'annonce mondiale, trace et tire la detection. Seule l'influence d'une organisation reste
-  // appliquee ici (table du chantier organisations), avec la perte tiree par le serveur.
+  // PAR LE SERVEUR : rumeur_lancer preleve les PA, passe par la resolution commune des crimes (Criminalite lot 8 :
+  // 60 + DIS/CHA, bornes 10-90, dissuasion #135 une fois, echec critique 10 % des echecs, detection apres reussite),
+  // applique l'effet (POP du joueur vise, des ministres, indice social du pays, influence d'une organisation),
+  // le retour de baton, publie l'annonce mondiale et pose la trace. L'ecran n'affiche que la reponse.
   const texteEchappe = (typeof escapeHtmlText === 'function') ? escapeHtmlText(texte) : texte;
   const prefixe = construirePrefixeRumeur(type, cibleLabel);
   const brut = (typeof sbRpc === 'function')
@@ -2309,47 +2318,9 @@ async function validerLancementRumeur() {
     if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.textContent = 'Lancer la rumeur — 1 PA'; }
     return;
   }
-  if (typeof v.pa === 'number') state.pa = v.pa;
-  if (typeof adopterJaugeServeur === 'function') adopterJaugeServeur('pop', v.pop);
-  if (typeof adopterDetectionServeur === 'function') adopterDetectionServeur(v, 'fausse_rumeur');
-
-  document.getElementById('modal-postes').classList.remove('open');
-
-  if (v.reussi) {
-    let effetTexte;
-    if (type === 'pj') effetTexte = '-' + v.perte + ' POP sur ' + cibleLabel;
-    else if (type === 'gouvernement') effetTexte = v.membres > 0
-      ? ('-' + v.perte + ' POP sur ' + v.membres + ' membre(s) du gouvernement de ' + cibleLabel)
-      : ('aucun titulaire en poste actuellement dans le gouvernement de ' + cibleLabel);
-    else if (type === 'pays') effetTexte = '-' + v.perte + ' IS sur ' + cibleLabel;
-    else if (type === 'organisation') {
-      // L'influence de l'organisation visee est retiree par rumeur_lancer lui-meme (02/11/2026,
-      // etape B des organisations) : l'ecran ne fait qu'annoncer la perte tiree par le serveur.
-      if (typeof chargerOrganisations === 'function') chargerOrganisations();
-      effetTexte = '-' + v.perte + ' INF sur l\'organisation « ' + cibleLabel + ' »';
-    } else effetTexte = 'aucun effet statistique (rumeur purement RP)';
-
-    document.getElementById('postes-modal-title').textContent = '🗯 Rumeur lancée !';
-    document.getElementById('postes-body').innerHTML =
-      '<div style="padding:1.2rem">' +
-      '<div style="font-size:.85rem;color:#c0b090;font-style:italic;line-height:1.7;font-family:\'Crimson Pro\',serif">"' + texteEchappe + '"</div>' +
-      '<div style="font-size:.68rem;color:#9a8a68;margin-top:.8rem">Cible : ' + escapeHtmlText(cibleLabel) + '</div>' +
-      '</div>';
-    document.getElementById('modal-postes').classList.add('open');
-    addJournalEntry('Rumeur lancée avec succès contre ' + escapeHtmlText(cibleLabel) + ' : ' + effetTexte + '.', 'event-good');
-  } else {
-    const perteRetour = v.perte || 0;
-    addJournalEntry(
-      'Tentative de rumeur contre ' + escapeHtmlText(cibleLabel) + ' ratée.' +
-      (perteRetour > 0 ? ' Elle se retourne contre vous : -' + perteRetour + ' POP -' + perteRetour + ' DIS.' : ' Aucune conséquence pour vous cette fois.'),
-      'event-bad'
-    );
-    showToast(
-      'Rumeur ratée',
-      perteRetour > 0 ? ('Votre tentative échoue et se retourne contre vous. -' + perteRetour + ' POP -' + perteRetour + ' DIS.') : 'Votre tentative échoue, sans conséquence pour vous cette fois.',
-      false
-    );
-  }
+  // Affichage de la réponse du serveur (plateau-criminalite.js, textes T.fr) : réussite, échec, échec critique, détection.
+  if (typeof crimRumeurResultat === 'function') crimRumeurResultat(v, type, cibleLabel, texte);
+  else { if (typeof v.pa === 'number') state.pa = v.pa; document.getElementById('modal-postes').classList.remove('open'); }
 
   _rumeur = null;
   if (typeof advanceTime === 'function') advanceTime(Math.max(0, pa || 0));
@@ -3818,53 +3789,9 @@ async function doAcheterTerrain(){
 // l'acte, que le joueur repayait, solde compris.
 async function finaliserAchatTerrain(id,prix,surface,aPermis,titre){if(typeof refuserSiGele==='function'&&await refuserSiGele('terrain',id,'Finaliser l’achat'))return false;return !!await finance135Acquerir(id,titre==='achat_direct'?'acte_direct':'acte_compromis');}
 
-// Accelere (reduit de moitie le delai restant) le rendez-vous notarial d'un achat direct en
-// attente, contre corruption — meme principe que corrompre_fonctionnaire_permis.
-async function doCorrompreRdvNotaire(pa, cost) {
-  const id = state.currentBuilding;
-  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Accélérer le rendez-vous')) return;
-  const ts = getTerrainState(id);
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-
-  if (!ts.achatDirect || ts.achatDirect.demandeur !== state.char?.name) {
-    showToast('Impossible', "Vous n'avez pas de rendez-vous en attente ici.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b1877e067", "Vous n'avez pas de rendez-vous en attente ici.", undefined, 'Impossible');
-    return;
-  }
-
-  // LE SERVEUR DECIDE TOUT (29/10/2026) : paiement (2 PA + 800 FR), nouvelle date calculee depuis
-  // le rendez-vous ENREGISTRE, reçu idempotent. L'ecran n'envoie plus de date : l'ancien acte
-  // `achat_direct_accelerer` acceptait celle qu'on lui donnait, et se payait a part.
-  const cle = 'rdv-notaire:' + (state.char?.name || '') + ':' + id + ':' + ts.achatDirect.dateAchat;
-  let requete;
-  try {
-    requete = sessionStorage.getItem(cle) || crypto.randomUUID();
-    sessionStorage.setItem(cle, requete);
-  } catch (_) {
-    showToast('Ordre non envoyé', 'Le navigateur ne peut pas conserver la référence de cet ordre.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b025a735b", 'Le navigateur ne peut pas conserver la référence de cet ordre.', undefined, 'Ordre non envoyé');
-    return;
-  }
-  const vAcc = await sbRpcVerdict('terrain_rdv_notaire_accelerer', { p_terrain: id, p_requete: requete }).catch(() => null);
-  if (state.currentBuilding !== id) return;
-  if (!vAcc || vAcc.ok !== true) {
-    if (vAcc && !vAcc.transport) { try { sessionStorage.removeItem(cle); } catch (_) {} }
-    const motifs = { rendez_vous_deja_arrive: 'Le rendez-vous est déjà arrivé.',
-      pas_mon_achat_direct: "Vous n'avez pas de rendez-vous en attente ici.",
-      fonds_insuffisants: cost + ' ' + cur + ' requis.', pa_insuffisants: 'Points d’action insuffisants.' };
-    showToast('Délai inchangé', vAcc?.transport || !vAcc
-      ? 'Réponse incertaine. Relancez le même ordre : il ne sera pas payé deux fois.'
-      : (motifs[vAcc.raison] || 'Le serveur a refusé (' + vAcc.raison + ').'), false);
-    return;
-  }
-  try { sessionStorage.removeItem(cle); } catch (_) {}
-  if (vAcc.etat) remplacerTerrainState(id, vAcc.etat);
-  if (vAcc.paiement && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(vAcc.paiement);
-  const nouvelleDateAchat = Number(vAcc.dateAchat);
-
-  const dateTxt = new Date(nouvelleDateAchat).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
-  updateUI();
-  addJournalEntry('Rendez-vous accéléré par corruption (-' + cost + ' ' + cur + '). Nouveau rendez-vous : ' + dateTxt + '.', 'event-info');
-  showToast('Délai réduit', 'Nouveau rendez-vous : ' + dateTxt + '.', true);
-}
+// Criminalité lot 7 (§ 12, Fred 18/11/2026) : « le temps ne s'achète pas » dans les empires actuels.
+// doCorrompreRdvNotaire SUPPRIMEE : « Accélérer le rendez-vous (corruption) » retiré ;
+// terrain_rdv_notaire_accelerer répond « ordre_supprime ».
 
 function initSimulation() {
   if (!state.pjSimules) {

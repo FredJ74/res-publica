@@ -48,8 +48,10 @@ test('les dix-sept parcelles de Républia : surface connue, prix à 12 FR/m², m
     assert.match(p.achat.label, new RegExp(surfaceMotif + ' m²'), 'surface non annoncée : ' + p.id);
     assert.deepEqual(p.ordres, reference, 'parcours divergent de Luthécia : ' + p.id);
   }
-  assert.ok(!reference.includes('corrompre_chantier'), 'aucun raccourcissement payant de chantier');
-  for (const fn of ['signer_compromis', 'construire_sur_terrain', 'corrompre_fonctionnaire_permis', 'racheter_terrain'])
+  // Criminalité lot 7 (20/11/2026) : le temps ne s'achète pas — aucune accélération par corruption dans le parcours.
+  for (const fn of ['corrompre_chantier', 'corrompre_rdv_notaire', 'corrompre_fonctionnaire_permis'])
+    assert.ok(!reference.includes(fn), 'raccourcissement payant encore proposé : ' + fn);
+  for (const fn of ['signer_compromis', 'construire_sur_terrain', 'racheter_terrain'])
     assert.ok(reference.includes(fn), 'ordre du parcours absent : ' + fn);
 });
 

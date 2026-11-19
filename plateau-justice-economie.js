@@ -2003,30 +2003,8 @@ async function doDefense(pa, cost) {
   updateUI();
 }
 
-// pa desormais reellement preleve (reprise ciblee audit, 27 aout 2026) : le cout PA affiche par
-// chaque ordre corrompre_* (2 ou 3 selon la piece) n'etait jamais deduit, quel que soit le
-// resultat -- divergence factuelle entre cout affiche et cout reel, sur les 4 fn partageant ce
-// handler (corrompre_fonct/police/journaliste/gardien). Prelevement PA desormais inconditionnel
-// et prealable au jet (meme convention que executerOrdreGenerique) ; le cout en argent reste
-// inchange, deduit uniquement en cas de reussite (comportement d'origine, non signale comme
-// anomalie, non touche).
-async function doCorruption(fn, pa, cost) {
-  // PAR LE SERVEUR (27 octobre 2026) : crime_corrompre preleve les PA a la tentative et le prix a
-  // la seule reussite, tire le jet (65 - securite), la discretion, la trace et la detection.
-  const v = await appelerCrimeServeur('crime_corrompre', { p_fn: fn, p_pa: pa, p_cost: cost });
-  if (!v || v.ok !== true) { signalerRefusCout(v || { raison: 'paiement_indisponible' }); return; }
-  adopterEtatCrimeServeur(v);
-  if (v.reussi) {
-    showToast('Corruption reussie', 'Le service a ete obtenu. -5 DIS.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.bf9d160c1", 'Le service a ete obtenu. -5 DIS.', undefined, 'Corruption reussie');
-    addJournalEntry('Corruption : ' + fn.replace(/_/g,' '), 'event-bad');
-  } else if (v.raison === 'fonds_insuffisants') {
-    showToast('Fonds insuffisants', 'Il vous faut ' + cost + ' ' + (COUNTRIES[state.country]?.cur || 'FR'), false);
-  } else {
-    showToast('Echec', 'La tentative de corruption a echoue.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b97dcf4b8", 'La tentative de corruption a echoue.', undefined, 'Echec');
-  }
-  adopterDetectionServeur(v, fn);
-  updateUI();
-}
+// doCorruption SUPPRIMEE (criminalité lot 7, § 12) : directeur et gardien du QHS passent par
+// crimOuvrirCorruptionQhs (plateau-criminalite.js) ; crime_corrompre répond « ordre_remplace » / « ordre_supprime ».
 
 function doSeReposer(fn) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
@@ -2156,12 +2134,14 @@ async function doSeRebeller(pa, cost) {
     addJournalEntry('Rebellion en cellule reussie. Grilles endommagees (-' + degats + '). +1 jour de peine, -10 PV.', 'event-info');
     if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('rebellion_cellule', ville);
   } else {
-    state.estEmprisonne = { jours: 30, jourFin: r.jour_fin, raison: 'Rebellion en cellule matee - transfert QHS',
-                            detentionId: r.detention_id, qhs: true, city: ville, country: state.country };
-    state.detentionQHS = { enQHS: true, paLimite1Jour: false };
+    // Criminalite lot 6 (§ 14) : rebellion matee = +4 jours d'office (bareme), plus de QHS automatique, aucun degat aux grilles.
+    if (state.estEmprisonne && r.jour_fin != null) state.estEmprisonne.jourFin = r.jour_fin;
     updateUI();
-    showToast('Rebellion matee', 'Transfere au QHS. -25 PV, -15 DIS.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bb292f050", 'Transfere au QHS. -25 PV, -15 DIS.', undefined, 'Rebellion matee');
-    addJournalEntry('Rebellion en cellule matee par les gardiens. Transfert au QHS. Grilles endommagees (-' + degats + ').', 'event-bad');
+    const T6 = globalThis.RPCriminalite;
+    const jours = Number(r.jours_ajoutes || 0);
+    const texteMatee = T6 ? T6.texte('bMateeText', { jours }) + (r.proces ? ' ' + T6.texte('bProces') : '') : '';
+    showToast(T6 ? T6.texte('bMatee') : '', texteMatee, false);
+    addJournalEntry(texteMatee, 'event-bad');
   }
   if (r.grilles && typeof verifierSeuilsGrillePrison === 'function') {
     await verifierSeuilsGrillePrison(state.country, ville, Number(r.grilles.niveau)).catch(() => {});
@@ -2525,8 +2505,11 @@ function infractionsCanoniques() {
   const pays = state.country || 'republic';
   const ids = {};
   Object.keys(typeof ACTES_ILLEGAUX !== 'undefined' ? ACTES_ILLEGAUX : {}).forEach(k => { ids[k] = true; });
-  const propres = (typeof PEINES_ACTES !== 'undefined' ? PEINES_ACTES[pays] : null) || {};
+  // Les autres empires reprennent les baremes de Republia (criminalite lot 6).
+  const propres = (typeof PEINES_ACTES !== 'undefined' ? (PEINES_ACTES[pays] || PEINES_ACTES.republic) : null) || {};
   Object.keys(propres).forEach(k => { ids[k] = true; });
+  // Une seule nomenclature (criminalite lot 6) : un alias n'est pas une qualification a part, le juge choisit l'infraction canonique.
+  Object.keys(typeof INFRACTIONS_ALIAS !== 'undefined' ? INFRACTIONS_ALIAS : {}).forEach(k => { delete ids[k]; });
   return Object.keys(ids).map(id => {
     const p = getPeineParActe(id, false);
     return { id: id, libelle: p.label, jours: p.jours, amende: p.amende, propre: !!propres[id] };
@@ -2846,14 +2829,17 @@ async function appliquerSentence(affaireId, type, infraction, joursServeur, amen
     // LES TRENTE JOURS VIENNENT DU SERVEUR, qui les IMPOSE : `justice_peine_calcul` rend une
     // plage reduite a un point pour ce genre. La valeur est la meme qu'avant -- regle validee le
     // 26 aout 2026, inchangee -- mais elle n'est plus ecrite dans le navigateur.
-    details = 'Envoi au QHS (' + joursServeur + ' jours)';
+    // Criminalité lot 10 (§ 16) : hors Sovarka, le juge ne fait que PROPOSER le QHS au Ministre de la
+    // Justice (crim_qhs_demandes, créée par justice_rendre_sentence) ; la peine est de la prison au barème.
+    details = state.country === 'soviet' ? 'Envoi au QHS (' + joursServeur + ' jours)'
+      : 'Prison ' + joursServeur + ' jour' + (joursServeur > 1 ? 's' : '') + ', envoi au QHS proposé au Ministre de la Justice';
     const motifsQhs = [Object.assign({ type: affaire.motif, infraction: infraction, jours: joursServeur, detail: 'QHS', source: 'jugement', date_evenement: new Date().toISOString() }, factCommun)];
     // Le registre du QHS, le drapeau de la fiche et la photo du detenu sont tenus par
     // justice_prolonger_peine -- plus exactement par detention_qhs_poser_interne, son unique
     // ecrivain -- dans la meme transaction que la peine (16 septembre 2026, photo ajoutee le
     // 9 octobre 2026). Le bloc client qui subsistait ici ne faisait plus que lire une photoUrl
     // dans une variable inutilisee : il est retire.
-    peineAppliquee = await prolongerDetentionActive(affaire.cible, motifsQhs, true);
+    peineAppliquee = await prolongerDetentionActive(affaire.cible, motifsQhs, state.country === 'soviet');
   } else if (type === 'torture') {
     // Torture suppose egalement une personne deja detenue -- verifie en amont (voir garde en
     // tete de fonction), ne fait donc qu'etendre la detention existante, jamais de creation
@@ -7489,10 +7475,8 @@ async function doPayerVersementChantier() {
   if(r){ showToast('Versement confirmé','Le financement réel du chantier a été actualisé.',true); globalThis.RPI18nPlateau?.markToast("toastBodies.b5ce838df", 'Le financement réel du chantier a été actualisé.', undefined, 'Versement confirmé'); }
 }
 
-async function doCorrompreChantier(pa, cost) {
-  // Les quatre empires actuels sont non P2W. Refuser avant tout cout ou mutation.
-  showToast('Délai incompressible', 'Aucun paiement ne permet d’accélérer une construction dans les empires actuels.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bb9f0fbc0", 'Aucun paiement ne permet d’accélérer une construction dans les empires actuels.', undefined, 'Délai incompressible');
-}
+// Criminalité lot 7 (§ 12, Fred 18/11/2026) : « le temps ne s'achète pas » dans les empires actuels.
+// doCorrompreChantier SUPPRIMEE (bouton mort « Accélérer le chantier (corruption) » retiré).
 
 // =====================================================================
 // MODIFICATION DU PLAN INITIAL (Lot 1.5.11)
@@ -8632,42 +8616,9 @@ function ouvrirDossierUrbanisme(index) {
 // Une mecanique de justice ad hoc, qui court-circuitait le vrai systeme judiciaire du jeu pour
 // appliquer une sanction automatique, n'avait plus de raison de survivre.
 
-async function doCorrompreFonctionnairePermis(pa, cost) {
-  const id = state.currentBuilding;
-  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Corrompre le fonctionnaire')) return;
-  // LE SERVEUR DECIDE TOUT (29/10/2026) : paiement (2 PA + 800 FR), decouverte (25 %) tiree en base
-  // et detection par le socle penal commun, duree divisee par deux sur le dossier ENREGISTRE.
-  // L'ancien acte `permis_accelerer` fusionnait le permis envoye par l'ecran (statut compris).
-  const cle = 'permis-corruption:' + (state.char?.name || '') + ':' + id;
-  let requete;
-  try { requete = sessionStorage.getItem(cle) || crypto.randomUUID(); sessionStorage.setItem(cle, requete); }
-  catch (_) { showToast('Ordre non envoyé', 'Le navigateur ne peut pas conserver la référence de cet ordre.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b025a735b", 'Le navigateur ne peut pas conserver la référence de cet ordre.', undefined, 'Ordre non envoyé'); return; }
-  const v = await sbRpcVerdict('terrain_permis_corrompre', { p_terrain: id, p_requete: requete }).catch(() => null);
-  if (state.currentBuilding !== id) return;
-  if (!v || v.ok !== true) {
-    if (v && !v.transport) { try { sessionStorage.removeItem(cle); } catch (_) {} }
-    const motifs = { aucune_instruction: 'Aucune instruction en cours ici.', fonds_insuffisants: cost + ' FR requis.',
-      pa_insuffisants: 'Points d’action insuffisants.', pas_sur_place: 'Rendez-vous sur le terrain concerné.' };
-    showToast('Corruption non engagée', v?.transport || !v
-      ? 'Réponse incertaine. Relancez le même ordre : il ne sera pas payé deux fois.'
-      : (motifs[v.raison] || 'Le serveur a refusé (' + v.raison + ').'), false);
-    return;
-  }
-  try { sessionStorage.removeItem(cle); } catch (_) {}
-  if (typeof adopterEtatCrimeServeur === 'function') adopterEtatCrimeServeur(v);
-  if (v.etat) remplacerTerrainState(id, v.etat);
-  updateUI();
-  document.getElementById('modal-postes')?.classList.remove('open');
-  if (v.decouvert) {
-    showToast('Corruption découverte !', 'Le fonctionnaire vous dénonce.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b721eec5c", 'Le fonctionnaire vous dénonce.', undefined, 'Corruption découverte !');
-    addJournalEntry('Tentative de corruption d\'un fonctionnaire découverte (-' + cost + ' FR).', 'event-bad');
-    // Le serveur a ecroue le joueur dans la meme transaction (terrain_permis_corrompre, 03/11/2026).
-    if (typeof adopterArrestationServeur === 'function') await adopterArrestationServeur(v.arrestation);
-    return;
-  }
-  showToast('Dossier accéléré', 'Le fonctionnaire a fait remonter votre dossier. Instruction raccourcie.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.ba7dc8ee7", 'Le fonctionnaire a fait remonter votre dossier. Instruction raccourcie.', undefined, 'Dossier accéléré');
-  addJournalEntry('Corruption d\'un fonctionnaire pour accélérer un permis de construire (-' + cost + ' FR).', 'event-bad');
-}
+// Criminalité lot 7 (§ 12, Fred 18/11/2026) : « le temps ne s'achète pas » dans les empires actuels.
+// doCorrompreFonctionnairePermis SUPPRIMEE : « Corrompre un fonctionnaire (accélérer) » retiré ;
+// terrain_permis_corrompre répond « ordre_supprime ».
 
 
 // =====================
@@ -10963,8 +10914,11 @@ function doMenerEnquete(pa, cost) {
     : contacts.map(c => '<label style="display:flex;align-items:center;gap:.5rem;font-size:.85rem;color:#c0b090;cursor:pointer;padding:.2rem 0"><input type="radio" name="enquete-cible" value="' + c.name + '" style="accent-color:#C9A84C"/> ' + c.name + ' — ' + (c.role || '') + '</label>').join('');
 
   document.getElementById('postes-modal-title').textContent = "Mener l'enquete";
+  // Criminalite lot 6 : enquete sur les plaintes contre X (crim_enquetes_lire / crim_enqueter, plateau-criminalite.js).
+  const boutonPlaintesX = (globalThis.RPCriminalite && typeof globalThis.RPCriminalite.crimBoutonEnquetes === 'function')
+    ? globalThis.RPCriminalite.crimBoutonEnquetes() : '';
   document.getElementById('postes-body').innerHTML =
-    '<div style="padding:1rem">' +
+    '<div style="padding:1rem">' + boutonPlaintesX +
     '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:1rem">Cout : 250 FR, preleves sur la caisse du commissariat. Fouille le passe recent de la cible.</div>' +
     '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.5rem">CIBLE</div>' +
     contactsSection +
@@ -14538,6 +14492,9 @@ async function confirmerGreffeCorrompreDossier(affaireId) {
       'Le greffier vous denonce. Aucun document, et vous etes desormais recherche(e) pour '
       + 'corruption de fonctionnaire.', false, true);
     addJournalEntry('Corruption du greffier DECOUVERTE : avis de recherche.', 'event-bad');
+  } else if (v.refuse === true) {
+    // Criminalité lot 7 (§ 12) : échec ordinaire, sans dénonciation ; l'argent versé est perdu.
+    showToast('Le greffier refuse', 'Il ne veut pas de votre argent. Aucun document.', false);
   } else {
     showToast('Copie obtenue',
       'La copie integrale du dossier est dans votre inventaire. Elle est authentique, datee, '
@@ -14586,6 +14543,9 @@ async function confirmerGreffeCorrompreFauxCasier() {
       'Le greffier vous denonce. Aucun document, et vous etes desormais recherche(e) pour '
       + 'corruption de fonctionnaire.', false, true);
     addJournalEntry('Corruption du greffier DECOUVERTE : avis de recherche.', 'event-bad');
+  } else if (v.refuse === true) {
+    // Criminalité lot 7 (§ 12) : échec ordinaire, sans dénonciation ; l'argent versé est perdu.
+    showToast('Le greffier refuse', 'Il ne veut pas de votre argent. Aucun document.', false);
   } else {
     showToast('Document obtenu',
       'L\'extrait est dans votre inventaire. Rien, sur la piece, ne le distingue d\'un vrai.',

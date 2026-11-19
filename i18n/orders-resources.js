@@ -2807,8 +2807,6 @@
       "syndicat_etudiant_gerer": "Gérer un syndicat étudiant",
       "objet_trouve": "Reclamer un objet trouve",
       "faire_disparaitre_cadavre": "Faire disparaitre le corps",
-      "corrompre_rdv_notaire": "Accélérer le rendez-vous (corruption)",
-      "corrompre_chantier": "Accélérer le chantier (corruption)",
       "voler_materiel_chantier": "Voler du matériel de chantier",
       "reconfigurer_lots": "Reconfigurer les lots (chantier)",
       "manger_ration": "Manger sa ration"
@@ -2829,8 +2827,6 @@
       "syndicat_etudiant_gerer": "Manage a student union",
       "objet_trouve": "Claim a lost item",
       "faire_disparaitre_cadavre": "Dispose of the body",
-      "corrompre_rdv_notaire": "Speed up the appointment (bribery)",
-      "corrompre_chantier": "Speed up construction (bribery)",
       "voler_materiel_chantier": "Steal construction materials",
       "reconfigurer_lots": "Reconfigure units (construction)",
       "manger_ration": "Eat a ration"
@@ -2851,8 +2847,6 @@
       "syndicat_etudiant_gerer": "Gestionar un sindicato estudiantil",
       "objet_trouve": "Reclamar un objeto perdido",
       "faire_disparaitre_cadavre": "Hacer desaparecer el cadáver",
-      "corrompre_rdv_notaire": "Adelantar la cita (corrupción)",
-      "corrompre_chantier": "Acelerar la obra (corrupción)",
       "voler_materiel_chantier": "Robar materiales de construcción",
       "reconfigurer_lots": "Reconfigurar unidades (obra)",
       "manger_ration": "Comer una ración"
@@ -2873,8 +2867,6 @@
       "syndicat_etudiant_gerer": "管理學生工會",
       "objet_trouve": "領回失物",
       "faire_disparaitre_cadavre": "處理屍體",
-      "corrompre_rdv_notaire": "賄賂加快預約",
-      "corrompre_chantier": "賄賂加快工程",
       "voler_materiel_chantier": "竊取建材",
       "reconfigurer_lots": "重新配置工程單位",
       "manger_ration": "食用口糧"
@@ -2895,8 +2887,6 @@
       "syndicat_etudiant_gerer": "Управлять студенческим профсоюзом",
       "objet_trouve": "Забрать потерянную вещь",
       "faire_disparaitre_cadavre": "Спрятать тело",
-      "corrompre_rdv_notaire": "Ускорить встречу (взятка)",
-      "corrompre_chantier": "Ускорить строительство (взятка)",
       "voler_materiel_chantier": "Украсть стройматериалы",
       "reconfigurer_lots": "Перепланировать помещения (стройка)",
       "manger_ration": "Съесть паёк"
@@ -2917,8 +2907,6 @@
       "syndicat_etudiant_gerer": "학생 노동조합 관리",
       "objet_trouve": "분실물 찾기",
       "faire_disparaitre_cadavre": "시신 은닉",
-      "corrompre_rdv_notaire": "뇌물로 예약 앞당기기",
-      "corrompre_chantier": "뇌물로 공사 가속",
       "voler_materiel_chantier": "건축 자재 절도",
       "reconfigurer_lots": "공사 구획 재설정",
       "manger_ration": "전투식량 먹기"
@@ -2939,8 +2927,6 @@
       "syndicat_etudiant_gerer": "إدارة نقابة طلابية",
       "objet_trouve": "استعادة غرض مفقود",
       "faire_disparaitre_cadavre": "إخفاء الجثة",
-      "corrompre_rdv_notaire": "تسريع الموعد (رشوة)",
-      "corrompre_chantier": "تسريع البناء (رشوة)",
       "voler_materiel_chantier": "سرقة مواد البناء",
       "reconfigurer_lots": "إعادة تقسيم الوحدات أثناء البناء",
       "manger_ration": "تناول حصة غذائية"
@@ -2961,8 +2947,6 @@
       "syndicat_etudiant_gerer": "Gerenciar um sindicato estudantil",
       "objet_trouve": "Reivindicar um objeto perdido",
       "faire_disparaitre_cadavre": "Ocultar o cadáver",
-      "corrompre_rdv_notaire": "Acelerar a consulta (suborno)",
-      "corrompre_chantier": "Acelerar a obra (suborno)",
       "voler_materiel_chantier": "Roubar materiais de construção",
       "reconfigurer_lots": "Reconfigurar as unidades (obra)",
       "manger_ration": "Comer uma ração"
@@ -2983,8 +2967,6 @@
       "syndicat_etudiant_gerer": "Eine Studierendengewerkschaft verwalten",
       "objet_trouve": "Einen verlorenen Gegenstand abholen",
       "faire_disparaitre_cadavre": "Die Leiche verschwinden lassen",
-      "corrompre_rdv_notaire": "Den Termin beschleunigen (Bestechung)",
-      "corrompre_chantier": "Den Bau beschleunigen (Bestechung)",
       "voler_materiel_chantier": "Baumaterial stehlen",
       "reconfigurer_lots": "Einheiten neu aufteilen (Baustelle)",
       "manger_ration": "Eine Ration essen"

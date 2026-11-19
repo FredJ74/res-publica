@@ -53,12 +53,16 @@ test('inventaire : 237 descriptions communes affichées après isolation du goul
   const manquantes = communesJeu.filter(d => !cat.includes(d));
   t.diagnostic('Descriptions communes manquantes : ' + JSON.stringify(manquantes));
   // +1 le 15/11 : « +6 INF +5 DIS +1 POP. » (location d'un des quatre bureaux de Krasnov, texte du catalogue de Républia, à passer au catalogue commun par le lot i18n).
-  assert.ok(manquantes.length <= 4, 'nouvelles communes absentes du catalogue');
+  // +1 le 20/11 : « Suivre une formation » ouvert (criminalité lot 9), nouvelle description française à traduire par Codex.
+  assert.ok(manquantes.length <= 5, 'nouvelles communes absentes du catalogue');
   // Français strictement identique : chaque texte du catalogue est une description exacte de data.js,
   // affichée dans au moins un pays (avec la fusion réelle, quelques-unes ne sont plus visibles qu'en Républia,
   // l'exclusion de Sovarka étant désormais prise en compte ; leur traduction y reste utile).
   // Ancienne description de la récolte (avant le 16/11) : gardée à sa place, les bancs historiques figent les lignes livrées.
-  const HISTORIQUES = ['Recolter une matiere premiere locale. Maximum 2 fois par jour.'];
+  // « Falsifier un procès-verbal » (QHS) supprimé le 20/11 (criminalité lot 7) : sa ligne livrée reste au catalogue.
+  // « Suivre une formation » ouvert le 20/11 (criminalité lot 9) : l'ancienne infobulle « Bientôt disponible » reste au catalogue.
+  const HISTORIQUES = ['Recolter une matiere premiere locale. Maximum 2 fois par jour.', 'Modifier les declarations. Tres risque.',
+    'Bientôt disponible : cet ordre permettra d\'acquérir une seconde carrière.'];
   assert.deepEqual(cat.filter(d => !sov.has(d) && !rep.has(d) && !HISTORIQUES.includes(d)), [], 'textes du catalogue introuvables tels quels');
   assert.equal(new Set(cat).size, cat.length);
 });

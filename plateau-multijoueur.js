@@ -517,9 +517,11 @@ async function chargerVraisJoueursPresents(buildingIdParam, roomIdParam, targetI
     const photosParNom = await rafraichirCachePhotosJoueurs();
 
     // Mettre en cache pour getCurrentRoomPersons() (utilisé par assassinat, dons, etc.)
+    // Criminalité : un individu masqué n'a ni nom ni portrait ; il est visé par son jeton (crim_presents).
     window._vraisJoueursPresents = autres.map(p => ({
       name: p.name, role: 'Joueur', rel: 'neutral', isPJ: true, job: null,
-      photoUrl: photosParNom[p.name] || null
+      photoUrl: p.masque ? null : (photosParNom[p.name] || null),
+      ...(p.masque ? { masque: true, jeton: p.jeton || null } : {})
     }));
 
     const empireCol = COUNTRIES[state.country]?.col || '#C9A84C';

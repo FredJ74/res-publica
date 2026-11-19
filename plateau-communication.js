@@ -1046,6 +1046,10 @@ const MOTIFS_REFUS_TRACT_CALOMNIEUX = {
 //     elle verrouille le triplet PNJ x cible x jour (Paris) -- pas le PNJ, pas la cible seuls ;
 //   - echec normal : aucun effet, meme PNJ retentable immediatement ;
 //   - echec critique = 10 % des ECHECS : le calomnieur est identifie.
+//   Depuis la Criminalite lot 8 (20/11/2026), le jet passe par la resolution commune des crimes
+//   (crim_resoudre_interne : dissuasion #135 comptee une fois) et la duree du flagrant delit ou du
+//   mandat vient du bareme (crim_peine_jours_interne) ; une distribution reussie laisse une trace
+//   'tract_calomnieux' que le bouche-a-oreille (Ecouter les rumeurs, 10 %) peut reveler.
 // Juridiction (regle fixee) : le pays competent est celui de RESIDENCE DE LA VICTIME AU MOMENT DES
 // FAITS, gele dans l'acte. Le serveur tranche et renvoie 'poursuite' :
 //   - 'flagrant_delit' (faits commis dans ce pays) : circuit preexistant, inchange -- destruction
@@ -1117,8 +1121,8 @@ async function confirmerDistribuerTractCalomnieux(cible, pnjName, encodedPnj) {
       return;
     }
     if (critique) {
-      // Echec critique : destruction de TOUS les tracts calomnieux detenus + 1 jour de
-      // detention. Reutilise directement l'architecture existante (state.estEmprisonne, meme
+      // Echec critique : destruction de TOUS les tracts calomnieux detenus + detention au bareme
+      // (crim_peine_jours_interne, 1 jour en Republia ; Criminalite lot 8 : plus de duree en dur). Reutilise directement l'architecture existante (state.estEmprisonne, meme
       // forme que procederArrestation) plutot que cette derniere : celle-ci calculerait 2 jours
       // via PEINES.delit_mineur (pas 1) et ouvrirait un choix corruption/fuite/resistance non
       // souhaite ici (flagrant delit, sanction immediate et non negociable).
@@ -1130,10 +1134,15 @@ async function confirmerDistribuerTractCalomnieux(cible, pnjName, encodedPnj) {
         showToast('Immunité militaire', 'Flagrant délit, mais votre immunité militaire vous protège de toute poursuite.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.ba6b291f0", 'Flagrant délit, mais votre immunité militaire vous protège de toute poursuite.', undefined, 'Immunité militaire');
         addJournalEntry('Distribution de tract calomnieux — flagrant délit, immunité militaire invoquée.', 'event-info');
       } else {
-        const motifsTracts = [{ type: 'Distribution de tracts calomnieux', jour_fait: state.day, city: state.currentCity, jours: 1, source: 'flagrant_delit' }];
+        // Duree : celle du bareme (crim_peine_jours_interne), rendue par le serveur dans l'arrestation (Criminalite lot 8).
+        const joursTracts = res.arrestation && typeof res.arrestation.jours === 'number' ? res.arrestation.jours : null;
+        const txtTracts = typeof crimTractFlagrant === 'function' ? crimTractFlagrant(pnjName, joursTracts) : null;
+        const motifsTracts = [{ type: txtTracts ? txtTracts.motif : 'Distribution de tracts calomnieux', jour_fait: state.day, city: state.currentCity, jours: joursTracts, source: 'flagrant_delit' }];
         if (typeof adopterArrestationServeur === 'function') await adopterArrestationServeur(res.arrestation);
-        showToast('Flagrant délit !', pnjName + ' alerte immédiatement la police. Tous vos tracts calomnieux sont détruits. 1 jour de détention.', false, true);
-        addJournalEntry('Distribution de tract calomnieux à ' + pnjName + ' — échec critique. Tracts calomnieux détruits, 1 jour de détention.', 'event-bad');
+        if (txtTracts) {
+          showToast(txtTracts.titre, txtTracts.corps, false, true);
+          addJournalEntry(txtTracts.journal, 'event-bad');
+        }
 
         // Resolution spectaculaire (chantier "animations de resolution d'ordres", 26 aout 2026) :
         // ce flagrant delit precis n'a jamais teleporte le joueur (comportement preexistant,

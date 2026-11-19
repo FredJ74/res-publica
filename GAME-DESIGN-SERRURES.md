@@ -84,7 +84,9 @@ Le socle doit inclure :
 - armoire à souvenirs installable comme l'ordinateur (encombrement 3, plusieurs par pièce possibles, 48 h pour désinstaller après la perte du bail) ; fermée à clé, elle ne se désinstalle pas ;
 - fin de bail : la serrure du lieu est détruite pour tout le monde (avec un courrier au poseur), dès qu'on la touche et dans la passe de nuit ; ses clés n'ouvrent plus rien et ne se dupliquent plus.
 
-**Non couvert, faute de décision** : le crochetage ; la suite d'hôtel louée dans la durée (aucune location longue de suite n'existe aujourd'hui : la cible sera ouverte quand elle existera) ; le contenu de l'armoire (remplissage hors périmètre depuis août) ; une illustration dessinée du bloc serrure (icône en attendant).
+**Crochetage et effraction (19/11/2026)** : codés au lot 4 du chantier Criminalité (`crim_crocheter`, `crim_forcer_porte` ; voir `GAME-DESIGN-CRIMINALITE.md` § 8) — un crochetage laisse la serrure intacte et fermée ; une effraction la détruit (motif `effraction`), comme une fin de bail.
+
+**Non couvert, faute de décision** : la suite d'hôtel louée dans la durée (aucune location longue de suite n'existe aujourd'hui : la cible sera ouverte quand elle existera) ; le contenu de l'armoire (remplissage hors périmètre depuis août) ; une illustration dessinée du bloc serrure (icône en attendant).
 
 ## Armoire à souvenirs : installation et droit de poser une serrure (décision du 04/11/2026)
 

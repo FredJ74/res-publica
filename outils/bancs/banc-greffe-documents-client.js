@@ -15,9 +15,9 @@
 // 3. LA SALLE DE REUNION EST-ELLE REELLEMENT SORTIE DU SYSTEME DES LOCATIONS ? Pas « le bouton
 //    est parti » : ni `isLocationRoom`, ni `locationData`, ni `louer_local`, ni `gerer_local`.
 //
-// 4. « SUIVRE UNE FORMATION » EST-ELLE DESACTIVEE POUR DE VRAI ? Trois verrous, et les trois
-//    sont mesures : le drapeau `bientot` (clic inerte), l'absence de route, et l'absence au
-//    miroir des couts -- qui ferait refuser `ordre_inconnu` meme a un appel force.
+// 4. « SUIVRE UNE FORMATION » : desactivee le 13 octobre, OUVERTE le 20 novembre 2026
+//    (Criminalite lot 9, cursus « Droit pénal ») -- gratuite, sa route ouvre la fenetre de
+//    l'Universite, sans payer_ordre ; cursus ouverts decides au serveur.
 //
 // ET DEUX REGLES CONSERVEES, MESUREES POUR ELLES-MEMES : « Donner une conference » est INTACTE,
 // et « Recruter des militants » existe toujours dans les deux pieces de l'universite.
@@ -204,14 +204,13 @@ att('la creation d un syndicat etudiant passe par la porte serveur, et par elle 
     && creation.indexOf('sbSaveOrganisation') < 0);
 
 print('');
-print('5. « SUIVRE UNE FORMATION » : TROIS VERROUS, ET AUCUN N EST COSMETIQUE');
+print('5. « SUIVRE UNE FORMATION » : OUVERT LE 20/11/2026 (CRIMINALITE LOT 9), GRATUIT, DECIDE AU SERVEUR');
 var amphi = bloc(dataJs, 'amphi: {', '\n      }');
 att('le bouton EXISTE et il est visible', amphi.indexOf("fn:'suivre_formation'") >= 0);
-att('il porte le drapeau generique `bientot`', amphi.indexOf('bientot:') >= 0);
-att('son infobulle dit exactement ce que l arbitrage demande',
-    amphi.indexOf('Bientôt disponible : cet ordre permettra d\\\'acquérir une seconde carrière.') >= 0);
+att('il ne porte plus le drapeau `bientot`', amphi.indexOf('bientot:') < 0);
 att('il ne coute rien du tout', amphi.indexOf("fn:'suivre_formation', label:'Suivre une formation', pa:0, cost:0") >= 0);
-att('AUCUNE route ne mene a cet ordre', codeSeul(routeur).indexOf("'suivre_formation'") < 0);
+att('sa route ouvre la fenetre de l Universite, sans payer_ordre',
+    codeSeul(routeur).indexOf("if (fn === 'suivre_formation')             { ouvrirUniversiteFormation(); return; }") >= 0);
 // LE DRAPEAU EST GENERIQUE : il ne nomme aucun ordre dans le moteur de rendu, donc le prochain
 // ordre differe n'aura pas besoin d'une ligne de plus.
 var rendeur = codeSeul(bloc(politique, 'function renderRoomActions', '\nfunction ouvrirAudioguide'));

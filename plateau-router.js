@@ -174,7 +174,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'se_rebeller') { doSeRebeller(pa, cost); return; }
   if (fn === 'archives_police') { doArchivesPolice(pa, cost); return; }
   if (fn === 'pouls_populaire') { doPoulsPopulaire(); return; }
-  if (fn === 'lancer_rumeur_cible') { ouvrirModalLancerRumeur(pa, cost, successRate); return; }
+  if (fn === 'lancer_rumeur_cible') { ouvrirModalLancerRumeur(pa, cost); return; }
   if (fn === 'diner_affaires') { ouvrirModalInvitationSociale('diner_affaires', pa, cost, successRate); return; }
   if (fn === 'recruter_informateur_pnj') { doRecruterInformateurPNJ(pa); return; }
   // Comptoir d'embauche d'une agence (5 octobre 2026). Le routeur ne transmet
@@ -252,7 +252,6 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'laisser_legumes_jardins') { doEchangeLegumesJardins('laisser'); return; }
   if (fn === 'prendre_legumes_jardins') { doEchangeLegumesJardins('prendre'); return; }
   if (fn === 'deposer_demande_permis') { doDeposerDemandePermis(pa, cost); return; }
-  if (fn === 'corrompre_fonctionnaire_permis') { doCorrompreFonctionnairePermis(pa, cost); return; }
   if (fn === 'traiter_demandes_permis') { doTraiterDemandesPermis(pa, cost); return; }
   if (fn === 'consulter_dossiers_urbanisme') { doConsulterDossiersUrbanisme(); return; }
   // Ordre présent dans les trois mairies (décision de Fred, 29/10/2026) ; seule Montrouge a des
@@ -265,6 +264,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'traiter_demandes_logement_social') { ouvrirTableauLogementsSociaux(); return; }
   if (fn === 'consulter_registre_armes') { doConsulterRegistre(); return; }
   if (fn === 'acheter_gilet') { doAcheterGilet(); return; }
+  if (fn === 'boutique_discretion') { if (typeof ouvrirBoutiqueDiscretion === 'function') ouvrirBoutiqueDiscretion(); return; }
   // « Subtiliser des explosifs » (refonte du 13 septembre 2026). Ce n'etait PAS un vol : l'ordre
   // ouvrait le modal du marche noir a 1 200 FR, alors que son libelle et sa description
   // promettaient un vol a 35 % avec pertes de PV. C'est desormais un vrai vol dans le stock reel
@@ -360,7 +360,6 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'acte_rachat_entreprise') { doActeRachatEntreprise(pa, cost); return; }
   if (fn === 'officialiser_transaction') { ouvrirMenuOfficialiserTransaction(pa, cost); return; }
   if (fn === 'commerces_fonds_murs')     { ouvrirCatalogueFondsMurs(); return; }
-  if (fn === 'corrompre_rdv_notaire') { doCorrompreRdvNotaire(pa, cost); return; }
   if (fn === 'transferer_compromis') { doOuvrirTransfertCompromis(pa, cost); return; }
   if (fn === 'valider_transfert_compromis') { doValiderTransfertCompromis(pa, cost); return; }
   if (fn === 'transfert_compromis') { ouvrirMenuTransfertCompromis(pa, cost); return; }
@@ -370,7 +369,6 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'modifier_plan_chantier') { doModifierPlanChantier(pa, cost); return; }
   if (fn === 'reconfigurer_lots') { doOuvrirReconfiguration(pa, cost); return; }
   if (fn === 'gerer_fonds_commerce') { doGererFondsCommerce(pa, cost); return; }
-  if (fn === 'corrompre_chantier') { doCorrompreChantier(pa, cost); return; }
   if (fn === 'donner_materiaux_chantier') { return doVendreMateriauxChantier(pa,cost,'don'); }
   if (fn === 'prix_chantier') { ouvrirPrixChantier(); return; }
   if (fn === 'taux_chantier') { ouvrirTauxChantier(); return; }
@@ -698,10 +696,9 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'greffe_corrompre_faux_casier') { ouvrirGreffeCorrompreFauxCasier(); return; }
   if (fn === 'syndicat_etudiant_creer')      { ouvrirSyndicatEtudiantCreer(); return; }
   if (fn === 'syndicat_etudiant_gerer')      { ouvrirSyndicatsEtudiants(); return; }
-  // `suivre_formation` N'A PAS DE ROUTE, ET C'EST LA MOITIE DE SA DESACTIVATION. L'ordre est
-  // declare avec `bientot` : son bouton est grise et son clic n'appelle rien. S'il etait
-  // malgre tout appele, il tomberait sur le chemin generique -- qui refuserait, l'ordre
-  // n'etant pas au miroir des couts (`ordre_inconnu`). Trois verrous, aucun effet.
+  // « Suivre une formation » (ouvert le 20/11/2026, Criminalité lot 9) : fenêtre de l'Université,
+  // gratuite, sans payer_ordre ; tout est décidé au serveur (plateau-universite.js).
+  if (fn === 'suivre_formation')             { ouvrirUniversiteFormation(); return; }
   if (fn === 'fiscal' || fn === 'gestion_budget') { ouvrirGestionBudget(); return; }
   if (fn === 'proposer_treve')        { ouvrirProposerTreve(pa, cost); return; }
   if (fn === 'prier')                { doPrier(pa, cost); return; }
@@ -718,16 +715,13 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'etat_nation')          { ouvrirEtatNation(); return; }
 
   // Handlers complementaires v17
-  // corrompre_gardien (QHS, cellules) ajoute le 27 aout 2026 (audit architecture) : defini
-  // dans data.js mais jamais routee -- meme mecanique generique que ses homologues (desc
-  // "Obtenir des privileges ou informations" = meme resultat generique que doCorruption,
-  // aucun effet specifique distinct trouve pour aucun des fn de ce groupe).
-  // « Corrompre un journaliste » a desormais sa propre mecanique (12 septembre 2026) : elle porte sur
-  // la COUVERTURE d'une affaire judiciaire precise, avec sa formule propre (30 + CHA + INF/4 - ISN).
-  // Elle ne passe plus par doCorruption, dont le corps est partage par les cinq autres ordres de
-  // corruption (mairie, QHS, gardien, proces-verbal) et ne doit pas bouger.
+  // « Corrompre un journaliste » a sa propre mecanique (12 septembre 2026) : elle porte sur la COUVERTURE
+  // d'une affaire judiciaire precise, avec sa formule propre (30 + CHA + INF/4 - ISN).
   if (fn === 'corrompre_journaliste') { ouvrirCorrompreJournaliste(pa, cost); return; }
-  if (fn === 'corrompre_fonct' || fn === 'corrompre_police' || fn === 'corrompre_gardien') { doCorruption(fn, pa, cost); return; }
+  // Criminalité lot 7 (§ 12) : directeur et gardien du QHS (crim_corrompre_directeur / crim_corrompre_gardien,
+  // plateau-criminalite.js). « Falsifier un procès-verbal », la route corrompre_police et les trois
+  // accélérations par corruption sont supprimés (le serveur répond « ordre_supprime »).
+  if (fn === 'corrompre_fonct' || fn === 'corrompre_gardien') { crimOuvrirCorruptionQhs(fn === 'corrompre_fonct' ? 'directeur' : 'gardien'); return; }
   if (fn === 'se_reposer' || fn === 'se_nourrir') { doSeReposer(fn); return; }
   // Route 'requete_avocat' SUPPRIMEE le 13 octobre 2026 (arbitrage valide). La requete
   // reduisait la peine sur un TIRAGE -- `Math.min(85, 40 + DUP*1.5)` contre un d100 -- donc un

@@ -612,10 +612,6 @@ REGRESSIONS_GREFFE_DATA = [
      "salle_reunion: {",
      "salle_reunion: { isLocationRoom:true,",
      "elle n est plus declaree comme un local a louer"),
-    ("« Suivre une formation » perd son drapeau `bientot`",
-     "bientot:'Bient\u00f4t disponible",
-     "inactif:'Bient\u00f4t disponible",
-     "il porte le drapeau generique `bientot`"),
     ("les frais de greffe de la domiciliation disparaissent",
      "{fn:'syndicat_etudiant_creer', label:'Domicilier un syndicat \u00e9tudiant', pa:2, cost:150,",
      "{fn:'syndicat_etudiant_creer', label:'Domicilier un syndicat \u00e9tudiant', pa:2, cost:0,",
@@ -623,11 +619,10 @@ REGRESSIONS_GREFFE_DATA = [
 ]
 
 REGRESSIONS_GREFFE_ROUTEUR = [
-    ("une route mene a l'ordre differe",
-     "  if (fn === 'casier_mon_extrait')",
-     "  if (fn === 'suivre_formation') { showToast('Formation', 'x'); return; }\n"
-     "  if (fn === 'casier_mon_extrait')",
-     "AUCUNE route ne mene a cet ordre"),
+    ("la route de « Suivre une formation » disparait",
+     "  if (fn === 'suivre_formation')             { ouvrirUniversiteFormation(); return; }\n",
+     "",
+     "sa route ouvre la fenetre de l Universite, sans payer_ordre"),
 ]
 
 REGRESSIONS_GREFFE_JUSTICE = [

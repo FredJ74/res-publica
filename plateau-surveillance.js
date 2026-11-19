@@ -233,7 +233,15 @@ function ouvrirMenuFouillerVoler(ancre) {
     return b;
   };
   menu.appendChild(item(texteEquip('menuFouiller', '🔍 Fouiller les lieux (2 PA)'), ouvrirFenetreFouille));
-  menu.appendChild(item(texteEquip('menuVoler', '🕵 Voler du matériel installé (3 PA)'), () => { if (typeof ouvrirVolMateriel === 'function') ouvrirVolMateriel(); }));
+  // Criminalité lot 4 : matériel installé, stock et caisse passent par le cambriolage commun (crim_cambrioler, 2 PA).
+  if (typeof crimOuvrirCambriolage === 'function') menu.appendChild(item(window.RPCriminalite ? window.RPCriminalite.texte('kMenu') : 'Emporter ce qu’il y a ici (2 PA)', crimOuvrirCambriolage));
+  else menu.appendChild(item(texteEquip('menuVoler', '🕵 Voler du matériel installé (3 PA)'), () => { if (typeof ouvrirVolMateriel === 'function') ouvrirVolMateriel(); }));
+  // Criminalité lot 1 (19/11/2026) : débusquer un PJ caché (crim_fouiller_cachettes, 1 PA), dans une pièce seulement.
+  if (typeof ouvrirFouilleCachettes === 'function' && state.currentBuilding && state.currentRoom)
+    menu.appendChild(item(window.RPCriminalite ? window.RPCriminalite.texte('search') : 'Débusquer quelqu’un de caché (1 PA)', ouvrirFouilleCachettes));
+  // Criminalité lot 3 (19/11/2026) : voler une personne présente (crime_voler ; le serveur tranche tout).
+  if (typeof crimVolerChoisirCible === 'function' && state.currentBuilding && state.currentRoom)
+    menu.appendChild(item(window.RPCriminalite ? window.RPCriminalite.texte('vMenu') : 'Voler quelqu’un (2-3 PA)', crimVolerChoisirCible));
   document.body.appendChild(menu);
   const r = el && el.getBoundingClientRect ? el.getBoundingClientRect() : null;
   const h = menu.offsetHeight, w = menu.offsetWidth, vw = window.innerWidth, vh = window.innerHeight;

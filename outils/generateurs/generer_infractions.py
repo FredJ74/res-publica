@@ -94,6 +94,9 @@ function fonction(nom) {
 var PEINES       = eval(bloc('PEINES'));
 var PEINES_ACTES = eval(bloc('PEINES_ACTES'));
 var ACTES_ILLEGAUX = eval(bloc('ACTES_ILLEGAUX'));
+// Criminalite lot 6 (19/11/2026) : une seule nomenclature (alias) et onze baremes rattaches a leurs actes.
+var INFRACTIONS_ALIAS = eval(bloc('INFRACTIONS_ALIAS'));
+var INFRACTIONS_RATTACHEES = eval(bloc('INFRACTIONS_RATTACHEES'));
 var state = { country: 'republic' };
 eval(fonction('getPeineParActe'));
 
@@ -105,7 +108,10 @@ var sortie = [];
 Object.keys(ids).forEach(function (id) {
   var p = getPeineParActe(id, false);
   var acte = ACTES_ILLEGAUX[id];
-  var propre = (PEINES_ACTES.republic || {})[id];
+  // Un alias porte exactement le bareme de son infraction canonique (meme duree, meme libelle, meme categorie).
+  var canon = INFRACTIONS_ALIAS[id] || id;
+  var propre = (PEINES_ACTES.republic || {})[canon];
+  var cible_alias = Object.keys(INFRACTIONS_ALIAS).some(function (a) { return INFRACTIONS_ALIAS[a] === id; });
   sortie.push({
     id: id,
     // LE BAREME PROPRE GAGNE SUR ACTES_ILLEGAUX, y compris pour la categorie (13 octobre 2026).
@@ -113,12 +119,13 @@ Object.keys(ids).forEach(function (id) {
     // d'abord. Un bareme propre sans `categorie` retombe sur ACTES_ILLEGAUX, donc rien de ce qui
     // existait ne bouge.
     libelle: p.label,
-    categorie: (propre && propre.categorie) ? propre.categorie : (acte ? acte.type : null),
+    categorie: (propre && propre.categorie) ? propre.categorie
+             : (ACTES_ILLEGAUX[canon] ? ACTES_ILLEGAUX[canon].type : (acte ? acte.type : null)),
     jours_reference: p.jours,
     amende_reference: p.amende,
     detect_rate: acte ? acte.detectRate : null,
     bareme_propre: !!propre,
-    detectable: !!acte
+    detectable: !!acte || cible_alias || !!INFRACTIONS_RATTACHEES[id]
   });
 });
 
@@ -128,6 +135,7 @@ var categories = Object.keys(PEINES).map(function (c) {
 });
 
 print(JSON.stringify({
+  alias: INFRACTIONS_ALIAS,
   infractions: sortie,
   categories: categories,
   empires_avec_bareme_propre: Object.keys(PEINES_ACTES)
@@ -183,6 +191,17 @@ DOUBLONS = [
     ('corruption_fonctionnaire', ['corrompre_fonct']),
     ('achat_arme_illegal', ['acheter_arme_illegale']),
 ]
+
+
+# CRIMINALITE LOT 6 (19/11/2026) : Fred a tranche (§ 14 de GAME-DESIGN-CRIMINALITE.md, « une seule nomenclature par
+# infraction »). Les paires sont RESOLUES par INFRACTIONS_ALIAS (plateau-core.js) : chaque alias porte desormais le bareme
+# de son infraction canonique, et la table infractions_alias les declare au serveur. Le rapport ci-dessous doit donc
+# afficher des durees egales des deux cotes.
+
+
+def sql_alias(alias):
+    return ',\n'.join("  (%s, %s, %s)" % (_q(a), _q(c), _q('Criminalite lot 6 : une seule nomenclature (19/11/2026)'))
+                       for a, c in sorted(alias.items()))
 
 
 def doublons(infractions):
@@ -246,6 +265,8 @@ if __name__ == '__main__':
         print(sql(inf))
     elif '--sql-categories' in sys.argv:
         print(sql_categories(cat))
+    elif '--sql-alias' in sys.argv:
+        print(sql_alias(d['alias']))
     elif '--empreinte' in sys.argv:
         print(empreinte(inf))
     else:
@@ -271,13 +292,12 @@ if __name__ == '__main__':
                                                  c['amende_reference'], c['libelle']))
         print('')
         dbl = doublons(inf)
-        print('PAIRES DE NOMENCLATURE NON RESOLUES : %d' % len(dbl))
-        print('Aucune n est resolue, et la raison est la meme pour toutes : les deux cotes')
-        print('portent des durees de reference DIFFERENTES, donc fusionner changerait une peine.')
+        print('PAIRES DE NOMENCLATURE : %d (resolues par INFRACTIONS_ALIAS depuis le lot 6 criminalite)' % len(dbl))
+        print('Chaque alias porte le bareme de son infraction canonique : les durees doivent etre egales.')
         for g, jg, dr, jd in dbl:
             print('  %-26s %2d j   <->  %-24s %2d j' % (g, jg, dr, jd))
         print('')
         print('empires avec un bareme propre : %s' % ', '.join(d['empires_avec_bareme_propre']))
-        print('les autres retombent integralement sur les categories -- non etendu ici.')
+        print('les autres empires reprennent Republia (crim_peine_jours_interne, parametres peine_jours_<acte>_<empire>).')
         print('')
         print('empreinte : %s' % empreinte(inf))

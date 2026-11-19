@@ -1984,7 +1984,7 @@ async function afficherNoeudRue(pays, noeudId, depuisNoeudId, positionDejaConfir
         // celle par laquelle il est entre : sans cela, la sortie le rend a la derniere scene
         // memorisee, donc a l'entree de service au lieu de l'entree principale.
         const serrureBat = (typeof serrureBatimentEtat === 'function') ? serrureBatimentEtat(z.buildingId) : null;
-        if (serrureBat && serrureBat.fermee && !serrureBat.a_cle) { serrurePopupFermee('batiment'); return; }
+        if (serrureBat && serrureBat.fermee && !serrureBat.a_cle) { serrurePopupFermee('batiment', z.buildingId); return; }
         if (z.sortieNoeudId && typeof state !== 'undefined' && state.currentCity) {
           memoriserNoeudRueCentrale(pays, state.currentCity, z.sortieNoeudId, null);
         }
