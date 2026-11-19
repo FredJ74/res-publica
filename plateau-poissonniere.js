@@ -37,7 +37,7 @@ async function ouvrirPoissonniere(mode) {
     e = Array.isArray(r) ? r[0] : r;
     if (e && e.poissonniere_etat) e = e.poissonniere_etat;
   } catch (_) {}
-  if (!e) { showToast('Étal indisponible', 'Impossible de lire l\'étal pour l\'instant.', false); return; }
+  if (!e) { showToast('Étal indisponible', 'Impossible de lire l\'étal pour l\'instant.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bbcf5800a", 'Impossible de lire l\'étal pour l\'instant.', undefined, 'Étal indisponible'); return; }
   if (e.etal_pnj === false) { refusPoissonniere({ raison: 'etal_repris' }); return; }
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const reste = mode === 'poisson' ? e.poisson_restant : e.contrebande_restant;
@@ -87,7 +87,7 @@ async function confirmerPoissonniere(mode) {
     } else {
       const libelle = v.cle === 'alcool' ? 'alcool' : 'médicaments';
       addJournalEntry('Contrebande : ' + v.quantite + ' unité(s) de ' + libelle + ' achetées sous l\'étal de Galina Karpova (' + Math.round(v.paye) + ' ' + cur + ').', v.detecte ? 'event-bad' : 'event-info');
-      if (v.detecte) showToast('Repéré(e) !', 'Quelqu\'un vous a vu sortir un paquet de sous l\'étal. Vous êtes recherché(e).', false, true);
+      if (v.detecte) { showToast('Repéré(e) !', 'Quelqu\'un vous a vu sortir un paquet de sous l\'étal. Vous êtes recherché(e).', false, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b3032514b", 'Quelqu\'un vous a vu sortir un paquet de sous l\'étal. Vous êtes recherché(e).', undefined, 'Repéré(e) !'); }
       else showToast('Marché conclu', v.quantite + ' unité(s) de ' + libelle + ', ' + Math.round(v.paye) + ' ' + cur + '. Personne n\'a rien vu.', true);
     }
   } finally { achatPoissonniereEnCours = false; }

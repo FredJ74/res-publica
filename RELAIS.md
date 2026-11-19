@@ -8,6 +8,56 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Maladies, péremption et climat — lot 3 : socle des événements climatiques (Claude, 18/11/2026, nuit)
+- **Branche `claude/climat-lot3-20261118`** (part du lot 2c). Décisions de Fred (points 6 à 8) et choix consignés dans `GAME-DESIGN-MALADIES-CLIMAT.md` § 11.
+- **Migration APPLIQUÉE** : `20261118080000_climat_socle` (+ correctif `climat_chantiers_apres_alerte`). Calendrier déjà planifié (trimestre en cours et suivant, mois en cours et suivant).
+- **PASSE HORAIRE EN PAUSE** (`cron.alter_job(…, active := false)` sur `climat_passe`) tant que la PR n'est pas fusionnée : aucune alerte ne part, aucun chantier n'est bloqué (le blocage exige une alerte publiée). À la fusion : `SELECT cron.alter_job(jobid, active := true) FROM cron.job WHERE jobname = 'climat_passe';`
+- **Codé** : `climat_parametres`, `climat_zones_inondables`, `climat_evenements`, planification avec propagation, alertes 48 h (journal + article de presse en attente), `climat_etat` ; `plateau-climat.js` (message du gouvernement une fois par alerte, filtres animés de rue, neuf langues) ; chantiers refusés pendant les intempéries ; section MJ « Climat ».
+- **Reste** : lot 4 (blizzard, graisses, contagion de la grippe), lot 5 (effets du brouillard, de l'orage, de la crue, de la canicule) ; état de catastrophe naturelle : proposition à Fred.
+
+### Maladies, péremption et climat — lot 2c : plats cuisinés et furet renifleur (Claude, 18/11/2026, nuit)
+- **Branche `claude/maladies-lot2c-20261118`** (part du lot 2b).
+- **Migration APPLIQUÉE** : `20261118072000_aliments_plats_furet` (essai annulé d'abord).
+- **Codé** : déclencheur `aliments_contamination_production` sur `entreprises` (avariés cachés consommés → portions contaminées), tirage 20 % (`plat_avarie`) à la consommation (fonds PJ) ou au service (moteur historique) ; furet (`furet_boutique_etat`, `furet_acheter`, `furet_renifler`), ordre « Acheter un furet renifleur » chez Chasse et Pêche (PSM, Starovka), bouton « Faire renifler », animation ; textes en neuf langues ; ordres_couts `acheter_furet` 0/0 et `furet_renifler` 1/0 (plans 97/219 : 584 lignes), seeds régénérés.
+
+### Maladies, péremption et climat — lot 2b : contrôle à la réception et bandelettes (Claude, 18/11/2026, nuit)
+- **Branche `claude/maladies-lot2b-20261118`** (part du lot 2a).
+- **Migrations APPLIQUÉES** : `20261118071000_aliments_reception_bandelettes` (essai annulé d'abord), `20261118071500_aliments_parametres_mj`.
+- **Codé** : contrôle 70/95 % dans `commerce_apporter_matiere` et `fonds_matiere_apporter` (refusés détruits et non payés, avariés cachés comptés dans `matieresAvariees`), trace `fraude_alimentaire`, bandelettes (achat en pharmacie, dépôt dans le commerce de la pièce), message des refus (neuf langues), section MJ « Aliments ».
+- **Reste (lot 2c)** : plats cuisinés 20 %, furet renifleur.
+
+### Maladies, péremption et climat — lot 2a : piles d'aliments datées (Claude, 18/11/2026, nuit)
+- **Branche `claude/maladies-lot2a-20261118`** (part du lot 1). Choix dans `GAME-DESIGN-MALADIES-CLIMAT.md` § 11 « Lot 2 ».
+- **Migration APPLIQUÉE** : `20261118070000_aliments_piles_datees` (essai en transaction annulée d'abord).
+- **Codé** : date de pile `recu` sur les matières périssables, fusion le même jour seulement ; retraits sur les piles les plus anciennes (`inventaire_retirer_depuis`, corrige aussi l'ancien `inventaire_retirer` qui retirait la quantité de chaque pile) ; `inventaire_ajouter`, `inventaire_deposer_interne`, réception des livraisons et achat en entrepôt datés ; maisons d'hospitalité, kolkhoze, jardins et offres d'achat comptent toutes les piles ; péremption 10 jours (réglable), aliment avarié = PA + 50 % d'intoxication ; passe de nuit `aliments_passe_nuit` (pg_cron) et message au propriétaire (neuf langues).
+- **Reste du lot 2 (2b)** : contrôle à réception 70/95 % et bandelettes, plats cuisinés 20 %, furet renifleur.
+
+### Maladies, péremption et climat — lot 1 : socle des maladies (Claude, 18/11/2026, soir)
+- **Branche `claude/maladies-lot1-20261118`** ; décisions et découpage en 5 lots dans `GAME-DESIGN-MALADIES-CLIMAT.md` § 11.
+- **Migrations APPLIQUÉES** : `20261118060000_maladies_socle` (essai en transaction annulée d'abord), `20261118060500_maladies_nom_medicament`.
+- **Codé** : catalogue `maladies_parametres` (4 maladies, tout réglable par le MJ), `personnages_maladies`, malus via `effets_actifs`, plafond 15 PA (grippe) au Dormir et sur les aliments, bonus d'arme supprimé dans les batailles (gueule de bois), guérison au Dormir après médicament (refusé sans la maladie), viande crue 15 %, alcool 30 % dès le 3e verre (tournées, trinquer chez l'habitant), pharmacie (Novomirsk + salle des ventes de l'usine de Luthécia, stock journalier, prix 2 × prix de base = 44), symptômes des présents dans la fenêtre d'un personnage, état de santé sous les caractéristiques, page MJ « Maladies » (`admin-maladies.js`).
+- **Corrections demandées par Fred le 18/11 au soir** (migration `20261118061000_maladies_boissons_repartition` APPLIQUÉE après essai annulé) :
+  - Boissons : colonne `recettes_commerce.boisson` (`alcoolisee` / `non_alcoolisee`, obligatoire pour la catégorie `boisson`), 20 boissons étiquetées à la main. Verre compté seulement pour l'alcool : tournée, comptoir, service d'étage, dîners (verre offert), bouteille bue depuis l'inventaire (bouton « Boire » ; mini-bar étiqueté), trinquer (toujours alcoolisé).
+  - Médicaments : production journalière répartie 25 % usine de Luthécia + 25 % par entrepôt logistique (Luthécia, PSM, Montrouge), au plus fort reste ; ordre « Acheter des médicaments » ajouté aux trois salles des ventes ; recette versée à la caisse de l'entrepôt.
+  - Grippe inchangée, comptoir de l'usine validé comme seul point de vente PNJ.
+- **Lots suivants** : 2 péremption/avarie/réception/furet ; 3 socle climat ; 4 blizzard et contagion ; 5 brouillard, orage, crue, canicule.
+### Décisions du 18/11 — Starovka, kolkhoze, syndicat d'État, nationalité, départ du maire, branchement i18n (Claude, 18/11/2026)
+- **Branche `claude/decisions-20261118`** (part de #1115 et #1114). Décisions consignées dans `GAME-DESIGN-NOVOMIRSK.md` (« Décisions du 18/11/2026 », points 1 à 7) et `GAME-DESIGN-ELECTIONS.md`.
+- **Traduction (point 6)** : le branchement des textes dont la traduction existe déjà (`resource-review-binding`) est **confié à Claude jusqu'au retour de Codex le 20/11 au soir**. Un fichier ou groupe de fichiers par PR ; fichiers du goulag exclus (chantier de Codex).
+- **Codé** :
+  - Point 1 : Commandant Arseni Ledokolov et Tserenjav Dachiev (écran, fiches, référent, titulaire) ; fiche de Sayana vérifiée (1 PA + 50 PSK).
+  - Point 2 : « Manger » viande et laitages bruts (+1 PA au prochain Dormir, un repas brut par nuit), confiture (+1, une par nuit) ; articles du kolkhoze livrés en matières (viande, laitages, textile, bois), graisse = objet sans effet ; peau et bois de renne n'étaient pas déposés en inventaire (corrigé).
+  - Point 3 et 7 : syndicat national de Sovarka (`orga_syndicat_etat_soviet`, chef initial Lev Lozungov PNJ), « Bureau du syndicat national » dans les trois mairies (`plateau-sovarka-syndicat.js`), manifestation de soutien au président ; anciens sièges syndicaux de Starovka et Krasnov retirés.
+  - Point 4 : programme par défaut de l'investi ; naturalisation acceptée 7 jours après le dépôt sans réponse.
+  - Point 5 : départ d'un maire (déclencheurs démission, prison, naturalisation, décès ; passe de nuit `maires_departs`), proposition 72 h à l'adjoint (courrier à boutons), tutelle du ministre (min_fin / min_int) ; pas de maire PNJ de secours sur une mairie vacante.
+- **Migrations APPLIQUÉES** : `20261118050000` (alimentation), `20261118051000` (renommages), `20261118052000` (nationalité), `20261118053000` (syndicat), `20261118054000` (départ du maire), `20261118055000` (navigation du bureau syndical), `20261118056000` (cotisation 15 PSK, tutelle complète).
+- **Petit chantier du 18/11 après-midi (branche `claude/syndicat-tutelle-20261118`, migration `20261118056000` APPLIQUÉE)** :
+  - Tutelle validée (min_fin en Sovarka, min_int en Républia) : le ministre a TOUS les boutons du bureau du maire, y compris campagne de sécurité (`mairie_campagne_securite_interne`) et nominations municipales (`poste_autorite_de`, `exigerAutoriteSurPosteNomme` côté client).
+  - Syndicat national : cotisation unique 15 PSK (1 PA conservé), jamais renouvelée (aucun renouvellement : le cron ne renouvelle que soutiens et dockers PSM). Un seul syndicat en Sovarka (pas de dockers). Lozungov, chef PNJ initial, ne lance aucune manifestation ; aucun effet POP si le président est un PNJ ou si le poste est vacant.
+  - Décors de Fred (ex-branche `claude/syndicat-images-20261118`, supprimée) : `*_mairie_bureau_syndicat_national.webp` ; portraits WebP q85 tirés des décors (Lozungov, Transparantov, Tserenjav — l'ancien portrait de Tserenjav est remplacé).
+- **Traduction** : branches `claude/i18n-branchement-lot1/2/3-20261118` (empilées) ; outil `outils/generateurs/brancher-toasts-i18n.cjs` (markToast après chaque showToast dont la traduction existe, fichiers du goulag refusés).
+- **Bancs anciens** : 31 bancs `.js` lisent `/Users/fredericjasseron/ResPublica/` en dur ; en local ils lisent une vieille copie. Pour les éprouver : copie temporaire avec le chemin remplacé. Les bancs navigateur demandent `CHROMIUM_PATH`.
+
 ### PNJ de Starovka — personnalités, référents, train, syndicat, kolkhoze (Claude, 18/11/2026, nuit)
 - **Branche `claude/starovka-pnj-referents-20261118`** (inclut la PR #1100 de Codex, culture bouriate, prérequis demandé par Fred). Décisions de Fred consignées dans `GAME-DESIGN-NOVOMIRSK.md`, section « PNJ de Starovka : personnalités et référents ».
 - **Fiches** : 41 fiches de personnalité ajoutées dans `api/_pnj-personnalites.js` (traits donnés par Fred), fiche d'Arkadi Prigovorov mise à jour ; `bouriate:false` sur les PNJ slaves de Starovka (la consigne culturelle bouriate ne leur est plus ajoutée, `api/_pnj-culture-bouriate.js`).

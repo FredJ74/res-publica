@@ -51,6 +51,8 @@ for(const x of rows){
  if(x.pays==='soviet'&&x.ville==='ville_a'&&x.id==='usine-principale')x.rooms=x.rooms.filter(r=>r!=='salle_ventes_raffinerie'&&r!=='interieur_raffinerie');
  // Port de Starovka (16/11) : bureau du Commandant du Port ajouté par 20261116110000, hors de la référence du 31/10.
  if(x.pays==='soviet'&&x.ville==='ville_a'&&x.id==='port-starovka')x.rooms=x.rooms.filter(r=>r!=='administration_portuaire');
+ // Bureau du syndicat national (18/11) : ajouté aux trois mairies de Sovarka par 20261118055000, hors de la référence du 31/10.
+ if(x.pays==='soviet'&&(x.id==='mairie'||x.id==='mairie-capitale'))x.rooms=x.rooms.filter(r=>r!=='bureau_syndicat_national');
  if(x.pays==='soviet'&&['ville_a','ville_b'].includes(x.ville)&&x.id==='centre-affaires')x.rooms=["hall","bureau_prestige","bureau_standard","open_space","tribune_republia"];
 }
 const quote=x=>x===null?'NULL':"'"+String(x).replace(/'/g,"''")+"'";

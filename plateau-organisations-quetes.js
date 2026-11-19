@@ -256,12 +256,12 @@ async function organisationEssayerCommande(orgaId, action, parametres) {
   const contexte=equipementsCollectifsContexte();
   const r=await sbOrganisationCommande(orgaId,action,parametres);
   if(!equipementsCollectifsContexteValide(contexte))return false;
-  if(r?.disponible===false){showToast('Service indisponible','La commande serveur de cette organisation n’est pas encore activée. Aucune sauvegarde générale ne sera utilisée.',false);return false;}
-  if(!r?.ok){showToast('Opération non confirmée','Actualisez avant de recommencer. Aucun repli vers une sauvegarde générale.',false);return false;}
+  if(r?.disponible===false){showToast('Service indisponible','La commande serveur de cette organisation n’est pas encore activée. Aucune sauvegarde générale ne sera utilisée.',false); globalThis.RPI18nPlateau?.markToast("toastBodies.b8e948365", 'La commande serveur de cette organisation n’est pas encore activée. Aucune sauvegarde générale ne sera utilisée.', undefined, 'Service indisponible');return false;}
+  if(!r?.ok){showToast('Opération non confirmée','Actualisez avant de recommencer. Aucun repli vers une sauvegarde générale.',false); globalThis.RPI18nPlateau?.markToast("toastBodies.b96f7012b", 'Actualisez avant de recommencer. Aucun repli vers une sauvegarde générale.', undefined, 'Opération non confirmée');return false;}
   // Un recu rejoue ne contient pas d'ancien solde : relire la ligne courante.
   const fraiche=await sbGetOrganisationParId(orgaId).catch(()=>null);
   if(!equipementsCollectifsContexteValide(contexte))return false;
-  if(!fraiche||fraiche.id!==orgaId){showToast('Opération enregistrée','La relecture est indisponible. Actualisez la liste.',true);return false;}
+  if(!fraiche||fraiche.id!==orgaId){showToast('Opération enregistrée','La relecture est indisponible. Actualisez la liste.',true); globalThis.RPI18nPlateau?.markToast("toastBodies.beddc844e", 'La relecture est indisponible. Actualisez la liste.', undefined, 'Opération enregistrée');return false;}
   state.organisations=(state.organisations||[]).map(o=>o.id===orgaId?fraiche:o);
   return true;
 }
@@ -402,7 +402,7 @@ function ouvrirCreerOrga() {
   });
 
   if (typesDispos.length === 0) {
-    showToast('Maximum atteint', 'Vous avez déjà fondé une organisation de chaque type.', false);
+    showToast('Maximum atteint', 'Vous avez déjà fondé une organisation de chaque type.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b5f4547f9", 'Vous avez déjà fondé une organisation de chaque type.', undefined, 'Maximum atteint');
     return;
   }
 
@@ -488,7 +488,7 @@ async function confirmerCreationOrga(type) {
   const nom = document.getElementById('orga-nom-input')?.value?.trim();
   const desc = document.getElementById('orga-desc-input')?.value?.trim() || '';
 
-  if (!nom || nom.length < 2) { showToast('Nom requis', 'Donnez un nom à votre organisation.', false); return; }
+  if (!nom || nom.length < 2) { showToast('Nom requis', 'Donnez un nom à votre organisation.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bc3720940", 'Donnez un nom à votre organisation.', undefined, 'Nom requis'); return; }
 
   const localIdActuel = state.currentBuilding + ':' + state.currentRoom;
   const orgaExistanteIci = (state.organisations || []).find(o => o.localId === localIdActuel);
@@ -544,7 +544,7 @@ async function confirmerCreationOrga(type) {
         if (ok) return;
         location.orgaId = '';
         showToast('Domiciliation non enregistrée',
-          'L\'organisation a bien été créée, mais sa domiciliation dans ce local n\'a pas pu être enregistrée. Associez-la depuis « Gérer mon local ».', false);
+          'L\'organisation a bien été créée, mais sa domiciliation dans ce local n\'a pas pu être enregistrée. Associez-la depuis « Gérer mon local ».', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b4323d96d", 'L\'organisation a bien été créée, mais sa domiciliation dans ce local n\'a pas pu être enregistrée. Associez-la depuis « Gérer mon local ».', undefined, 'Domiciliation non enregistrée');
       }).catch(() => {});
     }
   }
@@ -743,13 +743,13 @@ async function demanderAdhesion(orgaId) {
   // Organisation secrete (26 aout 2026) : adhesion uniquement sur invitation, aucune
   // candidature spontanee possible -- voir ouvrirInviterMembreOrga/accepterInvitationOrga.
   if (!orga.visible) {
-    showToast('Adhésion impossible', 'Cette organisation recrute uniquement sur invitation.', false);
+    showToast('Adhésion impossible', 'Cette organisation recrute uniquement sur invitation.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b455fd40c", 'Cette organisation recrute uniquement sur invitation.', undefined, 'Adhésion impossible');
     return;
   }
 
   // Vérif : déjà membre ?
   if (orga.membres?.some(m => m.nom === state.char?.name)) {
-    showToast('Déjà membre', 'Vous êtes déjà membre de cette organisation.', false); return;
+    showToast('Déjà membre', 'Vous êtes déjà membre de cette organisation.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b28d1aba1", 'Vous êtes déjà membre de cette organisation.', undefined, 'Déjà membre'); return;
   }
   // Vérif : déjà une orga de ce type en adhésion ?
   const mesOrgas = getMesOrgasPays();
@@ -759,13 +759,13 @@ async function demanderAdhesion(orgaId) {
   }
   // Vérif : demande déjà en cours ?
   if (orga.demandesAdhesion?.some(d => d.nom === state.char?.name)) {
-    showToast('Demande en cours', 'Votre demande est déjà en attente.', false); return;
+    showToast('Demande en cours', 'Votre demande est déjà en attente.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b2d3177c0", 'Votre demande est déjà en attente.', undefined, 'Demande en cours'); return;
   }
 
   const serveur=await organisationEssayerCommande(orgaId,'demander',{});
   if(serveur===false)return;
 
-  showToast('Demande envoyée', 'Votre demande d\'adhésion à "' + orga.nom + '" a été envoyée.', true);
+  showToast('Demande envoyée', 'Votre demande d\'adhésion à "' + orga.nom + '" a été envoyée.', true); globalThis.RPI18nPlateau?.markToast(null, 'Votre demande d\'adhésion à "' + orga.nom + '" a été envoyée.', undefined, 'Demande envoyée');
   addJournalEntry('Demande d\'adhésion à "' + orga.nom + '".', '');
 }
 
@@ -819,7 +819,7 @@ async function refuserAdhesion(orgaId, nomCandidat) {
   if (!orga) return;
   const serveur=await organisationEssayerCommande(orgaId,'refuser_demande',{nom:nomCandidat});
   if(serveur===false)return;
-  showToast('Demande refusée', nomCandidat + ' a été refusé.', false);
+  showToast('Demande refusée', nomCandidat + ' a été refusé.', false); globalThis.RPI18nPlateau?.markToast(null, nomCandidat + ' a été refusé.', undefined, 'Demande refusée');
   ouvrirDemandesAdhesion(orgaId);
 }
 
@@ -904,12 +904,12 @@ async function envoyerInvitationOrga(orgaId) {
 // Appelée quand le destinataire clique "Accepter l'invitation" dans le mail.
 async function accepterInvitationOrga(orgaId, nomInvitant) {
   const orga = getOrgaById(orgaId);
-  if (!orga) { showToast('Invitation expirée', 'Cette organisation n\'existe plus.', false); return; }
+  if (!orga) { showToast('Invitation expirée', 'Cette organisation n\'existe plus.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bf46e8de5", 'Cette organisation n\'existe plus.', undefined, 'Invitation expirée'); return; }
   if (!(orga.invitationsEnvoyees || []).some(i => i.nom === state.char?.name)) {
-    showToast('Invitation déjà traitée', 'Cette invitation n\'est plus valable.', false); return;
+    showToast('Invitation déjà traitée', 'Cette invitation n\'est plus valable.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.be7f118a1", 'Cette invitation n\'est plus valable.', undefined, 'Invitation déjà traitée'); return;
   }
   if (orga.membres?.some(m => m.nom === state.char?.name)) {
-    showToast('Déjà membre', 'Vous êtes déjà membre de cette organisation.', false); return;
+    showToast('Déjà membre', 'Vous êtes déjà membre de cette organisation.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b28d1aba1", 'Vous êtes déjà membre de cette organisation.', undefined, 'Déjà membre'); return;
   }
   const def = TYPES_ORGANISATIONS[orga.type] || {};
   const mesOrgas = getMesOrgasPays();
@@ -934,9 +934,9 @@ async function accepterInvitationOrga(orgaId, nomInvitant) {
 // Appelée quand le destinataire clique "Refuser l'invitation" dans le mail.
 async function refuserInvitationOrga(orgaId, nomInvitant) {
   const orga = getOrgaById(orgaId);
-  if (!orga) { showToast('Invitation expirée', 'Cette organisation n\'existe plus.', false); return; }
+  if (!orga) { showToast('Invitation expirée', 'Cette organisation n\'existe plus.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bf46e8de5", 'Cette organisation n\'existe plus.', undefined, 'Invitation expirée'); return; }
   if (!(orga.invitationsEnvoyees || []).some(i => i.nom === state.char?.name)) {
-    showToast('Invitation déjà traitée', 'Cette invitation n\'est plus valable.', false); return;
+    showToast('Invitation déjà traitée', 'Cette invitation n\'est plus valable.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.be7f118a1", 'Cette invitation n\'est plus valable.', undefined, 'Invitation déjà traitée'); return;
   }
 
   const serveur=await organisationEssayerCommande(orgaId,'refuser_invitation',{});
@@ -1044,7 +1044,7 @@ async function executerOrdreOrgaJauges(orgaId, fn, ordre, parametres = {}) {
   if(v.contrat_jauges!==1||v.acteur!==contexte.nom||v.organisation!==orgaId||v.ordre!==fn
       ||(fn==='orga_anatheme'&&(v.effets_cible?.nom!==parametres.cible||!['pop','moral'].every(k=>typeof v.effets_cible[k]==='number'&&Number.isFinite(v.effets_cible[k]))))
       ||!['pop','inf','pa','hp','moral','gain_pop','gain_inf','gain_moral'].every(k=>typeof v[k]==='number'&&Number.isFinite(v[k]))) {
-    showToast('Action non confirmée','La réponse reçue ne permet pas de confirmer cet ordre.',false);return;
+    showToast('Action non confirmée','La réponse reçue ne permet pas de confirmer cet ordre.',false); globalThis.RPI18nPlateau?.markToast("toastBodies.bc110ffac", 'La réponse reçue ne permet pas de confirmer cet ordre.', undefined, 'Action non confirmée');return;
   }
   appliquerPaiementServeur(v);
   adopterJaugeServeur('pop',v.pop);adopterJaugeServeur('inf',v.inf);
@@ -1091,7 +1091,7 @@ async function executerHooliganismeServeur(orga, ordre) {
     INDICES_VILLES_CACHE['republic_' + r.ville] = Object.assign({}, INDICE_VILLE_DEFAUT, r.indices);
   }
   if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('hooliganisme', null);
-  showToast('Échauffourées !', 'Les supporters sèment le chaos après le match. -5 Sécurité, -5 Social dans la ville.', true, true);
+  showToast('Échauffourées !', 'Les supporters sèment le chaos après le match. -5 Sécurité, -5 Social dans la ville.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b4b6e79de", 'Les supporters sèment le chaos après le match. -5 Sécurité, -5 Social dans la ville.', undefined, 'Échauffourées !');
   addJournalEntry('Échauffourées organisées par "' + orga.nom + '". Impact sur la sécurité et le climat social de la ville.', 'event-bad');
   addExternalEvent('⚠️ Des échauffourées éclatent en marge d\'un match, attribuées aux supporters de "' + orga.nom + '".');
   document.getElementById('modal-postes')?.classList.remove('open');
@@ -1159,7 +1159,7 @@ async function executerOrdreOrga(orgaId, fn) {
   // desormais tranchee uniquement par deduireCoutOrdre() ci-dessous (Lot 1, correctif suite a
   // revue) -- plus de garde manuelle state.pa<..., qui bloquait a tort meme sous
   // TEST_MODE=true.
-  if (ordre.cost > 0 && state.arg < ordre.cost) { showToast('Fonds insuffisants', ordre.cost + ' ' + cur + ' requis.', false); return; }
+  if (ordre.cost > 0 && state.arg < ordre.cost) { showToast('Fonds insuffisants', ordre.cost + ' ' + cur + ' requis.', false); globalThis.RPI18nPlateau?.markToast(null, ordre.cost + ' ' + cur + ' requis.', undefined, 'Fonds insuffisants'); return; }
 
   // Deduction PA+cout centralisee -- deduireCoutOrdre() est l'AUTORITE UNIQUE sur la
   // disponibilite des PA. Appelee avant tout effet de bord (bloc "effets" plus bas) :
@@ -1250,12 +1250,12 @@ function handleOrgaAvatarFileChange(event) {
   if (!f) return;
   const okTypes = ['image/png', 'image/jpeg', 'image/webp'];
   if (!okTypes.includes(f.type)) {
-    showToast('Format non supporté', 'PNG, JPG/JPEG ou WEBP uniquement.', false);
+    showToast('Format non supporté', 'PNG, JPG/JPEG ou WEBP uniquement.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b7561d323", 'PNG, JPG/JPEG ou WEBP uniquement.', undefined, 'Format non supporté');
     event.target.value = '';
     return;
   }
   if (f.size > 2 * 1024 * 1024) {
-    showToast('Fichier trop volumineux', 'Taille maximale : 2 Mo.', false);
+    showToast('Fichier trop volumineux', 'Taille maximale : 2 Mo.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b16933ba2", 'Taille maximale : 2 Mo.', undefined, 'Fichier trop volumineux');
     event.target.value = '';
     return;
   }
@@ -1343,7 +1343,7 @@ async function sauvegarderOptionsOrga(orgaId) {
 
   const orgaFraiche = typeof sbGetOrganisationParId === 'function' ? await sbGetOrganisationParId(orgaId).catch(() => null) : null;
   if (!orgaFraiche || orgaFraiche.chef !== state.char?.name) {
-    showToast('Action refusée', "Vous n'êtes plus habilité à modifier cette organisation.", false);
+    showToast('Action refusée', "Vous n'êtes plus habilité à modifier cette organisation.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b92badf89", "Vous n'êtes plus habilité à modifier cette organisation.", undefined, 'Action refusée');
     return;
   }
 
@@ -1354,12 +1354,12 @@ async function sauvegarderOptionsOrga(orgaId) {
   let nouvelAvatar = urlSaisie;
   if (_orgaAvatarFileTemp) {
     if (typeof sbUploadOrgAvatar !== 'function') {
-      showToast('Import indisponible', "L'import de fichier n'est pas disponible pour le moment.", false);
+      showToast('Import indisponible', "L'import de fichier n'est pas disponible pour le moment.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b280f638f", "L'import de fichier n'est pas disponible pour le moment.", undefined, 'Import indisponible');
       return;
     }
     const urlUploadee = await sbUploadOrgAvatar(orgaId, _orgaAvatarFileTemp);
     if (!urlUploadee) {
-      showToast("Échec de l'import", "L'image n'a pas pu être envoyée. Réessayez ou utilisez une URL.", false);
+      showToast("Échec de l'import", "L'image n'a pas pu être envoyée. Réessayez ou utilisez une URL.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b2a5e1189", "L'image n'a pas pu être envoyée. Réessayez ou utilisez une URL.", undefined, "Échec de l'import");
       return;
     }
     nouvelAvatar = urlUploadee;
@@ -1405,14 +1405,14 @@ const dissolutionsOrganisationsEnCours = new Set();
 async function dissoudreOrga(orgaId) {
   const orga = getOrgaById(orgaId);
   if (!orga || dissolutionsOrganisationsEnCours.has(orgaId)) return;
-  if (orga.chef!==state.char?.name) {showToast('Accès refusé','Seule la direction peut dissoudre cette organisation.',false);return;}
+  if (orga.chef!==state.char?.name) {showToast('Accès refusé','Seule la direction peut dissoudre cette organisation.',false); globalThis.RPI18nPlateau?.markToast("toastBodies.b75747886", 'Seule la direction peut dissoudre cette organisation.', undefined, 'Accès refusé');return;}
   const contexte=equipementsCollectifsContexte();
   dissolutionsOrganisationsEnCours.add(orgaId);
   let confirme=false;
   try{confirme=typeof sbDeleteOrganisation==='function'&&await sbDeleteOrganisation(orgaId)===true;}catch(_){}
   finally{dissolutionsOrganisationsEnCours.delete(orgaId);}
   if(!equipementsCollectifsContexteValide(contexte))return;
-  if(!confirme){showToast('Dissolution non confirmée','Actualisez la liste avant de recommencer. Le matériel de l’organisation doit être préservé.',false);return;}
+  if(!confirme){showToast('Dissolution non confirmée','Actualisez la liste avant de recommencer. Le matériel de l’organisation doit être préservé.',false); globalThis.RPI18nPlateau?.markToast("toastBodies.bf90cf5ba", 'Actualisez la liste avant de recommencer. Le matériel de l’organisation doit être préservé.', undefined, 'Dissolution non confirmée');return;}
   // Historisation APRES suppression confirmee (chronique_nationale) -- uniquement si l'organisation etait
   // publique : une organisation criminelle/secrete dissoute ne doit jamais laisser de trace
   // publique de son existence passee.
@@ -1434,7 +1434,7 @@ async function dissoudreOrga(orgaId) {
 async function quitterOrga(orgaId) {
   const orga = getOrgaById(orgaId);
   if (!orga) return;
-  if (orga.chef === state.char?.name) { showToast('Impossible', 'Dissolvez l\'organisation ou transmettez la direction avant de partir.', false); return; }
+  if (orga.chef === state.char?.name) { showToast('Impossible', 'Dissolvez l\'organisation ou transmettez la direction avant de partir.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b94af2263", 'Dissolvez l\'organisation ou transmettez la direction avant de partir.', undefined, 'Impossible'); return; }
   const serveur=await organisationEssayerCommande(orgaId,'quitter',{nom:state.char.name});
   if(serveur===false)return;
   showToast('Vous avez quitté', '"' + orga.nom + '"', false);
@@ -2340,7 +2340,7 @@ async function demarrerNouvelleSaison(saisonPrecedente) {
       const ok = await reglerParisPlayoff(manche);
       if (!ok) {
         if (typeof showToast === 'function')
-          showToast('Championnat en attente','Impossible de vérifier le règlement des paris ; nouvelle saison reportée.',false);
+          { showToast('Championnat en attente','Impossible de vérifier le règlement des paris ; nouvelle saison reportée.',false); globalThis.RPI18nPlateau?.markToast("toastBodies.b4c7def75", 'Impossible de vérifier le règlement des paris ; nouvelle saison reportée.', undefined, 'Championnat en attente'); }
         return saisonPrecedente;
       }
     }
@@ -3368,12 +3368,12 @@ async function doStageCaserne(pa, cost) {
     return;
   }
   if (suivi.dernierJour === state.day) {
-    showToast('Déjà fait aujourd\'hui', 'Un seul stage par jour.', false);
+    showToast('Déjà fait aujourd\'hui', 'Un seul stage par jour.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b7796db4c", 'Un seul stage par jour.', undefined, 'Déjà fait aujourd\'hui');
     return;
   }
 
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', 'Il vous manque des PA pour ce stage.', false); return; }
+  if (!r.ok) { showToast('PA insuffisants', 'Il vous manque des PA pour ce stage.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b5ae2b57b", 'Il vous manque des PA pour ce stage.', undefined, 'PA insuffisants'); return; }
 
   const streak = (suivi.dernierJour === state.day - 1) ? (suivi.streak || 0) + 1 : 1;
 
@@ -3389,7 +3389,7 @@ async function doStageCaserne(pa, cost) {
 
   if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
   updateUI();
-  showToast('Stage terminé !', '"Il faut le vouloir pour remonter sa Volonté !" — +5 Volonté.', true, true);
+  showToast('Stage terminé !', '"Il faut le vouloir pour remonter sa Volonté !" — +5 Volonté.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b0a733704", '"Il faut le vouloir pour remonter sa Volonté !" — +5 Volonté.', undefined, 'Stage terminé !');
   addJournalEntry('Stage à la Caserne. +5 Volonté (' + streak + '/3 jours consécutifs).', 'event-good');
 }
 
@@ -3399,18 +3399,18 @@ async function doRecruterMilitants(pa, cost) {
   const orgas = state.organisations || [];
   const syndicat = orgas.find(o => o.type === 'syndicale' && o.membres?.some(m => m.nom === state.char?.name));
   if (!syndicat) {
-    showToast('Adhésion requise', "Il faut être membre d'un syndicat étudiant actif pour recruter des militants.", false);
+    showToast('Adhésion requise', "Il faut être membre d'un syndicat étudiant actif pour recruter des militants.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.bedd6cfe0", "Il faut être membre d'un syndicat étudiant actif pour recruter des militants.", undefined, 'Adhésion requise');
     return;
   }
   if (state.char?.dernierRecrutementMilitant === state.day) {
-    showToast('Déjà fait aujourd\'hui', 'Un seul recrutement de militant par jour.', false);
+    showToast('Déjà fait aujourd\'hui', 'Un seul recrutement de militant par jour.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b44f4d123", 'Un seul recrutement de militant par jour.', undefined, 'Déjà fait aujourd\'hui');
     return;
   }
   const mesMilitants = typeof sbGetMesMilitants === 'function'
     ? await sbGetMesMilitants(state.country, state.char?.name).catch(() => [])
     : [];
   if (mesMilitants.length >= 2) {
-    showToast('Plafond atteint', 'Vous avez déjà 2 militants recrutés (maximum).', false);
+    showToast('Plafond atteint', 'Vous avez déjà 2 militants recrutés (maximum).', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b53d9050e", 'Vous avez déjà 2 militants recrutés (maximum).', undefined, 'Plafond atteint');
     return;
   }
   const noms = ['Sacha Fervent', 'Lila Combattante', 'Noé Insurgé', 'Maya Debout', 'Théo Rebelle', 'Zoé Militante'];
@@ -3426,7 +3426,7 @@ async function doRecruterMilitants(pa, cost) {
   // resultat est desormais LU. Fail closed : pas de confirmation, aucun effet.
   //
   // Le nom reste tire au sort ici : un nom n'est pas une caracteristique.
-  if (!state.char?.name) { showToast('Action impossible', 'Votre personnage n\'est pas chargé.', false); return; }
+  if (!state.char?.name) { showToast('Action impossible', 'Votre personnage n\'est pas chargé.', false); globalThis.RPI18nPlateau?.markToast("employmentAgency.characterMissing", 'Votre personnage n\'est pas chargé.', undefined, 'Action impossible'); return; }
   const r = (typeof sbRecruterMilitant === 'function')
     ? await sbRecruterMilitant(state.country, state.char.name, nomPnj, syndicat.id,
                                state.currentCity, state.currentBuilding, state.currentRoom)
@@ -3525,7 +3525,7 @@ function getMonSyndicatEtGrade() {
 }
 
 function blocusRefuser(r, titre) {
-  if (!r) { showToast(titre, "Le serveur n'a pas confirmé. Rien n'a été enregistré.", false); return; }
+  if (!r) { showToast(titre, "Le serveur n'a pas confirmé. Rien n'a été enregistré.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b71b827df", "Le serveur n'a pas confirmé. Rien n'a été enregistré.", undefined, titre); return; }
   if (r.raison === 'paiement_refuse' && r.paiement && typeof signalerRefusCout === 'function') { signalerRefusCout(r.paiement); return; }
   if (r.raison === 'pa_insuffisants_participants' && Array.isArray(r.sans_pa)) {
     showToast(titre, 'Chaque PJ participant doit avoir 2 PA. Il en manque à : ' + r.sans_pa.join(', ') + '. Personne n\'a payé.', false); return;
@@ -3537,7 +3537,7 @@ async function doOrganiserBlocusSyndical() {
   // Sovarka (Fred, 18/11/2026) : syndicat unique d'État qui ne fait jamais grève (le serveur refuse aussi).
   if (state.country === 'soviet') { showToast('Syndicat d\'État', 'Le travailleur ne bloque pas son propre outil : pas de blocus en Sovarka.', false); return; }
   const infos = getMonSyndicatEtGrade();
-  if (!infos || !infos.dirigeant) { showToast('Accès refusé', RAISONS_BLOCUS.reserve_secretaire_general, false); return; }
+  if (!infos || !infos.dirigeant) { showToast('Accès refusé', RAISONS_BLOCUS.reserve_secretaire_general, false); globalThis.RPI18nPlateau?.markToast(null, RAISONS_BLOCUS.reserve_secretaire_general, undefined, 'Accès refusé'); return; }
   if (!state.currentBuilding) { showToast('Blocus impossible', RAISONS_BLOCUS.hors_batiment, false); return; }
   if (['dispensaire-public', 'dispensaire-public-v', 'clinique-privee'].includes(state.currentBuilding)) { showToast('Blocus impossible', RAISONS_BLOCUS.hopital_exclu, false); return; }
   const { syndicat } = infos;
@@ -3590,9 +3590,9 @@ async function confirmerOrganiserBlocus(syndicatId) {
 // actifs ; l'ecran ne garde que ceux de mon syndicat.
 async function doRenouvelerBlocusSyndical() {
   const infos = getMonSyndicatEtGrade();
-  if (!infos || !infos.dirigeant) { showToast('Accès refusé', RAISONS_BLOCUS.reserve_secretaire_general, false); return; }
+  if (!infos || !infos.dirigeant) { showToast('Accès refusé', RAISONS_BLOCUS.reserve_secretaire_general, false); globalThis.RPI18nPlateau?.markToast(null, RAISONS_BLOCUS.reserve_secretaire_general, undefined, 'Accès refusé'); return; }
   const liste = (typeof sbRpc === 'function') ? await sbRpc('blocus_syndicaux_actifs', { p_pays: state.country || 'republic' }).catch(() => null) : null;
-  if (!Array.isArray(liste)) { showToast('Liste indisponible', "Le serveur n'a pas répondu.", false); return; }
+  if (!Array.isArray(liste)) { showToast('Liste indisponible', "Le serveur n'a pas répondu.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.bf25f175d", "Le serveur n'a pas répondu.", undefined, 'Liste indisponible'); return; }
   const miens = liste.filter(b => b.syndicatId === infos.syndicat.id);
   let html = '<div class="cpj-dialogue" style="padding:1rem">';
   if (miens.length === 0) {
@@ -3614,7 +3614,7 @@ async function renouvelerBlocusSyndical(ville, batiment) {
   const r = (typeof sbRpc === 'function') ? await sbRpc('blocus_syndical_renouveler', { p_ville: ville, p_batiment: batiment }).catch(() => null) : null;
   if (!r || r.ok !== true) { blocusRefuser(r, 'Renouvellement refusé'); return; }
   document.getElementById('modal-postes')?.classList.remove('open');
-  showToast('Blocus renouvelé', 'Le blocus se poursuit pour au moins un jour de plus.', true);
+  showToast('Blocus renouvelé', 'Le blocus se poursuit pour au moins un jour de plus.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.bc93ea309", 'Le blocus se poursuit pour au moins un jour de plus.', undefined, 'Blocus renouvelé');
   addJournalEntry('Blocus syndical renouvelé.', 'event-info');
 }
 
@@ -3762,7 +3762,7 @@ const COUT_LICENCE_SPORTIVE = 150;
 
 async function doPrendreLicenceSportive(pa, cost) {
   const clubLocal = getClubLocal();
-  if (!clubLocal) { showToast('Indisponible', 'Aucun club local ici.', false); return; }
+  if (!clubLocal) { showToast('Indisponible', 'Aucun club local ici.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b1d8e6bad", 'Aucun club local ici.', undefined, 'Indisponible'); return; }
 
   await rafraichirLicenceSportiveDepuisServeur();
   const lic = state.char?.licenceSportive;
@@ -3785,12 +3785,12 @@ async function doPrendreLicenceSportive(pa, cost) {
     // sinon : reprise autorisee ci-dessous, meme parcours d'achat que d'habitude.
   }
   if (statutActuel === 'anneeBlanche') {
-    showToast('Année blanche', 'Vous ne pouvez prendre aucune licence tant que votre année blanche n\'est pas terminée.', false);
+    showToast('Année blanche', 'Vous ne pouvez prendre aucune licence tant que votre année blanche n\'est pas terminée.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bf53afb20", 'Vous ne pouvez prendre aucune licence tant que votre année blanche n\'est pas terminée.', undefined, 'Année blanche');
     return;
   }
 
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('Fonds insuffisants', '', false); return; }
+  if (!r.ok) { showToast('Fonds insuffisants', '', false); globalThis.RPI18nPlateau?.markToast(null, '', undefined, 'Fonds insuffisants'); return; }
   if (!state.char) return;
   const saison = await chargerOuInitialiserSaison();
   state.char.licenceSportive = { clubId: clubLocal.id, dateAchat: state.day || 1, statut: 'active', derniereSaisonTraitee: saison?.numero || 1, nonRenouvellement: false };
@@ -3818,7 +3818,7 @@ async function doDemanderNonRenouvellementLicence(pa, cost) {
   await rafraichirLicenceSportiveDepuisServeur();
   const msgLicence = messageLicenceInvalidePourClub(clubLocal, 'gérer votre licence');
   if (msgLicence) { showToast('Licence requise', msgLicence, false); return; }
-  if (state.char.licenceSportive.nonRenouvellement) { showToast('Déjà demandé', 'Vous avez déjà demandé à ne pas renouveler votre licence.', false); return; }
+  if (state.char.licenceSportive.nonRenouvellement) { showToast('Déjà demandé', 'Vous avez déjà demandé à ne pas renouveler votre licence.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bc1e182d0", 'Vous avez déjà demandé à ne pas renouveler votre licence.', undefined, 'Déjà demandé'); return; }
 
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }
@@ -3891,7 +3891,7 @@ async function doTenueEntrainement(pa, cost) {
     ? await sbFootballEntrainementsDuJour().catch(() => null) : null;
   if (!etatJour || etatJour.ok !== true) {
     showToast('Indisponible',
-      "Le nombre d'entraînements du jour n'a pas pu être vérifié. Réessayez dans un instant.", false);
+      "Le nombre d'entraînements du jour n'a pas pu être vérifié. Réessayez dans un instant.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.bc840cb36", "Le nombre d'entraînements du jour n'a pas pu être vérifié. Réessayez dans un instant.", undefined, 'Indisponible');
     return;
   }
   const perf = state.char.performance || { defense:0, technique:0, endurance:0 };
@@ -3923,7 +3923,7 @@ async function confirmerEntrainement(stat, pa, cost) {
   // Le cout reste celui declare par l'ordre (`tenue_entrainement`, 2 PA) et verifie par
   // payer_ordre contre le miroir : aucune regle ni aucun montant n'est modifie ici.
   if (typeof sbFootballEntrainementConsommer !== 'function') {
-    showToast('Indisponible', "L'entraînement n'est pas disponible pour le moment.", false); return;
+    showToast('Indisponible', "L'entraînement n'est pas disponible pour le moment.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.bf81ed9ac", "L'entraînement n'est pas disponible pour le moment.", undefined, 'Indisponible'); return;
   }
   const identiteAuDepart = state.char?.name + '|' + state.country + '|' + state.currentCity;
   const r = await sbFootballEntrainementConsommer(stat);
@@ -3932,7 +3932,7 @@ async function confirmerEntrainement(stat, pa, cost) {
   if (!r || r.ok !== true) {
     const motif = r && r.raison;
     if (motif === 'limite_quotidienne_atteinte') {
-      showToast('Limite atteinte', 'Maximum 2 entraînements par jour.', false);
+      showToast('Limite atteinte', 'Maximum 2 entraînements par jour.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b5aabc65a", 'Maximum 2 entraînements par jour.', undefined, 'Limite atteinte');
       doTenueEntrainement(pa, cost);   // on rouvre sur le compte reel du serveur
       return;
     }
@@ -3956,7 +3956,7 @@ async function confirmerEntrainement(stat, pa, cost) {
         !Number.isInteger(degatsPV) || ![15, 30].includes(degatsPV) ||
         !Number.isFinite(Number(r.hp)) || !r.blessure) {
       showToast('Résultat indisponible',
-        "L'entraînement a été enregistré, mais la blessure n'a pas pu être affichée. Actualisez votre fiche.", false);
+        "L'entraînement a été enregistré, mais la blessure n'a pas pu être affichée. Actualisez votre fiche.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b31e99e09", "L'entraînement a été enregistré, mais la blessure n'a pas pu être affichée. Actualisez votre fiche.", undefined, 'Résultat indisponible');
       return;
     }
     state.char.blessureSportive = r.blessure;
@@ -3971,7 +3971,7 @@ async function confirmerEntrainement(stat, pa, cost) {
   // PAS « réussite sans blessure », sinon le navigateur masquerait une décision.
   if (r.blesse !== false) {
     showToast('Résultat indisponible',
-      "L'entraînement a été enregistré mais le résultat du serveur est incomplet. Actualisez votre fiche.", false);
+      "L'entraînement a été enregistré mais le résultat du serveur est incomplet. Actualisez votre fiche.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b4c933409", "L'entraînement a été enregistré mais le résultat du serveur est incomplet. Actualisez votre fiche.", undefined, 'Résultat indisponible');
     return;
   }
 
@@ -3985,7 +3985,7 @@ async function confirmerEntrainement(stat, pa, cost) {
 
 async function doConseilEntraineurAdjoint() {
   const clubLocal = getClubLocal();
-  if (!clubLocal) { showToast('Indisponible', 'Aucun club local ici.', false); return; }
+  if (!clubLocal) { showToast('Indisponible', 'Aucun club local ici.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b1d8e6bad", 'Aucun club local ici.', undefined, 'Indisponible'); return; }
   await rafraichirLicenceSportiveDepuisServeur();
   const msgLicence = messageLicenceInvalidePourClub(clubLocal, 'recevoir des conseils');
   if (msgLicence) { showToast('Licence requise', msgLicence, false); return; }
@@ -4038,7 +4038,7 @@ async function doConseilEntraineurAdjoint() {
 // doTenueEntrainement, deja async, suivent exactement le meme patron d'appel sans await).
 async function doTenueMatch() {
   await rafraichirLicenceSportiveDepuisServeur();
-  if (!state.char?.licenceSportive) { showToast('Licence requise', 'Prenez votre licence sportive.', false); return; }
+  if (!state.char?.licenceSportive) { showToast('Licence requise', 'Prenez votre licence sportive.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bbaadb476", 'Prenez votre licence sportive.', undefined, 'Licence requise'); return; }
   if (estIndisponiblePourSport()) {
     const reste = state.char.blessureSportive.jusquauJour - (state.day||1);
     showToast('Blessé(e)', 'Encore ' + reste + ' jour(s) avant de pouvoir jouer.', false);
@@ -4078,7 +4078,7 @@ function confirmerReallocationPerformance(total) {
   state.char.performance = nouvelle;
   document.getElementById('modal-postes')?.classList.remove('open');
   updateUI();
-  showToast('Répartition mise à jour', 'Votre configuration sera utilisée pour le prochain match.', true, true);
+  showToast('Répartition mise à jour', 'Votre configuration sera utilisée pour le prochain match.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b116b0dac", 'Votre configuration sera utilisée pour le prochain match.', undefined, 'Répartition mise à jour');
 }
 
 function getClubLocal() {
@@ -7697,7 +7697,7 @@ async function doRejoindreClubSupporters(pa, cost) {
   const pays = state.country || 'republic';
   const ville = state.currentCity || 'capitale';
   const clubLocal = getClubLocal();
-  if (!clubLocal) { showToast('Indisponible', 'Aucun club local ici.', false); return; }
+  if (!clubLocal) { showToast('Indisponible', 'Aucun club local ici.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b1d8e6bad", 'Aucun club local ici.', undefined, 'Indisponible'); return; }
 
   let orga = state.organisations.find(o => o.type === 'supporters' && o.country === pays && o.city === ville);
 
@@ -7804,9 +7804,9 @@ async function chargerOuCreerSyndicatDockersPSM() {
 // ici puisqu'il n'y a pas de club sportif a financer).
 async function doRejoindreSyndicatDockers(pa, cost) {
   const orga = await chargerOuCreerSyndicatDockersPSM();
-  if (!orga) { showToast('Indisponible', '', false); return; }
+  if (!orga) { showToast('Indisponible', '', false); globalThis.RPI18nPlateau?.markToast(null, '', undefined, 'Indisponible'); return; }
   const dejaMembre = orga.membres?.some(m => m.nom === state.char?.name);
-  if (dejaMembre) { showToast('Déjà syndiqué', 'Vous êtes déjà membre du Syndicat des Dockers de Port-Sainte-Marie.', false); return; }
+  if (dejaMembre) { showToast('Déjà syndiqué', 'Vous êtes déjà membre du Syndicat des Dockers de Port-Sainte-Marie.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.becb33d14", 'Vous êtes déjà membre du Syndicat des Dockers de Port-Sainte-Marie.', undefined, 'Déjà syndiqué'); return; }
 
   // ADHESION PAR LE SERVEUR (31/10/2026, #295) : 1 PA + 50 FR preleves, membre ajoute au grade 0
   // et cotisation versee a la caisse du syndicat dans organisation_adhesion_payante, une fois.
@@ -7835,10 +7835,10 @@ async function doRejoindreSyndicatDockers(pa, cost) {
 // ---- ÉLECTION (reutilise integralement le moteur generique deja type-agnostique) ----
 function doDeclencherElectionSyndicat(pa, cost) {
   const orga = getSyndicatDockersPSM();
-  if (!orga) { showToast('Indisponible', 'Aucun syndicat ici.', false); return; }
+  if (!orga) { showToast('Indisponible', 'Aucun syndicat ici.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b1f875d01", 'Aucun syndicat ici.', undefined, 'Indisponible'); return; }
   const estMembre = orga.membres?.some(m => m.nom === state.char?.name);
-  if (!estMembre) { showToast('Réservé aux membres', 'Syndiquez-vous pour déclencher une élection.', false); return; }
-  if (orga.election?.enCours) { showToast('Élection en cours', 'Une élection est déjà en cours pour ce syndicat.', false); return; }
+  if (!estMembre) { showToast('Réservé aux membres', 'Syndiquez-vous pour déclencher une élection.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bdf160bf1", 'Syndiquez-vous pour déclencher une élection.', undefined, 'Réservé aux membres'); return; }
+  if (orga.election?.enCours) { showToast('Élection en cours', 'Une élection est déjà en cours pour ce syndicat.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bd4bb48b3", 'Une élection est déjà en cours pour ce syndicat.', undefined, 'Élection en cours'); return; }
   const jour = state.day || 1;
   if (orga.election?.derniereElection && (jour - orga.election.derniereElection) < 7) {
     const reste = 7 - (jour - orga.election.derniereElection);
@@ -7861,18 +7861,18 @@ function doDeclencherElectionSyndicat(pa, cost) {
 // reutilise integralement ouvrirDemandeAutorisationManifester deja type-agnostique) ----
 function doOrganiserManifestationSyndicat() {
   const orga = getSyndicatDockersPSM();
-  if (!orga) { showToast('Indisponible', 'Aucun syndicat ici.', false); return; }
+  if (!orga) { showToast('Indisponible', 'Aucun syndicat ici.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b1f875d01", 'Aucun syndicat ici.', undefined, 'Indisponible'); return; }
   const estChef = orga.chef === state.char?.name;
-  if (!estChef) { showToast('Réservé au chef', 'Seul le chef du Syndicat des Dockers peut organiser une manifestation.', false); return; }
+  if (!estChef) { showToast('Réservé au chef', 'Seul le chef du Syndicat des Dockers peut organiser une manifestation.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bf7d4c4f0", 'Seul le chef du Syndicat des Dockers peut organiser une manifestation.', undefined, 'Réservé au chef'); return; }
   ouvrirDemandeAutorisationManifester(orga.id);
 }
 
 function doDeclencherElectionClub(pa, cost) {
   const orga = getClubSupportersLocal();
-  if (!orga) { showToast('Indisponible', 'Aucun club de supporters ici.', false); return; }
+  if (!orga) { showToast('Indisponible', 'Aucun club de supporters ici.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bc860f410", 'Aucun club de supporters ici.', undefined, 'Indisponible'); return; }
   const estMembre = orga.membres?.some(m => m.nom === state.char?.name);
-  if (!estMembre) { showToast('Réservé aux membres', 'Adhérez au club pour déclencher une élection.', false); return; }
-  if (orga.election?.enCours) { showToast('Élection en cours', 'Une élection est déjà en cours pour ce club.', false); return; }
+  if (!estMembre) { showToast('Réservé aux membres', 'Adhérez au club pour déclencher une élection.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b0ee5315a", 'Adhérez au club pour déclencher une élection.', undefined, 'Réservé aux membres'); return; }
+  if (orga.election?.enCours) { showToast('Élection en cours', 'Une élection est déjà en cours pour ce club.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b51736cfa", 'Une élection est déjà en cours pour ce club.', undefined, 'Élection en cours'); return; }
   const jour = state.day || 1;
   if (orga.election?.derniereElection && (jour - orga.election.derniereElection) < 7) {
     const reste = 7 - (jour - orga.election.derniereElection);
@@ -7911,20 +7911,20 @@ async function confirmerDeclenchementElection(orgaId, pa, cost) {
 
 async function seProsenterCandidat(orgaId) {
   const orga = getOrgaById(orgaId);
-  if (!orga?.election?.enCours || orga.election.phase !== 'candidatures') { showToast('Indisponible', 'La période de candidature est terminée.', false); return; }
+  if (!orga?.election?.enCours || orga.election.phase !== 'candidatures') { showToast('Indisponible', 'La période de candidature est terminée.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b867b7bfa", 'La période de candidature est terminée.', undefined, 'Indisponible'); return; }
   const estMembre = orga.membres?.some(m => m.nom === state.char?.name);
   if (!estMembre) { showToast('Réservé aux membres', '', false); return; }
-  if (orga.election.candidats.some(c => c.nom === state.char?.name)) { showToast('Déjà candidat', '', false); return; }
+  if (orga.election.candidats.some(c => c.nom === state.char?.name)) { showToast('Déjà candidat', '', false); globalThis.RPI18nPlateau?.markToast(null, '', undefined, 'Déjà candidat'); return; }
   const serveur=await organisationEssayerCommande(orgaId,'candidature',{});
   if(serveur===false)return;
   updateUI();
-  showToast('Candidature enregistrée !', 'Vous êtes candidat à la présidence de "' + orga.nom + '".', true, true);
+  showToast('Candidature enregistrée !', 'Vous êtes candidat à la présidence de "' + orga.nom + '".', true, true); globalThis.RPI18nPlateau?.markToast(null, 'Vous êtes candidat à la présidence de "' + orga.nom + '".', undefined, 'Candidature enregistrée !');
   if (document.getElementById('vue-self')?.classList.contains('active')) switchSelfTab('orgas', null);
 }
 
 async function voterElectionOrganisation(orgaId, candidatNom) {
   const orga = getOrgaById(orgaId);
-  if (!orga?.election?.enCours || orga.election.phase !== 'vote') { showToast('Indisponible', 'Le vote n\'est pas ouvert.', false); return; }
+  if (!orga?.election?.enCours || orga.election.phase !== 'vote') { showToast('Indisponible', 'Le vote n\'est pas ouvert.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b3164cec4", 'Le vote n\'est pas ouvert.', undefined, 'Indisponible'); return; }
   const estMembre = orga.membres?.some(m => m.nom === state.char?.name);
   if (!estMembre) { showToast('Réservé aux membres', '', false); return; }
   const serveur=await organisationEssayerCommande(orgaId,'vote',{nom:candidatNom});
@@ -8067,7 +8067,7 @@ function doConsulterOrganigrammeSupporters() {
 // paresseusement l'organisation si elle n'existe pas encore (meme garde que le blocus).
 async function doConsulterOrganigrammeSyndicat() {
   const orga = await chargerOuCreerSyndicatDockersPSM();
-  if (!orga) { showToast('Indisponible', 'Aucun syndicat ici.', false); return; }
+  if (!orga) { showToast('Indisponible', 'Aucun syndicat ici.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b1f875d01", 'Aucun syndicat ici.', undefined, 'Indisponible'); return; }
   const idOuverture = ++_orgaOrganigrammeOuvertureId;
   afficherOrganigrammeOrga(orga, 'doConsulterOrganigrammeSyndicat');
   if (typeof rafraichirCachePhotosJoueurs === 'function') {
@@ -8182,7 +8182,7 @@ async function chargerBudgetClub(clubId) {
 // pourquoi le montant valait zero. La question qu'il laissait ouverte a recu sa reponse.
 async function doConsulterBudgetClub() {
   const clubLocal = getClubLocal();
-  if (!clubLocal) { showToast('Indisponible', 'Aucun club local ici.', false); return; }
+  if (!clubLocal) { showToast('Indisponible', 'Aucun club local ici.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b1d8e6bad", 'Aucun club local ici.', undefined, 'Indisponible'); return; }
 
   document.getElementById('postes-modal-title').textContent = 'Budget — ' + clubLocal.nom;
   document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
@@ -8246,7 +8246,7 @@ async function doConsulterBudgetClub() {
 // `course_perdue` et rien n'est deplace deux fois.
 async function repondreSubventionMunicipale(id, reponse) {
   if (typeof sbSubventionRepondre !== 'function') {
-    showToast('Indisponible', 'La mairie ne répond pas.', false); return;
+    showToast('Indisponible', 'La mairie ne répond pas.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b17aa9866", 'La mairie ne répond pas.', undefined, 'Indisponible'); return;
   }
   const r = await sbSubventionRepondre(id, reponse).catch(() => null);
   if (!r || r.ok !== true) {
@@ -8291,7 +8291,7 @@ const PALIERS_SPONSORING = [
 
 function doSponsoriserClub(pa, cost) {
   const clubLocal = getClubLocal();
-  if (!clubLocal) { showToast('Indisponible', 'Aucun club local ici.', false); return; }
+  if (!clubLocal) { showToast('Indisponible', 'Aucun club local ici.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b1d8e6bad", 'Aucun club local ici.', undefined, 'Indisponible'); return; }
 
   document.getElementById('postes-modal-title').textContent = 'Sponsoriser ' + clubLocal.nom;
   let html = '<div style="padding:1rem">';
@@ -8314,8 +8314,8 @@ async function confirmerSponsoring(montant, label, inf, pa, cost) {
     ? await sbCaisseCollective('club_sponsoriser', { p_club: clubLocal.id, p_montant: montant }, [clubLocal.id, 'sponsor', montant])
     : { ok: false, raison: 'reponse_absente' };
   if (!r.ok) {
-    if (r.raison === 'fonds_insuffisants') showToast('Fonds insuffisants', montant + ' FR requis.', false);
-    else if (r.raison === 'reponse_absente') showToast('Sponsoring non confirmé', "Le serveur n'a pas confirmé le versement. Réessayez : il ne sera jamais payé deux fois.", false);
+    if (r.raison === 'fonds_insuffisants') { showToast('Fonds insuffisants', montant + ' FR requis.', false); globalThis.RPI18nPlateau?.markToast(null, montant + ' FR requis.', undefined, 'Fonds insuffisants'); }
+    else if (r.raison === 'reponse_absente') { showToast('Sponsoring non confirmé', "Le serveur n'a pas confirmé le versement. Réessayez : il ne sera jamais payé deux fois.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b375ae8f2", "Le serveur n'a pas confirmé le versement. Réessayez : il ne sera jamais payé deux fois.", undefined, 'Sponsoring non confirmé'); }
     else if (typeof signalerRefusCout === 'function') signalerRefusCout(r.paiement || r);
     return;
   }
@@ -8333,9 +8333,9 @@ async function confirmerSponsoring(montant, label, inf, pa, cost) {
 // =====================
 async function doOrganiserManifestation() {
   const orga = getClubSupportersLocal();
-  if (!orga) { showToast('Indisponible', 'Aucun club de supporters ici.', false); return; }
+  if (!orga) { showToast('Indisponible', 'Aucun club de supporters ici.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bc860f410", 'Aucun club de supporters ici.', undefined, 'Indisponible'); return; }
   const estChef = orga.chef === state.char?.name;
-  if (!estChef) { showToast('Réservé au président', 'Seul le président du club de supporters peut organiser une manifestation.', false); return; }
+  if (!estChef) { showToast('Réservé au président', 'Seul le président du club de supporters peut organiser une manifestation.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bb8eb6cdc", 'Seul le président du club de supporters peut organiser une manifestation.', undefined, 'Réservé au président'); return; }
   ouvrirDemandeAutorisationManifester(orga.id);
 }
 
@@ -8345,14 +8345,14 @@ async function doOrganiserManifestation() {
 async function doOrganiserBoycott(pa, cost) {
   const orga = getClubSupportersLocal();
   const clubLocal = getClubLocal();
-  if (!orga || !clubLocal) { showToast('Indisponible', '', false); return; }
+  if (!orga || !clubLocal) { showToast('Indisponible', '', false); globalThis.RPI18nPlateau?.markToast(null, '', undefined, 'Indisponible'); return; }
   const estChef = orga.chef === state.char?.name;
-  if (!estChef) { showToast('Réservé au président', 'Seul le président du club de supporters peut décider d\'un boycott.', false); return; }
+  if (!estChef) { showToast('Réservé au président', 'Seul le président du club de supporters peut décider d\'un boycott.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b41892ada", 'Seul le président du club de supporters peut décider d\'un boycott.', undefined, 'Réservé au président'); return; }
 
   const saison = await chargerOuInitialiserSaison();
-  if (!saison) { showToast('Championnat indisponible', 'Impossible de lire le championnat pour le moment. Réessayez dans un instant.', false); return; }
+  if (!saison) { showToast('Championnat indisponible', 'Impossible de lire le championnat pour le moment. Réessayez dans un instant.', false); globalThis.RPI18nPlateau?.markToast("sportBets.readError", 'Impossible de lire le championnat pour le moment. Réessayez dans un instant.', undefined, 'Championnat indisponible'); return; }
   const prochaineJournee = saison.calendrier.find(j => j.matchs.some(m => !m.played && m.home === clubLocal.id));
-  if (!prochaineJournee) { showToast('Aucun match à domicile', 'Pas de prochain match à domicile pour ce club.', false); return; }
+  if (!prochaineJournee) { showToast('Aucun match à domicile', 'Pas de prochain match à domicile pour ce club.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bc6612a79", 'Pas de prochain match à domicile pour ce club.', undefined, 'Aucun match à domicile'); return; }
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }
   // C3 : le boycott est desormais pose par CAS sur l'etat frais. L'ancien sbSaveChampionnat()
@@ -8366,7 +8366,7 @@ async function doOrganiserBoycott(pa, cost) {
     mc.boycotte = true;
     return true;
   });
-  if (!ecriture.ok) { showToast('Boycott non enregistré', 'Le match vient de commencer ou une autre action a eu lieu. Réessayez.', false); return; }
+  if (!ecriture.ok) { showToast('Boycott non enregistré', 'Le match vient de commencer ou une autre action a eu lieu. Réessayez.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b347b89e3", 'Le match vient de commencer ou une autre action a eu lieu. Réessayez.', undefined, 'Boycott non enregistré'); return; }
 
   document.getElementById('modal-postes')?.classList.remove('open');
   showToast('Boycott décidé', 'Le prochain match à domicile de ' + clubLocal.nom + ' sera boycotté par ses supporters.', true, true);
@@ -8418,7 +8418,7 @@ async function doVoirMonClassement() {
   const statutActuel = statutLicenceSportive();
   const monClub = statutActuel === 'active' || statutActuel === 'impaye' ? getClub(lic.clubId) : null;
   if (!monClub) {
-    showToast('Indisponible', 'Vous devez avoir une licence sportive dans un club.', false);
+    showToast('Indisponible', 'Vous devez avoir une licence sportive dans un club.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b278ff711", 'Vous devez avoir une licence sportive dans un club.', undefined, 'Indisponible');
     return;
   }
   document.getElementById('postes-modal-title').textContent = 'Mon niveau — ' + monClub.nom;
@@ -8447,9 +8447,9 @@ async function doVoirMonClassement() {
 
 async function doConsulterClassementBookmaker(pa, cost) {
   const clubLocal = getClubLocal();
-  if (!clubLocal) { showToast('Indisponible', 'Aucun club local ici.', false); return; }
+  if (!clubLocal) { showToast('Indisponible', 'Aucun club local ici.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b1d8e6bad", 'Aucun club local ici.', undefined, 'Indisponible'); return; }
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('Fonds insuffisants', '', false); return; }
+  if (!r.ok) { showToast('Fonds insuffisants', '', false); globalThis.RPI18nPlateau?.markToast(null, '', undefined, 'Fonds insuffisants'); return; }
   updateUI();
 
   document.getElementById('postes-modal-title').textContent = 'Classement des joueurs — ' + clubLocal.nom;
@@ -8498,7 +8498,7 @@ const DELAI_AUTOVALIDATION_H = 12;
 function ouvrirDemandeAutorisationManifester(orgaId) {
   const orga = getOrgaById(orgaId);
   if (!orga) return;
-  if (orga.chef !== state.char?.name) { showToast('Réservé au chef', 'Seul le chef de l\'organisation peut déposer cette demande.', false); return; }
+  if (orga.chef !== state.char?.name) { showToast('Réservé au chef', 'Seul le chef de l\'organisation peut déposer cette demande.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b4c62c1b8", 'Seul le chef de l\'organisation peut déposer cette demande.', undefined, 'Réservé au chef'); return; }
 
   const isSupporters = orga.type === 'supporters';
 
@@ -8530,7 +8530,7 @@ async function confirmerDemandeManifestation(orgaId) {
   const dateStr = document.getElementById('manif-date')?.value;
   const heureStr = document.getElementById('manif-heure')?.value;
   const sens = document.getElementById('manif-sens')?.value || null;
-  if (!sujet || !dateStr || !heureStr) { showToast('Champs requis', '', false); return; }
+  if (!sujet || !dateStr || !heureStr) { showToast('Champs requis', '', false); globalThis.RPI18nPlateau?.markToast(null, '', undefined, 'Champs requis'); return; }
 
   const dateEvenement = new Date(dateStr + 'T' + heureStr + ':00');
   const maintenant = new Date();
@@ -8544,7 +8544,7 @@ async function confirmerDemandeManifestation(orgaId) {
   // des PA (plus de garde manuelle state.pa<1, qui bloquait a tort meme sous TEST_MODE=true).
   // Appelee avant sbCreerDemandeManifestation (mutation Supabase) : fail-closed.
   const rPa = await deduireCoutOrdre({ pa: 1, cost: 0 });
-  if (!rPa.ok) { showToast('PA insuffisants', '1 PA requis.', false); return; }
+  if (!rPa.ok) { showToast('PA insuffisants', '1 PA requis.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b00eda178", '1 PA requis.', undefined, 'PA insuffisants'); return; }
   updateUI();
 
   const nbMembres = orga.membres?.length || 1;
@@ -8567,7 +8567,7 @@ async function confirmerDemandeManifestation(orgaId) {
     await sbSendMail('Préfecture', minIntNom, 'Nouvelle demande de manifestation',
       orga.nom + ' demande une autorisation pour : "' + sujet + '", le ' + dateEvenement.toLocaleString('fr-FR') + '.', typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
   }
-  showToast('Demande déposée', 'Le Ministère de l\'Intérieur a été notifié.', true, true);
+  showToast('Demande déposée', 'Le Ministère de l\'Intérieur a été notifié.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b269cb8d5", 'Le Ministère de l\'Intérieur a été notifié.', undefined, 'Demande déposée');
   addJournalEntry('Demande d\'autorisation de manifester déposée pour "' + orga.nom + '".', 'event-good');
 }
 
@@ -8602,16 +8602,16 @@ async function getElecteursClub(club) {
 
 async function doPostulerPresidentClub(pa, cost) {
   const clubLocal = getClubLocal();
-  if (!clubLocal) { showToast('Indisponible', '', false); return; }
+  if (!clubLocal) { showToast('Indisponible', '', false); globalThis.RPI18nPlateau?.markToast(null, '', undefined, 'Indisponible'); return; }
   const data = await chargerPresidentClub(clubLocal.id);
 
-  if (data.candidature) { showToast('Candidature en cours', 'Une candidature est déjà en cours de vote.', false); return; }
+  if (data.candidature) { showToast('Candidature en cours', 'Une candidature est déjà en cours de vote.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b03883e80", 'Une candidature est déjà en cours de vote.', undefined, 'Candidature en cours'); return; }
   if (data.president && data.president !== state.char?.name) {
     const jour = state.day || 1;
     const saison = await chargerOuInitialiserSaison();
     const midSaison = (saison?.dateDebut ? joursEcoulesDepuis(saison.dateDebut) : 0) ;
     if (data.dateElection && (jour - data.dateElection) < 8) { // ~mi-saison (saison=11 journees, protection ~ 5-6 sem)
-      showToast('Poste protégé', 'Le président en poste ne peut pas être remis en question avant la mi-saison.', false);
+      showToast('Poste protégé', 'Le président en poste ne peut pas être remis en question avant la mi-saison.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b45fe1262", 'Le président en poste ne peut pas être remis en question avant la mi-saison.', undefined, 'Poste protégé');
       return;
     }
   }
@@ -8648,13 +8648,13 @@ async function doPostulerPresidentClub(pa, cost) {
         state.char?.name + ' se porte candidat(e) à la présidence de ' + clubLocal.nom + '. Rendez-vous au bureau du président pour voter (48h, silence = accord).', time).catch(() => {});
     }
   }
-  showToast('Candidature déposée !', 'Les 3 votants ont été notifiés.', true, true);
+  showToast('Candidature déposée !', 'Les 3 votants ont été notifiés.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.bcdae2a1b", 'Les 3 votants ont été notifiés.', undefined, 'Candidature déposée !');
   addJournalEntry('Candidature à la présidence de ' + clubLocal.nom + ' déposée.', 'event-good');
 }
 
 async function doConsulterBureauPresident() {
   const clubLocal = getClubLocal();
-  if (!clubLocal) { showToast('Indisponible', '', false); return; }
+  if (!clubLocal) { showToast('Indisponible', '', false); globalThis.RPI18nPlateau?.markToast(null, '', undefined, 'Indisponible'); return; }
   document.getElementById('postes-modal-title').textContent = 'Bureau du Président — ' + clubLocal.nom;
   document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
   document.getElementById('modal-postes').classList.add('open');
@@ -8742,9 +8742,9 @@ async function verifierElectionPresident(club) {
 // =====================
 async function doProposerTransfert(pa, cost) {
   const clubLocal = getClubLocal();
-  if (!clubLocal) { showToast('Indisponible', '', false); return; }
+  if (!clubLocal) { showToast('Indisponible', '', false); globalThis.RPI18nPlateau?.markToast(null, '', undefined, 'Indisponible'); return; }
   const dataPresident = await chargerPresidentClub(clubLocal.id);
-  if (dataPresident.president !== state.char?.name) { showToast('Réservé au président', 'Seul le président du club peut proposer un transfert.', false); return; }
+  if (dataPresident.president !== state.char?.name) { showToast('Réservé au président', 'Seul le président du club peut proposer un transfert.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b7ffea454", 'Seul le président du club peut proposer un transfert.', undefined, 'Réservé au président'); return; }
 
   document.getElementById('postes-modal-title').textContent = 'Proposer un transfert';
   let html = '<div style="padding:1rem">';
@@ -8766,21 +8766,21 @@ async function doProposerTransfert(pa, cost) {
 async function confirmerPropositionTransfert(clubAchatId, pa, cost) {
   const nomJoueur = document.getElementById('transfert-joueur')?.value?.trim();
   const prix = parseInt(document.getElementById('transfert-prix')?.value || '0');
-  if (!nomJoueur || prix <= 0) { showToast('Champs requis', '', false); return; }
+  if (!nomJoueur || prix <= 0) { showToast('Champs requis', '', false); globalThis.RPI18nPlateau?.markToast(null, '', undefined, 'Champs requis'); return; }
   const primeSaisie = String(document.getElementById('transfert-prime')?.value ?? '').trim();
   const prime = primeSaisie === '' ? 0 : Number(primeSaisie);
   if (!Number.isInteger(prime) || prime < 0) {
-    showToast('Prime invalide', 'La prime de signature doit être un nombre entier de FR, 0 ou plus.', false); return;
+    showToast('Prime invalide', 'La prime de signature doit être un nombre entier de FR, 0 ou plus.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.be271d6e3", 'La prime de signature doit être un nombre entier de FR, 0 ou plus.', undefined, 'Prime invalide'); return;
   }
 
   const joueur = await sbGetJoueurClub(nomJoueur);
-  if (!joueur?.licence_sportive?.clubId) { showToast('Joueur introuvable', 'Ce joueur n\'a pas de licence sportive active.', false); return; }
+  if (!joueur?.licence_sportive?.clubId) { showToast('Joueur introuvable', 'Ce joueur n\'a pas de licence sportive active.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b6fd60dcb", 'Ce joueur n\'a pas de licence sportive active.', undefined, 'Joueur introuvable'); return; }
   const clubVenteId = joueur.licence_sportive.clubId;
   if (clubVenteId === clubAchatId) { showToast('Déjà dans votre club', '', false); return; }
 
   const clubVente = getClub(clubVenteId), clubAchat = getClub(clubAchatId);
   const dataVente = await chargerPresidentClub(clubVenteId);
-  if (!dataVente.president) { showToast('Club sans président', 'Impossible de négocier avec un club sans président désigné.', false); return; }
+  if (!dataVente.president) { showToast('Club sans président', 'Impossible de négocier avec un club sans président désigné.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bba5e2979", 'Impossible de négocier avec un club sans président désigné.', undefined, 'Club sans président'); return; }
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }
 
@@ -8826,7 +8826,7 @@ async function confirmerPropositionTransfert(clubAchatId, pa, cost) {
 
 async function doGererOffresTransfert() {
   const clubLocal = getClubLocal();
-  if (!clubLocal) { showToast('Indisponible', '', false); return; }
+  if (!clubLocal) { showToast('Indisponible', '', false); globalThis.RPI18nPlateau?.markToast(null, '', undefined, 'Indisponible'); return; }
   const dataPresident = await chargerPresidentClub(clubLocal.id);
   if (dataPresident.president !== state.char?.name) { showToast('Réservé au président', '', false); return; }
 
@@ -8885,7 +8885,7 @@ async function repondreOffreTransfert(transfertId, action) {
       await sbSendMail('Ligue Officielle', t.joueur, 'Offre de transfert vous concernant',
         clubAchat.nom + ' souhaite vous recruter (accord trouvé avec ' + clubVente.nom + ' : ' + t.prixClub.toLocaleString('fr-FR') + ' FR)' + (Number(t.prixJoueur) > 0 ? ', avec une prime de signature de ' + Number(t.prixJoueur).toLocaleString('fr-FR') + ' FR pour vous' : '') + '. Consultez vos offres de transfert dans votre fiche personnage.', time).catch(() => {});
     }
-    showToast('Accord entre clubs !', 'Le joueur va maintenant être consulté.', true, true);
+    showToast('Accord entre clubs !', 'Le joueur va maintenant être consulté.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.bb7338602", 'Le joueur va maintenant être consulté.', undefined, 'Accord entre clubs !');
   }
   document.getElementById('modal-postes')?.classList.remove('open');
 }
@@ -8982,7 +8982,7 @@ async function repondreTransfertJoueur(transfertId, accepte) {
 
 async function doGererSalairesClub() {
   const clubLocal = getClubLocal();
-  if (!clubLocal) { showToast('Indisponible', '', false); return; }
+  if (!clubLocal) { showToast('Indisponible', '', false); globalThis.RPI18nPlateau?.markToast(null, '', undefined, 'Indisponible'); return; }
   const dataPresident = await chargerPresidentClub(clubLocal.id);
   if (dataPresident.president !== state.char?.name) { showToast('Réservé au président', '', false); return; }
 
@@ -9023,7 +9023,7 @@ async function confirmerSalairesClub(clubId) {
 
 function doChoisirAccessoireClub(pa, cost) {
   const clubLocal = getClubLocal();
-  if (!clubLocal) { showToast('Indisponible', 'Aucun club local ici.', false); return; }
+  if (!clubLocal) { showToast('Indisponible', 'Aucun club local ici.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b1d8e6bad", 'Aucun club local ici.', undefined, 'Indisponible'); return; }
 
   const visuels = PRODUITS_VISUELS_CLUB[clubLocal.id] || {};
   const enSovarka = state.country === 'soviet';
@@ -9059,7 +9059,7 @@ async function confirmerAchatAccessoireClub(id, label, prix, pa, cost) {
 }
 
 function doAcheterAccessoirePersonnalise() {
-  showToast('Bientôt disponible', 'La personnalisation (nom, numéro) sera réservée aux comptes premium.', false);
+  showToast('Bientôt disponible', 'La personnalisation (nom, numéro) sera réservée aux comptes premium.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bb801f97e", 'La personnalisation (nom, numéro) sera réservée aux comptes premium.', undefined, 'Bientôt disponible');
 }
 
 // Reutilise calculerKickoffJournee (source canonique unique de l'heure des matchs, deja utilisee
@@ -9405,8 +9405,8 @@ let _grevePjCache = null;
 function ouvrirLancerGreve(orgaId) {
   const orga = getOrgaById(orgaId);
   if (!orga) return;
-  if (orga.chef !== state.char?.name) { showToast('Accès refusé', 'Réservé au chef du syndicat.', false); return; }
-  if (orga.greve?.actif) { showToast('Grève déjà en cours', 'Ce syndicat est déjà en grève.', false); return; }
+  if (orga.chef !== state.char?.name) { showToast('Accès refusé', 'Réservé au chef du syndicat.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b21a657d3", 'Réservé au chef du syndicat.', undefined, 'Accès refusé'); return; }
+  if (orga.greve?.actif) { showToast('Grève déjà en cours', 'Ce syndicat est déjà en grève.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bd442060c", 'Ce syndicat est déjà en grève.', undefined, 'Grève déjà en cours'); return; }
   const nbMembres = orga.membres?.length || 0;
   if (nbMembres < GREVE_MEMBRES_MIN) {
     showToast('Syndicat trop petit', 'Au moins ' + GREVE_MEMBRES_MIN + ' membres sont nécessaires (' + nbMembres + ' actuellement).', false);
@@ -9539,10 +9539,10 @@ async function validerLancementGreve() {
   if (!_greve || _greve.soumission) return;
   const orga = getOrgaById(_greve.orgaId);
   if (!orga) { showToast('Syndicat introuvable', '', false); return; }
-  if (orga.chef !== state.char?.name) { showToast('Accès refusé', 'Réservé au chef du syndicat.', false); return; }
-  if (!_greve.cibleValue) { showToast('Cible requise', 'Sélectionnez une cible avant de lancer la grève.', false); return; }
+  if (orga.chef !== state.char?.name) { showToast('Accès refusé', 'Réservé au chef du syndicat.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b21a657d3", 'Réservé au chef du syndicat.', undefined, 'Accès refusé'); return; }
+  if (!_greve.cibleValue) { showToast('Cible requise', 'Sélectionnez une cible avant de lancer la grève.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b55c519ea", 'Sélectionnez une cible avant de lancer la grève.', undefined, 'Cible requise'); return; }
   const revendications = (_greve.revendications || '').trim();
-  if (!revendications) { showToast('Revendications requises', 'Rédigez vos revendications avant de lancer la grève.', false); return; }
+  if (!revendications) { showToast('Revendications requises', 'Rédigez vos revendications avant de lancer la grève.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b8f0f3636", 'Rédigez vos revendications avant de lancer la grève.', undefined, 'Revendications requises'); return; }
   const nbMembres = orga.membres?.length || 0;
   if (nbMembres < GREVE_MEMBRES_MIN) { showToast('Syndicat trop petit', 'Au moins ' + GREVE_MEMBRES_MIN + ' membres sont nécessaires.', false); return; }
   if (orga.greve?.actif) { showToast('Grève déjà en cours', '', false); return; }
@@ -9581,7 +9581,7 @@ async function validerLancementGreve() {
 async function confirmerTerminerGreve(orgaId) {
   const orga = getOrgaById(orgaId);
   if (!orga) return;
-  if (orga.chef !== state.char?.name) { showToast('Accès refusé', 'Réservé au chef du syndicat.', false); return; }
+  if (orga.chef !== state.char?.name) { showToast('Accès refusé', 'Réservé au chef du syndicat.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b21a657d3", 'Réservé au chef du syndicat.', undefined, 'Accès refusé'); return; }
   if (!orga.greve?.actif) { showToast('Aucune grève en cours', '', false); return; }
 
   // FIN PAR LE SERVEUR (02/11/2026, etape B) : il rend la grève qui s'achève, pour la chronique
@@ -9641,15 +9641,15 @@ function syndicatPoliceEnGreve(pays) {
 async function ouvrirAppelGreveGenerale(orgaId) {
   const orga = getOrgaById(orgaId);
   if (!orga) return;
-  if (orga.chef !== state.char?.name) { showToast('Accès refusé', 'Réservé au chef du syndicat.', false); return; }
-  if (orga.greveGeneraleEnCoursId) { showToast('Déjà engagé', 'Ce syndicat participe déjà à une consultation ou une grève générale en cours.', false); return; }
+  if (orga.chef !== state.char?.name) { showToast('Accès refusé', 'Réservé au chef du syndicat.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b21a657d3", 'Réservé au chef du syndicat.', undefined, 'Accès refusé'); return; }
+  if (orga.greveGeneraleEnCoursId) { showToast('Déjà engagé', 'Ce syndicat participe déjà à une consultation ou une grève générale en cours.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b68dd0661", 'Ce syndicat participe déjà à une consultation ou une grève générale en cours.', undefined, 'Déjà engagé'); return; }
   const nbMembres = orga.membres?.length || 0;
   if (nbMembres < GREVE_MEMBRES_MIN) { showToast('Syndicat trop petit', 'Au moins ' + GREVE_MEMBRES_MIN + ' membres sont nécessaires.', false); return; }
 
   const pays = orga.country_origine || state.country;
   const existante = await sbGet('greves_generales', `country=eq.${encodeURIComponent(pays)}&statut=in.(consultation,active)`).catch(() => null);
   if (existante && existante.length > 0) {
-    showToast('Grève générale déjà en cours', 'Une consultation ou une grève générale est déjà en cours dans ce pays.', false);
+    showToast('Grève générale déjà en cours', 'Une consultation ou une grève générale est déjà en cours dans ce pays.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b3a2272c8", 'Une consultation ou une grève générale est déjà en cours dans ce pays.', undefined, 'Grève générale déjà en cours');
     return;
   }
 
@@ -9667,9 +9667,9 @@ async function ouvrirAppelGreveGenerale(orgaId) {
 async function confirmerAppelGreveGenerale(orgaId) {
   const orga = getOrgaById(orgaId);
   if (!orga) return;
-  if (orga.chef !== state.char?.name) { showToast('Accès refusé', 'Réservé au chef du syndicat.', false); return; }
+  if (orga.chef !== state.char?.name) { showToast('Accès refusé', 'Réservé au chef du syndicat.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b21a657d3", 'Réservé au chef du syndicat.', undefined, 'Accès refusé'); return; }
   const revendications = (document.getElementById('greve-generale-revendications-input')?.value || '').trim();
-  if (!revendications) { showToast('Revendications requises', 'Rédigez vos revendications avant de lancer la consultation.', false); return; }
+  if (!revendications) { showToast('Revendications requises', 'Rédigez vos revendications avant de lancer la consultation.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bfa5c8193", 'Rédigez vos revendications avant de lancer la consultation.', undefined, 'Revendications requises'); return; }
   const nbMembres = orga.membres?.length || 0;
   if (nbMembres < GREVE_MEMBRES_MIN) { showToast('Syndicat trop petit', '', false); return; }
   if (orga.greveGeneraleEnCoursId) { showToast('Déjà engagé', '', false); return; }
@@ -9733,7 +9733,7 @@ async function confirmerAppelGreveGenerale(orgaId) {
 async function repondreAppelGreveGenerale(ggId, orgaId, reponse) {
   const orga = (typeof sbGetOrganisationParId === 'function') ? await sbGetOrganisationParId(orgaId).catch(() => null) : getOrgaById(orgaId);
   if (!orga) { showToast('Syndicat introuvable', '', false); return; }
-  if (orga.chef !== state.char?.name) { showToast('Accès refusé', 'Réservé au chef de ce syndicat.', false); return; }
+  if (orga.chef !== state.char?.name) { showToast('Accès refusé', 'Réservé au chef de ce syndicat.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b54fb6a57", 'Réservé au chef de ce syndicat.', undefined, 'Accès refusé'); return; }
 
   // REPONSE ET ADOPTION PAR LE SERVEUR (03/11/2026) : greve_generale_repondre enregistre la reponse
   // et adopte la greve (2/3 des eligibles, 100 adherents uniques, palier) dans la meme transaction.
@@ -9762,9 +9762,9 @@ async function repondreAppelGreveGenerale(ggId, orgaId, reponse) {
 async function confirmerRetraitGreveGenerale(orgaId) {
   const orga = getOrgaById(orgaId);
   if (!orga) return;
-  if (orga.chef !== state.char?.name) { showToast('Accès refusé', 'Réservé au chef du syndicat.', false); return; }
+  if (orga.chef !== state.char?.name) { showToast('Accès refusé', 'Réservé au chef du syndicat.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b21a657d3", 'Réservé au chef du syndicat.', undefined, 'Accès refusé'); return; }
   if (!orga.greveGeneraleEnCoursId || orga.greveGeneraleStatut !== 'actif') {
-    showToast('Non concerné', 'Ce syndicat ne participe à aucune grève générale active.', false);
+    showToast('Non concerné', 'Ce syndicat ne participe à aucune grève générale active.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bce5fdf2e", 'Ce syndicat ne participe à aucune grève générale active.', undefined, 'Non concerné');
     return;
   }
   // RETRAIT ET RECALCUL PAR LE SERVEUR (03/11/2026) : greve_generale_retirer retire le syndicat,
@@ -9831,7 +9831,7 @@ function ouvrirSyndicatEtudiantCreer() {
 async function confirmerSyndicatEtudiantCreer() {
   const nom = (document.getElementById('syndet-nom')?.value || '').trim();
   const desc = (document.getElementById('syndet-desc')?.value || '').trim();
-  if (!nom || nom.length < 2) { showToast('Nom requis', 'Donnez un nom a votre syndicat.', false); return; }
+  if (!nom || nom.length < 2) { showToast('Nom requis', 'Donnez un nom a votre syndicat.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b869e3978", 'Donnez un nom a votre syndicat.', undefined, 'Nom requis'); return; }
   if (typeof sbRpc !== 'function') return;
   document.getElementById('modal-postes').classList.remove('open');
   const v = await sbRpc('syndicat_etudiant_domicilier', { p_nom: nom, p_desc: desc || null })

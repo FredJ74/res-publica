@@ -2707,6 +2707,14 @@ async function traiterNaturalisationsQuotidien() {
   if (!v || v.ok !== true) throw new Error('naturalisations:' + ((v && v.raison) || 'verdict_absent'));
   return v;
 }
+// Départ d'un maire (Fred, 18/11/2026) : propositions à l'adjoint expirées (72 h), départs constatés
+// (décès, prison, nationalité), vacance et tutelle closes dès qu'un maire est élu. Le serveur décide.
+async function traiterMairesDepartsQuotidien() {
+  const r = await sbRpc('maires_departs_passe', {}, HEADERS_SERVICE).catch(() => null);
+  const v = Array.isArray(r) ? r[0] : r;
+  if (!v || v.ok !== true) throw new Error('maires_departs:' + ((v && v.raison) || 'verdict_absent'));
+  return v;
+}
 async function traiterPartisPresidenceSovarkaQuotidien() {
   const r = await sbRpc('sovarka_partis_presidence_passe', {}, HEADERS_SERVICE).catch(() => null);
   const v = Array.isArray(r) ? r[0] : r;
@@ -5200,6 +5208,12 @@ async function verifierPostesVacantsEtAutoPourvoir() {
       // question qui compte est celle-ci : LE POSTE A-T-IL UN TITULAIRE ? Si oui, rien a faire --
       // et c'est aussi la transition d'etat qui rend cette ecriture directe idempotente.
       if (cycle.eluId) return;
+      // DÉPART D'UN MAIRE (Fred, 18/11/2026) : la mairie reste sans maire (ou sous tutelle du ministre)
+      // jusqu'à la prochaine municipale ; aucun maire PNJ de secours, pas d'élection partielle.
+      if (posteId === 'maire' && (cycle.vacance || cycle.tutelle)) {
+        resultats.differes.push({ poste: posteId, city: ville || null, raison: 'vacance_maire' });
+        return;
+      }
 
       // LE RESCUE N'INSTALLE QU'UN LUNDI, ET C'EST L'INVARIANT ELECTORAL (12 octobre 2026).
       //
@@ -6660,6 +6674,7 @@ export default async function handler(req, res) {
     const controleGoulag = await tacheQuotidienne('controle_goulag_sovarka', traiterControleGoulagQuotidien);
     const naturalisations = await tacheQuotidienne('naturalisations', traiterNaturalisationsQuotidien);
     const partisPresidence = await tacheQuotidienne('sovarka_partis_presidence', traiterPartisPresidenceSovarkaQuotidien);
+    const mairesDeparts = await tacheQuotidienne('maires_departs', traiterMairesDepartsQuotidien);
 
     // 12c. Arrivage quotidien de poisson propre a la Criee de PSM (arbitrage du 25 aout 2026) :
     // independant de livrerEntrepotsQuotidien ci-dessus, ne touche aucun entrepot.
@@ -6742,7 +6757,7 @@ export default async function handler(req, res) {
     // alerter -- un console.error, non. Le corps reste identique par ailleurs : tout ce qui a
     // abouti est conserve et documente, rien n'est annule. Le rejeu qui suivra est sur, chaque
     // tache financiere portant desormais son marqueur de journee (voir tacheQuotidienne).
-    const corps = { ok: ECHECS_PASSE.length === 0, traites: results.length, details: results, echecs: ECHECS_PASSE, nbEchecs: ECHECS_PASSE.length, detentionsLiberees, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, cascadeMunicipale, subventionsExpirees, delaisJudiciaires, convocationsTemoins, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, permis, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, productionSovarka, commerceInternational, entrepotsSovarka, urbanismeSovarka, herosTravail, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, effortDeGuerre, journalDuJour, detentionsPnj, cellulesRenseignement, collecteAgents, rapportsCellules, payeDouane, syncGloireSovarka, bonsEtatSovarka, ecoutesSovarka, pouvoirSovarka, releveDouaneAeroport, payePolice, bataillesEchues, affectationsExpirees, candidaturesRelancees, naturalisations, partisPresidence, controleGoulag };
+    const corps = { ok: ECHECS_PASSE.length === 0, traites: results.length, details: results, echecs: ECHECS_PASSE, nbEchecs: ECHECS_PASSE.length, detentionsLiberees, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, cascadeMunicipale, subventionsExpirees, delaisJudiciaires, convocationsTemoins, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, permis, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, productionSovarka, commerceInternational, entrepotsSovarka, urbanismeSovarka, herosTravail, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, effortDeGuerre, journalDuJour, detentionsPnj, cellulesRenseignement, collecteAgents, rapportsCellules, payeDouane, syncGloireSovarka, bonsEtatSovarka, ecoutesSovarka, pouvoirSovarka, releveDouaneAeroport, payePolice, bataillesEchues, affectationsExpirees, candidaturesRelancees, naturalisations, partisPresidence, mairesDeparts, controleGoulag };
     if (ECHECS_PASSE.length > 0) {
       console.error('[cron-minuit] PASSE INCOMPLETE : ' + ECHECS_PASSE.length + ' etape(s) en echec -> ' + ECHECS_PASSE.map(e => e.etape).join(', '));
       await journaliserCron('_passe', jourPasse, 'echec',

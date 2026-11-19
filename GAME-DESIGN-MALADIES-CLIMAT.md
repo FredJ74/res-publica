@@ -1,8 +1,7 @@
 # Maladies, péremption des aliments et événements climatiques
 
 Décisions de Fred du 18/11/2026 (après-midi), consignées depuis claude.ai.
-**État : rien n'est codé.** Le chantier est confié à Claude Code, après son chantier en cours
-(« Décisions du 18/11 » et branchement des traductions). Socle commun : tous les empires,
+**État : en cours (Claude Code, à partir du 18/11/2026 au soir), par lots — voir § 11.** Socle commun : tous les empires,
 sauf mention contraire. Tout texte affiché est écrit dans les neuf langues.
 
 ## 1. Principe d'architecture
@@ -161,3 +160,119 @@ sauf mention contraire. Tout texte affiché est écrit dans les neuf langues.
 - **Gel tardif à Krasnov** : chute de la production des fermes (fruits et légumes, œufs), pénurie.
 - Autres empires : **tempête de sable** à Al-Khalija (port fermé, gastro-entérite) ; **ouragan** et
   **dengue** à El Estado (port fermé, moustiquaire comme protection).
+
+## 11. Mise en œuvre (Claude Code, 18/11/2026)
+
+Découpage en lots, **une PR par lot**, textes dans les neuf langues, fichiers du goulag jamais touchés.
+
+| Lot | Contenu |
+|---|---|
+| 1 | Socle des maladies : catalogue paramétrable, maladies des personnages, malus, guérison, médicaments en pharmacie, risques viande crue et alcool, symptômes visibles, outils de MJ des maladies |
+| 2 | Péremption à 10 jours, aliments avariés, contrôle à réception et bandelettes, furet renifleur |
+| 3 | Socle des événements climatiques : calendrier, alerte 24 h, filtres visuels, chantiers bloqués, outils de MJ |
+| 4 | Blizzard (graisses, tableau de grippe) et contagion de la grippe |
+| 5 | Brouillard, orage et groupe électrogène, crue et sacs de sable, canicule et coup de chaleur |
+
+### Choix d'implémentation du lot 1
+
+- **Catalogue** `maladies_parametres` (une ligne par maladie) : tous les paramètres du § 2 y sont, modifiables par le MJ (page
+  d'administration) ; le nom et le symptôme **temporaires** du MJ s'affichent tels quels (texte libre), sinon le texte des
+  neuf langues du catalogue client.
+- **Maladies des personnages** `personnages_maladies` (une maladie active au plus par sorte) ; les malus de caractéristiques
+  passent par le mécanisme existant des effets temporaires (`effets_actifs`), déjà lu par `getStatEffective`.
+- **Grippe** : plafond de 15 PA appliqué au Dormir et aux gains immédiats ; les PA déjà au-dessus de 15 à la contraction ne
+  sont pas retirés.
+- **Médicament** : consommé, il marque la maladie « traitée » ; elle disparaît au prochain Dormir. Sans la maladie
+  correspondante, le médicament est refusé (il n'est pas gaspillé ; pas de prise préventive).
+- **Points de vente** : la pharmacie d'État de Novomirsk (Sovarka) et, faute de pharmacie en Républia, la **salle des ventes
+  de l'usine pharmaceutique de Luthécia** (proposition, à valider par Fred). Stock journalier par point de vente,
+  réglable par le MJ (0 = pénurie).
+- **Alcool** : compteur de verres par personnage et par jour de Paris, alimenté par chaque façon de boire (tournées, trinquer,
+  verre offert) ; les deux premiers sont sans risque.
+- **Symptômes** : lus par le serveur pour les seules personnes présentes dans la pièce de l'observateur ; le nom de la maladie
+  n'est jamais transmis aux autres joueurs.
+- **Règle des 7 jours retrouvée** : `inventaire_consommer` donnait +1 PA à un aliment de 7 jours ou moins et −1 PA au-delà.
+  Elle sera remplacée au lot 2 par la péremption à 10 jours.
+
+### Décisions de Fred du 18/11 au soir (fin du lot 1)
+
+- **Boissons : deux sous-articles explicites**, « boisson alcoolisée » et « boisson non alcoolisée ». L'étiquette est posée à la
+  main sur chaque boisson (colonne `recettes_commerce.boisson`, obligatoire pour toute recette de catégorie `boisson`), jamais
+  déduite de la matière « alcool ». Seules les boissons alcoolisées font monter le compteur de verres.
+  - Façons de boire comptées : tournée (selon la boisson commandée), consommation sur place au comptoir, service d'étage,
+    boisson du dîner d'affaires (le « verre offert » au restaurant, un verre par convive joueur), bouteille bue depuis
+    l'inventaire (bouteille du mini-bar de la Résidence impériale, alcools de distillerie), trinquer chez l'habitant
+    (toujours alcoolisé : vodka, slivovitz, samogon, alcool).
+  - Une boisson achetée à emporter se boit depuis l'inventaire (bouton « Boire »), sans effet sur les PA.
+- **Grippe** : comportement inchangé (PA au-dessus de 15 non retirés, plafond au prochain gain).
+- **Médicaments en Républia** : le comptoir de l'usine pharmaceutique de Luthécia est le seul point de vente PNJ. La
+  production journalière de chaque médicament (le « stock journalier » du MJ) est répartie comme celle des autres usines
+  stratégiques : 25 % au comptoir de l'usine, 25 % à chacun des trois entrepôts logistiques (Luthécia, Port-Sainte-Marie,
+  Montrouge), au plus fort reste. Les pharmacies ouvertes par des PJ s'y fournissent ; aucun contrat commerçant/usine. La
+  recette d'une vente en entrepôt va à la caisse de l'entrepôt.
+
+### Lot 2 : choix d'implémentation (18/11/2026)
+
+Le lot 2 est livré en deux PR : **2a** (piles datées, péremption, consommation, message) et **2b** (contrôle à réception et
+bandelettes, plats cuisinés, furet renifleur).
+
+- **Matières périssables** : viande, viande de renne, laitages, poisson, fruits et légumes, œufs. Céréales, sucre et produits
+  exotiques ne se périment pas (à confirmer par Fred).
+- **Date de pile** (`recu`, jour de Paris) posée au dépôt. Deux piles ne fusionnent que si elles ont le même jour et le même état ;
+  une pile qui arrive avec sa date (don, remise) la garde. Le champ `avarie` est réservé à la canicule (lot 5).
+- **Retraits** : une quantité se prend sur les piles les plus anciennes d'abord ; une ligne choisie dans l'inventaire est servie
+  la première. Les fonctions qui ne regardaient que la première pile (maisons d'hospitalité, kolkhoze, jardins, offres d'achat)
+  comptent désormais toutes les piles.
+- **Passe de nuit** (`aliments_passe_nuit`, 00 h 10 heure d'hiver) : date les piles arrivées par un chemin qui ne datait pas
+  encore, et prépare le message au propriétaire des piles qui viennent de se gâter. Le message s'affiche à la connexion
+  suivante, dans la langue du joueur.
+- **Consommation** : aliment manufacturé ou matière brute avariée = toujours ses PA, et 50 % d'intoxication (paramètre
+  `aliment_avarie` de l'intoxication, réglable par le MJ). La durée de 10 jours est réglable (`aliments_parametres`).
+- **Lot 2b — contrôle à la réception** (ventes et dons d'aliments à un commerce, moteur historique et fonds PJ) : les unités
+  vendues sont prises sur les piles les plus anciennes ; chaque unité avariée est détectée à 70 % (95 % si une bandelette est
+  consommée). Détectée : refusée, détruite, non payée. Les unités non détectées entrent dans le stock et sont comptées à part
+  (`matieresAvariees`) pour les plats cuisinés du lot 2c. Le registre des apports garde la quantité livrée.
+- **Fraude alimentaire** : si le vendeur avait reçu le message d'avarie de ces piles, la tentative laisse une trace
+  (`actions_tracables`, type `fraude_alimentaire`), qu'elle soit détectée ou non.
+- **Bandelettes réactives** : vendues dans les pharmacies du lot 1 (4 l'unité, réglable) ; n'importe qui de présent peut en
+  déposer dans le commerce de la pièce (c'est un don) ; chaque livraison d'aliments reçue en consomme une.
+- **Réglages du MJ** : section « Aliments » de la page d'administration (péremption, deux taux de détection, prix).
+- **Lot 2c (à venir)** : plats cuisinés avec un ingrédient avarié (20 %) et furet renifleur.
+- **Lot 2c — plats cuisinés** : quand un commerce produit en consommant des unités avariées passées inaperçues, les portions
+  produites par ce geste sont contaminées (invisible). Fonds PJ : l'objet emporté porte la marque et le tirage (20 %) se fait
+  quand on le mange, ou tout de suite s'il est consommé sur place. Moteur historique (tournées, dîners, service d'étage,
+  comptoir) : le tirage se fait pour l'acheteur au moment du service (les invités d'une tournée ou d'un dîner ne sont pas
+  tirés, à confirmer).
+- **Lot 2c — furet renifleur** : 250 (réglable), deux par boutique et par semaine, Chasse et Pêche de Port-Sainte-Marie et de
+  Starovka ; « Faire renifler » 1 PA depuis la fiche d'un aliment ; meurt au 11e aliment avarié reniflé.
+
+### Décisions de Fred du 18/11 au soir — climat (remplacent les §§ 4, 7, 8 et 9 sur ces points)
+
+- **Crue, canicule, orage (Républia)** : chacun **une fois par trimestre et par ville**, dates tirées au hasard dans le
+  trimestre (les trois peuvent tomber le même mois). Tout est réglable par le MJ. Le **brouillard** ne change pas (deux
+  journées par mois et par ville, tous pays).
+- **Propagation** : l'événement frappe une première ville tirée au hasard, puis gagne les deux autres dans un ordre aléatoire.
+  Délais entre deux villes : canicule 2 à 4 jours, orage 1 à 2 jours, crue 1 à 3 jours.
+- **Alerte au moins 48 h avant**, pour chaque ville, avec une vraie mise en scène : articles de presse, fenêtre de message du
+  gouvernement, journal d'événements.
+- **Crue** : zones inondables — Luthécia : entrepôt logistique, marché, parc botanique ; Port-Sainte-Marie : port, port de
+  plaisance, bar des Pêcheurs, chantier naval, marché, Chasse et Pêche ; Montrouge : entrepôt logistique, zone de production.
+  Chaque crue ne touche que **2 ou 3 lieux** de la liste de sa ville, tirés au hasard et **nommés dans l'alerte**.
+- **État de catastrophe naturelle** : option que le gouvernement active de lui-même, jamais automatique ; indemnise les pertes
+  de stock dues à la crue sur le budget de l'État. Poste qui décide et part remboursée : **proposition à Fred, pas codé**.
+- **Graisses** : castor à Novomirsk chez la poissonnière, ours à Krasnov au marché de la ferme ; aussi vendables dans toute
+  pharmacie ouverte par un PJ.
+
+### Choix d'implémentation des lots 3 à 5
+
+- **Lot 3, socle** : calendrier serveur (`climat_evenements`), paramètres du MJ (`climat_parametres` : fréquence, délais de
+  propagation, durée, préavis), zones inondables (`climat_zones_inondables`), passe horaire (pg_cron) qui planifie le
+  trimestre en cours et le suivant, publie les alertes 48 h avant (article de presse en attente, journal d'événements) ;
+  l'écran affiche une fenêtre « Message du gouvernement » une fois par alerte et par personnage, dans les neuf langues, et
+  un filtre animé sur les vues de la ville touchée pendant l'événement ; les chantiers de la ville sont bloqués pendant un
+  blizzard, un orage, une crue ou une canicule ; section MJ « Climat » (lire, créer, annuler, régler).
+- **Orage en Sovarka** : la décision du trimestre vise la Républia ; en Sovarka l'orage garde la règle du § 7 (une fois par
+  mois et par ville, sans propagation) — à confirmer par Fred.
+- **Lot 4** : blizzard (une fois par mandat présidentiel et par ville de Sovarka), graisses, tableau de grippe, contagion.
+- **Lot 5** : effets du brouillard, de l'orage (groupe électrogène), de la crue (2 ou 3 lieux, sacs de sable, 20 % de stock)
+  et de la canicule (bouteille d'eau, coup de chaleur, nourriture portée avariée).

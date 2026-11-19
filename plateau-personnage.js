@@ -127,7 +127,7 @@ async function openCharSheet() {
         ? '<div style="font-size:.75rem;color:#9a8a68;font-style:italic">' + rpCharSheetLabel('noItems','Aucun objet') + '</div>'
         : state.inventory.map(item => `
             <div style="display:flex;align-items:center;gap:.4rem;font-size:.78rem;color:#c0b090;padding:.2rem 0">
-              <i class="ti ${item.icon}" style="font-size:.8rem;color:#8a6a20"></i> ${item.name}
+              <i class="ti ${item.icon}" style="font-size:.8rem;color:#8a6a20"></i> ${((typeof nomObjetMaladie === 'function' && nomObjetMaladie(item)) || item.name)}
             </div>`).join('')}
     </div>
     </div>
@@ -656,7 +656,7 @@ function switchSelfTab(tab, el) {
           html += '</div>';
         }
         html += '<div style="flex:1;min-width:0">';
-        html += '<div class="hg-inventaire-nom" style="font-size:.8rem;color:#c0b090;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + item.name + ((Number(item.quantite ?? item.qty) > 1) ? ' × ' + Number(item.quantite ?? item.qty) : '') + '</div>';
+        html += '<div class="hg-inventaire-nom" style="font-size:.8rem;color:#c0b090;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + ((typeof nomObjetMaladie === 'function' && nomObjetMaladie(item)) || item.name) + ((Number(item.quantite ?? item.qty) > 1) ? ' × ' + Number(item.quantite ?? item.qty) : '') + '</div>';
         html += '<div style="font-size:.85rem;color:#9a8a68">' + (item.legal !== undefined ? (item.legal ? 'Légal' : 'Non enregistré') : '') + (item.usageUnique ? ' · Usage unique' : '') + '</div>';
         html += '</div>';
         html += '<button onclick="event.stopPropagation();jeterObjetInventaire(' + i + ')" style="font-size:.85rem;color:#a0905a;background:transparent;border:none;cursor:pointer;padding:.2rem .4rem;flex-shrink:0">Déposer</button>';
@@ -997,7 +997,7 @@ async function confirmerCorrectionAdresse() {
     return;
   }
   _secuNoterEnvoi();
-  showToast('Nouvelle adresse enregistrée', 'Un courriel de confirmation vient d\'y être envoyé.', true);
+  showToast('Nouvelle adresse enregistrée', 'Un courriel de confirmation vient d\'y être envoyé.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.b26ed9b84", 'Un courriel de confirmation vient d\'y être envoyé.', undefined, 'Nouvelle adresse enregistrée');
   document.getElementById('modal-postes')?.classList.remove('open');
   rafraichirSecuriteDuCompte();
 }
@@ -1057,10 +1057,10 @@ function ouvrirPorteCompteObligatoire(etat) {
 function ouvrirModalSecuriserCompte() {
   // Re-verification a l'ouverture : l'etat a pu changer depuis le rendu de l'onglet.
   if (!_compteEstProprietaireDuPersonnage()) {
-    showToast('Indisponible', 'Votre personnage n\'est pas rattaché à cette session.', false); return;
+    showToast('Indisponible', 'Votre personnage n\'est pas rattaché à cette session.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bc8d17375", 'Votre personnage n\'est pas rattaché à cette session.', undefined, 'Indisponible'); return;
   }
   if (typeof rpAuthEstAnonyme === 'function' && !rpAuthEstAnonyme()) {
-    showToast('Déjà sécurisé', 'Ce compte possède déjà une adresse et un mot de passe.', false); return;
+    showToast('Déjà sécurisé', 'Ce compte possède déjà une adresse et un mot de passe.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b98b32eda", 'Ce compte possède déjà une adresse et un mot de passe.', undefined, 'Déjà sécurisé'); return;
   }
   const champ = 'width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;'
               + 'font-family:Crimson Pro,serif;font-size:.85rem;outline:none;box-sizing:border-box';
@@ -1152,7 +1152,7 @@ async function confirmerSecurisationCompte() {
 
   if (r.encore_anonyme === false) {
     showToast('Personnage sécurisé',
-              'Vous pourrez désormais le retrouver depuis un autre appareil.', true);
+              'Vous pourrez désormais le retrouver depuis un autre appareil.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.b4cdb59c1", 'Vous pourrez désormais le retrouver depuis un autre appareil.', undefined, 'Personnage sécurisé');
     addJournalEntry('🔐 Votre personnage est désormais sécurisé : ' + escapeHtmlText(r.email || email) + '.', 'event-good');
   } else {
     showToast('Courriel de confirmation envoyé',
@@ -1195,7 +1195,7 @@ function handlePhotoFileChange(event) {
 async function confirmerChangementPhoto() {
   const urlInput = document.getElementById('photo-url-input')?.value?.trim();
   const photoFinal = _photoTemp || urlInput || null;
-  if (!photoFinal) { showToast('Aucune photo', 'Choisissez un fichier ou entrez une URL.', false); return; }
+  if (!photoFinal) { showToast('Aucune photo', 'Choisissez un fichier ou entrez une URL.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b89273629", 'Choisissez un fichier ou entrez une URL.', undefined, 'Aucune photo'); return; }
 
   if (!state.char) return;
   state.char.photoUrl = photoFinal;
@@ -1213,7 +1213,7 @@ async function confirmerChangementPhoto() {
   }
 
   _photoTemp = null;
-  showToast('Photo mise à jour', 'Votre nouvelle photo de profil est enregistrée.', true, true);
+  showToast('Photo mise à jour', 'Votre nouvelle photo de profil est enregistrée.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.be7a04f8b", 'Votre nouvelle photo de profil est enregistrée.', undefined, 'Photo mise à jour');
   // Rafraîchir l'affichage de la fiche
   switchSelfTab('identite', document.querySelectorAll('#vue-self .piece-tab')[3] || null);
 }
@@ -1759,7 +1759,7 @@ async function soumettreTestament(pa, cost) {
     ...argentRows.map(r => r.beneficiaire), ...argentRows.filter(r => r.remplacant).map(r => r.remplacant)
   ])];
   for (const b of nomsAVerifier) {
-    if (b === nom) { showToast('Bénéficiaire invalide', 'Vous ne pouvez pas vous désigner vous-même comme bénéficiaire ou remplaçant.', false); return; }
+    if (b === nom) { showToast('Bénéficiaire invalide', 'Vous ne pouvez pas vous désigner vous-même comme bénéficiaire ou remplaçant.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b92d978cf", 'Vous ne pouvez pas vous désigner vous-même comme bénéficiaire ou remplaçant.', undefined, 'Bénéficiaire invalide'); return; }
     const existe = await personnageExisteReellement(b);
     if (!existe) { showToast('Personnage introuvable', '"' + b + '" ne correspond à aucun personnage existant.', false); return; }
   }
@@ -1785,16 +1785,16 @@ async function soumettreTestament(pa, cost) {
     remplace_id: ancien?.id || null
   };
 
-  if (typeof sbSaveTestament !== 'function') { showToast('Indisponible', "La persistance du testament n'est pas encore active.", false); return; }
+  if (typeof sbSaveTestament !== 'function') { showToast('Indisponible', "La persistance du testament n'est pas encore active.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b1edb939a", "La persistance du testament n'est pas encore active.", undefined, 'Indisponible'); return; }
   const r = await sbSaveTestament(nouveau);
-  if (!r) { showToast('Échec', "Le testament n'a pas pu être enregistré. Réessayez.", false); return; }
+  if (!r) { showToast('Échec', "Le testament n'a pas pu être enregistré. Réessayez.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b191c65e2", "Le testament n'a pas pu être enregistré. Réessayez.", undefined, 'Échec'); return; }
 
   if (ancien?.id && typeof sbMarquerTestamentStatut === 'function') {
     await sbMarquerTestamentStatut(ancien.id, 'remplace').catch(() => {});
   }
 
   document.getElementById('modal-postes')?.classList.remove('open');
-  showToast('Testament enregistré', 'Vos dispositions ont été enregistrées chez le notaire.', true, true);
+  showToast('Testament enregistré', 'Vos dispositions ont été enregistrées chez le notaire.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b83e6c71b", 'Vos dispositions ont été enregistrées chez le notaire.', undefined, 'Testament enregistré');
   addJournalEntry('📜 Testament rédigé chez le notaire.', 'event-info');
 }
 
@@ -1811,10 +1811,10 @@ function confirmerRevocationTestament(id) {
 async function executerRevocationTestament(id) {
   if (typeof sbMarquerTestamentStatut !== 'function') return;
   const r = await sbMarquerTestamentStatut(id, 'revoque');
-  if (!r) { showToast('Échec', 'La révocation a échoué. Réessayez.', false); return; }
+  if (!r) { showToast('Échec', 'La révocation a échoué. Réessayez.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bfdb936f5", 'La révocation a échoué. Réessayez.', undefined, 'Échec'); return; }
   window._testamentActifCourant = null;
   document.getElementById('modal-postes')?.classList.remove('open');
-  showToast('Testament révoqué', 'La dévolution par défaut s\'appliquera désormais.', true, true);
+  showToast('Testament révoqué', 'La dévolution par défaut s\'appliquera désormais.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b6dd8893e", 'La dévolution par défaut s\'appliquera désormais.', undefined, 'Testament révoqué');
   addJournalEntry('📜 Testament révoqué chez le notaire.', 'event-info');
 }
 
@@ -1830,7 +1830,7 @@ async function doDemanderDivorce(pa, cost) {
 
   const mariage = await sbGetMariageActif(nom);
   if (!mariage) {
-    showToast('Non marié(e)', "Vous n'êtes pas marié(e) actuellement.", false);
+    showToast('Non marié(e)', "Vous n'êtes pas marié(e) actuellement.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b9fe21c68", "Vous n'êtes pas marié(e) actuellement.", undefined, 'Non marié(e)');
     return;
   }
   const conjoint = mariage.conjoint1 === nom ? mariage.conjoint2 : mariage.conjoint1;
@@ -1857,7 +1857,7 @@ async function confirmerDivorce(pa, cost) {
   const mariage = await sbGetMariageActif(nom);
   if (!mariage) {
     document.getElementById('modal-postes')?.classList.remove('open');
-    showToast('Non marié(e)', "Vous n'êtes plus marié(e).", false);
+    showToast('Non marié(e)', "Vous n'êtes plus marié(e).", false); globalThis.RPI18nPlateau?.markToast("toastBodies.bd574ae33", "Vous n'êtes plus marié(e).", undefined, 'Non marié(e)');
     return;
   }
   const conjoint = mariage.conjoint1 === nom ? mariage.conjoint2 : mariage.conjoint1;
@@ -1892,7 +1892,7 @@ async function confirmerDestructionPersonnage() {
   const saisie = document.getElementById('confirm-destroy-input')?.value?.trim();
   const nom = state.char?.name;
   if (!nom || saisie !== nom) {
-    showToast('Confirmation incorrecte', 'Le nom saisi ne correspond pas.', false);
+    showToast('Confirmation incorrecte', 'Le nom saisi ne correspond pas.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bec75efb9", 'Le nom saisi ne correspond pas.', undefined, 'Confirmation incorrecte');
     return;
   }
 
@@ -1943,7 +1943,7 @@ async function confirmerDestructionPersonnage() {
   localStorage.removeItem('respublica_char');
   localStorage.removeItem('respublica_last_char');
 
-  showToast('Personnage détruit', 'Vous allez être redirigé vers la création d\'un nouveau personnage.', true, true);
+  showToast('Personnage détruit', 'Vous allez être redirigé vers la création d\'un nouveau personnage.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b8830a8a7", 'Vous allez être redirigé vers la création d\'un nouveau personnage.', undefined, 'Personnage détruit');
   setTimeout(() => { window.location.href = 'index.html'; }, 2000);
 }
 
@@ -2032,7 +2032,7 @@ async function doDormir() {
   // Sa RPC applique une garde par jour reel Europe/Paris et credite les PA atomiquement.
   // Ne jamais utiliser state.day / localStorage pour autoriser ou refuser le repos.
   if (typeof sbRpc !== 'function' || !state.char?.name) {
-    showToast('Sommeil indisponible', 'Connexion au serveur requise. Reessayez.', false);
+    showToast('Sommeil indisponible', 'Connexion au serveur requise. Reessayez.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b2c7f166d", 'Connexion au serveur requise. Reessayez.', undefined, 'Sommeil indisponible');
     return false;
   }
   let rRepos = await sbRpc('pa_repos_nocturne', { p_acteur: nomInitialRepos }).catch(() => null);
@@ -2049,12 +2049,12 @@ async function doDormir() {
   if (reposDejaEnregistre && typeof vRepos.pa === 'number') {
     if (state.pa === paInitialRepos) state.pa = vRepos.pa;
     updateUI();
-    showToast('Repos déjà enregistré', 'Le serveur confirme votre repos. Aucun nouveau repos ni salaire ne sera déclenché.', true);
+    showToast('Repos déjà enregistré', 'Le serveur confirme votre repos. Aucun nouveau repos ni salaire ne sera déclenché.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.b798f9c4d", 'Le serveur confirme votre repos. Aucun nouveau repos ni salaire ne sera déclenché.', undefined, 'Repos déjà enregistré');
     // false interdit notamment un second bonus de chambre dans doDormirChambreClinique.
     return false;
   }
   if (vRepos?.raison === 'hospitalise_j0') {
-    showToast('Repos impossible', 'Le jour de votre hospitalisation, on vous garde éveillé(e) en observation. Vous pourrez dormir demain.', false);
+    showToast('Repos impossible', 'Le jour de votre hospitalisation, on vous garde éveillé(e) en observation. Vous pourrez dormir demain.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b2d93fe19", 'Le jour de votre hospitalisation, on vous garde éveillé(e) en observation. Vous pourrez dormir demain.', undefined, 'Repos impossible');
     return false;
   }
   if (!vRepos || vRepos.ok === false || typeof vRepos.pa !== 'number') {
@@ -2082,7 +2082,7 @@ async function doDormir() {
       const palierPoison = state.empoisonnement.palier || 'partielle';
       state.empoisonnement = null;
       declencherHospitalisation(palierPoison, { poison: true });
-      showToast('Empoisonnement fatal', 'Vos PV sont tombes a 0. Hospitalisation d\'urgence.', false, true);
+      showToast('Empoisonnement fatal', 'Vos PV sont tombes a 0. Hospitalisation d\'urgence.', false, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b7135d043", 'Vos PV sont tombes a 0. Hospitalisation d\'urgence.', undefined, 'Empoisonnement fatal');
       addJournalEntry('L\'empoisonnement a eu raison de vous. Hospitalisation d\'urgence.', 'event-bad');
       updateUI();
       return false;
@@ -2258,12 +2258,12 @@ async function doDormir() {
       // Rébellion (Fred, 01/11) : après ce premier sommeil, le serveur reconduit le suspect en cellule.
       if (vRepos.transfert_prison) {
         state.hospitalisation = null;
-        showToast('Retour en cellule', 'Les policiers vous reconduisent en cellule pour purger votre peine. Rébellion : 4 PA seulement par nuit en détention.', false, true);
+        showToast('Retour en cellule', 'Les policiers vous reconduisent en cellule pour purger votre peine. Rébellion : 4 PA seulement par nuit en détention.', false, true); globalThis.RPI18nPlateau?.markToast("toastBodies.bc68a4843", 'Les policiers vous reconduisent en cellule pour purger votre peine. Rébellion : 4 PA seulement par nuit en détention.', undefined, 'Retour en cellule');
         addJournalEntry('Reconduit(e) en cellule après l\'hôpital (rébellion : 4 PA par nuit en détention).', 'event-bad');
         if (typeof adopterPositionServeurRelue === 'function') await adopterPositionServeurRelue();
       }
       if (vRepos.sortie_possible) {
-        showToast('Sortie autorisée', 'Vous avez assez récupéré : l\'ordre « Sortir de l\'hôpital » vous rend votre liberté.', true, true);
+        showToast('Sortie autorisée', 'Vous avez assez récupéré : l\'ordre « Sortir de l\'hôpital » vous rend votre liberté.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.bbd28e9e6", 'Vous avez assez récupéré : l\'ordre « Sortir de l\'hôpital » vous rend votre liberté.', undefined, 'Sortie autorisée');
       }
     }
     if (vRepos.grade_militaire && typeof vRepos.gain === 'number') {
@@ -2445,11 +2445,11 @@ function ouvrirOngletChambreClinique() {
     rejoindreChambreClinique(moi);
     return;
   }
-  showToast('Accès restreint', "Les chambres de la clinique sont réservées aux patients et à leurs visiteurs autorisés. Adressez-vous à Sophie Stiquay à l'accueil pour savoir comment rendre visite à un patient.", false);
+  showToast('Accès restreint', "Les chambres de la clinique sont réservées aux patients et à leurs visiteurs autorisés. Adressez-vous à Sophie Stiquay à l'accueil pour savoir comment rendre visite à un patient.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b2dab2948", "Les chambres de la clinique sont réservées aux patients et à leurs visiteurs autorisés. Adressez-vous à Sophie Stiquay à l'accueil pour savoir comment rendre visite à un patient.", undefined, 'Accès restreint');
 }
 
 async function doTransfertCliniquePrivee(pa, cost) {
-  if (!state.hospitalisation) { showToast('Indisponible', 'Vous n\'êtes pas hospitalisé(e).', false); return; }
+  if (!state.hospitalisation) { showToast('Indisponible', 'Vous n\'êtes pas hospitalisé(e).', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b781eb4fa", 'Vous n\'êtes pas hospitalisé(e).', undefined, 'Indisponible'); return; }
   if (state.hospitalisation.lieu === 'clinique') { showToast('Déjà en clinique privée', '', false); return; }
 
   // Fail-closed (section 2 du lot) : la disponibilite d'une chambre est verifiee AVANT tout
@@ -2458,14 +2458,14 @@ async function doTransfertCliniquePrivee(pa, cost) {
   const dejaAttribuee = patient ? getChambreAttribueeClinique(patient) : null;
   let roomIdCible = dejaAttribuee ? dejaAttribuee.roomId : trouverChambreLibreClinique();
   if (!roomIdCible) {
-    showToast('Aucune chambre disponible', "La clinique ne dispose actuellement d'aucune chambre libre.", false);
+    showToast('Aucune chambre disponible', "La clinique ne dispose actuellement d'aucune chambre libre.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b9f6b574d", "La clinique ne dispose actuellement d'aucune chambre libre.", undefined, 'Aucune chambre disponible');
     return;
   }
 
   if (state._navigationServeur === true) return transfertCliniqueServeur(patient, roomIdCible, dejaAttribuee);
 
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('Fonds insuffisants', '1000 FR requis pour le transfert.', false); return; }
+  if (!r.ok) { showToast('Fonds insuffisants', '1000 FR requis pour le transfert.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.badc22a27", '1000 FR requis pour le transfert.', undefined, 'Fonds insuffisants'); return; }
 
   // Nouvelle attribution seulement si le patient n'en avait pas deja une (idempotent : un
   // re-transfert retrouve la meme chambre plutot que d'en creer une seconde).
@@ -2501,7 +2501,7 @@ async function doTransfertCliniquePrivee(pa, cost) {
   // plateau-navigation.js) -- aucune teleportation parallele.
   if (typeof enterBuilding === 'function') enterBuilding('clinique-privee', true);
   if (typeof enterRoom === 'function') enterRoom('clinique-privee', roomIdCible, null);
-  showToast('Transfert effectué', 'Vous êtes désormais pris(e) en charge en clinique privée. Convalescence plus rapide.', true, true);
+  showToast('Transfert effectué', 'Vous êtes désormais pris(e) en charge en clinique privée. Convalescence plus rapide.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b663b2074", 'Vous êtes désormais pris(e) en charge en clinique privée. Convalescence plus rapide.', undefined, 'Transfert effectué');
   addJournalEntry('Transfert vers une clinique privée (-1000 FR).', 'event-good');
 }
 
@@ -2527,7 +2527,7 @@ async function hospitalisationRejoindreServeur(lieu, chambre, verifier) {
     { p_lieu: lieu, p_chambre: chambre || null, p_verifier: verifier === true }).catch(() => null);
   const r = Array.isArray(v) ? v[0] : v;
   if (!r || r.transport) {
-    showToast('Déplacement non confirmé', 'La réponse du serveur est incertaine. Rechargez la position.', false);
+    showToast('Déplacement non confirmé', 'La réponse du serveur est incertaine. Rechargez la position.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b72670352", 'La réponse du serveur est incertaine. Rechargez la position.', undefined, 'Déplacement non confirmé');
     return null;
   }
   if (r.ok !== true) {
@@ -2571,7 +2571,7 @@ async function relireHospitalisationServeur(force) {
     state.hospitalisation = h;
     if (Number.isInteger(frais.pa)) state.pa = frais.pa;
     if (typeof afficherPositionNavigationConfirmee === 'function') afficherPositionNavigationConfirmee(frais);
-    showToast('Hospitalisé(e)', 'À bout de forces, vous êtes conduit(e) à l’hôpital. Aujourd’hui : ni déplacement, ni sommeil, ni mail, ni forum.', false, true);
+    showToast('Hospitalisé(e)', 'À bout de forces, vous êtes conduit(e) à l’hôpital. Aujourd’hui : ni déplacement, ni sommeil, ni mail, ni forum.', false, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b8285784b", 'À bout de forces, vous êtes conduit(e) à l’hôpital. Aujourd’hui : ni déplacement, ni sommeil, ni mail, ni forum.', undefined, 'Hospitalisé(e)');
     addJournalEntry('Vous vous effondrez : hospitalisation d’urgence.', 'event-bad');
     updateUI();
     return true;
@@ -2586,7 +2586,7 @@ async function doRepasHopital() {
   if (typeof sbRpcVerdict !== 'function') return;
   const v = await sbRpcVerdict('hospitalisation_repas_prendre', {}).catch(() => null);
   const r = Array.isArray(v) ? v[0] : v;
-  if (!r || r.transport) { showToast('Repas non confirmé', 'La réponse du serveur est incertaine. Rechargez votre fiche.', false); return; }
+  if (!r || r.transport) { showToast('Repas non confirmé', 'La réponse du serveur est incertaine. Rechargez votre fiche.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.be3f6a8c7", 'La réponse du serveur est incertaine. Rechargez votre fiche.', undefined, 'Repas non confirmé'); return; }
   if (r.ok !== true) { showToast('Repas refusé', HOSPITALISATION_REFUS[r.raison] || r.raison || 'Refus du serveur.', false); return; }
   if (Number.isInteger(r.pa)) state.pa = r.pa;
   // Montants arrêtés par le serveur (repas de la clinique payant), jamais calculés ici.
@@ -2614,7 +2614,7 @@ async function doSortieHopital() {
     state.locationsActives = state.locationsActives.filter(l => !(l.buildingId === 'clinique-privee' && l.chambreClinique === true && l.locataire === state.char?.name));
   }
   if (typeof adopterPositionServeurRelue === 'function') await adopterPositionServeurRelue();
-  showToast('Sortie de l’hôpital', 'Vous quittez l’hôpital, rétabli(e).', true, true);
+  showToast('Sortie de l’hôpital', 'Vous quittez l’hôpital, rétabli(e).', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b724abd40", 'Vous quittez l’hôpital, rétabli(e).', undefined, 'Sortie de l’hôpital');
   addJournalEntry('Sortie de l’hôpital.', 'event-good');
   updateUI();
 }
@@ -2623,7 +2623,7 @@ async function conduireHospitalisationServeur(lieu) {
   // La fiche (hospitalisation comprise) doit être enregistrée avant la porte, qui la relit.
   if (typeof sbSavePersonnage === 'function') {
     const ok = await sbSavePersonnage(state).then(() => true).catch(() => false);
-    if (!ok) { showToast('Hospitalisation non enregistrée', 'Rechargez le jeu avant de poursuivre.', false); return false; }
+    if (!ok) { showToast('Hospitalisation non enregistrée', 'Rechargez le jeu avant de poursuivre.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bb529ee52", 'Rechargez le jeu avant de poursuivre.', undefined, 'Hospitalisation non enregistrée'); return false; }
   }
   const r = await hospitalisationRejoindreServeur(lieu, null, false);
   if (!r) return false;
@@ -2640,7 +2640,7 @@ async function transfertCliniqueServeur(patient, roomIdCible, dejaAttribuee) {
       country: state.country || 'republic', locataire: patient, depuis: dateCivileParisMedicale(),
       visible: true, prix: 0, chambreClinique: true, visitesAutorisees: true };
     const ok = typeof sbSaveLocation === 'function' && await sbSaveLocation(entree).then(() => true).catch(() => false);
-    if (!ok) { showToast('Chambre non réservée', 'La réservation n’a pas été enregistrée. Aucun paiement.', false); return; }
+    if (!ok) { showToast('Chambre non réservée', 'La réservation n’a pas été enregistrée. Aucun paiement.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.be2fbe65a", 'La réservation n’a pas été enregistrée. Aucun paiement.', undefined, 'Chambre non réservée'); return; }
     if (!state.locationsActives) state.locationsActives = [];
     state.locationsActives.push(entree);
   }
@@ -2657,7 +2657,7 @@ async function transfertCliniqueServeur(patient, roomIdCible, dejaAttribuee) {
   }
   state.hospitalisation.lieu = 'clinique';
   if (typeof adopterPositionServeurRelue === 'function') await adopterPositionServeurRelue();
-  showToast('Transfert effectué', 'Vous êtes désormais pris(e) en charge en clinique privée. Convalescence plus rapide.', true, true);
+  showToast('Transfert effectué', 'Vous êtes désormais pris(e) en charge en clinique privée. Convalescence plus rapide.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b663b2074", 'Vous êtes désormais pris(e) en charge en clinique privée. Convalescence plus rapide.', undefined, 'Transfert effectué');
   addJournalEntry('Transfert vers une clinique privée (-1000 FR).', 'event-good');
 }
 
@@ -2684,11 +2684,11 @@ function libererChambreCliniquePatient(nomPatient) {
 function doGererVisitesChambre(pa, cost) {
   const loc = (typeof getLocationPourRoom === 'function') ? getLocationPourRoom('clinique-privee', state.currentRoom, 'capitale') : null;
   if (!loc || !loc.chambreClinique) {
-    showToast('Chambre inoccupée', "Cette chambre n'est pas attribuée pour l'instant.", false);
+    showToast('Chambre inoccupée', "Cette chambre n'est pas attribuée pour l'instant.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b17c41b6a", "Cette chambre n'est pas attribuée pour l'instant.", undefined, 'Chambre inoccupée');
     return;
   }
   if (loc.locataire !== state.char?.name) {
-    showToast('Accès refusé', 'Seul le patient occupant peut gérer les visites de sa chambre.', false);
+    showToast('Accès refusé', 'Seul le patient occupant peut gérer les visites de sa chambre.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b4a948120", 'Seul le patient occupant peut gérer les visites de sa chambre.', undefined, 'Accès refusé');
     return;
   }
   document.getElementById('postes-modal-title').textContent = 'Visites de la chambre';
@@ -2706,7 +2706,7 @@ function doGererVisitesChambre(pa, cost) {
 async function confirmerVisitesChambreUI(autoriser) {
   document.getElementById('modal-postes')?.classList.remove('open');
   const loc = (typeof getLocationPourRoom === 'function') ? getLocationPourRoom('clinique-privee', state.currentRoom, 'capitale') : null;
-  if (!loc || loc.locataire !== state.char?.name) { showToast('Accès refusé', '', false); return; }
+  if (!loc || loc.locataire !== state.char?.name) { showToast('Accès refusé', '', false); globalThis.RPI18nPlateau?.markToast(null, '', undefined, 'Accès refusé'); return; }
   loc.visitesAutorisees = !!autoriser;
   if (typeof sbSaveLocation === 'function') await sbSaveLocation(loc).catch(() => {});
   showToast(autoriser ? 'Visites autorisées' : 'Visites interdites', autoriser ? 'Les autres joueurs peuvent à nouveau vous rendre visite.' : 'Seul le personnel de la clinique peut désormais entrer.', true);
@@ -2752,7 +2752,7 @@ function rejoindreChambreClinique(nomPatient) {
   document.getElementById('modal-postes')?.classList.remove('open');
   const loc = getChambreAttribueeClinique(nomPatient);
   if (!loc) {
-    showToast('Chambre indisponible', "Ce patient ne dispose plus d'une chambre pour l'instant.", false);
+    showToast('Chambre indisponible', "Ce patient ne dispose plus d'une chambre pour l'instant.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b1d8b6e57", "Ce patient ne dispose plus d'une chambre pour l'instant.", undefined, 'Chambre indisponible');
     return;
   }
   if (typeof enterBuilding === 'function') enterBuilding('clinique-privee', true);
@@ -2767,7 +2767,7 @@ function dateCivileParisMedicale() {
 
 async function doCentreAntiPoison(pa) {
   if (!state.empoisonnement?.actif) {
-    showToast('Rien a traiter', 'Vous n\'etes pas empoisonne(e).', false);
+    showToast('Rien a traiter', 'Vous n\'etes pas empoisonne(e).', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b31c48d67", 'Vous n\'etes pas empoisonne(e).', undefined, 'Rien a traiter');
     return;
   }
   // JET AU SERVEUR (05/11/2026) : centre_anti_poison_traiter preleve le cout, tient la limite de deux
@@ -2776,11 +2776,11 @@ async function doCentreAntiPoison(pa) {
   const v = Array.isArray(brut) ? brut[0] : brut;
   if (!v || v.ok !== true) {
     const raison = v?.raison;
-    if (raison === 'limite_journaliere') showToast('Limite atteinte', 'Deux tentatives maximum par jour.', false);
-    else if (raison === 'pas_empoisonne') { state.empoisonnement = null; updateUI(); showToast('Rien a traiter', 'Vous n\'etes pas empoisonne(e).', false); }
-    else if (raison === 'pas_sur_place') showToast('Pas ici', 'Ce traitement se fait au dispensaire ou a la clinique.', false);
+    if (raison === 'limite_journaliere') { showToast('Limite atteinte', 'Deux tentatives maximum par jour.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b1f34df95", 'Deux tentatives maximum par jour.', undefined, 'Limite atteinte'); }
+    else if (raison === 'pas_empoisonne') { state.empoisonnement = null; updateUI(); showToast('Rien a traiter', 'Vous n\'etes pas empoisonne(e).', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b31c48d67", 'Vous n\'etes pas empoisonne(e).', undefined, 'Rien a traiter'); }
+    else if (raison === 'pas_sur_place') { showToast('Pas ici', 'Ce traitement se fait au dispensaire ou a la clinique.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bf623e631", 'Ce traitement se fait au dispensaire ou a la clinique.', undefined, 'Pas ici'); }
     else if (typeof signalerRefusCout === 'function' && v) signalerRefusCout(v);
-    else showToast('Impossible', 'Le traitement n\'a pas pu avoir lieu.', false);
+    else { showToast('Impossible', 'Le traitement n\'a pas pu avoir lieu.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b5e4af13c", 'Le traitement n\'a pas pu avoir lieu.', undefined, 'Impossible'); }
     return;
   }
   if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: v.pa, liquide: v.liquide, arg: v.arg });
@@ -2788,11 +2788,11 @@ async function doCentreAntiPoison(pa) {
     state.empoisonnement = null;
     if (state.statsAffaiblies) state.statsAffaiblies = null;
     updateUI();
-    showToast('Gueri(e) !', 'Le poison a ete neutralise avec succes.', true, true);
+    showToast('Gueri(e) !', 'Le poison a ete neutralise avec succes.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.bc3c014e4", 'Le poison a ete neutralise avec succes.', undefined, 'Gueri(e) !');
     addJournalEntry('Traitement anti-poison reussi. Vous etes gueri(e).', 'event-good');
   } else {
     updateUI();
-    showToast('Echec du traitement', 'Le poison resiste. Reessayez, ou attendez d\'y etre force(e).', false);
+    showToast('Echec du traitement', 'Le poison resiste. Reessayez, ou attendez d\'y etre force(e).', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b63490dc6", 'Le poison resiste. Reessayez, ou attendez d\'y etre force(e).', undefined, 'Echec du traitement');
     addJournalEntry('Tentative de traitement anti-poison infructueuse.', 'event-bad');
   }
 }
@@ -2899,7 +2899,7 @@ async function doSoinPublic(pa, cost) {
   if (!state.char) return;
   const buildingId = state.currentBuilding;
   const cfg = STRUCTURES_MEDICALES[buildingId];
-  if (!cfg || cfg.financement !== 'institution') { showToast('Indisponible', '', false); return; }
+  if (!cfg || cfg.financement !== 'institution') { showToast('Indisponible', '', false); globalThis.RPI18nPlateau?.markToast(null, '', undefined, 'Indisponible'); return; }
 
   const r = await deduireCoutOrdre({ pa, cost: 0, fn: 'soin_public' });
   if (!retourActif()) return;
@@ -2914,11 +2914,11 @@ async function doSoinPublic(pa, cost) {
   if (!v || v.ok !== true) {
     const raison = (v && v.raison) || 'indisponible';
     if (raison === 'deja_soigne_aujourdhui') {
-      showToast('Déjà soigné(e) aujourd\'hui', 'Un seul soin public par jour, quelle que soit la ville.', false);
+      showToast('Déjà soigné(e) aujourd\'hui', 'Un seul soin public par jour, quelle que soit la ville.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b637c6a89", 'Un seul soin public par jour, quelle que soit la ville.', undefined, 'Déjà soigné(e) aujourd\'hui');
     } else if (raison === 'rupture_stock') {
       showToast('Rupture de stock', PHRASE_INFIRMIERE_RUPTURE_STOCK, false);
     } else if (raison === 'fonds_insuffisants') {
-      showToast('Fonds insuffisants', cost + ' FR requis.', false);
+      showToast('Fonds insuffisants', cost + ' FR requis.', false); globalThis.RPI18nPlateau?.markToast(null, cost + ' FR requis.', undefined, 'Fonds insuffisants');
     } else { showToast('Soin impossible', 'Refusé (' + raison + ').', false); }
     return;
   }
@@ -2960,11 +2960,11 @@ async function doSoinCliniquePrivee(pa, cost) {
   if (!v || v.ok !== true) {
     const raison = (v && v.raison) || 'indisponible';
     if (raison === 'deja_soigne_aujourdhui') {
-      showToast('Déjà soigné(e) aujourd\'hui', 'Un seul soin en clinique par jour.', false);
+      showToast('Déjà soigné(e) aujourd\'hui', 'Un seul soin en clinique par jour.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b469d0728", 'Un seul soin en clinique par jour.', undefined, 'Déjà soigné(e) aujourd\'hui');
     } else if (raison === 'rupture_stock') {
-      showToast('Rupture de stock', 'La clinique manque actuellement de désinfectant et/ou de médicaments.', false);
+      showToast('Rupture de stock', 'La clinique manque actuellement de désinfectant et/ou de médicaments.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b9f01befc", 'La clinique manque actuellement de désinfectant et/ou de médicaments.', undefined, 'Rupture de stock');
     } else if (raison === 'fonds_insuffisants') {
-      showToast('Fonds insuffisants', cost + ' FR requis.', false);
+      showToast('Fonds insuffisants', cost + ' FR requis.', false); globalThis.RPI18nPlateau?.markToast(null, cost + ' FR requis.', undefined, 'Fonds insuffisants');
     } else { showToast('Soin impossible', 'Refusé (' + raison + ').', false); }
     return;
   }
@@ -3022,7 +3022,7 @@ async function vendreRessourceMedicaleStructure(buildingId, pays, ville, ressour
 
 function doVendreRessourceMedicaleGenerique(pa, cost) {
   const buildingId = state.currentBuilding;
-  if (!buildingId) { showToast('Indisponible', '', false); return; }
+  if (!buildingId) { showToast('Indisponible', '', false); globalThis.RPI18nPlateau?.markToast(null, '', undefined, 'Indisponible'); return; }
   doOuvrirVendreRessourceMedicale(buildingId, pa, cost);
 }
 
@@ -3256,7 +3256,7 @@ async function doReserverChambreHotel(pa) {
   const droitsServeur = (typeof sbRpc === 'function') ? await sbRpc('hotel_reservations_lire', {}).catch(() => null) : null;
   updateUI();
   if (!Array.isArray(droitsServeur)) {
-    showToast('Paiement enregistré', 'Le serveur a accepté l’achat. La liste des nuits est temporairement indisponible ; ne repaye pas avant de consulter ta fiche.', true);
+    showToast('Paiement enregistré', 'Le serveur a accepté l’achat. La liste des nuits est temporairement indisponible ; ne repaye pas avant de consulter ta fiche.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.b766e93ff", 'Le serveur a accepté l’achat. La liste des nuits est temporairement indisponible ; ne repaye pas avant de consulter ta fiche.', undefined, 'Paiement enregistré');
     return;
   }
   showToast('Chambre reservee', 'Vous obtiendrez un bonus de +' + bonus.paBonus + ' PA et +' + bonus.moral + ' Moral en passant l\'ordre Dormir <strong>dans cette chambre</strong>.', true, true);
@@ -3276,7 +3276,7 @@ const SERVICE_ETAGE_REFUS = {
 };
 async function doServiceEtage(pa) {
   const v = (typeof sbRpcVerdict === 'function') ? await sbRpcVerdict('hotel_service_etage_commander', {}).catch(() => null) : null;
-  if (!v || v.transport) { showToast('Service d’étage non confirmé', 'Le serveur ne répond pas. Vérifiez votre argent avant de recommencer.', false); return; }
+  if (!v || v.transport) { showToast('Service d’étage non confirmé', 'Le serveur ne répond pas. Vérifiez votre argent avant de recommencer.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b85b560bf", 'Le serveur ne répond pas. Vérifiez votre argent avant de recommencer.', undefined, 'Service d’étage non confirmé'); return; }
   if (v.ok !== true) { showToast('Service d’étage refusé', SERVICE_ETAGE_REFUS[v.raison] || ('Refus du serveur : ' + (v.raison || 'indisponible') + '.'), false); return; }
   if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: v.pa, liquide: v.liquide, arg: v.arg });
   if (typeof v.hp === 'number') state.hp = v.hp;
@@ -3293,17 +3293,17 @@ async function doDormirChambre(chezHabitant) {
   const tp = (k, v) => (typeof texteSovProvinces === 'function' ? texteSovProvinces(k, v) : k);
   const salle = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
   if (!salle?.orders?.some(o => o.fn === 'dormir_chambre')) {
-    showToast('Chambre non réservée', 'Il faut être dans la chambre de l’hôtel.', false);
+    showToast('Chambre non réservée', 'Il faut être dans la chambre de l’hôtel.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bff93a62f", 'Il faut être dans la chambre de l’hôtel.', undefined, 'Chambre non réservée');
     return;
   }
   const nuits = (typeof sbRpc === 'function') ? await sbRpc('hotel_reservations_lire', {}).catch(() => null) : null;
   if (!Array.isArray(nuits)) {
-    showToast('Réservations indisponibles', 'Impossible de confirmer votre nuit payée. Aucun droit consommé.', false);
+    showToast('Réservations indisponibles', 'Impossible de confirmer votre nuit payée. Aucun droit consommé.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b9cd54e8f", 'Impossible de confirmer votre nuit payée. Aucun droit consommé.', undefined, 'Réservations indisponibles');
     return;
   }
   if (!nuits.some(n => n.buildingId === state.currentBuilding && n.ville === state.currentCity && n.country === state.country)) {
     if (habitant) { showToast(tp('tSleepNo'), tp('sleepUsed', { nom: habitant }), false); return; }
-    showToast('Chambre non réservée', 'Aucune nuitée disponible ici. Les nuits réservées ailleurs sont conservées.', false);
+    showToast('Chambre non réservée', 'Aucune nuitée disponible ici. Les nuits réservées ailleurs sont conservées.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b32113277", 'Aucune nuitée disponible ici. Les nuits réservées ailleurs sont conservées.', undefined, 'Chambre non réservée');
     return;
   }
   const perso = state.char, hotel = state.currentBuilding, ville = state.currentCity;
@@ -3314,7 +3314,7 @@ async function doDormirChambre(chezHabitant) {
   const resultat = Array.isArray(bonus) ? bonus[0] : bonus;
   if (state.char !== perso || state.currentBuilding !== hotel || state.currentCity !== ville) return;
   if (!resultat?.ok) {
-    showToast('Bonus hôtel à vérifier','Le repos est enregistré. Consultez vos nuits dans la fiche avant de repayer.',false);
+    showToast('Bonus hôtel à vérifier','Le repos est enregistré. Consultez vos nuits dans la fiche avant de repayer.',false); globalThis.RPI18nPlateau?.markToast("toastBodies.b6f272034", 'Le repos est enregistré. Consultez vos nuits dans la fiche avant de repayer.', undefined, 'Bonus hôtel à vérifier');
     return;
   }
   if (typeof resultat.pa === 'number') state.pa = resultat.pa;
@@ -3344,7 +3344,7 @@ function verifierProgressionHospitalisation() {
   // Une hospitalisation dépourvue de date civile n'est pas levée sur un compteur privé.
   if (!dateFinParis) {
     state.pa = 0;
-    showToast('Convalescence', 'Date de sortie à régulariser.', false);
+    showToast('Convalescence', 'Date de sortie à régulariser.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b061f2a6d", 'Date de sortie à régulariser.', undefined, 'Convalescence');
     return;
   }
   if (aujourdhuiParis >= dateFinParis) {
@@ -3359,7 +3359,7 @@ function verifierProgressionHospitalisation() {
     state.statsAffaiblies = {};
     state.regenJour = null;
     if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
-    showToast('Rétabli(e) !', 'Vous avez retrouvé toutes vos capacités.', true, true);
+    showToast('Rétabli(e) !', 'Vous avez retrouvé toutes vos capacités.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b125709ed", 'Vous avez retrouvé toutes vos capacités.', undefined, 'Rétabli(e) !');
     addJournalEntry('Vous êtes complètement rétabli(e) de votre agression.', 'event-good');
     return;
   }
@@ -3419,7 +3419,7 @@ async function ouvrirDetailObjetInventaire(idx) {
     return;
   }
 
-  document.getElementById('postes-modal-title').textContent = typeof herosObjetTexte === 'function' ? herosObjetTexte(item, 'name') : item.name;
+  document.getElementById('postes-modal-title').textContent = (typeof nomObjetMaladie === 'function' && nomObjetMaladie(item)) || (typeof herosObjetTexte === 'function' ? herosObjetTexte(item, 'name') : item.name);
   document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic"><span data-i18n="inventoryUi.loading">Chargement...</span></div>';
   document.getElementById('modal-postes').classList.add('open');
   if (typeof window !== 'undefined') window.RPI18nPlateau?.apply?.(document.getElementById('postes-body'));
@@ -3485,11 +3485,18 @@ async function ouvrirDetailObjetInventaire(idx) {
   if (item.stackKey === 'oeufs' && typeof mangerOeufs === 'function') {
     html += '<button onclick="mangerOeufs()" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer"><i class="ti ti-egg"></i> Manger 3 œufs</button>';
   }
+  // Viande et laitages bruts (Fred, 18/11/2026) : +1 PA au prochain sommeil.
+  if (typeof boutonMangerMatiereBrute === 'function') html += boutonMangerMatiereBrute(item, 'font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
   // Énigme du trésor des Tsars (12/11/2026) : lire le livre, manger un gâteau.
   if (typeof boutonsTresorTsarsObjet === 'function') html += boutonsTresorTsarsObjet(item, 'font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
   if (item.familleProduitMarche === 'aliment' || (item.generique_id === 'encas-a-emporter' && item.recette_id)) {
     html += '<button onclick="consommerAliment(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer"><i class="ti ti-meat"></i> <span data-i18n="inventoryUi.consume">Consommer</span></button>';
   }
+
+  // Boissons (Fred, 18/11/2026) : bouton Boire, étiquette alcoolisée ou non tranchée par le serveur.
+  if (typeof boutonRenifler === 'function') html += boutonRenifler(item, idx, 'font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
+  if (typeof boutonBandelettes === 'function') html += boutonBandelettes(item, 'font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
+  if (typeof boutonBoire === 'function') html += boutonBoire(item, idx, 'font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
 
   // Guide des baies sauvages de Krasnov (Fred, 15/11/2026) : se lit partout, 2 PA, +1 INT 24 h, sans cumul ; reste dans l'inventaire.
   if (item.type === 'guide_baies_krasnov' && typeof lireGuideBaies === 'function') {
@@ -3564,6 +3571,7 @@ async function consommerAliment(idx) {
   // L'effet (peremption, PA) reste ici : c'est une regle de jeu, pas une quantite d'inventaire.
   const r = await removeFromInventory(idx, 'consommer');
   if (!r.ok) {
+    if (r.raison === 'confiture_deja_prise' && typeof texteSovProvinces === 'function') { showToast(texteSovProvinces('tJam'), texteSovProvinces('m_confiture_deja_prise'), false); return; }
     showToast('Consommation impossible', messageRefusSortieInventaire(r.raison), false);
     return;
   }
@@ -3577,12 +3585,21 @@ async function consommerAliment(idx) {
   // Ne jamais annoncer une intoxication sans confirmation de fraicheur par le serveur.
   // En cas de reponse ancienne/incomplete, la consommation a eu lieu mais son
   // effet reste inconnu : ne pas inventer un malus.
+  // Confiture d'airelles du kolkhoze (Fred, 18/11/2026) : +1 PA au prochain sommeil, une par nuit.
+  if (r.bonus_differe) {
+    const tp = typeof texteSovProvinces === 'function' ? texteSovProvinces : (k => k);
+    showToast(tp('tJam'), tp('bonusSleep', { bonus: r.bonus_differe }), true, true);
+    addJournalEntry('Vous avez mangé "' + item.name + '" : +' + r.bonus_differe + ' PA au prochain sommeil.', 'event-good');
+    updateUI();
+    if (typeof switchSelfTab === 'function') switchSelfTab('inventaire', null);
+    return;
+  }
   const fraicheurConnue = typeof r.aliment_frais === 'boolean';
   const perime = fraicheurConnue && !r.aliment_frais;
   if (typeof r.pa === 'number') state.pa = r.pa;
 
   if (!fraicheurConnue) {
-    showToast('Aliment consommé', 'Consommation enregistrée. Effet sur les PA non confirmé par le serveur.', true);
+    showToast('Aliment consommé', 'Consommation enregistrée. Effet sur les PA non confirmé par le serveur.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.b85f25390", 'Consommation enregistrée. Effet sur les PA non confirmé par le serveur.', undefined, 'Aliment consommé');
     addJournalEntry('Vous avez consommé "' + item.name + '". Effet sur les PA non confirmé.', 'event-info');
   } else if (perime) {
     showToast('Intoxication alimentaire', 'Votre ' + item.name + ' avait plus de 7 jours : il était périmé et vous rend malade. -1 PA.', false);
@@ -3620,7 +3637,7 @@ async function consommerDrogue(idx) {
       return;
     }
     if (!r.drogue) {
-      showToast('Consommation enregistrée', 'Effets non confirmés par le serveur.', true);
+      showToast('Consommation enregistrée', 'Effets non confirmés par le serveur.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.bdeed2989", 'Effets non confirmés par le serveur.', undefined, 'Consommation enregistrée');
       addJournalEntry('Vous avez fumé "' + item.name + '". Effets non confirmés.', 'event-info');
     } else {
       if (typeof r.pa === 'number') state.pa = r.pa;
@@ -3811,16 +3828,16 @@ async function envoyerCartePostale(idx) {
   const message = document.getElementById('carte-postale-message')?.value?.trim();
   const moi = state.char?.name || 'Anonyme';
 
-  if (!destinataire) { showToast('Destinataire manquant', 'Choisissez un joueur destinataire.', false); return; }
-  if (destinataire === moi) { showToast('Destinataire invalide', 'Vous ne pouvez pas vous envoyer une carte à vous-même.', false); return; }
-  if (!message) { showToast('Message vide', 'Écrivez un message avant d\'envoyer.', false); return; }
+  if (!destinataire) { showToast('Destinataire manquant', 'Choisissez un joueur destinataire.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b8022b5d9", 'Choisissez un joueur destinataire.', undefined, 'Destinataire manquant'); return; }
+  if (destinataire === moi) { showToast('Destinataire invalide', 'Vous ne pouvez pas vous envoyer une carte à vous-même.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b4836affb", 'Vous ne pouvez pas vous envoyer une carte à vous-même.', undefined, 'Destinataire invalide'); return; }
+  if (!message) { showToast('Message vide', 'Écrivez un message avant d\'envoyer.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b54a7bf1a", 'Écrivez un message avant d\'envoyer.', undefined, 'Message vide'); return; }
 
   const btn = document.getElementById('carte-postale-envoyer-btn');
   if (btn) { btn.disabled = true; btn.style.opacity = '.5'; }
 
   if (typeof removeFromInventory !== 'function') {
     if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
-    showToast('Envoi impossible', 'Le service de courrier est indisponible pour le moment.', false);
+    showToast('Envoi impossible', 'Le service de courrier est indisponible pour le moment.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b680cdbb0", 'Le service de courrier est indisponible pour le moment.', undefined, 'Envoi impossible');
     return;
   }
 
@@ -3929,7 +3946,7 @@ async function lireCartePostale(idx) {
     state.moral = Math.min(100, Math.max(0, (state.moral || 0) + 10));
     state.cartePostaleMoralJour.lecteur = jourDuJour;
     if (typeof updateUI === 'function') updateUI();
-    showToast('Belle surprise', 'Cette carte postale vous touche. +10 Moral.', true, true);
+    showToast('Belle surprise', 'Cette carte postale vous touche. +10 Moral.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b0140dfc9", 'Cette carte postale vous touche. +10 Moral.', undefined, 'Belle surprise');
     addJournalEntry('Vous avez lu une carte postale de ' + esc(item.auteur) + '. +10 Moral.', 'event-good');
   }
 
@@ -4038,9 +4055,9 @@ async function ramasserObjetAbandonne(objetId) {
   const v = (typeof sbRpcVerdict === 'function')
     ? await sbRpcVerdict('objet_abandonne_ramasser', { p_id: objetId }).catch(() => null) : null;
   if (!v || v.ok !== true) {
-    if (v?.raison === 'objet_disparu') showToast('Trop tard', 'Quelqu\'un d\'autre l\'a déjà ramassé.', false);
-    else if (v?.raison === 'pas_sur_place') showToast('Trop loin', 'Cet objet n\'est pas dans la pièce où vous êtes.', false);
-    else showToast('Impossible', 'L\'objet n\'a pas pu être ramassé.', false);
+    if (v?.raison === 'objet_disparu') { showToast('Trop tard', 'Quelqu\'un d\'autre l\'a déjà ramassé.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bc98f0617", 'Quelqu\'un d\'autre l\'a déjà ramassé.', undefined, 'Trop tard'); }
+    else if (v?.raison === 'pas_sur_place') { showToast('Trop loin', 'Cet objet n\'est pas dans la pièce où vous êtes.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b4526693b", 'Cet objet n\'est pas dans la pièce où vous êtes.', undefined, 'Trop loin'); }
+    else { showToast('Impossible', 'L\'objet n\'a pas pu être ramassé.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b51bf439a", 'L\'objet n\'a pas pu être ramassé.', undefined, 'Impossible'); }
     chargerObjetsAbandonnesDansPiece();
     return;
   }
@@ -4152,6 +4169,7 @@ function ouvrirDetailObjet(idx) {
   if (item.type === 'drogue') {
     html += '<button onclick="consommerDrogue(' + idx + ')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.5rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer">' + (item.drogue === 'estadine' ? 'Consommer' : 'Fumer') + '</button>';
   }
+  if (typeof boutonMangerMatiereBrute === 'function') html += boutonMangerMatiereBrute(item, 'flex:1;font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.5rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
   if (item.stackKey === 'oeufs' && typeof mangerOeufs === 'function') {
     html += '<button onclick="mangerOeufs()" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.5rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer">Manger 3 œufs</button>';
   }
@@ -4161,6 +4179,12 @@ function ouvrirDetailObjet(idx) {
   }
   if (item.type === 'poison') {
     html += '<button onclick="ouvrirModalEmpoisonner();document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #6a2a20;background:transparent;color:#cc4444;cursor:pointer">Utiliser</button>';
+  }
+  if (typeof boutonRenifler === 'function') html += boutonRenifler(item, idx, 'flex:1;font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.5rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
+  if (typeof boutonBandelettes === 'function') html += boutonBandelettes(item, 'flex:1;font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.5rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
+  if (typeof boutonBoire === 'function') html += boutonBoire(item, idx, 'flex:1;font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.5rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
+  if (item.type === 'medicament_maladie' && typeof boutonMedicamentMaladie === 'function') {
+    html += boutonMedicamentMaladie(item, 'flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #2a6a2a;background:transparent;color:#4a8a4a;cursor:pointer');
   }
   if (item.type === 'medicament') {
     html += '<button onclick="doSesoigner();document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #2a6a2a;background:transparent;color:#4a8a4a;cursor:pointer">Utiliser (+20 PV)</button>';
@@ -4351,7 +4375,7 @@ async function ouvrirSoinTrousse() {
 async function confirmerSoinTrousse(cibleEncodee) {
   document.getElementById('modal-postes')?.classList.remove('open');
   const cible = decodeURIComponent(cibleEncodee || '');
-  if (typeof sbMilitaireTrousseUtiliser !== 'function') { showToast('Indisponible', '', false); return; }
+  if (typeof sbMilitaireTrousseUtiliser !== 'function') { showToast('Indisponible', '', false); globalThis.RPI18nPlateau?.markToast(null, '', undefined, 'Indisponible'); return; }
   const r = await sbMilitaireTrousseUtiliser(cible || null);
   if (!r || r.ok !== true) {
     showToast('Soins impossibles',
@@ -4384,7 +4408,7 @@ async function confirmerSoinTrousse(cibleEncodee) {
 // le PA dans la meme transaction ; on RELIT ensuite l'inventaire qu'il a arrete, on ne le
 // recalcule pas -- le recalculer ici ferait diverger l'ecran de la base.
 async function doConsommerRationCombat() {
-  if (typeof sbMilitaireRationConsommer !== 'function') { showToast('Indisponible', 'Service momentanément indisponible.', false); return; }
+  if (typeof sbMilitaireRationConsommer !== 'function') { showToast('Indisponible', 'Service momentanément indisponible.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b03206516", 'Service momentanément indisponible.', undefined, 'Indisponible'); return; }
   const r = await sbMilitaireRationConsommer();
   if (!r || r.ok !== true) {
     // LES DEUX REFUS CI-DESSOUS CONSERVENT LA RATION : le serveur n'ecrit rien dans ces cas,
@@ -4419,7 +4443,7 @@ async function doConsommerRationCombat() {
 // le stock de l'infirmerie : aucun ordre de production prealable, comme pour les rations du
 // refectoire. Si un des trois intrants manque, RIEN n'est consomme.
 async function doRetirerTrousse() {
-  if (typeof sbMilitaireTrousseRetirer !== 'function') { showToast('Indisponible', '', false); return; }
+  if (typeof sbMilitaireTrousseRetirer !== 'function') { showToast('Indisponible', '', false); globalThis.RPI18nPlateau?.markToast(null, '', undefined, 'Indisponible'); return; }
   const r = await sbMilitaireTrousseRetirer();
   if (!r || r.ok !== true) {
     const m = r?.raison;
@@ -4439,7 +4463,7 @@ async function doRetirerTrousse() {
     }
   }
   updateUI();
-  showToast('Trousse délivrée', 'Une trousse de premiers secours vient d\'être préparée pour vous.', true, true);
+  showToast('Trousse délivrée', 'Une trousse de premiers secours vient d\'être préparée pour vous.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b63c62c6b", 'Une trousse de premiers secours vient d\'être préparée pour vous.', undefined, 'Trousse délivrée');
   addJournalEntry('Retrait d\'une trousse de premiers secours à l\'infirmerie.', 'event-info');
 }
 
@@ -4463,7 +4487,7 @@ async function doRetirerRations() {
   const nb = parseInt(document.getElementById('nb-rations')?.value || '0');
   document.getElementById('modal-postes')?.classList.remove('open');
   if (!(nb > 0)) return;
-  if (typeof sbMilitaireRationsRetirer !== 'function') { showToast('Indisponible', '', false); return; }
+  if (typeof sbMilitaireRationsRetirer !== 'function') { showToast('Indisponible', '', false); globalThis.RPI18nPlateau?.markToast(null, '', undefined, 'Indisponible'); return; }
   const r = await sbMilitaireRationsRetirer(nb);
   if (!r || r.ok !== true) {
     const m = r?.raison;
@@ -4495,7 +4519,7 @@ async function doRetirerRations() {
 // donne : il ne recoit jamais d'effectif ni de position exacts. Un echec ne renvoie rien du tout
 // -- surtout pas « vous n'avez pas repere X hommes », qui trahirait leur existence.
 async function doObserverJumelles() {
-  if (typeof sbMilitaireObserver !== 'function') { showToast('Indisponible', '', false); return; }
+  if (typeof sbMilitaireObserver !== 'function') { showToast('Indisponible', '', false); globalThis.RPI18nPlateau?.markToast(null, '', undefined, 'Indisponible'); return; }
   const r = await sbMilitaireObserver();
   if (!r || r.ok !== true) {
     showToast('Observation impossible',

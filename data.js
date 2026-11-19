@@ -2429,7 +2429,7 @@ const WORLD = {
           imagesAVenir: false,
           desc: "L'usine pharmaceutique d'État de Sovarka. Des cheminées propres, des blouses blanches et un slogan au fronton : « La santé du peuple est un devoir du Plan ».",
           roomOverrides: {
-            salle_ventes: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_Pharmanov_accueil.webp', excludeOrders: ['acheter_sels_ammoniaque'] },
+            salle_ventes: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_Pharmanov_accueil.webp', excludeOrders: ['acheter_sels_ammoniaque', 'pharmacie_medicaments'] },
             // Salaire de production a l'echelle de Sovarka (Fred, 06/11/2026 : entre 15 et 20 PSK ;
             // serveur : salaires_production_pays, migration 20261106184000).
             salle_production: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_Pharmanov_production.webp', excludeOrders: ['produire_medicaments', 'produire_desinfectant'], orders: [
@@ -6320,7 +6320,9 @@ const BUILDINGS = {
           },
           {fn:'produire_arme', label:'Produire une arme', pa:0, cost:0, type:'legal', icon:'ti-hammer', successRate:100, desc:'Fabrication contre salaire fixe : 2 PA, 100 FR par arme. Necessite des matieres en stock et une caisse suffisante.'},
           {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', i18nKey:'variant.commerce_sell_business', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre à l\'armurerie, depuis votre inventaire, les matières de sa production d\'armes, au prix d\'achat fixé par le propriétaire.'},
-          {fn:'marche_noir', label:'Marché Noir', pa:1, cost:0, type:'illegal', icon:'ti-alert-triangle', successRate:100, desc:'Explosifs et le poison local de Victor Legall, entre deux boîtes d\'appâts. Rien de tout cela n\'est enregistré.'}
+          {fn:'marche_noir', label:'Marché Noir', pa:1, cost:0, type:'illegal', icon:'ti-alert-triangle', successRate:100, desc:'Explosifs et le poison local de Victor Legall, entre deux boîtes d\'appâts. Rien de tout cela n\'est enregistré.'},
+          // Furet renifleur (lot 2c des maladies, 18/11/2026) : vendu seulement chez Chasse et Pêche.
+          {fn:'acheter_furet', label:'Acheter un furet renifleur', pa:0, cost:0, type:'legal', icon:'ti-paw', successRate:100, desc:"Un furet de chasse au lapin, au nez infaillible : il éternue devant un aliment avarié. Deux par semaine au plus."}
         ]
       }
     }
@@ -8078,7 +8080,7 @@ const BUILDINGS = {
         desc: "Un long comptoir de bois verni, une balance de précision et un registre où chaque boîte vendue est consignée.",
         persons: [{name:'Valentina Pilioulkina (PNJ)', role:'Pharmacienne', rel:'neutral', job:'pharmacienne'}],
         orders: [
-          {fn:'pharmacie_medicaments', label:'Acheter des médicaments', pa:0, cost:0, type:'legal', icon:'ti-pill', successRate:100, desc:"Médicaments vendus au comptoir.", bientot:"Bientôt disponible : les médicaments de la pharmacie seront définis prochainement."}
+          {fn:'pharmacie_medicaments', label:'Acheter des médicaments', pa:0, cost:0, type:'legal', icon:'ti-pill', successRate:100, desc:"Médicaments vendus au comptoir."}
         ]
       }
     }
@@ -8432,7 +8434,7 @@ const BUILDINGS = {
         imageUrl: "images/montrouge/montrouge-entrepot-halle-logistique.jpg",
         desc: "Le quai de chargement et la salle des ventes. Le stock et les prix varient selon les livraisons du jour.",
         persons: [],
-        orders: [{fn:'receptionner_commande', label:'Réceptionner une caisse', pa:1, cost:0, type:'legal', icon:'ti-package-import', successRate:100, desc:'Retirer les caisses livrées ici à votre nom (achats de trading, offres d\'achat servies).'}, {fn:'acheter_ressources_entrepot', label:'Acheter des ressources', pa: 0, cost:0, type:'legal', icon:'ti-shopping-cart', successRate:100, desc:'Choisir les ressources et quantités à acheter, selon le stock et le prix du moment.'}]
+        orders: [{fn:'receptionner_commande', label:'Réceptionner une caisse', pa:1, cost:0, type:'legal', icon:'ti-package-import', successRate:100, desc:'Retirer les caisses livrées ici à votre nom (achats de trading, offres d\'achat servies).'}, {fn:'acheter_ressources_entrepot', label:'Acheter des ressources', pa: 0, cost:0, type:'legal', icon:'ti-shopping-cart', successRate:100, desc:'Choisir les ressources et quantités à acheter, selon le stock et le prix du moment.'}, {fn:'pharmacie_medicaments', label:'Acheter des médicaments', pa:0, cost:0, type:'legal', icon:'ti-pill', successRate:100, desc:"Médicaments vendus au comptoir."}]
       },
       bureau_direction: {
         name: "Bureau de Direction",
@@ -8623,7 +8625,7 @@ const BUILDINGS = {
         imageUrl: "images/psm-entrepot-logistique-salle-ventes.webp",
         desc: "Le quai de chargement et la salle des ventes. Le stock et les prix varient selon les livraisons du jour.",
         persons: [],
-        orders: [{fn:'receptionner_commande', label:'Réceptionner une caisse', pa:1, cost:0, type:'legal', icon:'ti-package-import', successRate:100, desc:'Retirer les caisses livrées ici à votre nom (achats de trading, offres d\'achat servies).'}, {fn:'acheter_ressources_entrepot', label:'Acheter des ressources', pa: 0, cost:0, type:'legal', icon:'ti-shopping-cart', successRate:100, desc:'Choisir les ressources et quantités à acheter, selon le stock et le prix du moment.'}]
+        orders: [{fn:'receptionner_commande', label:'Réceptionner une caisse', pa:1, cost:0, type:'legal', icon:'ti-package-import', successRate:100, desc:'Retirer les caisses livrées ici à votre nom (achats de trading, offres d\'achat servies).'}, {fn:'acheter_ressources_entrepot', label:'Acheter des ressources', pa: 0, cost:0, type:'legal', icon:'ti-shopping-cart', successRate:100, desc:'Choisir les ressources et quantités à acheter, selon le stock et le prix du moment.'}, {fn:'pharmacie_medicaments', label:'Acheter des médicaments', pa:0, cost:0, type:'legal', icon:'ti-pill', successRate:100, desc:"Médicaments vendus au comptoir."}]
       },
       bureau_direction: {
         name: "Bureau de Direction",
@@ -8653,7 +8655,7 @@ const BUILDINGS = {
         imageUrl: "images/salle-ventes-entrepot-luthecia.webp",
         desc: "Le quai de chargement et la salle des ventes. Le stock et les prix varient selon les livraisons du jour.",
         persons: [],
-        orders: [{fn:'receptionner_commande', label:'Réceptionner une caisse', pa:1, cost:0, type:'legal', icon:'ti-package-import', successRate:100, desc:'Retirer les caisses livrées ici à votre nom (achats de trading, offres d\'achat servies).'}, {fn:'acheter_ressources_entrepot', label:'Acheter des ressources', pa: 0, cost:0, type:'legal', icon:'ti-shopping-cart', successRate:100, desc:'Choisir les ressources et quantités à acheter, selon le stock et le prix du moment.'}]
+        orders: [{fn:'receptionner_commande', label:'Réceptionner une caisse', pa:1, cost:0, type:'legal', icon:'ti-package-import', successRate:100, desc:'Retirer les caisses livrées ici à votre nom (achats de trading, offres d\'achat servies).'}, {fn:'acheter_ressources_entrepot', label:'Acheter des ressources', pa: 0, cost:0, type:'legal', icon:'ti-shopping-cart', successRate:100, desc:'Choisir les ressources et quantités à acheter, selon le stock et le prix du moment.'}, {fn:'pharmacie_medicaments', label:'Acheter des médicaments', pa:0, cost:0, type:'legal', icon:'ti-pill', successRate:100, desc:"Médicaments vendus au comptoir."}]
       },
       bureau_direction: {
         name: "Bureau de Direction",
@@ -8690,6 +8692,8 @@ const BUILDINGS = {
           // "Reveiller" est une mecanique centrale du scrutin, la rendre dependante de la
           // production du jour la couperait sans raison lisible. Le prix alimente malgre tout la
           // caisse de l'usine, comme la vente directe : aucun circuit economique n'est contourne.
+          // Maladies (Fred, 18/11/2026) : faute de pharmacie en Républia, les médicaments se vendent ici (lot 1).
+          {fn:'pharmacie_medicaments', label:'Acheter des médicaments', pa:0, cost:0, type:'legal', icon:'ti-pill', successRate:100, desc:"Médicaments vendus au comptoir."},
           {fn:'acheter_sels_ammoniaque', label:'Acheter des sels d\'ammoniaque', pa:0, cost:0, type:'legal', icon:'ti-flask', successRate:100, desc:'30 FR le flacon. Ranime un député endormi à l\'Assemblée. Aucune limite de stock propre.'}
         ]
       },
@@ -11106,7 +11110,6 @@ const PNJ_SOVARKA = {
     // réalité des images »).
     'Tenancier de Buvette (PNJ)': ['Tenancière de Buvette (PNJ)', 'Tenancière de la buvette'],
     'Commentateur Sportif (PNJ)': ['Commentatrice Sportive (PNJ)', 'Commentatrice du stade'],
-    'Delegue Morel (PNJ)': 'Délégué Batbayar Dachiev (PNJ)',
     'Directeur Fabre (PNJ)': 'Directeur Tsyren Badmaïev (PNJ)',
     'Francisca Brel': 'Tuya Sanjieva',
     'Edgar Simore': 'Altan Namsaraïev',
@@ -11124,7 +11127,6 @@ const PNJ_SOVARKA = {
     'Tenancier de Buvette (PNJ)': ['Avdotia Doubova (PNJ)', 'Tenancière de la buvette'],
     'Bookmaker Officiel (PNJ)': ['Iossif Borissov (PNJ)', 'Guichetier du Bureau d\'État des pronostics'],
     'Meneur des Supporters (PNJ)': ['Stiopa « le Tambour » Ossipov (PNJ)', 'Meneur des supporters'],
-    'Delegue Morel (PNJ)': 'Délégué Prokofi Panov (PNJ)',
     'Directeur Fabre (PNJ)': 'Directeur Platon Iermakov (PNJ)',
     'Francisca Brel': 'Varvara Kozlova',
     'Edgar Simore': 'Efim Iakovlev',
@@ -11297,7 +11299,7 @@ function slugPnjSovarka(nom) {
         imageBg: "linear-gradient(135deg,#0b1016,#16212c)",
         desc: "Le bureau du Commandant du Port, au-dessus des quais. Par la grande baie vitrée, les grues chargent les cargos ; au mur, le plan du port de Starovka. Les douaniers y déposent leurs dossiers.",
         imageUrl: "images/Sovarka/Starovka/Starovka_port_administration_portuaire.webp",
-        persons: [{name:'Commandant Gleb Ledokolov (PNJ)', role:'Commandant de Port', rel:'neutral', job:'capitaine_port'}],
+        persons: [{name:'Commandant Arseni Ledokolov (PNJ)', role:'Commandant de Port', rel:'neutral', job:'capitaine_port'}],
         orders: copie(psm.administration_portuaire.orders).filter(o => o.fn !== 'consulter_manifeste').map(o => Object.assign(o,
           o.fn === 'consulter_administration_port'
             ? { desc: 'Caisse du port, balance commerciale, marchandises, contrats de la nuit et registre du port. Consultation publique, gratuite.' }
@@ -11669,8 +11671,6 @@ function CHAMBRE_HOPITAL_ORDRES_SOVARKA() { return CHAMBRE_HOPITAL_ORDRES(); }
   for (const [ville, nom] of Object.entries(cites)) {
     let ctx = contexte(ville, 'hotel-mineur');
     if (ctx) ctx.desc = ctx.desc || ('Hôtel modeste de ' + nom + '. Clientèle ouvrière.');
-    ctx = contexte(ville, 'siege-syndical');
-    if (ctx) ctx.desc = ctx.desc || ('Le siège du syndicat ouvrier de ' + nom + '.');
     ctx = contexte(ville, 'usine-principale');
     if (ctx) ctx.desc = ctx.desc || ('L\'usine principale de ' + nom + ', propriété de l\'État.');
     ctx = contexte(ville, 'dispensaire-public-v');
@@ -12621,7 +12621,7 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     ['ville_a', 'port-starovka', 'quai_principal', "Chef de quai Ganbaatar Tsybikov (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_port-starovka_ganbaatar-tsybikov.webp'],
     ['ville_a', 'port-starovka', 'douanes', "Stepan Vetrov (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_port-starovka_chef-des-douanes.webp'],
     ['ville_a', 'entrepot-logistique-starovka', 'bureau_direction', "Batzorig Dorjiev (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_entrepot-logistique-starovka_batzorig-dorjiev_v2.webp'],
-    ['ville_a', 'port-starovka', 'administration_portuaire', "Commandant Gleb Ledokolov (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_port-starovka_commandant-tomor-ochirov.webp'],
+    ['ville_a', 'port-starovka', 'administration_portuaire', "Commandant Arseni Ledokolov (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_port-starovka_commandant-tomor-ochirov.webp'],
     ['ville_a', 'marche', 'marche_ext', "Tsypilma Dashieva (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_marche_tuyana-dashieva.webp'],
     ['ville_a', 'capitaine-sauvage', 'salle_principale', "Sesegma Badmaeva (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_capitaine-sauvage_sesegma-badmaeva.webp'],
     ['ville_a', 'tribunal-local', 'salle_audience_locale', "Arkadi Prigovorov (PNJ)", 'images/Sovarka/Starovka/Starovka_portrait_tribunal-local_arkadi-prigovorov.webp'],
@@ -12689,6 +12689,9 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
   chasse.roomOverrides = Object.assign({}, chasse.roomOverrides);
   chasse.roomOverrides.magasin = Object.assign({}, chasse.roomOverrides.magasin,
     { imageUrl: dir + 'Starovka_chasse_peche_magasin_v2.webp' });
+  // Furet renifleur (lot 2c des maladies, 18/11/2026) : seul autre point de vente, ajouté à cette seule armurerie.
+  chasse.roomOverrides.magasin.orders = (chasse.roomOverrides.magasin.orders || []).concat([
+    {fn:'acheter_furet', label:'Acheter un furet renifleur', pa:0, cost:0, type:'legal', icon:'ti-paw', successRate:100, desc:"Un furet de chasse au lapin, au nez infaillible : il éternue devant un aliment avarié. Deux par semaine au plus."}]);
   // Correctif du 17/11/2026 (Fred) : le local n°2 devient un bâtiment propre à la rue du magasin de
   // chasse. Dans « locaux-starovka », il s'ouvrait sur le local n°1 (face à l'imprimerie) et la sortie
   // pouvait ramener rue de l'imprimerie. Serveur : migration 20261117130000.
@@ -12970,17 +12973,8 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     pnj('Oyuuna Tsydenova (PNJ)', 'Hôtesse d’accueil du centre d’affaires', 'hotesse',
       'Starovka_portrait_centre-affaires_oyuuna-tsydenova')
   ]);
-  // Batbayar possède déjà sa fiche. Son siège n'est pas encore dans cite.buildings :
-  // portrait raccordé sans créer de bâtiment ni inventer son emplacement.
-  const syndicat = cite.buildingContext['siege-syndical']?.roomOverrides?.bureau_syndical?.persons;
-  if (!Array.isArray(syndicat) || syndicat.length !== 1
-      || syndicat[0].name !== 'Délégué Batbayar Dachiev (PNJ)') {
-    throw new Error('Portrait Starovka : délégué syndical inattendu');
-  }
-  installer('siege-syndical', 'bureau_syndical', [
-    { ...syndicat[0], photoUrl: base + 'Starovka_portrait_syndicat_batbayar-dachiev.webp',
-      photoPos: '50% 30%' }
-  ]);
+  // Siège syndical de Starovka retiré le 18/11/2026 (Fred) : Tserenjav Dachiev et son portrait passent au
+  // Bureau du syndicat national de la mairie (bloc SYNDICAT_NATIONAL_SOVARKA_20261118).
 })();
 
 // PNJ_STAROVKA_PERSONNALITES_20261118 — décisions de Fred (18/11/2026, nuit ; GAME-DESIGN-NOVOMIRSK.md,
@@ -13038,7 +13032,7 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
   ajouter('mairie', 'salle_partis', 'Lieutenant Tsyden Zhalsaraev', 'Cellule de validation et de surveillance des partis', 'policier', 'Starovka_portrait_mairie_tsyden-zhalsaraev.webp');
   ajouter('mairie', 'salle_partis', 'Erdem Gombozhapov', 'Archiviste de la salle des partis', 'secretaire');
   // Port
-  fiche('port-starovka', 'administration_portuaire', 'Commandant Gleb Ledokolov', 'gleb_ledokolov');
+  fiche('port-starovka', 'administration_portuaire', 'Commandant Arseni Ledokolov', 'arseni_ledokolov');
   fiche('port-starovka', 'quai_principal', 'Chef de quai Ganbaatar Tsybikov', 'ganbaatar_tsybikov');
   fiche('port-starovka', 'douanes', 'Stepan Vetrov');
   // Économie
@@ -13076,7 +13070,6 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
   renommer('stade', 'guichet_paris', 'Bookmaker Officiel', 'Chingis Balzhinimaev', 'Bookmaker officiel');
   renommer('stade', 'siege_supporters', 'Meneur des Supporters', 'Solbon Radnaev', 'Meneur des supporters');
   renommer('stade', 'boutique', 'Vendeur des accessoires de Starovka', 'Semion Charfov', 'Vendeur des accessoires');
-  fiche('siege-syndical', 'bureau_syndical', 'Délégué Batbayar Dachiev', 'batbayar_dachiev');
   // Règle 1 (Fred, 18/11/2026) : un PNJ en poste reste dans sa pièce quand un PJ prend le poste, et devient
   // conseiller du titulaire (toujours référent) ; son rôle affiché suit le titulaire réel.
   function conseiller(batiment, piece, nom, job, posteCity, rolePnj, rolePj) {
@@ -13086,10 +13079,46 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
   }
   conseiller('mairie', 'bureau_maire_local', 'Tsyren-Dorji Bazarov', 'maire', 'ville_a', 'Maire de Starovka', 'Conseiller du maire — référent municipal');
   conseiller('mairie', 'bureau_maire_adjoint', 'Munko Tsybenov', 'maire_adjoint', 'ville_a', 'Adjoint au maire', 'Conseiller de l\'adjoint — référent de la production');
-  conseiller('port-starovka', 'administration_portuaire', 'Commandant Gleb Ledokolov', 'capitaine_port', null, 'Commandant du Port', 'Conseiller du Commandant du Port — référent du commerce extérieur');
+  conseiller('port-starovka', 'administration_portuaire', 'Commandant Arseni Ledokolov', 'capitaine_port', null, 'Commandant du Port', 'Conseiller du Commandant du Port — référent du commerce extérieur');
   conseiller('entrepot-logistique-starovka', 'bureau_direction', 'Batzorig Dorjiev', 'directeur_entrepot', 'ville_a', "Directeur de l'Entrepôt Logistique", "Conseiller du directeur — référent de l'entrepôt");
   conseiller('usine-principale', 'direction_usine', 'Damdin Mazoutov', 'directeur_raffinerie', 'ville_a', 'Directeur de la raffinerie', 'Conseiller du directeur — référent de la raffinerie');
   // Habitants
   fiche('maison-starovka', 'piece_maison', 'Dolgor Tsybikova');
   fiche('maison-starovka-ouvrier', 'piece_maison', 'Zorigto Badmaev');
+})();
+
+// SYNDICAT_NATIONAL_SOVARKA_20261118 — décisions de Fred (18/11/2026, « Décisions du 18/11 », points 3 et 7).
+// Une pièce « Bureau du syndicat national » dans les mairies de Novomirsk, Krasnov et Starovka (pas la salle
+// des partis) : adhérer, consulter, quitter, élire le chef, « Manifestation de soutien au président » (chef).
+// Un PNJ non référent par bureau. Décors de Fred (18/11/2026) ; portraits tirés de l'homme visible dans chaque décor.
+(function () {
+  const ordres = [
+    {fn:'se_syndiquer_etat', label:'Adhérer au syndicat national', i18nKey:'variant.union_state_join', pa:1, cost:15, type:'legal', icon:'ti-users-group', successRate:100, desc:'Adhérer au Syndicat national de Sovarka : cotisation unique de 15 PSK et 1 PA, jamais renouvelée. Aucune appartenance à un parti n’est demandée.'},
+    {fn:'consulter_syndicat_etat', label:'Consulter le syndicat', i18nKey:'variant.union_state_view', pa:0, cost:0, type:'legal', icon:'ti-list-details', successRate:100, desc:'Chef, effectif et membres du Syndicat national, et règle de la manifestation de soutien au président.'},
+    {fn:'quitter_syndicat_etat', label:'Quitter le syndicat', i18nKey:'variant.union_state_leave', pa:0, cost:0, type:'legal', icon:'ti-door-exit', successRate:100, desc:'Rendre sa carte du Syndicat national.'},
+    {fn:'declencher_election_syndicat_etat', label:'Déclencher une élection', i18nKey:'variant.union_state_election', pa:1, cost:0, type:'legal', icon:'ti-ballot', successRate:100, desc:'Réservé aux syndiqués : élection du chef du Syndicat national, 3 jours de candidatures puis 3 jours de vote.'},
+    {fn:'manifestation_soutien_president', label:'Manifestation de soutien au président', i18nKey:'variant.union_state_rally', pa:0, cost:0, type:'legal', icon:'ti-flag', successRate:100, requiresChefSyndicatEtat:true, desc:'Réservé au chef du syndicat, depuis ce bureau : 10 syndiqués au moins, une par jour et par ville. Les syndiqués présents dans la ville défilent (2 PA chacun, sauf à 3 PA ou moins).'}
+  ];
+  const desc = 'Le bureau du Syndicat national de Sovarka, à la mairie : drapeaux rouges, tableau des médailles du travail et affiches des colonies de vacances. On y adhère, on y élit le chef et on y prépare les manifestations de soutien au président.';
+  const bureaux = [
+    ['capitale', 'mairie-capitale', 'images/Sovarka/Novomirsk/Novomirsk_mairie_bureau_syndicat_national.webp', 'Lev Lozungov', 'lev_lozungov', 'images/Sovarka/Novomirsk/Novomirsk_portrait_mairie_lev-lozungov.webp'],
+    ['ville_b', 'mairie', 'images/Sovarka/Krasnov/Krasnov_mairie_bureau_syndicat_national.webp', 'Anatoli Transparantov', 'anatoli_transparantov', 'images/Sovarka/Krasnov/Krasnov_portrait_mairie_anatoli-transparantov.webp'],
+    ['ville_a', 'mairie', 'images/Sovarka/Starovka/Starovka_mairie_bureau_syndicat_national.webp', 'Tserenjav Dachiev', 'tserenjav_dachiev', 'images/Sovarka/Starovka/Starovka_portrait_mairie_tserenjav-dachiev.webp']
+  ];
+  for (const [ville, batiment, image, nom, profil, portrait] of bureaux) {
+    const cite = WORLD.soviet && WORLD.soviet[ville];
+    if (!cite || !cite.buildings.includes(batiment)) throw new Error('Bureau du syndicat national : mairie absente (' + ville + ')');
+    cite.buildingContext = cite.buildingContext || {};
+    // L'ancien siège syndical sans façade (hors de cite.buildings) disparaît de Sovarka.
+    delete cite.buildingContext['siege-syndical'];
+    const ctx = cite.buildingContext[batiment] = cite.buildingContext[batiment] || {};
+    ctx.roomsExtra = Object.assign({}, ctx.roomsExtra || {}, {
+      bureau_syndicat_national: {
+        name: 'Bureau du syndicat national', imageBg: 'linear-gradient(135deg,#1a0808,#2a0e0e)', desc, imageUrl: image,
+        persons: [Object.assign({ name: nom + ' (PNJ)', role: 'Délégué du Syndicat national', rel: 'neutral', job: 'syndicaliste', profilId: profil },
+          portrait ? { photoUrl: portrait, photoPos: '50% 30%' } : {})],
+        orders: ordres.map(o => Object.assign({}, o))
+      }
+    });
+  }
 })();

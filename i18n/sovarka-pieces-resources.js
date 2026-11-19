@@ -116,7 +116,8 @@
   ["Salle des Origines", "Hall of Origins", "Sala de los Orígenes", "起源廳", "Зал истоков", "기원의 전시실", "قاعة الأصول", "Sala das Origens", "Saal der Ursprünge"],
   ["Salle des Personnalités discrètes", "Hall of Discreet Figures", "Sala de las Personalidades discretas", "低調名人廳", "Зал скромных знаменитостей", "숨은 인물들의 전시실", "قاعة الشخصيات المتوارية", "Sala das Personalidades discretas", "Saal der stillen Persönlichkeiten"],
   ["Salle de la Bataille du Fleuve", "Battle of the River Hall", "Sala de la Batalla del Río", "河流戰役廳", "Зал битвы на реке", "강 전투 전시실", "قاعة معركة النهر", "Sala da Batalha do Rio", "Saal der Flussschlacht"],
-  ["Salle du Grand Incendie", "Great Fire Hall", "Sala del Gran Incendio", "大火災廳", "Зал Великого пожара", "대화재 전시실", "قاعة الحريق الكبير", "Sala do Grande Incêndio", "Saal des großen Brandes"]
+  ["Salle du Grand Incendie", "Great Fire Hall", "Sala del Gran Incendio", "大火災廳", "Зал Великого пожара", "대화재 전시실", "قاعة الحريق الكبير", "Sala do Grande Incêndio", "Saal des großen Brandes"],
+  ["Bureau du syndicat national", "National union office", "Oficina del sindicato nacional", "全國工會辦公室", "Бюро национального профсоюза", "전국 노동조합 사무실", "مكتب النقابة الوطنية", "Escritório do sindicato nacional", "Büro der Nationalen Gewerkschaft"]
  ];
  const parFr=new Map(L.map(l=>[l[0],l]));
  function label(_buildingId,_roomId,original){

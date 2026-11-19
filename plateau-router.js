@@ -17,7 +17,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   // Goulag : ordre de choix, sans débit générique ; toutes les permissions sont côté RPC.
   if (fn === 'goulag_depart_pied') {
     if (state.country !== 'soviet' || state.currentCity !== 'qhs' || state.currentBuilding !== 'qhs-prison' || state.currentRoom !== 'entree_qhs') {
-      showToast('Accès refusé', 'Ce départ n’est possible qu’à l’entrée du goulag de Sovarka.', false);
+      showToast('Accès refusé', 'Ce départ n’est possible qu’à l’entrée du goulag de Sovarka.', false); globalThis.RPI18nPlateau?.markToast(null, 'Ce départ n’est possible qu’à l’entrée du goulag de Sovarka.', undefined, 'Accès refusé');
     } else if (typeof window.goulagToundraChoisirDepart === 'function') window.goulagToundraChoisirDepart();
     else showToast('Service indisponible', 'La traversée n’est pas encore accessible.', false);
     return;
@@ -48,7 +48,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   // auquel la chambre est attribuee -- un visiteur autorise peut entrer mais jamais se soigner
   // a la place du patient. Verifie EN PREMIER, avant tout debit PA/FR (garantie explicite).
   if (typeof estOrdreMedicalReserveAuPatient === 'function' && estOrdreMedicalReserveAuPatient(state.currentBuilding, state.currentRoom, fn)) {
-    showToast('Réservé au patient', 'Ces soins sont réservés au patient auquel cette chambre est attribuée.', false);
+    showToast('Réservé au patient', 'Ces soins sont réservés au patient auquel cette chambre est attribuée.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b13f1bd83", 'Ces soins sont réservés au patient auquel cette chambre est attribuée.', undefined, 'Réservé au patient');
     return;
   }
 
@@ -58,7 +58,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (typeof definitionOrdreDansPiece === 'function' && typeof paysMandatPourOrdre === 'function') {
     const definitionMinisterielle = definitionOrdreDansPiece(state.currentBuilding, state.currentRoom, fn);
     if (definitionMinisterielle?.requiresPost && paysMandatPourOrdre() !== state.country) {
-      showToast('Accès refusé', 'Ce mandat ne vous donne aucun pouvoir dans cet empire.', false);
+      showToast('Accès refusé', 'Ce mandat ne vous donne aucun pouvoir dans cet empire.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b2276fa14", 'Ce mandat ne vous donne aucun pouvoir dans cet empire.', undefined, 'Accès refusé');
       return;
     }
   }
@@ -73,7 +73,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (typeof verdictRoleOrdre === 'function') {
     const verdictRoleOrdreCourant = verdictRoleOrdre(state.currentBuilding, state.currentRoom, fn);
     if (verdictRoleOrdreCourant.bloque) {
-      showToast('Accès refusé', verdictRoleOrdreCourant.message, false);
+      showToast('Accès refusé', verdictRoleOrdreCourant.message, false); globalThis.RPI18nPlateau?.markToast(null, verdictRoleOrdreCourant.message, undefined, 'Accès refusé');
       return;
     }
   }
@@ -102,7 +102,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
       && state.blocusActifIciBatiment === state.currentBuilding && fn !== 'mobiliser_police') {
     const roomBlocus = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
     if (roomBlocus?.orders?.some(o => o.fn === fn)) {
-      showToast('Bloqué', 'Un blocus syndical rend les démarches de ce bâtiment inaccessibles.', false);
+      showToast('Bloqué', 'Un blocus syndical rend les démarches de ce bâtiment inaccessibles.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.be775e43e", 'Un blocus syndical rend les démarches de ce bâtiment inaccessibles.', undefined, 'Bloqué');
       return;
     }
   }
@@ -130,7 +130,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   const ORDRES_BUDGET_INSTITUTION = ['reception_etat', 'banquet_diplo'];
   const fondsOrdinairesDisponibles = typeof getFondsDisponiblesOrdinaires === 'function' ? getFondsDisponiblesOrdinaires() : state.arg;
   if (cost > 0 && !ORDRES_BUDGET_INSTITUTION.includes(fn) && fondsOrdinairesDisponibles < cost) {
-    showToast('Fonds insuffisants', `Cette action coute ${cost} ${cur}.`, false);
+    showToast('Fonds insuffisants', `Cette action coute ${cost} ${cur}.`, false); globalThis.RPI18nPlateau?.markToast(null, `Cette action coute ${cost} ${cur}.`, undefined, 'Fonds insuffisants');
     return;
   }
 
@@ -153,7 +153,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   // tout debit, cost:0 declare dans data.js pour cette raison.
   if (fn === 'deposer_petite_annonce') { ouvrirFormulairePetiteAnnonce(); return; }
   if (fn === 'blanchiment' || fn === 'societe_ecran') {
-    showToast('Service à l\'étude', 'Ce service Helvetia n\'est pas encore disponible.', false);
+    showToast('Service à l\'étude', 'Ce service Helvetia n\'est pas encore disponible.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b5b041baa", 'Ce service Helvetia n\'est pas encore disponible.', undefined, 'Service à l\'étude');
     return;
   }
   if (fn === 'plainte_police') { openPlainteModal(pa, cost); return; }
@@ -323,6 +323,12 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'rejoindre_club_supporters') { doRejoindreClubSupporters(pa, cost); return; }
   if (fn === 'consulter_organigramme_supporters') { doConsulterOrganigrammeSupporters(); return; }
   if (fn === 'se_syndiquer') { doRejoindreSyndicatDockers(pa, cost); return; }
+  // Syndicat national de Sovarka (Fred, 18/11/2026) : bureau du syndicat national des mairies.
+  if (fn === 'se_syndiquer_etat') { if (typeof doAdhererSyndicatEtat === 'function') doAdhererSyndicatEtat(); return; }
+  if (fn === 'consulter_syndicat_etat') { if (typeof doConsulterSyndicatEtat === 'function') doConsulterSyndicatEtat(); return; }
+  if (fn === 'quitter_syndicat_etat') { if (typeof doQuitterSyndicatEtat === 'function') doQuitterSyndicatEtat(); return; }
+  if (fn === 'declencher_election_syndicat_etat') { if (typeof doDeclencherElectionSyndicatEtat === 'function') doDeclencherElectionSyndicatEtat(pa, cost); return; }
+  if (fn === 'manifestation_soutien_president') { if (typeof doManifestationSoutienPresident === 'function') doManifestationSoutienPresident(); return; }
   if (fn === 'consulter_organigramme_syndicat') { doConsulterOrganigrammeSyndicat(); return; }
   if (fn === 'declencher_election_syndicat') { doDeclencherElectionSyndicat(pa, cost); return; }
   if (fn === 'organiser_manifestation_syndicat') { doOrganiserManifestationSyndicat(); return; }
@@ -417,7 +423,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'marchander_vote') { ouvrirMarchanderVote(pa, cost); return; }
   // §17 : le terme visible devient "Neutraliser". Le fn 'assassiner' reste inchange -- c'est un
   // identifiant persiste dans data.js et compare par le routeur, jamais montre au joueur.
-  if (fn === 'assassiner') { showToast('Cliquez sur la cible', 'Pour neutraliser quelqu\'un, cliquez sur la personne visée dans la liste des personnes présentes.', false); return; }
+  if (fn === 'assassiner') { showToast('Cliquez sur la cible', 'Pour neutraliser quelqu\'un, cliquez sur la personne visée dans la liste des personnes présentes.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b86978202", 'Pour neutraliser quelqu\'un, cliquez sur la personne visée dans la liste des personnes présentes.', undefined, 'Cliquez sur la cible'); return; }
   if (fn === 'consulter_elections') { ouvrirTableauElectoral(); return; }
   if (fn === 'creer_poste_ministre')    { creerPosteMinistre(pa, cost); return; }
   if (fn === 'creer_comite')            { creerComite(pa, cost); return; }
@@ -774,6 +780,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'acheter_criee') { ouvrirAcheterCriee(pa, cost); return; }
   // Marchande de poissons de Novomirsk (06/11/2026) : plateau-poissonniere.js, tout par le serveur.
   if (fn === 'poissonniere_poisson') { ouvrirPoissonniere('poisson'); return; }
+  if (fn === 'pharmacie_medicaments') { if (typeof ouvrirPharmacie === 'function') ouvrirPharmacie(); return; }
+  if (fn === 'acheter_furet') { if (typeof ouvrirFuret === 'function') ouvrirFuret(); return; }
   if (fn === 'contrebande_poissonniere') { ouvrirPoissonniere('contrebande'); return; }
   if (fn === 'consulter_effectifs_douane') { ouvrirConsulterEffectifsDouane(); return; }
   if (fn === 'recruter_douanier') { doRecruterDouanier(pa, cost); return; }
@@ -897,8 +905,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'planifier_operation') { ouvrirModalTexteLibre('planifier_operation', 'Planifier une operation', 'Decrivez l\'operation...'); return; }
   if (fn === 'mobiliser') { doMobiliserPolice(fn); return; }
   if (fn === 'dissoudre_assemblee') { doDissoudreAssemblee(pa, cost); return; }
-  if (fn === 'negocier') { showToast('Ordre contact', 'Utilisez les ordres contact en cliquant sur le personnage cible.', false); return; }
-  if (fn === 'parler_pnj') { showToast('Ordre contact', 'Cliquez directement sur le personnage pour interagir.', false); return; }
+  if (fn === 'negocier') { showToast('Ordre contact', 'Utilisez les ordres contact en cliquant sur le personnage cible.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b3c7668c3", 'Utilisez les ordres contact en cliquant sur le personnage cible.', undefined, 'Ordre contact'); return; }
+  if (fn === 'parler_pnj') { showToast('Ordre contact', 'Cliquez directement sur le personnage pour interagir.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.ba40084ac", 'Cliquez directement sur le personnage pour interagir.', undefined, 'Ordre contact'); return; }
   // Route 'plainte' SUPPRIMEE le 13 octobre 2026 avec son ecran. Elle servait « Consulter les
   // affaires en cours » dans les deux salles d'audience : un doublon du registre public du
   // GREFFE qui disait, lui, le texte de la plainte. Les trois lieux du tribunal sont
@@ -995,7 +1003,7 @@ function avertirZeroPa(confirmer, label, fn) {
   const titre = document.getElementById('postes-modal-title');
   const corps = document.getElementById('postes-body');
   if (!modal || !titre || !corps) {
-    showToast('Ordre suspendu', 'Cet ordre vous laisserait à 0 PA : la confirmation n\'a pas pu s\'afficher.', false);
+    showToast('Ordre suspendu', 'Cet ordre vous laisserait à 0 PA : la confirmation n\'a pas pu s\'afficher.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.ba3213803", 'Cet ordre vous laisserait à 0 PA : la confirmation n\'a pas pu s\'afficher.', undefined, 'Ordre suspendu');
     return;
   }
   titre.textContent = zeroPaT('zeroPaTitle');

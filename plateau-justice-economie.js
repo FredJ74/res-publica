@@ -5,7 +5,7 @@ function doDonnerArgentPnj(pa, cost) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
 
   if (!pnj) {
-    showToast('Personne ici', 'Aucun PNJ à qui donner quelque chose.', false);
+    showToast('Personne ici', 'Aucun PNJ à qui donner quelque chose.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b1ed7537a", 'Aucun PNJ à qui donner quelque chose.', undefined, 'Personne ici');
     return;
   }
 
@@ -55,7 +55,7 @@ let donSquatteursEnCours = false;
 async function confirmerDonArgent(pa, cost) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const montant = parseInt(document.getElementById('don-montant')?.value || 0, 10);
-  if (!montant || montant <= 0) { showToast('Montant invalide', 'Entrez un montant.', false); return; }
+  if (!montant || montant <= 0) { showToast('Montant invalide', 'Entrez un montant.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bf1b12215", 'Entrez un montant.', undefined, 'Montant invalide'); return; }
   if (donSquatteursEnCours || typeof sbRpcVerdict !== 'function') return;
   const c = contexteNegociationSquatteurs();
   const cle = 'squatteurs-don:' + JSON.stringify([c.uid, c.personnage?.name, c.pays, c.ville, c.terrain, montant]);
@@ -66,7 +66,7 @@ async function confirmerDonArgent(pa, cost) {
     if (!plan || !memeContexteNegociation(c)) return;
     intention = { requete: crypto.randomUUID(), occupation: plan.occupation };
     try { sessionStorage.setItem(cle, JSON.stringify(intention)); }
-    catch (_) { showToast('Don non lancé', 'La reprise sûre ne peut pas être conservée.', false); return; }
+    catch (_) { showToast('Don non lancé', 'La reprise sûre ne peut pas être conservée.', false); globalThis.RPI18nPlateau?.markToast("occupation.cannotKeepRecovery", 'La reprise sûre ne peut pas être conservée.', undefined, 'Don non lancé'); return; }
   }
   donSquatteursEnCours = true;
   document.getElementById('modal-postes')?.classList.remove('open');
@@ -83,7 +83,7 @@ async function confirmerDonArgent(pa, cost) {
         aucun_squatteur: 'Il n\'y a personne à qui donner de l\'argent ici.',
         occupation_modifiee: 'La situation du terrain a changé. Rouvrez le terrain.',
         intervention_en_cours: 'La police est déjà en route.' };
-      if (!r || r.transport) showToast('Don non confirmé', 'Réponse incertaine. Refaites le même don pour vérifier son résultat.', false);
+      if (!r || r.transport) { showToast('Don non confirmé', 'Réponse incertaine. Refaites le même don pour vérifier son résultat.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bdcd6b795", 'Réponse incertaine. Refaites le même don pour vérifier son résultat.', undefined, 'Don non confirmé'); }
       else if (motifs[r.raison]) showToast('Don impossible', motifs[r.raison], false);
       else signalerRefusCout(r);
       return;
@@ -124,11 +124,11 @@ function doRacheterTerrain(pa, cost) {
   // Vérifier si le terrain appartient à quelqu'un (systeme unifie, source Supabase)
   const proprietaire = getTerrainState(building).proprietaire;
   if (!proprietaire) {
-    showToast('Terrain libre', 'Ce terrain n\'est pas encore propriété privée. Vous pouvez l\'acheter directement.', false);
+    showToast('Terrain libre', 'Ce terrain n\'est pas encore propriété privée. Vous pouvez l\'acheter directement.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bcffc510d", 'Ce terrain n\'est pas encore propriété privée. Vous pouvez l\'acheter directement.', undefined, 'Terrain libre');
     return;
   }
   if (estTitulaire(proprietaire)) {
-    showToast('Votre terrain', 'Ce terrain vous appartient déjà.', false);
+    showToast('Votre terrain', 'Ce terrain vous appartient déjà.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b50bba45c", 'Ce terrain vous appartient déjà.', undefined, 'Votre terrain');
     return;
   }
 
@@ -217,7 +217,7 @@ async function confirmerRachat(btn, pa, cost) {
 async function doArreter(pa, cost) {
   const postesHabilites = ['president', 'min_int', 'min_just', 'commissaire'];
   if (!postesHabilites.includes(state.poste?.id)) {
-    showToast('Acces refuse', "Reserve au President, au Ministre de l'Interieur, au Ministre de la Justice et au Commissaire.", false);
+    showToast('Acces refuse', "Reserve au President, au Ministre de l'Interieur, au Ministre de la Justice et au Commissaire.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b1354652e", "Reserve au President, au Ministre de l'Interieur, au Ministre de la Justice et au Commissaire.", undefined, 'Acces refuse');
     return;
   }
 
@@ -249,14 +249,14 @@ async function doArreter(pa, cost) {
 async function confirmerArrestation(pa, cost) {
   const cibleInput = document.querySelector('input[name="arreter-cible"]:checked');
   const motif = document.getElementById('arreter-motif')?.value?.trim();
-  if (!cibleInput) { showToast('Cible requise', 'Choisissez une personne de votre repertoire.', false); return; }
-  if (!motif) { showToast('Motif requis', 'Precisez le motif de l\'arrestation.', false); return; }
+  if (!cibleInput) { showToast('Cible requise', 'Choisissez une personne de votre repertoire.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b62a64bf7", 'Choisissez une personne de votre repertoire.', undefined, 'Cible requise'); return; }
+  if (!motif) { showToast('Motif requis', 'Precisez le motif de l\'arrestation.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b3f5655dc", 'Precisez le motif de l\'arrestation.', undefined, 'Motif requis'); return; }
   const cible = cibleInput.value;
 
   // ORDRE DES OPERATIONS. Le serveur tranche AVANT que le moindre PA ne soit preleve : une
   // arrestation hors juridiction, contre une personne deja detenue ou introuvable ne doit rien
   // couter. C'est l'inverse de l'ancien code, qui facturait puis tirait un de.
-  if (typeof sbRpc !== 'function') { showToast('Indisponible', 'Service momentanement indisponible.', false); return; }
+  if (typeof sbRpc !== 'function') { showToast('Indisponible', 'Service momentanement indisponible.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b7c3ec26a", 'Service momentanement indisponible.', undefined, 'Indisponible'); return; }
   const rows = await sbRpc('arrestation_urgence', { p_cible: cible, p_motif: motif }).catch(() => null);
   const r = Array.isArray(rows) ? rows[0] : rows;
 
@@ -393,7 +393,7 @@ async function soumettrePlaynte() {
   const temoins = (document.getElementById('plainte-temoins')?.value || '')
     .split('\n').map(x => x.trim()).filter(x => x.length > 0).slice(0, 10);
 
-  if (typeof sbRpc !== 'function') { showToast('Indisponible', 'Service momentanement indisponible.', false); return; }
+  if (typeof sbRpc !== 'function') { showToast('Indisponible', 'Service momentanement indisponible.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b7c3ec26a", 'Service momentanement indisponible.', undefined, 'Indisponible'); return; }
   const rows = await sbRpc('plainte_deposer',
     { p_cible: cible, p_motif: motif, p_categorie: categorie || null,
       p_temoins: temoins.length ? temoins : null }).catch(() => null);
@@ -585,7 +585,7 @@ async function arreterAgentDemasque(couverture) {
 async function ouvrirDossiersPlaintes() {
   const posteLecteur = state.poste?.id;
   if (posteLecteur !== 'commissaire' && posteLecteur !== 'min_int') {
-    showToast('Acces refuse', 'Reserve au commissaire et au Ministre de l\'Interieur.', false);
+    showToast('Acces refuse', 'Reserve au commissaire et au Ministre de l\'Interieur.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b8737fa5e", 'Reserve au commissaire et au Ministre de l\'Interieur.', undefined, 'Acces refuse');
     return;
   }
   // Le ministre entre directement dans le volet qui le concerne : il n'instruit pas les plaintes
@@ -642,7 +642,7 @@ async function ouvrirDossiersPlaintes() {
 }
 
 async function deciderDossierPlainte(id, decision) {
-  if (typeof sbRpc !== 'function') { showToast('Indisponible', 'Service momentanement indisponible.', false); return; }
+  if (typeof sbRpc !== 'function') { showToast('Indisponible', 'Service momentanement indisponible.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b7c3ec26a", 'Service momentanement indisponible.', undefined, 'Indisponible'); return; }
   const rows = await sbRpc('plainte_traiter', { p_id: id, p_decision: decision }).catch(() => null);
   const r = Array.isArray(rows) ? rows[0] : rows;
   if (!r || r.ok !== true) {
@@ -671,10 +671,10 @@ async function deciderDossierPlainte(id, decision) {
     addJournalEntry('Plainte instruite : la piste mene au contre-espionnage'
       + (progres ? ' — le dossier a progresse.' : '.'), progres ? 'event-good' : 'event-info');
   } else if (r.decision === 'enquete_ouverte') {
-    showToast('Enquete ouverte', 'Elements a charge retenus : la personne est placee en garde a vue.', true);
+    showToast('Enquete ouverte', 'Elements a charge retenus : la personne est placee en garde a vue.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.b8a04ddf5", 'Elements a charge retenus : la personne est placee en garde a vue.', undefined, 'Enquete ouverte');
     addJournalEntry('Enquete ouverte sur plainte. Garde a vue de 2 jours.', 'event-good');
   } else {
-    showToast('Dossier classe', 'La plainte est classee sans suite.', true);
+    showToast('Dossier classe', 'La plainte est classee sans suite.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.b4e7df130", 'La plainte est classee sans suite.', undefined, 'Dossier classe');
     addJournalEntry('Plainte classee sans suite.', 'event-info');
   }
   await ouvrirDossiersPlaintes();
@@ -901,7 +901,7 @@ function doSeJustifier(pa, cost) {
     : (state.convocations || []).find(c => !c.traitee);
 
   if (!convocation) {
-    showToast('Rien à signaler', "Vous n'avez aucune convocation en attente.", false);
+    showToast('Rien à signaler', "Vous n'avez aucune convocation en attente.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b22bf6c83", "Vous n'avez aucune convocation en attente.", undefined, 'Rien à signaler');
     return;
   }
 
@@ -938,7 +938,7 @@ async function confirmerSeJustifier(pa, cost) {
     ? await sbRpc('convocation_se_justifier', { p_pa: pa || 1, p_cost: cost || 0 }).catch(() => null) : null;
   const v = Array.isArray(brut) ? brut[0] : brut;
   if (!v || v.ok !== true) {
-    if (v && v.raison === 'aucune_convocation') showToast('Rien à signaler', "Vous n'avez aucune convocation en attente.", false);
+    if (v && v.raison === 'aucune_convocation') { showToast('Rien à signaler', "Vous n'avez aucune convocation en attente.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b22bf6c83", "Vous n'avez aucune convocation en attente.", undefined, 'Rien à signaler'); }
     else signalerRefusCout(v || { raison: 'paiement_indisponible' });
     return;
   }
@@ -946,7 +946,7 @@ async function confirmerSeJustifier(pa, cost) {
   const enAttente = (state.convocations || []).find(c => c && !c.traitee);
   if (enAttente) enAttente.traitee = true;
   if (v.issue === 'non_presentation') {
-    showToast('Délai dépassé', 'Le délai de présentation est écoulé. Vous êtes interpellé(e) pour non-présentation : 2 jours.', false, true);
+    showToast('Délai dépassé', 'Le délai de présentation est écoulé. Vous êtes interpellé(e) pour non-présentation : 2 jours.', false, true); globalThis.RPI18nPlateau?.markToast("toastBodies.be654f9c3", 'Le délai de présentation est écoulé. Vous êtes interpellé(e) pour non-présentation : 2 jours.', undefined, 'Délai dépassé');
     addJournalEntry('Non-présentation à une convocation : 2 jours de détention.', 'event-bad');
     adopterDetentionServeur(2, 'Non-présentation à une convocation', v.detention_id);
     return;
@@ -1064,10 +1064,10 @@ async function choisirFlagrantDelit(choix) {
       showToast('Corruption réussie !', '"' + (REPLIQUES_CORRUPTION_ARRESTATION.succes[pays] || REPLIQUES_CORRUPTION_ARRESTATION.succes.republic) + '"', true, true);
       addJournalEntry('Corruption réussie. −500 FR · −10 DIS. Vous êtes libre.', 'event-good');
     } else if (choix === 'fuite') {
-      showToast('Fuite réussie !', 'Vous échappez aux policiers. −20 Discrétion.', true, true);
+      showToast('Fuite réussie !', 'Vous échappez aux policiers. −20 Discrétion.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b0efe777c", 'Vous échappez aux policiers. −20 Discrétion.', undefined, 'Fuite réussie !');
       addJournalEntry('Vous avez pris la fuite face aux policiers. Votre discrétion chute.', 'event-bad');
     } else {
-      showToast('Résistance réussie !', 'Vous vous échappez malgré tout. −30 DIS −15 PV.', true);
+      showToast('Résistance réussie !', 'Vous vous échappez malgré tout. −30 DIS −15 PV.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.b52913d44", 'Vous vous échappez malgré tout. −30 DIS −15 PV.', undefined, 'Résistance réussie !');
       addJournalEntry('Vous avez résisté violemment aux forces de l\'ordre. Fortement recherché(e).', 'event-bad');
     }
     updateUI();
@@ -1096,9 +1096,9 @@ let arrestationAdoptionEnCours = false;
 async function adopterArrestationServeur(arr) {
   if (!arr || arr.ok !== true) {
     if (arr && arr.raison === 'immunite_militaire') {
-      showToast('Immunité militaire', 'Votre statut militaire vous protège de l’arrestation.', false);
+      showToast('Immunité militaire', 'Votre statut militaire vous protège de l’arrestation.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.ba98203b0", 'Votre statut militaire vous protège de l’arrestation.', undefined, 'Immunité militaire');
     } else if (arr && arr.raison !== 'deja_detenu') {
-      showToast('Arrestation non confirmée', 'Le serveur n’a pas ouvert de détention.', false);
+      showToast('Arrestation non confirmée', 'Le serveur n’a pas ouvert de détention.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b92619efe", 'Le serveur n’a pas ouvert de détention.', undefined, 'Arrestation non confirmée');
     }
     return false;
   }
@@ -1108,7 +1108,7 @@ async function adopterArrestationServeur(arr) {
     const frais = await sbLoadPersonnage(state.char.name).catch(() => null);
     if (!frais || !frais.estEmprisonne) {
       showToast('Arrestation non confirmée',
-        'La détention n’a pas pu être relue. Resynchronisez le jeu avant de poursuivre.', false);
+        'La détention n’a pas pu être relue. Resynchronisez le jeu avant de poursuivre.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b2c0b3fd9", 'La détention n’a pas pu être relue. Resynchronisez le jeu avant de poursuivre.', undefined, 'Arrestation non confirmée');
       return false;
     }
     state.estEmprisonne = frais.estEmprisonne;
@@ -1519,7 +1519,7 @@ function mesAffairesAppelables() {
 
 function ouvrirPvAudition(affaireId) {
   const a = mesAffairesEnCause().find(x => x.id === affaireId);
-  if (!a) { showToast('Affaire introuvable', "Cette affaire n'est plus en cours.", false); return; }
+  if (!a) { showToast('Affaire introuvable', "Cette affaire n'est plus en cours.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b66ee7fae", "Cette affaire n'est plus en cours.", undefined, 'Affaire introuvable'); return; }
   const ech = (t) => (typeof escapeHtmlText === 'function') ? escapeHtmlText(t) : String(t == null ? '' : t);
   document.getElementById('postes-modal-title').textContent = 'Proces-verbal d\'audition';
   document.getElementById('postes-body').innerHTML =
@@ -1617,7 +1617,7 @@ const SIGNALEMENT_REFUS = {
 
 async function signalerALaPolice(nom) {
   if (RP_SIGNALEMENT_EN_COURS) {
-    showToast('Appel deja passe', 'Une intervention est deja en route.', false);
+    showToast('Appel deja passe', 'Une intervention est deja en route.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b0d433aec", 'Une intervention est deja en route.', undefined, 'Appel deja passe');
     return;
   }
   document.getElementById('modal-pnj')?.classList.remove('open');
@@ -1746,7 +1746,7 @@ async function ouvrirModulationAppel(affaireId, genre) {
         .then(x => Array.isArray(x) ? x[0] : x).catch(() => null)
     : null;
   if (!v || v.ok !== true) {
-    showToast('Bornes indisponibles', "Le serveur n'a pas rendu la plage de peine.", false);
+    showToast('Bornes indisponibles', "Le serveur n'a pas rendu la plage de peine.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b0fea7bc0", "Le serveur n'a pas rendu la plage de peine.", undefined, 'Bornes indisponibles');
     return;
   }
   const ech = (t) => (typeof escapeHtmlText === 'function') ? escapeHtmlText(t) : String(t == null ? '' : t);
@@ -1926,7 +1926,7 @@ async function doDefense(pa, cost) {
   }
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('Fonds insuffisants', 'Vous défendre coûte ' + cost + ' ' + cur + '.', false); return; }
+  if (!r.ok) { showToast('Fonds insuffisants', 'Vous défendre coûte ' + cost + ' ' + cur + '.', false); globalThis.RPI18nPlateau?.markToast(null, 'Vous défendre coûte ' + cost + ' ' + cur + '.', undefined, 'Fonds insuffisants'); return; }
 
   // UN SEUL ARGUMENT, ET AUCUNE ISSUE ANNONCEE. L'ancienne signature a ete SUPPRIMEE au serveur
   // (pas remplacee : supprimee), pour qu'aucun navigateur ne puisse plus declarer le resultat.
@@ -2017,12 +2017,12 @@ async function doCorruption(fn, pa, cost) {
   if (!v || v.ok !== true) { signalerRefusCout(v || { raison: 'paiement_indisponible' }); return; }
   adopterEtatCrimeServeur(v);
   if (v.reussi) {
-    showToast('Corruption reussie', 'Le service a ete obtenu. -5 DIS.', true);
+    showToast('Corruption reussie', 'Le service a ete obtenu. -5 DIS.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.bf9d160c1", 'Le service a ete obtenu. -5 DIS.', undefined, 'Corruption reussie');
     addJournalEntry('Corruption : ' + fn.replace(/_/g,' '), 'event-bad');
   } else if (v.raison === 'fonds_insuffisants') {
     showToast('Fonds insuffisants', 'Il vous faut ' + cost + ' ' + (COUNTRIES[state.country]?.cur || 'FR'), false);
   } else {
-    showToast('Echec', 'La tentative de corruption a echoue.', false);
+    showToast('Echec', 'La tentative de corruption a echoue.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b97dcf4b8", 'La tentative de corruption a echoue.', undefined, 'Echec');
   }
   adopterDetectionServeur(v, fn);
   updateUI();
@@ -2032,7 +2032,7 @@ function doSeReposer(fn) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   if (fn === 'se_nourrir') {
     const cost = 10;
-    if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
+    if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); globalThis.RPI18nPlateau?.markToast(null, cost + ' ' + cur + ' requis.', undefined, 'Fonds insuffisants'); return; }
     state.arg -= cost;
     state.moral = Math.min(100, state.moral + 3);
     updateUI();
@@ -2040,7 +2040,7 @@ function doSeReposer(fn) {
   } else {
     state.moral = Math.min(100, state.moral + 2);
     updateUI();
-    showToast('Repos', '+2 Moral.', true);
+    showToast('Repos', '+2 Moral.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.b1365072f", '+2 Moral.', undefined, 'Repos');
   }
 }
 
@@ -2063,7 +2063,7 @@ async function doGreveFaim() {
   if (!v||!contexteGroupePjValide(contexte)) return;
   updateUI();
   if(v.rejeu)return;
-  showToast('Greve de la faim', '-5 HP +3 POP. Pression politique sur l\'administration.', false);
+  showToast('Greve de la faim', '-5 HP +3 POP. Pression politique sur l\'administration.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b43236448", '-5 HP +3 POP. Pression politique sur l\'administration.', undefined, 'Greve de la faim');
   addExternalEvent((state.char?.name||'Un detenu') + ' entame une greve de la faim. Pression politique.');
 }
 
@@ -2100,7 +2100,7 @@ function adopterPeineServeur(r) {
 
 async function doTentativeEvasion(pa, cost) {
   if (!state.estEmprisonne) {
-    showToast('Non emprisonne', 'Vous devez etre emprisonne pour tenter de vous evader.', false);
+    showToast('Non emprisonne', 'Vous devez etre emprisonne pour tenter de vous evader.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bdb82c87d", 'Vous devez etre emprisonne pour tenter de vous evader.', undefined, 'Non emprisonne');
     return;
   }
   // La benediction reste consommee a l'ecran, comme pour le vol (crime_voler) : le serveur
@@ -2122,7 +2122,7 @@ async function doTentativeEvasion(pa, cost) {
     if (Array.isArray(r.recherche)) state.recherche = r.recherche;
     state.estEmprisonne = null;
     const reliquat = Number(r.reliquat_jours || 0);
-    showToast('Evasion reussie !', 'Vous etes libre ! Restez discret.', true, true);
+    showToast('Evasion reussie !', 'Vous etes libre ! Restez discret.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b4f1290a3", 'Vous etes libre ! Restez discret.', undefined, 'Evasion reussie !');
     addJournalEntry('Evasion reussie ! Peine non purgee : reliquat de ' + reliquat + ' jour(s) + 2 jours pour evasion, exigibles a une prochaine arrestation.', 'event-good');
   } else {
     const cur = COUNTRIES[state.country]?.cur || 'FR';
@@ -2135,7 +2135,7 @@ async function doTentativeEvasion(pa, cost) {
 
 async function doSeRebeller(pa, cost) {
   if (!state.estEmprisonne) {
-    showToast('Non emprisonne', 'Vous devez etre emprisonne pour vous rebeller.', false);
+    showToast('Non emprisonne', 'Vous devez etre emprisonne pour vous rebeller.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b632219c8", 'Vous devez etre emprisonne pour vous rebeller.', undefined, 'Non emprisonne');
     return;
   }
   const ville = state.estEmprisonne.city || state.currentCity;
@@ -2152,7 +2152,7 @@ async function doSeRebeller(pa, cost) {
   const degats = Number(r.grilles?.degats || 0);
   if (r.reussi) {
     updateUI();
-    showToast('Rebellion !', 'Vous avez tenu tete aux gardiens. +6 DIS, mais +1 jour de detention et -10 PV.', true, true);
+    showToast('Rebellion !', 'Vous avez tenu tete aux gardiens. +6 DIS, mais +1 jour de detention et -10 PV.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b1c31fa4a", 'Vous avez tenu tete aux gardiens. +6 DIS, mais +1 jour de detention et -10 PV.', undefined, 'Rebellion !');
     addJournalEntry('Rebellion en cellule reussie. Grilles endommagees (-' + degats + '). +1 jour de peine, -10 PV.', 'event-info');
     if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('rebellion_cellule', ville);
   } else {
@@ -2160,7 +2160,7 @@ async function doSeRebeller(pa, cost) {
                             detentionId: r.detention_id, qhs: true, city: ville, country: state.country };
     state.detentionQHS = { enQHS: true, paLimite1Jour: false };
     updateUI();
-    showToast('Rebellion matee', 'Transfere au QHS. -25 PV, -15 DIS.', false);
+    showToast('Rebellion matee', 'Transfere au QHS. -25 PV, -15 DIS.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bb292f050", 'Transfere au QHS. -25 PV, -15 DIS.', undefined, 'Rebellion matee');
     addJournalEntry('Rebellion en cellule matee par les gardiens. Transfert au QHS. Grilles endommagees (-' + degats + ').', 'event-bad');
   }
   if (r.grilles && typeof verifierSeuilsGrillePrison === 'function') {
@@ -2194,7 +2194,7 @@ async function ouvrirVisiterPrisonnier(pa, cost) {
 async function confirmerVisitePrisonnier(prisonnierId, pa, cost) {
   const rows = await sbGet('prisonniers_qhs', `id=eq.${encodeURIComponent(prisonnierId)}`).catch(() => []);
   const row = rows?.[0];
-  if (!row || row.statut !== 'detenu') { showToast('Détenu introuvable', 'Ce détenu n\'est plus détenu au QHS.', false); return; }
+  if (!row || row.statut !== 'detenu') { showToast('Détenu introuvable', 'Ce détenu n\'est plus détenu au QHS.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b447f4ec0", 'Ce détenu n\'est plus détenu au QHS.', undefined, 'Détenu introuvable'); return; }
   const p = row.data;
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }
@@ -2477,9 +2477,9 @@ async function confirmerFalsification(docId, pa, cost) {
     showToast('Document falsifie !', v.nom_document + ' ajoute a votre inventaire.', true, true);
     addJournalEntry('Falsification : ' + v.nom_document, 'event-bad');
   } else if (v.raison === 'fonds_insuffisants') {
-    showToast('Fonds insuffisants', '', false);
+    showToast('Fonds insuffisants', '', false); globalThis.RPI18nPlateau?.markToast(null, '', undefined, 'Fonds insuffisants');
   } else {
-    showToast('Echec !', 'La falsification a echoue.', false);
+    showToast('Echec !', 'La falsification a echoue.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b3a3c955e", 'La falsification a echoue.', undefined, 'Echec !');
     addJournalEntry('Tentative de falsification echouee.', 'event-bad');
   }
   adopterDetectionServeur(v, 'falsifier_document');
@@ -2656,7 +2656,7 @@ async function prononcerSentence(affaireId, type, infraction, pa, cost) {
         .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
     : null;
   if (!r || r.ok !== true) {
-    showToast('Peine non prononcee', "Le bareme n'a pas pu etre relu. Rien n'a ete applique.", false);
+    showToast('Peine non prononcee', "Le bareme n'a pas pu etre relu. Rien n'a ete applique.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b5b5c120c", "Le bareme n'a pas pu etre relu. Rien n'a ete applique.", undefined, 'Peine non prononcee');
     return;
   }
   const surJours = (type === 'prison' || type === 'qhs' || type === 'torture');
@@ -2713,7 +2713,7 @@ async function appliquerSentence(affaireId, type, infraction, joursServeur, amen
   // "deposee" (rejugeable plus tard, y compris en prison si la personne est entre-temps
   // recherchee puis arretee) et aucune ligne detentions ni aucune entree recherche n'est creee.
   if ((type === 'qhs' || type === 'torture') && !(await estActuellementDetenu(affaire.cible))) {
-    showToast('Action impossible', affaire.cible + " n'est pas actuellement détenu(e). Le QHS et la torture ne peuvent s'appliquer qu'à une personne déjà sous contrôle.", false);
+    showToast('Action impossible', affaire.cible + " n'est pas actuellement détenu(e). Le QHS et la torture ne peuvent s'appliquer qu'à une personne déjà sous contrôle.", false); globalThis.RPI18nPlateau?.markToast(null, affaire.cible + " n'est pas actuellement détenu(e). Le QHS et la torture ne peuvent s'appliquer qu'à une personne déjà sous contrôle.", undefined, 'Action impossible');
     return;
   }
 
@@ -3060,7 +3060,7 @@ function ouvrirModalLouerLocal(pa, cost) {
   if (!buildingId || !roomId) return;
 
   const room = BUILDINGS[buildingId]?.rooms?.[roomId];
-  if (!room?.locationData) { showToast('Erreur', 'Local non trouvé.', false); return; }
+  if (!room?.locationData) { showToast('Erreur', 'Local non trouvé.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b5db8e480", 'Local non trouvé.', undefined, 'Erreur'); return; }
   // roomOverride.desc a priorite sur room.desc si un override existe pour cette room precise
   // (meme priorite generique que dans enterRoom, plateau-navigation.js).
   const descAffichee = (typeof getBuildingContext === 'function' ? getBuildingContext(buildingId)?.roomOverrides?.[roomId]?.desc : null) || room.desc;
@@ -3137,7 +3137,7 @@ async function confirmerLocation(pa, cost) {
   const cle = 'location:' + (state.char?.name || '') + ':' + state.currentCity + ':' + buildingId + ':' + roomId;
   let requete;
   try { requete = sessionStorage.getItem(cle) || crypto.randomUUID(); sessionStorage.setItem(cle, requete); }
-  catch (_) { showToast('Bail non signé', 'Le navigateur ne peut pas conserver la référence de cette location.', false); return; }
+  catch (_) { showToast('Bail non signé', 'Le navigateur ne peut pas conserver la référence de cette location.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b57f67e1d", 'Le navigateur ne peut pas conserver la référence de cette location.', undefined, 'Bail non signé'); return; }
   const v = await sbRpcVerdict('local_louer', { p_requete: requete, p_orga: orgaId || null }).catch(() => null);
   if (state.currentBuilding !== buildingId || state.currentRoom !== roomId) return;
   if (!v || v.ok !== true) {
@@ -3177,7 +3177,7 @@ function ouvrirModalChoixSuite() {
   const ctxSuites = typeof getBuildingContext === 'function' ? getBuildingContext(buildingId) : null;
 
   const suites = Object.entries(b.rooms || {}).filter(([, r]) => r.isLocationRoom && r.locationData?.suiteChoice);
-  if (suites.length === 0) { showToast('Aucune suite', 'Aucune suite disponible ici.', false); return; }
+  if (suites.length === 0) { showToast('Aucune suite', 'Aucune suite disponible ici.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b1fc6d6aa", 'Aucune suite disponible ici.', undefined, 'Aucune suite'); return; }
 
   const cur = COUNTRIES[state.country]?.cur || 'FR';
 
@@ -3221,7 +3221,7 @@ function ouvrirModalGererLocal() {
   const location = getLocationPourRoom(buildingId, roomId);
 
   if (!location || !estTitulaire(location.locataire)) {
-    showToast('Non locataire', 'Vous ne louez pas ce local.', false);
+    showToast('Non locataire', 'Vous ne louez pas ce local.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b7b40779b", 'Vous ne louez pas ce local.', undefined, 'Non locataire');
     return;
   }
 
@@ -3298,7 +3298,7 @@ async function changerOrgaLocation() {
   // joueur depuis son local. ouvrirModalGererLocal() fait deja ce controle en amont : c'est une
   // deuxieme barriere sur le chemin d'ecriture lui-meme, pas un doublon inutile.
   if (!estTitulaire(location.locataire)) {
-    showToast('Non locataire', 'Vous ne louez pas ce local.', false);
+    showToast('Non locataire', 'Vous ne louez pas ce local.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b7b40779b", 'Vous ne louez pas ce local.', undefined, 'Non locataire');
     return;
   }
 
@@ -3309,7 +3309,7 @@ async function changerOrgaLocation() {
   const persiste = await persisterLocation(location);
   if (!persiste) {
     location.orgaId = ancienOrgaId; // jamais d'etat affiche non confirme en base
-    showToast('Enregistrement impossible', "L'organisation associée à ce local n'a pas pu être enregistrée. Réessayez.", false);
+    showToast('Enregistrement impossible', "L'organisation associée à ce local n'a pas pu être enregistrée. Réessayez.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.ba4d5993f", "L'organisation associée à ce local n'a pas pu être enregistrée. Réessayez.", undefined, 'Enregistrement impossible');
     return;
   }
 
@@ -3365,7 +3365,7 @@ async function confirmerResiliation(idx) {
   const location = state.locationsActives[idx];
   const bailId = (typeof idLocation === 'function') ? idLocation(location) : null;
   if (!bailId || typeof sbResilierBailVolontaire !== 'function') {
-    showToast('Résiliation impossible', "Le service des baux n'a pas répondu. Rien n'a été modifié — réessayez.", false);
+    showToast('Résiliation impossible', "Le service des baux n'a pas répondu. Rien n'a été modifié — réessayez.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b4d6f454a", "Le service des baux n'a pas répondu. Rien n'a été modifié — réessayez.", undefined, 'Résiliation impossible');
     return;
   }
 
@@ -3593,16 +3593,16 @@ function ouvrirModalLouerBox(pa, cost) {
 }
 
 async function confirmerLocationBox(pa, cost) {
-  if (getMaBoxPortuaire()) { showToast('Déjà loué', 'Vous louez déjà un box.', false); return; }
+  if (getMaBoxPortuaire()) { showToast('Déjà loué', 'Vous louez déjà un box.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.ba74599c2", 'Vous louez déjà un box.', undefined, 'Déjà loué'); return; }
   if (getFondsDisponiblesOrdinaires() < TARIF_BOX_PORTUAIRE_JOUR) {
-    showToast('Fonds insuffisants', TARIF_BOX_PORTUAIRE_JOUR + ' FR requis pour le premier loyer.', false);
+    showToast('Fonds insuffisants', TARIF_BOX_PORTUAIRE_JOUR + ' FR requis pour le premier loyer.', false); globalThis.RPI18nPlateau?.markToast(null, TARIF_BOX_PORTUAIRE_JOUR + ' FR requis pour le premier loyer.', undefined, 'Fonds insuffisants');
     return;
   }
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }
 
   const debitBox = await debiterFondsOrdinaires(TARIF_BOX_PORTUAIRE_JOUR);
-  if (!debitBox.ok) { showToast('Fonds insuffisants', TARIF_BOX_PORTUAIRE_JOUR + ' FR requis pour le premier loyer.', false); return; }
+  if (!debitBox.ok) { showToast('Fonds insuffisants', TARIF_BOX_PORTUAIRE_JOUR + ' FR requis pour le premier loyer.', false); globalThis.RPI18nPlateau?.markToast(null, TARIF_BOX_PORTUAIRE_JOUR + ' FR requis pour le premier loyer.', undefined, 'Fonds insuffisants'); return; }
   if (typeof crediterCaisseBatiment === 'function') await crediterCaisseBatiment('republic', BUILDING_ID_PORT, TARIF_BOX_PORTUAIRE_JOUR).catch(() => {});
 
   const box = {
@@ -3631,7 +3631,7 @@ async function confirmerLocationBox(pa, cost) {
 
 function ouvrirModalGererBox() {
   const box = getMaBoxPortuaire();
-  if (!box) { showToast('Aucun box', 'Vous ne louez pas de box ici.', false); return; }
+  if (!box) { showToast('Aucun box', 'Vous ne louez pas de box ici.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b2ab175d1", 'Vous ne louez pas de box ici.', undefined, 'Aucun box'); return; }
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   document.getElementById('postes-modal-title').textContent = '⚙️ Mon box portuaire';
   document.getElementById('postes-body').innerHTML =
@@ -3660,7 +3660,7 @@ function resilierBox() {
   state.locationsActives.splice(idx, 1);
   if (typeof sbSupprimerLocationBox === 'function') sbSupprimerLocationBox(box.country || state.country, box.buildingId, box.roomId, box.city, moi).catch(() => {});
   document.getElementById('modal-postes').classList.remove('open');
-  showToast('Box résilié', 'Box portuaire libéré.', false);
+  showToast('Box résilié', 'Box portuaire libéré.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bb617d68c", 'Box portuaire libéré.', undefined, 'Box résilié');
   addJournalEntry('Box portuaire résilié.', 'event-info');
   if (state.currentRoom) enterRoom(state.currentBuilding, state.currentRoom, null);
 }
@@ -3727,7 +3727,7 @@ async function confirmerDonObjetPj(encodedPnj, idx) {
   // PNJ -- jamais transferable a un vrai joueur, pour ne pas perdre accidentellement l'objet de
   // quete hors de la chaine prevue (voir confirmerDonObjetPnj pour la remise reelle).
   if (item.type === 'colis_secret_pat') {
-    showToast('Impossible', 'Ce colis est destiné à Brigitte Menottes, personne d\'autre.', false);
+    showToast('Impossible', 'Ce colis est destiné à Brigitte Menottes, personne d\'autre.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b8e26bbd4", 'Ce colis est destiné à Brigitte Menottes, personne d\'autre.', undefined, 'Impossible');
     return;
   }
 
@@ -3753,8 +3753,8 @@ async function confirmerDonPnj(encodedPnj) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const job = pnj.job || 'default';
   const isn = INDICES_NATIONAUX?.[state.country]?.ISN || 30;
-  if (!montant || montant <= 0) { showToast('Montant invalide', 'Entrez un montant.', false); return; }
-  if (state.arg < montant) { showToast('Fonds insuffisants', montant + ' ' + cur + ' requis.', false); return; }
+  if (!montant || montant <= 0) { showToast('Montant invalide', 'Entrez un montant.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bf1b12215", 'Entrez un montant.', undefined, 'Montant invalide'); return; }
+  if (state.arg < montant) { showToast('Fonds insuffisants', montant + ' ' + cur + ' requis.', false); globalThis.RPI18nPlateau?.markToast(null, montant + ' ' + cur + ' requis.', undefined, 'Fonds insuffisants'); return; }
   document.getElementById('modal-postes').classList.remove('open');
 
   // DON A UN VRAI JOUEUR — SERVEUR AUTORITAIRE (17 septembre 2026, audit des frontieres
@@ -3852,7 +3852,7 @@ function ouvrirDonObjetPnjModal(encodedPnj) {
   let pnj;
   try { pnj = JSON.parse(decodeURIComponent(encodedPnj)); } catch(e) { return; }
   const objets = (state.inventory || []).filter(i => i.type !== 'acte_officiel');
-  if (objets.length === 0) { showToast('Inventaire vide', 'Aucun objet a donner.', false); return; }
+  if (objets.length === 0) { showToast('Inventaire vide', 'Aucun objet a donner.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b930ee838", 'Aucun objet a donner.', undefined, 'Inventaire vide'); return; }
   // modal-pnj reste ouvert
   document.getElementById('postes-modal-title').textContent = 'Donner un objet a ' + pnj.name.replace(' (PNJ)', '');
   let html = '<div style="padding:.8rem 1rem"><div style="font-size:.75rem;color:#8a8060;font-style:italic;margin-bottom:.7rem">Choisir l\'objet a remettre :</div>';
@@ -3934,7 +3934,7 @@ async function confirmerDonObjetPnj(objIdx, encodedPnj) {
 function doCompteOffshore() {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const cost = 1000;
-  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
+  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); globalThis.RPI18nPlateau?.markToast(null, cost + ' ' + cur + ' requis.', undefined, 'Fonds insuffisants'); return; }
   state.arg -= cost;
   state.dis = Math.min(100, (state.dis||50) + 10);
   updateUI();
@@ -3987,7 +3987,7 @@ async function ouvrirInvestir(pa, cost) {
 
   const lignesServeur = await relirePlacementsNationauxServeur(state.char?.name);
   if (!lignesServeur) {
-    showToast('Placements indisponibles', 'Impossible de vérifier vos placements auprès du serveur. Réessayez plus tard.', false);
+    showToast('Placements indisponibles', 'Impossible de vérifier vos placements auprès du serveur. Réessayez plus tard.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b78eb788b", 'Impossible de vérifier vos placements auprès du serveur. Réessayez plus tard.', undefined, 'Placements indisponibles');
     return;
   }
   const placementsActifs = lignesServeur.filter(p => p && p.banque === 'nationale' && p.type === 'terme' && p.statut === 'actif');
@@ -4014,11 +4014,11 @@ async function confirmerInvestir(pa, cost) {
   try {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const montant = parseInt(document.getElementById('investir-montant')?.value || 0);
-  if (!montant || montant < 500) { showToast('Montant invalide', 'Minimum 500 ' + cur + '.', false); return; }
+  if (!montant || montant < 500) { showToast('Montant invalide', 'Minimum 500 ' + cur + '.', false); globalThis.RPI18nPlateau?.markToast(null, 'Minimum 500 ' + cur + '.', undefined, 'Montant invalide'); return; }
 
   if (typeof sbGetInvestissementEnCours === 'function' && state.char?.name) {
     const actifLegacy = await sbGetInvestissementEnCours(state.char.name).catch(() => null);
-    if (actifLegacy) { showToast('Investissement refusé', 'Vous avez déjà un investissement en cours (ancien système).', false); return; }
+    if (actifLegacy) { showToast('Investissement refusé', 'Vous avez déjà un investissement en cours (ancien système).', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bda7f772c", 'Vous avez déjà un investissement en cours (ancien système).', undefined, 'Investissement refusé'); return; }
   }
 
   const source = document.getElementById('investir-source')?.value || 'nationale';
@@ -4028,7 +4028,7 @@ async function confirmerInvestir(pa, cost) {
   let attente = null;
   try { attente = JSON.parse(localStorage.getItem(cleAttente) || 'null'); } catch (_) {}
   if (attente && (attente.montant !== montant || attente.source !== source)) {
-    showToast('Placement à vérifier', 'Une opération précédente est encore incertaine. Reprenez le même montant et la même source avant d’en commencer une autre.', false);
+    showToast('Placement à vérifier', 'Une opération précédente est encore incertaine. Reprenez le même montant et la même source avant d’en commencer une autre.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b6e74c941", 'Une opération précédente est encore incertaine. Reprenez le même montant et la même source avant d’en commencer une autre.', undefined, 'Placement à vérifier');
     return;
   }
   const nouvelleOperation = !attente;
@@ -4043,7 +4043,7 @@ async function confirmerInvestir(pa, cost) {
       localStorage.setItem(cleAttente, JSON.stringify(attente));
       if (localStorage.getItem(cleAttente) !== JSON.stringify(attente)) throw new Error('intention_non_persistante');
     } catch (_) {
-      showToast('Placement indisponible', 'La reprise sécurisée de cette opération ne peut pas être garantie sur cet appareil.', false);
+      showToast('Placement indisponible', 'La reprise sécurisée de cette opération ne peut pas être garantie sur cet appareil.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b357f4fc2", 'La reprise sécurisée de cette opération ne peut pas être garantie sur cet appareil.', undefined, 'Placement indisponible');
       return;
     }
     const r = await deduireCoutOrdre({ pa, cost });
@@ -4059,7 +4059,7 @@ async function confirmerInvestir(pa, cost) {
     ? await sbCreerPlacementNationalSecurise(nomPersonnage, montant, intSnapshot, ville, source, intention).catch(() => null)
     : null;
   if (!resultat) {
-    showToast('Opération à vérifier', 'Réponse serveur incertaine. Réessayez avec le même montant et la même source : aucune seconde opération ne sera créée pour cette intention.', false);
+    showToast('Opération à vérifier', 'Réponse serveur incertaine. Réessayez avec le même montant et la même source : aucune seconde opération ne sera créée pour cette intention.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b47a9e8ae", 'Réponse serveur incertaine. Réessayez avec le même montant et la même source : aucune seconde opération ne sera créée pour cette intention.', undefined, 'Opération à vérifier');
     return;
   }
 
@@ -4082,7 +4082,7 @@ async function confirmerInvestir(pa, cost) {
     lignesServeur.some(p => p.id === ligneCreee.id && p.banque === 'nationale' && p.type === 'terme' && p.montant != null);
   updateUI();
   if (!confirme || !Array.isArray(comptesServeur) || !personnageServeur) {
-    showToast('Vérification nécessaire', 'Le serveur a répondu, mais la confirmation bancaire complète est indisponible. Ne recommencez pas le placement : rechargez votre compte ou contactez l’administration.', false);
+    showToast('Vérification nécessaire', 'Le serveur a répondu, mais la confirmation bancaire complète est indisponible. Ne recommencez pas le placement : rechargez votre compte ou contactez l’administration.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b9350313b", 'Le serveur a répondu, mais la confirmation bancaire complète est indisponible. Ne recommencez pas le placement : rechargez votre compte ou contactez l’administration.', undefined, 'Vérification nécessaire');
     return;
   }
   try { localStorage.removeItem(cleAttente); } catch (_) {}
@@ -4250,14 +4250,14 @@ async function confirmerDepotHelvetia(pa, cost) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const montant = parseInt(document.getElementById('helvetia-amount-input')?.value || 0);
   const source = document.getElementById('helvetia-source-dest')?.value || 'liquide';
-  if (!montant || montant <= 0) { showToast('Montant invalide', '', false); return; }
+  if (!montant || montant <= 0) { showToast('Montant invalide', '', false); globalThis.RPI18nPlateau?.markToast(null, '', undefined, 'Montant invalide'); return; }
   if (!TEST_MODE && (state.pa || 0) < pa) { signalerRefusPa(pa); return; }
 
   const resultat = (typeof sbDeposerHelvetia === 'function')
     ? await sbDeposerHelvetia(state.char.name, montant, source).catch(() => null)
     : null;
   if (!commercePjTransactionActive(tx)) return;
-  if (!resultat) { showToast('Dépôt non confirmé', 'Consultez le compte avant toute nouvelle tentative.', false); return; }
+  if (!resultat) { showToast('Dépôt non confirmé', 'Consultez le compte avant toute nouvelle tentative.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b8ff0b70c", 'Consultez le compte avant toute nouvelle tentative.', undefined, 'Dépôt non confirmé'); return; }
   if (!TEST_MODE) state.pa = Math.max(0, (state.pa || 0) - pa);
 
   await rafraichirRuntimeHelvetia();
@@ -4274,7 +4274,7 @@ async function confirmerRetraitHelvetia(pa, cost) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const montant = parseInt(document.getElementById('helvetia-amount-input')?.value || 0);
   const destination = document.getElementById('helvetia-source-dest')?.value || 'liquide';
-  if (!montant || montant <= 0) { showToast('Montant invalide', '', false); return; }
+  if (!montant || montant <= 0) { showToast('Montant invalide', '', false); globalThis.RPI18nPlateau?.markToast(null, '', undefined, 'Montant invalide'); return; }
 
   const soldeActuel = state.comptesBancaires?.helvetia?.solde || 0;
   if (soldeActuel - montant < 10000) {
@@ -4287,7 +4287,7 @@ async function confirmerRetraitHelvetia(pa, cost) {
     ? await sbRetirerHelvetia(state.char.name, montant, destination).catch(() => null)
     : null;
   if (!commercePjTransactionActive(tx)) return;
-  if (!resultat) { showToast('Retrait non confirmé', 'Consultez le compte avant toute nouvelle tentative.', false); return; }
+  if (!resultat) { showToast('Retrait non confirmé', 'Consultez le compte avant toute nouvelle tentative.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b8ff0b70c", 'Consultez le compte avant toute nouvelle tentative.', undefined, 'Retrait non confirmé'); return; }
   if (!TEST_MODE) state.pa = Math.max(0, (state.pa || 0) - pa);
 
   await rafraichirRuntimeHelvetia();
@@ -4307,7 +4307,7 @@ async function confirmerFermerCompteHelvetia(pa, cost) {
   const resultat = (typeof sbFermerCompteHelvetia === 'function')
     ? await sbFermerCompteHelvetia(state.char.name, destination).catch(() => null)
     : null;
-  if (!resultat) { showToast('Fermeture refusée', 'Le compte est introuvable ou déjà fermé.', false); return; }
+  if (!resultat) { showToast('Fermeture refusée', 'Le compte est introuvable ou déjà fermé.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b3495a251", 'Le compte est introuvable ou déjà fermé.', undefined, 'Fermeture refusée'); return; }
   if (!TEST_MODE) state.pa = Math.max(0, (state.pa || 0) - pa);
 
   await rafraichirRuntimeHelvetia();
@@ -4327,7 +4327,7 @@ async function confirmerFermerCompteHelvetia(pa, cost) {
 async function confirmerPlacementHelvetia(pa, cost, type) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const montant = parseInt(document.getElementById('helvetia-placement-amount')?.value || 0);
-  if (!montant || montant <= 0) { showToast('Montant invalide', '', false); return; }
+  if (!montant || montant <= 0) { showToast('Montant invalide', '', false); globalThis.RPI18nPlateau?.markToast(null, '', undefined, 'Montant invalide'); return; }
 
   const soldeActuel = state.comptesBancaires?.helvetia?.solde || 0;
   if (soldeActuel - montant < 10000) {
@@ -4341,7 +4341,7 @@ async function confirmerPlacementHelvetia(pa, cost, type) {
   const resultat = (typeof sbCreerPlacementHelvetia === 'function')
     ? await sbCreerPlacementHelvetia(state.char.name, montant, type).catch(() => null)
     : null;
-  if (!resultat) { showToast('Placement refusé', 'Vérifiez le solde disponible et l\'absence de placement déjà actif.', false); return; }
+  if (!resultat) { showToast('Placement refusé', 'Vérifiez le solde disponible et l\'absence de placement déjà actif.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bfac8b123", 'Vérifiez le solde disponible et l\'absence de placement déjà actif.', undefined, 'Placement refusé'); return; }
 
   await rafraichirRuntimeHelvetia();
   showToast('Placement effectué !', montant.toLocaleString('fr-FR') + ' ' + cur + ' placés (' + (type === 'declare' ? 'déclaré' : 'offshore') + '). Résultat dans 7 jours.', true, true);
@@ -4400,11 +4400,11 @@ async function confirmerAccepterAccordHelvetia(pretId, pa, cost) {
   const resultat = (typeof sbAccepterAccordHelvetia === 'function')
     ? await sbAccepterAccordHelvetia(state.char.name, pretId).catch(() => null)
     : null;
-  if (!resultat) { showToast('Accord refusé', 'Aucune proposition en attente ou accord déjà actif.', false); return; }
+  if (!resultat) { showToast('Accord refusé', 'Aucune proposition en attente ou accord déjà actif.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.baefe0a66", 'Aucune proposition en attente ou accord déjà actif.', undefined, 'Accord refusé'); return; }
   if (!TEST_MODE) state.pa = Math.max(0, (state.pa || 0) - pa);
 
   await rafraichirRuntimeHelvetia();
-  showToast('Accord accepté', 'Dette majorée de 20%, gel de 10 jours. Aucun prélèvement pendant le gel.', true, true);
+  showToast('Accord accepté', 'Dette majorée de 20%, gel de 10 jours. Aucun prélèvement pendant le gel.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b7304ddfc", 'Dette majorée de 20%, gel de 10 jours. Aucun prélèvement pendant le gel.', undefined, 'Accord accepté');
   addJournalEntry('Accord amiable accepté avec Helvetia (dette +20%, gel 10 jours).', 'event-info');
   updateUI();
   ouvrirGestionHelvetia(pa, cost);
@@ -4420,15 +4420,15 @@ async function confirmerRembourserPretHelvetiaIntegral(pretId, pa, cost) {
   if (liquide > 0) sources.push({ type: 'liquide', montant: liquide });
   if (national > 0) sources.push({ type: 'national', montant: national });
   if (helvetia > 0) sources.push({ type: 'helvetia', montant: helvetia });
-  if (sources.length === 0) { showToast('Aucune source', 'Indiquez au moins un montant.', false); return; }
+  if (sources.length === 0) { showToast('Aucune source', 'Indiquez au moins un montant.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b26553d9c", 'Indiquez au moins un montant.', undefined, 'Aucune source'); return; }
 
   const resultat = (typeof sbRembourserPretHelvetiaIntegral === 'function')
     ? await sbRembourserPretHelvetiaIntegral(state.char.name, pretId, sources).catch(() => null)
     : null;
-  if (!resultat) { showToast('Remboursement refusé', 'La somme des sources doit égaler exactement la dette restante, et chaque source doit être suffisante.', false); return; }
+  if (!resultat) { showToast('Remboursement refusé', 'La somme des sources doit égaler exactement la dette restante, et chaque source doit être suffisante.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b74fd2244", 'La somme des sources doit égaler exactement la dette restante, et chaque source doit être suffisante.', undefined, 'Remboursement refusé'); return; }
 
   await rafraichirRuntimeHelvetia();
-  showToast('Prêt remboursé !', 'Le prêt Helvetia est intégralement soldé.', true, true);
+  showToast('Prêt remboursé !', 'Le prêt Helvetia est intégralement soldé.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b5373e5f0", 'Le prêt Helvetia est intégralement soldé.', undefined, 'Prêt remboursé !');
   addJournalEntry('Prêt Helvetia remboursé intégralement (' + sources.map(s => s.montant.toLocaleString('fr-FR') + ' ' + cur + ' ' + s.type).join(' + ') + ').', 'event-good');
   updateUI();
   ouvrirGestionHelvetia(pa, cost);
@@ -4472,8 +4472,8 @@ async function confirmerPretHelvetia(pa) {
   const montant = parseInt(document.getElementById('helvetia-pret-montant')?.value || 0);
   const duree = parseInt(document.getElementById('helvetia-pret-duree')?.value || 5);
 
-  if (!montant || montant < 1000 || montant > 150000) { showToast('Montant invalide', 'Entre 1 000 et 150 000 ' + cur + '.', false); return; }
-  if (!duree || duree < 5 || duree > 30) { showToast('Durée invalide', 'Entre 5 et 30 jours.', false); return; }
+  if (!montant || montant < 1000 || montant > 150000) { showToast('Montant invalide', 'Entre 1 000 et 150 000 ' + cur + '.', false); globalThis.RPI18nPlateau?.markToast(null, 'Entre 1 000 et 150 000 ' + cur + '.', undefined, 'Montant invalide'); return; }
+  if (!duree || duree < 5 || duree > 30) { showToast('Durée invalide', 'Entre 5 et 30 jours.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bf9119245", 'Entre 5 et 30 jours.', undefined, 'Durée invalide'); return; }
   if (!TEST_MODE && (state.pa || 0) < pa) { signalerRefusPa(pa); return; }
 
   // RPC d'abord, PA ensuite (voir note plus haut sur confirmerOuvertureHelvetia) : un pret
@@ -4483,7 +4483,7 @@ async function confirmerPretHelvetia(pa) {
     ? await sbCreerPretHelvetia(state.char.name, montant, duree).catch(() => null)
     : null;
   if (!resultat) {
-    showToast('Prêt refusé', 'Compte Helvetia requis, prêt Helvetia déjà actif, ou liquidité Helvetia insuffisante.', false);
+    showToast('Prêt refusé', 'Compte Helvetia requis, prêt Helvetia déjà actif, ou liquidité Helvetia insuffisante.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b82727601", 'Compte Helvetia requis, prêt Helvetia déjà actif, ou liquidité Helvetia insuffisante.', undefined, 'Prêt refusé');
     return;
   }
   if (!TEST_MODE) state.pa = Math.max(0, (state.pa || 0) - pa);
@@ -4498,7 +4498,7 @@ async function confirmerPretHelvetia(pa) {
 function doSocieteEcran() {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const cost = 500;
-  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
+  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); globalThis.RPI18nPlateau?.markToast(null, cost + ' ' + cur + ' requis.', undefined, 'Fonds insuffisants'); return; }
   state.arg -= cost;
   state.dis = Math.min(100, (state.dis||50) + 12);
   updateUI();
@@ -5007,7 +5007,7 @@ function fmSaisirPrix(i, objet) {
 function fmVendreConfirme() {
   const v = window._fmVente; if (!v) return;
   const prix = parseInt(document.getElementById('fm-prix')?.value, 10);
-  if (!Number.isInteger(prix) || prix <= 0) { showToast('Prix invalide', 'Indiquez un montant entier positif.', false); return; }
+  if (!Number.isInteger(prix) || prix <= 0) { showToast('Prix invalide', 'Indiquez un montant entier positif.', false); globalThis.RPI18nPlateau?.markToast("sovarkaProvinces.m_montant_invalide", 'Indiquez un montant entier positif.', undefined, 'Prix invalide'); return; }
   fmEnvoyer('immobilier_mettre_en_vente', { p_acteur: state.char?.name, p_titre: v.titre, p_objet: v.objet, p_prix: prix }, 'Mise en vente enregistrée chez le notaire.');
 }
 
@@ -5034,7 +5034,7 @@ async function doActeVenteTerrain() {
   }
 
   if (candidats.length === 0) {
-    showToast('Aucune réservation', "Vous n'avez ni compromis ni rendez-vous d'achat en cours sur un terrain.", false);
+    showToast('Aucune réservation', "Vous n'avez ni compromis ni rendez-vous d'achat en cours sur un terrain.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b4832ad6b", "Vous n'avez ni compromis ni rendez-vous d'achat en cours sur un terrain.", undefined, 'Aucune réservation');
     return;
   }
 
@@ -5144,14 +5144,14 @@ async function traiterActeVente(candidat) {
   if (ts.proprietaire === 'Helvetia') {
     const pretEnAttenteH = ts.pretDemande && ts.pretDemande.statut === 'attente_validation';
     const refuseH = ts.pretDemande && ts.pretDemande.statut === 'refuse';
-    if (refuseH) { showToast('Compromis caduc', 'Le prêt demandé a été refusé. Votre acompte a normalement déjà été remboursé.', false); return; }
-    if (pretEnAttenteH) { showToast('Prêt en attente', 'La demande de prêt n\'est pas encore tranchée. Revenez après sa décision.', false); return; }
+    if (refuseH) { showToast('Compromis caduc', 'Le prêt demandé a été refusé. Votre acompte a normalement déjà été remboursé.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b902d3eaa", 'Le prêt demandé a été refusé. Votre acompte a normalement déjà été remboursé.', undefined, 'Compromis caduc'); return; }
+    if (pretEnAttenteH) { showToast('Prêt en attente', 'La demande de prêt n\'est pas encore tranchée. Revenez après sa décision.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b38682161", 'La demande de prêt n\'est pas encore tranchée. Revenez après sa décision.', undefined, 'Prêt en attente'); return; }
 
-    if (!TEST_MODE && (state.pa || 0) < 1) { showToast('PA insuffisants', '1 PA requis.', false); return; }
+    if (!TEST_MODE && (state.pa || 0) < 1) { showToast('PA insuffisants', '1 PA requis.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b00eda178", '1 PA requis.', undefined, 'PA insuffisants'); return; }
     const resultatFinalisation = (typeof sbFinaliserAchatBienHelvetia === 'function')
       ? await sbFinaliserAchatBienHelvetia(state.char?.name, id).catch(() => null)
       : null;
-    if (!resultatFinalisation) { showToast('Finalisation refusée', 'Fonds ordinaires insuffisants pour le solde, ou compromis expiré/invalide.', false); return; }
+    if (!resultatFinalisation) { showToast('Finalisation refusée', 'Fonds ordinaires insuffisants pour le solde, ou compromis expiré/invalide.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b653ba599", 'Fonds ordinaires insuffisants pour le solde, ou compromis expiré/invalide.', undefined, 'Finalisation refusée'); return; }
     if (!TEST_MODE) state.pa = Math.max(0, (state.pa || 0) - 1);
 
     await chargerTerrainState(id);
@@ -5170,11 +5170,11 @@ async function traiterActeVente(candidat) {
   const refuse = (ts.permis && ts.permis.statut === 'refuse') || (ts.pretDemande && ts.pretDemande.statut === 'refuse');
 
   if (refuse) {
-    showToast('Compromis caduc', 'Une clause a été refusée. Votre acompte a normalement déjà été remboursé.', false);
+    showToast('Compromis caduc', 'Une clause a été refusée. Votre acompte a normalement déjà été remboursé.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b3528268f", 'Une clause a été refusée. Votre acompte a normalement déjà été remboursé.', undefined, 'Compromis caduc');
     return;
   }
   if (permisEnAttente || pretEnAttente) {
-    showToast('Clauses en attente', 'Le permis et/ou le prêt ne sont pas encore tranchés. Revenez après leur décision.', false);
+    showToast('Clauses en attente', 'Le permis et/ou le prêt ne sont pas encore tranchés. Revenez après leur décision.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b34688d0b", 'Le permis et/ou le prêt ne sont pas encore tranchés. Revenez après leur décision.', undefined, 'Clauses en attente');
     return;
   }
 
@@ -5337,7 +5337,7 @@ async function doOuvrirTransfertCompromis(pa, cost) {
   }
 
   if (candidats.length === 0) {
-    showToast('Aucun compromis', "Vous ne détenez aucun compromis à transférer.", false);
+    showToast('Aucun compromis', "Vous ne détenez aucun compromis à transférer.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b1d33f8c7", "Vous ne détenez aucun compromis à transférer.", undefined, 'Aucun compromis');
     return;
   }
 
@@ -5362,8 +5362,8 @@ async function doOuvrirTransfertCompromis(pa, cost) {
 async function doInitierTransfertCompromis(id, pa, cost) {
   if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Transférer ce compromis')) return;
   const destinataire = (document.getElementById('transfert-nom-' + id)?.value || '').trim();
-  if (!destinataire) { showToast('Nom manquant', 'Indiquez le nom du nouveau détenteur.', false); return; }
-  if (destinataire === state.char?.name) { showToast('Impossible', 'Vous ne pouvez pas vous transférer un compromis à vous-même.', false); return; }
+  if (!destinataire) { showToast('Nom manquant', 'Indiquez le nom du nouveau détenteur.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b469a093f", 'Indiquez le nom du nouveau détenteur.', undefined, 'Nom manquant'); return; }
+  if (destinataire === state.char?.name) { showToast('Impossible', 'Vous ne pouvez pas vous transférer un compromis à vous-même.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bad7a672a", 'Vous ne pouvez pas vous transférer un compromis à vous-même.', undefined, 'Impossible'); return; }
   const rTransfert = await deduireCoutOrdre({ pa, cost });
   if (!rTransfert.ok) { signalerRefusCout(rTransfert); return; }
 
@@ -5399,7 +5399,7 @@ async function doValiderTransfertCompromis(pa, cost) {
   }
 
   if (candidats.length === 0) {
-    showToast('Aucune proposition', "Aucun transfert de compromis ne vous est proposé.", false);
+    showToast('Aucune proposition', "Aucun transfert de compromis ne vous est proposé.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.bc1689712", "Aucun transfert de compromis ne vous est proposé.", undefined, 'Aucune proposition');
     return;
   }
 
@@ -5539,7 +5539,7 @@ async function confirmerAchatEntrepot(buildingId, pa, cost) {
     if (q > 0) quantites[cle] = q;
   });
   if (Object.keys(quantites).length === 0) {
-    showToast('Rien à acheter', 'Indiquez au moins une quantité.', false);
+    showToast('Rien à acheter', 'Indiquez au moins une quantité.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b7a904b31", 'Indiquez au moins une quantité.', undefined, 'Rien à acheter');
     return;
   }
 
@@ -5652,7 +5652,7 @@ let VENTE_BOIS_EN_COURS = false;
 async function ouvrirVendreBoisImprimerie(pa, cost) {
   const lot = (state.inventory || []).find(i => i.stackKey === 'bois' && (i.qty || 0) > 0);
   if (!lot) {
-    showToast('Aucun bois', 'Vous n\'avez pas de bois à vendre — achetez-en à l\'Entrepôt Logistique.', false);
+    showToast('Aucun bois', 'Vous n\'avez pas de bois à vendre — achetez-en à l\'Entrepôt Logistique.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b16e287c8", 'Vous n\'avez pas de bois à vendre — achetez-en à l\'Entrepôt Logistique.', undefined, 'Aucun bois');
     return;
   }
   const cur = COUNTRIES[state.country]?.cur || 'FR';
@@ -5774,7 +5774,7 @@ function getBuildingIdDirecteurEntrepot() {
 async function doOuvrirFixerPrixAchatEntrepot(pa, cost) {
   const buildingIdAttendu = getBuildingIdDirecteurEntrepot();
   if (state.poste?.id !== 'directeur_entrepot' || state.currentBuilding !== buildingIdAttendu) {
-    showToast('Accès refusé', 'Seul le directeur en poste peut fixer les prix de cet entrepôt.', false);
+    showToast('Accès refusé', 'Seul le directeur en poste peut fixer les prix de cet entrepôt.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b55e21ca8", 'Seul le directeur en poste peut fixer les prix de cet entrepôt.', undefined, 'Accès refusé');
     return;
   }
   const buildingId = state.currentBuilding;
@@ -5838,7 +5838,7 @@ async function confirmerFixerPrixAchatEntrepot(buildingId, pa, cost) {
     return;
   }
   document.getElementById('modal-postes')?.classList.remove('open');
-  showToast('Prix mis à jour', 'Les nouveaux prix de vente sont actifs.', true, true);
+  showToast('Prix mis à jour', 'Les nouveaux prix de vente sont actifs.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.ba044e6bc", 'Les nouveaux prix de vente sont actifs.', undefined, 'Prix mis à jour');
   addJournalEntry("Prix de vente de l'entrepôt ajustés en tant que directeur.", 'event-good');
 }
 
@@ -5879,7 +5879,7 @@ async function verifierSalaireDirecteurEntrepot() {
     showToast('Salaire perçu', '+' + montantVerse.toLocaleString('fr-FR') + ' FR.' + (montantVerse < SALAIRE_DIRECTEUR ? ' (caisse insuffisante pour le montant complet)' : ''), true, true);
     addJournalEntry('Salaire de directeur perçu : ' + montantVerse + ' FR.', 'event-good');
   } else {
-    showToast('Salaire impayé', 'La caisse de l\'entrepôt est vide aujourd\'hui.', false);
+    showToast('Salaire impayé', 'La caisse de l\'entrepôt est vide aujourd\'hui.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b9e9bb1cb", 'La caisse de l\'entrepôt est vide aujourd\'hui.', undefined, 'Salaire impayé');
     addJournalEntry('Aucun salaire de directeur perçu : caisse de l\'entrepôt vide.', 'event-bad');
   }
 }
@@ -5899,7 +5899,7 @@ async function doOuvrirVenteDirecteUsine(pa, cost) {
   const produits = produitsUsine(buildingId);
 
   if (produits.length === 0) {
-    showToast('Rien à vendre', "Aucune production locale disponible pour l'instant.", false);
+    showToast('Rien à vendre', "Aucune production locale disponible pour l'instant.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.bd4490930", "Aucune production locale disponible pour l'instant.", undefined, 'Rien à vendre');
     return;
   }
 
@@ -5945,7 +5945,7 @@ async function confirmerVenteDirecteUsine(buildingId, pa, cost) {
     if (q > 0) quantites[cle] = q;
   }
   if (Object.keys(quantites).length === 0) {
-    showToast('Rien à acheter', 'Indiquez au moins une quantité.', false); return;
+    showToast('Rien à acheter', 'Indiquez au moins une quantité.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b7a904b31", 'Indiquez au moins une quantité.', undefined, 'Rien à acheter'); return;
   }
   if (typeof assembleeControlerVenteLegale === 'function'
       && !(await assembleeControlerVenteLegale(Object.keys(quantites).map(cle => ({ stackKey: cle }))))) return;
@@ -6030,7 +6030,7 @@ function chainesUsinePays(pays) {
 
 async function doProduireUsine(produitId) {
   const c = chainesUsinePays(state.country)[produitId];
-  if (!c) { showToast('Indisponible', '', false); return; }
+  if (!c) { showToast('Indisponible', '', false); globalThis.RPI18nPlateau?.markToast(null, '', undefined, 'Indisponible'); return; }
   const cur = COUNTRIES[state.country || 'republic']?.cur || 'FR';
   const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(state.country, c.city, c.buildingId).catch(() => null) : null;
   const usine = etat?.usine || { caisse: 3000, venteDirecte: {}, stockMatieres: {} };
@@ -6072,7 +6072,7 @@ async function confirmerProductionUsine(produitId) {
 
   // Les PA restent preleves par la voie centrale (cost:0 : le salaire est un GAIN).
   const rPa = await deduireCoutOrdre({ pa: PA_PRODUCTION_USINE, cost: 0, fn: 'produire_' + produitId });
-  if (!rPa.ok) { showToast('PA insuffisants', PA_PRODUCTION_USINE + ' PA requis.', false);
+  if (!rPa.ok) { showToast('PA insuffisants', PA_PRODUCTION_USINE + ' PA requis.', false); globalThis.RPI18nPlateau?.markToast(null, PA_PRODUCTION_USINE + ' PA requis.', undefined, 'PA insuffisants');
     document.getElementById('modal-postes')?.classList.remove('open'); return; }
 
   const rows = await sbRpc('produire_en_usine', {
@@ -6365,7 +6365,7 @@ async function vendreMatierePremiereUsine(buildingId, pays, ville, matiere, qte)
 
 function doVendreMatierePremiereUsineGenerique(pa, cost) {
   const buildingId = state.currentBuilding;
-  if (!buildingId) { showToast('Indisponible', '', false); return; }
+  if (!buildingId) { showToast('Indisponible', '', false); globalThis.RPI18nPlateau?.markToast(null, '', undefined, 'Indisponible'); return; }
   doOuvrirVendreMatierePremiereUsine(buildingId, pa, cost);
 }
 
@@ -6540,13 +6540,13 @@ async function doConsulterCatalogueManufactures() {
   const batiment = state.currentBuilding;
   const ids = produitsManufacturesUsine(batiment, pays, ville);
   if (!ids.length) {
-    showToast('Aucun article', 'Ce commerce ne propose aucun produit manufacturé.', false);
+    showToast('Aucun article', 'Ce commerce ne propose aucun produit manufacturé.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.baf8d36bb", 'Ce commerce ne propose aucun produit manufacturé.', undefined, 'Aucun article');
     return;
   }
   const etat = typeof sbGetBatimentEtat === 'function'
     ? await sbGetBatimentEtat(pays, ville, batiment).catch(() => null) : null;
   if (!etat || !etat.usine) {
-    showToast('Catalogue indisponible', 'Impossible de confirmer le stock auprès du serveur.', false);
+    showToast('Catalogue indisponible', 'Impossible de confirmer le stock auprès du serveur.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b8c1518c5", 'Impossible de confirmer le stock auprès du serveur.', undefined, 'Catalogue indisponible');
     return;
   }
   const usine = etat.usine;
@@ -6743,7 +6743,7 @@ function directeurUsineInfo(posteId, pays) {
 function doOuvrirVirementUsineMinistere(pa, cost) {
   const cfg = directeurUsineInfo(state.poste?.id);
   if (!cfg || state.currentBuilding !== cfg.buildingId) {
-    showToast('Accès refusé', 'Seul le directeur en poste peut ordonner ce virement, depuis sa propre usine.', false);
+    showToast('Accès refusé', 'Seul le directeur en poste peut ordonner ce virement, depuis sa propre usine.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bfb637da5", 'Seul le directeur en poste peut ordonner ce virement, depuis sa propre usine.', undefined, 'Accès refusé');
     return;
   }
   document.getElementById('postes-modal-title').textContent = 'Virement vers le Ministère';
@@ -6762,11 +6762,11 @@ async function confirmerVirementUsineMinistere(pa, cost) {
   // modal) : c'est ici, a la confirmation, que la mutation reelle a lieu.
   const cfg = directeurUsineInfo(state.poste?.id);
   if (!cfg || state.currentBuilding !== cfg.buildingId) {
-    showToast('Accès refusé', 'Seul le directeur en poste peut ordonner ce virement, depuis sa propre usine.', false);
+    showToast('Accès refusé', 'Seul le directeur en poste peut ordonner ce virement, depuis sa propre usine.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bfb637da5", 'Seul le directeur en poste peut ordonner ce virement, depuis sa propre usine.', undefined, 'Accès refusé');
     return;
   }
   const montant = Math.floor(Number(document.getElementById('virement-ministere-montant')?.value));
-  if (!isFinite(montant) || montant <= 0) { showToast('Montant invalide', 'Le montant doit être un nombre entier positif.', false); return; }
+  if (!isFinite(montant) || montant <= 0) { showToast('Montant invalide', 'Le montant doit être un nombre entier positif.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b00db74a9", 'Le montant doit être un nombre entier positif.', undefined, 'Montant invalide'); return; }
 
   const pays = state.country || 'republic';
   const cur = COUNTRIES[pays]?.cur || 'FR';
@@ -6775,8 +6775,8 @@ async function confirmerVirementUsineMinistere(pa, cost) {
   // dans une seule transaction.
   const v = await sbRpcVerdict('usine_virer_vers_ministere', { p_montant: montant }).catch(() => null);
   if (!v || v.ok !== true) {
-    if (v?.raison === 'caisse_insuffisante') showToast('Caisse insuffisante', "La caisse de l'usine ne peut pas couvrir ce virement.", false);
-    else if (v?.raison === 'reserve_directeur' || v?.raison === 'pas_sur_place') showToast('Accès refusé', 'Seul le directeur en poste peut ordonner ce virement, depuis sa propre usine.', false);
+    if (v?.raison === 'caisse_insuffisante') { showToast('Caisse insuffisante', "La caisse de l'usine ne peut pas couvrir ce virement.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b723a8f2b", "La caisse de l'usine ne peut pas couvrir ce virement.", undefined, 'Caisse insuffisante'); }
+    else if (v?.raison === 'reserve_directeur' || v?.raison === 'pas_sur_place') { showToast('Accès refusé', 'Seul le directeur en poste peut ordonner ce virement, depuis sa propre usine.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bfb637da5", 'Seul le directeur en poste peut ordonner ce virement, depuis sa propre usine.', undefined, 'Accès refusé'); }
     else signalerRefusCout(v || {});
     return;
   }
@@ -6793,7 +6793,7 @@ async function doOuvrirFixerPrixVenteDirecte(pa, cost) {
   const posteId = state.poste?.id;
   const cfg = directeurUsineInfo(posteId);
   if (!cfg || state.currentBuilding !== cfg.buildingId) {
-    showToast('Accès refusé', 'Seul le directeur en poste peut fixer les prix de cette usine.', false);
+    showToast('Accès refusé', 'Seul le directeur en poste peut fixer les prix de cette usine.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b0aee98cf", 'Seul le directeur en poste peut fixer les prix de cette usine.', undefined, 'Accès refusé');
     return;
   }
   const buildingId = state.currentBuilding;
@@ -6864,7 +6864,7 @@ async function confirmerFixerPrixVenteDirecte(buildingId, pa, cost) {
     return;
   }
   document.getElementById('modal-postes')?.classList.remove('open');
-  showToast('Prix mis à jour', 'Les nouveaux prix de vente directe sont actifs.', true, true);
+  showToast('Prix mis à jour', 'Les nouveaux prix de vente directe sont actifs.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b23208f00", 'Les nouveaux prix de vente directe sont actifs.', undefined, 'Prix mis à jour');
   addJournalEntry('Prix de vente directe ajustés en tant que directeur.', 'event-good');
 }
 
@@ -6873,7 +6873,7 @@ async function doOuvrirFixerRepartitionProduction(pa, cost) {
   const posteId = state.poste?.id;
   const cfg = directeurUsineInfo(posteId);
   if (!cfg || state.currentBuilding !== cfg.buildingId) {
-    showToast('Accès refusé', 'Seul le directeur en poste peut répartir la production de cette usine.', false);
+    showToast('Accès refusé', 'Seul le directeur en poste peut répartir la production de cette usine.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b540df769", 'Seul le directeur en poste peut répartir la production de cette usine.', undefined, 'Accès refusé');
     return;
   }
   const buildingId = state.currentBuilding;
@@ -6898,7 +6898,7 @@ async function confirmerFixerRepartitionProduction(buildingId, pa, cost) {
   // CHANTIER C / PHASE 2 : meme bascule d'autorite. Bornes 0-100 inchangees.
   const valeur = parseFloat(document.getElementById('repartition-entrepots')?.value);
   if (isNaN(valeur) || valeur < 0 || valeur > 100) {
-    showToast('Valeur invalide', 'Indiquez un pourcentage entre 0 et 100.', false); return;
+    showToast('Valeur invalide', 'Indiquez un pourcentage entre 0 et 100.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bde14b7b4", 'Indiquez un pourcentage entre 0 et 100.', undefined, 'Valeur invalide'); return;
   }
   const r = await deduireCoutOrdre({ pa, cost, fn: 'fixer_repartition_production' });
   if (!r.ok) { signalerRefusCout(r); return; }
@@ -6957,7 +6957,7 @@ async function verifierSalaireDirecteur() {
     showToast('Salaire perçu', '+' + montantVerse.toLocaleString('fr-FR') + ' FR.' + (montantVerse < SALAIRE_DIRECTEUR ? ' (caisse insuffisante pour le montant complet)' : ''), true, true);
     addJournalEntry('Salaire de directeur perçu : ' + montantVerse + ' FR.', 'event-good');
   } else {
-    showToast('Salaire impayé', 'La caisse de l\'usine est vide aujourd\'hui.', false);
+    showToast('Salaire impayé', 'La caisse de l\'usine est vide aujourd\'hui.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b5316ee9d", 'La caisse de l\'usine est vide aujourd\'hui.', undefined, 'Salaire impayé');
     addJournalEntry('Aucun salaire de directeur perçu : caisse de l\'usine vide.', 'event-bad');
   }
 }
@@ -6983,18 +6983,18 @@ async function doOuvrirDivisionTerrain() {
   const ts = getTerrainState(id);
 
   if (!estTitulaire(ts.proprietaire)) {
-    showToast('Accès refusé', "Vous n'êtes pas propriétaire de ce terrain.", false);
+    showToast('Accès refusé', "Vous n'êtes pas propriétaire de ce terrain.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.be880c08b", "Vous n'êtes pas propriétaire de ce terrain.", undefined, 'Accès refusé');
     return;
   }
   if (!peutDiviser(ts)) {
-    showToast('Impossible', 'Seuls les Commerces Premium et les Buildings peuvent être divisés.', false);
+    showToast('Impossible', 'Seuls les Commerces Premium et les Buildings peuvent être divisés.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bc812e797", 'Seuls les Commerces Premium et les Buildings peuvent être divisés.', undefined, 'Impossible');
     return;
   }
 
   // Lot 1.5.1 : surface inconnue (aucune superficie officielle n'a jamais ete fixee pour ce
   // terrain) -- on refuse explicitement au lieu de l'afficher comme un terrain plein a 0 m².
   if (!surfaceTerrainConnue(ts)) {
-    showToast('Surface inconnue', "La surface exploitable de ce terrain n'est pas connue : sa division est impossible.", false);
+    showToast('Surface inconnue', "La surface exploitable de ce terrain n'est pas connue : sa division est impossible.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b9e16a369", "La surface exploitable de ce terrain n'est pas connue : sa division est impossible.", undefined, 'Surface inconnue');
     return;
   }
 
@@ -7067,11 +7067,11 @@ async function doAjouterSubdivision() {
   // ecran reste la vitrine des lots (voir qui occupe quoi) ; toute modification reelle passe
   // desormais par l'ordre « Reconfigurer les lots ».
   if (ts.niveau_construction) {
-    showToast('Chantier requis', "Modifier le découpage d'un bâtiment livré demande des travaux : utilisez « Reconfigurer les lots ».", false);
+    showToast('Chantier requis', "Modifier le découpage d'un bâtiment livré demande des travaux : utilisez « Reconfigurer les lots ».", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b5b05a41e", "Modifier le découpage d'un bâtiment livré demande des travaux : utilisez « Reconfigurer les lots ».", undefined, 'Chantier requis');
     return;
   }
 
-  if (!label) { showToast('Nom manquant', 'Donnez un nom à ce lot.', false); return; }
+  if (!label) { showToast('Nom manquant', 'Donnez un nom à ce lot.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.ba7cde917", 'Donnez un nom à ce lot.', undefined, 'Nom manquant'); return; }
 
   // Lot 1.5.1 : verdict unique (plateau-immobilier.js) -- palier divisible, surface connue,
   // destination autorisee, minimum respecte, surface disponible suffisante. Aucune de ces regles
@@ -7081,7 +7081,7 @@ async function doAjouterSubdivision() {
     showToast(verdict.raison === 'surface_indisponible' ? 'Surface insuffisante' : 'Lot refusé', verdict.message, false);
     return;
   }
-  if (!loyer || loyer < 1) { showToast('Loyer manquant', 'Indiquez un loyer journalier.', false); return; }
+  if (!loyer || loyer < 1) { showToast('Loyer manquant', 'Indiquez un loyer journalier.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b198bce51", 'Indiquez un loyer journalier.', undefined, 'Loyer manquant'); return; }
 
   // LA PORTE NE PREND PLUS LE TABLEAU ENTIER (10 octobre 2026). Elle prend LE LOT, et le fusionne
   // par son identifiant dans le tableau relu sous verrou : un lot cree au meme moment par le
@@ -7111,7 +7111,7 @@ async function doSupprimerSubdivision(idx) {
   // ecran reste la vitrine des lots (voir qui occupe quoi) ; toute modification reelle passe
   // desormais par l'ordre « Reconfigurer les lots ».
   if (ts.niveau_construction) {
-    showToast('Chantier requis', "Modifier le découpage d'un bâtiment livré demande des travaux : utilisez « Reconfigurer les lots ».", false);
+    showToast('Chantier requis', "Modifier le découpage d'un bâtiment livré demande des travaux : utilisez « Reconfigurer les lots ».", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b5b05a41e", "Modifier le découpage d'un bâtiment livré demande des travaux : utilisez « Reconfigurer les lots ».", undefined, 'Chantier requis');
     return;
   }
   const subdivisions = ts.subdivisions || [];
@@ -7176,7 +7176,7 @@ function doOuvrirAgrandirLot(idxOccupe) {
   // Lot 1.5.14 : agrandir un lot en absorbant la surface d'un autre est une modification reelle du
   // decoupage -- elle passe par le chantier de reconfiguration, comme toutes les autres.
   if ((getTerrainState(state.currentBuilding) || {}).niveau_construction) {
-    showToast('Chantier requis', "Agrandir un local demande des travaux : utilisez « Reconfigurer les lots ».", false);
+    showToast('Chantier requis', "Agrandir un local demande des travaux : utilisez « Reconfigurer les lots ».", false); globalThis.RPI18nPlateau?.markToast("toastBodies.beea9f142", "Agrandir un local demande des travaux : utilisez « Reconfigurer les lots ».", undefined, 'Chantier requis');
     return;
   }
   const id = state.currentBuilding;
@@ -7245,7 +7245,7 @@ async function doAccepterFusionLot(idxOccupe) {
   // ne peut plus naitre (doOuvrirAgrandirLot est ferme sur un batiment livre), mais une proposition
   // anterieure ne doit pas rester un chemin de contournement du chantier.
   if ((getTerrainState(state.currentBuilding) || {}).niveau_construction) {
-    showToast('Chantier requis', "Agrandir un local demande des travaux : le propriétaire doit passer par « Reconfigurer les lots ».", false);
+    showToast('Chantier requis', "Agrandir un local demande des travaux : le propriétaire doit passer par « Reconfigurer les lots ».", false); globalThis.RPI18nPlateau?.markToast("toastBodies.bd20928f9", "Agrandir un local demande des travaux : le propriétaire doit passer par « Reconfigurer les lots ».", undefined, 'Chantier requis');
     return;
   }
   const id = state.currentBuilding;
@@ -7296,7 +7296,7 @@ async function doRefuserFusionLot(idxOccupe) {
   }
   remplacerTerrainState(id, vRef.etat);
 
-  showToast('Proposition refusée', "L'agrandissement n'aura pas lieu.", false);
+  showToast('Proposition refusée', "L'agrandissement n'aura pas lieu.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b11a20e48", "L'agrandissement n'aura pas lieu.", undefined, 'Proposition refusée');
 }
 
 // =====================
@@ -7311,7 +7311,7 @@ async function doOuvrirLouerLot(pa, cost) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
 
   if (estTitulaire(ts.proprietaire)) {
-    showToast('Impossible', "Vous êtes déjà propriétaire de ce terrain — utilisez « Diviser / gérer les lots ».", false);
+    showToast('Impossible', "Vous êtes déjà propriétaire de ce terrain — utilisez « Diviser / gérer les lots ».", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b93bac238", "Vous êtes déjà propriétaire de ce terrain — utilisez « Diviser / gérer les lots ».", undefined, 'Impossible');
     return;
   }
   // Lot 1.5.14 : un lot pris dans une reconfiguration en cours n'est pas louable -- c'est un
@@ -7323,11 +7323,11 @@ async function doOuvrirLouerLot(pa, cost) {
   // Un logement social ne se loue pas soi-même : l'adjoint au maire l'attribue (29/10/2026).
   const lotsLibres = lotsDisponiblesALaLocation(ts, id).filter(function (l) { return Number(l.loyer) > 0 && l.destination !== 'logement_social'; });
   if (lotsLibres.length === 0 && subdivisions.some(function (l) { return l.destination === 'logement_social'; })) {
-    showToast('Logements sociaux', "Ces logements sont attribués par l'adjoint au maire : déposez une demande à la mairie.", false);
+    showToast('Logements sociaux', "Ces logements sont attribués par l'adjoint au maire : déposez une demande à la mairie.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b4178583c", "Ces logements sont attribués par l'adjoint au maire : déposez une demande à la mairie.", undefined, 'Logements sociaux');
     return;
   }
   if (lotsLibres.length === 0) {
-    showToast('Aucun lot disponible', "Aucun lot n'est proposé à la location : le terrain n'est pas encore divisé, tous les lots sont loués, ou le propriétaire n'a pas encore fixé leur loyer.", false);
+    showToast('Aucun lot disponible', "Aucun lot n'est proposé à la location : le terrain n'est pas encore divisé, tous les lots sont loués, ou le propriétaire n'a pas encore fixé leur loyer.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b1fdaac89", "Aucun lot n'est proposé à la location : le terrain n'est pas encore divisé, tous les lots sont loués, ou le propriétaire n'a pas encore fixé leur loyer.", undefined, 'Aucun lot disponible');
     return;
   }
 
@@ -7352,7 +7352,7 @@ async function doLouerCeLot(lotId, pa, cost) {
   document.getElementById('modal-postes')?.classList.remove('open');
   if (typeof rafraichirPiecesDynamiques==='function') rafraichirPiecesDynamiques(state.currentBuilding);
   updateUI();
-  showToast('Bail signé', 'Le bail, le premier loyer et les PA ont été confirmés par le serveur.', true, true);
+  showToast('Bail signé', 'Le bail, le premier loyer et les PA ont été confirmés par le serveur.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.ba1ed58b5", 'Le bail, le premier loyer et les PA ont été confirmés par le serveur.', undefined, 'Bail signé');
   addJournalEntry('Location du lot confirmée par le serveur.', 'event-good');
 }
 
@@ -7368,7 +7368,7 @@ async function doGererLotLoue() {
     .filter(function(x) { return estTitulaire(locataireDuLot(id, x.l)); });
 
   if (mesLots.length === 0) {
-    showToast('Aucun local', "Vous ne louez aucun lot sur ce terrain.", false);
+    showToast('Aucun local', "Vous ne louez aucun lot sur ce terrain.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b41c81e28", "Vous ne louez aucun lot sur ce terrain.", undefined, 'Aucun local');
     return;
   }
 
@@ -7409,7 +7409,7 @@ async function ouvrirModalConstruire() {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
 
   if (!estTitulaire(ts.proprietaire)) {
-    showToast('Accès refusé', 'Vous n\'êtes pas propriétaire de ce terrain.', false);
+    showToast('Accès refusé', 'Vous n\'êtes pas propriétaire de ce terrain.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.be880c08b", 'Vous n\'êtes pas propriétaire de ce terrain.', undefined, 'Accès refusé');
     return;
   }
   if (ts.niveau_construction) {
@@ -7425,7 +7425,7 @@ async function ouvrirModalConstruire() {
   // meme endroit que les deux gardes existantes ci-dessus, sans toucher a confirmerConstruction/
   // doPayerVersementChantier/le cron de progression (avancerChantiersQuotidien), tous inchanges.
   if (ts.chantier) {
-    showToast('Chantier en cours', 'Un chantier est déjà en cours sur ce terrain.', false);
+    showToast('Chantier en cours', 'Un chantier est déjà en cours sur ce terrain.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b6e9d0a9b", 'Un chantier est déjà en cours sur ce terrain.', undefined, 'Chantier en cours');
     return;
   }
   // Lot 1.5.7 : cadavre / squatteurs. On ne reinvente aucune regle -- on interroge le contrat
@@ -7433,7 +7433,7 @@ async function ouvrirModalConstruire() {
   // en lui ajoutant simplement 'construire_sur_terrain' a ses listes de blocage.
   const dispoChantier = (typeof terrainOrdreDisponible === 'function')
     ? terrainOrdreDisponible('construire_sur_terrain', id) : { ok: true };
-  if (!dispoChantier.ok) { showToast('Impossible', dispoChantier.raison, false); return; }
+  if (!dispoChantier.ok) { showToast('Impossible', dispoChantier.raison, false); globalThis.RPI18nPlateau?.markToast(null, dispoChantier.raison, undefined, 'Impossible'); return; }
 
   if (!ts.constructionAutorisee) {
     // Sans permis joint, ouvrir le dossier existant, sans débiter à l'ouverture.
@@ -7469,11 +7469,11 @@ async function confirmerConstruction(niveauKey) {
   const texte=document.getElementById('chantier-apport')?.value?.trim();
   let apport;
   try{apport=texte?constructionFrancsEntiers(texte):montantMinimalLancement(palier.coutTotal);}
-  catch(_){showToast('Apport invalide','Utilisez des francs entiers.',false);return;}
+  catch(_){showToast('Apport invalide','Utilisez des francs entiers.',false); globalThis.RPI18nPlateau?.markToast("toastBodies.bc5a29b2b", 'Utilisez des francs entiers.', undefined, 'Apport invalide');return;}
   const r=await constructionExecuterCommande('lancer',{palier:niveauKey,apport:String(apport)});
   if(!r)return;
   document.getElementById('modal-postes')?.classList.remove('open');
-  showToast('Chantier ouvert', 'Le serveur a confirmé le financement et les premiers matériaux.',true,true);
+  showToast('Chantier ouvert', 'Le serveur a confirmé le financement et les premiers matériaux.',true,true); globalThis.RPI18nPlateau?.markToast("toastBodies.b39db745d", 'Le serveur a confirmé le financement et les premiers matériaux.', undefined, 'Chantier ouvert');
 }
 
 // Apport libre a tout moment : n'importe quel montant positif, autant de fois qu'on veut.
@@ -7484,14 +7484,14 @@ async function doPayerVersementChantier() {
   const texte=document.getElementById('chantier-versement')?.value?.trim();
   let montant;
   try{montant=texte?constructionFrancsEntiers(texte):Math.max(0,ch.coutTotal-ch.totalVerse);}
-  catch(_){showToast('Montant invalide','Utilisez des francs entiers.',false);return;}
+  catch(_){showToast('Montant invalide','Utilisez des francs entiers.',false); globalThis.RPI18nPlateau?.markToast("toastBodies.bc5a29b2b", 'Utilisez des francs entiers.', undefined, 'Montant invalide');return;}
   const r=await constructionExecuterCommande('verser',{montant:String(montant)});
-  if(r)showToast('Versement confirmé','Le financement réel du chantier a été actualisé.',true);
+  if(r){ showToast('Versement confirmé','Le financement réel du chantier a été actualisé.',true); globalThis.RPI18nPlateau?.markToast("toastBodies.b5ce838df", 'Le financement réel du chantier a été actualisé.', undefined, 'Versement confirmé'); }
 }
 
 async function doCorrompreChantier(pa, cost) {
   // Les quatre empires actuels sont non P2W. Refuser avant tout cout ou mutation.
-  showToast('Délai incompressible', 'Aucun paiement ne permet d’accélérer une construction dans les empires actuels.', false);
+  showToast('Délai incompressible', 'Aucun paiement ne permet d’accélérer une construction dans les empires actuels.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bb9f0fbc0", 'Aucun paiement ne permet d’accélérer une construction dans les empires actuels.', undefined, 'Délai incompressible');
 }
 
 // =====================================================================
@@ -7611,7 +7611,7 @@ function doAjouterLotModificationPlan() {
   const destinationsPalier = destinationsAutorisees(palier);
   const destination = document.getElementById('modplan-destination')?.value || destinationsPalier[0];
 
-  if (!label) { showToast('Nom manquant', 'Donnez un nom à ce lot.', false); return; }
+  if (!label) { showToast('Nom manquant', 'Donnez un nom à ce lot.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.ba7cde917", 'Donnez un nom à ce lot.', undefined, 'Nom manquant'); return; }
 
   const verdict = verdictAjoutLotPlan(ts, palier, _planModificationEnCours.lots, { destination, surface });
   if (!verdict.ok) {
@@ -7633,8 +7633,8 @@ function doRetirerLotModificationPlan(index) {
 
 async function confirmerModificationPlan(valider=false) {
   const id=_planModificationEnCours.buildingId||state.currentBuilding;
-  if(id!==state.currentBuilding){showToast('Plan non envoyé','Revenez sur le terrain concerné.',false);return;}
-  if(!await chargerTerrainState(id,true)){showToast('Plan non envoyé','L’état du terrain ne peut pas être confirmé.',false);return;}
+  if(id!==state.currentBuilding){showToast('Plan non envoyé','Revenez sur le terrain concerné.',false); globalThis.RPI18nPlateau?.markToast("toastBodies.b9710ff09", 'Revenez sur le terrain concerné.', undefined, 'Plan non envoyé');return;}
+  if(!await chargerTerrainState(id,true)){showToast('Plan non envoyé','L’état du terrain ne peut pas être confirmé.',false); globalThis.RPI18nPlateau?.markToast("toastBodies.b376b1427", 'L’état du terrain ne peut pas être confirmé.', undefined, 'Plan non envoyé');return;}
   const ts=getTerrainState(id),v=verdictOuvertureModificationPlan(ts);
   if(!v.ok){showToast('Plan non envoyé',v.message,false);return;}
   const lots=snapshotPlanPermis(_planModificationEnCours.lots);
@@ -7666,12 +7666,12 @@ async function doOuvrirReconfiguration(pa, cost) {
   await chargerTerrainState(id);
   const ts = getTerrainState(id);
 
-  if (!estTitulaire(ts.proprietaire)) { showToast('Accès refusé', "Vous n'êtes pas propriétaire de ce bâtiment.", false); return; }
-  if (!ts.niveau_construction) { showToast('Aucun bâtiment', "Il n'y a rien à reconfigurer sur un terrain nu.", false); return; }
-  if (ts.chantier) { showToast('Construction en cours', 'Attendez la livraison du bâtiment.', false); return; }
-  if (ts.chantierReamenagement) { showToast('Travaux en cours', 'Une reconfiguration est déjà engagée ici — elle ne peut pas être annulée.', false); return; }
+  if (!estTitulaire(ts.proprietaire)) { showToast('Accès refusé', "Vous n'êtes pas propriétaire de ce bâtiment.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.babc9545d", "Vous n'êtes pas propriétaire de ce bâtiment.", undefined, 'Accès refusé'); return; }
+  if (!ts.niveau_construction) { showToast('Aucun bâtiment', "Il n'y a rien à reconfigurer sur un terrain nu.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b50a68489", "Il n'y a rien à reconfigurer sur un terrain nu.", undefined, 'Aucun bâtiment'); return; }
+  if (ts.chantier) { showToast('Construction en cours', 'Attendez la livraison du bâtiment.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b91258a0a", 'Attendez la livraison du bâtiment.', undefined, 'Construction en cours'); return; }
+  if (ts.chantierReamenagement) { showToast('Travaux en cours', 'Une reconfiguration est déjà engagée ici — elle ne peut pas être annulée.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b73ca6efc", 'Une reconfiguration est déjà engagée ici — elle ne peut pas être annulée.', undefined, 'Travaux en cours'); return; }
   if (!batimentDivisible(ts.niveau_construction)) {
-    showToast('Bâtiment indivisible', 'Seuls les Commerces Premium et les Buildings se divisent en lots.', false); return;
+    showToast('Bâtiment indivisible', 'Seuls les Commerces Premium et les Buildings se divisent en lots.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b4cb2785d", 'Seuls les Commerces Premium et les Buildings se divisent en lots.', undefined, 'Bâtiment indivisible'); return;
   }
 
   // Brouillon initialise sur le plan REEL : reconfigurer, c'est partir de l'existant.
@@ -7757,7 +7757,7 @@ function doAjouterLotReconfiguration(pa, cost) {
   const destinationsPalier = destinationsAutorisees(palier);
   const destination = document.getElementById('recfg-destination')?.value || destinationsPalier[0];
 
-  if (!label) { showToast('Nom manquant', 'Donnez un nom à ce lot.', false); return; }
+  if (!label) { showToast('Nom manquant', 'Donnez un nom à ce lot.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.ba7cde917", 'Donnez un nom à ce lot.', undefined, 'Nom manquant'); return; }
 
   const verdict = verdictAjoutLotPlan(ts, palier, _planReconfigEnCours.lots, { destination, surface });
   if (!verdict.ok) {
@@ -7785,7 +7785,7 @@ async function confirmerReconfiguration() {
   if (!r || !contexteNavigationRueValide(contexte)) return;
   _planReconfigEnCours = { buildingId: null, lots: [] };
   document.getElementById('modal-postes')?.classList.remove('open');
-  showToast('Travaux engagés', 'Le serveur a confirmé le financement intégral et le plan des travaux.', true, true);
+  showToast('Travaux engagés', 'Le serveur a confirmé le financement intégral et le plan des travaux.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.be519b76f", 'Le serveur a confirmé le financement intégral et le plan des travaux.', undefined, 'Travaux engagés');
   addJournalEntry('Reconfiguration engagée et financée intégralement.', 'event-good');
 }
 
@@ -7833,10 +7833,10 @@ function bailDuLocalCourant() {
 
 async function doGererFondsCommerce(pa, cost) {
   const bail = bailDuLocalCourant();
-  if (!bail) { showToast('Aucun bail', "Vous n'êtes pas titulaire d'un bail sur ce local.", false); return; }
+  if (!bail) { showToast('Aucun bail', "Vous n'êtes pas titulaire d'un bail sur ce local.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b0e66a1c7", "Vous n'êtes pas titulaire d'un bail sur ce local.", undefined, 'Aucun bail'); return; }
 
   const ref = refDemandeurPourBail(bail);
-  if (!joueurControle(ref)) { showToast('Accès refusé', "Ce bail n'est pas sous votre contrôle.", false); return; }
+  if (!joueurControle(ref)) { showToast('Accès refusé', "Ce bail n'est pas sous votre contrôle.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.be2e4eb99", "Ce bail n'est pas sous votre contrôle.", undefined, 'Accès refusé'); return; }
 
   const ts = getTerrainState(bail.buildingId);
   const lot = ((ts && ts.subdivisions) || []).find(function (l) { return l && l.id === bail.lotId; })
@@ -7896,7 +7896,7 @@ function renderFondsCommerce(bail, lot, ref, fonds, pa, cost) {
 async function confirmerCreationFonds() {
   const ctx = window._fondsContexte || {};
   if (!ctx.bailId || typeof sbCreerFondsCommerce !== 'function') {
-    showToast('Indisponible', "Le service des fonds de commerce n'a pas répondu.", false); return;
+    showToast('Indisponible', "Le service des fonds de commerce n'a pas répondu.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b63a34154", "Le service des fonds de commerce n'a pas répondu.", undefined, 'Indisponible'); return;
   }
   const enseigne = (document.getElementById('fonds-enseigne')?.value || '').trim();
   const apport = Math.max(0, parseInt(document.getElementById('fonds-apport')?.value || 0));
@@ -7922,10 +7922,10 @@ async function confirmerRetraitFonds()      { return mouvementCaisseFonds(false)
 async function mouvementCaisseFonds(versement) {
   const ctx = window._fondsContexte || {};
   const montant = parseInt(document.getElementById('fonds-montant')?.value || 0);
-  if (!ctx.fondsId) { showToast('Indisponible', 'Aucun fonds sur ce local.', false); return; }
-  if (!(montant > 0)) { showToast('Montant requis', 'Indiquez un montant.', false); return; }
+  if (!ctx.fondsId) { showToast('Indisponible', 'Aucun fonds sur ce local.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bc8827ebc", 'Aucun fonds sur ce local.', undefined, 'Indisponible'); return; }
+  if (!(montant > 0)) { showToast('Montant requis', 'Indiquez un montant.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b4d78ba9e", 'Indiquez un montant.', undefined, 'Montant requis'); return; }
   const appel = versement ? sbAlimenterCaisseFonds : sbRetirerCaisseFonds;
-  if (typeof appel !== 'function') { showToast('Indisponible', "Le service des fonds de commerce n'a pas répondu.", false); return; }
+  if (typeof appel !== 'function') { showToast('Indisponible', "Le service des fonds de commerce n'a pas répondu.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b63a34154", "Le service des fonds de commerce n'a pas répondu.", undefined, 'Indisponible'); return; }
 
   const v = await appel(ctx.ref, ctx.fondsId, montant);
   if (!v || v.ok !== true) {
@@ -8052,7 +8052,7 @@ async function confirmerPretBancaire(typeBanque, typePret, pa) {
   const infosType = TYPES_PRET[typePret] || TYPES_PRET.travaux;
   const estConso = typePret === 'consommation';
 
-  if (!montant || montant < 1000) { showToast('Montant invalide', 'Minimum 1000 ' + cur + '.', false); return; }
+  if (!montant || montant < 1000) { showToast('Montant invalide', 'Minimum 1000 ' + cur + '.', false); globalThis.RPI18nPlateau?.markToast(null, 'Minimum 1000 ' + cur + '.', undefined, 'Montant invalide'); return; }
   if (estConso && montant > infosType.montantMax) {
     showToast('Montant trop élevé', 'Le prêt consommation est plafonné à ' + infosType.montantMax.toLocaleString('fr-FR') + ' ' + cur + '.', false);
     return;
@@ -8172,7 +8172,7 @@ async function doDeposerDemandePermis(pa, cost) {
   const id = state.currentBuilding;
   await chargerTerrainState(id);
   const ts = getTerrainState(id);
-  if (!estTitulaire(ts.proprietaire) && !(ts.compromis && ts.compromisPar === state.char?.name)) { showToast('Accès refusé', 'Vous ne détenez ni ce terrain ni son compromis.', false); return; }
+  if (!estTitulaire(ts.proprietaire) && !(ts.compromis && ts.compromisPar === state.char?.name)) { showToast('Accès refusé', 'Vous ne détenez ni ce terrain ni son compromis.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b3d6d8510", 'Vous ne détenez ni ce terrain ni son compromis.', undefined, 'Accès refusé'); return; }
 
   // Lot 1.5.13 : verdict unique (plateau-immobilier.js) -- deja construit, instruction en cours,
   // ou carence de trois jours apres un refus. Aucune de ces regles n'est reecrite ici.
@@ -8281,7 +8281,7 @@ function doAjouterLotPlanPermis(pa, cost) {
   const destinationsPalier = destinationsAutorisees(palier);
   const destination = document.getElementById('plan-destination')?.value || destinationsPalier[0];
 
-  if (!label) { showToast('Nom manquant', 'Donnez un nom à ce lot.', false); return; }
+  if (!label) { showToast('Nom manquant', 'Donnez un nom à ce lot.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.ba7cde917", 'Donnez un nom à ce lot.', undefined, 'Nom manquant'); return; }
 
   // Meme verdict que la division d'un batiment livre, applique au terrain PROJETE : aucune regle
   // de surface n'est reecrite ici.
@@ -8322,7 +8322,7 @@ async function confirmerDepotPermis(palierDemande, pa, cost) {
     try {
       intention = JSON.parse(sessionStorage.getItem(cle) || 'null');
       if (intention && intention.palier !== palierDemande) {
-        showToast('Dépôt à vérifier', 'Vérifiez le précédent dépôt avant de changer de type de bâtiment.', false);
+        showToast('Dépôt à vérifier', 'Vérifiez le précédent dépôt avant de changer de type de bâtiment.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b3f24ecb3", 'Vérifiez le précédent dépôt avant de changer de type de bâtiment.', undefined, 'Dépôt à vérifier');
         return;
       }
       if (!intention) {
@@ -8330,7 +8330,7 @@ async function confirmerDepotPermis(palierDemande, pa, cost) {
         sessionStorage.setItem(cle, JSON.stringify(intention));
       }
     } catch (_) {
-      showToast('Dépôt impossible', 'Le navigateur ne peut pas conserver la référence du dépôt. Aucun ordre envoyé.', false);
+      showToast('Dépôt impossible', 'Le navigateur ne peut pas conserver la référence du dépôt. Aucun ordre envoyé.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bf76f4d98", 'Le navigateur ne peut pas conserver la référence du dépôt. Aucun ordre envoyé.', undefined, 'Dépôt impossible');
       return;
     }
     const r = await sbRpcVerdict('terrain_permis_deposer', {
@@ -8347,7 +8347,7 @@ async function confirmerDepotPermis(palierDemande, pa, cost) {
       return;
     }
     if (!r.etat || !r.document || !r.paiement) {
-      showToast('Dépôt à vérifier', 'Confirmation incomplète. Conservez cette référence et réessayez.', false);
+      showToast('Dépôt à vérifier', 'Confirmation incomplète. Conservez cette référence et réessayez.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b4168b10a", 'Confirmation incomplète. Conservez cette référence et réessayez.', undefined, 'Dépôt à vérifier');
       return;
     }
     remplacerTerrainState(origine.terrain, r.etat);
@@ -8355,10 +8355,10 @@ async function confirmerDepotPermis(palierDemande, pa, cost) {
     sessionStorage.removeItem(cle);
     _planPermisEnCours = { palier: null, lots: [] };
     document.getElementById('modal-postes')?.classList.remove('open');
-    showToast('Demande déposée', 'Le dossier et son récépissé ont été enregistrés par le serveur.', true, true);
+    showToast('Demande déposée', 'Le dossier et son récépissé ont été enregistrés par le serveur.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b0e1f2a31", 'Le dossier et son récépissé ont été enregistrés par le serveur.', undefined, 'Demande déposée');
     if (!r.rejeu) addJournalEntry('Demande de permis déposée : ' + NIVEAUX_CONSTRUCTION[palierDemande].label + '.', 'event-good');
   } catch (_) {
-    if (courant()) showToast('Dépôt non confirmé', 'Réessayez le même dépôt pour vérifier son enregistrement, sans nouveau prélèvement.', false);
+    if (courant()) { showToast('Dépôt non confirmé', 'Réessayez le même dépôt pour vérifier son enregistrement, sans nouveau prélèvement.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bee192a0d", 'Réessayez le même dépôt pour vérifier son enregistrement, sans nouveau prélèvement.', undefined, 'Dépôt non confirmé'); }
   } finally {
     RP_PERMIS_DEPOT_EN_COURS = false;
   }
@@ -8512,14 +8512,14 @@ async function traiterPermis(buildingId, valide, pa, cost, motif) {
   const cle = 'permis-decision:' + (state.char?.name || '') + ':' + buildingId + ':' + (etat.permis.numeroDossier || '');
   let requete;
   try { requete = sessionStorage.getItem(cle) || crypto.randomUUID(); sessionStorage.setItem(cle, requete); }
-  catch (_) { showToast('Décision non envoyée', 'Le navigateur ne peut pas conserver la référence de cette décision.', false); return; }
+  catch (_) { showToast('Décision non envoyée', 'Le navigateur ne peut pas conserver la référence de cette décision.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b45ef007e", 'Le navigateur ne peut pas conserver la référence de cette décision.', undefined, 'Décision non envoyée'); return; }
   const v = await sbRpcVerdict('terrain_permis_decider', {
     p_terrain: buildingId, p_valide: valide === true, p_motif: valide ? null : vDecision.motif, p_requete: requete
   }).catch(() => null);
   if (!v || v.ok !== true) {
     if (v && !v.transport) { try { sessionStorage.removeItem(cle); } catch (_) {} }
     if (v && !v.transport) signalerRefusTerrain(v, 'La décision sur ce permis');
-    else showToast('Décision incertaine', 'Réponse incertaine. Relancez la même décision : elle ne sera pas comptée deux fois.', false);
+    else { showToast('Décision incertaine', 'Réponse incertaine. Relancez la même décision : elle ne sera pas comptée deux fois.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bbae5ed9f", 'Réponse incertaine. Relancez la même décision : elle ne sera pas comptée deux fois.', undefined, 'Décision incertaine'); }
     return;
   }
   try { sessionStorage.removeItem(cle); } catch (_) {}
@@ -8641,7 +8641,7 @@ async function doCorrompreFonctionnairePermis(pa, cost) {
   const cle = 'permis-corruption:' + (state.char?.name || '') + ':' + id;
   let requete;
   try { requete = sessionStorage.getItem(cle) || crypto.randomUUID(); sessionStorage.setItem(cle, requete); }
-  catch (_) { showToast('Ordre non envoyé', 'Le navigateur ne peut pas conserver la référence de cet ordre.', false); return; }
+  catch (_) { showToast('Ordre non envoyé', 'Le navigateur ne peut pas conserver la référence de cet ordre.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b025a735b", 'Le navigateur ne peut pas conserver la référence de cet ordre.', undefined, 'Ordre non envoyé'); return; }
   const v = await sbRpcVerdict('terrain_permis_corrompre', { p_terrain: id, p_requete: requete }).catch(() => null);
   if (state.currentBuilding !== id) return;
   if (!v || v.ok !== true) {
@@ -8659,13 +8659,13 @@ async function doCorrompreFonctionnairePermis(pa, cost) {
   updateUI();
   document.getElementById('modal-postes')?.classList.remove('open');
   if (v.decouvert) {
-    showToast('Corruption découverte !', 'Le fonctionnaire vous dénonce.', false);
+    showToast('Corruption découverte !', 'Le fonctionnaire vous dénonce.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b721eec5c", 'Le fonctionnaire vous dénonce.', undefined, 'Corruption découverte !');
     addJournalEntry('Tentative de corruption d\'un fonctionnaire découverte (-' + cost + ' FR).', 'event-bad');
     // Le serveur a ecroue le joueur dans la meme transaction (terrain_permis_corrompre, 03/11/2026).
     if (typeof adopterArrestationServeur === 'function') await adopterArrestationServeur(v.arrestation);
     return;
   }
-  showToast('Dossier accéléré', 'Le fonctionnaire a fait remonter votre dossier. Instruction raccourcie.', true, true);
+  showToast('Dossier accéléré', 'Le fonctionnaire a fait remonter votre dossier. Instruction raccourcie.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.ba7dc8ee7", 'Le fonctionnaire a fait remonter votre dossier. Instruction raccourcie.', undefined, 'Dossier accéléré');
   addJournalEntry('Corruption d\'un fonctionnaire pour accélérer un permis de construire (-' + cost + ' FR).', 'event-bad');
 }
 
@@ -8780,7 +8780,7 @@ async function commanderEffectifServeur(service, action, type = null, matricule 
       requete = localStorage.getItem(cle);
       if (!requete) { requete = crypto.randomUUID(); localStorage.setItem(cle,requete); }
     } catch (_) {
-      showToast('Ordre non envoyé','Le reçu ne peut pas être conservé. Aucun paiement envoyé.',false); return false;
+      showToast('Ordre non envoyé','Le reçu ne peut pas être conservé. Aucun paiement envoyé.',false); globalThis.RPI18nPlateau?.markToast("toastBodies.baccbaa7b", 'Le reçu ne peut pas être conservé. Aucun paiement envoyé.', undefined, 'Ordre non envoyé'); return false;
     }
     const v = await sbRpcVerdict('force_publique_effectif_acte',
       {p_service:service,p_action:action,p_type:type,p_matricule:matricule,p_requete:requete},
@@ -8797,7 +8797,7 @@ async function commanderEffectifServeur(service, action, type = null, matricule 
     const frais = await sbLoadPersonnage(c.nom).catch(()=>null);
     if (!contexteGroupePjValide(c)) return false;
     if (!frais || frais.userId !== c.uid || !Number.isInteger(frais.pa) || frais.pa < 0) {
-      showToast('Ordre enregistré','Les PA doivent encore être relus. Réessayez : le reçu évite un second paiement.',false); return false;
+      showToast('Ordre enregistré','Les PA doivent encore être relus. Réessayez : le reçu évite un second paiement.',false); globalThis.RPI18nPlateau?.markToast("toastBodies.b61a446a9", 'Les PA doivent encore être relus. Réessayez : le reçu évite un second paiement.', undefined, 'Ordre enregistré'); return false;
     }
     state.pa = frais.pa;
     localStorage.removeItem(cle);
@@ -9473,7 +9473,7 @@ async function confirmerAcheterCriee(pa, cost) {
     const q = parseInt(document.getElementById('achat-criee-' + cle)?.value || 0);
     if (q > 0) quantites[cle] = q;
   }
-  if (Object.keys(quantites).length === 0) { showToast('Rien à acheter', 'Indiquez au moins une quantité.', false); return; }
+  if (Object.keys(quantites).length === 0) { showToast('Rien à acheter', 'Indiquez au moins une quantité.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b7a904b31", 'Indiquez au moins une quantité.', undefined, 'Rien à acheter'); return; }
   if (typeof assembleeControlerVenteLegale === 'function'
       && !(await assembleeControlerVenteLegale(Object.keys(quantites).map(cle => ({ stackKey: cle }))))) return;
   // CLE D'UNICITE (30/10/2026) : PA et achat dans UNE operation serveur, sous une cle que
@@ -9797,9 +9797,9 @@ async function commanderFretServeur(action, caisseId, params) {
   const cle = 'hg-fret:' + JSON.stringify([state.char?.name || '', action, caisseId || null, params || {}]);
   let requete;
   try { requete = localStorage.getItem(cle); if (!requete) { requete = crypto.randomUUID(); localStorage.setItem(cle, requete); } }
-  catch (_) { showToast('Action non envoyée', 'Le reçu ne peut pas être conservé.', false); return null; }
+  catch (_) { showToast('Action non envoyée', 'Le reçu ne peut pas être conservé.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b0e5af16e", 'Le reçu ne peut pas être conservé.', undefined, 'Action non envoyée'); return null; }
   const v = await sbRpcVerdict('fret_caisse_commande', { p_action: action, p_caisse: caisseId || null, p_params: params || {}, p_requete: requete }).catch(() => null);
-  if (!v || v.transport) { showToast('Action non confirmée', 'La réponse est incertaine. Le même reçu évitera un double effet.', false); return null; }
+  if (!v || v.transport) { showToast('Action non confirmée', 'La réponse est incertaine. Le même reçu évitera un double effet.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b93d3c417", 'La réponse est incertaine. Le même reçu évitera un double effet.', undefined, 'Action non confirmée'); return null; }
   try { localStorage.removeItem(cle); } catch (_) {}
   if (v.ok !== true) {
     const motifs = { pas_au_port: 'Vous devez être au port.', pas_responsable: 'Seul le responsable de la caisse peut faire cela.',
@@ -9833,7 +9833,7 @@ async function confirmerReservationCaisseFret(pa, cost) {
   const v = await commanderFretServeur('reserver', null, {});
   if (!v) return;
   await relirePaiementFret();
-  showToast('Caisse réservée', 'Vous pouvez maintenant y déposer des marchandises.', true, true);
+  showToast('Caisse réservée', 'Vous pouvez maintenant y déposer des marchandises.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.ba8d034a5", 'Vous pouvez maintenant y déposer des marchandises.', undefined, 'Caisse réservée');
   addJournalEntry('Caisse de fret réservée au port.', 'event-info');
   await afficherGestionCaisseOuverteFret(v.caisse);
 }
@@ -9848,9 +9848,9 @@ async function afficherGestionCaisseOuverteFret(caisseId) {
 
   const estLeader = caisse.leader === moi;
   const estChargeur = (caisse.chargeurs_autorises || []).includes(moi);
-  if (!estLeader && !estChargeur) { showToast('Accès refusé', 'Vous n\'êtes pas autorisé à charger cette caisse.', false); return; }
+  if (!estLeader && !estChargeur) { showToast('Accès refusé', 'Vous n\'êtes pas autorisé à charger cette caisse.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bf3cd60e4", 'Vous n\'êtes pas autorisé à charger cette caisse.', undefined, 'Accès refusé'); return; }
   const presentIci = await jeSuisPresentDansRoomFret(caisse.pays_origine, caisse.ville_origine, caisse.building_origine);
-  if (!presentIci) { showToast('Absent du port', 'Vous devez être physiquement présent au port pour agir sur cette caisse.', false); return; }
+  if (!presentIci) { showToast('Absent du port', 'Vous devez être physiquement présent au port pour agir sur cette caisse.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b887ec223", 'Vous devez être physiquement présent au port pour agir sur cette caisse.', undefined, 'Absent du port'); return; }
 
   const lignes = await chargerContenuCaisseFret(caisseId);
   const total = totalContenuFret(lignes);
@@ -9905,7 +9905,7 @@ async function deposerDansCaisseFret(caisseId) {
   const idx = Number(document.getElementById('fret-depot-objet')?.value || 0);
   const objet = (window._fretEligiblesDepot || [])[idx];
   const index = state.inventory.indexOf(objet);
-  if (index < 0) { showToast('Sélection périmée', 'Rouvrez la caisse.', false); return; }
+  if (index < 0) { showToast('Sélection périmée', 'Rouvrez la caisse.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b8f1f7a87", 'Rouvrez la caisse.', undefined, 'Sélection périmée'); return; }
   const v = await executerReceptionInventaire('fret_objet_agir', { p_caisse: caisseId, p_action: 'deposer',
     p_index: index, p_quantite: Number(document.getElementById('fret-depot-qty')?.value || 1), p_revision: state._inventaireRevision ?? null });
   if (!v) return;
@@ -9935,10 +9935,10 @@ async function ouvrirFermerCaisseFret(caisseId) {
   const moi = state.char?.name || '';
   const rows = typeof sbGet === 'function' ? await sbGet('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId)).catch(() => []) : [];
   const caisse = rows && rows[0];
-  if (!caisse || caisse.leader !== moi || caisse.statut !== 'ouverte') { showToast('Action impossible', '', false); return; }
+  if (!caisse || caisse.leader !== moi || caisse.statut !== 'ouverte') { showToast('Action impossible', '', false); globalThis.RPI18nPlateau?.markToast(null, '', undefined, 'Action impossible'); return; }
   const lignes = await chargerContenuCaisseFret(caisseId);
   const total = totalContenuFret(lignes);
-  if (total <= 0) { showToast('Caisse vide', 'Déposez au moins une unité avant de fermer la caisse.', false); return; }
+  if (total <= 0) { showToast('Caisse vide', 'Déposez au moins une unité avant de fermer la caisse.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b88ec8d7f", 'Déposez au moins une unité avant de fermer la caisse.', undefined, 'Caisse vide'); return; }
 
   document.getElementById('postes-modal-title').textContent = 'Fermer et déclarer la caisse';
   let joueurs = [];
@@ -9952,7 +9952,7 @@ async function ouvrirFermerCaisseFret(caisseId) {
   if (typeof sbListPersonnages === 'function') joueurs = (await sbListPersonnages().catch(() => []) || [])
     .filter(j => j.name && j.name !== moi && PORTS_FRET[j.country]);
   if (joueurs.length === 0) {
-    showToast('Aucun destinataire livrable', 'Aucun port de destination n\'est ouvert pour l\'instant.', false);
+    showToast('Aucun destinataire livrable', 'Aucun port de destination n\'est ouvert pour l\'instant.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b9782ab0d", 'Aucun port de destination n\'est ouvert pour l\'instant.', undefined, 'Aucun destinataire livrable');
     return;
   }
 
@@ -10048,9 +10048,9 @@ async function confirmerControleCaisseFret(caisseId, pa) {
   const cle = 'hg-controle-caisse:' + caisseId;
   let requete;
   try { requete = localStorage.getItem(cle); if (!requete) { requete = crypto.randomUUID(); localStorage.setItem(cle, requete); } }
-  catch (_) { showToast('Contrôle non envoyé', 'Le reçu ne peut pas être conservé.', false); return; }
+  catch (_) { showToast('Contrôle non envoyé', 'Le reçu ne peut pas être conservé.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b0e5af16e", 'Le reçu ne peut pas être conservé.', undefined, 'Contrôle non envoyé'); return; }
   const v = await sbRpcVerdict('douane_caisse_controler', { p_caisse: caisseId, p_requete: requete }).catch(() => null);
-  if (!v || v.transport) { showToast('Contrôle non confirmé', 'La réponse est incertaine. Le même reçu évitera un second contrôle.', false); return; }
+  if (!v || v.transport) { showToast('Contrôle non confirmé', 'La réponse est incertaine. Le même reçu évitera un second contrôle.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bb9e9deb1", 'La réponse est incertaine. Le même reçu évitera un second contrôle.', undefined, 'Contrôle non confirmé'); return; }
   try { localStorage.removeItem(cle); } catch (_) {}
   if (v.ok !== true) {
     const motifs = { deja_controlee: 'Cette caisse a déjà fait l\'objet d\'un contrôle.', caisse_non_controlable: 'Cette caisse n\'est plus contrôlable.' };
@@ -10060,13 +10060,13 @@ async function confirmerControleCaisseFret(caisseId, pa) {
   document.getElementById('modal-postes').classList.remove('open');
   await relirePaiementFret();
   if (v.decouverte !== true) {
-    showToast('Contrôle infructueux', 'Rien de suspect n\'a été relevé sur cette caisse.', false, true);
+    showToast('Contrôle infructueux', 'Rien de suspect n\'a été relevé sur cette caisse.', false, true); globalThis.RPI18nPlateau?.markToast("toastBodies.bf3137ff3", 'Rien de suspect n\'a été relevé sur cette caisse.', undefined, 'Contrôle infructueux');
     addJournalEntry('Contrôle douanier d\'une caisse de fret : rien trouvé.', 'event-info');
     return;
   }
   const saisis = Number(v.saisis || 0), amende = Number(v.amende || 0);
   if (saisis === 0 && amende === 0) {
-    showToast('Contrôle terminé', 'La caisse a été ouverte : rien d\'illicite ni de non déclaré.', true, true);
+    showToast('Contrôle terminé', 'La caisse a été ouverte : rien d\'illicite ni de non déclaré.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b5f7fb430", 'La caisse a été ouverte : rien d\'illicite ni de non déclaré.', undefined, 'Contrôle terminé');
     addJournalEntry('Contrôle douanier d\'une caisse de fret : ouverte, rien d\'illicite trouvé.', 'event-info');
     return;
   }
@@ -10085,7 +10085,7 @@ async function confirmerFermetureCaisseFret(caisseId) {
   const v = await commanderFretServeur('fermer', caisseId, { nom: destNom, declaration, valeur, non_declares: nonDeclares });
   if (!v) return;
   document.getElementById('modal-postes').classList.remove('open');
-  showToast('Caisse fermée', 'Vous pouvez maintenant l\'expédier.', true, true);
+  showToast('Caisse fermée', 'Vous pouvez maintenant l\'expédier.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.ba47a696b", 'Vous pouvez maintenant l\'expédier.', undefined, 'Caisse fermée');
   addJournalEntry('Caisse de fret fermée, destinée à ' + v.destinataire + '.', 'event-info');
 }
 
@@ -10146,12 +10146,12 @@ async function afficherCaisseArriveeFret(caisseId, pa) {
 
   const estDestinataire = caisse.destinataire === moi;
   const estReceptionnaire = (caisse.receptionnaires_autorises || []).includes(moi);
-  if (!estDestinataire && !estReceptionnaire) { showToast('Accès refusé', '', false); return; }
+  if (!estDestinataire && !estReceptionnaire) { showToast('Accès refusé', '', false); globalThis.RPI18nPlateau?.markToast(null, '', undefined, 'Accès refusé'); return; }
   // Livraison terrestre nationale (04/11/2026) : à l'entrepôt logistique, la caisse se retire à la
   // Salle des ventes ; au port, dans la pièce de chargement (même règle que fret_objet_agir).
   const presentIci = await jeSuisPresentDansRoomFret(caisse.pays_destination, caisse.ville_destination, caisse.building_destination,
     roomRetraitCaisseFret(caisse.building_destination));
-  if (!presentIci) { showToast('Pas sur place', 'Vous devez être présent là où la caisse a été livrée pour agir sur elle.', false); return; }
+  if (!presentIci) { showToast('Pas sur place', 'Vous devez être présent là où la caisse a été livrée pour agir sur elle.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bb6c44ad2", 'Vous devez être présent là où la caisse a été livrée pour agir sur elle.', undefined, 'Pas sur place'); return; }
 
   let html = '<div style="padding:1rem">';
 
@@ -10204,7 +10204,7 @@ async function dedouanerCaisseFret(caisseId, pa) {
   const moi = state.char?.name || '';
   const rows = typeof sbGet === 'function' ? await sbGet('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId)).catch(() => []) : [];
   const caisse = rows && rows[0];
-  if (!caisse || caisse.destinataire !== moi || caisse.dedouanee || caisse.statut !== 'arrivee') { showToast('Action impossible', '', false); return; }
+  if (!caisse || caisse.destinataire !== moi || caisse.dedouanee || caisse.statut !== 'arrivee') { showToast('Action impossible', '', false); globalThis.RPI18nPlateau?.markToast(null, '', undefined, 'Action impossible'); return; }
 
   const r = await deduireCoutOrdre({ pa, cost: 0 });
   if (!r.ok) { signalerRefusCout(r); return; }
@@ -10437,7 +10437,7 @@ async function verifierSurveillancePolicePJUnique(buildingId, roomId, rueNoeudId
           (state.currentBuilding !== zoneSurveillee.batiment || state.currentRoom !== zoneSurveillee.piece))) return;
     if (detection.contrat_groupes === 1) {
       if (!(await reprendreInterceptionJudiciaireServeur())) {
-        showToast('Interception enregistrée', 'Rechargez la situation serveur avant toute autre action.', false);
+        showToast('Interception enregistrée', 'Rechargez la situation serveur avant toute autre action.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b8d175ab9", 'Rechargez la situation serveur avant toute autre action.', undefined, 'Interception enregistrée');
       }
       return;
     }
@@ -10542,7 +10542,7 @@ function villeDuPosteMunicipal() {
 
 async function ouvrirModalFinancerCommunal(pa, cost) {
   if (state.poste?.id !== 'maire_adjoint') {
-    showToast('Acces refuse', 'Reserve au Maire Adjoint.', false);
+    showToast('Acces refuse', 'Reserve au Maire Adjoint.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b09c797fa", 'Reserve au Maire Adjoint.', undefined, 'Acces refuse');
     return;
   }
   const ville = villeDuPosteMunicipal();
@@ -10608,7 +10608,7 @@ async function confirmerFinancementCommunal(pa, cost) {
 
   const ville = villeDuPosteMunicipal();
   if (!ville) {
-    showToast('Commune inconnue', 'Votre poste ne porte aucune ville.', false);
+    showToast('Commune inconnue', 'Votre poste ne porte aucune ville.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b51bc5cba", 'Votre poste ne porte aucune ville.', undefined, 'Commune inconnue');
     return;
   }
   const r = await deduireCoutOrdre({ pa, cost });
@@ -10669,7 +10669,7 @@ async function confirmerFinancementCommunal(pa, cost) {
 //      quelle ville + QHS, depuis la caisse du Ministere ----
 async function ouvrirModalFinancerMinInt(pa, cost) {
   if (state.poste?.id !== 'min_int') {
-    showToast('Acces refuse', "Reserve au Ministre de l'Interieur.", false);
+    showToast('Acces refuse', "Reserve au Ministre de l'Interieur.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.bf4d0b0e7", "Reserve au Ministre de l'Interieur.", undefined, 'Acces refuse');
     return;
   }
   // Une entree par ville reelle du pays (A3, lot caisses locales, 16 aout 2026) -- remplace
@@ -10975,7 +10975,7 @@ function doMenerEnquete(pa, cost) {
 
 async function confirmerMenerEnquete(pa, cost) {
   const cibleInput = document.querySelector('input[name="enquete-cible"]:checked');
-  if (!cibleInput) { showToast('Cible requise', 'Choisissez une personne du repertoire.', false); return; }
+  if (!cibleInput) { showToast('Cible requise', 'Choisissez une personne du repertoire.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.ba55254df", 'Choisissez une personne du repertoire.', undefined, 'Cible requise'); return; }
   const cible = cibleInput.value;
   document.getElementById('modal-postes').classList.remove('open');
 
@@ -11114,7 +11114,7 @@ function doOrganiserFilature(pa, cost) {
 
 async function confirmerOrganiserFilature(pa, cost) {
   const cibleInput = document.querySelector('input[name="filature-cible"]:checked');
-  if (!cibleInput) { showToast('Cible requise', 'Choisissez un PJ du repertoire.', false); return; }
+  if (!cibleInput) { showToast('Cible requise', 'Choisissez un PJ du repertoire.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b150c9a22", 'Choisissez un PJ du repertoire.', undefined, 'Cible requise'); return; }
   const cible = cibleInput.value;
   document.getElementById('modal-postes').classList.remove('open');
 
@@ -11270,7 +11270,7 @@ async function executerCondamnationRecherchee(nom, entree, rechercheActuelle, vi
 
 async function confirmerOrganiserChasseHomme(pa, cost) {
   const cibleInput = document.querySelector('input[name="chasse-cible"]:checked');
-  if (!cibleInput) { showToast('Cible requise', 'Choisissez un PJ du repertoire.', false); return; }
+  if (!cibleInput) { showToast('Cible requise', 'Choisissez un PJ du repertoire.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b150c9a22", 'Choisissez un PJ du repertoire.', undefined, 'Cible requise'); return; }
   const cible = cibleInput.value;
   document.getElementById('modal-postes').classList.remove('open');
 
@@ -11536,7 +11536,7 @@ async function conclureArrestationJudiciaire() {
     if (!contexteInterceptionJudiciaireValide(contexte,i)) return;
     if (!verdict) {
       marquerInterceptionIncertaine(i);
-      showToast('Réponse réseau perdue', 'Ne relancez pas la reddition : reconnectez-vous pour retrouver la décision serveur.', false);
+      showToast('Réponse réseau perdue', 'Ne relancez pas la reddition : reconnectez-vous pour retrouver la décision serveur.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b64a2bf50", 'Ne relancez pas la reddition : reconnectez-vous pour retrouver la décision serveur.', undefined, 'Réponse réseau perdue');
       return;
     }
     if (verdict.ok === true && !verdict.detention_id) marquerInterceptionIncertaine(i);
@@ -11566,7 +11566,7 @@ async function conclureArrestationJudiciaire() {
     };
     const r = {detentionId:verdict.detention_id};
     if (!r || r.echec || !r.detentionId) {
-      showToast('Arrestation non confirmée', 'Le serveur n’a pas confirmé la détention.', false);
+      showToast('Arrestation non confirmée', 'Le serveur n’a pas confirmé la détention.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b33f3997a", 'Le serveur n’a pas confirmé la détention.', undefined, 'Arrestation non confirmée');
       return;
     }
     interceptionJudiciaire = null;
@@ -11596,7 +11596,7 @@ async function choisirInterceptionJudiciaire(choix) {
   const i = interceptionJudiciaire;
   if (!i || interceptionJudiciaireOccupee) return;
   if (i.reponseIncertaine) {
-    showToast('Synchronisation nécessaire', 'Rechargez le jeu avant toute nouvelle décision policière.', false);
+    showToast('Synchronisation nécessaire', 'Rechargez le jeu avant toute nouvelle décision policière.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bf8616a8d", 'Rechargez le jeu avant toute nouvelle décision policière.', undefined, 'Synchronisation nécessaire');
     return;
   }
   const contexte = contexteInterceptionJudiciaire();
@@ -11654,7 +11654,7 @@ async function choisirInterceptionJudiciaire(choix) {
     if (!contexteInterceptionJudiciaireValide(contexte,i)) return;
     if (!fuite) {
       marquerInterceptionIncertaine(i);
-      showToast('Réponse réseau perdue', 'Ne rejouez pas la fuite : rechargez pour retrouver la position serveur.', false);
+      showToast('Réponse réseau perdue', 'Ne rejouez pas la fuite : rechargez pour retrouver la position serveur.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.be9a6bc47", 'Ne rejouez pas la fuite : rechargez pour retrouver la position serveur.', undefined, 'Réponse réseau perdue');
       return;
     }
     if (fuite.ok !== true) {
@@ -11688,7 +11688,7 @@ async function choisirInterceptionJudiciaire(choix) {
     if (!destination || !RUE_CENTRALE_NOEUDS?.[state.country]?.[destination] ||
         typeof afficherNoeudRue !== 'function') {
       showToast('Position à resynchroniser',
-        'La fuite est enregistrée ; rechargez la position serveur.', false);
+        'La fuite est enregistrée ; rechargez la position serveur.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bd42b618a", 'La fuite est enregistrée ; rechargez la position serveur.', undefined, 'Position à resynchroniser');
       marquerInterceptionIncertaine(i);
       return;
     }
@@ -11709,10 +11709,10 @@ async function choisirInterceptionJudiciaire(choix) {
   let arreter = false;
   try {
     if (typeof sbRpc !== 'function') {
-      showToast('Combat indisponible', 'Serveur inaccessible.', false); return;
+      showToast('Combat indisponible', 'Serveur inaccessible.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b85bebe56", 'Serveur inaccessible.', undefined, 'Combat indisponible'); return;
     }
     if (!i.rencontreId) {
-      showToast('Combat indisponible', 'Aucune rencontre validée par le serveur.', false);
+      showToast('Combat indisponible', 'Aucune rencontre validée par le serveur.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b8f4ab7da", 'Aucune rencontre validée par le serveur.', undefined, 'Combat indisponible');
       return;
     }
     if (!i.round) i.round = 1;
@@ -11726,7 +11726,7 @@ async function choisirInterceptionJudiciaire(choix) {
     if (!contexteInterceptionJudiciaireValide(contexte,i)) return;
     if (!verdict) {
       marquerInterceptionIncertaine(i);
-      showToast('Réponse réseau perdue', 'Ne rejouez pas ce round : rechargez pour synchroniser le combat.', false);
+      showToast('Réponse réseau perdue', 'Ne rejouez pas ce round : rechargez pour synchroniser le combat.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b1d0e1a8d", 'Ne rejouez pas ce round : rechargez pour synchroniser le combat.', undefined, 'Réponse réseau perdue');
       return;
     }
     if (verdict.ok !== true) {
@@ -11737,7 +11737,7 @@ async function choisirInterceptionJudiciaire(choix) {
     if (!Number.isInteger(verdict.pa) || verdict.pa < 0 ||
         !Number.isInteger(verdict.policiers_restants) || verdict.policiers_restants < 0) {
       marquerInterceptionIncertaine(i);
-      showToast('Synchronisation nécessaire', 'Etat de combat incomplet ; aucune consequence locale inventee.', false);
+      showToast('Synchronisation nécessaire', 'Etat de combat incomplet ; aucune consequence locale inventee.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b0c1613f4", 'Etat de combat incomplet ; aucune consequence locale inventee.', undefined, 'Synchronisation nécessaire');
       return;
     }
     let fraisCollectif = null;
@@ -11759,7 +11759,7 @@ async function choisirInterceptionJudiciaire(choix) {
     } else if (verdict.arrestation) {
       if (!verdict.detention_id) {
         marquerInterceptionIncertaine(i);
-        showToast('Arrestation non confirmée', 'Détention non enregistrée par le serveur.', false);
+        showToast('Arrestation non confirmée', 'Détention non enregistrée par le serveur.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.ba13996db", 'Détention non enregistrée par le serveur.', undefined, 'Arrestation non confirmée');
         return;
       }
       if (fraisCollectif) {
@@ -11910,7 +11910,7 @@ async function doTravaillerChantier(pa, cost) {
   const ts = getTerrainState(id);
   const ch = ts.chantier;
   const cur = COUNTRIES[state.country]?.cur || 'FR';
-  if (!ch) { showToast('Aucun chantier', "Aucun chantier en cours sur ce terrain.", false); return; }
+  if (!ch) { showToast('Aucun chantier', "Aucun chantier en cours sur ce terrain.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b6f8c2299", "Aucun chantier en cours sur ce terrain.", undefined, 'Aucun chantier'); return; }
 
   // Heures UTILES : bornees par les materiaux disponibles. Sans materiaux, aucune heure n'est
   // travaillable -- ni pour un PJ, ni pour un NPC, ni annoncee a la BNE.
@@ -11956,7 +11956,7 @@ async function confirmerTravailChantier() {
   if (!ch) { showToast('Aucun chantier', '', false); return; }
 
   const voulues = parseInt(document.getElementById('chantier-heures')?.value || 0);
-  if (voulues <= 0) { showToast('Impossible', "Indiquez un nombre d'heures.", false); return; }
+  if (voulues <= 0) { showToast('Impossible', "Indiquez un nombre d'heures.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.bd4230b41", "Indiquez un nombre d'heures.", undefined, 'Impossible'); return; }
 
   // CHANTIER C (14 septembre 2026), raccordé à la porte versionnée le 01/11/2026 (#219, contrôle
   // Authority) : chantier_travailler est fermé aux clients depuis la garde #57 ; le travail passe par
@@ -11965,7 +11965,7 @@ async function confirmerTravailChantier() {
   // transaction, avec reçu de requête (double clic et réponse perdue sans second paiement).
   // L'écran n'affiche que le montant rendu par le serveur.
   if (typeof constructionExecuterCommande !== 'function') {
-    showToast('Impossible', 'Le travail sur chantier est indisponible.', false); return;
+    showToast('Impossible', 'Le travail sur chantier est indisponible.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bd544cdbf", 'Le travail sur chantier est indisponible.', undefined, 'Impossible'); return;
   }
   const rTravail = await constructionExecuterCommande('travailler', { heures: voulues });
   if (!rTravail || rTravail.ok !== true) return;
@@ -11988,10 +11988,10 @@ async function doVendreMateriauxChantier(pa, cost, mode = 'vente') {
   if (!contexteNavigationRueValide(contexte)) return;
   const ch = getTerrainState(id).chantier;
   if (!ch || !chantierAccepteMateriaux(ch)) {
-    showToast('Approvisionnement indisponible', 'Aucun chantier actif ici.', false); return;
+    showToast('Approvisionnement indisponible', 'Aucun chantier actif ici.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b39e8da4d", 'Aucun chantier actif ici.', undefined, 'Approvisionnement indisponible'); return;
   }
   const disponibles = ['bois','minerai','metal'].filter(m => (state.inventory || []).some(i => i.stackable && i.stackKey === m && i.qty > 0));
-  if (!disponibles.length) { showToast('Aucun matériau', 'Vous ne transportez aucun matériau de construction.', false); return; }
+  if (!disponibles.length) { showToast('Aucun matériau', 'Vous ne transportez aucun matériau de construction.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b679d67f9", 'Vous ne transportez aucun matériau de construction.', undefined, 'Aucun matériau'); return; }
   const don = mode === 'don';
   constructionFenetre(don ? 'Donner des matériaux' : 'Vendre des matériaux',
     '<p>' + (don ? 'Don gratuit : aucun paiement.' : 'Le prix affiché par le propriétaire est appliqué par le serveur. Aucun prix ne peut être fixé par le vendeur.') + '</p>' +
@@ -12017,7 +12017,7 @@ async function confirmerVenteMateriauxChantier(mode = 'vente') {
     intent={requete:precedente||assembleeNouvelleRequete(),enCours:false};
     // Sans stockage du reçu, une fermeture après réponse perdue rendrait le rejeu incertain.
     try{sessionStorage.setItem('chantier-transfert:'+key,intent.requete);}
-    catch(_){showToast('Transfert indisponible','Le navigateur ne peut pas conserver le reçu de cette opération.',false);return;}
+    catch(_){showToast('Transfert indisponible','Le navigateur ne peut pas conserver le reçu de cette opération.',false); globalThis.RPI18nPlateau?.markToast("toastBodies.b97cae271", 'Le navigateur ne peut pas conserver le reçu de cette opération.', undefined, 'Transfert indisponible');return;}
     CONSTRUCTION_TRANSFERTS.set(key,intent);
   }
   intent.enCours = true;
@@ -12044,7 +12044,7 @@ async function confirmerVenteMateriauxChantier(mode = 'vente') {
     updateUI();
     showToast('Transfert confirmé', relu ? 'Matériaux transférés. Inventaire et soldes relus sur le serveur.' : 'Transfert confirmé ; actualisation de vos données encore nécessaire.', true);
   } catch (_) {
-    if (contexteNavigationRueValide(contexte)) showToast('Confirmation incertaine', 'Réessayez la même opération pour retrouver son reçu.', false);
+    if (contexteNavigationRueValide(contexte)) { showToast('Confirmation incertaine', 'Réessayez la même opération pour retrouver son reçu.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b43d1ec28", 'Réessayez la même opération pour retrouver son reçu.', undefined, 'Confirmation incertaine'); }
   } finally { intent.enCours = false; }
 }
 
@@ -12057,11 +12057,11 @@ async function doVolerMaterielChantier(pa, cost) {
   await chargerTerrainState(id);
   const ts = getTerrainState(id);
   const ch = ts.chantier;
-  if (!ch) { showToast('Impossible', 'Aucun chantier en cours ici.', false); return; }
+  if (!ch) { showToast('Impossible', 'Aucun chantier en cours ici.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b77123f79", 'Aucun chantier en cours ici.', undefined, 'Impossible'); return; }
 
   const stock = ch.stockMateriaux || {};
   const dispo = ['bois', 'minerai', 'metal'].filter(function (m) { return (Number(stock[m]) || 0) > 0; });
-  if (dispo.length === 0) { showToast('Rien à voler', "Le chantier n'a aucun matériau en stock.", false); return; }
+  if (dispo.length === 0) { showToast('Rien à voler', "Le chantier n'a aucun matériau en stock.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b29d9f89b", "Le chantier n'a aucun matériau en stock.", undefined, 'Rien à voler'); return; }
 
   const jourNum = numeroJourChantier(ch);
   let html = '<div style="padding:1rem">';
@@ -12084,7 +12084,7 @@ async function confirmerVolMateriaux(matiere, pa, cost) {
   const id = state.currentBuilding;
   if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Voler du matériel')) return;
   const ts = getTerrainState(id);
-  if (!ts.chantier) { showToast('Impossible', 'Aucun chantier en cours ici.', false); return; }
+  if (!ts.chantier) { showToast('Impossible', 'Aucun chantier en cours ici.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b77123f79", 'Aucun chantier en cours ici.', undefined, 'Impossible'); return; }
   document.getElementById('modal-postes')?.classList.remove('open');
 
   // PAR LE SERVEUR (28/10/2026, chantier inventaire) : crime_voler_materiaux preleve l'ordre, tire
@@ -12095,7 +12095,7 @@ async function confirmerVolMateriaux(matiere, pa, cost) {
   const v = await appelerCrimeServeur('crime_voler_materiaux',
     { p_terrain: id, p_matiere: matiere, p_pa: pa, p_cost: cost, p_benediction: benediction });
   if (!v || v.ok !== true) {
-    if (v && v.raison === 'stock_vide') { showToast('Rien à emporter', 'Le stock a été vidé entre-temps.', false); return; }
+    if (v && v.raison === 'stock_vide') { showToast('Rien à emporter', 'Le stock a été vidé entre-temps.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bb32067a1", 'Le stock a été vidé entre-temps.', undefined, 'Rien à emporter'); return; }
     signalerRefusCout(v || { raison: 'connexion_indisponible' }); return;
   }
   adopterEtatCrimeServeur(v);
@@ -12116,12 +12116,12 @@ async function confirmerVolMateriaux(matiere, pa, cost) {
     }
     updateUI();
     addJournalEntry('Vol raté et découvert immédiatement. Avis de recherche émis contre vous (peine max 2 jours).', 'event-bad');
-    showToast('Démasqué !', 'Avis de recherche émis (peine max 2 jours).', false);
+    showToast('Démasqué !', 'Avis de recherche émis (peine max 2 jours).', false); globalThis.RPI18nPlateau?.markToast("toastBodies.ba44ed4d3", 'Avis de recherche émis (peine max 2 jours).', undefined, 'Démasqué !');
     return;
   }
   updateUI();
   addJournalEntry('Tentative de vol de matériaux manquée. Personne ne vous a vu.', 'event-info');
-  showToast('Échec', 'Vous repartez les mains vides, mais personne ne vous a repéré.', false);
+  showToast('Échec', 'Vous repartez les mains vides, mais personne ne vous a repéré.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b43330782", 'Vous repartez les mains vides, mais personne ne vous a repéré.', undefined, 'Échec');
 }
 
 // doConsulterCaisseBatimentGenerique a ete RETIRE le 15 septembre 2026 : son unique appelant
@@ -12532,7 +12532,7 @@ function signalerRefusTauxImposition(r) {
 async function fixerTauxImposition(portee, idInput, pa, cost) {
   const nouveauTaux = parseInt(document.getElementById(idInput)?.value || '5');
   if (typeof sbRpc !== 'function') {
-    showToast('Action impossible', "L'ordre n'a pas pu être transmis. Rien n'a été prélevé.", false);
+    showToast('Action impossible', "L'ordre n'a pas pu être transmis. Rien n'a été prélevé.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b76ad0d40", "L'ordre n'a pas pu être transmis. Rien n'a été prélevé.", undefined, 'Action impossible');
     return null;
   }
   const r = await sbRpc('taux_imposition_fixer', {
@@ -12544,7 +12544,7 @@ async function fixerTauxImposition(portee, idInput, pa, cost) {
   // UN APPEL QUI N'ABOUTIT PAS N'EST PAS UN TAUX FIXE. Sans cette branche, une coupure reseau
   // affichait « Impots locaux fixes » sur un taux jamais ecrit.
   if (!r) {
-    showToast('Action impossible', "L'ordre n'a pas abouti : le taux n'a pas été modifié.", false);
+    showToast('Action impossible', "L'ordre n'a pas abouti : le taux n'a pas été modifié.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b5f898eac", "L'ordre n'a pas abouti : le taux n'a pas été modifié.", undefined, 'Action impossible');
     return null;
   }
   if (r.ok !== true) { signalerRefusTauxImposition(r); return null; }
@@ -12648,11 +12648,11 @@ async function ouvrirCaisseBNE() {
 
 async function confirmerPrelevementCaisseBNE() {
   const brut = (document.getElementById('bne-caisse-montant')?.value || '').trim();
-  if (!/^[1-9][0-9]{0,8}$/.test(brut)) { showToast('Montant invalide', 'Indiquez un nombre entier de francs.', false); return; }
+  if (!/^[1-9][0-9]{0,8}$/.test(brut)) { showToast('Montant invalide', 'Indiquez un nombre entier de francs.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b6c6a029b", 'Indiquez un nombre entier de francs.', undefined, 'Montant invalide'); return; }
   const v = await sbRpcVerdict('bne_caisse_prelever', { p_montant: Number(brut) }).catch(() => null);
   if (!v || v.ok !== true) {
     if (v?.raison === 'solde_insuffisant') showToast('Solde insuffisant', 'La caisse du Bureau ne contient que ' + Number(v.solde || 0).toLocaleString('fr-FR') + ' FR.', false);
-    else if (v?.raison === 'reserve_ministre_finances') showToast('Accès refusé', 'Réservé au Ministre des Finances.', false);
+    else if (v?.raison === 'reserve_ministre_finances') { showToast('Accès refusé', 'Réservé au Ministre des Finances.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bcddc352b", 'Réservé au Ministre des Finances.', undefined, 'Accès refusé'); }
     else signalerRefusCout(v || {});
     return;
   }
@@ -12666,7 +12666,7 @@ async function confirmerPrelevementCaisseBNE() {
 // Les formulaires existants et les RPC serveur restent les seules voies de paiement.
 function ouvrirChoixVirements() {
   if (!['banque-nationale', 'banque-locale'].includes(state.currentBuilding)) {
-    showToast('Accès réservé', 'Présentez-vous au guichet de la Banque Nationale.', false);
+    showToast('Accès réservé', 'Présentez-vous au guichet de la Banque Nationale.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bc7884135", 'Présentez-vous au guichet de la Banque Nationale.', undefined, 'Accès réservé');
     return;
   }
   const titre = document.getElementById('postes-modal-title');
@@ -12742,9 +12742,9 @@ const REFUS_VIREMENT = {
 };
 
 async function confirmerVirementJoueur(automatique) {
-  if (!VIREMENT_DESTINATAIRE) { showToast('Destinataire manquant', 'Recherchez et choisissez un joueur.', false); return; }
+  if (!VIREMENT_DESTINATAIRE) { showToast('Destinataire manquant', 'Recherchez et choisissez un joueur.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b789730d8", 'Recherchez et choisissez un joueur.', undefined, 'Destinataire manquant'); return; }
   const brut = (document.getElementById('vir-montant')?.value || '').trim();
-  if (!/^[1-9][0-9]{0,7}$/.test(brut)) { showToast('Montant invalide', 'Indiquez un nombre entier de francs, positif.', false); return; }
+  if (!/^[1-9][0-9]{0,7}$/.test(brut)) { showToast('Montant invalide', 'Indiquez un nombre entier de francs, positif.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bfc612aa5", 'Indiquez un nombre entier de francs, positif.', undefined, 'Montant invalide'); return; }
   const montant = Number(brut);
   const v = typeof sbRpcVerdict !== 'function' ? null : await (automatique
     ? sbRpcVerdict('banque_virement_automatique_creer', { p_beneficiaire: VIREMENT_DESTINATAIRE, p_montant: montant,
@@ -12754,7 +12754,7 @@ async function confirmerVirementJoueur(automatique) {
     const m = v && REFUS_VIREMENT[v.raison];
     if (m) { showToast(m[0], m[1], false); return; }
     if (v && v.raison && !v.transport && typeof signalerRefusCout === 'function') { signalerRefusCout(v); return; }
-    showToast('Confirmation indisponible', "La réponse du serveur n'a pas pu être confirmée. Consultez votre compte avant de renouveler la demande.", false);
+    showToast('Confirmation indisponible', "La réponse du serveur n'a pas pu être confirmée. Consultez votre compte avant de renouveler la demande.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b365e51b9", "La réponse du serveur n'a pas pu être confirmée. Consultez votre compte avant de renouveler la demande.", undefined, 'Confirmation indisponible');
     return;
   }
   if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: v.pa, arg: v.arg, solde_national: v.solde_national });
@@ -12794,8 +12794,8 @@ async function rafraichirVirementsAutomatiquesFiche() {
 
 async function arreterVirementAutomatique(id) {
   const v = typeof sbRpcVerdict === 'function' ? await sbRpcVerdict('virement_automatique_arreter', { p_id: id }).catch(() => null) : null;
-  if (!v || v.ok !== true) { showToast('Arrêt impossible', "Le virement n'a pas pu être arrêté.", false); return; }
-  showToast('Virement arrêté', 'Plus rien ne sera versé. Le bénéficiaire est prévenu.', true);
+  if (!v || v.ok !== true) { showToast('Arrêt impossible', "Le virement n'a pas pu être arrêté.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.bae755724", "Le virement n'a pas pu être arrêté.", undefined, 'Arrêt impossible'); return; }
+  showToast('Virement arrêté', 'Plus rien ne sera versé. Le bénéficiaire est prévenu.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.bade2e52c", 'Plus rien ne sera versé. Le bénéficiaire est prévenu.', undefined, 'Virement arrêté');
   rafraichirVirementsAutomatiquesFiche();
 }
 
@@ -12911,8 +12911,8 @@ async function retirerAnnonceBNE(i) {
   const an = BNE_ANNONCES_AFFICHEES[i];
   if (!an) return;
   const v = typeof sbRpcVerdict === 'function' ? await sbRpcVerdict('bne_annonce_retirer', { p_id: an.id }).catch(() => null) : null;
-  if (!v || v.ok !== true) { showToast('Retrait impossible', "L'annonce n'a pas pu être retirée.", false); return; }
-  showToast('Annonce retirée', 'Votre annonce n\'est plus affichée au Bureau.', true);
+  if (!v || v.ok !== true) { showToast('Retrait impossible', "L'annonce n'a pas pu être retirée.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.bc396e092", "L'annonce n'a pas pu être retirée.", undefined, 'Retrait impossible'); return; }
+  showToast('Annonce retirée', 'Votre annonce n\'est plus affichée au Bureau.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.b05ee266b", 'Votre annonce n\'est plus affichée au Bureau.', undefined, 'Annonce retirée');
   ouvrirOffresEmploiBNE();
 }
 
@@ -12961,7 +12961,7 @@ async function confirmerAnnonceBNE() {
     const m = v && REFUS_ANNONCE_BNE[v.raison];
     if (m) { showToast(m[0], m[1], false); return; }
     if (v && v.raison && !v.transport && typeof signalerRefusCout === 'function') { signalerRefusCout(v); return; }
-    showToast('Annonce non publiée', "L'opération n'a pas abouti : rien n'a été prélevé ni publié.", false);
+    showToast('Annonce non publiée', "L'opération n'a pas abouti : rien n'a été prélevé ni publié.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.bb548c370", "L'opération n'a pas abouti : rien n'a été prélevé ni publié.", undefined, 'Annonce non publiée');
     return;
   }
   // PA et argent recopies tels que le serveur les a arretes (payer_ordre).
@@ -13395,7 +13395,7 @@ async function jugeOuvrirEnqueteMalgreNonLieu(id) {
       || "L'enquete n'a pas pu etre ouverte.", false);
     return;
   }
-  showToast('Enquete ouverte', 'Le dossier repasse en enquete malgre le non-lieu du parquet.', true, true);
+  showToast('Enquete ouverte', 'Le dossier repasse en enquete malgre le non-lieu du parquet.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b756d075b", 'Le dossier repasse en enquete malgre le non-lieu du parquet.', undefined, 'Enquete ouverte');
   if (typeof addExternalEvent === 'function') {
     addExternalEvent('JUSTICE : le juge a ouvert une enquete malgre le non-lieu du parquet.');
   }
@@ -13586,7 +13586,7 @@ async function ouvrirChoixAvocat(affaireId) {
 
 async function defenseDemander(affaireId) {
   const choisis = Array.from(document.querySelectorAll('.avocat-choix:checked')).map(c => c.value);
-  if (choisis.length === 0) { showToast('Defense', 'Cochez au moins un avocat.', false); return; }
+  if (choisis.length === 0) { showToast('Defense', 'Cochez au moins un avocat.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b3fc3e2e0", 'Cochez au moins un avocat.', undefined, 'Defense'); return; }
   const v = await sbRpc('defense_demander', { p_affaire_id: affaireId, p_avocats: choisis })
     .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
   if (!v || v.ok !== true) { showToast('Defense', justiceRefus(v), false); return; }
@@ -13677,14 +13677,14 @@ async function avocatPublierTarif() {
   const v = await sbRpc('avocat_publier_tarification', { p_tarification: champ ? champ.value : '' })
     .then(r => Array.isArray(r) ? r[0] : r).catch(() => null);
   if (!v || v.ok !== true) { showToast('Barreau', justiceRefus(v), false); return; }
-  showToast('Tarification publiee', 'Vous apparaissez desormais dans la liste des avocats.', true);
+  showToast('Tarification publiee', 'Vous apparaissez desormais dans la liste des avocats.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.b8d61175b", 'Vous apparaissez desormais dans la liste des avocats.', undefined, 'Tarification publiee');
   await ouvrirAvocatBarreau();
 }
 async function avocatRetirerTarif() {
   const v = await sbRpc('avocat_retirer_tarification', {})
     .then(r => Array.isArray(r) ? r[0] : r).catch(() => null);
   if (!v || v.ok !== true) { showToast('Barreau', justiceRefus(v), false); return; }
-  showToast('Retire de la liste', 'Vous n\'apparaissez plus dans la liste des avocats.', true);
+  showToast('Retire de la liste', 'Vous n\'apparaissez plus dans la liste des avocats.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.ba506e699", 'Vous n\'apparaissez plus dans la liste des avocats.', undefined, 'Retire de la liste');
   await ouvrirAvocatBarreau();
 }
 async function defenseRepondre(rang, accepte) {
@@ -13696,7 +13696,7 @@ async function defenseRepondre(rang, accepte) {
       + '. Le dossier complet se consulte au greffe du tribunal competent.', true);
     addJournalEntry('Defense acceptee — ' + justiceEch(v.prevenu) + '.', 'event-good');
   } else {
-    showToast('Defense refusee', 'Vous avez decline cette defense.', true);
+    showToast('Defense refusee', 'Vous avez decline cette defense.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.bea25e347", 'Vous avez decline cette defense.', undefined, 'Defense refusee');
   }
   await ouvrirAvocatBarreau();
 }
@@ -13842,7 +13842,7 @@ async function ouvrirTemoinDepositionDepuisCommissariat() {
   const ici = (Array.isArray(v.convocations) ? v.convocations : []).filter(x => x.sur_place === true);
   if (ici.length === 0) {
     showToast('Aucune convocation ici',
-      'Vous n\'etes cite dans aucune affaire relevant de ce commissariat.', false);
+      'Vous n\'etes cite dans aucune affaire relevant de ce commissariat.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bb95cf6d2", 'Vous n\'etes cite dans aucune affaire relevant de ce commissariat.', undefined, 'Aucune convocation ici');
     return;
   }
   if (ici.length === 1) { ouvrirTemoinDeposition(ici[0].affaire); return; }
@@ -13964,7 +13964,7 @@ async function ouvrirAudienceJuge() {
 async function audienceFixer(affaireId) {
   const champ = document.getElementById('aud-jour-' + affaireId);
   const jour = parseInt(champ ? champ.value : '', 10);
-  if (!Number.isFinite(jour)) { showToast('Audience', 'Indiquez le jour du proces.', false); return; }
+  if (!Number.isFinite(jour)) { showToast('Audience', 'Indiquez le jour du proces.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b72bd2a7a", 'Indiquez le jour du proces.', undefined, 'Audience'); return; }
   const v = await sbRpc('justice_audience_fixer', { p_affaire_id: affaireId, p_jour: jour })
     .then(r => Array.isArray(r) ? r[0] : r).catch(() => null);
   if (!v || v.ok !== true) {
@@ -14073,7 +14073,7 @@ async function audienceOuvrir(affaireId) {
   const v = await sbRpc('justice_audience_ouvrir', { p_affaire_id: affaireId })
     .then(r => Array.isArray(r) ? r[0] : r).catch(() => null);
   if (!v || v.ok !== true) { showToast('Audience', justiceRefus(v), false); return; }
-  showToast('Audience ouverte', 'La defense est verrouillee jusqu\'au jugement.', true);
+  showToast('Audience ouverte', 'La defense est verrouillee jusqu\'au jugement.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.b7ef33f62", 'La defense est verrouillee jusqu\'au jugement.', undefined, 'Audience ouverte');
   addJournalEntry('Audience ouverte — ' + justiceEch(affaireId) + '.', 'event-neutral');
   await ouvrirAudienceJuge();
 }
@@ -14407,7 +14407,7 @@ function ouvrirCasierExtraitEnquete() {
 
 async function confirmerCasierExtraitEnquete() {
   const nom = (document.getElementById('greffe-casier-nom')?.value || '').trim();
-  if (!nom) { showToast('Personne requise', 'Indiquez le nom exact.', false); return; }
+  if (!nom) { showToast('Personne requise', 'Indiquez le nom exact.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b21aa5614", 'Indiquez le nom exact.', undefined, 'Personne requise'); return; }
   document.getElementById('modal-postes').classList.remove('open');
   const v = await sbRpc('casier_extrait_enquete', { p_personne: nom })
     .then(r => Array.isArray(r) ? r[0] : r).catch(() => null);
@@ -14470,7 +14470,7 @@ async function confirmerExtraitDuplicata(orgaId) {
   }
   await rafraichirInventaireDepuisServeur();
   showToast('Duplicata delivre',
-    'Le duplicata est dans votre inventaire — 75 FR de frais de greffe.', true);
+    'Le duplicata est dans votre inventaire — 75 FR de frais de greffe.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.b3a5baea4", 'Le duplicata est dans votre inventaire — 75 FR de frais de greffe.', undefined, 'Duplicata delivre');
   updateUI();
 }
 
@@ -14572,7 +14572,7 @@ function ouvrirGreffeCorrompreFauxCasier() {
 
 async function confirmerGreffeCorrompreFauxCasier() {
   const nom = (document.getElementById('greffe-faux-nom')?.value || '').trim();
-  if (!nom) { showToast('Personne requise', 'Indiquez le nom exact.', false); return; }
+  if (!nom) { showToast('Personne requise', 'Indiquez le nom exact.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b21aa5614", 'Indiquez le nom exact.', undefined, 'Personne requise'); return; }
   document.getElementById('modal-postes').classList.remove('open');
   const v = await sbRpc('greffe_corrompre_faux_casier', { p_personne: nom })
     .then(r => Array.isArray(r) ? r[0] : r).catch(() => null);
@@ -14589,7 +14589,7 @@ async function confirmerGreffeCorrompreFauxCasier() {
   } else {
     showToast('Document obtenu',
       'L\'extrait est dans votre inventaire. Rien, sur la piece, ne le distingue d\'un vrai.',
-      true, true);
+      true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.bf591420f", 'L\'extrait est dans votre inventaire. Rien, sur la piece, ne le distingue d\'un vrai.', undefined, 'Document obtenu');
     addJournalEntry('Faux casier vierge obtenu au greffe.', 'event-bad');
   }
   updateUI();
@@ -14616,7 +14616,7 @@ async function ouvrirDepotPoliceCommun(matricule) {
   const reel = await lireAgentPoliceCommun(matricule);
   if (!contexteGroupePjValide(c)) return;
   if (!reel) {
-    showToast('Commandes indisponibles', 'Le serveur ne confirme pas votre autorité ou le raccordement de cet agent.', false);
+    showToast('Commandes indisponibles', 'Le serveur ne confirme pas votre autorité ou le raccordement de cet agent.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.ba0637bf1", 'Le serveur ne confirme pas votre autorité ou le raccordement de cet agent.', undefined, 'Commandes indisponibles');
     return;
   }
   const ech = typeof escapeHtmlText === 'function' ? escapeHtmlText : t => String(t).replace(/[&<>"']/g, v => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[v]));
@@ -14637,7 +14637,7 @@ async function commanderPoliceGroupe(matricule, action) {
     const reel = await lireAgentPoliceCommun(matricule);
     if (!contexteGroupePjValide(c)) return false;
     if (!reel) {
-      showToast('Commande refusée', 'Le serveur ne confirme pas votre autorité ou le raccordement de cet agent.', false);
+      showToast('Commande refusée', 'Le serveur ne confirme pas votre autorité ou le raccordement de cet agent.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.ba0637bf1", 'Le serveur ne confirme pas votre autorité ou le raccordement de cet agent.', undefined, 'Commande refusée');
       return false;
     }
     let r;

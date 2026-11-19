@@ -34,6 +34,7 @@ test('magasin du kolkhoze : six articles, même liste à l\'écran et au serveur
   // 2 × (coût moyen des matières + 15 PSK × 1 PA) / portions
   const prix = JSON.parse(sql.match(/"prixVente":(\{[^}]*\})/)[1]);
   const att = { kolkhoze_viande_renne: [2, 4], kolkhoze_lait_renne: [1, 8], kolkhoze_confiture_airelles: [1, 6], kolkhoze_graisse_renne: [2, 6], kolkhoze_peau_renne: [1, 2], kolkhoze_bois_renne: [2, 3] };
+  delete att.kolkhoze_bois_renne; // bois de renne = matière bois depuis le 18/11 au soir (migration 20261118050000, 10 PSK)
   for (const [id, [cout, portions]] of Object.entries(att)) assert.equal(prix[id], Math.floor(2 * (cout + 15) / portions), id);
   assert.match(sql, /'nonTransmissible', true/);
   assert.match(sql, /commerce_kolkhoze_non_transmissible/);
@@ -42,4 +43,21 @@ test('magasin du kolkhoze : six articles, même liste à l\'écran et au serveur
   assert.match(bloc, /fn:'faire_achats_marche'/);
   assert.doesNotMatch(bloc, /gerer_commerce/, 'pas de gestion : jamais à un PJ');
   assert.doesNotMatch(ecran.slice(ecran.indexOf('const PRIX_RACHAT_COMMERCE'), ecran.indexOf('};', ecran.indexOf('const PRIX_RACHAT_COMMERCE'))), /kolkhoze/);
+});
+
+test('kolkhoze et alimentation (18/11 au soir) : matières livrées par le serveur, repas bruts, confiture', () => {
+  const ecran = lire('plateau-actions-illegales-rumeurs.js');
+  const sql = lire('migrations/20261118050000_kolkhoze_alimentation.sql');
+  for (const [id, m] of [['viande_renne', "matiere: 'viande'"], ['lait_renne', "matiere: 'laitages'"], ['peau_renne', "matiere: 'textile'"], ['bois_renne', "matiere: 'bois'"], ['graisse_renne', 'objetSimple: true']]) {
+    const bloc = ecran.slice(ecran.indexOf('  kolkhoze_' + id + ': {'), ecran.indexOf('},', ecran.indexOf('  kolkhoze_' + id + ': {')));
+    assert.match(bloc, /livraisonServeur: true/, id); assert.ok(bloc.includes(m), id); assert.doesNotMatch(bloc, /familleProduitMarche/, id);
+  }
+  assert.match(ecran.slice(ecran.indexOf('  kolkhoze_confiture_airelles: {'), ecran.indexOf('},', ecran.indexOf('  kolkhoze_confiture_airelles: {'))), /familleProduitMarche: 'aliment'/);
+  assert.match(ecran, /if \(recette\.familleProduitMarche \|\| recette\.livraisonServeur\)/);
+  assert.match(sql, /p_matiere NOT IN \('viande', 'laitages'\)/);
+  assert.match(sql, /'repas_brut_deja_pris'/); assert.match(sql, /'confiture_deja_prise'/);
+  const prov = lire('plateau-sovarka-provinces.js');
+  assert.match(prov, /provActe\('matiere_brute_manger', \{ p_matiere: cle \}/);
+  assert.match(lire('plateau-personnage.js'), /boutonMangerMatiereBrute\(item,/);
+  assert.match(lire('plateau-divers.js'), /bonus_differe: \(typeof r\.bonus_differe === 'number'\)/);
 });

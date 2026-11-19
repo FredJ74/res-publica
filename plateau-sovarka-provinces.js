@@ -319,6 +319,25 @@ async function mangerOeufs() {
   if (typeof addJournalEntry === 'function') addJournalEntry('Vous mangez trois œufs : +' + v.bonus + ' PA au prochain sommeil.', 'event-good');
 }
 
+// Viande et laitages bruts (Fred, 18/11/2026) : se mangent partout, gratuits, +1 PA au prochain sommeil ;
+// un seul repas brut compté entre deux sommeils (migration 20261118050000, le serveur décide).
+Object.assign(PROV_MOTIFS, provRaisons(['repas_brut_deja_pris', 'pas_de_matiere', 'matiere_non_comestible', 'confiture_deja_prise']));
+const PROV_MATIERES_COMESTIBLES = ['viande', 'laitages'];
+async function mangerMatiereBrute(cle) {
+  if (!PROV_MATIERES_COMESTIBLES.includes(cle)) return;
+  const v = await provActe('matiere_brute_manger', { p_matiere: cle }, 'manger_' + cle);
+  if (!v) return;
+  if (v.ok !== true) { provRefus(provT('tRawMeal'), v); return; }
+  document.getElementById('modal-postes')?.classList.remove('open');
+  showToast(provT('tRawMeal'), provT('bonusSleep', { bonus: v.bonus }), true, true);
+  if (typeof addJournalEntry === 'function') addJournalEntry('Repas brut (' + cle + ') : +' + v.bonus + ' PA au prochain sommeil.', 'event-good');
+}
+function boutonMangerMatiereBrute(item, style) {
+  if (!item || !PROV_MATIERES_COMESTIBLES.includes(item.stackKey || (item.type === 'matiere_premiere' ? item.matiere : ''))) return '';
+  const cle = item.stackKey || item.matiere;
+  return '<button onclick="mangerMatiereBrute(\'' + cle + '\')" style="' + style + '"><i class="ti ti-tools-kitchen-2"></i> ' + provT('eatRaw_' + cle) + '</button>';
+}
+
 // ---------- GUIDE DES BAIES SAUVAGES (Fred, 15/11/2026 ; migration 20261115103000) ----------
 // 2 PA, +1 INT pendant 24 h, sans cumul ; le guide reste dans l'inventaire. Le serveur décide de tout.
 Object.assign(PROV_MOTIFS, provRaisons(['pas_de_guide', 'effet_deja_actif']));
@@ -351,8 +370,14 @@ async function ouvrirCaisseKolkhoze(cache) {
     ? caisse.map(c => '<div style="margin:.3rem 0"><i class="ti ' + provEchapper(c.icon || 'ti-package') + '"></i> ' + provEchapper(c.nom) + ' : ' + c.qte + ' ' +
         champ('kol-p-' + c.cle) + vehBouton(provT('kolTake'), provJs('agirCaisseKolkhoze', 'prendre:' + c.cle), false) + '</div>').join('')
     : '<p class="cpj-note">' + provT('kolEmpty') + '</p>';
-  const miennes = (Array.isArray(state.inventory) ? state.inventory : [])
-    .filter(o => o && o.stackable && PROV_KOLKHOZE_ADMISES.includes(o.stackKey) && Number(o.qty) >= 1);
+  // Piles datées (lot 2a, 18/11/2026) : une ligne par matière, quantité = somme de ses piles.
+  const parCle = new Map();
+  for (const o of (Array.isArray(state.inventory) ? state.inventory : [])) {
+    if (!o || !o.stackable || !PROV_KOLKHOZE_ADMISES.includes(o.stackKey) || !(Number(o.qty) >= 1)) continue;
+    const deja = parCle.get(o.stackKey);
+    if (deja) deja.qty += Number(o.qty); else parCle.set(o.stackKey, { ...o, qty: Number(o.qty) });
+  }
+  const miennes = [...parCle.values()];
   const dons = miennes.length
     ? miennes.map(o => '<div style="margin:.3rem 0"><i class="ti ' + provEchapper(o.icon || 'ti-package') + '"></i> ' + provEchapper(o.name) + ' : ' + Math.floor(Number(o.qty)) + ' ' +
         champ('kol-d-' + o.stackKey) + vehBouton(provT('kolGive'), provJs('agirCaisseKolkhoze', 'donner:' + o.stackKey), true) + '</div>').join('')

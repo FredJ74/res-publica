@@ -784,6 +784,7 @@ function openPnjModal(encodedPnj, options = null) {
     decoEl.textContent = '';
     herosDecorationsDans(decoEl, pnjKey);
   }
+  if (typeof afficherSymptomesDans === 'function' && traitEl) afficherSymptomesDans(traitEl, pnjKey);
   (async () => {
     if (typeof sbGetMariageActif !== 'function') return;
     const mariage = await sbGetMariageActif(pnjKey).catch(() => null);
@@ -1221,7 +1222,7 @@ const PNJ_REFERENTS = ['marc_hantile', 'martial_bouterin', 'gaspard_ferriere',
   'kouzma_lapchine', 'praskovia_pakhomova',
   // Starovka (Fred, 18/11/2026) : PNJ en poste et référents désignés (GAME-DESIGN-NOVOMIRSK.md).
   'sayana_tsydypova', 'tsyren_dorji_bazarov', 'munko_tsybenov', 'dugar_tsyrempilov', 'lieutenant_tsyden_zhalsaraev',
-  'erdem_gombozhapov', 'gleb_ledokolov', 'stepan_vetrov', 'batzorig_dorjiev', 'damdin_mazoutov', 'dashi_burilov',
+  'erdem_gombozhapov', 'arseni_ledokolov', 'stepan_vetrov', 'batzorig_dorjiev', 'damdin_mazoutov', 'dashi_burilov',
   'tuyana_sambueva', 'saran_batbayar', 'saryuna_dorjieva', 'arkadi_prigovorov', 'zhargal_dashiev', 'darima_zhambalova',
   'gombo_zhigzhitov', 'viktor_morozko'
 ];
@@ -1489,7 +1490,7 @@ function verifierSuccesMaxence(cle) {
   if (cle === 'parle' && !state.char.succesMaxence.parle) {
     state.char.succesMaxence.parle = true;
     if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(function() {});
-    if (typeof showToast === 'function') showToast('🎯 Succès débloqué', 'Le fugitif du jardin botanique', true);
+    if (typeof showToast === 'function') { showToast('🎯 Succès débloqué', 'Le fugitif du jardin botanique', true); globalThis.RPI18nPlateau?.markToast("toastBodies.b357e6fa9", 'Le fugitif du jardin botanique', undefined, '🎯 Succès débloqué'); }
     if (typeof addJournalEntry === 'function') addJournalEntry('🎯 Succès débloqué : Le fugitif du jardin botanique', 'event-good');
     return;
   }
@@ -1500,7 +1501,7 @@ function verifierSuccesMaxence(cle) {
     const complet = toutesLesRumeurs.every(function(n) { return state.char.succesMaxence.rumeurs.includes(n); });
     if (complet && !state.char.succesMaxence.legendeUrbaine) {
       state.char.succesMaxence.legendeUrbaine = true;
-      if (typeof showToast === 'function') showToast('🎯 Succès débloqué', 'Légende urbaine', true);
+      if (typeof showToast === 'function') { showToast('🎯 Succès débloqué', 'Légende urbaine', true); globalThis.RPI18nPlateau?.markToast("toastBodies.bd0a4f913", 'Légende urbaine', undefined, '🎯 Succès débloqué'); }
       if (typeof addJournalEntry === 'function') addJournalEntry('🎯 Succès débloqué : Légende urbaine', 'event-good');
     }
     if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(function() {});
@@ -2282,9 +2283,9 @@ function construirePhraseCibleTracee(type, cibleLabel) {
 async function validerLancementRumeur() {
   if (!_rumeur || _rumeur.soumission) return;
 
-  if (!_rumeur.cibleValue) { showToast('Cible requise', 'Sélectionnez une cible avant de lancer la rumeur.', false); return; }
+  if (!_rumeur.cibleValue) { showToast('Cible requise', 'Sélectionnez une cible avant de lancer la rumeur.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b40927e38", 'Sélectionnez une cible avant de lancer la rumeur.', undefined, 'Cible requise'); return; }
   const texte = (_rumeur.texte || '').trim();
-  if (!texte) { showToast('Texte requis', 'Rédigez le texte de votre rumeur.', false); return; }
+  if (!texte) { showToast('Texte requis', 'Rédigez le texte de votre rumeur.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b996cf0c5", 'Rédigez le texte de votre rumeur.', undefined, 'Texte requis'); return; }
 
   _rumeur.soumission = true;
   const btn = document.getElementById('rumeur-btn-valider');
@@ -2541,11 +2542,11 @@ function resoudrePaysCibleLobbying(type, cibleValue, cibleCountry) {
 
 async function validerLobbyingPresse() {
   if (!_lobbyingPresse || _lobbyingPresse.soumission) return;
-  if (!_lobbyingPresse.cibleValue) { showToast('Cible requise', 'Sélectionnez une cible avant de continuer.', false); return; }
+  if (!_lobbyingPresse.cibleValue) { showToast('Cible requise', 'Sélectionnez une cible avant de continuer.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bb6f78ca9", 'Sélectionnez une cible avant de continuer.', undefined, 'Cible requise'); return; }
   const cfg = LOBBYING_PRESSE_CONFIG[_lobbyingPresse.mode];
   if (!cfg) return;
   if (_lobbyingPresse.mode === 'article' && !(_lobbyingPresse.angle || '').trim()) {
-    showToast('Angle requis', "Indiquez le sujet/l'angle souhaité.", false);
+    showToast('Angle requis', "Indiquez le sujet/l'angle souhaité.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b92017e93", "Indiquez le sujet/l'angle souhaité.", undefined, 'Angle requis');
     return;
   }
 
@@ -2709,11 +2710,11 @@ function ouvrirModalInvitationSociale(type, pa, cost, successRate) {
     .map(g => ({ name: g.nom, isPJ: false }));
   const presents = [...presentsPJ, ...presentsPNJ, ...presentsMonGroupe];
   if (presents.length === 0) {
-    showToast('Personne à inviter', 'Aucun autre joueur n\'est présent dans cette pièce pour l\'instant.', false);
+    showToast('Personne à inviter', 'Aucun autre joueur n\'est présent dans cette pièce pour l\'instant.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b0b4cd0d4", 'Aucun autre joueur n\'est présent dans cette pièce pour l\'instant.', undefined, 'Personne à inviter');
     return;
   }
   if (state.arg < cost) {
-    showToast('Fonds insuffisants', cost + ' FR requis pour inviter quelqu\'un à ' + cfg.verbe + '.', false);
+    showToast('Fonds insuffisants', cost + ' FR requis pour inviter quelqu\'un à ' + cfg.verbe + '.', false); globalThis.RPI18nPlateau?.markToast(null, cost + ' FR requis pour inviter quelqu\'un à ' + cfg.verbe + '.', undefined, 'Fonds insuffisants');
     return;
   }
   document.getElementById('postes-modal-title').textContent = cfg.emoji + ' Inviter à ' + cfg.verbe;
@@ -2745,7 +2746,7 @@ async function envoyerInvitationSociale(type, nomInvite, pa, cost, estPJ) {
     return restaurantLutheciaInviter(nomInvite, estPJ);
   }
   document.getElementById('modal-postes')?.classList.remove('open');
-  showToast('Invitation indisponible', 'Ce lieu ne propose pas ce service. Rien n\'a été facturé.', false);
+  showToast('Invitation indisponible', 'Ce lieu ne propose pas ce service. Rien n\'a été facturé.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b90b690d0", 'Ce lieu ne propose pas ce service. Rien n\'a été facturé.', undefined, 'Invitation indisponible');
 }
 
 // Anciennes invitations de l'ecran (avant le 03/11/2026) encore en attente : elles sont closes
@@ -2831,7 +2832,7 @@ function demarrerPollingInvitationsDiner() {
 function ouvrirModalFabriquerKompromat(nomAgent) {
   const pjContacts = (state.contacts || []).filter(c => c.isPJ || c.type === 'pj');
   if (pjContacts.length === 0) {
-    showToast('Aucune cible', 'Vous devez avoir des PJ dans votre répertoire pour fabriquer un kompromat.', false);
+    showToast('Aucune cible', 'Vous devez avoir des PJ dans votre répertoire pour fabriquer un kompromat.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bb7476006", 'Vous devez avoir des PJ dans votre répertoire pour fabriquer un kompromat.', undefined, 'Aucune cible');
     return;
   }
   const cur = COUNTRIES[state.country]?.cur || 'FR';
@@ -3109,7 +3110,7 @@ function ouvrirModalSecretContreSecret(nomEscort) {
 async function confirmerSecretContreSecret(nomEscort) {
   const champ = document.getElementById('secret-contre-secret-texte');
   const declaration = (champ?.value || '').trim();
-  if (!declaration) { showToast('Rien à confier', 'Écrivez votre confidence avant de valider.', false); return; }
+  if (!declaration) { showToast('Rien à confier', 'Écrivez votre confidence avant de valider.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bb1a7ed57", 'Écrivez votre confidence avant de valider.', undefined, 'Rien à confier'); return; }
   document.getElementById('modal-postes').classList.remove('open');
 
   const resultat = typeof sbEchangerSecretEscort === 'function'
@@ -3150,7 +3151,7 @@ function ouvrirModalInterrogatoireSujet(nomPnj, pnjJob) {
 async function confirmerInterrogatoireSujet(nomPnj, pnjJob) {
   const champ = document.getElementById('interrogatoire-sujet-texte');
   const sujet = (champ?.value || '').trim();
-  if (!sujet) { showToast('Sujet requis', 'Précisez le sujet de l\'interrogatoire.', false); return; }
+  if (!sujet) { showToast('Sujet requis', 'Précisez le sujet de l\'interrogatoire.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b93623534", 'Précisez le sujet de l\'interrogatoire.', undefined, 'Sujet requis'); return; }
   document.getElementById('modal-postes').classList.remove('open');
 
   // CHA du PNJ desormais entierement geree cote serveur (revue de securite du 22 aout 2026,
@@ -3184,10 +3185,10 @@ function doEscortPiege(pa, cost) {
   // Sélectionner une cible PJ dans le répertoire
   const pjContacts = (state.contacts || []).filter(c => c.isPJ || c.type === 'pj');
   if (pjContacts.length === 0) {
-    showToast('Aucune cible', 'Vous devez avoir des PJ dans votre répertoire pour organiser un piège.', false);
+    showToast('Aucune cible', 'Vous devez avoir des PJ dans votre répertoire pour organiser un piège.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b7af44d3c", 'Vous devez avoir des PJ dans votre répertoire pour organiser un piège.', undefined, 'Aucune cible');
     return;
   }
-  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
+  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); globalThis.RPI18nPlateau?.markToast(null, cost + ' ' + cur + ' requis.', undefined, 'Fonds insuffisants'); return; }
 
   // Modal de sélection de cible
   document.getElementById('postes-modal-title').textContent = '🕵 Choisir une cible';
@@ -3265,7 +3266,7 @@ async function chargerPnjTerrain(buildingId) {
   if (state.char!==contexte.personnage || state.country!==contexte.pays || state.currentCity!==contexte.ville
       || state.currentBuilding!==buildingId || rpAuthUid()!==contexte.uid) return false;
   if (!r?.ok || !r.etat) {
-    showToast('Terrain non vérifié','La situation du terrain ne peut pas être confirmée. Réessayez.',false);
+    showToast('Terrain non vérifié','La situation du terrain ne peut pas être confirmée. Réessayez.',false); globalThis.RPI18nPlateau?.markToast("toastBodies.b6a1957ff", 'La situation du terrain ne peut pas être confirmée. Réessayez.', undefined, 'Terrain non vérifié');
     return false;
   }
   remplacerTerrainState(buildingId,r.etat);
@@ -3381,7 +3382,7 @@ async function doVerifierTerrain() {
   const pnj = profilOccupationTerrain(ts);
   if (!pnj) {
     addJournalEntry('Terrain inspecté. Rien à signaler.', 'event-info');
-    showToast('Terrain libre', 'Aucun obstacle. Vous pouvez procéder aux démarches.', true);
+    showToast('Terrain libre', 'Aucun obstacle. Vous pouvez procéder aux démarches.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.b6d6b6d16", 'Aucun obstacle. Vous pouvez procéder aux démarches.', undefined, 'Terrain libre');
   } else {
     addJournalEntry('Terrain inspecté. ' + (pnj.role || 'Présence') + ' détectée.', 'event-info');
     showToast(pnj.role || 'Obstacle détecté', pnj.trait || '', pnj.rel !== 'enemy');
@@ -3552,7 +3553,7 @@ async function confirmerNegociation(pa, cost) {
   if (bouton) bouton.disabled = false;
   if (!r || r.transport) {
     if (bouton) bouton.textContent = 'Vérifier le résultat';
-    showToast('Résultat non confirmé', 'Réessayez pour vérifier cette même proposition. Aucun nouveau tirage ne sera effectué.', false);
+    showToast('Résultat non confirmé', 'Réessayez pour vérifier cette même proposition. Aucun nouveau tirage ne sera effectué.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b1c57b162", 'Réessayez pour vérifier cette même proposition. Aucun nouveau tirage ne sera effectué.', undefined, 'Résultat non confirmé');
     return; // garder UUID et montant, meme si la reponse s'est perdue APRES le commit
   }
   if (r.etat) appliquerEtatNegociation(c, r.etat);
@@ -3576,7 +3577,7 @@ async function confirmerNegociation(pa, cost) {
     ? 'Départ négocié des squatteurs : ' + montant + ' FR.' + (r.bonusMoral ? ' +1 Moral.' : '')
     : 'Offre de ' + montant + ' FR refusée par les squatteurs. Aucun argent versé.', r.accepte ? 'event-good' : 'event-info');
   if (r.accepte && r.etat?.pnj) {
-    showToast('Accord déjà enregistré', 'La situation actuelle du terrain a changé. Aucun nouveau paiement n’a été effectué.', false);
+    showToast('Accord déjà enregistré', 'La situation actuelle du terrain a changé. Aucun nouveau paiement n’a été effectué.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b5d7b04cf", 'La situation actuelle du terrain a changé. Aucun nouveau paiement n’a été effectué.', undefined, 'Accord déjà enregistré');
     return;
   }
   document.getElementById('postes-modal-title').textContent = r.accepte ? 'Marché conclu' : 'Proposition refusée';
@@ -3641,9 +3642,9 @@ async function doSignerCompromis(pa, cost) {
   const estHelvetia = ts.proprietaire === 'Helvetia';
 
   const dispo = terrainOrdreDisponible('signer_compromis', id);
-  if (!dispo.ok) { showToast('Impossible', dispo.raison, false); return; }
+  if (!dispo.ok) { showToast('Impossible', dispo.raison, false); globalThis.RPI18nPlateau?.markToast(null, dispo.raison, undefined, 'Impossible'); return; }
   if (state.arg < ACOMPTE_COMPROMIS) {
-    showToast('Fonds insuffisants', ACOMPTE_COMPROMIS + ' ' + cur + ' requis pour l\'acompte.', false);
+    showToast('Fonds insuffisants', ACOMPTE_COMPROMIS + ' ' + cur + ' requis pour l\'acompte.', false); globalThis.RPI18nPlateau?.markToast(null, ACOMPTE_COMPROMIS + ' ' + cur + ' requis pour l\'acompte.', undefined, 'Fonds insuffisants');
     return;
   }
 
@@ -3719,7 +3720,7 @@ async function doConfirmerCompromis(pa, cost) {
     const resultatHelvetia = (typeof sbSignerCompromisBienHelvetia === 'function')
       ? await sbSignerCompromisBienHelvetia(state.char?.name, id).catch(() => null)
       : null;
-    if (!resultatHelvetia) { showToast('Compromis refusé', 'Fonds ordinaires insuffisants pour l\'acompte, ou bien déjà sous compromis.', false); return; }
+    if (!resultatHelvetia) { showToast('Compromis refusé', 'Fonds ordinaires insuffisants pour l\'acompte, ou bien déjà sous compromis.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b37db6954", 'Fonds ordinaires insuffisants pour l\'acompte, ou bien déjà sous compromis.', undefined, 'Compromis refusé'); return; }
     if (!TEST_MODE) state.pa = Math.max(0, (state.pa || 0) - pa);
 
     // La RPC a deja persiste compromis/compromisPar/acompte/compromisAt/compromisExpireAt cote
@@ -3798,7 +3799,7 @@ const ACOMPTE_ACHAT_DIRECT = 1000;
 // n'est pas passe finaliser. Le solde du prix (moins l'acompte) est paye au notaire, pas ici.
 async function doAcheterTerrain(){
  const id=state.currentBuilding,ts=getTerrainState(id);
- const disponible=terrainOrdreDisponible('acheter_terrain',id);if(!disponible.ok){showToast('Achat impossible',disponible.raison,false);return;}
+ const disponible=terrainOrdreDisponible('acheter_terrain',id);if(!disponible.ok){showToast('Achat impossible',disponible.raison,false); globalThis.RPI18nPlateau?.markToast(null, disponible.raison, undefined, 'Achat impossible');return;}
  return finance135Acquerir(id,'depot',{occupation:String(ts.dateGeneration??'historique')+':'+(ts.pnj||'')});
 }
 
@@ -3826,7 +3827,7 @@ async function doCorrompreRdvNotaire(pa, cost) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
 
   if (!ts.achatDirect || ts.achatDirect.demandeur !== state.char?.name) {
-    showToast('Impossible', "Vous n'avez pas de rendez-vous en attente ici.", false);
+    showToast('Impossible', "Vous n'avez pas de rendez-vous en attente ici.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b1877e067", "Vous n'avez pas de rendez-vous en attente ici.", undefined, 'Impossible');
     return;
   }
 
@@ -3839,7 +3840,7 @@ async function doCorrompreRdvNotaire(pa, cost) {
     requete = sessionStorage.getItem(cle) || crypto.randomUUID();
     sessionStorage.setItem(cle, requete);
   } catch (_) {
-    showToast('Ordre non envoyé', 'Le navigateur ne peut pas conserver la référence de cet ordre.', false);
+    showToast('Ordre non envoyé', 'Le navigateur ne peut pas conserver la référence de cet ordre.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b025a735b", 'Le navigateur ne peut pas conserver la référence de cet ordre.', undefined, 'Ordre non envoyé');
     return;
   }
   const vAcc = await sbRpcVerdict('terrain_rdv_notaire_accelerer', { p_terrain: id, p_requete: requete }).catch(() => null);
