@@ -1,5 +1,6 @@
 // Criminalité — lot 1 : équipement et dissimulation (GAME-DESIGN-CRIMINALITE.md §§ 1 et 5, décisions de Fred des 18-19/11/2026).
 // Lot 2 : Neutraliser par crime_neutraliser (résolution commune crim_resoudre_interne), cible masquée visée par jeton.
+// Lot 3 : Voler (argent, objet au hasard, objet précis) par crime_voler, même résolution commune ; aucun calcul ici.
 // Le serveur tranche tout : jets (se_cacher, crim_fouiller_cachettes), objet porté (crim_revetir / crim_retirer, marque
 // `porte_par` dans l'inventaire), liste des présents (crim_presents : caché absent, masqué numéroté sans portrait),
 // boutique « Équipement discret » (boutique_discretion_etat / _acheter), événements d'écran (crim_evenements_lire :
@@ -42,7 +43,20 @@ const T = {
     r_arme_manquante: 'Vous n’avez pas l’arme nécessaire.', r_cible_indisponible: 'Cette personne est hors service.',
     r_meme_groupe: 'Vous ne pouvez pas viser un membre de votre groupe.', r_cible_protegee: 'Cette personne ne peut pas être visée.',
     r_cible_non_referencee: 'Cette personne ne peut pas être visée ici.', r_cible_invalide: 'Cible invalide.',
-    r_cible_ambigue: 'Plusieurs personnes portent ce nom : impossible de viser.'
+    r_cible_ambigue: 'Plusieurs personnes portent ce nom : impossible de viser.',
+    vTitle: 'Voler — {nom}', vMenu: '🤏 Voler quelqu’un (2-3 PA)', vChoisir: 'Qui voulez-vous voler ?', vPersonne: 'Personne à voler ici.',
+    vIntro: 'Que cherchez-vous ? Vous ne verrez pas ce que la personne porte. Le serveur tranche tout : réussite, butin, détection, risque d’affrontement. Être caché ne facilite pas le vol mais protège votre identité.',
+    vArgent: 'De l’argent liquide — {pa} PA', vHasard: 'Un objet au hasard — {pa} PA', vPrecis: 'Un objet précis — {pa} PA',
+    vType: 'Quel type d’objet ?', t_arme: 'Une arme', t_cle: 'Une clé', t_medicament: 'Un médicament', t_nourriture: 'De la nourriture',
+    t_vetement: 'Un vêtement', t_graisse: 'Un bocal de graisse',
+    vOk: 'Vol réussi', vOkText: 'Vous dérobez : {butin}.', vOkCrit: 'Personne ne s’est aperçu de rien.',
+    vVide: 'Bredouille', vRien: 'Vous ne trouvez rien à prendre.', vTypeAbsent: 'Elle n’a rien de ce genre sur elle.',
+    vFail: 'Vol raté', vFailText: 'Votre tentative échoue. Vous gardez votre cachette et pouvez retenter si vous avez des PA.',
+    vRemarque: 'Votre victime s’en est aperçue.',
+    vCrit: 'Échec critique', vCritText: 'Maladresse : votre moral en prend un coup (−15).',
+    vCombat: 'Affrontement !', vCombatText: 'Votre victime vous a pris la main dans le sac et se défend.',
+    r_ordre_remplace: 'Ordre remplacé : rouvrez la fiche de la personne.', r_butin_invalide: 'Choix de butin invalide.',
+    r_type_invalide: 'Type d’objet invalide.'
   }
 };
 const etat = () => (typeof state !== 'undefined' && state) ? state : {};
@@ -244,6 +258,84 @@ async function crimNeutraliserConfirmer(enc, mode) {
     await global.ouvrirPanneauCombat(Number(r.bataille));
 }
 
+// ── Voler (lot 3) : crime_voler tranche tout (jet, butin, détection, passage au combat, messages, peine) ─────────
+// Déclarations d'ordre lues par le miroir des coûts (ordres_couts : voler 2 PA ; 3 PA pour l'objet précis).
+const ORDRES_VOL = {
+  argent: { fn: 'voler', label: 'Voler de l’argent liquide', pa: 2, cost: 0 },
+  hasard: { fn: 'voler', label: 'Voler un objet au hasard', pa: 2, cost: 0 },
+  precis: { fn: 'voler', label: 'Voler un objet précis', pa: 3, cost: 0 }
+};
+const TYPES_VOL = ['arme', 'cle', 'medicament', 'nourriture', 'vetement', 'graisse'];
+function titreModale(t) { const e = global.document.getElementById('postes-modal-title'); if (e) e.textContent = t; }
+function ouvrirModale(html) {
+  global.document.getElementById('postes-body').innerHTML = html;
+  global.document.getElementById('modal-postes').classList.add('open');
+}
+function crimOuvrirVoler(enc) {
+  const c = cibleNeutraliser(enc);
+  if (!c) return;
+  titreModale(texte('vTitle', { nom: String(c.name || '').replace(/ \(PNJ\)$/, '') }));
+  let html = '<div class="cpj-dialogue"><p class="cpj-note">' + esc(texte('vIntro')) + '</p>';
+  html += '<button class="cpj-touche" onclick="crimVolerConfirmer(\'' + enc + '\',\'argent\')">' + esc(texte('vArgent', { pa: ORDRES_VOL.argent.pa })) + '</button>';
+  html += '<button class="cpj-touche" onclick="crimVolerConfirmer(\'' + enc + '\',\'hasard\')">' + esc(texte('vHasard', { pa: ORDRES_VOL.hasard.pa })) + '</button>';
+  html += '<button class="cpj-touche" onclick="crimVolerTypes(\'' + enc + '\')">' + esc(texte('vPrecis', { pa: ORDRES_VOL.precis.pa })) + '</button>';
+  ouvrirModale(html + '</div>');
+}
+function crimVolerTypes(enc) {
+  let html = '<div class="cpj-dialogue"><p class="cpj-note">' + esc(texte('vType')) + '</p>';
+  for (const t of TYPES_VOL)
+    html += '<button class="cpj-touche" onclick="crimVolerConfirmer(\'' + enc + '\',\'precis\',\'' + t + '\')">' + esc(texte('t_' + t)) + '</button>';
+  ouvrirModale(html + '</div>');
+}
+let volEnCours = false;
+async function crimVolerConfirmer(enc, butin, type) {
+  if (volEnCours) return;
+  fermerModale();
+  const c = cibleNeutraliser(enc);
+  if (!c || !ORDRES_VOL[butin]) return;
+  volEnCours = true;
+  let r;
+  try { r = await rpc('crime_voler', { p_cible: identifiantCible(c), p_butin: butin, p_type: type || null, p_requete: uuid() }); }
+  finally { volEnCours = false; }
+  if (!r || r.ok !== true) { toast(texte('vFail'), motif(r), false); return; }
+  if (r.paie && typeof global.appliquerPaiementServeur === 'function') global.appliquerPaiementServeur(r.paie);
+  const e = etat();
+  if (typeof r.liquide === 'number') e.liquide = r.liquide;
+  if (typeof r.arg === 'number') e.arg = r.arg;
+  if (typeof r.moral === 'number') e.moral = r.moral;
+  if (Array.isArray(r.recherche)) e.recherche = r.recherche;
+  if (r.livre && Array.isArray(r.inventory)) appliquerInventaire(r);
+  if (r.sans_risque) {
+    toast(texte('vVide'), texte(r.raison_echec === 'type_absent' ? 'vTypeAbsent' : 'vRien'), false);
+  } else {
+    let suite = '';
+    if (r.identifie) suite = ' ' + texte('nIdent', { jours: r.peine_jours == null ? '?' : r.peine_jours });
+    else if (r.trace) suite = ' ' + texte('nTrace');
+    if (r.issue === 'reussite') toast(texte('vOk'), texte('vOkText', { butin: r.description || '?' }) + (r.reussite_critique ? ' ' + texte('vOkCrit') : '') + suite, true);
+    else if (r.issue === 'combat') toast(texte('vCombat'), texte('vCombatText'), false);
+    else if (r.echec_critique) toast(texte('vCrit'), texte('vCritText') + suite, false);
+    else toast(texte('vFail'), texte('vFailText') + (r.remarque ? ' ' + texte('vRemarque') : '') + suite, false);
+  }
+  if (typeof global.updateUI === 'function') global.updateUI();
+  if (r.issue === 'combat' && Number.isSafeInteger(Number(r.bataille)) && typeof global.ouvrirPanneauCombat === 'function')
+    await global.ouvrirPanneauCombat(Number(r.bataille));
+}
+// Menu « Fouiller ou voler » : choisir la personne parmi les présents de la pièce (crim_presents : caché absent,
+// masqué par jeton). Les PNJ se volent depuis leur fiche.
+async function crimVolerChoisirCible() {
+  const r = await rpc('crim_presents');
+  const moi = etat().char && etat().char.name;
+  const liste = (r && r.ok === true && Array.isArray(r.presents) ? r.presents : []).filter(p => p && p.name !== moi && (!p.masque || p.jeton));
+  titreModale(texte('vMenu'));
+  if (!liste.length) { ouvrirModale('<div class="cpj-dialogue"><p class="cpj-note">' + esc(texte('vPersonne')) + '</p></div>'); return; }
+  let html = '<div class="cpj-dialogue"><p class="cpj-note">' + esc(texte('vChoisir')) + '</p>';
+  for (const p of liste) {
+    const enc = encodeURIComponent(JSON.stringify(p.masque ? { name: p.name, isPJ: true, masque: true, jeton: p.jeton } : { name: p.name, isPJ: true })).replace(/'/g, '%27');
+    html += '<button class="cpj-touche" onclick="crimOuvrirVoler(\'' + enc + '\')">' + esc(p.name) + '</button>';
+  }
+  ouvrirModale(html + '</div>');
+}
+
 // ── Événements d'écran : « Bas les masques ! » (arrestation d'un PJ masqué), débusqué ───────────────────────────
 function injecterStyle() {
   const doc = global.document;
@@ -308,8 +400,8 @@ if (global.document && global.setTimeout) {
   else global.document.addEventListener('DOMContentLoaded', demarrer);
 }
 
-global.RPCriminalite = { T, texte, objetRevetable, objetPorte, ordresBoutiqueDiscretion, LIEUX_BOUTIQUE, identifiantCible };
+global.RPCriminalite = { T, texte, objetRevetable, objetPorte, ordresBoutiqueDiscretion, LIEUX_BOUTIQUE, identifiantCible, ORDRES_VOL, TYPES_VOL };
 Object.assign(global, { ouvrirBoutiqueDiscretion, acheterDiscretion, boutonRevetir, badgeRevetu, crimRevetir, crimRetirer,
   messageSeCacher, ouvrirFouilleCachettes, fouilleCachettesConfirmer, lireEvenementsCrim, animationDemasquage,
-  ouvrirNeutraliser, crimNeutraliserConfirmer });
+  ouvrirNeutraliser, crimNeutraliserConfirmer, crimOuvrirVoler, crimVolerTypes, crimVolerConfirmer, crimVolerChoisirCible });
 })(typeof window !== 'undefined' ? window : globalThis);

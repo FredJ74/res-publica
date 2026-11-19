@@ -21,127 +21,14 @@ function tracerActionPourRumeur(typeAction, cibleNom) {
   sbTracerAction(action).catch(() => {});
 }
 
-
-// LE GENRE DE BUTIN EST CHOISI PAR LE JOUEUR (12 octobre 2026), PLUS TIRE AU SORT.
-//
-// Avant, `confirmerVol` tirait 60 % argent / 40 % objet et basculait d'un genre a l'autre quand
-// la cible n'avait rien du genre tire. Ce repli etait une FUITE D'INFORMATION : reussir un vol
-// « d'objet » sur une cible sans objet rapportait de l'argent, donc l'issue renseignait sur ce
-// que la cible possede. Le joueur annonce desormais ce qu'il cherche, et il n'y a plus de repli :
-// s'il n'y en a pas, le vol reussit et ne rapporte rien.
-//
-// L'INVENTAIRE DE LA CIBLE N'EST JAMAIS MONTRE, ni ici ni a l'etape suivante : on choisit un
-// GENRE, pas un objet. Et la tentative reste possible sur une cible qui ne possede rien -- elle
-// peut echouer en etant detectee, echouer sans l'etre, ou reussir sans butin.
+// VOLER SUR UNE PERSONNE (Criminalité lot 3, 19/11/2026, GAME-DESIGN-CRIMINALITE.md § 7) : l'ordre passe par
+// crime_voler(cible, butin, type, requete) — argent liquide, objet au hasard ou objet précis (un TYPE, sans voir
+// l'inventaire) — et la résolution commune des crimes. Le serveur tranche tout (jet, butin, détection, combat,
+// messages, peine) ; l'écran (plateau-criminalite.js) ne calcule rien. L'ancien jet à paliers (estimation affichée,
+// bénédiction, amende d'empire) et l'ancienne route crime_voler(p_genre…) sont retirés.
 function ouvrirModalVolerChoix(encodedCible) {
-  let cible;
-  try { cible = JSON.parse(decodeURIComponent(encodedCible)); } catch (e) { return; }
-  document.getElementById('postes-modal-title').textContent = 'Voler — ' + cible.name;
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.82rem;color:#aa7a30;font-style:italic;margin-bottom:1rem;padding:.55rem;background:#0f0d05;border:1px solid #3a2810">'
-       +  'Que cherchez-vous ? Vous ne saurez ce qu\'elle porte qu\'en le prenant.</div>';
-  html += '<div style="display:flex;flex-direction:column;gap:.5rem">';
-  html += '<button onclick="ouvrirModalVoler(\'' + encodedCible + '\',\'argent\')" style="text-align:left;padding:.6rem .8rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.85rem"><i class="ti ti-coins"></i> Voler de l\'argent</button>';
-  html += '<button onclick="ouvrirModalVoler(\'' + encodedCible + '\',\'objet\')" style="text-align:left;padding:.6rem .8rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.85rem"><i class="ti ti-package"></i> Voler un objet</button>';
-  html += '</div></div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
+  if (typeof crimOuvrirVoler === 'function') crimOuvrirVoler(encodedCible);
 }
-
-function ouvrirModalVoler(encodedCible, genre) {
-  let cible;
-  try { cible = JSON.parse(decodeURIComponent(encodedCible)); } catch(e) { return; }
-
-  const char = state.char;
-  const per = getStatEffective('PER');
-  const cha = getStatEffective('CHA');
-  const bonusCarriere = BONUS_CARRIERE_VOL[char?.career] || 0;
-  const isPays = (typeof getIndiceVille === 'function') ? getIndiceVille(state.country, state.currentCity || 'capitale', 'isn') : (INDICES_NATIONAUX[state.country]?.ISN || 30);
-
-  // Stats de la cible — si PJ reel on n'a que des stats par defaut raisonnables (PNJ ont parfois des stats definies)
-  const perCible = cible.stats?.PER || 9;
-  const intCible = cible.stats?.INT || 9;
-
-  // Jet final a 4 paliers (refonte du 22 aout 2026, decision de game design arretee -- remplace
-  // l'ancien couple tauxReussite/roll et la variable voitButin, jamais utilisee depuis sa
-  // creation, voir audit dedie). Base neutre 50, deplacee par exactement les memes influences
-  // qu'avant (PER/CHA effectives du groupe -- un informateur recrute inGroupe continue donc de
-  // les faire progresser via getStatEffective -- PER/INT de la cible, carriere, ISN local).
-  // Seule la part aleatoire est ajoutee plus tard, dans confirmerVol() : jamais ici, pour ne pas
-  // consommer la benediction avant la confirmation reelle (meme doctrine que l'ancien code).
-  // Paliers arretes : jetFinal <25 echec complet ; 25-49 reussite, voleur identifie ; 50-74
-  // reussite, vol detecte mais auteur inconnu ; >=75 reussite sans detection.
-  const jetBase = 50 + (per + cha) - (perCible + intCible) + bonusCarriere - (isPays / 3);
-
-  document.getElementById('postes-modal-title').textContent = 'Voler — ' + cible.name;
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.82rem;color:#aa7a30;font-style:italic;margin-bottom:1rem;padding:.5rem;background:#0f0d05;border:1px solid #3a2810">Acte illegal. En cas d\'echec, des consequences variables selon l\'empire s\'appliquent. Une part de hasard reste toujours decisive.</div>';
-  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Estimation avant hasard : <strong style="color:#C9A84C">' + Math.round(jetBase) + ' / 100</strong> (echec &lt;25 · identifie 25-49 · detecte 50-74 · discret &ge;75)</div>';
-  const genreButin = (genre === 'objet') ? 'objet' : 'argent';
-  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Cible du vol : <strong style="color:#C9A84C">'
-       + (genreButin === 'objet' ? 'un objet' : 'de l\'argent') + '</strong></div>';
-  html += '<button onclick="confirmerVol(\'' + encodedCible + '\',' + jetBase + ',\'' + genreButin + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #aa7a30;background:transparent;color:#C9A84C;cursor:pointer">🤏 Tenter le vol (2 PA)</button>';
-  html += '</div>';
-
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
-}
-
-// VOLER PAR LE SERVEUR (27 octobre 2026) : crime_voler fait le jet, lit le butin sur la fiche
-// reelle de la victime (eligibilite : matieres empilables, objets trouves, armes ; jamais les
-// actes officiels ni le colis de quete), applique la sanction d'echec de l'empire, credite
-// l'argent au voleur, depose le retrait differe chez la victime (vols_en_attente) et la previent
-// selon le palier. L'ecran ne fait plus qu'annoncer le resultat. La benediction (+5) reste tenue
-// par l'ecran : elle est consommee ici et signalee au serveur.
-async function confirmerVol(encodedCible, jetBase, genre) {
-  let cible;
-  try { cible = JSON.parse(decodeURIComponent(encodedCible)); } catch(e) { return; }
-  document.getElementById('modal-postes').classList.remove('open');
-  const nomCible = cible.name.replace(' (PNJ)', '');
-  const benediction = (typeof consommerBonusBenediction === 'function') ? consommerBonusBenediction(0) > 0 : false;
-  const brut = (typeof sbRpc === 'function')
-    ? await sbRpc('crime_voler', { p_cible: nomCible, p_genre: genre === 'objet' ? 'objet' : 'argent', p_benediction: benediction,
-        p_per_pnj: Math.round(cible.stats?.PER || 9), p_int_pnj: Math.round(cible.stats?.INT || 9) }).catch(() => null)
-    : null;
-  const v = Array.isArray(brut) ? brut[0] : brut;
-  if (!v || v.ok !== true) {
-    if (v && v.raison === 'pas_au_meme_endroit') showToast('Vol impossible', nomCible + ' n\'est plus là.', false);
-    else signalerRefusCout(v || { raison: 'paiement_indisponible' });
-    return;
-  }
-  if (v.paie && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v.paie);
-  if (typeof v.arg === 'number') appliquerPaiementServeur({ arg: v.arg });
-  if (typeof v.pop === 'number' && typeof adopterJaugeServeur === 'function') adopterJaugeServeur('pop', v.pop);
-
-  if (v.issue === 'echec') {
-    updateUI();
-    showToast('Vol échoué !', v.message || '', false, true);
-    addJournalEntry('Tentative de vol sur ' + nomCible + ' échouée. ' + (v.message || ''), 'event-bad');
-    return;
-  }
-  if (v.issue === 'rien') {
-    updateUI();
-    showToast('Vol infructueux', nomCible + ' n\'avait rien de volable pour l\'instant.', false);
-    addJournalEntry('Tentative de vol sur ' + nomCible + ' : rien a voler.', 'event-info');
-    return;
-  }
-  // Depuis le 28/10/2026, le serveur transfere le butin dans la meme transaction que le jet :
-  // l'inventaire rendu est celui du voleur, adopte tel quel (reponse marquee par sbRpc).
-  if (v.livre && Array.isArray(v.inventory) && typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(v);
-  updateUI();
-  if (v.butin === 'argent') {
-    showToast('Vol réussi !', v.description + ' dérobé(s) à ' + nomCible + '.', true, true);
-    addJournalEntry('Vol réussi sur ' + nomCible + '. ' + v.description + '.', 'event-good');
-  } else if (v.livre) {
-    if (typeof renderInventory === 'function') renderInventory();
-    showToast('Vol réussi !', v.description + ' dérobé(s) à ' + nomCible + '.', true, true);
-    addJournalEntry('Vol réussi sur ' + nomCible + '. ' + v.description + '.', 'event-good');
-  } else {
-    showToast('Vol tenté avec succès !', v.description + ' — butin en cours de récupération.', true, true);
-    addJournalEntry('Vol réussi sur ' + nomCible + '. ' + v.description + ' (livraison différée, confirmation a la prochaine connexion de la cible).', 'event-good');
-  }
-}
-
 
 // =====================
 // NEUTRALISER (ex-"Assassiner") — chantier du 10 septembre 2026

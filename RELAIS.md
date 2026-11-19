@@ -8,6 +8,13 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Chantier Criminalité — lot 3 : vol sur une personne (Claude, 19/11/2026)
+- **Branche `claude/game-design-criminalite-20261118`**. Détail, valeurs provisoires et tableau : fin de `GAME-DESIGN-CRIMINALITE.md` (« Lot 3 — ce qui est en place »).
+- **Migration APPLIQUÉE** (essai annulé d'abord) : `20261119190000_crim_lot3_voler`.
+- **Fait** : `crime_voler(cible, butin, type, requete)` = la seule fonction de vol sur une personne (PJ, masqué par jeton, PNJ référencé ; argent liquide / objet au hasard / objet précis par type ; 2 / 2 / 3 PA), résolue par `crim_resoudre_interne` (réussite critique 5 % → découverte au prochain « Dormir », échec critique, remarque, combat, détection 30, messages selon le mode, 1 j d'office). Butin 10-30 % plafonné à 2 000 ; une unité par pile ; rien à prendre = échec sans risque. Combat ouvert par la brique commune `crim_combat_ouvrir_interne` (Neutraliser raccordé dessus) ; combat gagné = butin livré. Ancienne route `crime_voler(text,text,boolean,integer,integer)` → `ordre_remplace`. `ordres_couts` : `voler` 3 PA ajouté (plans 97/219, seeds régénérés). Écran : fiche → « Voler » ; menu « Fouiller ou voler » → « Voler quelqu'un ».
+- **Tester** : `node --test outils/bancs/test-crim-lot3-voler.cjs` (relevé de l'essai en production + lecture de la migration + écran en VM). En jeu : deux PJ dans la même pièce, « Fouiller ou voler » → « Voler quelqu'un ».
+- **Reste** (lots suivants) : cambriolage (lot 4), empoisonnement / explosifs / incendie sur la résolution commune (lot 5), enquête sur plainte contre X et doublement de la peine si démasqué (lot 6).
+
 ### Chantier Criminalité — lot 2 : résolution commune et Neutraliser (Claude, 19/11/2026)
 - **Branche `claude/game-design-criminalite-20261118`**. Détail, valeurs provisoires et tableau de correspondance : fin de `GAME-DESIGN-CRIMINALITE.md` (« Lot 2 — ce qui est en place »).
 - **Migration APPLIQUÉE** (essai annulé d'abord) : `20261119160000_crim_lot2_resolution_commune_neutraliser`.

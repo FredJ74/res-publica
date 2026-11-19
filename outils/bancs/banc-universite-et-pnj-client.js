@@ -167,28 +167,23 @@ print('7. PNJ : VOLER ANNONCE SON GENRE, SANS REVELER L INVENTAIRE');
 var codeIll = codeSeul(illegal);
 att('la fiche PNJ ouvre desormais le choix de butin',
     codePnj.indexOf('ouvrirModalVolerChoix(') >= 0);
-att('les deux genres sont proposes explicitement',
-    illegal.indexOf('Voler de l\\\'argent</button>') >= 0 && illegal.indexOf('Voler un objet</button>') >= 0);
+// 19/11/2026 (Criminalite lot 3) : le vol passe par plateau-criminalite.js et crime_voler(cible, butin, type, requete) :
+// argent, objet au hasard ou objet precis (un TYPE), sans jamais montrer l inventaire ; le serveur tranche tout.
+var crimJs = codeSeul(lire('plateau-criminalite.js'));
+att('la fiche delegue au module criminalite',
+    codeIll.indexOf('crimOuvrirVoler(encodedCible)') >= 0);
+att('trois butins proposes : argent, objet au hasard, objet precis',
+    crimJs.indexOf("crimVolerConfirmer(\\'' + enc + '\\',\\'argent\\')") >= 0 && crimJs.indexOf("crimVolerConfirmer(\\'' + enc + '\\',\\'hasard\\')") >= 0
+    && crimJs.indexOf('crimVolerTypes(') >= 0);
 att('le tirage 60/40 a disparu',
     codeIll.indexOf('Math.random() < 0.6') < 0);
-// 27/10/2026 : le butin, le jet et les paliers sont tranches par le serveur (crime_voler). Le
-// genre annonce lui est transmis tel quel ; l ecran ne lit plus l inventaire de la cible.
-att('le genre annonce est celui qui est transmis au serveur',
-    codeIll.indexOf("p_genre: genre === 'objet' ? 'objet' : 'argent'") >= 0);
-att('le vol passe par le serveur',
-    codeIll.indexOf("sbRpc('crime_voler'") >= 0);
-att("l ecran ne lit plus la fiche de la victime pour choisir le butin",
-    codeIll.indexOf('objetsEligibles') < 0 && codeIll.indexOf('sbDeposerVol') < 0);
-att("l inventaire de la cible n est jamais affiche avant le vol",
-    illegal.indexOf('Vous ne saurez ce qu\\\'elle porte qu\\\'en le prenant') >= 0);
-att('la tentative reste possible : le choix ne depend pas de ce que la cible possede',
-    codeIll.indexOf('function ouvrirModalVolerChoix') >= 0
-    && codeIll.slice(codeIll.indexOf('function ouvrirModalVolerChoix'),
-                     codeIll.indexOf('function ouvrirModalVoler(')).indexOf('inventory') < 0);
+att('le vol passe par le serveur (nouvelle route)',
+    crimJs.indexOf("rpc('crime_voler', { p_cible: identifiantCible(c), p_butin: butin, p_type: type || null, p_requete: uuid() })") >= 0);
+att("l ecran ne lit plus la fiche de la victime ni ne calcule de jet",
+    codeIll.indexOf('objetsEligibles') < 0 && codeIll.indexOf('sbDeposerVol') < 0 && codeIll.indexOf('jetBase') < 0
+    && crimJs.indexOf('inventory.filter') < 0);
 att("l issue « rien a voler » est annoncee",
-    codeIll.indexOf("v.issue === 'rien'") >= 0);
-att('le bonus de carriere au vol est intact',
-    codeIll.indexOf('BONUS_CARRIERE_VOL[char?.career]') >= 0);
+    crimJs.indexOf("r.raison_echec === 'type_absent'") >= 0);
 
 print('');
 print('8. PNJ : LA ZONE DE QUESTION EST UN VRAI TEXTAREA');

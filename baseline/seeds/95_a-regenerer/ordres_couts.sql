@@ -582,6 +582,7 @@ INSERT INTO public.ordres_couts (fn,pa,cost) VALUES
   ('visiter_prisonnier',1,0),
   ('voir_ma_section',0,0),
   ('voler',2,0),
+  ('voler',3,0),
   ('voler_archives_ecoute',2,0),
   ('voler_materiel_chantier',2,0),
   ('voter_election',0,0),

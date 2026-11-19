@@ -321,9 +321,57 @@ Relevé en production (`pg_proc` du projet `jxpwoosmmhohoihxpbuc`, lecture seule
   explosifs, incendie…) : le double compte disparaît acte par acte (lots 3 à 5).
 - La fiche d'un individu masqué propose encore « Parler », « Rejoindre », « Envoyer un mail » (sans effet utile sous un pseudonyme).
 
+## Lot 3 — ce qui est en place (19/11)
+
+- Migration `20261119190000_crim_lot3_voler` (appliquée après essai annulé ; seul le scénario a été rejoué après application).
+- **Voler** : `crime_voler(cible, butin, type, requete)` (idempotent), une seule fonction serveur de vol sur une personne : PJ, individu
+  masqué (jeton) ou PNJ référencé (caractéristiques réelles, sinon PER 8 ; liquide de `pnj_membres`, objets de `pnj_possessions`).
+  Butin `argent` (liquide seulement) / `hasard` / `precis` + `type` (arme, cle, medicament, nourriture, vetement, graisse) ; 2 / 2 / 3 PA.
+  Résolu par **la résolution commune** `crim_resoudre_interne` (aucune copie de jet, de détection ni de combat) : taux
+  `crim_voler_taux_interne`, bornes 5-85 après la dissuasion #135 (une fois), réussite critique 5 % des réussites sans détection,
+  échec critique 2 % des échecs, remarque de l'échec `crim_voler_remarque_interne`, combat (formule de la neutralisation, PER propre de la
+  victime), détection 30 (−20 caché, −10 masqué, min 5), messages selon le mode, plainte de l'employeur d'un PNJ, affaire `crim_affaires`.
+- **Butin** : `crim_voler_part_interne` (tirage 10-30 % ± modificateurs, borné 10-30), `crim_voler_montant_interne` (plafond 2 000) ;
+  objets : `crim_vol_categorie_interne` (volable ? quel type ?), `crim_vol_objet_choisir_interne` (tirage parmi les volables), une unité par
+  pile ; livraison `crim_voler_livrer_interne` (même transaction ; aussi après un combat gagné, raccord `crim_vol_combat_v1` dans
+  `crim_resoudre_suite_interne`). Rien à prendre (ou type absent) : échec sans autre risque, PA dépensés, pas d'affaire.
+- **PER de groupe** : `crim_per_groupe_interne` (règle #135 : moyenne des membres présents + effectif − 1 ; seul : sa PER).
+- **Réussite critique** : la victime (ou l'employeur d'un PNJ) reçoit « En vous réveillant, vous constatez qu'on vous a dérobé … » à son
+  prochain « Dormir » (`crim_vols_differes`, `crim_vols_reveil_interne`, raccord `crim_vol_reveil_v1` dans `pa_repos_nocturne`).
+- **Peine** : `peine_jours_vol_republic` = 1 (les autres empires reprennent Républia) ; identifié = avis de recherche `vol` (délit mineur).
+- **Combat commun** : `crim_combat_ouvrir_interne(auteur, r, ci, mode, requete)` ouvre le combat (moteur inchangé) pour Voler **et**
+  Neutraliser (raccord `crim_combat_commun_v1` : le bloc de `crime_neutraliser` est remplacé par l'appel commun).
+- **Ancienne route** `crime_voler(text, text, boolean, integer, integer)` (jet à paliers, butin 50-199 FR, amende d'empire) : répond
+  `ordre_remplace`. Les amendes d'échec par empire (narco, soviet, khalija, républia) disparaissent avec elle.
+- **Écran** (`plateau-criminalite.js`) : fiche d'une personne → « Voler » (trois butins, choix du type) ; menu « Fouiller ou voler » →
+  « Voler quelqu'un » (présents de la pièce, masqués par jeton) ; aucun calcul ni estimation affichée. Coût 3 PA déclaré dans le module
+  (`ORDRES_VOL`) pour le miroir `ordres_couts` (plans 97 / 219 et seeds régénérés).
+
+### Valeurs provisoires du lot 3 (choisies par l'agent, à valider par Fred)
+- **Liquide nul** : voler de l'argent à quelqu'un qui n'a pas de liquide = échec sans autre risque (comme l'objet absent). — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Objets volables** : tout objet non revêtu de l'inventaire, matières premières comprises (catégorie « autre », visée seulement par
+  l'objet au hasard) ; non volables : objets revêtus (`porte_par`), documents / actes / titres / récépissés / tracts, objets de quête
+  (calepin, colis de Pat), dotation militaire (`origineMilitaire` = lié au poste). Une serrure n'est pas une clé. Aucune arme n'est
+  « portée » tant qu'aucun ordre ne permet de la porter. — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Types nommables** : arme, clé, médicament (soins, médicaments, trousses), nourriture (aliments comestibles, céréales, produits
+  exotiques), vêtement (habillement, masque, tenue ninja, gilet non revêtu), bocal de graisse (castor, ours, renne). — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Modificateurs « au-dessus » seulement pour la remarque de l'échec** : le document ne donne pas le sens inverse (+3/PER au-dessus de 8,
+  −1/3 DIS au-dessus de 50). Les tranches de DIS sont tronquées vers zéro (DIS 49 : 0 ; DIS 47 : −1). — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Réussite critique** : part basse des réussites (convention du lot 2), et non « au-delà de 95 sur le jet ». — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **PER** : PJ sans PER = 8 ; combat : PER propre de la victime (comme Neutraliser), PER de groupe pour la réussite, le butin et la remarque. — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Combat** : le voleur se bat à mains nues ; s'il gagne, le vol réussit (butin livré, détection, messages) ; il perd sa cachette, garde son masque. — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **PNJ hors service** (PA 0) : on ne peut pas le voler (« il garde la marchandise »). Réussite critique sur un PNJ : l'employeur l'apprend à son réveil, sans plainte automatique. — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Devise du message** : FR, ou PSK si le voleur est en Sovarka. — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Rumeurs** : un vol réussi laisse la trace de rumeur existante (`crime_trace_rumeur_interne`), utile à l'enquête (lot 6). — *valeur provisoire choisie par l'agent, à valider par Fred*
+
+### Points relevés pour les lots suivants
+- Doublement de la peine si démasqué plus tard : lot 6 (la valeur simple 1 j est en place).
+- `crime_voler_materiaux` et `voler_materiel` (matériaux et matériel installé) restent hors de ce lot : à rattacher au cambriolage (lot 4) s'il y a lieu.
+- `crime_detecter_interne` n'est plus appelé par le vol : le double compte de la dissuasion disparaît pour cet acte.
+
 ## Tableau de correspondance (règle → statut → fonction serveur)
 
-Statuts : **décidé** (dans le document), **implémenté** (en production), **testé** (essai en production annulé + bancs `outils/bancs/test-crim-lot1-equipement.cjs`, `outils/bancs/test-crim-lot2-resolution.cjs`).
+Statuts : **décidé** (dans le document), **implémenté** (en production), **testé** (essai en production annulé + bancs `outils/bancs/test-crim-lot1-equipement.cjs`, `outils/bancs/test-crim-lot2-resolution.cjs`, `outils/bancs/test-crim-lot3-voler.cjs`).
 
 | § | Règle | Statut | Lot | Fonction serveur |
 |---|---|---|---|---|
@@ -355,10 +403,17 @@ Statuts : **décidé** (dans le document), **implémenté** (en production), **t
 | 5 | Masque de carnaval 50 FR / 8 PSK, habillement civil | implémenté, testé | 1 | idem |
 | 5 | Gilet 380 FR / 60 PSK | implémenté, testé | 1 | `crim_prix_interne` |
 | 6 | Cadre des trois modes pour tous les crimes en pièce | implémenté dans la résolution commune ; branché sur Neutraliser | 2 | `crim_resoudre_interne`, `crim_designation_interne` |
-| 6 | Neutraliser et voler un PNJ (employeur alerté, hors service jusqu'au lendemain) | neutraliser : implémenté (essai sans PNJ référencé dans la pièce) ; voler : lot 3 | 2 | `crim_cible_resoudre_interne`, `crim_affaire_notifier_interne`, `pnj_pa_fixer` |
+| 6 | Neutraliser et voler un PNJ (employeur alerté, hors service jusqu'au lendemain) | implémenté (essais sur PJ ; aucun PNJ référencé dans la pièce d'essai) | 2, 3 | `crim_cible_resoudre_interne`, `crim_affaire_notifier_interne`, `pnj_pa_fixer`, `crime_voler` |
 | 6 | Dissuasion #135 conservée pour tous les crimes (une seule fois) | implémenté dans la résolution commune (actes anciens : double compte jusqu'à leur lot) | 2 | `crim_resoudre_interne`, `securite_malus_lieu_interne` |
-| 6 | Peines automatiques par empire (Républia : 2 j / 1 j) | assassin 2 j : implémenté, testé ; voleur 1 j : lot 3 | 2 | `crim_peine_jours_interne`, `crim_parametres.peine_jours_<acte>_<empire>` |
-| 7 | Voler : cibles, coûts, formules de réussite, butin, objets volables, réussite critique, échecs, combat, 1 j d'office | décidé | — | (objet revêtu non volable : `crim_porte_ligne_interne`) |
+| 6 | Peines automatiques par empire (Républia : 2 j / 1 j) | implémenté, testé (assassin 2 j, voleur 1 j) | 2, 3 | `crim_peine_jours_interne`, `crim_parametres.peine_jours_<acte>_<empire>` |
+| 7 | Voler un PJ ou un PNJ présent : argent liquide / objet au hasard / objet précis (type), 2 / 2 / 3 PA | implémenté, testé | 3 | `crime_voler(text,text,text,uuid)` ; ancienne route `ordre_remplace` |
+| 7 | Réussite 55 / 45 / 25 ± DIS/3, −3/PER (de groupe) > 8, +15 criminelle / renseignement / escort, 5-85 ; caché sans effet ; dissuasion #135 | implémenté, testé | 3 | `crim_voler_taux_interne`, `crim_per_groupe_interne`, `crim_resoudre_interne` |
+| 7 | Butin 10-30 % du liquide (±DIS/10, −PER, +5 criminelle), plafond 2 000 ; jamais la banque | implémenté, testé | 3 | `crim_voler_part_interne`, `crim_voler_montant_interne`, `crim_voler_livrer_interne` |
+| 7 | Objets volables (non porté ; ni titres, ni biens, ni objets du poste) ; une unité par pile ; aucun / type absent → échec sans risque | implémenté, testé | 3 | `crim_vol_categorie_interne`, `crim_vol_objet_choisir_interne` |
+| 7 | Réussite : victime prévenue, auteur selon le mode ; détection 30 −20 −10 min 5 | implémenté, testé | 3 | `crim_resoudre_interne`, `crim_affaire_notifier_interne` |
+| 7 | Réussite critique 5 % : découverte au prochain réveil, sans détection | implémenté, testé | 3 | `crim_vols_differes`, `crim_vols_reveil_interne`, raccord `pa_repos_nocturne` |
+| 7 | Échec remarqué 50 +3/PER > 8 −1/3 DIS > 50 (10-90) ; cachette gardée ; échec critique 2 % ; combat 10 % (2-40) | implémenté, testé (combat ouvert ; issue réelle non jouée) | 3 | `crim_voler_remarque_interne`, `crim_combat_ouvrir_interne`, raccord `crim_resoudre_suite_interne` |
+| 7 | Voleur pris : 1 j d'office (Républia, par empire) ; doublé si démasqué plus tard | 1 j : implémenté, testé ; doublement : lot 6 | 3 | `crim_parametres.peine_jours_vol_republic` |
 | 8 | Crochetage 3 PA, kit, 30 % +1/2 DIS > 50, +15, 5-80 ; kit cassé ; 5 usages | décidé (kit vendu, `usages_restants`) | — | `crim_objet_interne('kit_crochetage')` |
 | 8 | Effraction 2 PA, 40 % +3/FOR > 8, +25 pied-de-biche, +10, 10-95 ; serrure détruite ; détection 60 | décidé (pied-de-biche vendu) | — | — |
 | 8 | Achat de kit / pied-de-biche tracé | implémenté, testé | 1 | `crim_traces_achat` |
