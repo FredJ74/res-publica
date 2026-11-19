@@ -29,6 +29,21 @@ function ouvrirConnexionCompte() {
   if (!ouvert) document.getElementById('connexion-email')?.focus();
 }
 
+/** Montre ou masque uniquement le champ de connexion : le secret n'est ni envoyé ni mémorisé. */
+function basculerVisibiliteMotDePasseConnexion() {
+  const champ = document.getElementById('connexion-mdp');
+  const bouton = document.getElementById('connexion-mdp-oeil');
+  if (!champ || !bouton) return;
+  const montrer = champ.type === 'password';
+  champ.type = montrer ? 'text' : 'password';
+  bouton.setAttribute('aria-pressed', String(montrer));
+  const libelle = montrer ? 'Masquer le mot de passe' : 'Afficher le mot de passe';
+  bouton.setAttribute('aria-label', libelle);
+  bouton.setAttribute('title', libelle);
+  const icone = bouton.querySelector('.ti');
+  if (icone) icone.className = montrer ? 'ti ti-eye-off' : 'ti ti-eye';
+}
+
 async function connecterAvecMotDePasse() {
   const msg = document.getElementById('connexion-msg');
   const email = (document.getElementById('connexion-email')?.value || '').trim();
