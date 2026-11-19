@@ -127,10 +127,10 @@ att('et le refus serveur correspondant est dit au joueur',
 att('le bouton « Signaler a la police » existe',
     pnj.indexOf('signalerALaPolice(') >= 0);
 att('il n apparait que sur un joueur que le SERVEUR a dit recherche',
-    bloc(pnj, 'if (isPJ) {', '// « AJOUTER AU REPERTOIRE »')
+    bloc(pnj, 'if (isPJ && pnj.masque !== true) {', '// « AJOUTER AU REPERTOIRE »')
       .indexOf("RP_STATUTS_JUDICIAIRES[pnj.name].recherche === true") >= 0);
 att('et seulement en Republia : l arrestation citoyenne appartient a un autre empire',
-    bloc(pnj, 'if (isPJ) {', '// « AJOUTER AU REPERTOIRE »')
+    bloc(pnj, 'if (isPJ && pnj.masque !== true) {', '// « AJOUTER AU REPERTOIRE »')
       .indexOf("state.country === 'republic'") >= 0);
 att('le verrou anti-double-clic est pose AVANT l appel, pas apres',
     bloc(justice, 'async function signalerALaPolice(', 'function compteARebonsSignalement(')

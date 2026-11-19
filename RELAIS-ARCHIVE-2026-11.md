@@ -1610,3 +1610,22 @@ PR #1025 branche `chatgpt/goulag-cinq-pieces-decors-20261116` : cinq PNG dépos�
 - **Reste** : lots 2 et suivants (résolution commune des crimes, neutraliser, voler, cambriolage, enquête — lot 6 —, poison, explosifs, incendie, corruption, rumeurs, peines, QHS — lot 10). La vue `personnages` reste lisible par tous (position, inventaire) : à fermer.
 - **Textes** : français seulement dans `plateau-criminalite.js` (dictionnaire `T.fr`) et libellé de l'ordre `boutique_discretion` : **traductions à faire par Codex**.
 - **Comment tester** : `node --test outils/bancs/test-crim-lot1-equipement.cjs` ; en jeu : acheter un masque au marché, le revêtir (fiche objet), vérifier depuis un second compte « Individu masqué n°1 » ; se cacher (fiche personnage) puis faire « Fouiller ou voler › Débusquer » par l'autre compte ; gilet : Revêtir puis combat à l'arme à feu.
+
+## Maladies, péremption et climat — lots 4 et 5 et corrections du 19/11 (déplacés le 20/11/2026)
+
+### Maladies, péremption et climat — lot 5 : effets du climat, état de catastrophe naturelle (Claude, 19/11/2026)
+- **Sacs de sable proportionnels (décision de Fred du 19/11)** : 10 % de perte en moins par sac, plafond 9 (reste 2 %) ; « Poser » (1 PA) pose tous les sacs portés ; réglages `sac_protection_pct` et `sacs_plafond` ; migration `20261119101000_sacs_sable_proportionnels.sql` appliquée (essai Arnie : 3 sacs → 14 %, 9 → 2 %, 10e refusé) ; banc `test-climat-effets-20261119.cjs`.
+- **Branche `claude/climat-lot5-20261119`** (part du lot 4).
+- **Migrations APPLIQUÉES** : `20261119100000_climat_effets` (structure contrôlée à l'application, puis scénario complet en transaction annulée : bouteille d'eau, crue de l'entrepôt de Montrouge, viande gâtée en fin de canicule, coûts des deux options), `20261119100500_catastrophe_caisse_pm` (paiement sur la caisse du gouvernement tenue par le PM, vérifié en transaction annulée).
+- **Codé** : canicule, orage et groupe électrogène (équipement), crue (lieux fermés, 20 % de stock, sacs de sable), état de catastrophe naturelle (proposition du min_int, déclaration du PM, deux options avec coûts), boutique « Équipements contre les intempéries », brouillard exposé sans être branché (criminalité non touchée) ; textes en neuf langues ; ordre `boutique_climat` (plans 97/219 : 586 lignes ; 425 identifiants d'ordres).
+- **Passe horaire du climat RÉACTIVÉE le 19/11** après la fusion de #1127.
+
+### Maladies, péremption et climat — lot 4 : blizzard, graisses, grippe, contagion (Claude, 19/11/2026)
+- **Branche `claude/climat-lot4-20261119`** (part du lot 3 ; contient la branche d'images `claude/images-furet-graisses-sac-20261118`).
+- **Migrations APPLIQUÉES** : `20261119090000_climat_blizzard_grippe` (essai annulé d'abord), `20261119090500_furet_image`.
+- **Codé** : blizzard (calendrier par mandat, effets à la passe horaire, message par personnage), graisses castor/ours (points de vente, pharmacies PJ, dépôt par le propriétaire), tableau de la grippe, contagion (pièce, tournées, dîners), images du furet et des graisses ; ordre `acheter_graisse` (plans 97/219 : 585 lignes ; 424 identifiants d'ordres).
+- **Décision du 19/11** (état de catastrophe naturelle) consignée dans le document de conception, codée au lot 5.
+### Maladies et climat — corrections du 19/11 (Claude, 19/11/2026)
+- **Branche `claude/climat-corrections-20261119`** (part de main ; lots 2c et 3 déjà fusionnés).
+- **Migration APPLIQUÉE** : `20261119110000_climat_corrections_fred` (essai annulé d'abord) : orages trimestriels avec propagation en Sovarka (Novomirsk 21/11 gardé, Starovka et Krasnov suivent, orages mensuels non annoncés annulés), jet unique de plat contaminé pour toute la tablée (tournées, dîners), furet à 150.
+- Décisions du 19/11 consignées dans `GAME-DESIGN-MALADIES-CLIMAT.md`.

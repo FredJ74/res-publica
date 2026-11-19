@@ -1093,12 +1093,13 @@ async function sbLoadPersonnage(name) {
 let _sbAnnuaireCache = null, _sbAnnuaireInstant = 0, _sbAnnuaireEnVol = null;
 async function sbListPersonnages() {
   // archetype (vocation) volontairement exclu - reste secret pour les autres joueurs
+  // Position (ville, batiment, piece) exclue aussi (20/11/2026) : la vue la masque pour les autres joueurs.
   const copier = rows => Array.isArray(rows) ? rows.map(r => ({ ...r })) : rows;
   if (_sbAnnuaireCache && Date.now() - _sbAnnuaireInstant < 30000) return copier(_sbAnnuaireCache);
   if (!_sbAnnuaireEnVol) {
     // Portraits hors de la requete (04/11/2026, #55/#60) : ils viennent du cache des portraits,
     // qui ne relit que ceux dont l'empreinte serveur a change. Meme forme de reponse qu'avant.
-    _sbAnnuaireEnVol = sbGet('personnages', 'select=name,country,nationalite,current_city,poste,domicile&order=created_at.asc')
+    _sbAnnuaireEnVol = sbGet('personnages', 'select=name,country,nationalite,poste,domicile&order=created_at.asc')
       .then(async rows => {
         if (!Array.isArray(rows)) return rows;
         const portraits = await sbPortraitsPour(rows.map(r => r.name)).catch(() => ({}));

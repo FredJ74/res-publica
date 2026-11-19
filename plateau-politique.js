@@ -8314,7 +8314,7 @@ async function ouvrirCiblageFiscal(action, titre, selectionCible) {
       const domicilie = (c.domicile?.country || c.country) === pays;
       html += '<div onclick="executerOrdreContact(\'' + action + '\',\'' + c.name + '\')" style="padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.3rem;cursor:pointer">';
       html += '<div style="font-family:Playfair Display,serif;font-size:.85rem;color:#e0d5b8">' + c.name + '</div>';
-      html += '<div style="font-size:.7rem;color:#a89870">' + (domicilie ? 'Domicilié(e)' : 'De passage') + (c.current_city ? ' · ' + c.current_city : '') + '</div></div>';
+      html += '<div style="font-size:.7rem;color:#a89870">' + (domicilie ? 'Domicilié(e)' : 'De passage') + '</div></div>';
     });
   }
   html += '</div>';

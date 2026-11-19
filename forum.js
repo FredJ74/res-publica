@@ -1451,7 +1451,7 @@ async function ouvrirFichePublique(nom) {
   html += '<div style="font-family:Playfair Display,serif;font-size:1.1rem;color:#E8D880;margin-bottom:.4rem">' + nom + '</div>';
   if (j) {
     const pays = (typeof COUNTRIES !== 'undefined' && COUNTRIES[j.country]?.n) || j.country || '';
-    html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.2rem">' + pays + (j.current_city ? ' · ' + j.current_city : '') + '</div>';
+    html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.2rem">' + pays + '</div>';
     if (j.poste?.name) html += '<div style="font-size:.8rem;color:#C9A84C">' + j.poste.name + '</div>';
   } else {
     html += '<div style="font-size:.78rem;color:#6a5a30;font-style:italic">Personnage introuvable.</div>';
