@@ -177,7 +177,14 @@ Trois façons d'agir :
 - **Correctifs techniques** (sans décision de game design) : une seule nomenclature par infraction (`assassinat` / `assassiner_*`, `corruption_fonctionnaire` / `corrompre_fonct`, `achat_arme_illegal` / `acheter_arme_illegale`…), rattacher les 11 barèmes jamais détectables à leurs actes, supprimer les durées en dur qui contournent le barème (garde à vue 2 j, évasion 2 j, rébellion 1 j) au profit de la résolution unique.
 - **À trancher à la fin du chantier** : QHS automatique de 30 jours après une rébellion matée (au-dessus du seuil de 4 jours).
 
+## 15. Carrière criminelle (décisions du 19/11, nuit)
+
+- La carrière `criminal_c` (« Crime organisé ») reste choisissable à la création.
+- **Seconde carrière** (socle « Suivre une formation » de l'université, règles du 13/10 : seconde carrière sans effacer la première, une seule fois dans la vie, deux mois, gratuit) : un cursus universitaire **« Droit pénal »** donne en réalité la **carrière criminelle** (satire assumée : on apprend la loi pour mieux la contourner). **Stages chez Pat Hounette ou dans une organisation criminelle** (maître de stage PNJ garantissant la progression sans PJ, comme pour les autres cursus).
+- **Effets : uniquement les bonus de réussite** décidés dans ce document (+15 neutraliser, voler, crocheter, empoisonner, explosifs, incendie ; +10 effraction ; rien sur la corruption). Pas d'avantage supplémentaire (marché noir, receleur, réflexes…).
+- Le **+15 au vol** reste aussi accordé aux carrières **renseignement** et **escort**.
+
 ## Plus tard
 
 - Le moral pourrait influencer tous les ordres à jet aléatoire (à étudier).
-- Volets restant à trancher avant le prompt complet : **carrière criminelle**.
+- Tous les volets sont tranchés ; reste le QHS automatique après rébellion (section 14).
