@@ -36,10 +36,13 @@ test('141 descriptions du catalogue Républia : françaises exactes et réelleme
  // 151 → 150 le 15/11 : « +6 INF +5 DIS +1 POP. » est aussi affichée à Krasnov (quatre bureaux du centre d'affaires), donc commune.
  // 150 → 154 le 15/11 : plus de banques en Sovarka (décision de Fred), les quatre descriptions des guichets bancaires ne s'affichent plus qu'en Républia.
  // 154 → 162 le 16/11 : les huit descriptions distinctes héritées du QHS républicain ne sont plus affichées dans le nouveau bâtiment Goulag de Sovarka. Elles restent affichées en Républia et traduites dans le catalogue commun.
- assert.equal(spec.length,162,'inventaire réel après séparation du goulag de Sovarka et du QHS républicain');
+ // 162 → 159 le 20/11 (criminalité lot 7) : « Falsifier un procès-verbal » et les deux accélérations par corruption (permis, rendez-vous) sont supprimés.
+ assert.equal(spec.length,159,'inventaire réel après séparation du goulag de Sovarka et du QHS républicain');
  const rows=setup('republic','fr').RP_INFOBULLES_REPUBLIA;
  assert.equal(rows.length,141);
- for(const line of rows){assert.equal(line.length,9,line[0]);assert.ok(rep.has(line[0]),line[0]);}
+ // Lignes livrées dont l'ordre est supprimé (criminalité lot 7, 20/11 : le temps ne s'achète pas) : gardées au catalogue.
+ const HISTORIQUES=["Réduit de moitié le délai restant avant le rendez-vous notarial d'un achat direct.","Reduit de moitie la duree d'instruction restante. Risque de decouverte.","Réduit de moitié la durée d'instruction restante du permis. Risque de découverte."];
+ for(const line of rows){assert.equal(line.length,9,line[0]);assert.ok(rep.has(line[0])||HISTORIQUES.includes(line[0]),line[0]);}
  assert.equal(new Set(rows.map(l=>l[0])).size,141);
 });
 test('Les 141 lignes sont présentes en neuf langues, sans perte de chiffres, devises ou sigles',()=>{

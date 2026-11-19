@@ -41,6 +41,11 @@ def preparer(destination=None):
           ('consommer_buvette',1,50)]  # retire par #682
  if any(r['fn'] in {t[0] for t in retires} for r in gen):
   raise ValueError('Ordre retiré réintroduit dans les commandes actuelles')
+ # Criminalité lot 7 (20/11/2026) : « Falsifier un procès-verbal » et les trois accélérations par corruption retirées ; corrompre_fonct reste (directeur du QHS, 3 PA 1 500).
+ retires_variantes=[('corrompre_chantier',2,1500),('corrompre_fonct',3,500),('corrompre_fonct#reussite',0,500),('corrompre_fonctionnaire_permis',2,800),('corrompre_rdv_notaire',2,800)]
+ if any((r['fn'],r['pa'],r['cost']) in retires_variantes for r in gen):
+  raise ValueError('Tarif retiré réintroduit dans les commandes actuelles')
+ retires=retires+retires_variantes
  # Prix d'achat des nouvelles parcelles de PSM (decision de Fred, 04/11/2026), posterieurs a la photographie.
  ajouts_terrains_psm={('acheter_terrain',2,c) for c in (19800,37200,50400,66000)}
  if not ajouts_terrains_psm<= {(r['fn'],r['pa'],r['cost']) for r in gen}:

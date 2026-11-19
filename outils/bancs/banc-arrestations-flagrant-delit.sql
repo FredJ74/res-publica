@@ -105,8 +105,8 @@ BEGIN
   IF NOT coalesce((r ->> 'ok')::boolean, false) OR (SELECT detention_qhs FROM public.personnages_donnees WHERE name = n) IS NULL THEN
     RAISE EXCEPTION 'banc 7a: %', r;
   END IF;
-  IF position('arrestation_flagrant_interne' IN pg_get_functiondef('public.terrain_permis_corrompre(text,uuid)'::regprocedure)) = 0
-     OR position('arrestation_flagrant_interne' IN pg_get_functiondef('public.calomnie_distribuer_consommer(text,text,text,integer)'::regprocedure)) = 0
+  -- Criminalité lot 7 (20/11) : terrain_permis_corrompre est supprimé (« ordre_supprime »), il n'arrête plus personne.
+  IF position('arrestation_flagrant_interne' IN pg_get_functiondef('public.calomnie_distribuer_consommer(text,text,text,integer)'::regprocedure)) = 0
      OR position('arrestation_flagrant_interne' IN pg_get_functiondef('public.militaire_subtiliser_tenter(text)'::regprocedure)) = 0
      OR position('flagrant_delit_poser_interne' IN pg_get_functiondef('public.assemblee_neutraliser_depute(text,text,text,text)'::regprocedure)) = 0
      OR position('crim_office_flagrant_v1' IN pg_get_functiondef('public.arrestation_flagrant_interne(text,text,boolean,text,text,integer,boolean,text)'::regprocedure)) = 0 THEN

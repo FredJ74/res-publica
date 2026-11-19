@@ -17,6 +17,9 @@ def main():
  # deux anciens ordres de virement désormais réunis sous le menu gratuit 'virements'.
  retires_historique={('assigner_mission',1,0),('fabriquer_armoire_souvenirs',3,0),('acheter_armoire_souvenirs',0,0),('virement_joueur',1,0),('virement_automatique',1,0),('consommer_buvette',1,50)}
  assert not any(x['fn'] in {t[0] for t in retires_historique} for x in source),'ancien ordre encore au catalogue';canon|=retires_historique
+ # Criminalité lot 7 (20/11/2026) : « Falsifier un procès-verbal » et les trois accélérations par corruption retirées ; corrompre_fonct reste (directeur du QHS, 3 PA 1 500).
+ retires_variantes={('corrompre_chantier',2,1500),('corrompre_fonct',3,500),('corrompre_fonct#reussite',0,500),('corrompre_fonctionnaire_permis',2,800),('corrompre_rdv_notaire',2,800)}
+ assert not retires_variantes&{(x['fn'],x['pa'],x['cost']) for x in source},'tarif retiré encore au catalogue';canon|=retires_variantes
  # Ordres et variantes de tarif ajoutés après le 10/11 (Krasnov, ministères de Sovarka, Pavillon, Résidence, cliniques,
  # énigmes des musées…), postérieurs à la photographie : écartés comme les lots précédents (relevé du 15/11).
  # #1020 : huit menus gratuits du goulag, postérieurs à la photographie.

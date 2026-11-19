@@ -150,7 +150,7 @@ att('le double critere du filtre est inchange -- 2 jours ET categorie hors crime
     && bDef.indexOf('!!cat &&') >= 0);
 att('et il reste un simple filtre d ergonomie : la decision est nommee serveur',
     justice.indexOf('plainte_defendre(p_affaire_id)') >= 0);
-var bTout = bloc(justice, 'async function doDefense(', '\nasync function doCorruption(');
+var bTout = bloc(justice, 'async function doDefense(', '\n// doCorruption SUPPRIMEE');
 att('les refus neufs de la porte sont nommes au joueur',
     bTout.indexOf("'pas_d_avocat_commis_d_office'") >= 0
     && bTout.indexOf("'pas_de_tribunal'") >= 0);

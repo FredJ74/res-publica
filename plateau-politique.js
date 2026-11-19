@@ -14707,6 +14707,7 @@ function messageRefusQhs(r) {
   const raison = r && r.raison;
   if (raison === 'cible_non_detenue') return "Cette personne n'est plus détenue : aucun pouvoir ne s'exerce sur elle.";
   if (raison === 'prisonnier_introuvable') return "Ce prisonnier n'est plus au registre du QHS.";
+  if (raison === 'detenu_protege') return "Un gardien veille sur ce détenu jusqu'à son prochain repos : l'interrogatoire est impossible.";
   if (raison === 'autorite_insuffisante' || raison === 'acteur_non_authentifie') {
     return 'Seul le Ministre de la Justice en exercice peut agir sur le QHS.';
   }

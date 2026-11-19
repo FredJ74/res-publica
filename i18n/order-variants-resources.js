@@ -57,10 +57,7 @@
     "shipment_receive_order": "Réceptionner une commande",
     "shipment_book_crate": "Réserver une caisse de fret",
     "shipment_send_parcel": "Expédier un colis",
-    "permit_bribe_general": "Corrompre un fonctionnaire (accélérer)",
-    "permit_bribe_permit": "Corrompre un fonctionnaire (accélérer le permis)",
     "corruption_director": "Corrompre le directeur",
-    "corruption_false_report": "Falsifier un proces-verbal",
     "guide_listen": "Écouter la guide"
   },
   "en": {
@@ -113,10 +110,7 @@
     "shipment_receive_order": "Receive an order",
     "shipment_book_crate": "Reserve a freight crate",
     "shipment_send_parcel": "Send a parcel",
-    "permit_bribe_general": "Bribe an official (speed things up)",
-    "permit_bribe_permit": "Bribe an official (expedite the permit)",
     "corruption_director": "Bribe the director",
-    "corruption_false_report": "Falsify an official report",
     "guide_listen": "Listen to the guide"
   },
   "es": {
@@ -169,10 +163,7 @@
     "shipment_receive_order": "Recibir un pedido",
     "shipment_book_crate": "Reservar una caja de carga",
     "shipment_send_parcel": "Enviar un paquete",
-    "permit_bribe_general": "Sobornar a un funcionario (acelerar)",
-    "permit_bribe_permit": "Sobornar a un funcionario (agilizar el permiso)",
     "corruption_director": "Sobornar al director",
-    "corruption_false_report": "Falsificar un acta oficial",
     "guide_listen": "Escuchar a la guía"
   },
   "zh-TW": {
@@ -225,10 +216,7 @@
     "shipment_receive_order": "接收訂單",
     "shipment_book_crate": "預訂貨運箱",
     "shipment_send_parcel": "寄送包裹",
-    "permit_bribe_general": "賄賂官員（加快流程）",
-    "permit_bribe_permit": "賄賂官員（加快核發許可）",
     "corruption_director": "賄賂主管",
-    "corruption_false_report": "偽造官方筆錄",
     "guide_listen": "聆聽導覽員"
   },
   "ru": {
@@ -281,10 +269,7 @@
     "shipment_receive_order": "Получить заказ",
     "shipment_book_crate": "Забронировать грузовой ящик",
     "shipment_send_parcel": "Отправить посылку",
-    "permit_bribe_general": "Подкупить чиновника (ускорить процесс)",
-    "permit_bribe_permit": "Подкупить чиновника (ускорить разрешение)",
     "corruption_director": "Подкупить директора",
-    "corruption_false_report": "Подделать протокол",
     "guide_listen": "Послушать гида"
   },
   "ko": {
@@ -337,10 +322,7 @@
     "shipment_receive_order": "주문 물품 수령",
     "shipment_book_crate": "화물 상자 예약",
     "shipment_send_parcel": "소포 발송",
-    "permit_bribe_general": "공무원 매수(처리 가속)",
-    "permit_bribe_permit": "공무원 매수(허가 처리 가속)",
     "corruption_director": "책임자 매수",
-    "corruption_false_report": "공식 조서 위조",
     "guide_listen": "해설사의 설명 듣기"
   },
   "ar": {
@@ -393,10 +375,7 @@
     "shipment_receive_order": "استلام طلبية",
     "shipment_book_crate": "حجز صندوق شحن",
     "shipment_send_parcel": "إرسال طرد",
-    "permit_bribe_general": "رشوة موظف لتسريع الإجراءات",
-    "permit_bribe_permit": "رشوة موظف لتسريع التصريح",
     "corruption_director": "رشوة المدير",
-    "corruption_false_report": "تزوير محضر رسمي",
     "guide_listen": "الاستماع إلى المرشدة"
   },
   "pt-BR": {
@@ -449,10 +428,7 @@
     "shipment_receive_order": "Receber um pedido",
     "shipment_book_crate": "Reservar uma caixa de frete",
     "shipment_send_parcel": "Enviar uma encomenda",
-    "permit_bribe_general": "Subornar um funcionário (acelerar)",
-    "permit_bribe_permit": "Subornar um funcionário (agilizar a licença)",
     "corruption_director": "Subornar o diretor",
-    "corruption_false_report": "Falsificar uma ata oficial",
     "guide_listen": "Ouvir a guia"
   },
   "de": {
@@ -505,10 +481,7 @@
     "shipment_receive_order": "Eine Bestellung entgegennehmen",
     "shipment_book_crate": "Eine Frachtkiste reservieren",
     "shipment_send_parcel": "Ein Paket versenden",
-    "permit_bribe_general": "Einen Beamten bestechen (beschleunigen)",
-    "permit_bribe_permit": "Einen Beamten bestechen (Genehmigung beschleunigen)",
     "corruption_director": "Den Direktor bestechen",
-    "corruption_false_report": "Ein amtliches Protokoll fälschen",
     "guide_listen": "Der Führerin zuhören"
   }
 };

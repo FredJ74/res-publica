@@ -16,7 +16,7 @@ test('réservation simple et standard : 9 traductions contextuelles, identifiant
  assert.equal(languages.length,9);
  for(const lng of languages) {
   const vars=w.RP_I18N_RESOURCES[lng].translation.orderVariants;
-  assert.equal(Object.keys(vars).length,54); // +guide_listen (11/11/2026), +don_eglise_tractorisme (14/11/2026), +5 ordres du syndicat national de Sovarka (18/11/2026)
+  assert.equal(Object.keys(vars).length,51); // −3 permit_bribe_general, permit_bribe_permit, corruption_false_report (20/11/2026, criminalité lot 7) ; +guide_listen (11/11/2026), +don_eglise_tractorisme (14/11/2026), +5 ordres du syndicat national de Sovarka (18/11/2026)
   for(const value of Object.values(vars))assert.ok(value.trim());
  }
  for(const [key,original,cost] of [
@@ -159,8 +159,8 @@ test('seize autres variantes ambiguës sont traduites par le couple fn et libell
   repartition_budget_local:[['Repartir le budget municipal','budget_plain'],['Répartir le budget municipal','budget_accent']],
   receptionner_commande:[['Réceptionner une caisse','shipment_receive_crate'],['Réceptionner une commande','shipment_receive_order']],
   expedier_colis:[['Réserver une caisse de fret','shipment_book_crate'],['Expédier un colis','shipment_send_parcel']],
-  corrompre_fonctionnaire_permis:[['Corrompre un fonctionnaire (accélérer)','permit_bribe_general'],['Corrompre un fonctionnaire (accélérer le permis)','permit_bribe_permit']],
-  corrompre_fonct:[['Corrompre le directeur','corruption_director'],['Falsifier un proces-verbal','corruption_false_report']]
+  // 20/11/2026 (criminalité lot 7) : « Corrompre un fonctionnaire (accélérer) » et « Falsifier un procès-verbal » supprimés.
+  corrompre_fonct:[['Corrompre le directeur','corruption_director']]
  };
  for(const [fn,labels] of Object.entries(variants))for(const [original,key] of labels){
   assert.ok(records.some(row=>row.fn===fn&&row.label===original),'ordre déclaré manquant '+fn+'/'+original);

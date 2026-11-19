@@ -93,7 +93,7 @@ att('la defense judiciaire ne depend plus du bonus de formation',
 // leur disparition serait une fausse accusation.
 var blocDefense = (function () {
   var i = justice.indexOf('async function doDefense(');
-  var j = justice.indexOf('\nasync function doCorruption(', i);
+  var j = justice.indexOf('\n// doCorruption SUPPRIMEE', i);
   return codeSeul(i < 0 ? '' : justice.slice(i, j < 0 ? justice.length : j));
 })();
 att('et la formule a quitte doDefense, elle n y est pas revenue autrement',

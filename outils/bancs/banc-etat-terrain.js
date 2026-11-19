@@ -97,7 +97,8 @@ att('un verdict absent est dit comme une panne de transport, pas comme un refus 
 print('');
 print('3. LES VINGT-DEUX ECRITURES PASSENT PAR HUIT PORTES, UNE PAR MECANISME');
 var ACTES = {
-  'terrain_compromis_acte': 4, 'acquisition_versionnee':2, 'terrain_permis_acte': 4, 'chantier_commande_plan': 1, 'terrain_chantier_acte': 0, // vol : crime_voler_materiaux (28/10)
+  // 20/11/2026 : deux accelerations par corruption supprimees (criminalite lot 7) : compromis 4 -> 3, permis 4 -> 3.
+  'terrain_compromis_acte': 3, 'acquisition_versionnee':2, 'terrain_permis_acte': 3, 'chantier_commande_plan': 1, 'terrain_chantier_acte': 0, // vol : crime_voler_materiaux (28/10)
   'terrain_lots_acte': 5, 'chantier_commande_location': 1, 'chantier_commande_reamenagement': 1
 };
 var totalPortes = 0;
@@ -116,8 +117,8 @@ att('terrain_succession_geler : 1 appel',
     partout(/sbRpc\('terrain_succession_geler'/g) === 1);
 att('terrain_succession_annuler_compromis : 1 appel',
     partout(/sbRpc\('terrain_succession_annuler_compromis'/g) === 1);
-att('VINGT ecritures routees (acceleration interdite et vol de materiaux sortis du releve)',
-    totalPortes + 2 === 20, (totalPortes + 2) + ' routee(s)');
+att('DIX-HUIT ecritures routees (accelerations supprimees le 20/11 et vol de materiaux sortis du releve)',
+    totalPortes + 2 === 18, (totalPortes + 2) + ' routee(s)');
 
 // CHAQUE APPEL LIT SON VERDICT, ET AUCUN NE L'AVALE. Cette epreuve manquait : une contre-epreuve
 // qui supprimait la lecture du verdict du transfert de compromis laissait ce banc VERT. Un banc
@@ -143,8 +144,8 @@ print('');
 print('4. LES SEIZE ACTES SONT NOMMES, ET AUCUN AUTRE');
 var ACTES_NOMMES = [
   'compromis_signer', 'compromis_pret_demander', 'compromis_transfert_proposer',
-  'compromis_transfert_accepter', 'achat_direct_deposer', 'achat_direct_accelerer',
-  'permis_deposer', 'permis_prevenir_maire', 'permis_decider', 'permis_accelerer',
+  'compromis_transfert_accepter', 'achat_direct_deposer',
+  'permis_deposer', 'permis_prevenir_maire', 'permis_decider',
   'permis_plan_modifier',
   'lot_ajouter', 'lot_fusion_proposer', 'lot_fusion_accepter', 'lot_fusion_refuser',
   'lot_louer', 'lot_bail_libere'
@@ -161,7 +162,10 @@ var manquants = ACTES_NOMMES.filter(function (a) {
   if(a==='permis_plan_modifier')return partout(/constructionExecuterCommande\('plan'/g)!==1;
   return partout(new RegExp("p_acte: '" + a + "'", 'g')) === 0;
 });
-att('les dix-sept actes encore autorises des quatre portes sont tous appeles (le vol de materiaux passe par crime_voler_materiaux depuis le 28/10)',
+att('criminalite lot 7 : plus aucune acceleration par corruption appelee par l ecran',
+    partout(/terrain_permis_corrompre'/g) === 0 && partout(/terrain_rdv_notaire_accelerer'/g) === 0
+    && partout(/p_acte: '(?:permis|achat_direct)_accelerer'/g) === 0);
+att('les quinze actes encore autorises des quatre portes sont tous appeles (le vol de materiaux passe par crime_voler_materiaux depuis le 28/10)',
     manquants.length === 0, 'manquants : ' + manquants.join(', '));
 
 print('');
@@ -193,22 +197,13 @@ att('la decision du permis ne transmet que la decision et le motif',
     && bDec.indexOf('emettreDocumentUrbanisme(') < 0 && bDec.indexOf('sbSendMail(') < 0);
 att('et lit son verdict avant de remplacer l etat',
     bDec.indexOf('v.ok !== true') >= 0 && bDec.indexOf('v.ok !== true') < bDec.indexOf('remplacerTerrainState(buildingId, v.etat)'));
-var bCorr = sansCommentaires(bloc('plateau-justice-economie.js', 'doCorrompreFonctionnairePermis'));
-// 29/10/2026 : plus aucun permis transmis -- la porte serveur paie, tire et divise elle-meme.
-att("la corruption du fonctionnaire ne transmet plus aucun permis, la porte serveur decide",
-    bCorr.indexOf("sbRpcVerdict('terrain_permis_corrompre'") >= 0 && bCorr.indexOf('p_patch') < 0
-    && bCorr.indexOf('Math.random') < 0 && bCorr.indexOf('deduireCoutOrdre') < 0);
+// 20/11/2026 (criminalite lot 7) : la corruption du fonctionnaire (accelerer le permis) est supprimee.
+att("la corruption du fonctionnaire n'existe plus a l'ecran", CODE['plateau-justice-economie.js'].indexOf('async function doCorrompreFonctionnairePermis') < 0);
 
 print('');
 print('6. LE CHANTIER : LE NAVIGATEUR N ENVOIE PLUS AUCUN NOMBRE');
-var bCh = sansCommentaires(bloc('plateau-justice-economie.js', 'doCorrompreChantier'));
-att("l'acceleration interdite ne lance aucune commande serveur ni progression",
-    bCh.indexOf('sbTerrainActe(') < 0 && bCh.indexOf('sbRpc') < 0
-    && bCh.indexOf('progressionJours') < 0);
-att("l'acceleration interdite ne preleve ni PA ni argent",
-    bCh.indexOf('deduireCoutOrdre(') < 0 && bCh.indexOf('Délai incompressible') >= 0);
-att("appliquerVerrouPlan n'est plus appele dans ce chemin",
-    bCh.indexOf('appliquerVerrouPlan(') < 0);
+// 20/11/2026 (criminalite lot 7) : le bouton mort « Accélérer le chantier (corruption) » est supprime.
+att("l'acceleration du chantier n'existe plus a l'ecran", CODE['plateau-justice-economie.js'].indexOf('async function doCorrompreChantier') < 0);
 var bVol = sansCommentaires(bloc('plateau-justice-economie.js', 'confirmerVolMateriaux'));
 att("le vol passe entier par le serveur : crime_voler_materiaux, ni acte terrain ni depot a l'ecran",
     bVol.indexOf("appelerCrimeServeur('crime_voler_materiaux'") >= 0

@@ -7,6 +7,8 @@
 // aucune estimation de chances ici.
 // Lot 6 : Justice — enquête du commissaire sur les plaintes contre X (crim_enquetes_lire, crim_enqueter), textes de l'état
 // d'urgence (7 jours, renouvelable) et de la rébellion matée (plus de QHS automatique). Chances et pistes viennent du serveur.
+// Lot 7 : Corruption au QHS — « Corrompre le directeur » (crim_corrompre_directeur) et « Corrompre un gardien »
+// (crim_corrompre_gardien : évasion facilitée, message, objet, protection), état lu par crim_corruption_qhs_lire.
 // Le serveur tranche tout : jets (se_cacher, crim_fouiller_cachettes), objet porté (crim_revetir / crim_retirer, marque
 // `porte_par` dans l'inventaire), liste des présents (crim_presents : caché absent, masqué numéroté sans portrait),
 // boutique « Équipement discret » (boutique_discretion_etat / _acheter), événements d'écran (crim_evenements_lire :
@@ -119,7 +121,31 @@ const T = {
     uRenouvele: 'État d’urgence renouvelé', uRenouveleText: 'Il court désormais jusqu’au {date}. {pop} POP, +{inf} INF.',
     uDuree: 'L’état d’urgence dure 7 jours ; le Président peut le renouveler (3 PA et une perte de popularité). Sous l’état d’urgence, le juge fixe librement la peine.',
     bMatee: 'Rébellion matée', bMateeText: 'Les gardiens interviennent avant que les grilles ne cèdent. −25 PV, −15 DIS, +{jours} jour(s) de détention.',
-    bProces: 'Vos peines automatiques dépassent 4 jours : un procès décidera d’un éventuel complément.'
+    bProces: 'Vos peines automatiques dépassent 4 jours : un procès décidera d’un éventuel complément.',
+    qDirTitre: 'Corrompre le directeur du QHS',
+    qDirNote: 'Le directeur ne peut pas vous renvoyer en cellule ordinaire, mais il peut diviser par deux votre peine restante, une seule fois par détention. En cas d’échec : +{jours} jour(s) de peine, l’argent est confisqué et il ne vous recevra plus.',
+    qDirGo: 'Proposer {cout} {cur} au directeur ({pa} PA)', qDirFerme: 'Le directeur ne vous recevra plus pendant cette détention.',
+    qDirCourt: 'Votre peine restante est trop courte pour être réduite.',
+    qGarTitre: 'Corrompre un gardien', qGarNote: 'Une tentative par jour ({pa} PA, {cout} {cur}). En cas d’échec, l’argent est confisqué ; vous pourrez retenter demain.',
+    qGarDeja: 'Vous avez déjà tenté votre chance auprès d’un gardien aujourd’hui.',
+    qEvasion: 'Évasion facilitée (+{bonus} % à votre prochaine tentative)', qProtection: 'Protection : pas d’interrogatoire musclé jusqu’à votre prochain repos',
+    qMessage: 'Faire passer un message à l’extérieur', qObjet: 'Faire remettre un objet à l’extérieur',
+    qActif: '(déjà obtenu)', qDest: 'Destinataire (nom exact)', qTexte: 'Votre message', qChoixObjet: 'Objet à confier au gardien',
+    qAucunObjet: 'Vous n’avez aucun objet à confier.', qEnvoyer: 'Corrompre le gardien ({pa} PA, {cout} {cur})',
+    qReserve: 'Réservé aux détenus du quartier de haute sécurité.',
+    qDirOk: 'Le directeur accepte', qDirOkText: 'Votre peine restante est réduite de {gain} jour(s).',
+    qDirKo: 'Le directeur refuse', qDirKoText: 'Votre argent est confisqué et votre peine allongée de {jours} jour(s). Il ne vous recevra plus.',
+    qGarOk: 'Le gardien accepte', qGarKo: 'Le gardien refuse', qGarKoText: 'Votre argent est confisqué. Vous pourrez retenter demain.',
+    qOk_evasion: 'Votre prochaine tentative d’évasion sera facilitée.', qOk_protection: 'Personne ne vous interrogera de force avant votre prochain repos.',
+    qOk_message: 'Votre message a été remis à {dest}.', qOk_objet: 'L’objet a été remis à {dest}.',
+    qDenonce: 'Vous avez été dénoncé(e) : recherché(e), {jours} jour(s) de prison d’office.',
+    r_detenu_qhs_requis: 'Réservé aux détenus du quartier de haute sécurité.', r_directeur_deja_sollicite: 'Le directeur ne vous recevra plus pendant cette détention.',
+    r_peine_trop_courte: 'Votre peine restante est trop courte pour être réduite.',
+    r_service_deja_actif: 'Vous bénéficiez déjà de ce service.', r_destinataire_introuvable: 'Personne ne porte ce nom.',
+    r_destinataire_invalide: 'Destinataire invalide.', r_destinataire_detenu: 'Ce destinataire est lui-même détenu.',
+    r_message_invalide: 'Le message est vide ou trop long (1 000 caractères au plus).', r_objet_absent: 'Cet objet n’est plus dans votre inventaire.',
+    r_objet_protege: 'Cet objet ne peut pas être confié.', r_service_inconnu: 'Service inconnu.', r_fonds_insuffisants: 'Fonds insuffisants.',
+    r_pa_insuffisants: 'Points d’action insuffisants.', r_ordre_supprime: 'Cet ordre n’existe plus.'
   }
 };
 const etat = () => (typeof state !== 'undefined' && state) ? state : {};
@@ -635,6 +661,87 @@ function crimBoutonEnquetes() {
     + esc(texte('jMenu', { pa: ORDRES_JUSTICE.enqueter.pa })) + '</button>';
 }
 
+// ── Corruption au QHS (lot 7) : directeur et gardien ; le serveur tranche (jet, peine, caisse) ──────────────────────
+// Déclarations d'ordre (mêmes tarifs que data.js, lues par le miroir des coûts).
+const ORDRES_CORRUPTION_QHS = {
+  directeur: { fn: 'corrompre_fonct', label: 'Corrompre le directeur', pa: 3, cost: 1500 },
+  gardien: { fn: 'corrompre_gardien', label: 'Corrompre un gardien', pa: 2, cost: 800 }
+};
+let corruptionQhsEnCours = false;
+async function crimOuvrirCorruptionQhs(qui) {
+  const o = ORDRES_CORRUPTION_QHS[qui === 'directeur' ? 'directeur' : 'gardien'];
+  const r = await rpc('crim_corruption_qhs_lire');
+  titreModale(texte(qui === 'directeur' ? 'qDirTitre' : 'qGarTitre'));
+  if (!r || r.ok !== true || !r.detenu_qhs) { ouvrirModale('<div class="cpj-dialogue"><p class="cpj-note">' + esc(texte('qReserve')) + '</p></div>'); return; }
+  const v = { pa: o.pa, cout: o.cost, cur: devise() };
+  let html = '<div class="cpj-dialogue">';
+  if (qui === 'directeur') {
+    html += '<p class="cpj-note">' + esc(texte('qDirNote', { jours: r.peine_echec_jours == null ? 1 : r.peine_echec_jours })) + '</p>';
+    if (r.directeur_tente) html += '<p class="cpj-note">' + esc(texte('qDirFerme')) + '</p>';
+    else if (!r.reduction_possible) html += '<p class="cpj-note">' + esc(texte('qDirCourt')) + '</p>';
+    else html += '<button class="cpj-touche cpj-primaire" onclick="crimCorrompreDirecteur()">' + esc(texte('qDirGo', v)) + '</button>';
+    ouvrirModale(html + '</div>');
+    return;
+  }
+  html += '<p class="cpj-note">' + esc(texte('qGarNote', v)) + '</p>';
+  if (r.gardien_aujourdhui) { ouvrirModale(html + '<p class="cpj-note">' + esc(texte('qGarDeja')) + '</p></div>'); return; }
+  const inv = (etat().inventory || []).map((it, i) => ({ it, i })).filter((x) => x.it && !objetPorte(x.it));
+  const radio = (val, lib, off) => '<label style="display:block;margin:.3rem 0"><input type="radio" name="crim-qhs-service" value="' + val + '"'
+    + (off ? ' disabled' : '') + '> ' + esc(lib) + (off ? ' ' + esc(texte('qActif')) : '') + '</label>';
+  html += radio('evasion', texte('qEvasion', { bonus: r.bonus_evasion == null ? 25 : r.bonus_evasion }), r.evasion_active)
+    + radio('protection', texte('qProtection'), r.protection_active)
+    + radio('message', texte('qMessage'), false) + radio('objet', texte('qObjet'), false)
+    + '<input id="crim-qhs-dest" class="cpj-champ" style="width:100%;text-align:left;margin-top:.5rem" placeholder="' + esc(texte('qDest')) + '">'
+    + '<textarea id="crim-qhs-texte" class="cpj-champ" style="width:100%;text-align:left;margin-top:.4rem" rows="3" maxlength="1000" placeholder="' + esc(texte('qTexte')) + '"></textarea>'
+    + (inv.length ? '<select id="crim-qhs-objet" class="cpj-champ" style="width:100%;text-align:left;margin-top:.4rem"><option value="">' + esc(texte('qChoixObjet')) + '</option>'
+      + inv.map((x) => '<option value="' + x.i + '">' + esc(x.it.name || x.it.type || '?') + '</option>').join('') + '</select>'
+      : '<p class="cpj-note">' + esc(texte('qAucunObjet')) + '</p>')
+    + '<button class="cpj-touche cpj-primaire" style="margin-top:.6rem" onclick="crimCorrompreGardien()">' + esc(texte('qEnvoyer', v)) + '</button>';
+  ouvrirModale(html + '</div>');
+}
+function suiteDenonce(r) { return r && r.denonce ? ' ' + texte('qDenonce', { jours: r.peine_jours == null ? '?' : r.peine_jours }) : ''; }
+async function crimCorrompreDirecteur() {
+  if (corruptionQhsEnCours) return;
+  fermerModale();
+  corruptionQhsEnCours = true;
+  let r;
+  try { r = await rpc('crim_corrompre_directeur', { p_requete: uuid() }); } finally { corruptionQhsEnCours = false; }
+  if (!r || r.ok !== true) { toast(texte('qDirKo'), motif(r), false); return; }
+  appliquerVerdict(r);
+  if (typeof r.dis === 'number') etat().dis = r.dis;
+  if (typeof r.jour_fin === 'number' && etat().estEmprisonne) etat().estEmprisonne.jourFin = r.jour_fin;
+  if (typeof global.updateUI === 'function') global.updateUI();
+  if (r.reussi) toast(texte('qDirOk'), texte('qDirOkText', { gain: r.gain }), true);
+  else toast(texte('qDirKo'), texte('qDirKoText', { jours: r.jours_ajoutes == null ? '?' : r.jours_ajoutes }) + suiteDenonce(r), false);
+}
+async function crimCorrompreGardien() {
+  if (corruptionQhsEnCours) return;
+  const doc = global.document;
+  const choix = doc.querySelector('input[name="crim-qhs-service"]:checked');
+  if (!choix) return;
+  const service = choix.value;
+  const dest = ((doc.getElementById('crim-qhs-dest') || {}).value || '').trim();
+  const msg = ((doc.getElementById('crim-qhs-texte') || {}).value || '').trim();
+  const sel = doc.getElementById('crim-qhs-objet');
+  const idx = sel && sel.value !== '' ? Number(sel.value) : null;
+  const item = idx == null ? null : (etat().inventory || [])[idx];
+  if (service === 'objet' && !item) return;
+  fermerModale();
+  corruptionQhsEnCours = true;
+  let r;
+  try {
+    r = await rpc('crim_corrompre_gardien', { p_service: service, p_destinataire: dest || null, p_texte: msg || null,
+      p_index: item ? idx : null, p_signature: item && typeof global.signatureObjetInventaire === 'function' ? global.signatureObjetInventaire(item)
+        : (item ? { name: item.name || '', type: item.type || '', stackKey: item.stackKey || '' } : null), p_requete: uuid() });
+  } finally { corruptionQhsEnCours = false; }
+  if (!r || r.ok !== true) { toast(texte('qGarKo'), r && r.raison === 'une_tentative_par_jour' ? texte('qGarDeja') : motif(r), false); return; }
+  appliquerVerdict(r);
+  if (typeof r.dis === 'number') etat().dis = r.dis;
+  if (typeof global.updateUI === 'function') global.updateUI();
+  if (r.reussi) toast(texte('qGarOk'), texte('qOk_' + service, { dest: r.destinataire || dest }), true);
+  else toast(texte('qGarKo'), texte('qGarKoText') + suiteDenonce(r), false);
+}
+
 // ── Événements d'écran : « Bas les masques ! » (arrestation d'un PJ masqué), débusqué ───────────────────────────
 function injecterStyle() {
   const doc = global.document;
@@ -700,10 +807,11 @@ if (global.document && global.setTimeout) {
 }
 
 global.RPCriminalite = { T, texte, objetRevetable, objetPorte, ordresBoutiqueDiscretion, LIEUX_BOUTIQUE, identifiantCible, ORDRES_VOL, TYPES_VOL, ORDRES_CAMBRIOLAGE,
-  ORDRES_JUSTICE, crimBoutonEnquetes };
+  ORDRES_JUSTICE, crimBoutonEnquetes, ORDRES_CORRUPTION_QHS };
 Object.assign(global, { ouvrirBoutiqueDiscretion, acheterDiscretion, boutonRevetir, badgeRevetu, crimRevetir, crimRetirer,
   messageSeCacher, ouvrirFouilleCachettes, fouilleCachettesConfirmer, lireEvenementsCrim, animationDemasquage,
   ouvrirNeutraliser, crimNeutraliserConfirmer, crimOuvrirVoler, crimVolerTypes, crimVolerConfirmer, crimVolerChoisirCible,
   crimBoutonsPorte, crimPorteAgir, crimOuvrirCambriolage, crimCambrioler,
-  crimOuvrirEmpoisonner, crimEmpoisonnerConfirmer, crimOuvrirSabotage, crimSabotageConfirmer, crimOuvrirEnquetes, crimEnqueter });
+  crimOuvrirEmpoisonner, crimEmpoisonnerConfirmer, crimOuvrirSabotage, crimSabotageConfirmer, crimOuvrirEnquetes, crimEnqueter,
+  crimOuvrirCorruptionQhs, crimCorrompreDirecteur, crimCorrompreGardien });
 })(typeof window !== 'undefined' ? window : globalThis);

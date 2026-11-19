@@ -38,7 +38,8 @@
 --     (`rp.recherche_interne`) : un `UPDATE ... SET recherche = '[]'` passe en silence sans rien
 --     changer. La mesure est donc un DELTA -- `pg_temp.recherches_corruption` compte avant et
 --     apres --, jamais une valeur absolue apres remise a zero.
---   * UN JET ALEATOIRE SE MESURE EN REJOUANT. La corruption du greffier a 25 % de decouverte :
+--   * UN JET ALEATOIRE SE MESURE EN REJOUANT. La corruption du greffier echoue 25 % du temps (criminalite lot 7, 20/11 :
+--     echec ordinaire = refus sans suite, seul l'echec critique -- 2 % des echecs -- denonce) :
 --     le banc rejoue jusqu'a observer LES DEUX issues (certain a 0,75^40 et 0,25^40 pres) et
 --     verifie les invariants de chacune. Un banc qui n'en verrait qu'une serait vert a moitie.
 --   * UN DECOR QUI MENT PROUVE N'IMPORTE QUOI. D1 verifie le greffier du registre AVANT tout le
@@ -332,12 +333,12 @@ BEGIN
     PERFORM pg_temp.je_suis_le_serveur();
     IF coalesce((v ->> 'ok')::boolean, false) IS NOT TRUE THEN
       ko := ko + 1; e := e || E'\nG15 : tentative refusee -- ' || v::text; EXIT; END IF;
-    IF (v ->> 'decouvert')::boolean THEN
+    IF coalesce((v ->> 'refuse')::boolean, false) THEN
       v_dec := v_dec + 1;
       IF (v ->> 'document') IS NOT NULL THEN
-        ko := ko + 1; e := e || E'\nG15 : un document est delivre malgre la decouverte'; END IF;
-      IF pg_temp.recherches_corruption(PREV) <> v_avant + 1 THEN
-        ko := ko + 1; e := e || E'\nG15 : la decouverte n''a pas denonce le corrupteur'; END IF;
+        ko := ko + 1; e := e || E'\nG15 : un document est delivre malgre le refus'; END IF;
+      IF pg_temp.recherches_corruption(PREV) <> v_avant + CASE WHEN (v ->> 'decouvert')::boolean THEN 1 ELSE 0 END THEN
+        ko := ko + 1; e := e || E'\nG15 : la denonciation ne suit pas l''echec critique'; END IF;
     ELSE
       v_succes := v_succes + 1;
       v_doc := v ->> 'document';
@@ -375,7 +376,7 @@ BEGIN
     PERFORM pg_temp.je_suis_le_serveur();
     IF coalesce((v ->> 'ok')::boolean, false) IS NOT TRUE THEN
       ko := ko + 1; e := e || E'\nG17 : tentative refusee -- ' || v::text; EXIT; END IF;
-    IF NOT (v ->> 'decouvert')::boolean THEN v_succes := v_succes + 1; v_doc := v ->> 'document'; END IF;
+    IF NOT coalesce((v ->> 'refuse')::boolean, false) THEN v_succes := v_succes + 1; v_doc := v ->> 'document'; END IF;
   END LOOP;
   IF v_succes = 0 THEN
     ko := ko + 1; e := e || E'\nG17 : aucune reussite en ' || v_essais || ' tentatives';

@@ -113,6 +113,11 @@ def preparer(paquet=None):
  if any(x['fn'] in {r['fn'] for r in retires} for x in source):
   raise ValueError('Un ordre retiré ne doit plus figurer au catalogue actuel')
  source_historique=source_historique+retires
+ # Criminalité lot 7 (20/11/2026) : « Falsifier un procès-verbal » et les trois accélérations par corruption retirées ; corrompre_fonct reste (directeur du QHS, 3 PA 1 500).
+ retires_variantes=[{'fn':'corrompre_chantier','pa':2,'cost':1500},{'fn':'corrompre_fonct','pa':3,'cost':500},{'fn':'corrompre_fonct#reussite','pa':0,'cost':500},{'fn':'corrompre_fonctionnaire_permis','pa':2,'cost':800},{'fn':'corrompre_rdv_notaire','pa':2,'cost':800}]
+ if any(x in source for x in retires_variantes):
+  raise ValueError('Un tarif retiré ne doit plus figurer au catalogue actuel')
+ source_historique=source_historique+retires_variantes
  # 16/11/2026 : récolte passée de 2 à 1 PA (régulation de la production) ; la photographie garde l'ancien tarif.
  source_historique=[{'fn':'recolter_matiere','pa':2,'cost':0} if x=={'fn':'recolter_matiere','pa':1,'cost':0} else x for x in source_historique]
  # 18/11/2026 : naturalisation passée à 2 PA + 50 (nationalité, domicile et élections) ; la coupe historique garde 2 PA sans frais.

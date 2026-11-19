@@ -8,6 +8,14 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Chantier Criminalité — lot 7 : corruption (Claude, 20/11/2026)
+- **Branche `claude/game-design-criminalite-20261118`**. Détail, valeurs provisoires et tableau : fin de `GAME-DESIGN-CRIMINALITE.md` (« Lot 7 — ce qui est en place »).
+- **Migration APPLIQUÉE** : `20261120050000_crim_lot7_corruption` (partie migration essayée en transaction annulée, appliquée, scénarios rejoués en essais annulés ; idempotente).
+- **Fait** : règle commune `crim_corrompre_pnj_interne` (face à face, dissuasion #135 une fois, réussite −5 DIS + rumeur sans détection, échec critique 2 % = dénonciation et peine d'office du barème) branchée sur directeur et gardien du QHS, douanier, greffier, journaliste, armurier ; `crim_corrompre_directeur` (peine restante ÷ 2 une fois par détention ; échec +1 j au barème, 1 500 FR confisqués, plus de tentative) ; `crim_corrompre_gardien` (évasion +25 %, message, objet, protection jusqu'au prochain Dormir ; une tentative par jour) ; douanier (+20 en zone de transport seulement, 300 FR aux douanes, retenter le lendemain). Supprimés : « Falsifier un procès-verbal », `corrompre_police`, les trois accélérations (anciennes RPC : `ordre_remplace` / `ordre_supprime`) ; cinq tarifs retirés de `ordres_couts` (seeds, plans 97/219, comptes i18n à jour).
+- **Écran** : « Corrompre le directeur » déplacé dans la cellule du QHS ; pop-ups `cpj-*` (`crimOuvrirCorruptionQhs`) dans `plateau-criminalite.js` ; refus du greffier ; « détenu protégé » côté Ministre.
+- **Tester** : `node --test outils/bancs/test-crim-lot7-corruption.cjs` ; banc SQL `banc-arrestations-flagrant-delit.sql` rejoué vert ; `banc-greffe-et-universite.sql` mis à jour, non rejoué. En jeu : un PJ détenu au QHS (cellule) → « Corrompre le directeur » / « Corrompre un gardien ».
+- **Reste** : rumeurs (§ 13, lot 8), carrière (§ 15), QHS (lot 10) ; gardien du goulag non touché (Codex). Textes français à traduire par Codex (`plateau-criminalite.js`, courriers serveur, toasts du greffier et du QHS).
+
 ### Chantier Criminalité — lot 6 : justice (Claude, 20/11/2026)
 - **Branche `claude/game-design-criminalite-20261118`**. Détail, valeurs provisoires et tableau : fin de `GAME-DESIGN-CRIMINALITE.md` (« Lot 6 — ce qui est en place »).
 - **Migrations APPLIQUÉES** : `20261120030000_crim_lot6_justice` (essais annulés en deux parties, puis scénario rejoué en essai annulé) et `crim_lot6_justice_correctif_prolonger` (cast `bigint` → `integer` dans le raccord de `detention_prolonger_interne`, appliqué aussitôt, repris dans le fichier ; idempotent).

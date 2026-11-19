@@ -9,7 +9,7 @@
   'acheter_terrain','sovarka_reunion_reserver','reserver_chambre_hotel','ecouter_rumeurs','consulter_carte_commerce',
   'conference_presse','propagande_etat','dementi','gerer_finances',
   'archives_police','repartition_budget_local','prier','faire_don',
-  'corrompre_fonctionnaire_permis','corrompre_fonct',
+  'corrompre_fonct',
   'expedier_colis','receptionner_commande'
  ]);
  const validKey=/^[a-zA-Z0-9_.-]+$/;
@@ -54,13 +54,8 @@
    'Réserver une caisse de fret':'shipment_book_crate',
    'Expédier un colis':'shipment_send_parcel'
   }),
-  corrompre_fonctionnaire_permis:Object.freeze({
-   'Corrompre un fonctionnaire (accélérer)':'permit_bribe_general',
-   'Corrompre un fonctionnaire (accélérer le permis)':'permit_bribe_permit'
-  }),
   corrompre_fonct:Object.freeze({
-   'Corrompre le directeur':'corruption_director',
-   'Falsifier un proces-verbal':'corruption_false_report'
+   'Corrompre le directeur':'corruption_director'
   })
  });
  function cultLabel(code,original,engine,locale){

@@ -2003,30 +2003,8 @@ async function doDefense(pa, cost) {
   updateUI();
 }
 
-// pa desormais reellement preleve (reprise ciblee audit, 27 aout 2026) : le cout PA affiche par
-// chaque ordre corrompre_* (2 ou 3 selon la piece) n'etait jamais deduit, quel que soit le
-// resultat -- divergence factuelle entre cout affiche et cout reel, sur les 4 fn partageant ce
-// handler (corrompre_fonct/police/journaliste/gardien). Prelevement PA desormais inconditionnel
-// et prealable au jet (meme convention que executerOrdreGenerique) ; le cout en argent reste
-// inchange, deduit uniquement en cas de reussite (comportement d'origine, non signale comme
-// anomalie, non touche).
-async function doCorruption(fn, pa, cost) {
-  // PAR LE SERVEUR (27 octobre 2026) : crime_corrompre preleve les PA a la tentative et le prix a
-  // la seule reussite, tire le jet (65 - securite), la discretion, la trace et la detection.
-  const v = await appelerCrimeServeur('crime_corrompre', { p_fn: fn, p_pa: pa, p_cost: cost });
-  if (!v || v.ok !== true) { signalerRefusCout(v || { raison: 'paiement_indisponible' }); return; }
-  adopterEtatCrimeServeur(v);
-  if (v.reussi) {
-    showToast('Corruption reussie', 'Le service a ete obtenu. -5 DIS.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.bf9d160c1", 'Le service a ete obtenu. -5 DIS.', undefined, 'Corruption reussie');
-    addJournalEntry('Corruption : ' + fn.replace(/_/g,' '), 'event-bad');
-  } else if (v.raison === 'fonds_insuffisants') {
-    showToast('Fonds insuffisants', 'Il vous faut ' + cost + ' ' + (COUNTRIES[state.country]?.cur || 'FR'), false);
-  } else {
-    showToast('Echec', 'La tentative de corruption a echoue.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b97dcf4b8", 'La tentative de corruption a echoue.', undefined, 'Echec');
-  }
-  adopterDetectionServeur(v, fn);
-  updateUI();
-}
+// doCorruption SUPPRIMEE (criminalité lot 7, § 12) : directeur et gardien du QHS passent par
+// crimOuvrirCorruptionQhs (plateau-criminalite.js) ; crime_corrompre répond « ordre_remplace » / « ordre_supprime ».
 
 function doSeReposer(fn) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
@@ -7494,10 +7472,8 @@ async function doPayerVersementChantier() {
   if(r){ showToast('Versement confirmé','Le financement réel du chantier a été actualisé.',true); globalThis.RPI18nPlateau?.markToast("toastBodies.b5ce838df", 'Le financement réel du chantier a été actualisé.', undefined, 'Versement confirmé'); }
 }
 
-async function doCorrompreChantier(pa, cost) {
-  // Les quatre empires actuels sont non P2W. Refuser avant tout cout ou mutation.
-  showToast('Délai incompressible', 'Aucun paiement ne permet d’accélérer une construction dans les empires actuels.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bb9f0fbc0", 'Aucun paiement ne permet d’accélérer une construction dans les empires actuels.', undefined, 'Délai incompressible');
-}
+// Criminalité lot 7 (§ 12, Fred 18/11/2026) : « le temps ne s'achète pas » dans les empires actuels.
+// doCorrompreChantier SUPPRIMEE (bouton mort « Accélérer le chantier (corruption) » retiré).
 
 // =====================================================================
 // MODIFICATION DU PLAN INITIAL (Lot 1.5.11)
@@ -8637,42 +8613,9 @@ function ouvrirDossierUrbanisme(index) {
 // Une mecanique de justice ad hoc, qui court-circuitait le vrai systeme judiciaire du jeu pour
 // appliquer une sanction automatique, n'avait plus de raison de survivre.
 
-async function doCorrompreFonctionnairePermis(pa, cost) {
-  const id = state.currentBuilding;
-  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Corrompre le fonctionnaire')) return;
-  // LE SERVEUR DECIDE TOUT (29/10/2026) : paiement (2 PA + 800 FR), decouverte (25 %) tiree en base
-  // et detection par le socle penal commun, duree divisee par deux sur le dossier ENREGISTRE.
-  // L'ancien acte `permis_accelerer` fusionnait le permis envoye par l'ecran (statut compris).
-  const cle = 'permis-corruption:' + (state.char?.name || '') + ':' + id;
-  let requete;
-  try { requete = sessionStorage.getItem(cle) || crypto.randomUUID(); sessionStorage.setItem(cle, requete); }
-  catch (_) { showToast('Ordre non envoyé', 'Le navigateur ne peut pas conserver la référence de cet ordre.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b025a735b", 'Le navigateur ne peut pas conserver la référence de cet ordre.', undefined, 'Ordre non envoyé'); return; }
-  const v = await sbRpcVerdict('terrain_permis_corrompre', { p_terrain: id, p_requete: requete }).catch(() => null);
-  if (state.currentBuilding !== id) return;
-  if (!v || v.ok !== true) {
-    if (v && !v.transport) { try { sessionStorage.removeItem(cle); } catch (_) {} }
-    const motifs = { aucune_instruction: 'Aucune instruction en cours ici.', fonds_insuffisants: cost + ' FR requis.',
-      pa_insuffisants: 'Points d’action insuffisants.', pas_sur_place: 'Rendez-vous sur le terrain concerné.' };
-    showToast('Corruption non engagée', v?.transport || !v
-      ? 'Réponse incertaine. Relancez le même ordre : il ne sera pas payé deux fois.'
-      : (motifs[v.raison] || 'Le serveur a refusé (' + v.raison + ').'), false);
-    return;
-  }
-  try { sessionStorage.removeItem(cle); } catch (_) {}
-  if (typeof adopterEtatCrimeServeur === 'function') adopterEtatCrimeServeur(v);
-  if (v.etat) remplacerTerrainState(id, v.etat);
-  updateUI();
-  document.getElementById('modal-postes')?.classList.remove('open');
-  if (v.decouvert) {
-    showToast('Corruption découverte !', 'Le fonctionnaire vous dénonce.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b721eec5c", 'Le fonctionnaire vous dénonce.', undefined, 'Corruption découverte !');
-    addJournalEntry('Tentative de corruption d\'un fonctionnaire découverte (-' + cost + ' FR).', 'event-bad');
-    // Le serveur a ecroue le joueur dans la meme transaction (terrain_permis_corrompre, 03/11/2026).
-    if (typeof adopterArrestationServeur === 'function') await adopterArrestationServeur(v.arrestation);
-    return;
-  }
-  showToast('Dossier accéléré', 'Le fonctionnaire a fait remonter votre dossier. Instruction raccourcie.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.ba7dc8ee7", 'Le fonctionnaire a fait remonter votre dossier. Instruction raccourcie.', undefined, 'Dossier accéléré');
-  addJournalEntry('Corruption d\'un fonctionnaire pour accélérer un permis de construire (-' + cost + ' FR).', 'event-bad');
-}
+// Criminalité lot 7 (§ 12, Fred 18/11/2026) : « le temps ne s'achète pas » dans les empires actuels.
+// doCorrompreFonctionnairePermis SUPPRIMEE : « Corrompre un fonctionnaire (accélérer) » retiré ;
+// terrain_permis_corrompre répond « ordre_supprime ».
 
 
 // =====================
@@ -14546,6 +14489,9 @@ async function confirmerGreffeCorrompreDossier(affaireId) {
       'Le greffier vous denonce. Aucun document, et vous etes desormais recherche(e) pour '
       + 'corruption de fonctionnaire.', false, true);
     addJournalEntry('Corruption du greffier DECOUVERTE : avis de recherche.', 'event-bad');
+  } else if (v.refuse === true) {
+    // Criminalité lot 7 (§ 12) : échec ordinaire, sans dénonciation ; l'argent versé est perdu.
+    showToast('Le greffier refuse', 'Il ne veut pas de votre argent. Aucun document.', false);
   } else {
     showToast('Copie obtenue',
       'La copie integrale du dossier est dans votre inventaire. Elle est authentique, datee, '
@@ -14594,6 +14540,9 @@ async function confirmerGreffeCorrompreFauxCasier() {
       'Le greffier vous denonce. Aucun document, et vous etes desormais recherche(e) pour '
       + 'corruption de fonctionnaire.', false, true);
     addJournalEntry('Corruption du greffier DECOUVERTE : avis de recherche.', 'event-bad');
+  } else if (v.refuse === true) {
+    // Criminalité lot 7 (§ 12) : échec ordinaire, sans dénonciation ; l'argent versé est perdu.
+    showToast('Le greffier refuse', 'Il ne veut pas de votre argent. Aucun document.', false);
   } else {
     showToast('Document obtenu',
       'L\'extrait est dans votre inventaire. Rien, sur la piece, ne le distingue d\'un vrai.',

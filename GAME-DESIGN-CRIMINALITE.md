@@ -570,9 +570,68 @@ Relevé en production (`pg_proc` du projet `jxpwoosmmhohoihxpbuc`, lecture seule
 - Envoi au QHS : lot 10 (la rébellion matée n'y envoie plus).
 - Le baseline n'est pas réextrait (comme aux lots 1 à 5).
 
+## Lot 7 — ce qui est en place (20/11)
+
+- Migration `20261120050000_crim_lot7_corruption` (partie migration essayée en transaction annulée — une colonne inexistante a été
+  relevée par le scénario et retirée —, appliquée, scénario rejoué en essai annulé ; idempotente).
+- **Règle commune** `crim_corrompre_pnj_interne(auteur, acte, taux, params)` sur la résolution commune `crim_resoudre_interne` :
+  face à face (visage découvert forcé, cible NULL, ni combat ni détection), dissuasion #135 retranchée **une seule fois** (fin du
+  double compte de `crime_corrompre`), aucun bonus de carrière. Réussite : −5 DIS (`corruption_reussite_dis`) et trace de rumeur
+  `corruption` existante. Échec critique (2 % des échecs, `corruption_echec_critique_part`) : dénonciation — `crim_identifier_interne`
+  (recherché, peine d'office du barème `crim_peine_jours_interne` : 1 j en Républia), −15 moral, courrier « Dénoncé(e) ! ». Échec
+  ordinaire : aucune suite pénale. Branchée sur le directeur et le gardien du QHS, le douanier, le greffier (copie de dossier, faux
+  casier), le journaliste et l'armurier (raccords, formules propres conservées).
+- **Directeur du QHS** : `crim_corrompre_directeur(requete)` (ordre `corrompre_fonct`, 3 PA, 1 500 FR prélevés à la tentative) ;
+  détenu au QHS (hors goulag) ; réussite = peine restante divisée par deux, une fois par détention ; échec = +1 jour par
+  `detention_prolonger_interne` (barème de la corruption, aucune durée en dur), 1 500 FR à la caisse du QHS (sinon du ministère de
+  la Justice, `crim_corruption_confisquer_interne`), directeur fermé jusqu'à la fin de la détention. Taux
+  `crim_corruption_qhs_taux_interne` : 30 + 2 × (CHA − 8) − (ISN − 45) / 3, bornes 5-75.
+- **Gardien de couloir** : `crim_corrompre_gardien(service, destinataire, texte, index, signature, requete)` (ordre
+  `corrompre_gardien`, 2 PA, 800 FR) ; une tentative par jour (heure de Paris) ; services : évasion facilitée (+25 % à la prochaine
+  tentative, consommée par `detention_tenter_evasion`, raccord `crim_corruption_evasion_v1`), message (courrier du détenu à un joueur
+  libre), objet (remis par `inventaire_donner`), protection (`qhs_pouvoir` refuse la torture, raccord
+  `crim_corruption_protection_v1`, levée au prochain « Dormir », raccord `crim_corruption_dormir_v1`). Échec : 800 FR à la caisse du
+  QHS. Table `crim_corruptions_qhs` ; lecture `crim_corruption_qhs_lire()`.
+- **Douanier** : `douane_corruption_executer_interne` réécrite : +20 seulement en zone de transport (`crim_zone_transport_interne`),
+  règle commune (plus de détection après réussite), échec = 300 FR à la caisse `<pays>_douane`, une tentative par jour après un échec.
+- **Supprimés** : « Falsifier un procès-verbal », la route `corrompre_police`, « Corrompre un fonctionnaire (accélérer) »,
+  « Accélérer le rendez-vous (corruption) », « Accélérer le chantier (corruption) ». `crime_corrompre` répond `ordre_remplace`
+  (directeur, gardien) ou `ordre_supprime` ; `terrain_permis_corrompre` et `terrain_rdv_notaire_accelerer` répondent
+  `ordre_supprime`. Cinq tarifs retirés de `ordres_couts` (seeds régénérés, plans 97/219 et comptes i18n à jour).
+- **Écran** : « Corrompre le directeur » rejoint la cellule du QHS à côté de « Corrompre un gardien » (exclus du goulag) ; pop-ups
+  `cpj-*` dans `plateau-criminalite.js` (`crimOuvrirCorruptionQhs`, `crimCorrompreDirecteur`, `crimCorrompreGardien`), aucun taux
+  affiché ; refus du greffier distingué de la dénonciation ; refus de torture « détenu protégé ». Boutons et fonctions des
+  suppressions retirés (`doCorruption`, `doCorrompreFonctionnairePermis`, `doCorrompreRdvNotaire`, `doCorrompreChantier`).
+
+### Valeurs provisoires du lot 7 (choisies par l'agent, à valider par Fred)
+- **Lieu du directeur** : l'ordre passe de l'entrée du QHS à la cellule (le détenu demande à le voir ; un détenu ne quitte pas sa
+  cellule). — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Paiement** : le prix est prélevé à la tentative ; réussite = argent gardé par le PNJ, échec = argent confisqué (caisse). — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Remise du directeur** : moitié de la peine restante arrondie au jour inférieur (6 j restants → 3 j) ; refus avant paiement si la
+  remise serait nulle (moins de 2 jours restants). — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **« +1 jour » du directeur** : barème de la corruption (`corrompre_fonct` → `corruption_fonctionnaire`, 1 j en Républia) ; l'échec
+  critique ajoute la dénonciation (peine d'office 1 j) en plus. — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Formule QHS** : seul le CHA au-dessus de 8 compte ; ISN de la ville de la détention, 30 par défaut (comme l'évasion), arrondi au
+  plus proche. — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Gardien** : une tentative par jour quelle que soit l'issue ; un service évasion ou protection déjà obtenu et non consommé ne se
+  rachète pas ; le message et l'objet vont vers un joueur non détenu ; l'objet est confié par le détenu (sortant), un objet revêtu ou
+  protégé ne se confie pas ; évasion : maximum absolu 90 % comme les autres bonus. — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Brouillard** : sans effet sur la corruption (face à face). — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Zone de transport** : centres multimodaux, ports, aéroports, gares (le seul guichet actuel est dans un centre multimodal, donc le
+  +20 s'applique toujours aujourd'hui). — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Peine du greffier et de l'armurier** : barème `corruption_fonctionnaire` (1 j) ; greffier : l'échec ordinaire (25 %) devient un
+  refus sans suite. — *valeur provisoire choisie par l'agent, à valider par Fred*
+
+### Points relevés pour les lots suivants
+- Gardien du goulag (`sovarka_goulag_corrompre`) : non touché (chantier de Codex) ; la règle commune n'y est pas branchée.
+- Corruption de l'agent lors d'une arrestation en flagrant délit (`arrestation_flagrant_choisir('corruption')`, 500 FR) : hors du
+  § 12, inchangée.
+- Le banc SQL `banc-greffe-et-universite.sql` est mis à jour (refus / dénonciation) mais n'a pas été rejoué (il contient des DELETE).
+- Rumeurs (§ 13, lot 8) : leur détection compte encore la dissuasion deux fois.
+
 ## Tableau de correspondance (règle → statut → fonction serveur)
 
-Statuts : **décidé** (dans le document), **implémenté** (en production), **testé** (essai en production annulé + bancs `outils/bancs/test-crim-lot1-equipement.cjs`, `outils/bancs/test-crim-lot2-resolution.cjs`, `outils/bancs/test-crim-lot3-voler.cjs`, `outils/bancs/test-crim-lot4-cambriolage.cjs`, `outils/bancs/test-crim-lot5-poison-explosifs-incendie.cjs`, `outils/bancs/test-crim-lot6-justice.cjs`).
+Statuts : **décidé** (dans le document), **implémenté** (en production), **testé** (essai en production annulé + bancs `outils/bancs/test-crim-lot1-equipement.cjs`, `outils/bancs/test-crim-lot2-resolution.cjs`, `outils/bancs/test-crim-lot3-voler.cjs`, `outils/bancs/test-crim-lot4-cambriolage.cjs`, `outils/bancs/test-crim-lot5-poison-explosifs-incendie.cjs`, `outils/bancs/test-crim-lot6-justice.cjs`, `outils/bancs/test-crim-lot7-corruption.cjs`).
 
 | § | Règle | Statut | Lot | Fonction serveur |
 |---|---|---|---|---|
@@ -605,7 +664,7 @@ Statuts : **décidé** (dans le document), **implémenté** (en production), **t
 | 5 | Gilet 380 FR / 60 PSK | implémenté, testé | 1 | `crim_prix_interne` |
 | 6 | Cadre des trois modes pour tous les crimes en pièce | implémenté dans la résolution commune ; branché sur Neutraliser | 2 | `crim_resoudre_interne`, `crim_designation_interne` |
 | 6 | Neutraliser et voler un PNJ (employeur alerté, hors service jusqu'au lendemain) | implémenté (essais sur PJ ; aucun PNJ référencé dans la pièce d'essai) | 2, 3 | `crim_cible_resoudre_interne`, `crim_affaire_notifier_interne`, `pnj_pa_fixer`, `crime_voler` |
-| 6 | Dissuasion #135 conservée pour tous les crimes (une seule fois) | implémenté dans la résolution commune (vol, crochetage, effraction, empoisonnement, explosifs, incendie branchés ; corruption, rumeurs : double compte jusqu'à leur lot) | 2, 3, 4, 5 | `crim_resoudre_interne`, `securite_malus_lieu_interne` |
+| 6 | Dissuasion #135 conservée pour tous les crimes (une seule fois) | implémenté dans la résolution commune (vol, crochetage, effraction, empoisonnement, explosifs, incendie, corruption branchés ; rumeurs : double compte jusqu'au lot 8) | 2, 3, 4, 5, 7 | `crim_resoudre_interne`, `securite_malus_lieu_interne` |
 | 6 | Peines automatiques par empire (Républia : 2 j / 1 j) | implémenté, testé (assassin 2 j, voleur 1 j, effraction 1 j) | 2, 3, 4 | `crim_peine_jours_interne`, `crim_parametres.peine_jours_<acte>_<empire>` |
 | 7 | Voler un PJ ou un PNJ présent : argent liquide / objet au hasard / objet précis (type), 2 / 2 / 3 PA | implémenté, testé | 3 | `crime_voler(text,text,text,uuid)` ; ancienne route `ordre_remplace` |
 | 7 | Réussite 55 / 45 / 25 ± DIS/3, −3/PER (de groupe) > 8, +15 criminelle / renseignement / escort, 5-85 ; caché sans effet ; dissuasion #135 | implémenté, testé | 3 | `crim_voler_taux_interne`, `crim_per_groupe_interne`, `crim_resoudre_interne` |
@@ -633,7 +692,12 @@ Statuts : **décidé** (dans le document), **implémenté** (en production), **t
 | 11 | Détection après réussite seulement 70 −10 −20 min 20 ; fermeture 1-3 j selon le jet | implémenté, testé | 5 | `crim_incendie_jours_interne`, `crim_resoudre_interne` |
 | 6 | Brouillard (climat § 6) : +10 réussite, −20 détection pour les actes illégaux | implémenté, testé (empoisonnement, incendie) | 5 | raccords `crim_brouillard_*_v1` de `crim_resoudre_interne`, `climat_brouillard_modificateurs_interne` |
 | 9-11 | Écran sans estimation, pop-ups `cpj-*` | implémenté, testé (VM) | 5 | `plateau-criminalite.js` (`crimOuvrirEmpoisonner`, `crimOuvrirSabotage`) |
-| 12 | Corruption de PNJ seulement ; règle commune ; QHS directeur / gardien ; suppressions | décidé | — | — |
+| 12 | Corruption de PNJ seulement, face à face ; règle commune (−5 DIS + rumeur sans détection ; échec critique 2 % = dénonciation, 1 j d'office ; pas de bonus de carrière) | implémenté, testé (directeur, gardien, douanier, armurier, journaliste en essai ; greffier par lecture) ; goulag non touché | 7 | `crim_corrompre_pnj_interne`, raccords `crim_corruption_presse_v1` / `crim_corruption_greffe_v1` / `crim_corruption_armurier_v1` |
+| 12 | Directeur du QHS : 3 PA, 1 500 ; peine restante ÷ 2 une fois par détention ; échec +1 j, argent confisqué (QHS sinon ministère), plus de tentative ; taux 30 + 2/CHA > 8 − (ISN − 45)/3, 5-75 | implémenté, testé | 7 | `crim_corrompre_directeur`, `crim_corruption_qhs_taux_interne`, `crim_corruption_confisquer_interne` |
+| 12 | Gardien du QHS : 2 PA, 800 ; évasion +25 %, message ou objet, protection jusqu'au prochain Dormir ; échec 800 confisqués, une tentative par jour | implémenté, testé (évasion, message, protection ; objet par lecture) | 7 | `crim_corrompre_gardien`, `crim_corruptions_qhs`, raccords `crim_corruption_evasion_v1` / `crim_corruption_protection_v1` / `crim_corruption_dormir_v1` |
+| 12 | Douanier : +20 seulement en zone de transport ; échec 300 FR aux douanes, retenter le lendemain | implémenté, testé | 7 | `douane_corruption_executer_interne`, `crim_zone_transport_interne` |
+| 12 | Suppressions : Falsifier un PV, `corrompre_police`, trois accélérations (permis, notaire, chantier) | implémenté, testé (refus propres, boutons retirés, tarifs retirés) | 7 | `crime_corrompre`, `terrain_permis_corrompre`, `terrain_rdv_notaire_accelerer` (refus) |
+| 12 | Écran : directeur et gardien en cellule du QHS, pop-ups `cpj-*`, aucun taux | implémenté, testé (VM) | 7 | `plateau-criminalite.js` (`crimOuvrirCorruptionQhs`) |
 | 13 | Rumeur : formule, échec critique 10 %, détection 15 %, bouche-à-oreille ; tracts ; scandale ; fuite | décidé | — | — |
 | 14 | Doublement démasqué | implémenté, testé | 6 | `crim_peine_office_interne`, `crim_enqueter` |
 | 14 | Fin des catégories lourdes (1 j délit, 2 j crime) ; nomenclature unique ; 11 barèmes rattachés ; durées en dur retirées ; autres empires = Républia | implémenté, testé | 6 | `crim_peine_jours_interne`, `peine_acte_interne`, `infractions_alias`, `plateau-core.js` (`INFRACTIONS_ALIAS`, `INFRACTIONS_RATTACHEES`) |

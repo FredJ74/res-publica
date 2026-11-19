@@ -334,18 +334,18 @@
     {
       "source": "i18n/order-variants-resources.js",
       "packed": "i18n/packed/order-variants-resources.js.br",
-      "sourceBytes": 26876,
-      "packedBytes": 6116,
-      "sourceSha256": "308ae5e0590ed54f087ed7221fc94374f53e92daf09828d66793b830fb5fca36",
-      "packedSha256": "c1b30d769b6adce48b9519158198e407d5ef3a484862c170ff99344158c91719"
+      "sourceBytes": 24961,
+      "packedBytes": 5712,
+      "sourceSha256": "ffb9e381e1d1bf445b78947ba140403d7074112d72bd9a27975715ccc4bd1a91",
+      "packedSha256": "28b3ed91fea3303a31974e2480260cebb69a43a20de76d0176d7cdde2d728bae"
     },
     {
       "source": "i18n/orders-resources.js",
       "packed": "i18n/packed/orders-resources.js.br",
-      "sourceBytes": 252277,
-      "packedBytes": 49366,
-      "sourceSha256": "552c8c7c357fc0b8e333db70be104d40f3b47c012444d6eb2c671beb6ff53a8d",
-      "packedSha256": "d3916f12678141f87d248b19fdc9efcc65d76255d52c8c79ae957fcb7c623ab9"
+      "sourceBytes": 251088,
+      "packedBytes": 48923,
+      "sourceSha256": "776077a863f80e75fcaba56445374e5c76a9a5d2b8a75aa29ca67643be44c622",
+      "packedSha256": "9cf4904365b0303334bf6e0ac8facd75adba5df685333bb43ccd15890e711dd4"
     },
     {
       "source": "i18n/organization-admissions-resources.js",

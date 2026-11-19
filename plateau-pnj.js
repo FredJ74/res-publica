@@ -3826,53 +3826,9 @@ async function doAcheterTerrain(){
 // l'acte, que le joueur repayait, solde compris.
 async function finaliserAchatTerrain(id,prix,surface,aPermis,titre){if(typeof refuserSiGele==='function'&&await refuserSiGele('terrain',id,'Finaliser l’achat'))return false;return !!await finance135Acquerir(id,titre==='achat_direct'?'acte_direct':'acte_compromis');}
 
-// Accelere (reduit de moitie le delai restant) le rendez-vous notarial d'un achat direct en
-// attente, contre corruption — meme principe que corrompre_fonctionnaire_permis.
-async function doCorrompreRdvNotaire(pa, cost) {
-  const id = state.currentBuilding;
-  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Accélérer le rendez-vous')) return;
-  const ts = getTerrainState(id);
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-
-  if (!ts.achatDirect || ts.achatDirect.demandeur !== state.char?.name) {
-    showToast('Impossible', "Vous n'avez pas de rendez-vous en attente ici.", false); globalThis.RPI18nPlateau?.markToast("toastBodies.b1877e067", "Vous n'avez pas de rendez-vous en attente ici.", undefined, 'Impossible');
-    return;
-  }
-
-  // LE SERVEUR DECIDE TOUT (29/10/2026) : paiement (2 PA + 800 FR), nouvelle date calculee depuis
-  // le rendez-vous ENREGISTRE, reçu idempotent. L'ecran n'envoie plus de date : l'ancien acte
-  // `achat_direct_accelerer` acceptait celle qu'on lui donnait, et se payait a part.
-  const cle = 'rdv-notaire:' + (state.char?.name || '') + ':' + id + ':' + ts.achatDirect.dateAchat;
-  let requete;
-  try {
-    requete = sessionStorage.getItem(cle) || crypto.randomUUID();
-    sessionStorage.setItem(cle, requete);
-  } catch (_) {
-    showToast('Ordre non envoyé', 'Le navigateur ne peut pas conserver la référence de cet ordre.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b025a735b", 'Le navigateur ne peut pas conserver la référence de cet ordre.', undefined, 'Ordre non envoyé');
-    return;
-  }
-  const vAcc = await sbRpcVerdict('terrain_rdv_notaire_accelerer', { p_terrain: id, p_requete: requete }).catch(() => null);
-  if (state.currentBuilding !== id) return;
-  if (!vAcc || vAcc.ok !== true) {
-    if (vAcc && !vAcc.transport) { try { sessionStorage.removeItem(cle); } catch (_) {} }
-    const motifs = { rendez_vous_deja_arrive: 'Le rendez-vous est déjà arrivé.',
-      pas_mon_achat_direct: "Vous n'avez pas de rendez-vous en attente ici.",
-      fonds_insuffisants: cost + ' ' + cur + ' requis.', pa_insuffisants: 'Points d’action insuffisants.' };
-    showToast('Délai inchangé', vAcc?.transport || !vAcc
-      ? 'Réponse incertaine. Relancez le même ordre : il ne sera pas payé deux fois.'
-      : (motifs[vAcc.raison] || 'Le serveur a refusé (' + vAcc.raison + ').'), false);
-    return;
-  }
-  try { sessionStorage.removeItem(cle); } catch (_) {}
-  if (vAcc.etat) remplacerTerrainState(id, vAcc.etat);
-  if (vAcc.paiement && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(vAcc.paiement);
-  const nouvelleDateAchat = Number(vAcc.dateAchat);
-
-  const dateTxt = new Date(nouvelleDateAchat).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
-  updateUI();
-  addJournalEntry('Rendez-vous accéléré par corruption (-' + cost + ' ' + cur + '). Nouveau rendez-vous : ' + dateTxt + '.', 'event-info');
-  showToast('Délai réduit', 'Nouveau rendez-vous : ' + dateTxt + '.', true);
-}
+// Criminalité lot 7 (§ 12, Fred 18/11/2026) : « le temps ne s'achète pas » dans les empires actuels.
+// doCorrompreRdvNotaire SUPPRIMEE : « Accélérer le rendez-vous (corruption) » retiré ;
+// terrain_rdv_notaire_accelerer répond « ordre_supprime ».
 
 function initSimulation() {
   if (!state.pjSimules) {
