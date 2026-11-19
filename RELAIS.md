@@ -8,6 +8,14 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Chantier Criminalité — lot 9 : carrière criminelle (Claude, 20/11/2026)
+- **Branche `claude/game-design-criminalite-20261118`**. Détail, valeurs provisoires et tableau : fin de `GAME-DESIGN-CRIMINALITE.md` (« Lot 9 — ce qui est en place »).
+- **Migration APPLIQUÉE** : `20261120090000_crim_lot9_carriere` (essai complet en transaction annulée, puis appliquée en deux temps : `crim_lot9_carriere` et `crim_lot9_carriere_pa` ; idempotente).
+- **Fait** : cursus universitaire « Droit pénal » (`univ_droit_penal`) qui délivre la carrière `criminal_c` sur le socle existant (17 cours à l'amphi de Luthécia, 6 PA ; 7 stages chez Pat Hounette, Place du Formulaire de la Liberté, ou au siège d'une organisation criminelle dont on est membre — `crim_stage_organisation_interne`) ; colonne `universite_cursus.ouvert` (seul « Droit pénal » est ouvert ; `cursus_ferme` sinon) ; bonus de réussite des lots 2 à 8 calculés sur la carrière effective `crim_carriere_interne(nom)` (initiale ou seconde) par les raccords `crim_carriere_v1` de 9 actes ; aucun autre avantage. Correctif : villes des jalons existants (`luthecia` → `capitale`, `port-sainte-marie` → `ville_a`), aucune étape n'était validable.
+- **Écran** : « Suivre une formation » activé (plus de `bientot`, toujours gratuit, hors `payer_ordre`) ; `plateau-universite.js` réécrit en pop-up `cpj-*` (textes T.fr) et chargé par `plateau.html` ; route dans `plateau-router.js`. `banc-greffe-documents-client.js` et `contre-epreuves-chantier5.py` alignés.
+- **Tester** : `node --test outils/bancs/test-crim-lot9-carriere.cjs`. En jeu : amphithéâtre de l'université de Luthécia → « Suivre une formation » → s'inscrire au Droit pénal ; les étapes s'ouvrent selon le calendrier du cursus.
+- **Reste** : QHS (lot 10) ; décider des achats au marché noir (+15 criminelle non touché) et de l'ouverture des autres cursus. Textes français à traduire par Codex (`plateau-universite.js`, description de « Suivre une formation »).
+
 ### Chantier Criminalité — lot 8 : délits d'information, rumeurs et tracts (Claude, 20/11/2026)
 - **Branche `claude/game-design-criminalite-20261118`**. Détail, valeurs provisoires et tableau : fin de `GAME-DESIGN-CRIMINALITE.md` (« Lot 8 — ce qui est en place »).
 - **Migration APPLIQUÉE** : `20261120070000_crim_lot8_rumeurs` (essai complet en transaction annulée, puis appliquée avec un correctif de raccord, scénario d'échec critique et de mandat rejoué en essai annulé ; idempotente).

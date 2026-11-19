@@ -684,9 +684,63 @@ Migration `migrations/20261120070000_crim_lot8_rumeurs.sql` (appliquée après e
 - Fabriquer un scandale et produire une fuite : inchangés (§ 13).
 - Bancs SQL `banc-rumeur-alerte-chef.sql` et `banc-organisations-etape-b.sql` : ils supposaient un jet de 75 % (setseed) ; non rejoués.
 
+## Lot 9 — ce qui est en place (20/11)
+
+Migration `migrations/20261120090000_crim_lot9_carriere.sql` (appliquée après essai en transaction annulée, en deux temps :
+`crim_lot9_carriere` puis `crim_lot9_carriere_pa`) ; banc `outils/bancs/test-crim-lot9-carriere.cjs`.
+
+- **Seconde carrière par l'Université existante** (aucune nouvelle mécanique : `universite_cursus`, `universite_cursus_jalons`,
+  `universite_inscriptions`, `carrieres_acquises`, règles du 13/10 — une seule seconde carrière dans la vie, 8 semaines au minimum,
+  16 au plus, gratuite). Nouveau cursus **« Droit pénal — seconde carrière »** (`univ_droit_penal`) qui délivre la carrière
+  **`criminal_c`** ; même grille que les autres cursus : **17 cours** à l'amphithéâtre de l'université de Luthécia (6 PA chacun,
+  règle existante) et **7 stages** (0 PA) **chez Pat Hounette** (Place du Formulaire de la Liberté) — maître de stage PNJ qui garantit
+  la progression sans autre joueur.
+- **Stage dans une organisation criminelle** : un stage du cursus peut aussi se valider **au siège** (`localId`) d'une organisation de
+  type criminelle **dont l'étudiant est membre** (`crim_stage_organisation_interne`, raccord `crim_stage_orga_v1` de
+  `universite_valider_etape`).
+- **Ouverture décidée au serveur** : colonne `universite_cursus.ouvert` ; `universite_inscrire` refuse un cursus fermé
+  (`cursus_ferme`, raccord `crim_cursus_ouvert_v1`) et `universite_mon_etat` ne propose que les cursus ouverts (raccord
+  `crim_cursus_ouvert_v2`). Seul « Droit pénal » est ouvert. `universite_valider_etape` renvoie aussi les PA restants
+  (raccord `crim_univ_pa_v1`).
+- **Effets : bonus de réussite seulement**, ceux déjà posés dans les fonctions de taux des lots 2 à 8 (+15 neutraliser, voler,
+  crocheter, empoisonner, explosifs, incendie ; +10 effraction ; +5 au butin du vol ; rien sur la corruption ; +15 au vol aussi pour
+  renseignement et escort). La carrière se lit désormais par **`crim_carriere_interne(nom)`** (carrière initiale **ou** seconde, par
+  `carriere_possede` ; priorité criminelle, puis renseignement, puis escort) dans les actes qui lisaient `personnages_donnees.career`
+  (raccords `crim_carriere_v1` : `crime_neutraliser`, `crime_voler`, `crim_crocheter`, `crim_forcer_porte`, `crim_cambrioler_interne`,
+  `crime_empoisonner`, `crime_explosifs`, `crime_incendier`, `assemblee_neutraliser_depute`). Aucun autre avantage.
+- **Correctif technique** : les jalons des quatre cursus existants désignaient les villes par leur nom (`luthecia`,
+  `port-sainte-marie`) alors que la position des personnages utilise l'identifiant (`capitale`, `ville_a`) : aucune étape n'était
+  validable. Identifiants rétablis.
+- **Écran** : « Suivre une formation » (amphithéâtre) n'est plus désactivé (`bientot` retiré, toujours gratuit, hors `payer_ordre`) ;
+  sa route ouvre `ouvrirUniversiteFormation` (`plateau-universite.js`, chargé par `plateau.html`), réécrit en pop-up `cpj-*` avec textes
+  T.fr : liste des cursus, inscription, étape courante (lieu, date d'ouverture), stage, diplôme ; aucun calcul ni `Math.random`
+  (PA recopiés de la réponse du serveur).
+
+### Valeurs provisoires du lot 9 (choisies par l'agent, à valider par Fred)
+- **Programme du cursus** : grille des autres cursus (24 étapes : 17 cours, 7 stages aux semaines 2 à 8), libellés « Cours N — Droit
+  pénal » et missions de stage satiriques (« Lire le Code pénal à l'envers », « Repérer les failles d'une procédure », « Mémoriser les
+  délais de prescription », « Préparer un alibi crédible », « Suivre quelqu'un sans être vu », « Distinguer un délit d'un crime, et
+  leurs peines », « Soutenir son mémoire devant Pat Hounette »). — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Cours à Luthécia** (seule université) ; **stages chez Pat Hounette** (Luthécia) **ou au siège** d'une organisation criminelle dont
+  l'étudiant est membre, quel que soit son grade. — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Seuls les cursus ouverts sont proposés** : « Droit pénal » ouvert ; médecine, affaires, justice et armée restent fermés (ils
+  l'étaient de fait, l'ordre étant désactivé) ; les ouvrir = `UPDATE universite_cursus SET ouvert = true`. — *valeur provisoire choisie
+  par l'agent, à valider par Fred*
+- **Carrière effective** : un PJ qui cumule deux carrières à bonus (ex. renseignement + criminelle) reçoit le bonus de la criminelle,
+  sans cumul. — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Achats au marché noir** (+15 `criminal_c` / renseignement / escort dans `crime_acheter_arme_noire`, +15 `criminal_c` dans
+  `crime_acheter_explosifs`) : non touchés et non étendus à la seconde carrière (le § 15 exclut tout avantage « marché noir » ; leur
+  retrait éventuel est à trancher). — *valeur provisoire choisie par l'agent, à valider par Fred*
+- Autres empires : même cursus (une seule université, en Républia).
+
+### Points relevés pour les lots suivants
+- `contre-epreuves-chantier5.py` compare au dépôt principal (`/Users/fredericjasseron/ResPublica`) : ses écarts « non vert sur la
+  production » sont antérieurs au lot (même liste avant et après).
+- Les autres cursus ont des stages sans pièce (`piece` vide) et des noms de bâtiments à vérifier avant leur ouverture.
+
 ## Tableau de correspondance (règle → statut → fonction serveur)
 
-Statuts : **décidé** (dans le document), **implémenté** (en production), **testé** (essai en production annulé + bancs `outils/bancs/test-crim-lot1-equipement.cjs`, `outils/bancs/test-crim-lot2-resolution.cjs`, `outils/bancs/test-crim-lot3-voler.cjs`, `outils/bancs/test-crim-lot4-cambriolage.cjs`, `outils/bancs/test-crim-lot5-poison-explosifs-incendie.cjs`, `outils/bancs/test-crim-lot6-justice.cjs`, `outils/bancs/test-crim-lot7-corruption.cjs`, `outils/bancs/test-crim-lot8-rumeurs.cjs`).
+Statuts : **décidé** (dans le document), **implémenté** (en production), **testé** (essai en production annulé + bancs `outils/bancs/test-crim-lot1-equipement.cjs`, `outils/bancs/test-crim-lot2-resolution.cjs`, `outils/bancs/test-crim-lot3-voler.cjs`, `outils/bancs/test-crim-lot4-cambriolage.cjs`, `outils/bancs/test-crim-lot5-poison-explosifs-incendie.cjs`, `outils/bancs/test-crim-lot6-justice.cjs`, `outils/bancs/test-crim-lot7-corruption.cjs`, `outils/bancs/test-crim-lot8-rumeurs.cjs`, `outils/bancs/test-crim-lot9-carriere.cjs`).
 
 | § | Règle | Statut | Lot | Fonction serveur |
 |---|---|---|---|---|
@@ -766,7 +820,12 @@ Statuts : **décidé** (dans le document), **implémenté** (en production), **t
 | 14 | Juge ±50 % (somme de référence), liberté sous l'état d'urgence | implémenté, testé | 6 | `crim_peine_bornes_juge_interne`, raccords `justice_rendre_sentence` / `justice_appel_juger` / `justice_peine_proposer` |
 | 14 | État d'urgence 7 j, renouvelable (3 PA + POP) | implémenté, testé | 6 | `etat_urgence_decider`, `crim_justice_nuit` |
 | 14 | Rébellion réussie / matée (plus de QHS automatique), grilles +25 % max, réparation 1/3 par nuit pour 100 FR | implémenté, testé | 6 | `detention_se_rebeller`, `crim_grilles_bonus_interne`, `detention_tenter_evasion`, `crim_justice_nuit` |
-| 15 | Carrière criminelle, cursus « Droit pénal », bonus seulement | décidé | — | — |
+| 15 | Carrière `criminal_c` choisissable à la création | implémenté (existant) | — | `personnages_donnees.career` |
+| 15 | Seconde carrière : cursus « Droit pénal » (Université, règles du 13/10) → `criminal_c` ; seul cursus ouvert | implémenté, testé | 9 | `universite_cursus` (`univ_droit_penal`, `ouvert`), raccords `crim_cursus_ouvert_v1` / `_v2`, `universite_diplomer` |
+| 15 | Stages chez Pat Hounette ou au siège d'une organisation criminelle (membre) | implémenté, testé | 9 | `universite_cursus_jalons`, `crim_stage_organisation_interne`, raccord `crim_stage_orga_v1` |
+| 15 | Effets : bonus de réussite seulement (+15 / +10 effraction / 0 corruption), carrière initiale ou seconde | implémenté, testé | 9 | `crim_carriere_interne`, raccords `crim_carriere_v1` (9 actes) |
+| 15 | +15 au vol aussi pour renseignement et escort | implémenté, testé | 3, 9 | `crim_voler_taux_interne`, `crim_carriere_interne` |
+| 15 | Écran « Suivre une formation » ouvert, pop-up `cpj-*`, sans calcul | implémenté, testé (VM) | 9 | `plateau-universite.js`, route `suivre_formation` |
 | 16 | QHS réservé aux détenus très dangereux ; pas de verrou de critères | décidé | 10 | — |
 | 16 | Décision : Ministre de la Justice (valider, référendum, refuser) ; proposition du juge | décidé | 10 | — |
 | 16 | Suppléance par le Premier ministre ; sans PM, refus automatique | décidé | 10 | — |

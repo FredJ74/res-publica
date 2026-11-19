@@ -4744,9 +4744,13 @@ const BUILDINGS = {
           // a trois niveaux : (1) le clic n'appelle rien, (2) aucune route n'existe pour cet
           // ordre, (3) `payer_ordre` refuserait `ordre_inconnu` -- `suivre_formation` n'est pas
           // au miroir des couts, et ne doit pas y entrer tant qu'il ne coute rien.
+          //
+          // OUVERT LE 20/11/2026 (Criminalité lot 9) : le cursus « Droit pénal » est arbitré. Le bouton
+          // ouvre la fenêtre de l'Université (plateau-universite.js) ; les cursus ouverts, l'inscription,
+          // les étapes et le diplôme sont décidés au serveur (universite_cursus.ouvert). Toujours gratuit :
+          // pas de passage par payer_ordre, donc toujours absent du miroir des coûts.
           {fn:'suivre_formation', label:'Suivre une formation', pa:0, cost:0, type:'legal', icon:'ti-school', successRate:100,
-           bientot:'Bientôt disponible : cet ordre permettra d\'acquérir une seconde carrière.',
-           desc:'Bientôt disponible : cet ordre permettra d\'acquérir une seconde carrière.'}
+           desc:'Seconde carrière gratuite, une seule dans votre vie : cours à l\'amphithéâtre (6 PA) et stages auprès d\'un maître de stage.'}
         ]
       },
       // LA SALLE DE REUNION N'EST PLUS UN LOCAL A LOUER (13 octobre 2026).

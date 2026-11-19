@@ -696,10 +696,9 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'greffe_corrompre_faux_casier') { ouvrirGreffeCorrompreFauxCasier(); return; }
   if (fn === 'syndicat_etudiant_creer')      { ouvrirSyndicatEtudiantCreer(); return; }
   if (fn === 'syndicat_etudiant_gerer')      { ouvrirSyndicatsEtudiants(); return; }
-  // `suivre_formation` N'A PAS DE ROUTE, ET C'EST LA MOITIE DE SA DESACTIVATION. L'ordre est
-  // declare avec `bientot` : son bouton est grise et son clic n'appelle rien. S'il etait
-  // malgre tout appele, il tomberait sur le chemin generique -- qui refuserait, l'ordre
-  // n'etant pas au miroir des couts (`ordre_inconnu`). Trois verrous, aucun effet.
+  // « Suivre une formation » (ouvert le 20/11/2026, Criminalité lot 9) : fenêtre de l'Université,
+  // gratuite, sans payer_ordre ; tout est décidé au serveur (plateau-universite.js).
+  if (fn === 'suivre_formation')             { ouvrirUniversiteFormation(); return; }
   if (fn === 'fiscal' || fn === 'gestion_budget') { ouvrirGestionBudget(); return; }
   if (fn === 'proposer_treve')        { ouvrirProposerTreve(pa, cost); return; }
   if (fn === 'prier')                { doPrier(pa, cost); return; }
