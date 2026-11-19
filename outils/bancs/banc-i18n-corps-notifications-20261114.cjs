@@ -65,7 +65,9 @@ test('provenance des phrases actives et de l’unique phrase retirée de navigat
  // 19/11/2026 (criminalité lot 5) : empoisonner, incendier, explosifs passent par plateau-criminalite.js (crime_* serveur, textes T.fr) ;
  // les anciens toasts (prérequis « Se cacher », recherché d'office, blessure progressive) n'existent plus.
  const CRIM_LOT5=['Vous devez être dans un bâtiment pour tenter ceci.','Le feu ne prend pas. Rien ne se passe.',"Vous n'avez pas d'explosifs dans votre inventaire. Procurez-vous en à l'armurerie.","Vous n'avez pas d'explosifs dans votre inventaire.",'Le dispositif vous explose entre les mains. Vous êtes blessé(e).','Vous devez d\'abord réussir l\'ordre "Se cacher" dans cette pièce.',"Vous n'avez pas d'objet poison dans votre inventaire. Procurez-vous en dans votre empire.",'Aucun PJ dans cette pièce.',"Vous n'avez pas d'objet poison dans votre inventaire.","L'empoisonnement n'a pas pu avoir lieu.",'Un témoin vous a vu(e). Vous êtes désormais recherché(e).',"L'empoisonnement a échoué. Objet perdu. Vous avez été identifié(e)."];
- assert.deepEqual(rows.map(r=>r[0]).filter(fr=>!present(fr)),[retire,'Maximum 2 récoltes par jour.','+5 DIS.','Vous ne pouvez pas voter dans cet empire.','Cette prestation ne peut pas être vendue à emporter.',...CRIM_LOT5].filter(fr=>rows.some(r=>r[0]===fr)).sort((a,b)=>rows.findIndex(r=>r[0]===a)-rows.findIndex(r=>r[0]===b)));
+ // 20/11/2026 (criminalité lot 6) : la rébellion matée n'envoie plus au QHS (§ 14) ; son toast vient de plateau-criminalite.js (T.fr).
+ const CRIM_LOT6=['Transfere au QHS. -25 PV, -15 DIS.'];
+ assert.deepEqual(rows.map(r=>r[0]).filter(fr=>!present(fr)),[retire,'Maximum 2 récoltes par jour.','+5 DIS.','Vous ne pouvez pas voter dans cet empire.','Cette prestation ne peut pas être vendue à emporter.',...CRIM_LOT5,...CRIM_LOT6].filter(fr=>rows.some(r=>r[0]===fr)).sort((a,b)=>rows.findIndex(r=>r[0]===a)-rows.findIndex(r=>r[0]===b)));
 });
 
 test('aucun recouvrement avec les catalogues déjà raccordés (pas de double traduction ni de markToast contrarié)',()=>{

@@ -337,12 +337,15 @@ const BONUS_ARCHETYPE_FAUSSE_RUMEUR = {
 // interdit explicitement de la rebalancer -- et surtout AUCUNE INFRACTION N'EN HERITE : les dix
 // classees portent toutes leur bareme propre dans PEINES_ACTES, et une contrainte en base
 // l'exige. Donner a `delit` un bareme generique distinct demanderait un arbitrage.
+// FIN DES CATEGORIES LOURDES (Fred, 19/11/2026, GAME-DESIGN-CRIMINALITE.md § 14). Delit grave 4 j, crime 8 j et crime
+// d'Etat 30 j, herites des debuts, etaient trop dissuasifs. L'echelle de Republia est celle des baremes propres :
+// 1 jour pour un delit, 2 jours pour un crime (doubles si le coupable est demasque plus tard). Amendes inchangees.
 const PEINES = {
-  delit:          { jours: 2,  label: 'Delit',           amendeBase: 500  },
-  delit_mineur:   { jours: 2,  label: 'Delit mineur',   amendeBase: 500  },
-  delit_grave:    { jours: 4,  label: 'Delit grave',     amendeBase: 1500 },
-  crime:          { jours: 8,  label: 'Crime',           amendeBase: 5000 },
-  crime_etat:     { jours: 30, label: "Crime d'Etat",    amendeBase: 0    }
+  delit:          { jours: 1,  label: 'Delit',           amendeBase: 500  },
+  delit_mineur:   { jours: 1,  label: 'Delit mineur',   amendeBase: 500  },
+  delit_grave:    { jours: 1,  label: 'Delit grave',     amendeBase: 1500 },
+  crime:          { jours: 2,  label: 'Crime',           amendeBase: 5000 },
+  crime_etat:     { jours: 2,  label: "Crime d'Etat",    amendeBase: 0    }
 };
 
 // Baremes specifiques par acte et par empire — remplacent PEINES/ACTES_ILLEGAUX quand presents.
@@ -385,22 +388,51 @@ const PEINES_ACTES = {
     // Amendes a 0 : le cahier des charges ne prevoit AUCUNE amende sur ce circuit, seulement de
     // la detention et la confiscation. Ne pas en inventer une.
     justification_rejetee:       { jours: 1, amende: 0, label: 'Justification rejetée (marchandise interdite)' },
-    non_presentation_convocation:{ jours: 2, amende: 0, label: 'Non-présentation à convocation', categorie: 'delit' }
+    non_presentation_convocation:{ jours: 2, amende: 0, label: 'Non-présentation à convocation', categorie: 'delit' },
+    // Criminalite lot 4 (19/11/2026) : crochetage ou effraction identifies, 1 jour (delit).
+    effraction:               { jours: 1, amende: 500,  label: 'Effraction', categorie: 'delit' }
   }
+};
+
+// UNE SEULE NOMENCLATURE PAR INFRACTION (Fred, 19/11/2026, § 14, correctif technique). Chaque alias se resout vers son
+// infraction canonique, au navigateur (getPeineParActe) comme au serveur (table infractions_alias, infraction_canonique).
+const INFRACTIONS_ALIAS = {
+  assassiner_mains: 'assassinat', assassiner_arme: 'assassinat', assassiner_feu: 'assassinat', meurtre: 'assassinat',
+  corrompre_fonct: 'corruption_fonctionnaire', acheter_arme_illegale: 'achat_arme_illegal'
+};
+
+// LES ONZE BAREMES PROPRES QUI N'AVAIENT AUCUN ACTE (§ 14) : l'acte serveur qui les prononce. Une infraction rattachee est
+// « detectable » au sens du miroir : un acte du jeu la produit.
+const INFRACTIONS_RATTACHEES = {
+  assassinat: ['crime_neutraliser', 'assassiner_mains', 'assassiner_arme', 'assassiner_feu'],
+  tentative_assassinat: ['crime_neutraliser'],
+  tentative_empoisonnement: ['crime_empoisonner'],
+  achat_arme_illegal: ['crime_acheter_arme_noire', 'acheter_arme_illegale'],
+  corruption_fonctionnaire: ['terrain_permis_corrompre', 'greffe_denoncer_corruption', 'corrompre_fonct'],
+  violation_couvre_feu: ['controle_couvre_feu_interne'],
+  possession_illegale_douane: ['douane_controle_groupe_interne', 'fret_inspecter_interne'],
+  hooliganisme: ['organisation_hooliganisme'],
+  diffamation: ['plainte_deposer (fabriquer_scandale)'],
+  justification_rejetee: ['convocation_se_justifier'],
+  non_presentation_convocation: ['convocation_se_justifier'],
+  effraction: ['crim_crocheter', 'crim_forcer_porte']
 };
 
 // Calcule la peine applicable pour un acte donne. demasque=true double jours et amende
 // (acte reussi et decouvert apres coup, plutot qu'un echec immediat).
+// Les autres empires reprennent les baremes de Republia tant qu'ils n'ont pas les leurs (§ 6) ; le doublement vaut pour
+// toute peine d'office quand le coupable est demasque plus tard (§ 14).
 function getPeineParActe(acte, demasque) {
   const pays = state.country || 'republic';
-  const specifique = PEINES_ACTES[pays]?.[acte];
+  const id = (typeof INFRACTIONS_ALIAS !== 'undefined' && INFRACTIONS_ALIAS[acte]) || acte;
+  const mult = demasque ? 2 : 1;
+  const specifique = (PEINES_ACTES[pays] || PEINES_ACTES.republic)?.[id];
   if (specifique) {
-    const mult = demasque ? 2 : 1;
     return { jours: specifique.jours * mult, amende: specifique.amende * mult, label: specifique.label };
   }
-  const type = ACTES_ILLEGAUX[acte]?.type || acte || 'delit_mineur';
+  const type = ACTES_ILLEGAUX[id]?.type || ACTES_ILLEGAUX[acte]?.type || id || 'delit_mineur';
   const peine = PEINES[type] || PEINES.delit_mineur;
-  return { jours: peine.jours, amende: peine.amendeBase, label: peine.label };
+  return { jours: peine.jours * mult, amende: peine.amendeBase * mult, label: peine.label };
 }
 
 const ACTES_ILLEGAUX = {

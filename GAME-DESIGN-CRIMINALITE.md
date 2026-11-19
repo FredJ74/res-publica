@@ -491,9 +491,88 @@ Relevé en production (`pg_proc` du projet `jxpwoosmmhohoihxpbuc`, lecture seule
   empoisonnement (cachette exigée, flagrant délit à l'échec total) : à relire si on les rejoue.
 - L'enquête (lot 6) dispose des affaires `empoisonner` (cible = victime, indice `poison`), `utiliser_explosifs`, `incendier` (indice `batiment`).
 
+## Lot 6 — ce qui est en place (20/11)
+
+- Migration `20261120030000_crim_lot6_justice` (partie 1 essayée en transaction annulée — l'essai a montré qu'une colonne devait être
+  ajoutée plus tôt —, partie 2 essayée, migration appliquée, scénario rejoué en essai annulé) et correctif
+  `crim_lot6_justice_correctif_prolonger` (appliqué aussitôt : `sum()` rend un `bigint`, `detention_prolonger_interne` refusait l'appel ;
+  repris dans le fichier de migration).
+- **Plainte contre X** : une plainte contre X déposée par la victime (`plainte_deposer`, raccord `crim_plainte_x_v1`) est rattachée à son
+  affaire `crim_affaires` ; celle de l'employeur d'un PNJ l'était déjà (lot 2). Tous les actes des lots 2 à 5 sont enquêtables (neutraliser,
+  voler, crocheter, forcer la porte, cambrioler, objets ramassés, empoisonner — indice `poison` —, explosifs et incendie — indice `batiment`).
+- **Enquêter** : `crim_enquetes_lire()` (plaintes contre X de la ville du commissaire, indices, pistes, chances, tentative du jour) et
+  `crim_enqueter(affaire, requete)` (idempotent, 2 PA, ordre `enqueter_plainte`, une tentative par jour et par plainte, commissaire de la ville
+  de l'acte). Chances `crim_enquete_taux_interne` : moitié du plafond de l'affaire (5 % réussite / 15 % échec), puis chaque piste présente
+  (trace, rumeurs vraies visant le coupable, informateur du commissaire, traces d'achat pour le cambriolage) ajoute une part égale de l'autre
+  moitié. Réussite : coupable démasqué, avis de recherche et **peine d'office doublée**, la plainte le vise désormais (dommages et intérêts par
+  la procédure existante), courriers au plaignant et au coupable. Première enquête ratée (une seule fois par plainte) : « Le commissaire X est
+  sur vos traces… », −20 DIS, −15 moral.
+- **Plus d'enquête automatique** : `minuit_decouverte_crimes` ne découvre plus rien (le cron l'appelle encore, sans effet).
+- **Peines** : résolution unique `crim_peine_jours_interne(acte, pays)` (alias → paramètre `peine_jours_<acte>_<empire>` → paramètre de
+  Républia → barème `infractions` → catégorie) ; `peine_acte_interne` et `crime_peine_interne` s'y alignent ; **les autres empires reprennent
+  Républia**. Peine d'office = **jugement d'office** (`crim_peine_office_interne`, table `jugements`, juge « Peine d'office ») : simple quand
+  l'auteur est identifié sur le moment (`crim_identifier_interne`, lots 2 à 5), doublée quand l'enquête le démasque. Il est exécutable par la
+  police (chasse à l'homme, patrouille : `justice_recherches`) ; l'arrestation en flagrant délit du même acte le solde (raccord
+  `crim_office_flagrant_v1`) ; son exécution efface l'avis de recherche correspondant (déclencheur `crim_office_executee`).
+- **Seuil du procès 4 jours** : `crim_seuil_proces_interne`, raccordé à `detention_ouvrir_interne` et `detention_prolonger_interne`. Au-delà de
+  4 jours automatiques sur une détention, l'excédent est reporté à un **procès** (affaire `saisie`, auteur « Ministère public », origine
+  `seuil_proces`, total de référence) ; les peines prononcées par un juge ne sont pas plafonnées.
+- **Juge** : `crim_peine_bornes_juge_interne`, raccordé à `justice_rendre_sentence`, `justice_appel_juger`, `justice_peine_proposer` : ±50 %
+  autour de la référence de l'empire ; procès de seuil : ±50 % autour du total, moins les 4 jours déjà purgés ; **état d'urgence : liberté
+  totale** (`crim_etat_urgence_actif_interne`).
+- **Nomenclature unique** : `infractions_alias` (assassiner_* et meurtre → assassinat, corrompre_fonct → corruption_fonctionnaire,
+  acheter_arme_illegale → achat_arme_illegal), canon `INFRACTIONS_ALIAS` / `INFRACTIONS_RATTACHEES` dans `plateau-core.js`, générateur
+  `generer_infractions.py`, empreinte `ac8ead42d4f8134e` (générateur, sentinelle et base concordent). Fin des catégories 4 / 8 / 30 j. Les onze
+  barèmes propres sans acte sont rattachés (plus aucun « jamais détectable »). Durées en dur retirées : garde à vue, évasion, tentative
+  d'évasion, rébellion, résistance à l'arrestation, convocations.
+- **État d'urgence** : `etat_urgence_decider` — 7 jours (`etats_urgence.expire_le`), renouvelable (3 PA et la perte de POP habituelle,
+  `renouvellements`), levé à échéance par la passe de nuit `crim_justice_nuit` (pg_cron 23 h 20 UTC) avec une annonce.
+- **Cellule** : `detention_se_rebeller` réécrite — réussie : DIS +6, PV −10, +1 j (barème) et grilles abîmées (4-10) ; matée : PV −25,
+  DIS −15, +4 j d'office, **plus de QHS automatique**, aucun dégât. Bonus d'évasion `crim_grilles_bonus_interne` (dégâts cumulés, plafond
+  +25) dans `detention_tenter_evasion`. Réparation par `crim_justice_nuit` : un tiers par nuit, 100 FR de la caisse du commissariat
+  (revendication nocturne `crim_grilles_reparation`) ; pas d'argent, pas de réparation.
+- **Bancs SQL** `banc-arrestations-flagrant-delit.sql` et `banc-se-cacher.sql` mis à jour (nouvel empoisonnement, barème, peine d'office) et
+  rejoués en production (transaction annulée) : verts.
+- **Écran** : « Mener l'enquête » propose « Enquêter sur une plainte contre X » (`crimOuvrirEnquetes`, `crimEnqueter`, pop-ups `cpj-*`,
+  chances et pistes lues du serveur) ; état d'urgence : échéance et bouton « Renouveler » ; rébellion matée sans QHS ; liste du juge sans
+  alias.
+
+### Valeurs provisoires du lot 6 (choisies par l'agent, à valider par Fred)
+- **Peine d'office** : un jugement d'office en plus de l'avis de recherche, pour que la police puisse réellement arrêter (l'avis seul n'était
+  exécuté par aucune porte). — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Rattachement d'une plainte contre X** : à l'affaire la plus récente, non élucidée, dont la plaignante ou le plaignant est la victime (ou
+  l'employeur), dans le même pays ; une seule plainte contre X à la fois (règle existante `plainte_deja_en_cours`). — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Pistes** : parts égales de la moitié haute (3 pistes ; 4 pour crochetage, effraction, cambriolage, objets ramassés). Trace = trace ou
+  détection masquée ; rumeurs vraies = trace de rumeur active du coupable dans la ville ; informateur = au moins un informateur du
+  commissaire ; achats = kit ou pied-de-biche acheté dans le pays. — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Écran du commissaire** : les chances et les pistes sont affichées (calculées par le serveur) ; le genre n'est pas montré (réservé aux
+  rumeurs, § 4). — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Peine doublée** : celle de l'acte selon l'issue (réussite / tentative), soit 4 j pour un assassinat, 2 j pour un vol. — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Seuil du procès** : tout motif non prononcé par un juge compte comme automatique, cumulé sur la détention en cours ; un seul procès de
+  seuil ouvert par personne (les reports suivants s'y ajoutent) ; le complément décidé par le juge est borné à [50 % ; 150 %] du total moins
+  les 4 jours purgés ; la reprise d'une peine après évasion n'est pas plafonnée. — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **État d'urgence** : borne technique de 365 jours pour la liberté du juge (prison) ; amendes inchangées ; renouvelable à tout moment tant
+  qu'il court (+7 jours à partir de l'échéance) ; le lever coûte 3 PA (inchangé) ; un état déclaré avant le lot expire 7 jours après la
+  migration. — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Catégories** : délit, délit mineur, délit grave 1 j ; crime, crime d'État 2 j ; amendes inchangées. — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Nouveaux barèmes de Républia** : effraction 1 j, garde à vue 2 j, rébellion réussie 1 j (`se_rebeller`), rébellion matée 4 j, évasion 2 j
+  (`tentative_evasion`), tentative d'évasion échouée 1 j, résistance à l'arrestation 2 j. — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Grilles** : par commissariat (`niveaux_prison`) ; bonus ajouté après le plafond ordinaire de 40 %, maximum absolu 90 % ; tranche de
+  réparation = un tiers des dégâts cumulés (arrondi au-dessus), recalculée à chaque dégât ; l'insurrection à 0 reste inchangée. — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Alias** : les lignes `assassiner_*`, `corrompre_fonct`, `acheter_arme_illegale` restent dans `infractions` (aucune suppression) avec le
+  barème de leur infraction canonique ; le juge ne les voit plus. — *valeur provisoire choisie par l'agent, à valider par Fred*
+
+### Points relevés pour les lots suivants
+- Dommages et intérêts : la plainte élucidée vise le coupable et suit la procédure existante (parquet, juge) ; aucun barème propre.
+- L'événement public de l'état d'urgence dit encore « jusqu'à nouvel ordre » (texte existant, non retraduit).
+- Bancs SQL relus : `militaire_detachement_arrestation()` n'existe plus et `couvre_feu_patrouille()` n'est plus ouverte aux joueurs.
+- L'enquête nominative existante du commissaire (« Mener l'enquête » sur un suspect, `commissaire_enquete_mener`) est conservée.
+- Envoi au QHS : lot 10 (la rébellion matée n'y envoie plus).
+- Le baseline n'est pas réextrait (comme aux lots 1 à 5).
+
 ## Tableau de correspondance (règle → statut → fonction serveur)
 
-Statuts : **décidé** (dans le document), **implémenté** (en production), **testé** (essai en production annulé + bancs `outils/bancs/test-crim-lot1-equipement.cjs`, `outils/bancs/test-crim-lot2-resolution.cjs`, `outils/bancs/test-crim-lot3-voler.cjs`, `outils/bancs/test-crim-lot4-cambriolage.cjs`, `outils/bancs/test-crim-lot5-poison-explosifs-incendie.cjs`).
+Statuts : **décidé** (dans le document), **implémenté** (en production), **testé** (essai en production annulé + bancs `outils/bancs/test-crim-lot1-equipement.cjs`, `outils/bancs/test-crim-lot2-resolution.cjs`, `outils/bancs/test-crim-lot3-voler.cjs`, `outils/bancs/test-crim-lot4-cambriolage.cjs`, `outils/bancs/test-crim-lot5-poison-explosifs-incendie.cjs`, `outils/bancs/test-crim-lot6-justice.cjs`).
 
 | § | Règle | Statut | Lot | Fonction serveur |
 |---|---|---|---|---|
@@ -513,10 +592,10 @@ Statuts : **décidé** (dans le document), **implémenté** (en production), **t
 | 2 | Combat 10 % des échecs (+2/PER > 10, +15 garde, −10 caché, 2-40) | implémenté, testé | 2 | `crim_combat_taux_interne`, `crim_garde_cible_interne` |
 | 2 | Échec sans combat : cachette gardée, message selon le mode | implémenté, testé | 2 | `crim_resoudre_interne`, `crim_affaire_notifier_interne` |
 | 2 | Combat : vaincu identifié ; vainqueur = réussite, perd la cachette, garde le masque | implémenté, testé (ouverture et suite ; issue réelle d'un combat non jouée) | 2 | `crim_resoudre_suite_interne`, raccord `combat_finaliser_interne`, `crim_debusquer_interne` |
-| 3 | Pas d'enquête automatique ; identifié = recherché + 2 j d'office ; dommages et intérêts | identifié → recherché + 2 j : implémenté, testé ; `minuit_decouverte_crimes` à retirer (lot 6) ; dommages et intérêts : décidé | 2 | `crim_identifier_interne`, `crim_peine_jours_interne`, raccord `peine_acte_interne` |
+| 3 | Pas d'enquête automatique ; identifié = recherché + 2 j d'office ; dommages et intérêts | implémenté, testé (jugement d'office exécutable ; découverte nocturne neutralisée) ; dommages et intérêts : procédure existante | 2, 6 | `crim_identifier_interne`, `crim_peine_office_interne`, `minuit_decouverte_crimes` neutralisée |
 | 3 | Affaire enregistrée à chaque crime (trace, plafond 5 / 15 %, indices) ; plainte de l'employeur d'un PNJ | implémenté, testé | 2 | `crim_affaires`, `crim_affaire_notifier_interne` |
-| 3 | Plainte contre X : commissaire de la ville, « Enquêter » 2 PA, 1/jour/plainte, plafonds 5/15 %, bonus (trace, rumeurs, informateur, traces d'achat) | décidé | 6 | (`crim_traces_achat` alimentée dès le lot 1) |
-| 3 | Première enquête ratée : message, −20 DIS, −15 moral | décidé | 6 | — |
+| 3 | Plainte contre X : commissaire de la ville, « Enquêter » 2 PA, 1/jour/plainte, plafonds 5/15 %, bonus (trace, rumeurs, informateur, traces d'achat) | implémenté, testé | 6 | `crim_enquetes_lire`, `crim_enqueter`, `crim_enquete_taux_interne`, raccord `crim_plainte_x_v1` |
+| 3 | Première enquête ratée : message, −20 DIS, −15 moral (une fois par plainte) | implémenté, testé | 6 | `crim_enqueter` |
 | 4 | Rumeurs à indices partiels (genre, arme) ; fausse piste | décidé | — | — |
 | 5 | Revêtir / Retirer 0 PA ; retiré = sans effet | implémenté, testé | 1 | `crim_revetir`, `crim_retirer`, `crim_porte_ligne_interne` |
 | 5 | Arrestation : masque retiré + « Bas les masques ! » | implémenté, testé (serveur) | 1 | déclencheur `crim_personnage_etat`, `crim_evenements_lire` |
@@ -535,7 +614,7 @@ Statuts : **décidé** (dans le document), **implémenté** (en production), **t
 | 7 | Réussite : victime prévenue, auteur selon le mode ; détection 30 −20 −10 min 5 | implémenté, testé | 3 | `crim_resoudre_interne`, `crim_affaire_notifier_interne` |
 | 7 | Réussite critique 5 % : découverte au prochain réveil, sans détection | implémenté, testé | 3 | `crim_vols_differes`, `crim_vols_reveil_interne`, raccord `pa_repos_nocturne` |
 | 7 | Échec remarqué 50 +3/PER > 8 −1/3 DIS > 50 (10-90) ; cachette gardée ; échec critique 2 % ; combat 10 % (2-40) | implémenté, testé (combat ouvert ; issue réelle non jouée) | 3 | `crim_voler_remarque_interne`, `crim_combat_ouvrir_interne`, raccord `crim_resoudre_suite_interne` |
-| 7 | Voleur pris : 1 j d'office (Républia, par empire) ; doublé si démasqué plus tard | 1 j : implémenté, testé ; doublement : lot 6 | 3 | `crim_parametres.peine_jours_vol_republic` |
+| 7 | Voleur pris : 1 j d'office (Républia, par empire) ; doublé si démasqué plus tard | implémenté, testé | 3, 6 | `crim_parametres.peine_jours_vol_republic`, `crim_peine_office_interne` |
 | 8 | Crochetage 3 PA, kit, 30 % +1/2 DIS > 50, +15, 5-80 ; kit cassé ; 5 usages ; réussite sans trace, serrure refermée | implémenté, testé | 4 | `crim_crocheter`, `crim_crocheter_taux_interne`, `crim_intrusions`, raccord `crim_passage_v1` |
 | 8 | Effraction 2 PA, 40 % +3/FOR > 8, +25 pied-de-biche, +10, 10-95 ; serrure détruite ; propriétaire prévenu ; détection 60 (−10 masqué, caché sans effet) | implémenté, testé | 4 | `crim_forcer_porte`, `crim_forcer_taux_interne`, `crim_forcer_mode_detection_interne` |
 | 8 | Achat de kit / pied-de-biche tracé | implémenté, testé | 1 | `crim_traces_achat` |
@@ -556,8 +635,12 @@ Statuts : **décidé** (dans le document), **implémenté** (en production), **t
 | 9-11 | Écran sans estimation, pop-ups `cpj-*` | implémenté, testé (VM) | 5 | `plateau-criminalite.js` (`crimOuvrirEmpoisonner`, `crimOuvrirSabotage`) |
 | 12 | Corruption de PNJ seulement ; règle commune ; QHS directeur / gardien ; suppressions | décidé | — | — |
 | 13 | Rumeur : formule, échec critique 10 %, détection 15 %, bouche-à-oreille ; tracts ; scandale ; fuite | décidé | — | — |
-| 14 | Doublement démasqué ; fin des catégories lourdes ; seuil du procès 4 j ; juge ±50 % (liberté sous état d'urgence) ; état d'urgence 7 j ; correctifs de nomenclature | décidé | — | — |
-| 14 | Rébellion réussie / matée, grilles, réparation | décidé | — | — |
+| 14 | Doublement démasqué | implémenté, testé | 6 | `crim_peine_office_interne`, `crim_enqueter` |
+| 14 | Fin des catégories lourdes (1 j délit, 2 j crime) ; nomenclature unique ; 11 barèmes rattachés ; durées en dur retirées ; autres empires = Républia | implémenté, testé | 6 | `crim_peine_jours_interne`, `peine_acte_interne`, `infractions_alias`, `plateau-core.js` (`INFRACTIONS_ALIAS`, `INFRACTIONS_RATTACHEES`) |
+| 14 | Seuil du procès 4 j (4 j d'office puis procès) | implémenté, testé | 6 | `crim_seuil_proces_interne`, raccords `detention_ouvrir_interne` / `detention_prolonger_interne` |
+| 14 | Juge ±50 % (somme de référence), liberté sous l'état d'urgence | implémenté, testé | 6 | `crim_peine_bornes_juge_interne`, raccords `justice_rendre_sentence` / `justice_appel_juger` / `justice_peine_proposer` |
+| 14 | État d'urgence 7 j, renouvelable (3 PA + POP) | implémenté, testé | 6 | `etat_urgence_decider`, `crim_justice_nuit` |
+| 14 | Rébellion réussie / matée (plus de QHS automatique), grilles +25 % max, réparation 1/3 par nuit pour 100 FR | implémenté, testé | 6 | `detention_se_rebeller`, `crim_grilles_bonus_interne`, `detention_tenter_evasion`, `crim_justice_nuit` |
 | 15 | Carrière criminelle, cursus « Droit pénal », bonus seulement | décidé | — | — |
 | 16 | QHS réservé aux détenus très dangereux ; pas de verrou de critères | décidé | 10 | — |
 | 16 | Décision : Ministre de la Justice (valider, référendum, refuser) ; proposition du juge | décidé | 10 | — |

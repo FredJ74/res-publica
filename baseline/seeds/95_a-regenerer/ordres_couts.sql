@@ -192,6 +192,7 @@ INSERT INTO public.ordres_couts (fn,pa,cost) VALUES
   ('emprunter_prive',1,0),
   ('enigme1_examiner_cadre',0,0),
   ('enigme1_parler_valerie',0,0),
+  ('enqueter_plainte',2,0),
   ('entrainer_section',0,0),
   ('equiper_section',1,0),
   ('escort_piege',3,800),

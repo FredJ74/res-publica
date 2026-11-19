@@ -5,6 +5,8 @@
 // matériel installé, stock et caisse (crim_cambriolage_lire, crim_cambrioler) ; le serveur tranche tout.
 // Lot 5 : Empoisonner (crime_empoisonner), Incendier (crime_incendier), Explosifs (crime_explosifs), même résolution commune ;
 // aucune estimation de chances ici.
+// Lot 6 : Justice — enquête du commissaire sur les plaintes contre X (crim_enquetes_lire, crim_enqueter), textes de l'état
+// d'urgence (7 jours, renouvelable) et de la rébellion matée (plus de QHS automatique). Chances et pistes viennent du serveur.
 // Le serveur tranche tout : jets (se_cacher, crim_fouiller_cachettes), objet porté (crim_revetir / crim_retirer, marque
 // `porte_par` dans l'inventaire), liste des présents (crim_presents : caché absent, masqué numéroté sans portrait),
 // boutique « Équipement discret » (boutique_discretion_etat / _acheter), événements d'écran (crim_evenements_lire :
@@ -95,7 +97,29 @@ const T = {
     xTitre: 'Explosifs — {nom}', xNote: 'Acte criminel grave : le bâtiment ferme 5 jours et toute personne présente dans la pièce est gravement blessée. Une charge d’explosifs sera utilisée. Une explosion prématurée vous blesserait vous-même.',
     xGo: '💣 Déclencher — 3 PA', xOk: 'Explosion', xOkText: '{nom} est fermé 5 jours. Blessé(s) : {n}.',
     xFail: 'Raté', xFailText: 'Le dispositif ne se déclenche pas. Personne n’a rien vu.',
-    xPrem: 'Explosion prématurée !', xPremText: 'La charge vous explose entre les mains : vous êtes grièvement blessé(e) et votre moral en prend un coup (−15).'
+    xPrem: 'Explosion prématurée !', xPremText: 'La charge vous explose entre les mains : vous êtes grièvement blessé(e) et votre moral en prend un coup (−15).',
+    jMenu: '🔎 Enquêter sur une plainte contre X ({pa} PA)', jTitre: 'Plaintes contre X',
+    jNote: 'Plaintes contre X de votre ville. Une tentative par jour et par plainte ({pa} PA). Les pistes réunies rapprochent vos chances du plafond de l’affaire.',
+    jAucune: 'Aucune plainte contre X à instruire dans votre ville.', jEnqueter: 'Enquêter ({pa} PA)', jDeja: 'Déjà tenté aujourd’hui',
+    jAffaire: '{acte} — victime : {victime} (jour {jour})', jAuteur: 'Auteur : {auteur}', jInconnu: 'inconnu', jMasque: 'un individu masqué',
+    jIssueOk: 'acte réussi', jIssueKo: 'tentative ratée', jIndices: 'Indices : {liste}', jChances: 'Chances d’identification : {taux} %',
+    jPistes: 'Pistes : {liste}', jPisteAucune: 'aucune', jTentatives: 'Tentatives : {n}',
+    p_trace: 'trace', p_rumeurs: 'rumeurs', p_informateur: 'votre informateur', p_achats: 'achats tracés',
+    a_neutraliser: 'Agression', a_voler: 'Vol', a_crocheter: 'Crochetage', a_forcer_porte: 'Effraction', a_cambrioler: 'Cambriolage',
+    a_ramasser: 'Objets disparus', a_empoisonner: 'Empoisonnement', a_utiliser_explosifs: 'Explosion', a_incendier: 'Incendie',
+    i_arme: 'arme : {v}', i_poison: 'poison : {v}', i_batiment: 'lieu : {v}', i_objet: 'objet : {v}',
+    jOk: 'Coupable identifié', jOkText: '{nom} est démasqué(e) : avis de recherche, {jours} jour(s) de prison d’office. La plainte le (la) vise désormais.',
+    jFail: 'Pas encore', jFailText: 'L’enquête n’aboutit pas aujourd’hui. Vous pourrez reprendre demain.',
+    jAverti: 'Le suspect sait désormais que vous êtes sur ses traces.',
+    r_reserve_commissaire: 'Réservé au commissaire de la ville.', r_hors_juridiction: 'Cette affaire relève d’une autre ville.',
+    r_aucune_plainte: 'Il n’y a plus de plainte contre X sur cette affaire.', r_deja_identifie: 'Le coupable est déjà identifié.',
+    r_une_tentative_par_jour: 'Une seule tentative par jour et par plainte.',
+    uEnVigueur: 'L’état d’urgence est en vigueur jusqu’au {date} ; il a été déclaré par {par}.',
+    uRenouveler: 'Renouveler pour 7 jours — 3 PA', uLever: 'Lever l’état d’urgence',
+    uRenouvele: 'État d’urgence renouvelé', uRenouveleText: 'Il court désormais jusqu’au {date}. {pop} POP, +{inf} INF.',
+    uDuree: 'L’état d’urgence dure 7 jours ; le Président peut le renouveler (3 PA et une perte de popularité). Sous l’état d’urgence, le juge fixe librement la peine.',
+    bMatee: 'Rébellion matée', bMateeText: 'Les gardiens interviennent avant que les grilles ne cèdent. −25 PV, −15 DIS, +{jours} jour(s) de détention.',
+    bProces: 'Vos peines automatiques dépassent 4 jours : un procès décidera d’un éventuel complément.'
   }
 };
 const etat = () => (typeof state !== 'undefined' && state) ? state : {};
@@ -552,6 +576,65 @@ async function crimSabotageConfirmer(genre) {
   }
 }
 
+// ── Justice (lot 6) : enquête du commissaire sur les plaintes contre X ──────────────────────────────────────────────
+// Déclaration d'ordre lue par le miroir des coûts (ordres_couts).
+const ORDRES_JUSTICE = {
+  enqueter: { fn: 'enqueter_plainte', label: 'Enquêter sur une plainte contre X', pa: 2, cost: 0 }
+};
+let enqueteEnCours = false;
+function libelleIndices(ind) {
+  const out = [];
+  for (const k of ['arme', 'poison', 'batiment', 'objet']) if (ind && ind[k]) out.push(texte('i_' + k, { v: ind[k] }));
+  return out.join(', ');
+}
+function libellePistes(p) {
+  const out = [];
+  for (const k of ['trace', 'rumeurs', 'informateur', 'achats']) if (p && p[k] === true) out.push(texte('p_' + k));
+  return out.length ? out.join(', ') : texte('jPisteAucune');
+}
+async function crimOuvrirEnquetes() {
+  const r = await rpc('crim_enquetes_lire');
+  const pa = (r && r.pa) || ORDRES_JUSTICE.enqueter.pa;
+  titreModale(texte('jTitre'));
+  if (!r || r.ok !== true) { ouvrirModale('<div class="cpj-dialogue"><p class="cpj-note">' + esc(motif(r)) + '</p></div>'); return; }
+  const liste = Array.isArray(r.affaires) ? r.affaires : [];
+  let html = '<div class="cpj-dialogue"><p class="cpj-note">' + esc(texte('jNote', { pa })) + '</p>';
+  if (!liste.length) html += '<p class="cpj-note">' + esc(texte('jAucune')) + '</p>';
+  for (const a of liste) {
+    const acte = T.fr['a_' + a.acte] ? texte('a_' + a.acte) : a.acte;
+    const ind = libelleIndices(a.indices);
+    html += '<div style="margin:.6rem 0;padding:.5rem 0;border-top:1px solid rgba(169,141,86,.35)">'
+      + '<div><strong>' + esc(texte('jAffaire', { acte, victime: a.victime || '?', jour: a.jour == null ? '?' : a.jour })) + '</strong> · '
+      + esc(texte(a.issue === 'reussite' ? 'jIssueOk' : 'jIssueKo')) + '</div>'
+      + '<p class="cpj-note">' + esc(texte('jAuteur', { auteur: texte(a.masque ? 'jMasque' : 'jInconnu') }))
+      + (ind ? ' · ' + esc(texte('jIndices', { liste: ind })) : '') + '</p>'
+      + '<p class="cpj-note">' + esc(texte('jPistes', { liste: libellePistes(a.pistes) })) + ' · '
+      + esc(texte('jChances', { taux: a.chances == null ? '?' : a.chances })) + ' · ' + esc(texte('jTentatives', { n: a.tentatives || 0 })) + '</p>'
+      + (a.deja_aujourdhui ? '<button class="cpj-touche" disabled>' + esc(texte('jDeja')) + '</button>'
+        : '<button class="cpj-touche cpj-primaire" onclick="crimEnqueter(' + Number(a.affaire) + ')">' + esc(texte('jEnqueter', { pa })) + '</button>')
+      + '</div>';
+  }
+  ouvrirModale(html + '</div>');
+}
+async function crimEnqueter(affaire) {
+  if (enqueteEnCours || !Number.isSafeInteger(Number(affaire))) return;
+  fermerModale();
+  enqueteEnCours = true;
+  let r;
+  try { r = await rpc('crim_enqueter', { p_affaire: Number(affaire), p_requete: uuid() }); }
+  finally { enqueteEnCours = false; }
+  if (!r || r.ok !== true) { toast(texte('jFail'), motif(r), false); return; }
+  if (r.paiement && typeof global.appliquerPaiementServeur === 'function') global.appliquerPaiementServeur(r.paiement);
+  if (r.reussi) toast(texte('jOk'), texte('jOkText', { nom: r.coupable || '?', jours: r.jours == null ? '?' : r.jours }), true);
+  else toast(texte('jFail'), texte('jFailText') + (r.averti ? ' ' + texte('jAverti') : ''), false);
+  if (typeof global.updateUI === 'function') global.updateUI();
+}
+// Bouton ajouté à la fenêtre « Mener l'enquête » du commissaire.
+function crimBoutonEnquetes() {
+  return '<button class="cpj-touche cpj-primaire" style="margin-bottom:1rem" onclick="crimOuvrirEnquetes()">'
+    + esc(texte('jMenu', { pa: ORDRES_JUSTICE.enqueter.pa })) + '</button>';
+}
+
 // ── Événements d'écran : « Bas les masques ! » (arrestation d'un PJ masqué), débusqué ───────────────────────────
 function injecterStyle() {
   const doc = global.document;
@@ -616,10 +699,11 @@ if (global.document && global.setTimeout) {
   else global.document.addEventListener('DOMContentLoaded', demarrer);
 }
 
-global.RPCriminalite = { T, texte, objetRevetable, objetPorte, ordresBoutiqueDiscretion, LIEUX_BOUTIQUE, identifiantCible, ORDRES_VOL, TYPES_VOL, ORDRES_CAMBRIOLAGE };
+global.RPCriminalite = { T, texte, objetRevetable, objetPorte, ordresBoutiqueDiscretion, LIEUX_BOUTIQUE, identifiantCible, ORDRES_VOL, TYPES_VOL, ORDRES_CAMBRIOLAGE,
+  ORDRES_JUSTICE, crimBoutonEnquetes };
 Object.assign(global, { ouvrirBoutiqueDiscretion, acheterDiscretion, boutonRevetir, badgeRevetu, crimRevetir, crimRetirer,
   messageSeCacher, ouvrirFouilleCachettes, fouilleCachettesConfirmer, lireEvenementsCrim, animationDemasquage,
   ouvrirNeutraliser, crimNeutraliserConfirmer, crimOuvrirVoler, crimVolerTypes, crimVolerConfirmer, crimVolerChoisirCible,
   crimBoutonsPorte, crimPorteAgir, crimOuvrirCambriolage, crimCambrioler,
-  crimOuvrirEmpoisonner, crimEmpoisonnerConfirmer, crimOuvrirSabotage, crimSabotageConfirmer });
+  crimOuvrirEmpoisonner, crimEmpoisonnerConfirmer, crimOuvrirSabotage, crimSabotageConfirmer, crimOuvrirEnquetes, crimEnqueter });
 })(typeof window !== 'undefined' ? window : globalThis);

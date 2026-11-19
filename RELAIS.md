@@ -8,6 +8,14 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Chantier Criminalité — lot 6 : justice (Claude, 20/11/2026)
+- **Branche `claude/game-design-criminalite-20261118`**. Détail, valeurs provisoires et tableau : fin de `GAME-DESIGN-CRIMINALITE.md` (« Lot 6 — ce qui est en place »).
+- **Migrations APPLIQUÉES** : `20261120030000_crim_lot6_justice` (essais annulés en deux parties, puis scénario rejoué en essai annulé) et `crim_lot6_justice_correctif_prolonger` (cast `bigint` → `integer` dans le raccord de `detention_prolonger_interne`, appliqué aussitôt, repris dans le fichier ; idempotent).
+- **Fait** : plainte contre X rattachée à son affaire (`plainte_deposer`) ; « Enquêter » du commissaire (`crim_enquetes_lire`, `crim_enqueter` : 2 PA, 1/jour/plainte, plafonds 5/15 %, pistes trace / rumeurs / informateur / achats, réussite = peine d'office doublée et plainte qui vise le coupable, première enquête ratée = message + −20 DIS −15 moral une seule fois) ; `minuit_decouverte_crimes` neutralisée ; peine d'office = jugement d'office exécutable par la police (`crim_peine_office_interne`, soldé par un flagrant délit du même acte, avis effacé à l'exécution) ; barème unique (`crim_peine_jours_interne`, alias, catégories 1/2 j, 11 barèmes rattachés, durées en dur retirées, autres empires = Républia) ; seuil du procès 4 j (`crim_seuil_proces_interne`) ; juge ±50 % / liberté sous état d'urgence (`crim_peine_bornes_juge_interne`) ; état d'urgence 7 j renouvelable ; rébellion (matée sans QHS ni dégât), bonus d'évasion des grilles (+25 max), réparation nocturne 1/3 pour 100 FR (`crim_justice_nuit`, pg_cron). `ordres_couts` : `enqueter_plainte` 2 PA (plans 97/219, seeds). Canon pénal `plateau-core.js` + générateur + empreinte `ac8ead42d4f8134e` (référentiels).
+- **Écran** : bouton « Enquêter sur une plainte contre X » dans « Mener l'enquête » (`plateau-criminalite.js`), état d'urgence (échéance, « Renouveler »), rébellion matée, liste du juge sans alias.
+- **Tester** : `node --test outils/bancs/test-crim-lot6-justice.cjs` ; bancs SQL `banc-arrestations-flagrant-delit.sql` / `banc-se-cacher.sql` (rejoués verts). En jeu : un PJ masqué vole un autre PJ, la victime porte plainte contre X au commissariat, le commissaire de la ville ouvre « Mener l'enquête » → « Enquêter sur une plainte contre X ».
+- **Reste** : corruption (§ 12), délits d'information (§ 13), carrière (§ 15), QHS (lot 10). Textes français à traduire par Codex (`plateau-criminalite.js`, courriers serveur).
+
 ### Chantier Criminalité — lot 5 : empoisonnement, explosifs, incendie (Claude, 19/11/2026)
 - **Branche `claude/game-design-criminalite-20261118`**. Détail, valeurs provisoires et tableau : fin de `GAME-DESIGN-CRIMINALITE.md` (« Lot 5 — ce qui est en place »).
 - **Migration APPLIQUÉE** : `20261120010000_crim_lot5_poison_explosifs_incendie` (partie migration essayée en transaction annulée, appliquée, scénario rejoué en essai annulé ; idempotente).

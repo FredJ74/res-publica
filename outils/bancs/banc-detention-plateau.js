@@ -181,21 +181,20 @@ att('aucune ecriture cliente sur detentions ni personnages',
     ecrituresSur('detentions').length === 0 && ecrituresSur('personnages').length === 0);
 
 print('');
-print('4. REBELLION : UNE SEULE PORTE SERVEUR, QUI TIRE ET TRANSFERE (03/11/2026)');
+print('4. REBELLION : UNE SEULE PORTE SERVEUR, QUI TIRE (03/11/2026) ; MATEE = +4 J D OFFICE, PLUS DE QHS (criminalite lot 6, 20/11/2026)');
 neuf({ estEmprisonne: { detentionId: 'det-1', jourFin: 4 } });
-REPONSES['detention_se_rebeller'] = [{ ok: true, reussi: false, qhs: true, detention_id: 'det-9', jour_fin: 31,
-  hp: 75, dis: 35, grilles: { niveau: 80, degats: 6 }, paiement: { ok: true, pa: 8 } }];
+REPONSES['detention_se_rebeller'] = [{ ok: true, reussi: false, qhs: false, jour_fin: 8, jours_ajoutes: 4,
+  hp: 75, dis: 35, grilles: null, paiement: { ok: true, pa: 8 } }];
 sync(doSeRebeller(2, 0));
 att('la porte detention_se_rebeller est appelee', rpcDe('detention_se_rebeller').length === 1);
 att('l ecran n appelle plus le transfert QHS lui-meme', rpcDe('detention_transferer_qhs').length === 0);
 att('aucune ecriture cliente (detentions, QHS, fiche, grilles)', ECRITURES.length === 0);
-att('la nouvelle peine est celle du serveur',
-    state.estEmprisonne.detentionId === 'det-9' && state.estEmprisonne.jourFin === 31 && state.estEmprisonne.qhs === true);
-att('le drapeau local est un OBJET, jamais une chaine',
-    typeof state.detentionQHS === 'object' && state.detentionQHS.enQHS === true);
+att('la peine prolongee est celle du serveur (meme detention)',
+    state.estEmprisonne.detentionId === 'det-1' && state.estEmprisonne.jourFin === 8 && !state.estEmprisonne.qhs);
+att('plus de QHS automatique', !(state.detentionQHS && state.detentionQHS.enQHS));
 att('PV et DIS sont ceux du serveur', state.hp === 75 && state.dis === 35);
 att('le paiement rendu par le serveur est adopte', PAIEMENTS.length === 1);
-att('le transfert est annonce', TOASTS.join(' | ').indexOf('Transfere au QHS') >= 0);
+att('aucun transfert annonce', TOASTS.join(' | ').indexOf('QHS') < 0);
 
 neuf({ estEmprisonne: { detentionId: 'det-1', jourFin: 4 } });
 REPONSES['detention_se_rebeller'] = [{ ok: false, raison: 'pa_insuffisants' }];

@@ -2156,12 +2156,14 @@ async function doSeRebeller(pa, cost) {
     addJournalEntry('Rebellion en cellule reussie. Grilles endommagees (-' + degats + '). +1 jour de peine, -10 PV.', 'event-info');
     if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('rebellion_cellule', ville);
   } else {
-    state.estEmprisonne = { jours: 30, jourFin: r.jour_fin, raison: 'Rebellion en cellule matee - transfert QHS',
-                            detentionId: r.detention_id, qhs: true, city: ville, country: state.country };
-    state.detentionQHS = { enQHS: true, paLimite1Jour: false };
+    // Criminalite lot 6 (§ 14) : rebellion matee = +4 jours d'office (bareme), plus de QHS automatique, aucun degat aux grilles.
+    if (state.estEmprisonne && r.jour_fin != null) state.estEmprisonne.jourFin = r.jour_fin;
     updateUI();
-    showToast('Rebellion matee', 'Transfere au QHS. -25 PV, -15 DIS.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bb292f050", 'Transfere au QHS. -25 PV, -15 DIS.', undefined, 'Rebellion matee');
-    addJournalEntry('Rebellion en cellule matee par les gardiens. Transfert au QHS. Grilles endommagees (-' + degats + ').', 'event-bad');
+    const T6 = globalThis.RPCriminalite;
+    const jours = Number(r.jours_ajoutes || 0);
+    const texteMatee = T6 ? T6.texte('bMateeText', { jours }) + (r.proces ? ' ' + T6.texte('bProces') : '') : '';
+    showToast(T6 ? T6.texte('bMatee') : '', texteMatee, false);
+    addJournalEntry(texteMatee, 'event-bad');
   }
   if (r.grilles && typeof verifierSeuilsGrillePrison === 'function') {
     await verifierSeuilsGrillePrison(state.country, ville, Number(r.grilles.niveau)).catch(() => {});
@@ -2525,8 +2527,11 @@ function infractionsCanoniques() {
   const pays = state.country || 'republic';
   const ids = {};
   Object.keys(typeof ACTES_ILLEGAUX !== 'undefined' ? ACTES_ILLEGAUX : {}).forEach(k => { ids[k] = true; });
-  const propres = (typeof PEINES_ACTES !== 'undefined' ? PEINES_ACTES[pays] : null) || {};
+  // Les autres empires reprennent les baremes de Republia (criminalite lot 6).
+  const propres = (typeof PEINES_ACTES !== 'undefined' ? (PEINES_ACTES[pays] || PEINES_ACTES.republic) : null) || {};
   Object.keys(propres).forEach(k => { ids[k] = true; });
+  // Une seule nomenclature (criminalite lot 6) : un alias n'est pas une qualification a part, le juge choisit l'infraction canonique.
+  Object.keys(typeof INFRACTIONS_ALIAS !== 'undefined' ? INFRACTIONS_ALIAS : {}).forEach(k => { delete ids[k]; });
   return Object.keys(ids).map(id => {
     const p = getPeineParActe(id, false);
     return { id: id, libelle: p.label, jours: p.jours, amende: p.amende, propre: !!propres[id] };
@@ -10963,8 +10968,11 @@ function doMenerEnquete(pa, cost) {
     : contacts.map(c => '<label style="display:flex;align-items:center;gap:.5rem;font-size:.85rem;color:#c0b090;cursor:pointer;padding:.2rem 0"><input type="radio" name="enquete-cible" value="' + c.name + '" style="accent-color:#C9A84C"/> ' + c.name + ' — ' + (c.role || '') + '</label>').join('');
 
   document.getElementById('postes-modal-title').textContent = "Mener l'enquete";
+  // Criminalite lot 6 : enquete sur les plaintes contre X (crim_enquetes_lire / crim_enqueter, plateau-criminalite.js).
+  const boutonPlaintesX = (globalThis.RPCriminalite && typeof globalThis.RPCriminalite.crimBoutonEnquetes === 'function')
+    ? globalThis.RPCriminalite.crimBoutonEnquetes() : '';
   document.getElementById('postes-body').innerHTML =
-    '<div style="padding:1rem">' +
+    '<div style="padding:1rem">' + boutonPlaintesX +
     '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:1rem">Cout : 250 FR, preleves sur la caisse du commissariat. Fouille le passe recent de la cible.</div>' +
     '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.5rem">CIBLE</div>' +
     contactsSection +
