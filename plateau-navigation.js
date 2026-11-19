@@ -336,7 +336,7 @@ async function commanderNavigationInterieure(buildingId,roomId) {
         acces_collectif_a_raccorder:'Cet accès particulier n’est pas encore disponible pour un groupe.',
         batiment_ferme:'Ce bâtiment est fermé.',porte_fermee_a_cle:'Cette porte est fermée à clé.',blocus_syndical:'Un blocus syndical interdit d’aller plus loin que la première pièce.',rendezvous_ssm_requis:'Le bureau d’Edwige Jacquard est accessible uniquement le jour de votre rendez-vous. Demandez un rendez-vous à Pascale, à l’accueil.',destination_inconnue:'Cette destination n’est pas référencée.',
         entree_non_accessible:'Ce bâtiment n’est pas accessible depuis votre position.',groupe_disperse:'Les membres du groupe ne sont plus réunis.'};
-      if(r?.raison==='porte_fermee_a_cle'&&typeof serrurePopupFermee==='function'){serrurePopupFermee(r.batiment?'batiment':'local');return false;}
+      if(r?.raison==='porte_fermee_a_cle'&&typeof serrurePopupFermee==='function'){serrurePopupFermee(r.batiment?'batiment':'local',buildingId,r.batiment?null:roomId);return false;}
       // Pavillon des Ambassadeurs et Résidence impériale (acces_reserve_v1) : explication et « Forcer le passage ».
       if(['acces_dignitaires','location_requise','un_seul_invite'].includes(r?.raison)&&typeof accesReserveRefus==='function'&&accesReserveRefus(r))return false;
       const incident=r||v;
@@ -412,7 +412,7 @@ function enterBuilding(buildingId, skipAutoRoom) {
   // refuse de toute facon (navigation_interieure : porte_fermee_a_cle).
   if (state.currentBuilding !== buildingId && typeof serrureBatimentEtat === 'function') {
     const eb = serrureBatimentEtat(buildingId);
-    if (eb && eb.fermee && !eb.a_cle) { serrurePopupFermee('batiment'); return; }
+    if (eb && eb.fermee && !eb.a_cle) { serrurePopupFermee('batiment', buildingId); return; }
   }
   if(state._navigationServeur===true&&state.currentBuilding!==buildingId
       &&navigationInterieureRendu?.buildingId!==buildingId){
@@ -706,7 +706,7 @@ function renderOngletsPieces(buildingId, roomActifId) {
       const style = locked ? 'opacity:.4;pointer-events:none;cursor:not-allowed' : (porteInterdite ? 'cursor:not-allowed' : '');
       const icon = locked ? '🔒 ' : (porte ? '<i class="ti ' + (porte.fermee ? 'ti-lock' : 'ti-lock-open') + '"></i> ' : '');
       const titre = porte ? (porte.fermee ? (porte.a_cle ? 'Fermé à clé — vous en avez la clé' : 'Fermé à clé') : 'Ouvert au public') : '';
-      const clic = porteInterdite ? "serrurePopupFermee('local')"
+      const clic = porteInterdite ? "serrurePopupFermee('local','" + buildingId + "','" + roomId + "')"
         : "enterRoom('" + buildingId + "','" + roomId + "',this)";
       // Meme regle de nom que le titre de la piece (plateau-variantes-pieces.js) :
       // un local occupe ne doit pas rester annonce « a louer » dans son onglet

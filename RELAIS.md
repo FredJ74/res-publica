@@ -8,6 +8,14 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Chantier Criminalité — lot 4 : cambriolage (Claude, 19/11/2026)
+- **Branche `claude/game-design-criminalite-20261118`**. Détail, valeurs provisoires et tableau : fin de `GAME-DESIGN-CRIMINALITE.md` (« Lot 4 — ce qui est en place »).
+- **Migration APPLIQUÉE** : `20261119220000_crim_lot4_cambriolage` (idempotente). Incident d'essai : la première moitié (paramètres, tables `crim_intrusions` / `crim_constats`, helpers, raccords) a été validée par erreur lors de l'essai (bloc sans RAISE final) ; la seconde a ensuite été essayée en transaction annulée, puis appliquée par `apply_migration`, et le scénario rejoué en essai annulé. Le fichier entier peut être rejoué sans effet.
+- **Fait** : `crim_crocheter(batiment, piece, requete)` (3 PA, kit 5 usages, 30 % +1/2 DIS > 50 +15 criminelle, 5-80 ; échec critique = kit cassé + trace sans nom ; réussite = passage personnel `crim_intrusions`, serrure intacte et refermée) ; `crim_forcer_porte(batiment, piece, requete)` (2 PA, 40 % +3/FOR > 8 +25 pied-de-biche +10 criminelle, 10-95 ; réussite = serrure détruite, propriétaire prévenu, détection 60 −10 masqué, caché sans effet ; échec = propriétaire alerté sans nom) ; `crim_cambriolage_lire()` / `crim_cambrioler(cible, ref, requete)` (matériel installé, stock 10-20 % d'une pile, caisse 10-30 % ≤ 3 000 ; 2 PA ; lieu vide = sans jet de réussite, détection 30 ; personne présente = règles du vol sur une personne via `crim_temoin_interne`) ; constats différés `crim_constats` (passage du propriétaire, point de caisse) ; objets déposés ramassés après effraction = affaire au nom du propriétaire. `voler_materiel(uuid)` redirigé vers la règle du cambriolage ; `crime_voler_materiaux` (chantier) inchangé. `ordres_couts` : `crocheter` 3, `forcer_porte` 2, `cambrioler` 2 (plans 97/219, seeds régénérés).
+- **Écran** : la fenêtre « Fermé à clé » (`serrurePopupFermee`) porte « Crocheter » / « Forcer la porte » ; menu « Fouiller ou voler » → « Emporter ce qu'il y a ici » (`plateau-criminalite.js`, aucun calcul).
+- **Tester** : `node --test outils/bancs/test-crim-lot4-cambriolage.cjs`. En jeu : poser une serrure sur un local, la fermer, venir avec un autre PJ muni d'un kit / pied-de-biche.
+- **Reste** : empoisonnement / explosifs / incendie (lot 5), enquête sur plainte contre X et doublement si démasqué (lot 6) ; contenu de l'armoire à souvenirs (non codé, donc rien à ramasser dedans).
+
 ### Chantier Criminalité — lot 3 : vol sur une personne (Claude, 19/11/2026)
 - **Branche `claude/game-design-criminalite-20261118`**. Détail, valeurs provisoires et tableau : fin de `GAME-DESIGN-CRIMINALITE.md` (« Lot 3 — ce qui est en place »).
 - **Migration APPLIQUÉE** (essai annulé d'abord) : `20261119190000_crim_lot3_voler`.

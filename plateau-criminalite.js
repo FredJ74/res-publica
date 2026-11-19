@@ -1,6 +1,8 @@
 // Criminalité — lot 1 : équipement et dissimulation (GAME-DESIGN-CRIMINALITE.md §§ 1 et 5, décisions de Fred des 18-19/11/2026).
 // Lot 2 : Neutraliser par crime_neutraliser (résolution commune crim_resoudre_interne), cible masquée visée par jeton.
 // Lot 3 : Voler (argent, objet au hasard, objet précis) par crime_voler, même résolution commune ; aucun calcul ici.
+// Lot 4 : cambriolage — Crocheter / Forcer la porte (crim_crocheter, crim_forcer_porte) sur la porte fermée à clé, puis
+// matériel installé, stock et caisse (crim_cambriolage_lire, crim_cambrioler) ; le serveur tranche tout.
 // Le serveur tranche tout : jets (se_cacher, crim_fouiller_cachettes), objet porté (crim_revetir / crim_retirer, marque
 // `porte_par` dans l'inventaire), liste des présents (crim_presents : caché absent, masqué numéroté sans portrait),
 // boutique « Équipement discret » (boutique_discretion_etat / _acheter), événements d'écran (crim_evenements_lire :
@@ -56,7 +58,25 @@ const T = {
     vCrit: 'Échec critique', vCritText: 'Maladresse : votre moral en prend un coup (−15).',
     vCombat: 'Affrontement !', vCombatText: 'Votre victime vous a pris la main dans le sac et se défend.',
     r_ordre_remplace: 'Ordre remplacé : rouvrez la fiche de la personne.', r_butin_invalide: 'Choix de butin invalide.',
-    r_type_invalide: 'Type d’objet invalide.'
+    r_type_invalide: 'Type d’objet invalide.',
+    pCrocheter: 'Crocheter — {pa} PA', pForcer: 'Forcer la porte — {pa} PA',
+    pNote: 'Crocheter demande un kit de crochetage et ne laisse aucune trace ; forcer la porte détruit la serrure, alerte aussitôt le propriétaire et fait du bruit (un pied-de-biche aide).',
+    cOk: 'Serrure crochetée', cOkText: 'La serrure cède sans un bruit. Elle se referme derrière vous.', cKitUse: 'Votre kit est usé : il est hors d’usage.',
+    cKitReste: 'Votre kit servira encore {n} fois.', cFail: 'Raté', cFailText: 'La serrure résiste. Vous pouvez réessayer.',
+    cCrit: 'Le crochet casse', cCritText: 'Votre kit s’est brisé dans la serrure : le propriétaire en trouvera la trace.',
+    fOk: 'Porte forcée', fOkText: 'La serrure saute : le lieu est ouvert. Le propriétaire est prévenu.', fFail: 'La porte tient',
+    fFailText: 'La serrure a tenu, et le propriétaire est alerté. Vous pouvez réessayer.',
+    r_kit_requis: 'Il vous faut un kit de crochetage.', r_pas_devant_la_porte: 'Il faut se tenir devant cette porte.',
+    r_pas_de_serrure: 'Cette porte n’a pas de serrure.', r_porte_ouverte: 'La porte n’est pas fermée à clé.',
+    r_cle_detenue: 'Vous en avez la clé.', r_votre_porte: 'C’est votre porte.',
+    kTitre: 'Cambrioler', kMenu: '🧰 Emporter ce qu’il y a ici (2 PA)',
+    kNote: 'Chaque prise coûte 2 PA. Si quelqu’un est là, c’est un vol sous ses yeux ; sinon, rien ne vous arrête, mais vous pouvez être repéré.',
+    kMateriel: 'Matériel installé', kStock: 'Stock du commerce', kCaisse: 'Caisse du commerce', kPrendre: 'Emporter (2 PA)',
+    kPiocher: 'Se servir (2 PA)', kRien: 'Rien à emporter ici.', kOk: 'Butin', kOkText: 'Vous emportez : {butin}.',
+    kVide: 'Bredouille', kVideText: 'Il n’y avait plus rien à prendre.',
+    r_pas_de_commerce: 'Il n’y a pas de commerce ici.', r_stock_vide: 'Plus rien dans ce stock.',
+    r_caisse_vide: 'La caisse est vide.', r_deja_a_vous: 'C’est à vous.', r_equipement_introuvable: 'Ce matériel n’est plus là.',
+    r_pas_sur_place: 'Ce n’est pas ici.'
   }
 };
 const etat = () => (typeof state !== 'undefined' && state) ? state : {};
@@ -336,6 +356,101 @@ async function crimVolerChoisirCible() {
   ouvrirModale(html + '</div>');
 }
 
+// ── Cambriolage (lot 4) ─────────────────────────────────────────────────────────────────────────────────────────
+// Déclarations d'ordre lues par le miroir des coûts (ordres_couts).
+const ORDRES_CAMBRIOLAGE = {
+  crocheter: { fn: 'crocheter', label: 'Crocheter une serrure', pa: 3, cost: 0 },
+  forcer: { fn: 'forcer_porte', label: 'Forcer la porte', pa: 2, cost: 0 },
+  cambrioler: { fn: 'cambrioler', label: 'Cambrioler', pa: 2, cost: 0 }
+};
+const attr = (v) => esc(v == null ? '' : v).replace(/'/g, '&#39;');
+// Boutons affichés sous « Fermé à clé » (porte d'un local : piece renseignée ; entrée d'un bâtiment : piece nulle).
+function crimBoutonsPorte(batiment, piece) {
+  const b = attr(batiment), p = piece ? attr(piece) : '';
+  return '<div style="display:flex;flex-direction:column;gap:.4rem;margin-top:.6rem">'
+    + '<p class="cpj-note" style="text-align:center">' + esc(texte('pNote')) + '</p>'
+    + '<button class="cpj-touche" data-b="' + b + '" data-p="' + p + '" onclick="crimPorteAgir(\'crocheter\',this.dataset.b,this.dataset.p)">'
+    + esc(texte('pCrocheter', { pa: ORDRES_CAMBRIOLAGE.crocheter.pa })) + '</button>'
+    + '<button class="cpj-touche" data-b="' + b + '" data-p="' + p + '" onclick="crimPorteAgir(\'forcer\',this.dataset.b,this.dataset.p)">'
+    + esc(texte('pForcer', { pa: ORDRES_CAMBRIOLAGE.forcer.pa })) + '</button></div>';
+}
+function appliquerVerdict(r) {
+  if (r.paie && typeof global.appliquerPaiementServeur === 'function') global.appliquerPaiementServeur(r.paie);
+  const e = etat();
+  if (typeof r.liquide === 'number') e.liquide = r.liquide;
+  if (typeof r.arg === 'number') e.arg = r.arg;
+  if (typeof r.moral === 'number') e.moral = r.moral;
+  if (Array.isArray(r.recherche)) e.recherche = r.recherche;
+  if (Array.isArray(r.inventory)) appliquerInventaire(r);
+}
+function suiteIdentite(r) {
+  if (r.identifie) return ' ' + texte('nIdent', { jours: r.peine_jours == null ? '?' : r.peine_jours });
+  if (r.trace && r.detecte) return ' ' + texte('nTrace');
+  return '';
+}
+let porteEnCours = false;
+async function crimPorteAgir(geste, batiment, piece) {
+  if (porteEnCours || !batiment) return;
+  fermerModale();
+  porteEnCours = true;
+  let r;
+  try {
+    r = await rpc(geste === 'forcer' ? 'crim_forcer_porte' : 'crim_crocheter', { p_batiment: batiment, p_piece: piece || null, p_requete: uuid() });
+  } finally { porteEnCours = false; }
+  if (!r || r.ok !== true) { toast(texte(geste === 'forcer' ? 'fFail' : 'cFail'), motif(r), false); return; }
+  appliquerVerdict(r);
+  if (typeof global.updateUI === 'function') global.updateUI();
+  if (geste === 'forcer') {
+    if (r.reussi) toast(texte('fOk'), texte('fOkText') + suiteIdentite(r), true);
+    else toast(texte('fFail'), texte('fFailText'), false);
+  } else if (r.reussi) {
+    toast(texte('cOk'), texte('cOkText') + ' ' + (r.kit_detruit ? texte('cKitUse') : texte('cKitReste', { n: r.kit_usages_restants })), true);
+  } else if (r.echec_critique) toast(texte('cCrit'), texte('cCritText'), false);
+  else toast(texte('cFail'), texte('cFailText'), false);
+  // Porte ouverte par le serveur : on entre par la navigation ordinaire (le serveur revérifie).
+  if (r.reussi && r.entrer) {
+    if (typeof global.serruresPassageAccorde === 'function') global.serruresPassageAccorde(r.entrer.batiment, r.entrer.piece, geste === 'forcer');
+    if (r.entrer.piece && typeof global.enterRoom === 'function') global.enterRoom(r.entrer.batiment, r.entrer.piece);
+    else if (!r.entrer.piece && typeof global.enterBuilding === 'function') global.enterBuilding(r.entrer.batiment);
+  }
+}
+// Ce qui s'emporte ici (crim_cambriolage_lire : ni montant de caisse, ni présence de quiconque).
+async function crimOuvrirCambriolage() {
+  const r = await rpc('crim_cambriolage_lire');
+  titreModale(texte('kTitre'));
+  if (!r || r.ok !== true) { toast(texte('kTitre'), motif(r), false); return; }
+  const ligne = (libelle, cible, ref, bouton) => '<div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;padding:.3rem 0;border-top:1px solid #2a3340">'
+    + '<span>' + esc(libelle) + '</span><button class="cpj-touche" data-c="' + cible + '" data-r="' + attr(ref) + '" onclick="crimCambrioler(this.dataset.c,this.dataset.r)">'
+    + esc(texte(bouton)) + '</button></div>';
+  let html = '<div class="cpj-dialogue"><p class="cpj-note">' + esc(texte('kNote')) + '</p>';
+  const mat = r.materiel || [], st = r.stock || [];
+  if (mat.length) html += '<div class="cpj-titre">' + esc(texte('kMateriel')) + '</div>' + mat.map(m => ligne(m.nom || m.generique, 'materiel', m.id, 'kPrendre')).join('');
+  if (st.length) html += '<div class="cpj-titre">' + esc(texte('kStock')) + '</div>' + st.map(x => ligne(x.label || x.produit, 'stock', x.produit, 'kPiocher')).join('');
+  if (r.caisse) html += '<div class="cpj-titre">' + esc(texte('kCaisse')) + '</div>' + ligne(texte('kCaisse'), 'caisse', '', 'kPiocher');
+  if (!mat.length && !st.length && !r.caisse) html += '<p class="cpj-note">' + esc(texte('kRien')) + '</p>';
+  ouvrirModale(html + '</div>');
+}
+let cambriolageEnCours = false;
+async function crimCambrioler(cible, ref) {
+  if (cambriolageEnCours) return;
+  fermerModale();
+  cambriolageEnCours = true;
+  let r;
+  try { r = await rpc('crim_cambrioler', { p_cible: cible, p_ref: ref || null, p_requete: uuid() }); }
+  finally { cambriolageEnCours = false; }
+  if (!r || r.ok !== true) { toast(texte('kTitre'), motif(r), false); return; }
+  appliquerVerdict(r);
+  if (r.issue === 'reussite') {
+    if (r.livre) toast(texte('kOk'), texte('kOkText', { butin: r.description || '?' }) + (r.reussite_critique ? ' ' + texte('vOkCrit') : '') + suiteIdentite(r), true);
+    else toast(texte('kVide'), texte('kVideText') + suiteIdentite(r), false);
+  } else if (r.issue === 'combat') toast(texte('vCombat'), texte('vCombatText'), false);
+  else if (r.echec_critique) toast(texte('vCrit'), texte('vCritText') + suiteIdentite(r), false);
+  else toast(texte('vFail'), texte('vFailText') + (r.remarque ? ' ' + texte('vRemarque') : '') + suiteIdentite(r), false);
+  if (typeof global.updateUI === 'function') global.updateUI();
+  if (r.issue === 'combat' && Number.isSafeInteger(Number(r.bataille)) && typeof global.ouvrirPanneauCombat === 'function')
+    await global.ouvrirPanneauCombat(Number(r.bataille));
+}
+
 // ── Événements d'écran : « Bas les masques ! » (arrestation d'un PJ masqué), débusqué ───────────────────────────
 function injecterStyle() {
   const doc = global.document;
@@ -400,8 +515,9 @@ if (global.document && global.setTimeout) {
   else global.document.addEventListener('DOMContentLoaded', demarrer);
 }
 
-global.RPCriminalite = { T, texte, objetRevetable, objetPorte, ordresBoutiqueDiscretion, LIEUX_BOUTIQUE, identifiantCible, ORDRES_VOL, TYPES_VOL };
+global.RPCriminalite = { T, texte, objetRevetable, objetPorte, ordresBoutiqueDiscretion, LIEUX_BOUTIQUE, identifiantCible, ORDRES_VOL, TYPES_VOL, ORDRES_CAMBRIOLAGE };
 Object.assign(global, { ouvrirBoutiqueDiscretion, acheterDiscretion, boutonRevetir, badgeRevetu, crimRevetir, crimRetirer,
   messageSeCacher, ouvrirFouilleCachettes, fouilleCachettesConfirmer, lireEvenementsCrim, animationDemasquage,
-  ouvrirNeutraliser, crimNeutraliserConfirmer, crimOuvrirVoler, crimVolerTypes, crimVolerConfirmer, crimVolerChoisirCible });
+  ouvrirNeutraliser, crimNeutraliserConfirmer, crimOuvrirVoler, crimVolerTypes, crimVolerConfirmer, crimVolerChoisirCible,
+  crimBoutonsPorte, crimPorteAgir, crimOuvrirCambriolage, crimCambrioler });
 })(typeof window !== 'undefined' ? window : globalThis);

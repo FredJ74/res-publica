@@ -220,6 +220,8 @@ async function plan3dObtenir(id, mode) {
 }
 
 async function ouvrirVolMateriel() {
+  // Criminalité lot 4 : le vol de matériel installé suit la règle du cambriolage (crim_cambrioler, 2 PA, sans jet dans un lieu vide).
+  if (typeof crimOuvrirCambriolage === 'function') return crimOuvrirCambriolage();
   const r = await informatiqueRpc('equipements_voler_lire', {});
   if (!r || r.ok !== true) { showToast(texteEquip('vol', 'Vol'), informatiqueRefus(r), false); return; }
   const lib = typeof EQUIPEMENTS_LIBELLES !== 'undefined' ? EQUIPEMENTS_LIBELLES : {};

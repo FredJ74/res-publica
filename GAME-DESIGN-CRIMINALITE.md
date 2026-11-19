@@ -369,9 +369,73 @@ Relevé en production (`pg_proc` du projet `jxpwoosmmhohoihxpbuc`, lecture seule
 - `crime_voler_materiaux` et `voler_materiel` (matériaux et matériel installé) restent hors de ce lot : à rattacher au cambriolage (lot 4) s'il y a lieu.
 - `crime_detecter_interne` n'est plus appelé par le vol : le double compte de la dissuasion disparaît pour cet acte.
 
+## Lot 4 — ce qui est en place (19/11)
+
+- Migration `20261119220000_crim_lot4_cambriolage` (appliquée ; scénario rejoué en essai annulé après application).
+- **Crocheter** : `crim_crocheter(batiment, piece, requete)` (idempotent), sur une serrure posée et fermée (porte d'un local, depuis le
+  bâtiment ; entrée d'un bâtiment, depuis la rue devant l'une de ses sorties) dont on n'a pas la clé. 3 PA, kit dans l'inventaire (le plus usé
+  d'abord). Taux `crim_crocheter_taux_interne`, résolu par `crim_resoudre_interne` (dissuasion #135 une fois, bornes 5-80, échec critique 2 %
+  des échecs, sans détection ni combat). Réussite : un usage de moins (kit détruit à zéro), passage personnel dans `crim_intrusions`, lu par
+  `serrure_porte_fermee_interne` / `serrure_batiment_ferme_interne` (raccord `crim_passage_v1`) ; la serrure reste fermée pour les autres.
+  Échec critique : kit cassé, courrier « Tentative de crochetage » sans nom au propriétaire, pas de moral perdu (raccord `crim_critique_moral_v1`
+  de la résolution commune : paramètre `critique_moral`).
+- **Forcer la porte** : `crim_forcer_porte(batiment, piece, requete)` (idempotent), 2 PA, pied-de-biche pris s'il est dans l'inventaire.
+  Taux `crim_forcer_taux_interne`, bornes 10-95, pas d'échec critique ni de combat. Le propriétaire est la cible prévenue : réussite
+  « Votre porte a été forcée … La serrure n° X est détruite. », échec « Quelqu'un a tenté de forcer votre porte … La serrure a tenu. » ;
+  détection 60 avec le mode corrigé `crim_forcer_mode_detection_interne` (caché ne compte pas, masqué −10). Réussite : serrure `detruite`
+  (motif `effraction`), jamais récupérable, ses clés n'ouvrent plus rien.
+- **Intérieur** : `crim_cambriolage_lire()` (matériel installé d'autrui, piles du stock, présence d'une caisse ; rien sur les présents ni sur
+  le montant) et `crim_cambrioler(cible, ref, requete)` (`materiel` | `stock` | `caisse`), 2 PA. Lieu vide : `reussite_auto` + détection 30.
+  Personne présente (`crim_temoin_interne` : PJ — même caché —, PNJ référencé en service, ou employé au comptoir d'un commerce ouvert) : règles
+  du vol sur une personne (`crim_voler_taux_interne` argent pour la caisse / hasard sinon, PER de groupe, remarque, réussite critique 5 %,
+  combat par `crim_combat_ouvrir_interne`, butin livré au combat gagné : raccord `crim_cambriolage_combat_v1`). Livraison
+  `crim_cambrioler_livrer_interne` ; constat différé `crim_constats` livré au prochain passage du propriétaire dans le lieu (raccord
+  `crim_constat_passage_v1` de `navigation_interieure_personnage_interne`) ou à son prochain point de caisse (raccords `crim_constat_caisse_v1`
+  de `retirer_caisse_fonds` / `alimenter_caisse_fonds`).
+- **Objets déposés** : `objet_abandonne_ramasser` inchangé pour tous ; après une effraction ou un crochetage (intrusion active), une affaire
+  `ramasser` est enregistrée au nom du propriétaire et un constat lui dit qu'il peut porter plainte pour vol (raccord `crim_ramasser_v1`).
+- **Anciennes fonctions** : `voler_materiel(uuid)` (3 PA, jet de duplicité, arrestation en flagrant délit) est redirigée vers la règle du
+  cambriolage (même RPC, réponse compatible). `crime_voler_materiaux` (matériaux d'un **chantier en plein air**) n'est pas un cambriolage
+  (pas de porte ni de lieu fermé) : inchangée, avec sa formule et son double compte de la dissuasion, à reprendre si Fred le souhaite.
+- **Peines** : `peine_jours_effraction_republic` = 1 (crochetage ou effraction identifiés) ; vol à l'intérieur : `vol` (1 j) ; les autres
+  empires reprennent Républia.
+- **Écran** : fenêtre « Fermé à clé » (`serrurePopupFermee(genre, batiment, piece)`) → « Crocheter — 3 PA », « Forcer la porte — 2 PA »
+  (`crimBoutonsPorte`, `crimPorteAgir`) ; après réussite, entrée par la navigation ordinaire (le serveur revérifie). Menu « Fouiller ou voler »
+  → « Emporter ce qu'il y a ici (2 PA) » (`crimOuvrirCambriolage`), qui remplace « Voler du matériel installé (3 PA) ». Coûts déclarés dans
+  `ORDRES_CAMBRIOLAGE` pour le miroir `ordres_couts` (plans 97 / 219 et seeds régénérés).
+
+### Valeurs provisoires du lot 4 (choisies par l'agent, à valider par Fred)
+- **Modificateurs « au-dessus » seulement** : rien en dessous de 50 de DIS (crochetage) ni de 8 de FOR (effraction), le document ne donnant
+  pas le sens inverse (même convention que la remarque du vol au lot 3). — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Échec critique du crochetage** : pas de −15 de moral (le § 8 ne cite que le kit cassé et la trace) ; l'auteur n'est jamais identifié par
+  cet échec. — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Passage du crocheteur** : personnel (ni le groupe ni les autres), valable **2 heures** (`intrusion_minutes`), sans limite de passages. —
+  *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Pied-de-biche** : utilisé d'office s'il est dans l'inventaire (pas de choix à l'écran). Pas d'échec critique à l'effraction (le § 8 n'en
+  prévoit pas). — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Propriétaire d'une porte** : le PJ qui a posé la serrure (`serrures.poseur`). — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Peine de l'effraction / du crochetage identifiés** : 1 jour (barème « délit », comme le vol). — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Matériel installé** : « sans jet » compris comme sans jet de réussite ; la détection par vol du lieu vide s'applique ; l'armoire à souvenirs
+  reste hors du matériel emportable. — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Stock** : au moins une unité par ordre (10-20 % d'une petite pile donnerait 0) ; la marchandise arrive comme objet empilable générique
+  « marchandise » (nom du produit), sans les effets du produit vendu. Tirages de part sans modificateur de DIS ni de PER. — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Témoin** : la personne présente la plus perceptive ; un **commerce ouvert au public** (sans serrure fermée ni intrusion en cours) a
+  toujours un « employé au comptoir » (PER 8, sans profil de combat : un combat impossible vaut échec ordinaire), dont l'employeur PJ est
+  alerté. Caisse = vol d'argent (base 55), matériel et stock = objet au hasard (base 45). — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Constats** : seulement pour un propriétaire PJ (une organisation ou un PNJ n'en reçoit pas) ; pas de constat quand le propriétaire a été
+  lui-même le témoin prévenu. « Point de caisse » = retrait ou apport de fonds du propriétaire. — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Objets déposés** : affaire `ramasser` seulement pour l'auteur d'une intrusion active dans ce lieu (pas pour qui entre ensuite par la
+  porte forcée). — *valeur provisoire choisie par l'agent, à valider par Fred*
+
+### Points relevés pour les lots suivants
+- Le contenu de l'armoire à souvenirs n'est pas codé : « souvenirs de l'armoire » n'a rien à ramasser ; crocheter / forcer ne visent que les
+  portes (local, bâtiment), pas l'armoire.
+- Les serrures de véhicules ne sont pas concernées.
+- L'enquête (lot 6) dispose des affaires `crocheter`, `forcer_porte`, `cambrioler`, `ramasser` (cible = propriétaire) et de `crim_intrusions`.
+
 ## Tableau de correspondance (règle → statut → fonction serveur)
 
-Statuts : **décidé** (dans le document), **implémenté** (en production), **testé** (essai en production annulé + bancs `outils/bancs/test-crim-lot1-equipement.cjs`, `outils/bancs/test-crim-lot2-resolution.cjs`, `outils/bancs/test-crim-lot3-voler.cjs`).
+Statuts : **décidé** (dans le document), **implémenté** (en production), **testé** (essai en production annulé + bancs `outils/bancs/test-crim-lot1-equipement.cjs`, `outils/bancs/test-crim-lot2-resolution.cjs`, `outils/bancs/test-crim-lot3-voler.cjs`, `outils/bancs/test-crim-lot4-cambriolage.cjs`).
 
 | § | Règle | Statut | Lot | Fonction serveur |
 |---|---|---|---|---|
@@ -404,8 +468,8 @@ Statuts : **décidé** (dans le document), **implémenté** (en production), **t
 | 5 | Gilet 380 FR / 60 PSK | implémenté, testé | 1 | `crim_prix_interne` |
 | 6 | Cadre des trois modes pour tous les crimes en pièce | implémenté dans la résolution commune ; branché sur Neutraliser | 2 | `crim_resoudre_interne`, `crim_designation_interne` |
 | 6 | Neutraliser et voler un PNJ (employeur alerté, hors service jusqu'au lendemain) | implémenté (essais sur PJ ; aucun PNJ référencé dans la pièce d'essai) | 2, 3 | `crim_cible_resoudre_interne`, `crim_affaire_notifier_interne`, `pnj_pa_fixer`, `crime_voler` |
-| 6 | Dissuasion #135 conservée pour tous les crimes (une seule fois) | implémenté dans la résolution commune (actes anciens : double compte jusqu'à leur lot) | 2 | `crim_resoudre_interne`, `securite_malus_lieu_interne` |
-| 6 | Peines automatiques par empire (Républia : 2 j / 1 j) | implémenté, testé (assassin 2 j, voleur 1 j) | 2, 3 | `crim_peine_jours_interne`, `crim_parametres.peine_jours_<acte>_<empire>` |
+| 6 | Dissuasion #135 conservée pour tous les crimes (une seule fois) | implémenté dans la résolution commune (vol, crochetage, effraction branchés ; actes anciens : double compte jusqu'à leur lot) | 2, 3, 4 | `crim_resoudre_interne`, `securite_malus_lieu_interne` |
+| 6 | Peines automatiques par empire (Républia : 2 j / 1 j) | implémenté, testé (assassin 2 j, voleur 1 j, effraction 1 j) | 2, 3, 4 | `crim_peine_jours_interne`, `crim_parametres.peine_jours_<acte>_<empire>` |
 | 7 | Voler un PJ ou un PNJ présent : argent liquide / objet au hasard / objet précis (type), 2 / 2 / 3 PA | implémenté, testé | 3 | `crime_voler(text,text,text,uuid)` ; ancienne route `ordre_remplace` |
 | 7 | Réussite 55 / 45 / 25 ± DIS/3, −3/PER (de groupe) > 8, +15 criminelle / renseignement / escort, 5-85 ; caché sans effet ; dissuasion #135 | implémenté, testé | 3 | `crim_voler_taux_interne`, `crim_per_groupe_interne`, `crim_resoudre_interne` |
 | 7 | Butin 10-30 % du liquide (±DIS/10, −PER, +5 criminelle), plafond 2 000 ; jamais la banque | implémenté, testé | 3 | `crim_voler_part_interne`, `crim_voler_montant_interne`, `crim_voler_livrer_interne` |
@@ -414,10 +478,14 @@ Statuts : **décidé** (dans le document), **implémenté** (en production), **t
 | 7 | Réussite critique 5 % : découverte au prochain réveil, sans détection | implémenté, testé | 3 | `crim_vols_differes`, `crim_vols_reveil_interne`, raccord `pa_repos_nocturne` |
 | 7 | Échec remarqué 50 +3/PER > 8 −1/3 DIS > 50 (10-90) ; cachette gardée ; échec critique 2 % ; combat 10 % (2-40) | implémenté, testé (combat ouvert ; issue réelle non jouée) | 3 | `crim_voler_remarque_interne`, `crim_combat_ouvrir_interne`, raccord `crim_resoudre_suite_interne` |
 | 7 | Voleur pris : 1 j d'office (Républia, par empire) ; doublé si démasqué plus tard | 1 j : implémenté, testé ; doublement : lot 6 | 3 | `crim_parametres.peine_jours_vol_republic` |
-| 8 | Crochetage 3 PA, kit, 30 % +1/2 DIS > 50, +15, 5-80 ; kit cassé ; 5 usages | décidé (kit vendu, `usages_restants`) | — | `crim_objet_interne('kit_crochetage')` |
-| 8 | Effraction 2 PA, 40 % +3/FOR > 8, +25 pied-de-biche, +10, 10-95 ; serrure détruite ; détection 60 | décidé (pied-de-biche vendu) | — | — |
+| 8 | Crochetage 3 PA, kit, 30 % +1/2 DIS > 50, +15, 5-80 ; kit cassé ; 5 usages ; réussite sans trace, serrure refermée | implémenté, testé | 4 | `crim_crocheter`, `crim_crocheter_taux_interne`, `crim_intrusions`, raccord `crim_passage_v1` |
+| 8 | Effraction 2 PA, 40 % +3/FOR > 8, +25 pied-de-biche, +10, 10-95 ; serrure détruite ; propriétaire prévenu ; détection 60 (−10 masqué, caché sans effet) | implémenté, testé | 4 | `crim_forcer_porte`, `crim_forcer_taux_interne`, `crim_forcer_mode_detection_interne` |
 | 8 | Achat de kit / pied-de-biche tracé | implémenté, testé | 1 | `crim_traces_achat` |
-| 8 | Intérieur : ramasser, matériel installé, stock, caisse, détection par vol | décidé | — | — |
+| 8 | Objets déposés : se ramassent ; affaire au nom du propriétaire, plainte possible | implémenté, testé | 4 | raccord `crim_ramasser_v1`, `crim_ramasser_constater_interne` |
+| 8 | Matériel installé 2 PA sans jet ; stock 10-20 % d'une pile ; caisse 10-30 % ≤ 3 000 | implémenté, testé | 4 | `crim_cambriolage_lire`, `crim_cambrioler`, `crim_cambrioler_livrer_interne` ; `voler_materiel` redirigée |
+| 8 | Lieu vide : détection par vol 30 (−20 −10, min 5), constat au prochain passage / point de caisse | implémenté, testé | 4 | `crim_resoudre_interne` (`reussite_auto`), `crim_constats`, raccords `crim_constat_passage_v1` / `crim_constat_caisse_v1` |
+| 8 | Personnes présentes : règles du vol sur une personne (réussite, remarqué, combat) | implémenté, testé (combat ouvert ; issue réelle non jouée) | 4 | `crim_temoin_interne`, `crim_voler_taux_interne`, `crim_combat_ouvrir_interne`, raccord `crim_cambriolage_combat_v1` |
+| 8 | Écran : boutons sur la porte fermée, menu « Emporter ce qu'il y a ici », sans calcul | implémenté, testé (VM) | 4 | `plateau-criminalite.js`, `serrurePopupFermee` |
 | 9 | Empoisonnement : cachette ni exigée ni consommée ; formule ; règle commune | consommation retirée (lot 1), reste décidé | — | `crime_empoisonner` |
 | 10 | Explosifs : formule, échec critique 10 % (explosion prématurée), détection 65 min 30 | décidé | — | — |
 | 11 | Incendie : formule (bidon, orage, canicule), détection après réussite 70 min 20 | décidé | — | — |

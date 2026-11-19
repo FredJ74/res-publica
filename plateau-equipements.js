@@ -524,10 +524,25 @@ async function serruresBatimentsCharger() {
 }
 
 // Clic sur un lieu ferme a cle sans en avoir la cle (decision de Fred du 04/11) : une fenetre le dit.
-function serrurePopupFermee(genre) {
+// Criminalité lot 4 : le serveur a accordé un passage personnel (crochetage réussi, crim_intrusions) ou détruit la serrure
+// (effraction). Le cache d'affichage suit, pour que le clic d'entrée parte au serveur, qui reste seul juge.
+function serruresPassageAccorde(buildingId, roomId, detruite) {
+  if (roomId) {
+    const cle = [state.country, state.currentCity, buildingId].join('|');
+    if (RP_SERRURES_PORTES.cle === cle && RP_SERRURES_PORTES.pieces[roomId]) {
+      if (detruite) delete RP_SERRURES_PORTES.pieces[roomId]; else RP_SERRURES_PORTES.pieces[roomId].a_cle = true;
+    }
+  } else if (RP_SERRURES_BATIMENTS.batiments[buildingId]) {
+    if (detruite) delete RP_SERRURES_BATIMENTS.batiments[buildingId]; else RP_SERRURES_BATIMENTS.batiments[buildingId].a_cle = true;
+  }
+}
+
+// Criminalité lot 4 : sur la porte fermée, « Crocheter » et « Forcer la porte » (plateau-criminalite.js, le serveur tranche).
+function serrurePopupFermee(genre, batiment, piece) {
   equipementsModale(texteEquip('fermeT', 'Fermé à clé'), serrureIllustration('ti-lock') +
     '<p style="text-align:center">' + (genre === 'batiment' ? texteEquip('pasEntrerBat', 'Vous ne pouvez pas entrer : ce bâtiment est fermé à clé.') : texteEquip('pasEntrerLocal', 'Vous ne pouvez pas entrer : ce local est fermé à clé.')) + '</p>' +
     '<p class="cpj-note" style="text-align:center">' + texteEquip('seulDetenteur', 'Seul un détenteur de la clé peut entrer.') + '</p>' +
+    (batiment && typeof crimBoutonsPorte === 'function' ? crimBoutonsPorte(batiment, genre === 'batiment' ? null : piece) : '') +
     '<div style="text-align:center;margin-top:.6rem">' +
     equipementsBouton('document.getElementById(\'modal-postes\').classList.remove(\'open\')', texteEquip('fermer', 'Fermer'), true) + '</div>');
 }
