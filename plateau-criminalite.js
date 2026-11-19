@@ -9,6 +9,8 @@
 // d'urgence (7 jours, renouvelable) et de la rébellion matée (plus de QHS automatique). Chances et pistes viennent du serveur.
 // Lot 7 : Corruption au QHS — « Corrompre le directeur » (crim_corrompre_directeur) et « Corrompre un gardien »
 // (crim_corrompre_gardien : évasion facilitée, message, objet, protection), état lu par crim_corruption_qhs_lire.
+// Lot 10 : envoi au QHS — écran des envois (crim_qhs_lire / crim_qhs_decider) pour le Ministre de la Justice ou le Premier
+// ministre suppléant, et vote au référendum (crim_qhs_voter, boutons des courriers) ; aucun calcul ici.
 // Lot 8 : délits d'information — résultat de « Lancer une rumeur » (crimRumeurResultat, réponse de rumeur_lancer) et textes
 // des tracts calomnieux (durée du flagrant délit lue dans la réponse du serveur, barème).
 // Le serveur tranche tout : jets (se_cacher, crim_fouiller_cachettes), objet porté (crim_revetir / crim_retirer, marque
@@ -162,7 +164,30 @@ const T = {
     tFlagrantTitre: 'Flagrant délit !',
     tFlagrant: '{pnj} alerte immédiatement la police. Tous vos tracts calomnieux sont détruits. {jours} jour(s) de détention.',
     tFlagrantJournal: 'Distribution de tract calomnieux à {pnj} — échec critique. Tracts calomnieux détruits, {jours} jour(s) de détention.',
-    tMotif: 'Distribution de tracts calomnieux'
+    tMotif: 'Distribution de tracts calomnieux',
+    hTitre: 'Envois au QHS', hBouton: 'Envois au QHS (demandes et référendums)',
+    hNote: 'Le QHS est réservé aux détenus très dangereux. Le détenu y purge le reste de sa peine, sans un jour de plus. Un envoi sans consultation est ressenti comme un abus de pouvoir ; un référendum ne coûte rien.',
+    hSuppleance: 'Le poste de Ministre de la Justice n’est pas tenu par un joueur : vous décidez à sa place, avec les mêmes règles.',
+    hReserve: 'Réservé au Ministre de la Justice, ou au Premier ministre qui le supplée.', hSovarka: 'En Sovarka, le goulag tient lieu de QHS : ses règles d’envoi ne changent pas.',
+    hDemandes: 'Demandes en cours', hAucune: 'Aucune demande en cours.', hDetenus: 'Détenus en cellule ordinaire', hAucunDetenu: 'Aucun détenu en cellule ordinaire.',
+    hJuge: 'Proposé par le juge {juge}', hInitiative: 'Votre initiative', hFin: 'fin de peine au jour {jour}',
+    hValider: 'Envoyer au QHS (−{pm} POP pour vous, −{pg} par membre du gouvernement, rumeur)',
+    hReferendum: 'Soumettre au référendum (gratuit)', hRefuser: 'Refuser',
+    hEnCours: 'Référendum en cours ; clôture le {date}.', hPerdu: 'Référendum perdu : {oui} oui, {non} non. Le détenu reste en cellule ordinaire.',
+    hOutre: 'Envoyer quand même (−{pm} POP pour vous, −{pg} par membre du gouvernement, rumeur)', hRespecter: 'Respecter le vote',
+    hVotes: 'Référendums ouverts', hVotesAucun: 'Aucun référendum ouvert dans votre pays de domicile.',
+    hQuestion: 'Faut-il envoyer {detenu} au QHS ? Clôture le {date}.', hOui: 'Oui, au QHS', hNon: 'Non', hDejaVote: 'Vous avez voté.',
+    hOk_valider: 'Transfert au QHS', hOkText_valider: '{detenu} est transféré(e) au QHS. L’affaire fait jaser : votre popularité tombe à {pop}.',
+    hOk_referendum: 'Référendum ouvert', hOkText_referendum: '{n} personne(s) domiciliée(s) ont reçu un courrier ; le vote dure 24 heures.',
+    hOk_refuser: 'Demande refusée', hOkText_refuser: '{detenu} reste en cellule ordinaire.',
+    hOk_passer_outre: 'Transfert au QHS malgré le non', hOkText_passer_outre: '{detenu} est transféré(e) au QHS. Passer outre au référendum vous coûte cher : popularité à {pop}.',
+    hOk_respecter: 'Vote respecté', hOkText_respecter: '{detenu} reste en cellule ordinaire.',
+    hKo: 'Décision impossible', hVoteOk: 'Vote enregistré', hVoteOkText: 'Votre voix ({choix}) est comptée.', hVoteKo: 'Vote impossible',
+    r_reserve_decideur: 'Réservé au Ministre de la Justice, ou au Premier ministre qui le supplée.', r_sovarka_goulag: 'En Sovarka, le goulag tient lieu de QHS.',
+    r_mandat_autre_pays: 'Vous devez être dans votre pays pour exercer cette fonction.', r_detenu_introuvable: 'Cette personne n’est pas détenue dans votre pays.',
+    r_deja_qhs: 'Ce détenu est déjà au QHS.', r_detenu_libere: 'Ce détenu a été libéré entre-temps.', r_referendum_en_cours: 'Le référendum est en cours : attendez le résultat.',
+    r_demande_close: 'Cette demande est close.', r_reponse_invalide: 'Cette réponse n’est pas possible à ce stade.', r_demande_introuvable: 'Demande introuvable.',
+    r_vote_ferme: 'Ce référendum est clos.', r_non_domicilie: 'Seules les personnes domiciliées dans le pays votent.', r_deja_vote: 'Vous avez déjà voté.'
   }
 };
 const etat = () => (typeof state !== 'undefined' && state) ? state : {};
@@ -685,6 +710,92 @@ const ORDRES_CORRUPTION_QHS = {
   gardien: { fn: 'corrompre_gardien', label: 'Corrompre un gardien', pa: 2, cost: 800 }
 };
 let corruptionQhsEnCours = false;
+// ── Envoi au QHS (lot 10, § 16) : demandes du juge, initiative du décideur, référendum. Le serveur décide tout ────────
+let qhsLu = null, qhsEnCours = false;
+function dateCourte(iso) {
+  try { return new Date(iso).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }); } catch (_) { return String(iso || ''); }
+}
+function blocVotesQhs(liste) {
+  if (!liste || !liste.length) return '<p class="cpj-note">' + esc(texte('hVotesAucun')) + '</p>';
+  return liste.map((v) => '<div style="border:1px solid rgba(201,168,76,.25);margin:.4rem 0;padding:.5rem"><p class="cpj-note">'
+    + esc(texte('hQuestion', { detenu: v.detenu, date: dateCourte(v.cloture) })) + '</p>'
+    + (v.a_vote ? '<p class="cpj-note">' + esc(texte('hDejaVote')) + '</p>'
+      : '<button class="cpj-touche cpj-primaire" onclick="crimVoterReferendumQhs(' + Number(v.id) + ',\'oui\')">' + esc(texte('hOui')) + '</button> '
+      + '<button class="cpj-touche" onclick="crimVoterReferendumQhs(' + Number(v.id) + ',\'non\')">' + esc(texte('hNon')) + '</button>')
+    + '</div>').join('');
+}
+async function crimOuvrirEnvoisQhs() {
+  const r = await rpc('crim_qhs_lire');
+  titreModale(texte('hTitre'));
+  if (!r || r.ok !== true) { toast(texte('hTitre'), motif(r), false); return; }
+  qhsLu = r;
+  let html = '<div class="cpj-dialogue">';
+  if (!r.decideur) {
+    html += '<p class="cpj-note">' + esc(texte(r.sovarka ? 'hSovarka' : 'hReserve')) + '</p>';
+    html += '<p class="cpj-titre">' + esc(texte('hVotes')) + '</p>' + blocVotesQhs(r.referendums);
+    ouvrirModale(html + '</div>');
+    return;
+  }
+  const v1 = { pm: r.penalite_ministre, pg: r.penalite_gouvernement }, v2 = { pm: 2 * r.penalite_ministre, pg: 2 * r.penalite_gouvernement };
+  html += '<p class="cpj-note">' + esc(texte('hNote')) + '</p>';
+  if (r.role === 'pm') html += '<p class="cpj-note">' + esc(texte('hSuppleance')) + '</p>';
+  html += '<p class="cpj-titre">' + esc(texte('hDemandes')) + '</p>';
+  if (!r.demandes.length) html += '<p class="cpj-note">' + esc(texte('hAucune')) + '</p>';
+  r.demandes.forEach((d, i) => {
+    html += '<div style="border:1px solid rgba(201,168,76,.25);margin:.4rem 0;padding:.5rem"><strong>' + esc(d.detenu) + '</strong>'
+      + '<p class="cpj-note">' + esc(d.origine === 'juge' ? texte('hJuge', { juge: d.juge || '?' }) : texte('hInitiative'))
+      + (d.motif ? ' — ' + esc(d.motif) : '') + '</p>';
+    if (d.statut === 'en_attente') {
+      html += '<button class="cpj-touche" onclick="crimQhsDecider(\'d\',' + i + ',\'valider\')">' + esc(texte('hValider', v1)) + '</button> '
+        + '<button class="cpj-touche cpj-primaire" onclick="crimQhsDecider(\'d\',' + i + ',\'referendum\')">' + esc(texte('hReferendum')) + '</button> '
+        + '<button class="cpj-touche" onclick="crimQhsDecider(\'d\',' + i + ',\'refuser\')">' + esc(texte('hRefuser')) + '</button>';
+    } else if (d.statut === 'referendum') {
+      html += '<p class="cpj-note">' + esc(texte('hEnCours', { date: dateCourte(d.cloture) })) + '</p>';
+    } else if (d.statut === 'referendum_non') {
+      const dep = d.depouillement || {};
+      html += '<p class="cpj-note">' + esc(texte('hPerdu', { oui: dep.oui == null ? '?' : dep.oui, non: dep.non == null ? '?' : dep.non })) + '</p>'
+        + '<button class="cpj-touche" onclick="crimQhsDecider(\'d\',' + i + ',\'passer_outre\')">' + esc(texte('hOutre', v2)) + '</button> '
+        + '<button class="cpj-touche cpj-primaire" onclick="crimQhsDecider(\'d\',' + i + ',\'respecter\')">' + esc(texte('hRespecter')) + '</button>';
+    }
+    html += '</div>';
+  });
+  html += '<p class="cpj-titre">' + esc(texte('hDetenus')) + '</p>';
+  const libres = r.detenus.filter((x) => !x.demande);
+  if (!libres.length) html += '<p class="cpj-note">' + esc(texte('hAucunDetenu')) + '</p>';
+  r.detenus.forEach((x, i) => {
+    if (x.demande) return;
+    html += '<div style="border:1px solid rgba(201,168,76,.25);margin:.4rem 0;padding:.5rem"><strong>' + esc(x.nom) + '</strong>'
+      + '<p class="cpj-note">' + esc(x.raison || '') + (x.jour_fin != null ? ' — ' + esc(texte('hFin', { jour: x.jour_fin })) : '') + '</p>'
+      + '<button class="cpj-touche" onclick="crimQhsDecider(\'t\',' + i + ',\'valider\')">' + esc(texte('hValider', v1)) + '</button> '
+      + '<button class="cpj-touche cpj-primaire" onclick="crimQhsDecider(\'t\',' + i + ',\'referendum\')">' + esc(texte('hReferendum')) + '</button></div>';
+  });
+  html += '<p class="cpj-titre">' + esc(texte('hVotes')) + '</p>' + blocVotesQhs(r.referendums);
+  ouvrirModale(html + '</div>');
+}
+async function crimQhsDecider(genre, i, reponse) {
+  if (qhsEnCours || !qhsLu) return;
+  const d = genre === 'd' ? (qhsLu.demandes || [])[i] : null, x = genre === 't' ? (qhsLu.detenus || [])[i] : null;
+  if (!d && !x) return;
+  fermerModale();
+  qhsEnCours = true;
+  let r;
+  try { r = await rpc('crim_qhs_decider', { p_demande: d ? d.id : null, p_detenu: x ? x.nom : null, p_reponse: reponse }); } finally { qhsEnCours = false; }
+  if (!r || r.ok !== true) { toast(texte('hKo'), motif(r), false); return; }
+  if (typeof r.pop === 'number' && typeof global.adopterJaugeServeur === 'function') global.adopterJaugeServeur('pop', r.pop);
+  if (typeof global.updateUI === 'function') global.updateUI();
+  toast(texte('hOk_' + reponse), texte('hOkText_' + reponse, { detenu: r.detenu, pop: r.pop == null ? '?' : r.pop,
+    n: r.resultat && r.resultat.electeurs != null ? r.resultat.electeurs : '?' }), true);
+}
+async function crimVoterReferendumQhs(id, choix) {
+  if (qhsEnCours) return;
+  fermerModale();
+  qhsEnCours = true;
+  let r;
+  try { r = await rpc('crim_qhs_voter', { p_demande: Number(id), p_choix: choix === 'oui' ? 'oui' : 'non' }); } finally { qhsEnCours = false; }
+  if (!r || r.ok !== true) { toast(texte('hVoteKo'), motif(r), false); return; }
+  toast(texte('hVoteOk'), texte('hVoteOkText', { choix: texte(r.choix === 'oui' ? 'hOui' : 'hNon') }), true);
+}
+
 async function crimOuvrirCorruptionQhs(qui) {
   const o = ORDRES_CORRUPTION_QHS[qui === 'directeur' ? 'directeur' : 'gardien'];
   const r = await rpc('crim_corruption_qhs_lire');
@@ -864,5 +975,6 @@ Object.assign(global, { ouvrirBoutiqueDiscretion, acheterDiscretion, boutonRevet
   ouvrirNeutraliser, crimNeutraliserConfirmer, crimOuvrirVoler, crimVolerTypes, crimVolerConfirmer, crimVolerChoisirCible,
   crimBoutonsPorte, crimPorteAgir, crimOuvrirCambriolage, crimCambrioler,
   crimOuvrirEmpoisonner, crimEmpoisonnerConfirmer, crimOuvrirSabotage, crimSabotageConfirmer, crimOuvrirEnquetes, crimEnqueter,
-  crimOuvrirCorruptionQhs, crimCorrompreDirecteur, crimCorrompreGardien, crimRumeurResultat, crimTractFlagrant });
+  crimOuvrirCorruptionQhs, crimCorrompreDirecteur, crimCorrompreGardien, crimRumeurResultat, crimTractFlagrant,
+  crimOuvrirEnvoisQhs, crimQhsDecider, crimVoterReferendumQhs });
 })(typeof window !== 'undefined' ? window : globalThis);

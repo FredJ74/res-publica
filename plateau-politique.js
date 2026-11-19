@@ -14639,6 +14639,8 @@ async function ouvrirGestionQHS() {
   html += '<div style="font-size:.74rem;color:#8a8060;font-style:italic;margin-bottom:.6rem">'
        + 'Le financement du QHS relève du Ministère de l\'Intérieur.</div>';
   html += '<button onclick="ouvrirListePrisonniersQHS()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.06em;padding:.55rem;border:1px solid #5a8ad0;background:transparent;color:#5a8ad0;cursor:pointer">Liste des prisonniers</button>';
+  // Criminalité lot 10 (§ 16) : demandes d'envoi des juges, initiative du Ministre, référendum (plateau-criminalite.js).
+  if (typeof crimOuvrirEnvoisQhs === 'function') html += '<button class="cpj-touche cpj-primaire" style="width:100%;margin-top:.4rem" onclick="crimOuvrirEnvoisQhs()">' + (window.RPCriminalite ? window.RPCriminalite.texte('hBouton') : 'Envois au QHS') + '</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');

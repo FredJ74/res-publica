@@ -2829,14 +2829,17 @@ async function appliquerSentence(affaireId, type, infraction, joursServeur, amen
     // LES TRENTE JOURS VIENNENT DU SERVEUR, qui les IMPOSE : `justice_peine_calcul` rend une
     // plage reduite a un point pour ce genre. La valeur est la meme qu'avant -- regle validee le
     // 26 aout 2026, inchangee -- mais elle n'est plus ecrite dans le navigateur.
-    details = 'Envoi au QHS (' + joursServeur + ' jours)';
+    // Criminalité lot 10 (§ 16) : hors Sovarka, le juge ne fait que PROPOSER le QHS au Ministre de la
+    // Justice (crim_qhs_demandes, créée par justice_rendre_sentence) ; la peine est de la prison au barème.
+    details = state.country === 'soviet' ? 'Envoi au QHS (' + joursServeur + ' jours)'
+      : 'Prison ' + joursServeur + ' jour' + (joursServeur > 1 ? 's' : '') + ', envoi au QHS proposé au Ministre de la Justice';
     const motifsQhs = [Object.assign({ type: affaire.motif, infraction: infraction, jours: joursServeur, detail: 'QHS', source: 'jugement', date_evenement: new Date().toISOString() }, factCommun)];
     // Le registre du QHS, le drapeau de la fiche et la photo du detenu sont tenus par
     // justice_prolonger_peine -- plus exactement par detention_qhs_poser_interne, son unique
     // ecrivain -- dans la meme transaction que la peine (16 septembre 2026, photo ajoutee le
     // 9 octobre 2026). Le bloc client qui subsistait ici ne faisait plus que lire une photoUrl
     // dans une variable inutilisee : il est retire.
-    peineAppliquee = await prolongerDetentionActive(affaire.cible, motifsQhs, true);
+    peineAppliquee = await prolongerDetentionActive(affaire.cible, motifsQhs, state.country === 'soviet');
   } else if (type === 'torture') {
     // Torture suppose egalement une personne deja detenue -- verifie en amont (voir garde en
     // tete de fonction), ne fait donc qu'etendre la detention existante, jamais de creation

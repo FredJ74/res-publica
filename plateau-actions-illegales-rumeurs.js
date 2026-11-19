@@ -1576,8 +1576,8 @@ async function doSubtiliserExplosifsMilitaires(pa, cost) {
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.82rem;color:#cc8844;font-style:italic;margin-bottom:1rem;padding:.5rem;background:#0f0d05;border:1px solid #3a2810">'
        + 'Acte criminel. Vous tentez de faire disparaître un explosif du stock de l\'armurerie militaire. '
-       + 'Rien ne sera inscrit au registre — mais si la garde vous repère, c\'est le Quartier Haute Sécurité pour '
-       + JOURS_QHS_SUBTILISATION + ' jours.</div>';
+       + 'Rien ne sera inscrit au registre — mais si la garde vous repère, c\'est l\'arrestation et la prison '
+       + (pays === 'soviet' ? '(Quartier Haute Sécurité, ' + JOURS_QHS_SUBTILISATION + ' jours).' : 'au barème.') + '</div>';
   html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Stock de l\'armurerie : <strong style="color:#C9A84C">'
        + dispo + '</strong> explosif(s).</div>';
   if (dispo <= 0) {
@@ -1657,16 +1657,28 @@ async function confirmerSubtilisationExplosif() {
   }
 
   if (verdict.detecte) {
-    // ECHEC DETECTE : arrestation immediate, QHS 3 jours, retour a la caserne a la sortie.
+    // ECHEC DETECTE : arrestation immediate (QHS 3 jours en Sovarka seulement, retour a la caserne a la sortie).
     // Ne passe PAS par procederArrestation : celui-ci telporte au commissariat de la ville et
     // applique un bareme de peine, alors qu'il s'agit ici d'une sanction militaire propre.
     // Les autres motifs de recherche et de detention sont integralement preserves.
     // Peine QHS ouverte par le serveur dans la transaction du vol (03/11/2026).
-    await placerAuQHS(verdict.arrestation);
-    showToast('Pris sur le fait', 'La garde vous a surpris. Quartier Haute Sécurité, '
-      + JOURS_QHS_SUBTILISATION + ' jours.', false, true);
-    addJournalEntry('Subtilisation d\'explosifs : pris sur le fait. ' + JOURS_QHS_SUBTILISATION
-      + ' jours de QHS, puis retour à la caserne.', 'event-bad');
+    // Criminalité lot 10 (§ 16) : hors Sovarka, plus de QHS automatique — détention ordinaire au barème
+    // (crim_peine_jours_interne) ; le serveur dit si la peine est au QHS (arrestation.qhs) et sa durée.
+    const arr = verdict.arrestation || {};
+    const joursPris = arr.jours != null ? arr.jours : JOURS_QHS_SUBTILISATION;
+    if (arr.qhs === true) {
+      await placerAuQHS(verdict.arrestation);
+      showToast('Pris sur le fait', 'La garde vous a surpris. Quartier Haute Sécurité, '
+        + joursPris + ' jours.', false, true);
+      addJournalEntry('Subtilisation d\'explosifs : pris sur le fait. ' + joursPris
+        + ' jours de QHS, puis retour à la caserne.', 'event-bad');
+    } else {
+      if (typeof adopterArrestationServeur === 'function') await adopterArrestationServeur(arr);
+      showToast('Pris sur le fait', 'La garde vous a surpris. Détention : '
+        + joursPris + ' jour(s).', false, true);
+      addJournalEntry('Subtilisation d\'explosifs : pris sur le fait. ' + joursPris
+        + ' jour(s) de détention.', 'event-bad');
+    }
     return;
   }
 

@@ -738,9 +738,75 @@ Migration `migrations/20261120090000_crim_lot9_carriere.sql` (appliquée après 
   production » sont antérieurs au lot (même liste avant et après).
 - Les autres cursus ont des stages sans pièce (`piece` vide) et des noms de bâtiments à vérifier avant leur ouverture.
 
+## Lot 10 — ce qui est en place (20/11)
+
+Migration `migrations/20261120110000_crim_lot10_qhs.sql` (essai complet en transaction annulée, puis appliquée :
+`crim_lot10_qhs`) ; banc `outils/bancs/test-crim-lot10-qhs.cjs`.
+
+- **Le QHS est un régime** : le transfert garde la même détention (`detention_qhs_poser_interne`) ; le détenu purge le reste de sa
+  peine et sort libre à la fin (`detention_clore_interne`, drapeau levé, registre « libéré », retour à la ville de sa détention).
+  La durée libre de 1 jour à 10 ans de `detention_transferer_qhs` disparaît hors Sovarka (refus `qhs_decision_ministre`).
+- **Demandes** : table `crim_qhs_demandes` (une demande ouverte par détenu ; proposition du juge ou initiative du décideur ;
+  statuts en attente / référendum / référendum perdu / envoyé / refusé / caduque ; bulletins, dépouillement, pénalité).
+  `crim_qhs_demande_creer_interne` : courrier au décideur avec le bouton « Examiner la demande », ou refus automatique
+  (courrier au juge) s'il n'y a ni Ministre de la Justice ni Premier ministre joueurs.
+- **Décideur** : `crim_qhs_decideur_interne(pays)` = Ministre de la Justice joueur, sinon Premier ministre joueur (suppléance),
+  sinon personne. Réponses par `crim_qhs_decider(demande, détenu, réponse)` : `valider`, `referendum`, `refuser` (demande en
+  attente ; initiative : `valider` ou `referendum` sur un détenu) ; `passer_outre`, `respecter` (référendum perdu).
+- **Envoi direct** : `crim_qhs_penaliser_interne` : −10 POP au décideur, −5 à chaque autre membre du gouvernement (Premier
+  ministre et ministres joueurs ; le Président n'en fait pas partie), rumeur anonyme visant le décideur (`rumeurs_actives`,
+  modèle de la torture, `popPerdu` = sa perte). Passer outre au non : tout est doublé (−20 / −10, rumeur de 20).
+- **Référendum** : `crim_qhs_referendum_ouvrir_interne` (24 h, courrier avec les boutons Oui / Non à chaque joueur domicilié
+  dans le pays, toute nationalité, annonce publique) ; `crim_qhs_voter` (domicilié, une voix) ; `crim_qhs_referendum_clore_interne`
+  (voix des joueurs + bloc PNJ de 10 voix : `crim_qhs_part_oui_interne`, `crim_qhs_pnj_oui_interne`, `crim_qhs_indices_pays_interne` ;
+  égalité = non ; oui = transfert sans pénalité ; non = le décideur est prévenu et choisit). Événement public au dépouillement.
+  `crim_qhs_passe()` (pg_cron `crim_qhs_passe`, chaque heure à la minute 27, et à chaque lecture ou décision) : dépouillements
+  échus, demandes caduques, refus automatiques. Lecture : `crim_qhs_lire()`.
+- **Juge** : la sanction « qhs » hors Sovarka devient une peine de prison au barème (±50 %, section 14 ; raccords
+  `crim_qhs_regime_v1` / `_v2` de `crim_peine_bornes_juge_interne`) assortie d'une proposition au Ministre (raccord
+  `crim_qhs_proposition_v1` de `justice_rendre_sentence`) ; libellé « Prison N jours, envoi au QHS proposé au Ministre de la
+  Justice » (`crim_qhs_libelle_v1`, et `crim_qhs_libelle_appel_v1` en appel).
+- **Plus aucun envoi automatique hors Sovarka** : `justice_prolonger_peine` (`crim_qhs_juge_v1`), `detention_prolonger_soi`
+  (`crim_qhs_soi_v1`), `detention_ouvrir_soi` (`crim_qhs_soi_v2`), `detention_transferer_qhs` (`crim_qhs_transfert_v1`),
+  subtilisation d'explosifs militaires (`crim_qhs_militaire_v1` : détention ordinaire au barème). Les seules fonctions qui posent
+  encore le QHS sont gardées pour Sovarka ou passent par la décision (`crim_qhs_transferer_interne`). La rébellion matée n'y
+  envoie plus depuis le lot 6. `qhs_pouvoir` et la corruption du QHS (lot 7) ne sont pas touchés.
+- **Sovarka** : le goulag est son QHS ; règles d'envoi inchangées (juge QHS 30 jours imposés, subtilisation 3 jours de QHS) ;
+  `crim_qhs_decider` rend `sovarka_goulag`, aucune demande ni référendum. Les raccords n'ont pas touché les ancrages des
+  migrations du goulag (non encore appliquées en production).
+- **Écran** : « Gestion du QHS » ajoute le bouton « Envois au QHS » ; pop-up `cpj-*` `crimOuvrirEnvoisQhs` (demandes du juge,
+  détenus en cellule ordinaire, trois réponses, référendum perdu, référendums ouverts) ; vote `crimVoterReferendumQhs` ; boutons
+  des courriers `qhs_decider`, `qhs_oui`, `qhs_non` (`forum.js`) ; aucun calcul côté écran. Textes du juge et de la subtilisation
+  militaire alignés.
+- Autres empires : mêmes règles et mêmes valeurs que Républia (paramètres `qhs_*` dans `crim_parametres`).
+
+### Valeurs provisoires du lot 10
+- **Proposition du juge** : faite en première instance seulement ; en appel, la sanction « qhs » vaut une peine de prison sans
+  proposition. — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Décideur** : un joueur titulaire du poste, mandat dans le pays ; il doit être présent dans son pays pour décider (comme les
+  autres fonctions). Le Premier ministre suppléant accède à l'écran par le bouton du courrier de demande (pas d'ordre dans son
+  bureau). — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Pénalité** : le décideur perd 10 (pas 10 + 5) ; seuls les joueurs sont pénalisés ; le Président n'est pas membre du
+  gouvernement. La rumeur vise le décideur, `popPerdu` = sa perte (10 ou 20, récupérable par démenti). — *valeur provisoire choisie
+  par l'agent, à valider par Fred*
+- **Bloc PNJ** : points entiers par troncature ; voix arrondies au plus proche (0,5 vers le oui) ; Sécurité = ISN ; pas d'indice
+  national en base : moyenne des villes du pays, 50 à défaut. — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Électeurs** : joueurs dont le domicile est dans le pays (le détenu compris) ; le référendum se clôt au plus tard une heure
+  après l'échéance (passe horaire). — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Référendum perdu** : la décision (respecter ou passer outre) n'a pas de délai ; la demande devient caduque à la libération.
+  — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Sortie du QHS** : retour à la ville de la détention (centre multimodal). — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Subtilisation d'explosifs militaires hors Sovarka** : détention ordinaire de 2 jours (`peine_jours_vol_materiel_militaire_republic`,
+  catégorie crime) au lieu de 3 jours de QHS automatique ; Sovarka inchangée. — *valeur provisoire choisie par l'agent, à valider par Fred*
+
+### Points relevés
+- Libellés des boutons de courrier `qhs_decider` / `qhs_oui` / `qhs_non` en français seulement (catalogues `mailActions` de
+  `i18n/forum-ui.js` non complétés, le banc compte 20 boutons) ; textes T.fr de `plateau-criminalite.js` et courriers serveur
+  à traduire (Codex).
+
 ## Tableau de correspondance (règle → statut → fonction serveur)
 
-Statuts : **décidé** (dans le document), **implémenté** (en production), **testé** (essai en production annulé + bancs `outils/bancs/test-crim-lot1-equipement.cjs`, `outils/bancs/test-crim-lot2-resolution.cjs`, `outils/bancs/test-crim-lot3-voler.cjs`, `outils/bancs/test-crim-lot4-cambriolage.cjs`, `outils/bancs/test-crim-lot5-poison-explosifs-incendie.cjs`, `outils/bancs/test-crim-lot6-justice.cjs`, `outils/bancs/test-crim-lot7-corruption.cjs`, `outils/bancs/test-crim-lot8-rumeurs.cjs`, `outils/bancs/test-crim-lot9-carriere.cjs`).
+Statuts : **décidé** (dans le document), **implémenté** (en production), **testé** (essai en production annulé + bancs `outils/bancs/test-crim-lot1-equipement.cjs`, `outils/bancs/test-crim-lot2-resolution.cjs`, `outils/bancs/test-crim-lot3-voler.cjs`, `outils/bancs/test-crim-lot4-cambriolage.cjs`, `outils/bancs/test-crim-lot5-poison-explosifs-incendie.cjs`, `outils/bancs/test-crim-lot6-justice.cjs`, `outils/bancs/test-crim-lot7-corruption.cjs`, `outils/bancs/test-crim-lot8-rumeurs.cjs`, `outils/bancs/test-crim-lot9-carriere.cjs`, `outils/bancs/test-crim-lot10-qhs.cjs`).
 
 | § | Règle | Statut | Lot | Fonction serveur |
 |---|---|---|---|---|
@@ -826,11 +892,12 @@ Statuts : **décidé** (dans le document), **implémenté** (en production), **t
 | 15 | Effets : bonus de réussite seulement (+15 / +10 effraction / 0 corruption), carrière initiale ou seconde | implémenté, testé | 9 | `crim_carriere_interne`, raccords `crim_carriere_v1` (9 actes) |
 | 15 | +15 au vol aussi pour renseignement et escort | implémenté, testé | 3, 9 | `crim_voler_taux_interne`, `crim_carriere_interne` |
 | 15 | Écran « Suivre une formation » ouvert, pop-up `cpj-*`, sans calcul | implémenté, testé (VM) | 9 | `plateau-universite.js`, route `suivre_formation` |
-| 16 | QHS réservé aux détenus très dangereux ; pas de verrou de critères | décidé | 10 | — |
-| 16 | Décision : Ministre de la Justice (valider, référendum, refuser) ; proposition du juge | décidé | 10 | — |
-| 16 | Suppléance par le Premier ministre ; sans PM, refus automatique | décidé | 10 | — |
-| 16 | Envoi direct : −5 POP par membre du gouvernement, −10 au Ministre, rumeur | décidé | 10 | — |
-| 16 | Référendum gratuit ; non puis envoi = pénalité doublée | décidé | 10 | — |
-| 16 | Électeurs domiciliés, 1 voix par PJ, 24 h, courrier | décidé | 10 | — |
-| 16 | Bloc PNJ de 10 voix (Sécurité, Moral, POP du détenu ; 10-90 %) ; égalité = non | décidé | 10 | — |
-| 16 | QHS = régime (reste de la peine) ; Sovarka : goulag, règles inchangées | décidé | 10 | — |
+| 16 | QHS réservé aux détenus très dangereux ; pas de verrou de critères (l'abus se paie) | implémenté, testé | 10 | `crim_qhs_decider` (aucun critère), `crim_qhs_penaliser_interne` |
+| 16 | Décision : Ministre de la Justice (valider, référendum, refuser) ; proposition du juge au procès | implémenté, testé | 10 | `crim_qhs_decider`, `crim_qhs_demande_creer_interne`, raccords `crim_qhs_proposition_v1` / `crim_qhs_regime_v1` / `_v2` / `crim_qhs_libelle_v1` |
+| 16 | Suppléance par le Premier ministre ; sans PM, refus automatique | implémenté, testé | 10 | `crim_qhs_decideur_interne`, `crim_qhs_passe` |
+| 16 | Envoi direct : −5 POP par membre du gouvernement, −10 au Ministre, rumeur | implémenté, testé | 10 | `crim_qhs_penaliser_interne`, `rumeurs_actives` |
+| 16 | Référendum gratuit ; oui = envoi sans pénalité ; non respecté ou passé outre (pénalité doublée) | implémenté, testé | 10 | `crim_qhs_referendum_ouvrir_interne`, `crim_qhs_referendum_clore_interne`, `crim_qhs_decider` |
+| 16 | Électeurs domiciliés (toute nationalité), 1 voix par PJ, 24 h, courrier | implémenté, testé | 10 | `crim_qhs_voter`, `crim_qhs_referendum_ouvrir_interne`, pg_cron `crim_qhs_passe` |
+| 16 | Bloc PNJ de 10 voix (Sécurité, Moral, POP du détenu ; 10-90 %) ; égalité = non | implémenté, testé | 10 | `crim_qhs_part_oui_interne`, `crim_qhs_pnj_oui_interne`, `crim_qhs_indices_pays_interne` |
+| 16 | QHS = régime (reste de la peine, sortie libre) ; plus aucun envoi automatique hors Sovarka ; Sovarka : goulag, règles inchangées | implémenté, testé | 10 | `crim_qhs_transferer_interne`, `detention_qhs_poser_interne`, raccords `crim_qhs_juge_v1` / `crim_qhs_soi_v1` / `_v2` / `crim_qhs_transfert_v1` / `crim_qhs_militaire_v1` |
+| 16 | Écran : « Envois au QHS » (Gestion du QHS), vote par courrier, pop-ups `cpj-*`, aucun calcul | implémenté, testé (VM) | 10 | `plateau-criminalite.js` (`crimOuvrirEnvoisQhs`, `crimVoterReferendumQhs`), `forum.js` |

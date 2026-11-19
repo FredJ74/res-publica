@@ -2963,7 +2963,12 @@ const ACTIONS_MAIL = {
   // DÉPART D'UN MAIRE (18/11/2026) : marqueurs posés par le SERVEUR (maire_depart_ouvrir_interne) ; l'adjoint
   // répond d'où qu'il soit, dans les 72 h. L'argument est l'identifiant de la proposition.
   maire_oui:        { fn:'repondreSuccessionMairie', n:1, apres:['true'],  label:'✓ Devenir maire' },
-  maire_non:        { fn:'repondreSuccessionMairie', n:1, apres:['false'], label:'✗ Rester adjoint', refus:true }
+  maire_non:        { fn:'repondreSuccessionMairie', n:1, apres:['false'], label:'✗ Rester adjoint', refus:true },
+  // ENVOI AU QHS (Criminalité lot 10, 20/11/2026) : marqueurs posés par le SERVEUR (crim_qhs_*). Le décideur (Ministre de
+  // la Justice, ou Premier ministre suppléant) ouvre l'écran des envois ; les domiciliés votent au référendum.
+  qhs_decider:      { fn:'crimOuvrirEnvoisQhs', n:1, label:'⚖ Examiner la demande' },
+  qhs_oui:          { fn:'crimVoterReferendumQhs', n:1, apres:['oui'], label:'✓ Oui, au QHS' },
+  qhs_non:          { fn:'crimVoterReferendumQhs', n:1, apres:['non'], label:'✗ Non', refus:true }
 };
 
 // Pose un marqueur dans un corps de mail. Les arguments sont nettoyes des separateurs pour qu'un
