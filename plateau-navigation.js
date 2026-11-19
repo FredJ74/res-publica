@@ -3,14 +3,6 @@
 // Deplacements, plan de ville, minimap, transport, douanes, port
 // =====================
 
-// Libellés fixes de navigation (catalogue navigation.*) : le français reste la source, une
-// traduction n'est affichée que si le texte français correspond exactement (i18n/navigation-resources.js).
-function rpNavTexte(cle, fr) { return globalThis.RPNavigationI18n?.label?.(cle, fr) ?? fr; }
-function rpNavTexteHtml(cle, fr) {
-  return globalThis.RPNavigationI18n?.labelHtml?.(cle, fr)
-    ?? String(fr).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
-
 // CITY TABS
 // =====================
 function buildCityTabs() {
@@ -137,17 +129,18 @@ function minimapCard(id) {
 }
 
 function showBuildingTooltip(data) {
+  const rpNavHtml = (typeof window!=='undefined' && typeof window.RPNavigationI18n?.labelHtml==='function') ? window.RPNavigationI18n.labelHtml : (_key,original)=>original;
   const el = document.getElementById('building-hover-tooltip');
   if (!el) return;
   let html = '<div class="mtt-title">' + data.name + '</div>';
   const serrureBat = (data.batiment && typeof serrureBatimentEtat === 'function') ? serrureBatimentEtat(data.batiment) : null;
   if (serrureBat) html += '<div class="mtt-desc"><i class="ti ' + (serrureBat.fermee ? 'ti-lock' : 'ti-lock-open') + '"></i> '
-    + (serrureBat.fermee ? (serrureBat.a_cle ? rpNavTexteHtml('lockedHasKey', 'Fermé à clé — vous en avez la clé') : rpNavTexteHtml('lockedNoKey', 'Fermé à clé')) : rpNavTexteHtml('openToPublic', 'Ouvert au public')) + '</div>';
+    + (serrureBat.fermee ? (serrureBat.a_cle ? rpNavHtml('lockedHasKey', 'Fermé à clé — vous en avez la clé') : rpNavHtml('lockedNoKey', 'Fermé à clé')) : rpNavHtml('openToPublic', 'Ouvert au public')) + '</div>';
   if (data.desc) html += '<div class="mtt-desc">' + data.desc + '</div>';
   if (data.pnj && data.pnj.length) {
     html += '<div class="mtt-pnj">' + data.pnj.map(n => '<div style="font-size:.72rem;color:#8a8060">· ' + n + '</div>').join('') + '</div>';
   }
-  if (data.actions) html += '<div class="mtt-actions">' + rpNavTexteHtml('actionsPrefix', 'Actions : ') + data.actions + '</div>';
+  if (data.actions) html += '<div class="mtt-actions">' + rpNavHtml('actionsPrefix', 'Actions : ') + data.actions + '</div>';
   el.innerHTML = html;
   el.classList.add('visible');
 }
@@ -166,6 +159,8 @@ function hideBuildingTooltip() {
 // `batimentQuitte` (optionnel) : le batiment dont on vient de sortir. Il permet de DEDUIRE de la
 // carte le trottoir correspondant, au lieu de dependre d'une memoire locale (voir plus bas).
 function showVueRue(batimentQuitte, positionConfirmee = null) {
+  const rpNav = (typeof window!=='undefined' && typeof window.RPNavigationI18n?.label==='function') ? window.RPNavigationI18n.label : (_key,original)=>original;
+  const rpNavHtml = (typeof window!=='undefined' && typeof window.RPNavigationI18n?.labelHtml==='function') ? window.RPNavigationI18n.labelHtml : (_key,original)=>original;
   hideBuildingTooltip();
   if (typeof serruresBatimentsCharger === 'function') serruresBatimentsCharger();
   document.getElementById('vue-rue').classList.add('active');
@@ -183,7 +178,7 @@ function showVueRue(batimentQuitte, positionConfirmee = null) {
   const world = WORLD[state.country];
   const city = world?.[state.currentCity];
   if (city) {
-    document.getElementById('rue-title').textContent = city.streetName || (city.isCapitale ? 'Avenue de la République' : rpNavTexte('mainStreetPrefix', 'Rue principale de ') + city.name);
+    document.getElementById('rue-title').textContent = city.streetName || (city.isCapitale ? 'Avenue de la République' : rpNav('mainStreetPrefix', 'Rue principale de ') + city.name);
     document.getElementById('rue-desc').textContent = city.desc;
   }
 
@@ -194,7 +189,7 @@ function showVueRue(batimentQuitte, positionConfirmee = null) {
   const rueActionsRow = document.getElementById('rue-actions-row');
   if (rueActionsRow) {
     rueActionsRow.innerHTML = (city?.isSpecial
-      ? '<button class="action-btn legal" onclick="ouvrirModalTransport(\'bus\')"><i class="ti ti-bus" style="font-size:.82rem"></i> ' + rpNavTexteHtml('takeTaxi', 'Prendre un taxi') + '</button>'
+      ? '<button class="action-btn legal" onclick="ouvrirModalTransport(\'bus\')"><i class="ti ti-bus" style="font-size:.82rem"></i> ' + rpNavHtml('takeTaxi', 'Prendre un taxi') + '</button>'
       : '')
       // « Fouiller ou voler », tout en bas des ordres de rue (Fred, 11/11/2026).
       + (typeof ordreFouillerVolerRueHtml === 'function' ? ordreFouillerVolerRueHtml() : '');
@@ -682,6 +677,7 @@ function enterBuilding(buildingId, skipAutoRoom) {
 // conserve. Fourni uniquement par le rafraichissement differe, ou le joueur est deja dans une
 // piece precise qui doit rester surlignee apres reconstruction.
 function renderOngletsPieces(buildingId, roomActifId) {
+  const rpNavHtml = (typeof window!=='undefined' && typeof window.RPNavigationI18n?.labelHtml==='function') ? window.RPNavigationI18n.labelHtml : (_key,original)=>original;
   const b = BUILDINGS[buildingId];
   if (!b) return [];
   const ctxForTabs = getBuildingContext(buildingId);
@@ -744,12 +740,13 @@ function renderOngletsPieces(buildingId, roomActifId) {
     // rooms restent filtrees juste au-dessus). Comportement conditionnel gere par
     // ouvrirOngletChambreClinique() (plateau-personnage.js), qui reutilise integralement
     // getChambreAttribueeClinique/rejoindreChambreClinique -- aucun second systeme d'attribution.
-    + (buildingId === 'clinique-privee' ? '<div class="piece-tab" onclick="ouvrirOngletChambreClinique()">' + rpNavTexteHtml('clinicRoomTab', '🛏️ Chambre') + '</div>' : '');
+    + (buildingId === 'clinique-privee' ? '<div class="piece-tab" onclick="ouvrirOngletChambreClinique()">' + rpNavHtml('clinicRoomTab', '🛏️ Chambre') + '</div>' : '');
   }
   return rooms;
 }
 
 function enterRoom(buildingId, roomId, tabEl) {
+  const rpNav = (typeof window!=='undefined' && typeof window.RPNavigationI18n?.label==='function') ? window.RPNavigationI18n.label : (_key,original)=>original;
   if(state._navigationServeur===true&&(state.currentBuilding!==buildingId||state.currentRoom!==roomId)
       &&!(navigationInterieureRendu?.buildingId===buildingId&&navigationInterieureRendu?.roomId===roomId))
     return commanderNavigationInterieure(buildingId,roomId);
@@ -1140,8 +1137,8 @@ function enterRoom(buildingId, roomId, tabEl) {
   if (state.country === 'republic' && state.currentCity === 'capitale' && buildingId === 'la-tribune' && roomId === 'accueil_tribune') {
     const acces = document.createElement('div');
     acces.className = 'tribune-redaction-zone';
-    acces.title = rpNavTexte('tribuneNewsroom', 'Entrer dans la salle de rédaction');
-    acces.setAttribute('aria-label', rpNavTexte('tribuneNewsroom', 'Entrer dans la salle de rédaction'));
+    acces.title = rpNav('tribuneNewsroom', 'Entrer dans la salle de rédaction');
+    acces.setAttribute('aria-label', rpNav('tribuneNewsroom', 'Entrer dans la salle de rédaction'));
     acces.style.cssText = 'position:absolute;left:0;top:0;width:35%;height:100%;z-index:2;cursor:pointer;';
     acces.addEventListener('click', () => enterRoom('la-tribune', 'redaction', null));
     pieceImg.appendChild(acces);
@@ -1228,7 +1225,7 @@ function enterRoom(buildingId, roomId, tabEl) {
   if (caisseBuildingId && typeof chargerCaisseBatiment === 'function') {
     chargerCaisseBatiment(state.country || 'republic', caisseBuildingId).then(c => {
       const el = document.getElementById('piece-desc');
-      if (el) el.textContent = displayDesc + rpNavTexte('cashPrefix', ' — Caisse : ') + (c.solde || 0).toLocaleString('fr-FR') + ' FR.';
+      if (el) el.textContent = displayDesc + rpNav('cashPrefix', ' — Caisse : ') + (c.solde || 0).toLocaleString('fr-FR') + ' FR.';
     }).catch(() => {});
   }
   // REGLE UNIQUE (22 septembre 2026). Cette expression etait recopiee, en version simplifiee,
@@ -2928,11 +2925,13 @@ async function executerVoyage(mode, empireId, villeId) {
 // PNJ_PROFILS['Alain Bordage'], plateau-core.js), au meme titre que n'importe quel autre PNJ
 // affiche dans une room.
 function ouvrirRenseignementMireilleGuichet() {
-  document.getElementById('postes-modal-title').textContent = 'Mireille Guichet — ' + rpNavTexte('receptionistRole', 'Hôtesse d\'accueil');
+  const rpNav = (typeof window!=='undefined' && typeof window.RPNavigationI18n?.label==='function') ? window.RPNavigationI18n.label : (_key,original)=>original;
+  const rpNavHtml = (typeof window!=='undefined' && typeof window.RPNavigationI18n?.labelHtml==='function') ? window.RPNavigationI18n.labelHtml : (_key,original)=>original;
+  document.getElementById('postes-modal-title').textContent = 'Mireille Guichet — ' + rpNav('receptionistRole', 'Hôtesse d\'accueil');
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:1.2rem">' +
     '<div style="font-size:.88rem;color:#c0b090;font-style:italic;line-height:1.8;font-family:Crimson Pro,serif">' +
-    rpNavTexteHtml('mireilleAdvice', '« C\'est noté ! Pour l\'étranger, l\'avion est de loin le plus rapide, mais le billet coûte 300 FR. Si vous n\'êtes pas pressé(e), vous pouvez aussi prendre le bateau depuis Port-Sainte-Marie : la traversée est nettement plus longue, mais elle ne coûte que 100 FR. »') +
+    rpNavHtml('mireilleAdvice', '« C\'est noté ! Pour l\'étranger, l\'avion est de loin le plus rapide, mais le billet coûte 300 FR. Si vous n\'êtes pas pressé(e), vous pouvez aussi prendre le bateau depuis Port-Sainte-Marie : la traversée est nettement plus longue, mais elle ne coûte que 100 FR. »') +
     '</div></div>';
   document.getElementById('modal-postes').classList.add('open');
 }
