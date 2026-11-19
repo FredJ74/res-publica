@@ -923,7 +923,9 @@
     "premium_oui": "✓ Accepter l'option premium",
     "premium_non": "✗ Refuser",
     "maire_oui": "✓ Devenir maire",
-    "maire_non": "✗ Rester adjoint"
+    "maire_non": "✗ Rester adjoint",
+    "catastrophe_proposer": "Proposer l’état de catastrophe naturelle",
+    "catastrophe_examiner": "Examiner les deux options"
   },
   "en": {
     "audience_accorder": "✓ Grant the audience",
@@ -945,7 +947,9 @@
     "premium_oui": "✓ Accept the premium option",
     "premium_non": "✗ Decline",
     "maire_oui": "✓ Become mayor",
-    "maire_non": "✗ Remain deputy"
+    "maire_non": "✗ Remain deputy",
+    "catastrophe_proposer": "Propose a state of natural disaster",
+    "catastrophe_examiner": "Review both options"
   },
   "es": {
     "audience_accorder": "✓ Conceder la audiencia",
@@ -967,7 +971,9 @@
     "premium_oui": "✓ Aceptar la opción premium",
     "premium_non": "✗ Rechazar",
     "maire_oui": "✓ Ser alcalde",
-    "maire_non": "✗ Seguir de teniente de alcalde"
+    "maire_non": "✗ Seguir de teniente de alcalde",
+    "catastrophe_proposer": "Proponer el estado de catástrofe natural",
+    "catastrophe_examiner": "Examinar las dos opciones"
   },
   "zh-TW": {
     "audience_accorder": "✓ 批准接見",
@@ -989,7 +995,9 @@
     "premium_oui": "✓ Aceptar la opción premium",
     "premium_non": "✗ Rechazar",
     "maire_oui": "✓ 出任市長",
-    "maire_non": "✗ 留任副市長"
+    "maire_non": "✗ 留任副市長",
+    "catastrophe_proposer": "提議宣布自然災害狀態",
+    "catastrophe_examiner": "檢視兩個選項"
   },
   "ru": {
     "audience_accorder": "✓ Назначить аудиенцию",
@@ -1011,7 +1019,9 @@
     "premium_oui": "✓ Принять премиум-опцию",
     "premium_non": "✗ Отказать",
     "maire_oui": "✓ Стать мэром",
-    "maire_non": "✗ Остаться заместителем"
+    "maire_non": "✗ Остаться заместителем",
+    "catastrophe_proposer": "Предложить режим стихийного бедствия",
+    "catastrophe_examiner": "Рассмотреть оба варианта"
   },
   "ko": {
     "audience_accorder": "✓ 면담 승인",
@@ -1033,7 +1043,9 @@
     "premium_oui": "✓ 프리미엄 옵션 수락",
     "premium_non": "✗ 거절",
     "maire_oui": "✓ 시장 되기",
-    "maire_non": "✗ 부시장으로 남기"
+    "maire_non": "✗ 부시장으로 남기",
+    "catastrophe_proposer": "자연재해 사태 선포 제안",
+    "catastrophe_examiner": "두 가지 선택지 검토"
   },
   "ar": {
     "audience_accorder": "✓ الموافقة على المقابلة",
@@ -1055,7 +1067,9 @@
     "premium_oui": "✓ قبول الخيار المميز",
     "premium_non": "✗ رفض",
     "maire_oui": "✓ تولي رئاسة البلدية",
-    "maire_non": "✗ البقاء نائبًا"
+    "maire_non": "✗ البقاء نائبًا",
+    "catastrophe_proposer": "اقتراح حالة الكارثة الطبيعية",
+    "catastrophe_examiner": "دراسة الخيارين"
   },
   "pt-BR": {
     "audience_accorder": "✓ Conceder a audiência",
@@ -1077,7 +1091,9 @@
     "premium_oui": "✓ قبول الخيار المميز",
     "premium_non": "✗ رفض",
     "maire_oui": "✓ Tornar-se prefeito",
-    "maire_non": "✗ Continuar vice"
+    "maire_non": "✗ Continuar vice",
+    "catastrophe_proposer": "Propor o estado de calamidade natural",
+    "catastrophe_examiner": "Examinar as duas opções"
   },
   "de": {
     "audience_accorder": "✓ Audienz gewähren",
@@ -1099,7 +1115,9 @@
     "premium_oui": "✓ Premium-Option annehmen",
     "premium_non": "✗ Ablehnen",
     "maire_oui": "✓ Bürgermeister werden",
-    "maire_non": "✗ Stellvertreter bleiben"
+    "maire_non": "✗ Stellvertreter bleiben",
+    "catastrophe_proposer": "Naturkatastrophenzustand vorschlagen",
+    "catastrophe_examiner": "Beide Optionen prüfen"
   }
 };
  for(const [locale,labels] of Object.entries(mailActions)){

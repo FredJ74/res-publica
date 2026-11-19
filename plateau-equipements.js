@@ -18,7 +18,7 @@
    =========================================================================== */
 
 const EQUIPEMENTS_LIBELLES = { 'ordinateur-complet': 'Ordinateur', 'box-internet': 'Box internet', 'armoire_souvenirs': 'Armoire à souvenirs', 'medaille_heros_travail': 'Médaille de Héros du Travail',
-  'imprimante-papier': 'Imprimante papier', 'imprimante-3d': 'Imprimante 3D', 'peripherique-stockage': 'Périphérique de stockage', 'peripherique-reseau-intranet': 'Intranet' };
+  'imprimante-papier': 'Imprimante papier', 'imprimante-3d': 'Imprimante 3D', 'peripherique-stockage': 'Périphérique de stockage', 'peripherique-reseau-intranet': 'Intranet', 'groupe-electrogene': 'Groupe électrogène' };
 const TRADING_VILLES = { capitale: 'Luthécia', ville_a: 'Port-Sainte-Marie', ville_b: 'Montrouge' };
 // Nom d'une ville d'entrepôt, quel que soit son pays (trading international, 05/11/2026).
 function tradingNomVille(pays, ville) {
@@ -120,6 +120,7 @@ async function ouvrirModalEquipements() {
       '</span><span style="display:flex;gap:.3rem">' +
       (e.serrure && e.serrure.a_cle ? equipementsBouton('serrureBasculer(\'' + e.serrure.id + '\',' + (!e.serrure.fermee) + ')', e.serrure.fermee ? texteEquip('ouvrir', 'Ouvrir') : texteEquip('fermerCle', 'Fermer à clé')) : '') +
       (e.a_moi && peutCeder ? equipementsBouton('materielCederChoisir(\'' + e.id + '\')', texteEquip('cederOrga', 'Céder à l\'organisation')) : '') +
+      (typeof boutonGroupeRemplir === 'function' ? boutonGroupeRemplir(e) : '') +
       (e.a_moi ? equipementsBouton('equipementDesinstaller(\'' + e.id + '\')', texteEquip('desinstaller', 'Désinstaller')) : '') + '</span></div>';
   });
 

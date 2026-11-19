@@ -2802,7 +2802,9 @@ const WORLD = {
             photoPos: '50% 24%'
           }],
           roomOverrides: {
-            marche_ext: { imageUrl: 'images/Sovarka/Krasnov/Krasnov_marche_etals.webp' }
+            // Graisse d'ours (maladies et climat, lot 4) : vendue sur les étals du kolkhoze.
+            marche_ext: { imageUrl: 'images/Sovarka/Krasnov/Krasnov_marche_etals.webp', orders: [
+              {fn:'acheter_graisse', label:'Acheter un bocal de graisse', pa:0, cost:0, type:'legal', icon:'ti-jar', successRate:100, desc:"Un bocal de graisse contre le froid : protège du blizzard (consommé)."}] }
           }
         },
         // Mêmes six pièces et tous les ordres sportifs du gabarit stade partagé.
@@ -8101,6 +8103,7 @@ const BUILDINGS = {
         desc: "Une bâche tendue contre le vent, des caisses de poisson sur la glace et, derrière, une marchande qui voit passer toute la ville.",
         persons: [{name:'Galina Karpova (PNJ)', role:'Marchande de poissons', rel:'neutral', job:'commercant'}],
         orders: [
+          {fn:'acheter_graisse', label:'Acheter un bocal de graisse', pa:0, cost:0, type:'legal', icon:'ti-jar', successRate:100, desc:"Un bocal de graisse contre le froid : protège du blizzard (consommé)."},
           {fn:'poissonniere_poisson', label:'Acheter du poisson de rivière', pa:0, cost:0, type:'legal', icon:'ti-fish', successRate:100, desc:"Pêché par son mari. Un peu moins cher qu'à l'entrepôt, mais la pêche du jour ne fait que 12 poissons."},
           {fn:'ecouter_rumeurs', label:'Tendre l\'oreille', i18nKey:'variant.rumours_listen', pa:0, cost:0, type:'grey', icon:'ti-ear', successRate:95, desc:'Galina sait tout ce qui se dit en ville. Révèle une rumeur vraie (action récente tracée) ou, à défaut, une information générée selon le contexte.'},
           {fn:'lancer_rumeur_cible', label:'Lui glisser une rumeur', i18nKey:'variant.sov_rumeur_glisser', pa:1, cost:0, type:'grey', icon:'ti-messages', successRate:75, desc:'Galina la répétera à toute la ville. Succès (75%) : effet selon la cible. Échec : retour de bâton limité + risque de détection.'},
@@ -12249,11 +12252,12 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     // Image de Fred (13/11/2026) : la cuisine de Stepan, poêle, bocaux d'herbes et fusil au mur.
     'images/Sovarka/Krasnov/Krasnov_maison_stepan_interieur.webp');
   // Maisonnettes en bois des vues de rue de Krasnov (Fred, 14/11/2026 : « un habitant chacune » ; migration
-  // 20261114180000). Habitants proposés par Claude, à valider par Fred ; images d'intérieur à venir.
+  // 20261114180000). Habitants proposés par Claude, à valider par Fred ; images d'intérieur renseignées selon disponibilité.
   const MAISONNETTES_KRASNOV = [
     ['maison-krasnov-bureaux', 'Maison d’Antonina', 'Antonina Merkoulova', 'Habitante de Krasnov',
       'Une maison de bois bleue aux fenêtres ourlées de dentelle de bois, face au centre d’affaires.',
-      'Une machine à coudre à pédale, des coupons de tissu pliés sur le divan et une couturière à la retraite qui met déjà la bouilloire en route.'],
+      'Une machine à coudre à pédale, des coupons de tissu pliés sur le divan et une couturière à la retraite qui met déjà la bouilloire en route.',
+      'images/Sovarka/Krasnov/Krasnov_maison_antonina_interieur.webp'],
     ['maison-krasnov-rouge', 'Maison de Matveï', 'Matveï Rybakov', 'Habitant de Krasnov',
       'Une isba rouge au toit de tôle, la cheminée qui fume en toute saison.',
       'Une hache accrochée près du poêle, des bûches empilées jusqu’au plafond et un ancien bûcheron au dos voûté qui vous tend un tabouret.',
@@ -12270,7 +12274,8 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
       'images/Sovarka/Krasnov/Krasnov_maison_kouzma_interieur.webp', 'images/Sovarka/Krasnov/Kouzma.webp'],
     ['maison-krasnov-terrains', 'Maison d’Ignat', 'Ignat Lykov', 'Habitant de Krasnov',
       'Une vieille maison de bois au bord des terrains vagues, des peaux tendues sous l’auvent.',
-      'Des pièges pendus aux poutres, un samovar cabossé et un vieux trappeur taiseux qui vous observe longuement avant de sourire.']
+      'Des pièges pendus aux poutres, un samovar cabossé et un vieux trappeur taiseux qui vous observe longuement avant de sourire.',
+      'images/Sovarka/Krasnov/Krasnov_maison_ignat_interieur.webp', 'images/Sovarka/Krasnov/Ignat.webp']
   ];
   MAISONNETTES_KRASNOV.forEach(m => maison(...m));
   const cite = v => WORLD.soviet && WORLD.soviet[v];
@@ -13111,5 +13116,26 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
         orders: ordres.map(o => Object.assign({}, o))
       }
     });
+  }
+})();
+
+// Boutique « Équipements contre les intempéries » (maladies et climat, lot 5, 19/11/2026) : bouteilles d'eau sur les marchés
+// de Républia, sacs de sable dans les quincailleries de Républia, groupe électrogène au garage de Novomirsk et dans les
+// armureries-quincailleries de Luthécia et de Montrouge (pas de garagiste en Républia). Le serveur (climat_boutiques) tranche.
+(function () {
+  const ordre = {fn:'boutique_climat', label:'Équipements contre les intempéries', pa:0, cost:0, type:'legal', icon:'ti-umbrella', successRate:100,
+    desc:"Bouteilles d'eau, sacs de sable ou groupe électrogène, selon la boutique."};
+  const parContexte = [['republic', 'capitale', 'armurerie', 'magasin'], ['republic', 'ville_b', 'armurerie', 'magasin'],
+                       ['republic', 'capitale', 'marche', 'marche_ext'], ['republic', 'ville_b', 'marche', 'marche_ext']];
+  for (const [pays, ville, bat, piece] of parContexte) {
+    const ctx = WORLD[pays] && WORLD[pays][ville] && WORLD[pays][ville].buildingContext && WORLD[pays][ville].buildingContext[bat];
+    if (!ctx) continue;
+    ctx.roomOverrides = Object.assign({}, ctx.roomOverrides);
+    ctx.roomOverrides[piece] = Object.assign({}, ctx.roomOverrides[piece]);
+    ctx.roomOverrides[piece].orders = (ctx.roomOverrides[piece].orders || []).concat([ordre]);
+  }
+  for (const [bat, piece] of [['chasse-peche-psm', 'boutique'], ['marche-psm', 'etals'], ['garage-novomirsk', 'atelier_garage']]) {
+    const room = BUILDINGS[bat] && BUILDINGS[bat].rooms && BUILDINGS[bat].rooms[piece];
+    if (room) room.orders = (room.orders || []).concat([ordre]);
   }
 })();

@@ -279,6 +279,74 @@ bandelettes, plats cuisinés, furet renifleur).
 - **Lot 5** : effets du brouillard, de l'orage (groupe électrogène), de la crue (2 ou 3 lieux, sacs de sable, 20 % de stock)
   et de la canicule (bouteille d'eau, coup de chaleur, nourriture portée avariée).
 
+### Décision de Fred du 19/11 — état de catastrophe naturelle (lot 5, crue)
+
+- Le **Premier ministre** déclare l'état de catastrophe naturelle, sur proposition du **ministre de l'Intérieur**, dans les
+  **72 h** suivant la crue.
+- L'État rembourse **50 %** de la valeur des stocks perdus, au **prix de base**, sur le **budget de l'État**.
+- **Par défaut, l'indemnisation est réservée** aux commerces et entrepôts qui avaient **posé des sacs de sable** ; les autres
+  sont jugés négligents.
+- **Mais** le Premier ministre peut, au moment de la déclaration, **étendre l'indemnisation à tous les sinistrés** (50 % aussi).
+  Dilemme voulu (coût budgétaire contre popularité) : son écran montre les deux options et le **coût estimé** de chacune.
+
+### Lot 4 : choix d'implémentation (19/11/2026)
+
+- **Blizzard** : une fois par mandat présidentiel et par ville de Sovarka (fin de mandat lue dans le cycle électoral du
+  président), dates différentes, alerte 48 h avant. Au début de l'événement (passe horaire) : tous les personnages présents
+  dans la ville perdent 3 PA, sauf s'ils portent un bocal de graisse (castor, ours ou renne, consommé) ; puis grippe selon le
+  tableau du § 5 (hospitalisé = 0 %), moins 5 points avec la graisse. Chacun reçoit à la connexion suivante un message dans sa
+  langue (PA perdus ou graisse consommée).
+- **Graisses** : castor à l'étal de la poissonnière de Novomirsk, ours sur les étals du marché de Krasnov (le marché du
+  kolkhoze), renne toujours au magasin du kolkhoze de Starovka ; 15 PSK (réglable). Dans une pharmacie ouverte par un PJ
+  (fonds dont l'activité comprend « pharmacie »), le propriétaire dépose ses bocaux depuis son inventaire et les clients les
+  achètent depuis la boutique (bouton « Graisses ») ; la recette va à la caisse du fonds.
+- **Contagion** : partage de pièce relevé à chaque passe horaire ; interactions directes relevées dans les tournées et les
+  dîners (saluer et parler n'ont pas de geste serveur à raccorder aujourd'hui) ; tirage unique par malade croisé et par jour,
+  au niveau le plus élevé, une fois la journée terminée.
+- **Images** de la planche de Fred : furet (achat et objet), graisses de castor et d'ours (objets) ; sac de sable au lot 5.
+
+### Lot 5 : choix d'implémentation (19/11/2026)
+
+- **Canicule** : au début de l'événement, −3 PA pour tous les présents de la ville sauf avec une bouteille d'eau (consommée),
+  puis coup de chaleur selon le tableau des PA (eau : −5 points). À la fin, la nourriture portée sur soi (piles et aliments
+  manufacturés) devient avariée (marque invisible) et le joueur en est prévenu dans sa langue.
+- **Orage** : ordinateurs, box et caméras de la ville hors service pendant l'événement. Un groupe électrogène installé dans le
+  bureau (équipement, comme l'ordinateur) le maintient en service s'il contient 5 bidons au début de la coupure ; le
+  propriétaire le remplit avec les bidons de carburant de son inventaire.
+- **Crue** : les 2 ou 3 lieux nommés refusent l'entrée (les personnes déjà à l'intérieur y restent) ; entrepôts et commerces
+  qui s'y trouvent perdent 20 % de chaque stock (arrondi inférieur), réduits par les sacs de sable posés (voir la décision
+  du 19/11 sur les sacs de sable ci-dessous). Pertes valorisées au prix de base des matières (prix fixe de la recette pour les produits qui en
+  ont un, sinon 0).
+- **Sacs de sable** : quincailleries de Républia (armureries de Luthécia et de Montrouge, Chasse et Pêche de Port-Sainte-Marie) ;
+  posés par le propriétaire d'un commerce du bâtiment ou par le directeur de l'entrepôt, 1 PA pour poser d'un coup tous les
+  sacs portés (9 au plus par bâtiment), consommés par la crue.
+- **Groupe électrogène** : garage de Novomirsk ; en Républia, faute de garagiste, armureries-quincailleries de Luthécia et de
+  Montrouge (à confirmer). **Bouteilles d'eau** : marchés des trois villes de Républia.
+- **État de catastrophe naturelle** : courrier au ministre de l'Intérieur à la crue (bouton « Proposer ») ; courrier au Premier
+  ministre (bouton « Examiner les deux options ») qui ouvre une fenêtre avec les deux options, le nombre de sinistrés, le coût
+  de chacune, la caisse disponible et la limite des 72 h. Le paiement sort de la **caisse du gouvernement tenue par le Premier
+  ministre** (la réserve journalière de `budgets_nationaux` est vide en pratique) et va à la caisse de chaque commerce ou
+  entrepôt indemnisé.
+- **Brouillard** : filtre visuel (lot 3) ; ses modificateurs (+10 % de réussite, −20 % de détection) sont exposés par
+  `climat_brouillard_modificateurs_interne` mais **pas branchés** dans les actes illégaux : la criminalité est en cours de
+  conception (consigne de Fred du 19/11), on n'y touche pas.
+
+### Décision de Fred du 19/11 — sacs de sable proportionnels
+
+- **Chaque sac posé réduit la perte de 10 %** de la perte normale (20 % du stock) : 3 sacs = 14 % du stock perdu ;
+  5 sacs = 10 %.
+- **Plafond : 9 sacs**, soit 90 % de protection. Il reste toujours au moins 2 % de perte, pour que l'indemnisation garde
+  un sens.
+- La **taille du local n'intervient pas** (les superficies ne sont pas déclarées partout).
+- **Indemnisation inchangée** : par défaut, ceux qui ont posé au moins un sac sont indemnisés à 50 % de ce qu'ils ont perdu ;
+  le Premier ministre peut choisir d'indemniser tout le monde.
+- **Réglages MJ** : `sacs_protection_pct` (100 %) est remplacé par `sac_protection_pct` (10 % par sac) et `sacs_plafond` (9).
+- **Choix d'implémentation** (migration `20261119101000_sacs_sable_proportionnels.sql`, appliquée) :
+  - un sac = une unité « Sac de sable » de l'inventaire (l'objet s'appelait « Lot de sacs de sable ») ; prix inchangé (60) ;
+  - « Poser » coûte 1 PA et pose d'un coup tous les sacs portés, dans la limite des places restantes devant le bâtiment ;
+    les sacs en trop restent dans l'inventaire ; plusieurs exploitants d'un même bâtiment s'additionnent ;
+  - le message indique les sacs posés, le total devant le bâtiment et la perte attendue à la prochaine crue.
+
 ### Décisions de Fred du 19/11 — points en attente
 
 1. **Canicule** : tirage au hasard dans le trimestre, sans contrainte de saison (le jeu se joue partout dans le monde).

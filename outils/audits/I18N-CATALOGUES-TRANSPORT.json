@@ -134,10 +134,10 @@
     {
       "source": "i18n/equipements-resources.js",
       "packed": "i18n/packed/equipements-resources.js.br",
-      "sourceBytes": 147005,
-      "packedBytes": 42622,
-      "sourceSha256": "d705d2084426dc0b5cc78b86f4e11b3e4bd50dfef847d4ea033d88dbfeb55998",
-      "packedSha256": "2833bfa0db077b05920c5710b3925d2a3239f87465b8d9379b4d57d453a73989"
+      "sourceBytes": 147174,
+      "packedBytes": 42674,
+      "sourceSha256": "8144626057050ddd1cb05b00d2257a1f223cc10d528fbda76ee40609dfc58615",
+      "packedSha256": "36d5ea03c1a3cd84861691012051a17c1f306d7eea68118a690fadffa1cff3ea"
     },
     {
       "source": "i18n/finance135-resources.js",
@@ -238,10 +238,10 @@
     {
       "source": "i18n/infobulles-communes-resources.js",
       "packed": "i18n/packed/infobulles-communes-resources.js.br",
-      "sourceBytes": 258462,
-      "packedBytes": 86903,
-      "sourceSha256": "b1bbf5dc839f26b11ed081346b47d4d705dec630019f69ea58906d7beced85c2",
-      "packedSha256": "54cd5c20d6d4843108198c047bc5933055d2d719139d7d4c2ea31b2da20b0d29"
+      "sourceBytes": 259213,
+      "packedBytes": 87212,
+      "sourceSha256": "ffe48fa65cd974bbd55af3498ef715eff5d55a9b6b71da08c1aca091083f4fdb",
+      "packedSha256": "ea5a980b011907377a5b525c35f3949a65b04fc0796186174c37c881242fac21"
     },
     {
       "source": "i18n/inventory-ui-resources.js",
@@ -302,10 +302,10 @@
     {
       "source": "i18n/navigation-resources.js",
       "packed": "i18n/packed/navigation-resources.js.br",
-      "sourceBytes": 42619,
-      "packedBytes": 11881,
-      "sourceSha256": "dc869a54f22b33280ac19e9f00ad7f357decf3b6186d5c8ee8fab2117c81dcb6",
-      "packedSha256": "608233e5049599fe2e3e8ff680eb6846af06e09ffad81b96c1910a4b1bd079c3"
+      "sourceBytes": 61634,
+      "packedBytes": 16695,
+      "sourceSha256": "1e83134ab2c2a30a092660da6690faebc44fbe22d449573f4b0e69a5508804f1",
+      "packedSha256": "6d252c06f8a33226b7656ec3d3b7b30fd921eeee5cd5d25816ecfa53b458325f"
     },
     {
       "source": "i18n/occupation-resources.js",
@@ -342,10 +342,10 @@
     {
       "source": "i18n/orders-resources.js",
       "packed": "i18n/packed/orders-resources.js.br",
-      "sourceBytes": 251088,
-      "packedBytes": 48923,
-      "sourceSha256": "776077a863f80e75fcaba56445374e5c76a9a5d2b8a75aa29ca67643be44c622",
-      "packedSha256": "9cf4904365b0303334bf6e0ac8facd75adba5df685333bb43ccd15890e711dd4"
+      "sourceBytes": 252105,
+      "packedBytes": 49389,
+      "sourceSha256": "98ed656c96383f461f4346c779648bf6da25ee9586be79e7e81ceb461f7c9794",
+      "packedSha256": "e2a7acb64e9073481cabc84428380ba78e242912b6bea7469ef14d32d1d75dac"
     },
     {
       "source": "i18n/organization-admissions-resources.js",
@@ -566,10 +566,10 @@
     {
       "source": "i18n/sovarka-infobulles-resources.js",
       "packed": "i18n/packed/sovarka-infobulles-resources.js.br",
-      "sourceBytes": 180349,
-      "packedBytes": 58671,
-      "sourceSha256": "eb26aae27a3a209d521b044f356ff8f6488d8ab10758a020f7d0e0b6046a4b34",
-      "packedSha256": "3f1fb47b14485ae5c0075add8b2f5f0e8ecec5ffaf745486bba29a4e8eb99a5f"
+      "sourceBytes": 181076,
+      "packedBytes": 58978,
+      "sourceSha256": "ed54b42e7e0e79f97f63ba4736bdaf651e36eb52608e4393c5a8fe836d84b46f",
+      "packedSha256": "29042a0f6684c1e42af76c440fb237788d8082e0ff1cc91741ba305ad0727b6d"
     },
     {
       "source": "i18n/sovarka-justice-resources.js",
@@ -678,18 +678,18 @@
     {
       "source": "i18n/vehicle-garage-resources.js",
       "packed": "i18n/packed/vehicle-garage-resources.js.br",
-      "sourceBytes": 22230,
-      "packedBytes": 6745,
-      "sourceSha256": "97441ea295e88e8f091e6e2ed780432bc1d40decef61df915e566e2ae7c220f8",
-      "packedSha256": "df466f7160d0ddf26c7eeaa05d88424e7533de334abe2bde4d6440d37b15d1a2"
+      "sourceBytes": 31321,
+      "packedBytes": 8851,
+      "sourceSha256": "687af4115d38e9d8d14fe17e742bca0161098659e1f0042da04b6a33b4dc343a",
+      "packedSha256": "1cbba48f762b88dfc6cc188a86bcf4e7bc23f18d58f5ddc466727b427d1b9ac8"
     },
     {
       "source": "i18n/vehicle-travel-resources.js",
       "packed": "i18n/packed/vehicle-travel-resources.js.br",
-      "sourceBytes": 23796,
-      "packedBytes": 6640,
-      "sourceSha256": "9951f4689518bd9dfb146bd1451b8c3d5bff4759e6d326a548622c7a4d9fdcbd",
-      "packedSha256": "e922005ad23a7869e231ec996c60d346d77d3d65a27176f977ce791b4815893d"
+      "sourceBytes": 48602,
+      "packedBytes": 12458,
+      "sourceSha256": "47fe28ada7a43316befb6a64713acc45314550425604f0db904e4b32a6bd7b12",
+      "packedSha256": "3d2787be66e19c82438e0de8903cad68cfd8d4fafb482859439965745094d472"
     }
   ]
 }

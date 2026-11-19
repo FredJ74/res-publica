@@ -219,6 +219,7 @@ const T={
   "jouissanceInt":["You have full use of this building.", "Tiene el disfrute íntegro de este edificio.", "您擁有此建築的完整使用權。", "Вы полностью распоряжаетесь этим зданием.", "이 건물 전체의 사용권이 있습니다.", "لديك حق الانتفاع الكامل بهذا المبنى.", "Você tem o usufruto integral deste prédio.", "Sie haben das volle Nutzungsrecht an diesem Gebäude."],
   "lib.armoire_souvenirs":["Souvenir cabinet", "Armario de recuerdos", "紀念品櫃", "Шкаф для сувениров", "기념품 장식장", "خزانة التذكارات", "Armário de lembranças", "Souvenirschrank"],
   "lib.box-internet":["Internet box", "Router", "網路盒", "Интернет-роутер", "인터넷 박스", "جهاز إنترنت", "Modem", "Internetbox"],
+  "lib.groupe-electrogene":["Generator", "Grupo electrógeno", "發電機", "Генератор", "발전기", "مولّد كهربائي", "Gerador", "Stromaggregat"],
   "lib.imprimante-3d":["3D printer", "Impresora 3D", "3D 印表機", "3D-принтер", "3D 프린터", "طابعة ثلاثية الأبعاد", "Impressora 3D", "3D-Drucker"],
   "lib.medaille_heros_travail":["Hero of Labour medal", "Medalla de Héroe del Trabajo", "勞動英雄勳章", "Медаль Героя Труда", "노동 영웅 메달", "ميدالية بطل العمل", "Medalha de Herói do Trabalho", "Medaille „Held der Arbeit“"],
   "lib.imprimante-papier":["Paper printer", "Impresora de papel", "紙本印表機", "Бумажный принтер", "종이 프린터", "طابعة ورقية", "Impressora de papel", "Papierdrucker"],

@@ -2968,7 +2968,11 @@ const ACTIONS_MAIL = {
   // la Justice, ou Premier ministre suppléant) ouvre l'écran des envois ; les domiciliés votent au référendum.
   qhs_decider:      { fn:'crimOuvrirEnvoisQhs', n:1, label:'⚖ Examiner la demande' },
   qhs_oui:          { fn:'crimVoterReferendumQhs', n:1, apres:['oui'], label:'✓ Oui, au QHS' },
-  qhs_non:          { fn:'crimVoterReferendumQhs', n:1, apres:['non'], label:'✗ Non', refus:true }
+  qhs_non:          { fn:'crimVoterReferendumQhs', n:1, apres:['non'], label:'✗ Non', refus:true },
+  // ÉTAT DE CATASTROPHE NATURELLE (19/11/2026) : marqueurs posés par le SERVEUR après une crue (climat_crue_appliquer_interne,
+  // catastrophe_proposer). L'argument est l'identifiant de la crue ; le serveur vérifie le poste et le délai de 72 h.
+  catastrophe_proposer: { fn:'catastropheProposer', n:1, label:'Proposer l’état de catastrophe naturelle' },
+  catastrophe_examiner: { fn:'catastropheExaminer', n:1, label:'Examiner les deux options' }
 };
 
 // Pose un marqueur dans un corps de mail. Les arguments sont nettoyes des separateurs pour qu'un
