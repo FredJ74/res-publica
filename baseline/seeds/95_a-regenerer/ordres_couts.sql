@@ -59,6 +59,7 @@ INSERT INTO public.ordres_couts (fn,pa,cost) VALUES
   ('bne_passer_annonce',1,0),
   ('bne_passer_annonce_presse',1,30),
   ('bourrer_urnes',1,0),
+  ('boutique_discretion',0,0),
   ('caisse_caserne',0,0),
   ('calendrier_elections',0,0),
   ('calepin_campagne',0,0),

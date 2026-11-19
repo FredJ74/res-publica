@@ -2115,6 +2115,15 @@ async function sbGetHistoriqueDeplacements(name, depuisJour) {
 async function sbGetPresencesInRoom(country, city, buildingId, roomId) {
   // Si pas dans un batiment/piece (rue centrale), pas de presence a chercher
   if (!buildingId || !roomId) return [];
+  // Criminalité lot 1 (19/11/2026) : MA pièce passe par crim_presents (le serveur retire les PJ cachés et présente
+  // les masqués en « Individu masqué n°X », sans nom ni portrait). La table presences ne montre d'ailleurs plus
+  // aux autres les PJ cachés ou masqués (RLS). Repli sur la table si la fonction ne répond pas.
+  if (typeof state !== 'undefined' && state && state.country === country && state.currentCity === city
+      && state.currentBuilding === buildingId && state.currentRoom === roomId && typeof sbRpc === 'function') {
+    const v = await sbRpc('crim_presents', {}).catch(() => null);
+    const r = Array.isArray(v) ? v[0] : v;
+    if (r && r.ok === true && Array.isArray(r.presents)) return r.presents;
+  }
   const filtre = `country=eq.${encodeURIComponent(country)}&city=eq.${encodeURIComponent(city)}&building_id=eq.${encodeURIComponent(buildingId)}&room_id=eq.${encodeURIComponent(roomId)}`;
   const rows = await sbGet('presences', filtre);
   if (!rows) return [];

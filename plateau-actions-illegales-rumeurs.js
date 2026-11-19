@@ -1585,6 +1585,8 @@ async function afficherRegistreArmes(pays, city, viaCorruption) {
 // GILET PARE-BALLES (achat legal, modal avec image, comme le parapluie)
 // =====================
 function doAcheterGilet() {
+  // Criminalité lot 1 (19/11/2026) : prix par empire (380 FR, 60 PSK) tranché par la boutique serveur « Équipement discret ».
+  if (typeof ouvrirBoutiqueDiscretion === 'function') { ouvrirBoutiqueDiscretion(); return; }
   const pays = state.country || 'republic';
   const cur = COUNTRIES[pays]?.cur || 'FR';
   const prix = 600;
@@ -2367,6 +2369,9 @@ function congediерInformateur(idx) {
 async function doSeCacher() {
   const brut = (typeof sbRpc === 'function') ? await sbRpc('se_cacher', {}).catch(() => null) : null;
   const v = Array.isArray(brut) ? brut[0] : brut;
+  // Criminalité lot 1 : formule et échec critique au serveur ; messages par plateau-criminalite.js.
+  if (v && v.ok === true && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: v.pa, liquide: v.liquide, arg: v.arg });
+  if (typeof messageSeCacher === 'function' && messageSeCacher(v)) { state.estCache = !!(v && v.cache); if (typeof updateUI === 'function') updateUI(); return; }
   if (!v || v.ok !== true) {
     if (v?.raison === 'hors_batiment') { showToast('Impossible', 'Il faut être dans une pièce pour s\'y cacher.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bd834f603", 'Il faut être dans une pièce pour s\'y cacher.', undefined, 'Impossible'); }
     else if (v && typeof signalerRefusCout === 'function') signalerRefusCout(v);

@@ -234,6 +234,9 @@ function ouvrirMenuFouillerVoler(ancre) {
   };
   menu.appendChild(item(texteEquip('menuFouiller', '🔍 Fouiller les lieux (2 PA)'), ouvrirFenetreFouille));
   menu.appendChild(item(texteEquip('menuVoler', '🕵 Voler du matériel installé (3 PA)'), () => { if (typeof ouvrirVolMateriel === 'function') ouvrirVolMateriel(); }));
+  // Criminalité lot 1 (19/11/2026) : débusquer un PJ caché (crim_fouiller_cachettes, 1 PA), dans une pièce seulement.
+  if (typeof ouvrirFouilleCachettes === 'function' && state.currentBuilding && state.currentRoom)
+    menu.appendChild(item(window.RPCriminalite ? window.RPCriminalite.texte('search') : 'Débusquer quelqu’un de caché (1 PA)', ouvrirFouilleCachettes));
   document.body.appendChild(menu);
   const r = el && el.getBoundingClientRect ? el.getBoundingClientRect() : null;
   const h = menu.offsetHeight, w = menu.offsetWidth, vw = window.innerWidth, vh = window.innerHeight;

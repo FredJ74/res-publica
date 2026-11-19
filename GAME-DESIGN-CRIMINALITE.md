@@ -176,7 +176,7 @@ Trois façons d'agir :
 - **État d'urgence limité à 7 jours**, renouvelable par le Président (chaque renouvellement : 3 PA et la perte de POP habituelle). Aujourd'hui il n'expire jamais : à corriger.
 - **Correctifs techniques** (sans décision de game design) : une seule nomenclature par infraction (`assassinat` / `assassiner_*`, `corruption_fonctionnaire` / `corrompre_fonct`, `achat_arme_illegal` / `acheter_arme_illegale`…), rattacher les 11 barèmes jamais détectables à leurs actes, supprimer les durées en dur qui contournent le barème (garde à vue 2 j, évasion 2 j, rébellion 1 j) au profit de la résolution unique.
 - **Rébellion en cellule** (« Se rebeller », geôles des commissariats ; réussite min(60, 3 VOL + FOR du codétenu / 2), inchangée) :
-  - **Rébellion réussie** : effets actuels (DIS +6, PV −10, +1 jour) et **elle abîme les grilles** (4 à 10 points). **Rébellion matée** : les gardiens interviennent avant, **aucun dégât aux grilles** ; PV −25, DIS −15, **+4 jours d'office, plus de QHS automatique de 30 jours** (le placement au QHS reste une décision de l'autorité supérieure).
+  - **Rébellion réussie** : effets actuels (DIS +6, PV −10, +1 jour) et **elle abîme les grilles** (4 à 10 points). **Rébellion matée** : les gardiens interviennent avant, **aucun dégât aux grilles** ; PV −25, DIS −15, **+4 jours d'office, plus de QHS automatique de 30 jours** (le placement au QHS reste une décision de l'autorité supérieure). (envoi au QHS : voir section 16)
   - **Grilles abîmées = bonus d'évasion pour tous les détenus de la cellule**, égal aux dégâts cumulés, **plafond +25 %**.
   - **Réparation par les gardiens** : chaque jour, 1/3 des dégâts (réparation complète en 3 jours), **100 FR par jour** (300 FR au total) pris sur la caisse du commissariat ; **pas d'argent, pas de réparation**.
 
@@ -187,7 +187,138 @@ Trois façons d'agir :
 - **Effets : uniquement les bonus de réussite** décidés dans ce document (+15 neutraliser, voler, crocheter, empoisonner, explosifs, incendie ; +10 effraction ; rien sur la corruption). Pas d'avantage supplémentaire (marché noir, receleur, réflexes…).
 - Le **+15 au vol** reste aussi accordé aux carrières **renseignement** et **escort**.
 
+## 16. Envoi au QHS (décisions du 19/11, nuit)
+
+- **Esprit** : le QHS est réservé aux détenus très dangereux (meneurs de rébellion qui risquent de provoquer des émeutes, multirécidivistes qui risquent de recruter en prison, détenus à éloigner de leur réseau). Il n'y a pas de verrou de critères : l'abus de pouvoir est possible, mais il se paie.
+- **Qui décide** : le Ministre de la Justice envoie un détenu au QHS. Un juge peut proposer l'envoi lors d'un procès, et le Ministre valide. Le Ministre a trois réponses : valider directement, soumettre au référendum ou refuser (le détenu reste alors dans sa cellule ordinaire).
+- **Suppléance** : si le poste de Ministre de la Justice est vacant ou tenu par un PNJ, le Premier ministre décide, avec les mêmes règles. Sans Premier ministre, toute demande est refusée automatiquement, par prudence.
+- **Envoi direct** : tout envoi au QHS sans consultation est ressenti comme un abus de pouvoir. −5 POP pour chaque membre du gouvernement (Premier ministre et ministres), −10 POP pour le Ministre de la Justice (ou pour le Premier ministre s'il le supplée), et une rumeur sur le modèle de celle de la torture.
+- **Référendum** : lui seul peut le lancer, au titre de Ministre de la Justice (ou le Premier ministre qui le supplée). C'est un acte de consultation, qui ne coûte rien quelle que soit l'issue. Si le oui l'emporte, l'envoi se fait sans pénalité. Si le non l'emporte, le détenu reste en cellule ordinaire ; si le gouvernement l'envoie quand même, la pénalité est doublée (−10 par membre du gouvernement, −20 au Ministre).
+- **Électeurs** : toutes les personnes domiciliées dans le pays, quelle que soit leur nationalité. Un Républien domicilié à l'étranger ne vote pas, un Sovarkien domicilié en Républia vote. Une voix par PJ. Vote de 24 heures. Chaque domicilié reçoit un courrier à l'ouverture du référendum.
+- **Vote des PNJ** : ils représentent l'état du pays et comptent comme un bloc fixe de 10 voix, réparties entre oui et non. Part de oui : 50 % ; +1 point pour chaque 2 points de Sécurité du pays sous 50 (−1 au-dessus) ; +1 point pour chaque 4 points de Moral du pays sous 50 (−1 au-dessus) ; −1 point pour chaque 2 points de POP du détenu au-dessus de 50 (+1 en dessous) ; bornes 10-90 %. Indices du pays ; à défaut d'indice national, moyenne des villes du pays.
+- **Égalité** : le non l'emporte, parce que le doute profite au détenu.
+- **Durée** : le QHS est un régime, pas une peine supplémentaire. Le détenu y purge le reste de sa peine et sort libre à la fin. Pour allonger la peine, il y a la fourchette de ±50 % du juge (section 14).
+- **Sovarka** : le goulag est le QHS de Sovarka. Pas de pénalité et pas de référendum ; ses règles d'envoi existantes restent inchangées.
+
 ## Plus tard
 
 - Le moral pourrait influencer tous les ordres à jet aléatoire (à étudier).
 - Tous les volets sont tranchés : le document est prêt pour le prompt complet « Criminalité ».
+
+## Audit de l'existant (19/11)
+
+Relevé en production (`pg_proc` du projet `jxpwoosmmhohoihxpbuc`, lecture seule), avant le lot 1. Quand le dépôt diverge, c'est la production qui est décrite.
+
+### Briques communes
+- **Détection** : `crime_detecter_interne(nom, acte, selon_checkdetection, acte_recherche)`. Taux = `actes_illegaux.detect_rate`, ou `max(5, taux − DIS/10)` (président immunisé, ministres pour les délits mineurs) ; **+ `securite_malus_lieu_interne`** (dissuasion #135, plafond 100). Détecté : `crime_rechercher_interne` (recherché) et −10 DIS. **Ne connaît ni caché ni masqué.**
+- **Dissuasion #135** : `securite_malus_lieu_interne(acteur)` = `min(40, 10 + hommes armés présents)` (agents privés et soldats via `securite_agents_prives_presents_interne`, gardes républicains). Ajoutée **au jet de l'acte et à la détection** : comptée deux fois pour les actes qui ont un jet propre.
+- **Peines** : `crime_peine_interne(acte, demasque)` (découverte nocturne : `peine_jours`, sinon catégorie 2/4/8/30, doublée si démasqué seulement quand `peine_jours` existe) ; `peine_acte_interne(acte, pays)` (barème propre en Républia, sinon catégorie) ; `infraction_peine_bornes` (juge ±50 % **par infraction**, min 1).
+- **Cachette** : `caches_pj` n'était lue que par `se_cacher` et `crime_empoisonner` (exigée puis consommée).
+
+### Par acte (fonction serveur, formule réelle, écart au document)
+
+| Acte | Fonction(s) en production | Réussite / échec / détection actuels | Écart principal |
+|---|---|---|---|
+| Se cacher (§ 1) | `se_cacher()` | `max(5, 70 + DIS/10 − malus ISN + 15)`, pas de plafond ni d'échec critique ; l'échec effaçait la cachette | **Refait au lot 1** |
+| Fouiller (§ 1) | `fouiller_lieux()` (2 PA : caméras, trésor des Tsars) | 15 % + PER − 10 (75 % avec Couinator) ; ne cherche personne | **Lot 1** : `crim_fouiller_cachettes()` à part (1 PA), même résolution du lieu |
+| Gilet (§§ 2, 5) | `militaire_gilet_absorber` (combat) ; achat `objet_acheter('acheter_gilet','gilet',…)` | Seul le gilet **militaire** comptait, porté ou non ; gilet civil sans effet ; prix écran 600 FR et 1 PA partout | **Lot 1** : compte seulement revêtu, gilet civil compris ; 380 FR / 60 PSK |
+| Neutraliser (§ 2) | `crime_neutraliser` renvoie `combat_universel_requis` ; l'écran ouvre `combat_ouvrir` → `combat_ouvrir_interne` → `combat_agression_preparer_interne` / `combat_finaliser_interne` | **Aucun jet** : combat systématique ; victoire : trace + détection `agression`/`meurtre` (25) ; défaite : recherché (`tentative_assassinat`). Taux écran `neutraliserTaux` inutilisé hors députés (`assemblee_neutraliser_depute`, `assemblee_taux_neutralisation`) | Tout le § 2 (jet, +10 caché, gilet −20/−5, échec critique, combat 10 % des échecs) |
+| Voler (§ 7) | `crime_voler(cible, genre, benediction, per_pnj, int_pnj)` ; `crime_voler_materiaux` ; `voler_materiel` | 50 + PER + CHA − (PER + INT victime) ± 25, carrière +15/−10, − ISN/3 − #135 ; butin 50-199 FR ; échec : amende d'empire ; pas de détection | Formule, butin 10-30 %, objet précis, PNJ, détection 30, échec critique, combat |
+| Cambriolage (§ 8) | Aucun ordre. Serrures : `serrures`, `serrure_poser`, `serrure_basculer` ; `acces_forcer_passage` (accès gardés seulement) | — | Tout le § 8 (objets en vente depuis le lot 1) |
+| Empoisonner (§ 9) | `crime_empoisonner(cible)` | `max(5, 35 + pays + 15 carrière − ISN)` sans plafond ; cachette exigée ; pas de PA prélevé au serveur ; échec total = recherché | Cachette **plus consommée** depuis le lot 1 ; reste du § 9 |
+| Explosifs (§ 10) | `crime_explosifs(batiment)` | `max(5, 35 + 15 − ISN − 30 officiel)` ; détection 65 fixe ; tout échec = recherché | § 10 |
+| Incendie (§ 11) | `crime_incendier(batiment)` | `max(5, 30 + 15 − ISN − 30 officiel)` ; détection 70 à chaque tentative | § 11 (le −30 officiel n'est pas au § 11) |
+| Corruption (§ 12) | `crime_corrompre(fn, pa, cost)` (`corrompre_fonct`, `corrompre_gardien`, `corrompre_police`) ; `crime_corrompre_douanier(pa, cost, requete)` | 65 − ISN ; aucun effet de jeu ; détection 30/35 ; douanier 55 + DUP/10 + INF/10 + 20 inconditionnel | § 12 |
+| Rumeur (§ 13) | `rumeur_lancer(type, cible, texte, cible_trace, pa, cost)` | 75 % fixe ; détection 35 − DIS/10 à chaque tentative | § 13 |
+| Plainte contre X, enquête (§ 3) | `plainte_deposer` (cible vide = X, `plaintes_en_cours`) ; `commissaire_enquete_mener(cible, benediction)` | Enquête sur un suspect **nommé** (35 + 2×ΔPER …, 10-90) ; garde à vue 2 j en dur | § 3 (plafonds 5/15 %, indices, « sur vos traces ») |
+| État d'urgence (§ 14) | `etat_urgence_decider(activer)`, table `etats_urgence` | N'expire jamais ; ne lève pas la fourchette du juge | § 14 |
+| Rébellion (§ 14) | `detention_se_rebeller` | Grilles abîmées même matée ; matée = QHS 30 j ; grilles sans effet sur l'évasion | § 14 |
+| Carrière (§ 15) | +15 `criminal_c` en dur dans voler, empoisonner, explosifs, incendie, député, achats au marché noir | `suivre_formation` désactivé | § 15 |
+
+### Barèmes
+- `actes_illegaux` et `infractions` coexistent avec des **doublons divergents** : `assassinat`/`tentative_assassinat`/`meurtre` 2 j contre `assassiner_mains|arme|feu` (catégorie crime, **8 j**) ; `corruption_fonctionnaire` 1 j contre `corrompre_fonct` 2 j ; `achat_arme_illegal` 1 j contre `acheter_arme_illegale` 2 j. Absents de `infractions` : agression, meurtre, manifestation_spontanee, contrebande_poissonniere, poser_camera, pirater, forcer_passage, voler_archives_ecoute.
+- Catégories génériques encore actives : crime 8 j / 5 000, crime d'État 30 j, délit grave 4 j / 1 500, délit mineur 2 j / 500.
+
+### Écarts majeurs à traiter par les lots suivants
+1. La neutralisation de droit commun n'a plus de jet de réussite (§ 2 à reconstruire autour de `combat_ouvrir`, moteur inchangé).
+2. Le cadre visage découvert / caché / masqué n'existait nulle part : helpers posés au lot 1 (`crim_mode_action_interne`…), à brancher dans la résolution commune.
+3. Dissuasion #135 comptée deux fois (jet + détection).
+4. Cambriolage et enquête sur plainte contre X inexistants.
+5. Barèmes en double (voir ci-dessus).
+6. Lecture publique de la vue `personnages` (position et inventaire de chacun, y compris `porte_par`) : un joueur outillé peut encore deviner qui est caché ou masqué. **À fermer** (hors lot 1 ; la table `presences` et la liste des présents sont, elles, filtrées).
+
+## Lot 1 — ce qui est en place (19/11)
+
+- Migration `20261119130000_crim_lot1_equipement_dissimulation` (appliquée après essai annulé).
+- **Helpers serveur communs** : `crim_objet_categorie_interne(item)` (gilet, masque, tenue_ninja, ou clé `revetable`), `crim_porte_ligne_interne(item, nom)`, `crim_objet_porte_interne(nom, categorie)`, `crim_cache_interne(nom)`, `crim_masque_interne(nom)`, `crim_mode_action_interne(nom)` → `decouvert` / `cache` / `masque` / `cache_masque`, `crim_force_ordre_interne(nom)`, `crim_debusquer_interne(nom)`, `crim_vetements_retirer_interne(nom, categorie)`, `crim_jeton_resoudre_interne(jeton)` (cible d'un individu masqué), `crim_evenement_interne(nom, type, donnees)` + `crim_evenements_lire()`, `crim_param_interne(cle)` (table `crim_parametres`), `crim_stat_interne(nom, cle, defaut)`, `crim_prix_interne(cle, pays)`.
+- **RPC** : `crim_revetir(index, signature)`, `crim_retirer(index, signature)`, `se_cacher()`, `crim_fouiller_cachettes()`, `crim_presents()`, `boutique_discretion_etat()`, `boutique_discretion_acheter(requete, cle)`.
+- Tables : `crim_parametres`, `crim_boutiques`, `crim_traces_achat` (achats de kit et de pied-de-biche, pour l'enquête), `crim_evenements`, `crim_jetons_masque`.
+- Écran : `plateau-criminalite.js` (boutique, Revêtir / Retirer, fouille des cachettes dans « Fouiller ou voler », animation « Bas les masques ! » en CSS, sans image).
+
+### Valeurs provisoires (choisies par l'agent, à valider par Fred)
+- **Points de vente** : tenue ninja et masque sur les **marchés** (Luthécia, Montrouge, PSM, Novomirsk, Starovka, Krasnov) faute de boutique de déguisements ; tenue ninja aussi chez les **armuriers** (sous-type militaire) ; kit, pied-de-biche et gilet chez les armuriers de Républia **et** de Sovarka (Novomirsk, Chasse et Pêche de Starovka), puisque des prix en PSK sont fixés. — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Familles de commerce PJ** : les objets portent `famille` / `sousTypes` (habillement civil et militaire, bazar/outil, armement/protection individuelle) pour qu'un futur commerce PJ d'habillement les vende ; aucun commerce PJ d'habillement n'existe encore. — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Autres empires** : prix de Républia (El Estado, Al-Khalija). — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Gilets déjà détenus** : le premier gilet de chaque personnage a été marqué revêtu à la migration (personne ne perd sa protection) ; le **gilet civil** compte désormais en combat comme le gilet militaire (il n'avait aucun effet). Un seul objet porté par catégorie. — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Se cacher** : le malus ISN de la ville et le +15 fixe de l'ancienne formule disparaissent (le document ne les prévoit pas) ; on ne peut pas se cacher si l'on est déjà caché (PA épargné). — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Fouiller** : ordre distinct de « Fouiller les lieux » (caméras, 2 PA) ; un jet par PJ caché dans la pièce ; le débusqué est prévenu (nom du fouilleur, sauf s'il est masqué) ; un PJ policier = poste `commissaire*` ou `policier*` (aucun PJ agent de sécurité n'existe). — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Démasquage** : l'animation est montrée au PJ arrêté seulement ; elle se déclenche à l'entrée en détention (`est_emprisonne`) ; hôpital et QHS rendent les vêtements sans animation. — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Masqués numérotés** : numéro stable tant que la composition de la pièce ne change pas (ordre d'empreinte du nom). — *valeur provisoire choisie par l'agent, à valider par Fred*
+
+## Tableau de correspondance (règle → statut → fonction serveur)
+
+Statuts : **décidé** (dans le document), **implémenté** (en production), **testé** (essai en production annulé + banc `outils/bancs/test-crim-lot1-equipement.cjs`).
+
+| § | Règle | Statut | Lot | Fonction serveur |
+|---|---|---|---|---|
+| 1 | Trois modes : visage découvert / caché / masqué, cumul | implémenté, testé (helpers) | 1 | `crim_mode_action_interne`, `crim_cache_interne`, `crim_masque_interne` |
+| 1 | Caché absent de la liste des présents | implémenté, testé | 1 | `crim_presents`, RLS `presences_lecture_publique` |
+| 1 | Masqué = « Individu masqué n°X », sans portrait | implémenté, testé | 1 | `crim_presents` |
+| 1 | Se cacher : 1 PA, 70 + 5/20 DIS + 15 ninja, plafond 98 | implémenté, testé | 1 | `se_cacher`, `crim_cacher_taux_interne` |
+| 1 | Échec critique (jet 99-100) : −15 moral | implémenté, testé | 1 | `se_cacher` |
+| 1 | Cachette jusqu'à la sortie de la pièce, conservée après une tentative | implémenté, testé | 1 | déclencheur `crim_personnage_etat`, raccord `crime_empoisonner` |
+| 1 | Fouiller : 1 PA, 40 + 2 PER − DIS/10 − 15 ninja + 20 police/sécurité, 10-90 | implémenté, testé | 1 | `crim_fouiller_cachettes`, `crim_fouiller_taux_interne` |
+| 1 | Débusqué : perd la cachette, garde le masque | implémenté, testé | 1 | `crim_debusquer_interne` |
+| 2 | Neutraliser ouvert à tous, +15 carrière, PA 2/2/3, formule actuelle | décidé | — | (`combat_ouvrir` aujourd'hui, sans jet) |
+| 2 | +10 depuis la cachette ; masque sans bonus | décidé (helper prêt) | — | `crim_cache_interne` |
+| 2 | Gilet revêtu : −20 arme à feu, −5 mains nues / arme blanche | décidé (helper prêt) | — | `crim_objet_porte_interne(cible,'gilet')` |
+| 2 | Réussite : hôpital ; message selon le mode ; détection 30/40/60 −20 caché −10 masqué, min 5 ; masque = trace sans nom | décidé | — | — |
+| 2 | Échec critique 2 % des échecs (avec / sans masque) | décidé | — | — |
+| 2 | Combat 10 % des échecs (+2/PER > 10, +15 garde, −10 caché, 2-40) | décidé | — | — |
+| 2 | Échec sans combat : cachette gardée, message selon le mode | décidé | — | — |
+| 2 | Combat : vaincu identifié ; vainqueur = réussite, perd la cachette, garde le masque | décidé | — | `crim_debusquer_interne` |
+| 3 | Pas d'enquête automatique ; identifié = recherché + 2 j d'office ; dommages et intérêts | décidé | — | — |
+| 3 | Plainte contre X : commissaire de la ville, « Enquêter » 2 PA, 1/jour/plainte, plafonds 5/15 %, bonus (trace, rumeurs, informateur, traces d'achat) | décidé | 6 | (`crim_traces_achat` alimentée dès le lot 1) |
+| 3 | Première enquête ratée : message, −20 DIS, −15 moral | décidé | 6 | — |
+| 4 | Rumeurs à indices partiels (genre, arme) ; fausse piste | décidé | — | — |
+| 5 | Revêtir / Retirer 0 PA ; retiré = sans effet | implémenté, testé | 1 | `crim_revetir`, `crim_retirer`, `crim_porte_ligne_interne` |
+| 5 | Arrestation : masque retiré + « Bas les masques ! » | implémenté, testé (serveur) | 1 | déclencheur `crim_personnage_etat`, `crim_evenements_lire` |
+| 5 | Hôpital, détention : vêtements rendus à l'inventaire | implémenté, testé | 1 | déclencheur `crim_personnage_etat`, `crim_vetements_retirer_interne` |
+| 5 | Tenue ninja 240 FR / 30 PSK, habillement civil + militaire | implémenté, testé | 1 | `crim_objet_interne`, `boutique_discretion_acheter` |
+| 5 | Masque de carnaval 50 FR / 8 PSK, habillement civil | implémenté, testé | 1 | idem |
+| 5 | Gilet 380 FR / 60 PSK | implémenté, testé | 1 | `crim_prix_interne` |
+| 6 | Cadre des trois modes pour tous les crimes en pièce | décidé (helpers prêts) | — | `crim_mode_action_interne` |
+| 6 | Neutraliser et voler un PNJ (employeur alerté, hors service jusqu'au lendemain) | décidé | — | — |
+| 6 | Dissuasion #135 conservée pour tous les crimes (une seule fois) | décidé | — | `securite_malus_lieu_interne` |
+| 6 | Peines automatiques par empire (Républia : 2 j / 1 j) | décidé | — | — |
+| 7 | Voler : cibles, coûts, formules de réussite, butin, objets volables, réussite critique, échecs, combat, 1 j d'office | décidé | — | (objet revêtu non volable : `crim_porte_ligne_interne`) |
+| 8 | Crochetage 3 PA, kit, 30 % +1/2 DIS > 50, +15, 5-80 ; kit cassé ; 5 usages | décidé (kit vendu, `usages_restants`) | — | `crim_objet_interne('kit_crochetage')` |
+| 8 | Effraction 2 PA, 40 % +3/FOR > 8, +25 pied-de-biche, +10, 10-95 ; serrure détruite ; détection 60 | décidé (pied-de-biche vendu) | — | — |
+| 8 | Achat de kit / pied-de-biche tracé | implémenté, testé | 1 | `crim_traces_achat` |
+| 8 | Intérieur : ramasser, matériel installé, stock, caisse, détection par vol | décidé | — | — |
+| 9 | Empoisonnement : cachette ni exigée ni consommée ; formule ; règle commune | consommation retirée (lot 1), reste décidé | — | `crime_empoisonner` |
+| 10 | Explosifs : formule, échec critique 10 % (explosion prématurée), détection 65 min 30 | décidé | — | — |
+| 11 | Incendie : formule (bidon, orage, canicule), détection après réussite 70 min 20 | décidé | — | — |
+| 12 | Corruption de PNJ seulement ; règle commune ; QHS directeur / gardien ; suppressions | décidé | — | — |
+| 13 | Rumeur : formule, échec critique 10 %, détection 15 %, bouche-à-oreille ; tracts ; scandale ; fuite | décidé | — | — |
+| 14 | Doublement démasqué ; fin des catégories lourdes ; seuil du procès 4 j ; juge ±50 % (liberté sous état d'urgence) ; état d'urgence 7 j ; correctifs de nomenclature | décidé | — | — |
+| 14 | Rébellion réussie / matée, grilles, réparation | décidé | — | — |
+| 15 | Carrière criminelle, cursus « Droit pénal », bonus seulement | décidé | — | — |
+| 16 | QHS réservé aux détenus très dangereux ; pas de verrou de critères | décidé | 10 | — |
+| 16 | Décision : Ministre de la Justice (valider, référendum, refuser) ; proposition du juge | décidé | 10 | — |
+| 16 | Suppléance par le Premier ministre ; sans PM, refus automatique | décidé | 10 | — |
+| 16 | Envoi direct : −5 POP par membre du gouvernement, −10 au Ministre, rumeur | décidé | 10 | — |
+| 16 | Référendum gratuit ; non puis envoi = pénalité doublée | décidé | 10 | — |
+| 16 | Électeurs domiciliés, 1 voix par PJ, 24 h, courrier | décidé | 10 | — |
+| 16 | Bloc PNJ de 10 voix (Sécurité, Moral, POP du détenu ; 10-90 %) ; égalité = non | décidé | 10 | — |
+| 16 | QHS = régime (reste de la peine) ; Sovarka : goulag, règles inchangées | décidé | 10 | — |

@@ -265,6 +265,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'traiter_demandes_logement_social') { ouvrirTableauLogementsSociaux(); return; }
   if (fn === 'consulter_registre_armes') { doConsulterRegistre(); return; }
   if (fn === 'acheter_gilet') { doAcheterGilet(); return; }
+  if (fn === 'boutique_discretion') { if (typeof ouvrirBoutiqueDiscretion === 'function') ouvrirBoutiqueDiscretion(); return; }
   // « Subtiliser des explosifs » (refonte du 13 septembre 2026). Ce n'etait PAS un vol : l'ordre
   // ouvrait le modal du marche noir a 1 200 FR, alors que son libelle et sa description
   // promettaient un vol a 35 % avec pertes de PV. C'est desormais un vrai vol dans le stock reel
