@@ -17,23 +17,24 @@ const canonical=vm.runInNewContext(source.slice(begin,end+3)+'\nI18N_COMMERCE_PJ
 const commercial=flat(config.RP_I18N_RESOURCES.fr.translation.commercepj);
 const keyStart='// Human Gambit — compléments';
 const supplement=read('i18n/commerce-pj-complements-20261119.js');
-test('100 textes de commerce complétés, français exactement conservé et 8 langues',()=>{
+test('166 textes complémentaires du commerce PJ, français exactement conservé et 8 langues',()=>{
   const extras=[...supplement.matchAll(/"([a-zA-Z]+(?:\.[a-zA-Z]+)*)":/g)];
   const dataStart=supplement.indexOf('const words='),dataEnd=supplement.indexOf(';\n function assign',dataStart);
   assert.ok(dataStart>0&&dataEnd>dataStart);
   const entries=JSON.parse(supplement.slice(dataStart+'const words='.length,dataEnd));
-  assert.equal(Object.keys(entries.fr).length,100);
+  assert.equal(Object.keys(entries.fr).length,166);
   for(const [k,v]of Object.entries(entries.fr)){
     assert.equal(v,canonical['commercepj.'+k],k);
   }
   for(const lang of langs){
     const all=flat(config.RP_I18N_RESOURCES[lang].translation.commercepj);
+    assert.equal(Object.keys(all).length,218,'catalogue Commerce PJ complet : '+lang);
     for(const [k,fr] of Object.entries(entries.fr)){
       assert.equal(typeof all[k],'string',lang+' '+k);
       assert.ok(all[k].trim());
       if(lang==='fr')assert.equal(all[k],fr);
       else {
-        if(!new Set(['en:nouvelle.desc','en:travail.maximum','es:ref.stock','de:travail.maximum']).has(lang+':'+k))
+        if(!new Set(['en:nouvelle.desc','en:travail.maximum','es:ref.stock','de:travail.maximum','en:creer.enseignePh']).has(lang+':'+k))
           assert.notEqual(all[k],fr,'translation must differ: '+lang+' '+k);
         const vars=s=>[...s.matchAll(/\{(?:\{values\.)?([A-Za-z0-9_]+)\}?/g)].map(x=>x[1]).sort();
         assert.deepEqual(vars(all[k]),vars(fr),'placeholder '+lang+' '+k);
