@@ -433,9 +433,67 @@ Relevé en production (`pg_proc` du projet `jxpwoosmmhohoihxpbuc`, lecture seule
 - Les serrures de véhicules ne sont pas concernées.
 - L'enquête (lot 6) dispose des affaires `crocheter`, `forcer_porte`, `cambrioler`, `ramasser` (cible = propriétaire) et de `crim_intrusions`.
 
+## Lot 5 — ce qui est en place (19/11)
+
+- Migration `20261120010000_crim_lot5_poison_explosifs_incendie` (partie migration essayée en transaction annulée, appliquée, puis scénario
+  rejoué en essai annulé après application).
+- **Empoisonner** : `crime_empoisonner(cible, requete)` (idempotent), PJ présent désigné par son nom ou par le jeton d'un individu masqué
+  (`crim_cible_resoudre_interne` ; un PNJ est refusé : `cible_pj_seulement`). Taux `crim_empoisonner_taux_interne` (35 + DIS/3 > 50
+  − 3 × (PER de groupe − 8) + 10 caché + 15 criminelle ; parapluie +5, GHB +10 / −10 selon `crim_a_bu_interne`, polonium −10, vipère 0 ;
+  Narco +20, Sovarka −10), résolu par `crim_resoudre_interne` (dissuasion une fois, bornes 5-85, échec critique 2 %, détection après
+  réussite 25 / −20 / −10, min 5). Quatre paliers sur le jet commun (`crim_empoisonner_palier_interne`) : totale, partielle, échec partiel
+  (effet atténué), échec total (rien). Anonymat par nature : message mystérieux et annonce publique inchangés, aucun message nommant l'auteur,
+  la victime n'identifie jamais (même à visage découvert), l'échec ne se remarque pas. Plus de cachette exigée, plus de recherché d'office
+  ni de flagrant délit à l'échec ; seul l'échec critique sans masque identifie (−15 moral). Trace de rumeur conservée ; plus d'écriture dans
+  `historique_crimes` (l'affaire `crim_affaires` la remplace, comme au lot 2).
+- **Explosifs** : `crime_explosifs(batiment, requete)` (idempotent), 3 PA, une charge consommée. Taux `crim_explosifs_taux_interne`
+  (35 + DIS/3 > 50 + 2 × (INT − 8) + 10 caché + 15 criminelle − 30 bâtiment officiel `crim_batiment_officiel_interne`), bornes 5-75.
+  Échec critique 10 % des échecs = **explosion prématurée** : la poseuse / le poseur tombe à 15 de santé, identifié sans masque, −15 moral.
+  Les autres échecs ne révèlent rien. Réussite : fermeture 5 jours, présents à 15, annonce (inchangé) ; détection 65 / −20 / −10, min 30.
+- **Incendie** : `crime_incendier(batiment, requete)` (idempotent), 3 PA. Taux `crim_incendie_taux_interne` (30 + DIS/3 > 50 + 10 caché
+  + 15 criminelle + 15 bidon de carburant + 15 canicule − 15 orage), bornes 5-80, échec critique 2 %. Bidon = la pile `carburant` vendue à la
+  station-service (objet existant), utilisé d'office et consommé par la tentative. Orage / canicule : `crim_climat_actif_interne(type, pays,
+  ville)` sur `climat_evenements` (annoncé, non annulé, en cours). Détection après réussite seulement 70 / −20 / −10, min 20. Fermeture 1 à 3
+  jours selon le jet (`crim_incendie_jours_interne`, inchangé).
+- **Brouillard** (GAME-DESIGN-MALADIES-CLIMAT.md § 6) branché dans la résolution commune (raccords `crim_brouillard_*_v1` de
+  `crim_resoudre_interne`) : pour **tout acte** résolu par elle dans une ville sous brouillard, +10 au taux (avant dissuasion et bornes) et −20
+  à la base de détection (avant les malus caché / masqué et le plancher), valeurs de `climat_brouillard_modificateurs_interne`. La base abaissée
+  est gardée dans l'affaire (vaut aussi pour la détection qui suit un combat gagné). Paramètre `brouillard: false` pour l'ignorer.
+- Anciennes signatures `crime_empoisonner(text)`, `crime_explosifs(text)`, `crime_incendier(text)` : `requete_requise`.
+- **Peines** : barème existant (`empoisonnement`, `tentative_empoisonnement`, `utiliser_explosifs`, `incendier` : 2 jours) ; les autres
+  empires reprennent Républia.
+- **Écran** : `ouvrirModalEmpoisonner`, `doIncendier`, `doUtiliserExplosifs` délèguent à `plateau-criminalite.js` (`crimOuvrirEmpoisonner`,
+  `crimOuvrirSabotage`), pop-ups `cpj-*`, aucune estimation (le malus « bâtiment stratégique » affiché, le prérequis « Se cacher »,
+  l'arrestation immédiate et la « blessure progressive » côté écran sont retirés).
+
+### Valeurs provisoires du lot 5 (choisies par l'agent, à valider par Fred)
+- **Détection de l'empoisonnement** : base 25 (taux existant de l'acte), −20 caché, −10 masqué, plancher 5 (plancher commun). —
+  *valeur provisoire choisie par l'agent, à valider par Fred*
+- **« A bu dans la journée »** : au moins un verre d'alcool compté aujourd'hui (heure de Paris) dans `verres_du_jour` (consommation sur place,
+  tournées, boisson) ; les boissons sans alcool ne comptent pas, faute de trace. — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **DIS** : +1 par tranche de 3 au-dessus de 50, rien en dessous (même convention qu'au lot 4). — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Paliers de l'empoisonnement** : le palier « échec partiel » (moitié basse des échecs) garde son effet atténué, sans détection ni
+  identification (c'est un échec au sens de la règle commune). — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Cible de l'empoisonnement** : PJ seulement (l'effet du poison n'existe que pour les fiches de joueurs). Pas de PA (inchangé : seul le
+  poison est consommé). — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Explosion prématurée** : seul le poseur est blessé (15 de santé) ; pas de fermeture, pas d'annonce, les présents sont épargnés.
+  La charge est perdue à tout échec (inchangé). — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Bidon d'essence** : la pile `carburant` existante (station-service) ; un bidon utilisé d'office et consommé à chaque tentative, réussie
+  ou non. Aucun nouvel objet créé. — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Incendie d'un bâtiment officiel** : plus de −30 (le § 11 ne le prévoit pas, contrairement au § 10). Le malus ISN (`crime_malus_isn_interne`)
+  disparaît des trois actes (absent du document, comme pour le vol). — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Brouillard** : +10 et −20 en points de pourcentage, appliqués à tous les actes de la résolution commune (vol, crochetage, effraction,
+  cambriolage, neutralisation comprises). — *valeur provisoire choisie par l'agent, à valider par Fred*
+
+### Points relevés pour les lots suivants
+- `historique_crimes` n'est plus alimenté par ces trois actes ; `minuit_decouverte_crimes` reste à retirer au lot 6.
+- `outils/bancs/banc-arrestations-flagrant-delit.sql` et `banc-se-cacher.sql` (bancs SQL de production) décrivent encore l'ancien
+  empoisonnement (cachette exigée, flagrant délit à l'échec total) : à relire si on les rejoue.
+- L'enquête (lot 6) dispose des affaires `empoisonner` (cible = victime, indice `poison`), `utiliser_explosifs`, `incendier` (indice `batiment`).
+
 ## Tableau de correspondance (règle → statut → fonction serveur)
 
-Statuts : **décidé** (dans le document), **implémenté** (en production), **testé** (essai en production annulé + bancs `outils/bancs/test-crim-lot1-equipement.cjs`, `outils/bancs/test-crim-lot2-resolution.cjs`, `outils/bancs/test-crim-lot3-voler.cjs`, `outils/bancs/test-crim-lot4-cambriolage.cjs`).
+Statuts : **décidé** (dans le document), **implémenté** (en production), **testé** (essai en production annulé + bancs `outils/bancs/test-crim-lot1-equipement.cjs`, `outils/bancs/test-crim-lot2-resolution.cjs`, `outils/bancs/test-crim-lot3-voler.cjs`, `outils/bancs/test-crim-lot4-cambriolage.cjs`, `outils/bancs/test-crim-lot5-poison-explosifs-incendie.cjs`).
 
 | § | Règle | Statut | Lot | Fonction serveur |
 |---|---|---|---|---|
@@ -468,7 +526,7 @@ Statuts : **décidé** (dans le document), **implémenté** (en production), **t
 | 5 | Gilet 380 FR / 60 PSK | implémenté, testé | 1 | `crim_prix_interne` |
 | 6 | Cadre des trois modes pour tous les crimes en pièce | implémenté dans la résolution commune ; branché sur Neutraliser | 2 | `crim_resoudre_interne`, `crim_designation_interne` |
 | 6 | Neutraliser et voler un PNJ (employeur alerté, hors service jusqu'au lendemain) | implémenté (essais sur PJ ; aucun PNJ référencé dans la pièce d'essai) | 2, 3 | `crim_cible_resoudre_interne`, `crim_affaire_notifier_interne`, `pnj_pa_fixer`, `crime_voler` |
-| 6 | Dissuasion #135 conservée pour tous les crimes (une seule fois) | implémenté dans la résolution commune (vol, crochetage, effraction branchés ; actes anciens : double compte jusqu'à leur lot) | 2, 3, 4 | `crim_resoudre_interne`, `securite_malus_lieu_interne` |
+| 6 | Dissuasion #135 conservée pour tous les crimes (une seule fois) | implémenté dans la résolution commune (vol, crochetage, effraction, empoisonnement, explosifs, incendie branchés ; corruption, rumeurs : double compte jusqu'à leur lot) | 2, 3, 4, 5 | `crim_resoudre_interne`, `securite_malus_lieu_interne` |
 | 6 | Peines automatiques par empire (Républia : 2 j / 1 j) | implémenté, testé (assassin 2 j, voleur 1 j, effraction 1 j) | 2, 3, 4 | `crim_peine_jours_interne`, `crim_parametres.peine_jours_<acte>_<empire>` |
 | 7 | Voler un PJ ou un PNJ présent : argent liquide / objet au hasard / objet précis (type), 2 / 2 / 3 PA | implémenté, testé | 3 | `crime_voler(text,text,text,uuid)` ; ancienne route `ordre_remplace` |
 | 7 | Réussite 55 / 45 / 25 ± DIS/3, −3/PER (de groupe) > 8, +15 criminelle / renseignement / escort, 5-85 ; caché sans effet ; dissuasion #135 | implémenté, testé | 3 | `crim_voler_taux_interne`, `crim_per_groupe_interne`, `crim_resoudre_interne` |
@@ -486,9 +544,16 @@ Statuts : **décidé** (dans le document), **implémenté** (en production), **t
 | 8 | Lieu vide : détection par vol 30 (−20 −10, min 5), constat au prochain passage / point de caisse | implémenté, testé | 4 | `crim_resoudre_interne` (`reussite_auto`), `crim_constats`, raccords `crim_constat_passage_v1` / `crim_constat_caisse_v1` |
 | 8 | Personnes présentes : règles du vol sur une personne (réussite, remarqué, combat) | implémenté, testé (combat ouvert ; issue réelle non jouée) | 4 | `crim_temoin_interne`, `crim_voler_taux_interne`, `crim_combat_ouvrir_interne`, raccord `crim_cambriolage_combat_v1` |
 | 8 | Écran : boutons sur la porte fermée, menu « Emporter ce qu'il y a ici », sans calcul | implémenté, testé (VM) | 4 | `plateau-criminalite.js`, `serrurePopupFermee` |
-| 9 | Empoisonnement : cachette ni exigée ni consommée ; formule ; règle commune | consommation retirée (lot 1), reste décidé | — | `crime_empoisonner` |
-| 10 | Explosifs : formule, échec critique 10 % (explosion prématurée), détection 65 min 30 | décidé | — | — |
-| 11 | Incendie : formule (bidon, orage, canicule), détection après réussite 70 min 20 | décidé | — | — |
+| 9 | Empoisonnement : anonymat par nature, quatre poisons et quatre paliers, cachette = bonus (ni exigée ni consommée) | implémenté, testé | 1, 5 | `crime_empoisonner(text,uuid)`, `crim_empoisonner_palier_interne` |
+| 9 | Réussite 35 + DIS/3 −3/PER (de groupe) ±8 +10 caché +15 criminelle, poisons (GHB selon « a bu »), pays, 5-85 | implémenté, testé | 5 | `crim_empoisonner_taux_interne`, `crim_a_bu_interne`, `crim_per_groupe_interne` |
+| 9 | Fin du recherché d'office : échec critique 2 % (identifié sans masque, −15 moral) ; détection après réussite (25, provisoire) | implémenté, testé | 5 | `crim_resoudre_interne` |
+| 10 | Explosifs 35 + DIS/3 ±2/INT +10 caché +15 criminelle −30 officiel, 5-75 | implémenté, testé | 5 | `crime_explosifs(text,uuid)`, `crim_explosifs_taux_interne`, `crim_batiment_officiel_interne` |
+| 10 | Échec critique 10 % = explosion prématurée (poseur à 15, identifié sans masque, −15 moral) ; autres échecs sans suite | implémenté, testé | 5 | `crime_explosifs`, `crim_resoudre_interne` |
+| 10 | Détection après réussite 65 −10 −20 min 30 ; fermeture 5 j, présents à 15 | implémenté, testé | 5 | `crim_resoudre_interne`, `crim_detection_interne` |
+| 11 | Incendie 30 + DIS/3 +10 caché +15 criminelle +15 bidon −15 orage +15 canicule, 5-80 ; échec critique 2 % | implémenté, testé | 5 | `crime_incendier(text,uuid)`, `crim_incendie_taux_interne`, `crim_climat_actif_interne` |
+| 11 | Détection après réussite seulement 70 −10 −20 min 20 ; fermeture 1-3 j selon le jet | implémenté, testé | 5 | `crim_incendie_jours_interne`, `crim_resoudre_interne` |
+| 6 | Brouillard (climat § 6) : +10 réussite, −20 détection pour les actes illégaux | implémenté, testé (empoisonnement, incendie) | 5 | raccords `crim_brouillard_*_v1` de `crim_resoudre_interne`, `climat_brouillard_modificateurs_interne` |
+| 9-11 | Écran sans estimation, pop-ups `cpj-*` | implémenté, testé (VM) | 5 | `plateau-criminalite.js` (`crimOuvrirEmpoisonner`, `crimOuvrirSabotage`) |
 | 12 | Corruption de PNJ seulement ; règle commune ; QHS directeur / gardien ; suppressions | décidé | — | — |
 | 13 | Rumeur : formule, échec critique 10 %, détection 15 %, bouche-à-oreille ; tracts ; scandale ; fuite | décidé | — | — |
 | 14 | Doublement démasqué ; fin des catégories lourdes ; seuil du procès 4 j ; juge ±50 % (liberté sous état d'urgence) ; état d'urgence 7 j ; correctifs de nomenclature | décidé | — | — |

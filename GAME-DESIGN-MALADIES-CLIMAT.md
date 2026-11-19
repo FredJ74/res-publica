@@ -127,6 +127,8 @@ sauf mention contraire. Tout texte affiché est écrit dans les neuf langues.
 - **2 journées par mois et par ville**, dates tirées au hasard.
 - Pendant la journée : **+10 %** de réussite aux actes illégaux et **−20 %** de chances d'être repéré
   (police, agents de sécurité, caméras).
+- **Branché le 19/11 (criminalité lot 5)** : la résolution commune des crimes `crim_resoudre_interne` applique ces +10 / −20
+  (points) à tout acte illégal qu'elle résout dans la ville (voir GAME-DESIGN-CRIMINALITE.md, lot 5).
 
 ## 7. Orage et coupure d'électricité et d'internet (tous pays)
 

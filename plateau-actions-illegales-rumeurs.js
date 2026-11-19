@@ -1767,129 +1767,16 @@ async function confirmerAchatExplosifs(pa, cost) {
 }
 
 // =====================
-// INCENDIER (bâtiment courant)
+// INCENDIER / UTILISER DES EXPLOSIFS (Criminalité lot 5, 19/11/2026, GAME-DESIGN-CRIMINALITE.md §§ 10, 11)
 // =====================
+// Le serveur tranche tout (crime_incendier / crime_explosifs sur la résolution commune crim_resoudre_interne :
+// jet, bidon de carburant, orage, canicule, brouillard, bâtiment officiel, échec critique, détection, peine).
+// L'écran n'estime rien : pop-up et messages dans plateau-criminalite.js (crimOuvrirSabotage).
 function doIncendier() {
-  const b = BUILDINGS[state.currentBuilding];
-  if (!b) { showToast('Impossible', 'Vous devez être dans un bâtiment pour tenter ceci.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bf656cf07", 'Vous devez être dans un bâtiment pour tenter ceci.', undefined, 'Impossible'); return; }
-
-  const malusCentre = BATIMENTS_CENTRES_POUVOIR.includes(state.currentBuilding) ? MALUS_CENTRE_POUVOIR : 0;
-
-  document.getElementById('postes-modal-title').textContent = 'Incendier — ' + b.name;
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.82rem;color:#cc4444;font-style:italic;margin-bottom:1rem;padding:.5rem;background:#0f0505;border:1px solid #3a1010">Acte criminel. Un incendie ravage ce bâtiment, le fermant temporairement (1 à 3 jours selon la réussite).' + (malusCentre ? ' Bâtiment stratégique : surveillance renforcée, malus important.' : '') + '</div>';
-  html += '<button onclick="confirmerIncendier()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a3a20;background:transparent;color:#cc6a44;cursor:pointer">🔥 Mettre le feu (3 PA)</button>';
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
+  if (typeof crimOuvrirSabotage === 'function') crimOuvrirSabotage('incendie');
 }
-
-async function confirmerIncendier() {
-  document.getElementById('modal-postes').classList.remove('open');
-  const buildingId = state.currentBuilding;
-  const b = BUILDINGS[buildingId];
-  if (!b) return;
-  // PAR LE SERVEUR (27 octobre 2026) : PA, jet, fermeture du batiment, annonce, detection et trace
-  // -- crime_incendier. L'ecran ecrivait lui-meme la fermeture (table ouverte a tous).
-  const brut = (typeof sbRpc === 'function') ? await sbRpc('crime_incendier', { p_nom_batiment: b.name }).catch(() => null) : null;
-  const v = Array.isArray(brut) ? brut[0] : brut;
-  if (!v || v.ok !== true) { signalerRefusCout(v || { raison: 'paiement_indisponible' }); return; }
-  if (v.paie && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v.paie);
-  const joursFermeture = Number(v.jours) || 0;
-  if (joursFermeture > 0) {
-    if (typeof chargerBatimentsFermes === 'function') await chargerBatimentsFermes();
-    showToast('Incendie déclenché', b.name + ' fermé ' + joursFermeture + ' jour(s).', true, true);
-    addJournalEntry('Incendie déclenché sur ' + b.name + '. Fermeture : ' + joursFermeture + ' jour(s).', 'event-bad');
-    if (!v.repere) tracerActionPourRumeur('incendier', b.name);
-  } else {
-    showToast('Incendie raté', 'Le feu ne prend pas. Rien ne se passe.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.ba1293687", 'Le feu ne prend pas. Rien ne se passe.', undefined, 'Incendie raté');
-    addJournalEntry('Tentative d\'incendie ratée sur ' + b.name + '.', 'event-bad');
-  }
-  if (v.repere) addJournalEntry('Un témoin vous a reconnu près de l\'incendie. Vous êtes recherché(e).', 'event-bad');
-  updateUI();
-}
-
-// =====================
-// UTILISER DES EXPLOSIFS (bâtiment + occupants de la pièce)
-// =====================
 function doUtiliserExplosifs() {
-  const explosifIdx = (state.inventory || []).findIndex(i => i.type === 'explosif');
-  if (explosifIdx === -1) {
-    showToast('Objet manquant', 'Vous n\'avez pas d\'explosifs dans votre inventaire. Procurez-vous en à l\'armurerie.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b57277d24", 'Vous n\'avez pas d\'explosifs dans votre inventaire. Procurez-vous en à l\'armurerie.', undefined, 'Objet manquant');
-    return;
-  }
-  const b = BUILDINGS[state.currentBuilding];
-  if (!b) { showToast('Impossible', 'Vous devez être dans un bâtiment pour tenter ceci.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bf656cf07", 'Vous devez être dans un bâtiment pour tenter ceci.', undefined, 'Impossible'); return; }
-
-  const malusCentre = BATIMENTS_CENTRES_POUVOIR.includes(state.currentBuilding) ? MALUS_CENTRE_POUVOIR : 0;
-  const autresPresents = getCurrentRoomPersons().filter(p => p.isPJ && p.name !== state.char?.name);
-
-  document.getElementById('postes-modal-title').textContent = 'Utiliser les explosifs — ' + b.name;
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.82rem;color:#cc4444;font-style:italic;margin-bottom:1rem;padding:.5rem;background:#0f0505;border:1px solid #3a1010">Acte criminel grave. Fermeture du bâtiment 5 jours en cas de réussite. Toute personne présente dans la pièce (hormis vous) sera blessée.' + (autresPresents.length ? ' Actuellement présent(s) : ' + autresPresents.map(p=>p.name).join(', ') + '.' : ' Personne d\'autre présent pour le moment.') + (malusCentre ? ' Bâtiment stratégique : surveillance renforcée, malus important.' : '') + ' En cas d\'échec, seul(e) vous serez blessé(e), progressivement.</div>';
-  html += '<button onclick="confirmerUtiliserExplosifs()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a3a20;background:transparent;color:#cc6a44;cursor:pointer">💣 Déclencher (3 PA)</button>';
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
-}
-
-async function confirmerUtiliserExplosifs() {
-  document.getElementById('modal-postes').classList.remove('open');
-  const buildingId = state.currentBuilding;
-  const b = BUILDINGS[buildingId];
-  if (!b) return;
-  // PAR LE SERVEUR (27 octobre 2026) : explosif consomme, PA, jet, fermeture, blessures des
-  // personnes presentes, annonce, detection et trace -- crime_explosifs. L'ecran ecrivait lui-meme
-  // la fermeture et deposait les degats chez les victimes.
-  const brut = (typeof sbRpc === 'function') ? await sbRpc('crime_explosifs', { p_nom_batiment: b.name }).catch(() => null) : null;
-  const v = Array.isArray(brut) ? brut[0] : brut;
-  if (!v || v.ok !== true) {
-    if (v && v.raison === 'explosif_manquant') { showToast('Objet manquant', 'Vous n\'avez pas d\'explosifs dans votre inventaire.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b7650389e", 'Vous n\'avez pas d\'explosifs dans votre inventaire.', undefined, 'Objet manquant'); }
-    else signalerRefusCout(v || { raison: 'paiement_indisponible' });
-    return;
-  }
-  if (v.paie && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v.paie);
-  if (Array.isArray(v.inventory) && typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(v);
-  const reussi = !!v.reussi, repere = !!v.repere;
-  const autresPresents = (Array.isArray(v.victimes) ? v.victimes : []).map(n => ({ name: n }));
-  if (reussi) {
-    if (typeof chargerBatimentsFermes === 'function') await chargerBatimentsFermes();
-    showToast('Explosifs déclenchés', b.name + ' fermé 5 jours.' + (autresPresents.length ? ' ' + autresPresents.length + ' victime(s).' : ''), true, true);
-    addJournalEntry('Explosifs utilisés sur ' + b.name + '. Fermeture : 5 jours.', 'event-bad');
-    if (!repere) tracerActionPourRumeur('utiliser_explosifs', b.name);
-  } else {
-    // Echec : l'auteur seul est blesse, progressivement (a partir du prochain dormir)
-    state.explosifBlesse = { jourDebut: state.day };
-    showToast('Explosifs ratés', 'Le dispositif vous explose entre les mains. Vous êtes blessé(e).', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b47293e48", 'Le dispositif vous explose entre les mains. Vous êtes blessé(e).', undefined, 'Explosifs ratés');
-    addJournalEntry('Tentative ratée d\'utilisation d\'explosifs sur ' + b.name + '. Vous êtes blessé(e).', 'event-bad');
-  }
-  updateUI();
-
-  // Resolution spectaculaire (chantier "animations de resolution d'ordres", 26 aout 2026) :
-  // presentation uniquement, appelee APRES que toute la logique metier ci-dessus s'est deja
-  // executee -- ne conditionne jamais le resultat reel (§8). N'utilise que des valeurs deja
-  // calculees ci-dessus (aucun chiffre invente).
-  if (typeof ouvrirResolutionSpectaculaire === 'function') {
-    let resultatHtml;
-    if (reussi) {
-      resultatHtml =
-        '<div><strong style="color:#e0d5b8">Bâtiment touché :</strong> ' + b.name + '</div>' +
-        '<div style="margin-top:.3rem"><strong style="color:#e0d5b8">Fermeture :</strong> 5 jours</div>' +
-        '<div style="margin-top:.3rem"><strong style="color:#e0d5b8">Victimes :</strong> ' + (autresPresents.length ? autresPresents.length + ' personne(s) blessée(s)' : 'aucune autre personne présente') + '</div>' +
-        (repere ? '<div style="margin-top:.6rem;color:#cc8844">Un témoin vous a reconnu près de l\'explosion.</div>' : '');
-    } else {
-      resultatHtml =
-        '<div>Le dispositif ne s\'est pas déclenché correctement : il vous a explosé entre les mains.</div>' +
-        '<div style="margin-top:.3rem"><strong style="color:#e0d5b8">Conséquence :</strong> vous êtes blessé(e), progressivement.</div>' +
-        '<div style="margin-top:.6rem;color:#cc4444"><strong>L\'incident a été signalé à la police.</strong></div>';
-    }
-    ouvrirResolutionSpectaculaire({
-      type: 'bombe',
-      succes: reussi,
-      titre: reussi ? 'EXPLOSION RÉUSSIE' : 'OUPS…',
-      resultatHtml
-    });
-  }
+  if (typeof crimOuvrirSabotage === 'function') crimOuvrirSabotage('explosifs');
 }
 
 function doAcheterPoisonObjet(type, pa, cost) {
@@ -1974,88 +1861,13 @@ async function confirmerAchatPoison(type, pa, cost) {
 // dupliquees dont seule la derniere chargee comptait (checkArrestationAuDeplacement).
 
 // =====================
-// EMPOISONNER
+// EMPOISONNER (Criminalité lot 5, 19/11/2026, GAME-DESIGN-CRIMINALITE.md § 9)
 // =====================
-const POISON_MESSAGES = {
-  parapluie: 'Quelque chose vous pique dans le dos. Une douleur irradie dans tout votre corps et s\'intensifie d\'heure en heure. Était-ce en lien avec cette personne qui vous a touché avec le bout de son parapluie et s\'est excusée ? Vous perdez 2 PA.',
-  ghb:       'Votre esprit devient confus. Vous avez la tête qui tourne et vos sens sont perturbés. Vous avez l\'impression d\'avoir été drogué(e), mais par qui ? Vous perdez 2 PA.',
-  polonium:  'Vous vous sentez subitement faible. En passant la main dans vos cheveux, ils se décrochent par paquets de votre crâne, comme si vous aviez été mis(e) en contact avec quelque chose de radioactif. Vous perdez 2 PA.',
-  vipere:    'Vous ressentez une violente douleur au niveau du mollet. Deux petits trous douloureux et rouges sont visibles. Un serpent vous aurait-il mordu(e) ? Vous perdez 2 PA.'
-};
-
-const POISON_STAT_PERDUE = {
-  republic: 'VOL',
-  narco:    'PER',
-  soviet:   'INT',
-  khalija:  'CHA'
-};
-
+// crime_empoisonner(cible, requete) sur la résolution commune : la cachette n'est plus exigée (bonus), la cible est
+// choisie parmi les présents (crim_presents : caché absent, individu masqué par jeton). Anonymat par nature : la
+// victime ne sait jamais qui. Plus de « recherché d'office » ni d'arrestation à l'échec. Pop-up dans plateau-criminalite.js.
 function ouvrirModalEmpoisonner() {
-  if (!state.estCache) {
-    showToast('Prérequis manquant', 'Vous devez d\'abord réussir l\'ordre "Se cacher" dans cette pièce.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bbe269133", 'Vous devez d\'abord réussir l\'ordre "Se cacher" dans cette pièce.', undefined, 'Prérequis manquant');
-    return;
-  }
-  const poisonInventaire = (state.inventory || []).find(i => i.type === 'poison');
-  if (!poisonInventaire) {
-    showToast('Objet manquant', 'Vous n\'avez pas d\'objet poison dans votre inventaire. Procurez-vous en dans votre empire.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.be4072bf2", 'Vous n\'avez pas d\'objet poison dans votre inventaire. Procurez-vous en dans votre empire.', undefined, 'Objet manquant');
-    return;
-  }
-  const personnesPresentes = getCurrentRoomPersons().filter(p => p.isPJ && p.name !== state.char?.name);
-  if (personnesPresentes.length === 0) {
-    showToast('Personne à cibler', 'Aucun PJ dans cette pièce.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b35b26c93", 'Aucun PJ dans cette pièce.', undefined, 'Personne à cibler');
-    return;
-  }
-
-  document.getElementById('postes-modal-title').textContent = 'Empoisonner';
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.8rem;color:#cc4444;font-style:italic;margin-bottom:.8rem">Acte illégal. Objet : ' + poisonInventaire.name + ' (usage unique). Effets progressifs sur 3 jours.</div>';
-  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">CIBLE</div>';
-  personnesPresentes.forEach(p => {
-    html += '<div onclick="confirmerEmpoisonnement(\'' + p.name + '\')" style="padding:.7rem;border:1px solid #2a1a30;background:#0f050f;margin-bottom:.4rem;cursor:pointer" onmouseover="this.style.background=\'#1a0818\'" onmouseout="this.style.background=\'#0f050f\'">';
-    html += '<div style="font-size:.85rem;color:#c0b090">' + p.name + '</div>';
-    html += '</div>';
-  });
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
-}
-
-// EMPOISONNER PAR LE SERVEUR (27 octobre 2026) : crime_empoisonner consomme le poison, fait le jet
-// (4 paliers), depose l'effet chez la victime (poison_start, type de poison et deux statistiques
-// touchees), la previent, annonce le malaise, trace le crime et tire la detection. Avant, tout
-// etait decide ici -- et l'effet n'atteignait jamais la victime (impact refuse par le serveur).
-// Le prealable « Se cacher » reste verifie par l'ecran (ouvrirModalEmpoisonner).
-async function confirmerEmpoisonnement(cibleNom) {
-  document.getElementById('modal-postes').classList.remove('open');
-  const brut = (typeof sbRpc === 'function') ? await sbRpc('crime_empoisonner', { p_cible: cibleNom }).catch(() => null) : null;
-  const v = Array.isArray(brut) ? brut[0] : brut;
-  if (!v || v.ok !== true) {
-    const raison = v?.raison;
-    if (raison === 'pas_cache') { state.estCache = false; showToast('Prérequis manquant', 'Vous devez d\'abord réussir l\'ordre "Se cacher" dans cette pièce.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bbe269133", 'Vous devez d\'abord réussir l\'ordre "Se cacher" dans cette pièce.', undefined, 'Prérequis manquant'); }
-    else if (raison === 'poison_manquant') { showToast('Objet manquant', 'Vous n\'avez pas d\'objet poison dans votre inventaire.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bd1bcec25", 'Vous n\'avez pas d\'objet poison dans votre inventaire.', undefined, 'Objet manquant'); }
-    else if (raison === 'pas_au_meme_endroit') showToast('Cible absente', cibleNom + ' n\'est plus dans la pièce.', false);
-    else { showToast('Impossible', 'L\'empoisonnement n\'a pas pu avoir lieu.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b99f2fd2e", 'L\'empoisonnement n\'a pas pu avoir lieu.', undefined, 'Impossible'); }
-    return;
-  }
-  if (Array.isArray(v.inventory) && typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(v);
-  state.estCache = false;
-  const palier = v.palier;
-  if (palier !== 'echec_total') {
-    const reussi = !!v.reussi;
-    showToast('Poison administré', reussi
-      ? cibleNom + ' commence à ressentir les effets du poison. Objet utilisé.'
-      : cibleNom + ' ressent une légère gêne mais l\'empoisonnement est partiel.', true, reussi);
-    addJournalEntry('Empoisonnement de ' + cibleNom + ' (' + palier + '). Objet utilisé.', 'event-bad');
-    if (v.repere) {
-      showToast('Repéré(e) !', 'Un témoin vous a vu(e). Vous êtes désormais recherché(e).', false, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b5c922ab6", 'Un témoin vous a vu(e). Vous êtes désormais recherché(e).', undefined, 'Repéré(e) !');
-      addJournalEntry('Vous avez été repéré(e) après l\'empoisonnement.', 'event-bad');
-    }
-  } else {
-    showToast('Échec ! Repéré(e)', 'L\'empoisonnement a échoué. Objet perdu. Vous avez été identifié(e).', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bcdc1e52d", 'L\'empoisonnement a échoué. Objet perdu. Vous avez été identifié(e).', undefined, 'Échec ! Repéré(e)');
-    addJournalEntry('Tentative d\'empoisonnement échouée. Recherché(e).', 'event-bad');
-    setTimeout(() => ouvrirModalArrestation('tentative_empoisonnement'), 800);
-  }
-  updateUI();
+  if (typeof crimOuvrirEmpoisonner === 'function') crimOuvrirEmpoisonner();
 }
 
 // =====================
@@ -2255,7 +2067,7 @@ function congediерInformateur(idx) {
 
 
 // SE CACHER PAR LE SERVEUR (05/11/2026) : se_cacher preleve 1 PA, tire le de et enregistre la
-// cachette pour la piece courante ; crime_empoisonner l'exige et la consomme. state.estCache n'est
+// cachette pour la piece courante (bonus de l'empoisonnement depuis le lot 5, plus exigee). state.estCache n'est
 // plus qu'un rappel d'affichage.
 async function doSeCacher() {
   const brut = (typeof sbRpc === 'function') ? await sbRpc('se_cacher', {}).catch(() => null) : null;

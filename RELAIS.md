@@ -8,6 +8,14 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Chantier Criminalité — lot 5 : empoisonnement, explosifs, incendie (Claude, 19/11/2026)
+- **Branche `claude/game-design-criminalite-20261118`**. Détail, valeurs provisoires et tableau : fin de `GAME-DESIGN-CRIMINALITE.md` (« Lot 5 — ce qui est en place »).
+- **Migration APPLIQUÉE** : `20261120010000_crim_lot5_poison_explosifs_incendie` (partie migration essayée en transaction annulée, appliquée, scénario rejoué en essai annulé ; idempotente).
+- **Fait** : `crime_empoisonner(cible, requete)`, `crime_explosifs(batiment, requete)`, `crime_incendier(batiment, requete)` sur la résolution commune `crim_resoudre_interne` (formules des §§ 9-11, dissuasion une fois, échec critique 2 % / 10 % = explosion prématurée, détection après réussite 25 / 65 / 70, fin du recherché d'office et du flagrant délit). Poison : anonymat par nature, quatre paliers, cachette = bonus, GHB selon `verres_du_jour`. Incendie : bidon = pile `carburant` (consommée), orage / canicule via `climat_evenements`. **Brouillard** branché dans `crim_resoudre_interne` (+10 réussite, −20 détection, tous les actes). Anciennes signatures → `requete_requise`.
+- **Écran** : `ouvrirModalEmpoisonner` / `doIncendier` / `doUtiliserExplosifs` délèguent à `plateau-criminalite.js` (`crimOuvrirEmpoisonner`, `crimOuvrirSabotage`), sans estimation ni prérequis « Se cacher ».
+- **Tester** : `node --test outils/bancs/test-crim-lot5-poison-explosifs-incendie.cjs`. En jeu : un PJ avec un poison / des explosifs / un bidon de carburant dans la même pièce qu'un autre PJ.
+- **Reste** : corruption (§ 12), délits d'information (§ 13), peines (§ 14), carrière (§ 15), enquête (lot 6), QHS (lot 10). Bancs SQL `banc-arrestations-flagrant-delit.sql` / `banc-se-cacher.sql` décrivent l'ancien empoisonnement.
+
 ### Chantier Criminalité — lot 4 : cambriolage (Claude, 19/11/2026)
 - **Branche `claude/game-design-criminalite-20261118`**. Détail, valeurs provisoires et tableau : fin de `GAME-DESIGN-CRIMINALITE.md` (« Lot 4 — ce qui est en place »).
 - **Migration APPLIQUÉE** : `20261119220000_crim_lot4_cambriolage` (idempotente). Incident d'essai : la première moitié (paramètres, tables `crim_intrusions` / `crim_constats`, helpers, raccords) a été validée par erreur lors de l'essai (bloc sans RAISE final) ; la seconde a ensuite été essayée en transaction annulée, puis appliquée par `apply_migration`, et le scénario rejoué en essai annulé. Le fichier entier peut être rejoué sans effet.

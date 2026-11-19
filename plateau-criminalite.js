@@ -3,6 +3,8 @@
 // Lot 3 : Voler (argent, objet au hasard, objet précis) par crime_voler, même résolution commune ; aucun calcul ici.
 // Lot 4 : cambriolage — Crocheter / Forcer la porte (crim_crocheter, crim_forcer_porte) sur la porte fermée à clé, puis
 // matériel installé, stock et caisse (crim_cambriolage_lire, crim_cambrioler) ; le serveur tranche tout.
+// Lot 5 : Empoisonner (crime_empoisonner), Incendier (crime_incendier), Explosifs (crime_explosifs), même résolution commune ;
+// aucune estimation de chances ici.
 // Le serveur tranche tout : jets (se_cacher, crim_fouiller_cachettes), objet porté (crim_revetir / crim_retirer, marque
 // `porte_par` dans l'inventaire), liste des présents (crim_presents : caché absent, masqué numéroté sans portrait),
 // boutique « Équipement discret » (boutique_discretion_etat / _acheter), événements d'écran (crim_evenements_lire :
@@ -76,7 +78,24 @@ const T = {
     kVide: 'Bredouille', kVideText: 'Il n’y avait plus rien à prendre.',
     r_pas_de_commerce: 'Il n’y a pas de commerce ici.', r_stock_vide: 'Plus rien dans ce stock.',
     r_caisse_vide: 'La caisse est vide.', r_deja_a_vous: 'C’est à vous.', r_equipement_introuvable: 'Ce matériel n’est plus là.',
-    r_pas_sur_place: 'Ce n’est pas ici.'
+    r_pas_sur_place: 'Ce n’est pas ici.',
+    eTitre: 'Empoisonner', eChoisir: 'Qui voulez-vous empoisonner ?', ePersonne: 'Personne à empoisonner ici.',
+    eNote: 'Le poison de votre inventaire sera utilisé (usage unique), quoi qu’il arrive. La victime ne saura jamais qui l’a empoisonnée. Agir depuis une cachette aide ; un masque protège votre identité si l’on vous repère.',
+    eTotale: 'Poison administré', eTotaleText: 'Votre victime commence à ressentir les effets du poison.',
+    ePartielle: 'Poison administré', ePartielleText: 'Votre victime n’a reçu qu’une partie de la dose.',
+    eAttenue: 'Dose ratée', eAttenueText: 'Le geste a manqué de précision : l’effet sera faible.',
+    eRate: 'Raté', eRateText: 'L’occasion ne s’est pas présentée : le poison est perdu, personne n’a rien vu.',
+    eCrit: 'Échec critique', eCritText: 'Vous renversez le poison sous les yeux de tous. Votre moral en prend un coup (−15).',
+    r_poison_manquant: 'Vous n’avez pas de poison dans votre inventaire.', r_cible_pj_seulement: 'Seul un joueur peut être empoisonné.',
+    r_requete_requise: 'Ordre remplacé : rouvrez la fenêtre.', r_explosif_manquant: 'Vous n’avez pas d’explosifs dans votre inventaire.',
+    iTitre: 'Incendier — {nom}', iNote: 'Acte criminel : le bâtiment ferme 1 à 3 jours si le feu prend. Un bidon de carburant dans votre inventaire sera utilisé. Le temps qu’il fait compte. Vous ne serez recherché(e) que si l’on vous repère.',
+    iGo: '🔥 Mettre le feu — 3 PA', iOk: 'Incendie déclenché', iOkText: '{nom} est fermé {jours} jour(s).',
+    iFail: 'Le feu ne prend pas', iFailText: 'Rien ne se passe ; personne ne vous a remarqué(e).',
+    iCritText: 'Vous vous brûlez les doigts devant témoins. Votre moral en prend un coup (−15).', iBidon: 'Un bidon de carburant a été utilisé.',
+    xTitre: 'Explosifs — {nom}', xNote: 'Acte criminel grave : le bâtiment ferme 5 jours et toute personne présente dans la pièce est gravement blessée. Une charge d’explosifs sera utilisée. Une explosion prématurée vous blesserait vous-même.',
+    xGo: '💣 Déclencher — 3 PA', xOk: 'Explosion', xOkText: '{nom} est fermé 5 jours. Blessé(s) : {n}.',
+    xFail: 'Raté', xFailText: 'Le dispositif ne se déclenche pas. Personne n’a rien vu.',
+    xPrem: 'Explosion prématurée !', xPremText: 'La charge vous explose entre les mains : vous êtes grièvement blessé(e) et votre moral en prend un coup (−15).'
   }
 };
 const etat = () => (typeof state !== 'undefined' && state) ? state : {};
@@ -451,6 +470,88 @@ async function crimCambrioler(cible, ref) {
     await global.ouvrirPanneauCombat(Number(r.bataille));
 }
 
+// ── Empoisonner, Incendier, Explosifs (lot 5) ──────────────────────────────────────────────────────────────────
+// Cible de l'empoisonnement : présents de la pièce (crim_presents : caché absent, masqué par jeton), PJ seulement.
+async function crimOuvrirEmpoisonner() {
+  const r = await rpc('crim_presents');
+  const moi = etat().char && etat().char.name;
+  const liste = (r && r.ok === true && Array.isArray(r.presents) ? r.presents : []).filter(p => p && p.name !== moi && (!p.masque || p.jeton) && p.isPJ !== false);
+  titreModale(texte('eTitre'));
+  let html = '<div class="cpj-dialogue"><p class="cpj-note">' + esc(texte('eNote')) + '</p>';
+  if (!liste.length) { ouvrirModale(html + '<p class="cpj-note">' + esc(texte('ePersonne')) + '</p></div>'); return; }
+  html += '<p class="cpj-note">' + esc(texte('eChoisir')) + '</p>';
+  for (const p of liste) {
+    const enc = encodeURIComponent(JSON.stringify(p.masque ? { name: p.name, isPJ: true, masque: true, jeton: p.jeton } : { name: p.name, isPJ: true })).replace(/'/g, '%27');
+    html += '<button class="cpj-touche" onclick="crimEmpoisonnerConfirmer(\'' + enc + '\')">' + esc(p.name) + '</button>';
+  }
+  ouvrirModale(html + '</div>');
+}
+let poisonEnCours = false;
+async function crimEmpoisonnerConfirmer(enc) {
+  if (poisonEnCours) return;
+  fermerModale();
+  const c = cibleNeutraliser(enc);
+  if (!c) return;
+  poisonEnCours = true;
+  let r;
+  try { r = await rpc('crime_empoisonner', { p_cible: identifiantCible(c), p_requete: uuid() }); }
+  finally { poisonEnCours = false; }
+  if (!r || r.ok !== true) { toast(texte('eTitre'), motif(r), false); return; }
+  appliquerVerdict(r);
+  if (typeof global.updateUI === 'function') global.updateUI();
+  const suite = suiteIdentite(r);
+  if (r.palier === 'totale') toast(texte('eTotale'), texte('eTotaleText') + suite, true);
+  else if (r.palier === 'partielle') toast(texte('ePartielle'), texte('ePartielleText') + suite, true);
+  else if (r.palier === 'echec_partiel') toast(texte('eAttenue'), texte('eAttenueText') + suite, false);
+  else if (r.echec_critique) toast(texte('eCrit'), texte('eCritText') + suite, false);
+  else toast(texte('eRate'), texte('eRateText') + suite, false);
+}
+function batimentCourant() {
+  const e = etat();
+  const b = (typeof BUILDINGS !== 'undefined' && BUILDINGS) ? BUILDINGS[e.currentBuilding] : null;
+  return b ? { id: e.currentBuilding, nom: b.name || e.currentBuilding } : null;
+}
+function crimOuvrirSabotage(genre) {
+  const b = batimentCourant();
+  if (!b) { toast(texte(genre === 'explosifs' ? 'xFail' : 'iFail'), texte('r_hors_batiment'), false); return; }
+  const k = genre === 'explosifs' ? 'x' : 'i';
+  titreModale(texte(k + 'Titre', { nom: b.nom }));
+  ouvrirModale('<div class="cpj-dialogue"><p class="cpj-note">' + esc(texte(k + 'Note')) + '</p>'
+    + '<button class="cpj-touche" onclick="crimSabotageConfirmer(\'' + (genre === 'explosifs' ? 'explosifs' : 'incendie') + '\')">' + esc(texte(k + 'Go')) + '</button></div>');
+}
+let sabotageEnCours = false;
+async function crimSabotageConfirmer(genre) {
+  if (sabotageEnCours) return;
+  fermerModale();
+  const b = batimentCourant();
+  if (!b) return;
+  sabotageEnCours = true;
+  let r;
+  try { r = await rpc(genre === 'explosifs' ? 'crime_explosifs' : 'crime_incendier', { p_nom_batiment: b.nom, p_requete: uuid() }); }
+  finally { sabotageEnCours = false; }
+  if (!r || r.ok !== true) { toast(texte(genre === 'explosifs' ? 'xFail' : 'iFail'), motif(r), false); return; }
+  appliquerVerdict(r);
+  if (typeof r.hp === 'number') etat().hp = r.hp;
+  if (r.issue === 'reussite' && typeof global.chargerBatimentsFermes === 'function') { try { await global.chargerBatimentsFermes(); } catch (_) {} }
+  if (typeof global.updateUI === 'function') global.updateUI();
+  const suite = suiteIdentite(r);
+  if (genre === 'explosifs') {
+    if (r.issue === 'reussite') toast(texte('xOk'), texte('xOkText', { nom: b.nom, n: Number(r.victimes) || 0 }) + suite, true);
+    else if (r.explosion_prematuree) toast(texte('xPrem'), texte('xPremText') + suite, false);
+    else toast(texte('xFail'), texte('xFailText'), false);
+    // Animation de résolution (présentation seulement, après le verdict du serveur).
+    if (typeof global.ouvrirResolutionSpectaculaire === 'function' && (r.issue === 'reussite' || r.explosion_prematuree)) {
+      try { global.ouvrirResolutionSpectaculaire({ type: 'bombe', succes: r.issue === 'reussite', titre: texte(r.issue === 'reussite' ? 'xOk' : 'xPrem'),
+        resultatHtml: '<div>' + esc(r.issue === 'reussite' ? texte('xOkText', { nom: b.nom, n: Number(r.victimes) || 0 }) : texte('xPremText')) + esc(suite) + '</div>' }); } catch (_) {}
+    }
+  } else {
+    const bidon = r.bidon ? ' ' + texte('iBidon') : '';
+    if (r.issue === 'reussite') toast(texte('iOk'), texte('iOkText', { nom: b.nom, jours: r.jours }) + bidon + suite, true);
+    else if (r.echec_critique) toast(texte('iFail'), texte('iCritText') + bidon + suite, false);
+    else toast(texte('iFail'), texte('iFailText') + bidon, false);
+  }
+}
+
 // ── Événements d'écran : « Bas les masques ! » (arrestation d'un PJ masqué), débusqué ───────────────────────────
 function injecterStyle() {
   const doc = global.document;
@@ -519,5 +620,6 @@ global.RPCriminalite = { T, texte, objetRevetable, objetPorte, ordresBoutiqueDis
 Object.assign(global, { ouvrirBoutiqueDiscretion, acheterDiscretion, boutonRevetir, badgeRevetu, crimRevetir, crimRetirer,
   messageSeCacher, ouvrirFouilleCachettes, fouilleCachettesConfirmer, lireEvenementsCrim, animationDemasquage,
   ouvrirNeutraliser, crimNeutraliserConfirmer, crimOuvrirVoler, crimVolerTypes, crimVolerConfirmer, crimVolerChoisirCible,
-  crimBoutonsPorte, crimPorteAgir, crimOuvrirCambriolage, crimCambrioler });
+  crimBoutonsPorte, crimPorteAgir, crimOuvrirCambriolage, crimCambrioler,
+  crimOuvrirEmpoisonner, crimEmpoisonnerConfirmer, crimOuvrirSabotage, crimSabotageConfirmer });
 })(typeof window !== 'undefined' ? window : globalThis);
