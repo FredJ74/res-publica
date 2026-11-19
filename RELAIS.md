@@ -8,6 +8,13 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Traduction — Navigation et transports (Claude, 19/11/2026, nuit)
+- **Branche `claude/i18n-navigation-20261119`**, demande de Fred (Codex absent jusqu'au 20/11 au soir). Périmètre limité à Navigation et transports ; Économie et commerces puis Politique hors justice sont confiés à ChatGPT (autres branches). Fichiers du goulag non touchés (Codex).
+- **Fait** : 26 textes de `plateau-navigation.js` (infobulles de serrure, rue principale, taxi, onglet Chambre de la clinique, salle de rédaction, caisse, Mireille Guichet, notifications d'arrestation, de détention, de bâtiment fermé, de sortie médicale, de contrôle refusé et de voyage confirmé) dans `i18n/navigation-resources.js`, neuf langues ; `plateau-vehicules.js` : 32 motifs de refus + 8 notifications (`vehicle-travel-resources.js`) et 19 textes d'atelier, d'achat et de station (`vehicle-garage-resources.js`). Le français affiché est inchangé (vérifié : chaque libellé passé aux helpers est identique au catalogue). Noms de lieux, d'empires et de PNJ non traduits (règle du catalogue).
+- **Mesure** (audit global local, base `a721850`) : domaine Navigation et transports de 36 % à 58 % des textes raccordés (69 % des mots). Le reste est surtout du français déjà traduit à l'affichage par `showToast` ou des faux positifs (clés, SVG, noms propres).
+- **Tests** : bancs véhicules (compte de clés mis à jour : 60 et 87), navigation-transports, alertes-navigation, navigation-rues, tout `i18n-tests.yml` : verts. `banc-i18n-exit-feedback` et `banc-groupes-transports-client` échouaient déjà avant ce chantier (navigateur requis).
+- **Pour tester** : rien ne change en français ; en activant une autre langue, survoler un bâtiment fermé à clé, ouvrir le garage de Novomirsk, tenter un plein refusé, ou sortir d'une cellule.
+
 ### Maladies, péremption et climat — lot 5 : effets du climat, état de catastrophe naturelle (Claude, 19/11/2026)
 - **Sacs de sable proportionnels (décision de Fred du 19/11)** : 10 % de perte en moins par sac, plafond 9 (reste 2 %) ; « Poser » (1 PA) pose tous les sacs portés ; réglages `sac_protection_pct` et `sacs_plafond` ; migration `20261119101000_sacs_sable_proportionnels.sql` appliquée (essai Arnie : 3 sacs → 14 %, 9 → 2 %, 10e refusé) ; banc `test-climat-effets-20261119.cjs`.
 - **Branche `claude/climat-lot5-20261119`** (part du lot 4).
