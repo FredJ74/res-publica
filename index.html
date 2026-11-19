@@ -29,6 +29,16 @@
   color:#fff;background:#253544;font-weight:700;font-size:.84rem;
 }
 #country-grid .rp-empire-a-venir .rp-empire-etiquette {opacity:1;filter:none}
+/* Oeil du mot de passe : clic au doigt, clavier, sans modifier la valeur du champ. */
+.hg-motdepasse-avec-oeil{position:relative}
+.hg-motdepasse-avec-oeil .hg-champ{padding-right:3.5rem}
+.hg-motdepasse-oeil{
+  position:absolute;right:0;top:0;bottom:0;min-width:44px;
+  padding:0 .7rem;border:0;background:transparent;color:#e5d7b4;
+  font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center
+}
+.hg-motdepasse-oeil:hover{color:#fff}
+.hg-motdepasse-oeil:focus-visible{outline:2px solid var(--gold);outline-offset:-3px}
 </style>
 </head>
 <body>
@@ -112,8 +122,15 @@
     <div id="connexion-panel" style="display:none">
       <input id="connexion-email" type="email" autocomplete="email"
              placeholder="Votre adresse e-mail..." data-i18n-placeholder="auth.signInEmailPlaceholder" class="hg-champ"/>
-      <input id="connexion-mdp" type="password" autocomplete="current-password"
-             placeholder="Votre mot de passe..." data-i18n-placeholder="auth.signInPasswordPlaceholder" class="hg-champ"/>
+      <div class="hg-motdepasse-avec-oeil">
+        <input id="connexion-mdp" type="password" autocomplete="current-password"
+               placeholder="Votre mot de passe..." data-i18n-placeholder="auth.signInPasswordPlaceholder" class="hg-champ"/>
+        <button type="button" id="connexion-mdp-oeil" class="hg-motdepasse-oeil"
+                onclick="basculerVisibiliteMotDePasseConnexion()" aria-label="Afficher le mot de passe"
+                aria-pressed="false" title="Afficher le mot de passe">
+          <i class="ti ti-eye" aria-hidden="true"></i>
+        </button>
+      </div>
       <button id="connexion-valider" onclick="connecterAvecMotDePasse()"
               class="hg-btn hg-btn-charger" data-i18n="auth.signInSubmit">Se connecter</button>
       <button onclick="ouvrirConnexionCompte()" class="hg-btn hg-btn-secondaire" data-i18n="auth.cancel">Annuler</button>
