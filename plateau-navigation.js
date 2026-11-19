@@ -3,6 +3,14 @@
 // Deplacements, plan de ville, minimap, transport, douanes, port
 // =====================
 
+// Libellés fixes de navigation (catalogue navigation.*) : le français reste la source, une
+// traduction n'est affichée que si le texte français correspond exactement (i18n/navigation-resources.js).
+function rpNavTexte(cle, fr) { return globalThis.RPNavigationI18n?.label?.(cle, fr) ?? fr; }
+function rpNavTexteHtml(cle, fr) {
+  return globalThis.RPNavigationI18n?.labelHtml?.(cle, fr)
+    ?? String(fr).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
 // CITY TABS
 // =====================
 function buildCityTabs() {
@@ -123,7 +131,7 @@ function minimapCard(id) {
     '<div class="minimap-bld-info">' +
       '<div class="minimap-bld-name">' + localName + (serrureBat ? ' <i class="ti ' + (serrureBat.fermee ? 'ti-lock' : 'ti-lock-open') + '"></i>' : '') + '</div>' +
       '<div class="minimap-bld-cat">' + (globalThis.RPNavigationI18n?.categoryMarkup?.(b.cat) ?? b.cat) + ' ' + locked + '</div>' +
-      (personCount > 0 ? '<div class="minimap-persons">' + personCount + ' personne' + (personCount > 1 ? 's' : '') + '</div>' : '') +
+      (personCount > 0 ? '<div class="minimap-persons"><span data-i18n="navigation.' + (personCount > 1 ? 'personMany' : 'personOne') + '" data-i18n-values=\'{"count":' + Number(personCount) + '}\'>' + personCount + ' personne' + (personCount > 1 ? 's' : '') + '</span></div>' : '') +
     '</div>' +
   '</div>';
 }
@@ -134,12 +142,12 @@ function showBuildingTooltip(data) {
   let html = '<div class="mtt-title">' + data.name + '</div>';
   const serrureBat = (data.batiment && typeof serrureBatimentEtat === 'function') ? serrureBatimentEtat(data.batiment) : null;
   if (serrureBat) html += '<div class="mtt-desc"><i class="ti ' + (serrureBat.fermee ? 'ti-lock' : 'ti-lock-open') + '"></i> '
-    + (serrureBat.fermee ? (serrureBat.a_cle ? 'Fermé à clé — vous en avez la clé' : 'Fermé à clé') : 'Ouvert au public') + '</div>';
+    + (serrureBat.fermee ? (serrureBat.a_cle ? rpNavTexteHtml('lockedHasKey', 'Fermé à clé — vous en avez la clé') : rpNavTexteHtml('lockedNoKey', 'Fermé à clé')) : rpNavTexteHtml('openToPublic', 'Ouvert au public')) + '</div>';
   if (data.desc) html += '<div class="mtt-desc">' + data.desc + '</div>';
   if (data.pnj && data.pnj.length) {
     html += '<div class="mtt-pnj">' + data.pnj.map(n => '<div style="font-size:.72rem;color:#8a8060">· ' + n + '</div>').join('') + '</div>';
   }
-  if (data.actions) html += '<div class="mtt-actions">Actions : ' + data.actions + '</div>';
+  if (data.actions) html += '<div class="mtt-actions">' + rpNavTexteHtml('actionsPrefix', 'Actions : ') + data.actions + '</div>';
   el.innerHTML = html;
   el.classList.add('visible');
 }
@@ -175,7 +183,7 @@ function showVueRue(batimentQuitte, positionConfirmee = null) {
   const world = WORLD[state.country];
   const city = world?.[state.currentCity];
   if (city) {
-    document.getElementById('rue-title').textContent = city.streetName || (city.isCapitale ? 'Avenue de la République' : `Rue principale de ${city.name}`);
+    document.getElementById('rue-title').textContent = city.streetName || (city.isCapitale ? 'Avenue de la République' : rpNavTexte('mainStreetPrefix', 'Rue principale de ') + city.name);
     document.getElementById('rue-desc').textContent = city.desc;
   }
 
@@ -186,7 +194,7 @@ function showVueRue(batimentQuitte, positionConfirmee = null) {
   const rueActionsRow = document.getElementById('rue-actions-row');
   if (rueActionsRow) {
     rueActionsRow.innerHTML = (city?.isSpecial
-      ? '<button class="action-btn legal" onclick="ouvrirModalTransport(\'bus\')"><i class="ti ti-bus" style="font-size:.82rem"></i> Prendre un taxi</button>'
+      ? '<button class="action-btn legal" onclick="ouvrirModalTransport(\'bus\')"><i class="ti ti-bus" style="font-size:.82rem"></i> ' + rpNavTexteHtml('takeTaxi', 'Prendre un taxi') + '</button>'
       : '')
       // « Fouiller ou voler », tout en bas des ordres de rue (Fred, 11/11/2026).
       + (typeof ordreFouillerVolerRueHtml === 'function' ? ordreFouillerVolerRueHtml() : '');
@@ -310,7 +318,7 @@ async function commanderNavigationInterieure(buildingId,roomId) {
     // Le jet du goulag est résolu : relire la vraie position et le groupe.
     if(r?.goulag_arrestation?.ok===true){
       if(typeof sbLoadPersonnage==='function')await sbLoadPersonnage();
-      if(typeof showToast==='function')showToast('Arrestation',r.goulag_arrestation.arrete ? 'Les autorités vous ont arrêté. Votre peine reprend sans pénalité automatique.' : 'Un membre de votre groupe a été arrêté. Votre position et votre groupe sont actualisés.',false);
+      if(typeof showToast==='function'){showToast('Arrestation',r.goulag_arrestation.arrete ? 'Les autorités vous ont arrêté. Votre peine reprend sans pénalité automatique.' : 'Un membre de votre groupe a été arrêté. Votre position et votre groupe sont actualisés.',false); globalThis.RPI18nPlateau?.markToast(r.goulag_arrestation.arrete ? "navigation.arrestSelfBody" : "navigation.arrestMemberBody", r.goulag_arrestation.arrete ? 'Les autorités vous ont arrêté. Votre peine reprend sans pénalité automatique.' : 'Un membre de votre groupe a été arrêté. Votre position et votre groupe sont actualisés.', undefined, 'Arrestation');}
       if(typeof updateUI==='function')updateUI();
       return false;
     }
@@ -341,8 +349,11 @@ async function commanderNavigationInterieure(buildingId,roomId) {
       if(['acces_dignitaires','location_requise','un_seul_invite'].includes(r?.raison)&&typeof accesReserveRefus==='function'&&accesReserveRefus(r))return false;
       const incident=r||v;
       const perdu=['non_authentifie','acteur_non_authentifie','session_perdue'].includes(incident?.raison)||incident?.transport?.etat==='session_perdue';
-      if(typeof showToast==='function')showToast(perdu?'Session expirée':'Déplacement non confirmé',
+      if(typeof showToast==='function'){showToast(perdu?'Session expirée':'Déplacement non confirmé',
         perdu?'Reconnectez-vous pour poursuivre.':motifs[r?.raison]||'La position serveur n’a pas confirmé cette entrée. Réessayez la consultation.',false);
+        globalThis.RPI18nPlateau?.markToast(perdu?"toastBodies.b74ffe5b9":motifs[r?.raison]?null:"toastBodies.bf565fef3",
+          perdu?'Reconnectez-vous pour poursuivre.':motifs[r?.raison]||'La position serveur n’a pas confirmé cette entrée. Réessayez la consultation.',undefined,
+          perdu?'Session expirée':'Déplacement non confirmé');}
       if(perdu&&typeof afficherBandeauReconnexion==='function')afficherBandeauReconnexion();
       if(['combat_en_cours','combat_membre_pnj'].includes(r?.raison)&&typeof reprendreCombatConfirme==='function')await reprendreCombatConfirme().catch(()=>false);
       // Conserver la rencontre existante avec le portier pour le demandeur
@@ -365,8 +376,11 @@ async function commanderNavigationInterieure(buildingId,roomId) {
     // en mission « arreter » sont joues dans la transaction du deplacement. Interpelle, le joueur
     // est conduit en cellule par la fiche relue ; on n'entre pas dans la piece demandee.
     if(r.arrestation&&r.arrestation.ok===true&&typeof adopterArrestationServeur==='function'){
-      if(typeof showToast==='function')showToast(r.arrestation.controle==='couvre_feu'?'Interpellé(e) !':'Arrêté(e) !',
+      if(typeof showToast==='function'){showToast(r.arrestation.controle==='couvre_feu'?'Interpellé(e) !':'Arrêté(e) !',
         r.arrestation.controle==='couvre_feu'?'Violation du couvre-feu.':'Le détachement militaire vous a intercepté.',false);
+        globalThis.RPI18nPlateau?.markToast(r.arrestation.controle==='couvre_feu'?"toastBodies.b3bb8e42a":"toastBodies.baffbb9e5",
+          r.arrestation.controle==='couvre_feu'?'Violation du couvre-feu.':'Le détachement militaire vous a intercepté.',undefined,
+          r.arrestation.controle==='couvre_feu'?'Interpellé(e) !':'Arrêté(e) !');}
       await adopterArrestationServeur(r.arrestation);
       return true;
     }
@@ -446,7 +460,7 @@ function enterBuilding(buildingId, skipAutoRoom) {
   const batimentCellule = (typeof celluleDeDetention === 'function')
     ? celluleDeDetention(state.estEmprisonne).buildingId : 'commissariat';
   if (!positionServeurConfirmee&&state.estEmprisonne && buildingId !== batimentCellule) {
-    showToast('Emprisonné(e)', 'Vous êtes en détention. Impossible de sortir avant la fin de votre peine (' + joursRestantsPeine() + ' jour(s) restant(s), ou tentez une évasion).', false);
+    { const jours = joursRestantsPeine(); showToast('Emprisonné(e)', 'Vous êtes en détention. Impossible de sortir avant la fin de votre peine (' + jours + ' jour(s) restant(s), ou tentez une évasion).', false); globalThis.RPI18nPlateau?.markToast("navigation.detentionExitBody", 'Vous êtes en détention. Impossible de sortir avant la fin de votre peine (' + jours + ' jour(s) restant(s), ou tentez une évasion).', {jours}, 'Emprisonné(e)'); }
     return;
   }
 
@@ -468,7 +482,9 @@ function enterBuilding(buildingId, skipAutoRoom) {
   const fermeture = typeof batimentEstFerme === 'function' ? batimentEstFerme(buildingId) : null;
   if (!positionServeurConfirmee&&fermeture) {
     const joursRestants = Math.max(1, fermeture.jour_fin - (state.day || 1));
-    showToast('Bâtiment fermé', (b.name || buildingId) + ' est fermé suite à un ' + (fermeture.motif === 'explosifs' ? 'attentat à l\'explosif' : 'incendie') + '. Réouverture dans ' + joursRestants + ' jour(s).', false);
+    const batimentFerme = b.name || buildingId;
+    showToast('Bâtiment fermé', batimentFerme + ' est fermé suite à un ' + (fermeture.motif === 'explosifs' ? 'attentat à l\'explosif' : 'incendie') + '. Réouverture dans ' + joursRestants + ' jour(s).', false);
+    globalThis.RPI18nPlateau?.markToast(fermeture.motif === 'explosifs' ? "navigation.closedBombBody" : "navigation.closedFireBody", batimentFerme + ' est fermé suite à un ' + (fermeture.motif === 'explosifs' ? 'attentat à l\'explosif' : 'incendie') + '. Réouverture dans ' + joursRestants + ' jour(s).', {batiment: String(batimentFerme), jours: joursRestants}, 'Bâtiment fermé');
     return;
   }
 
@@ -728,7 +744,7 @@ function renderOngletsPieces(buildingId, roomActifId) {
     // rooms restent filtrees juste au-dessus). Comportement conditionnel gere par
     // ouvrirOngletChambreClinique() (plateau-personnage.js), qui reutilise integralement
     // getChambreAttribueeClinique/rejoindreChambreClinique -- aucun second systeme d'attribution.
-    + (buildingId === 'clinique-privee' ? '<div class="piece-tab" onclick="ouvrirOngletChambreClinique()">🛏️ Chambre</div>' : '');
+    + (buildingId === 'clinique-privee' ? '<div class="piece-tab" onclick="ouvrirOngletChambreClinique()">' + rpNavTexteHtml('clinicRoomTab', '🛏️ Chambre') + '</div>' : '');
   }
   return rooms;
 }
@@ -764,7 +780,7 @@ function enterRoom(buildingId, roomId, tabEl) {
   }
   // Verrou : emprisonnement — reste bloque en cellule, aucun changement de piece
   if (!positionServeurConfirmee&&state.estEmprisonne && !estDansSaCellule) {
-    showToast('Emprisonné(e)', 'Vous êtes confiné(e) à votre cellule. ' + joursRestantsPeine() + ' jour(s) restant(s) avant votre libération.', false);
+    { const jours = joursRestantsPeine(); showToast('Emprisonné(e)', 'Vous êtes confiné(e) à votre cellule. ' + jours + ' jour(s) restant(s) avant votre libération.', false); globalThis.RPI18nPlateau?.markToast("navigation.detentionCellBody", 'Vous êtes confiné(e) à votre cellule. ' + jours + ' jour(s) restant(s) avant votre libération.', {jours}, 'Emprisonné(e)'); }
     return;
   }
   // Verrou : hospitalisation — jour 1 uniquement, reste dans sa chambre
@@ -1124,8 +1140,8 @@ function enterRoom(buildingId, roomId, tabEl) {
   if (state.country === 'republic' && state.currentCity === 'capitale' && buildingId === 'la-tribune' && roomId === 'accueil_tribune') {
     const acces = document.createElement('div');
     acces.className = 'tribune-redaction-zone';
-    acces.title = 'Entrer dans la salle de rédaction';
-    acces.setAttribute('aria-label', 'Entrer dans la salle de rédaction');
+    acces.title = rpNavTexte('tribuneNewsroom', 'Entrer dans la salle de rédaction');
+    acces.setAttribute('aria-label', rpNavTexte('tribuneNewsroom', 'Entrer dans la salle de rédaction'));
     acces.style.cssText = 'position:absolute;left:0;top:0;width:35%;height:100%;z-index:2;cursor:pointer;';
     acces.addEventListener('click', () => enterRoom('la-tribune', 'redaction', null));
     pieceImg.appendChild(acces);
@@ -1212,7 +1228,7 @@ function enterRoom(buildingId, roomId, tabEl) {
   if (caisseBuildingId && typeof chargerCaisseBatiment === 'function') {
     chargerCaisseBatiment(state.country || 'republic', caisseBuildingId).then(c => {
       const el = document.getElementById('piece-desc');
-      if (el) el.textContent = displayDesc + ' — Caisse : ' + (c.solde || 0).toLocaleString('fr-FR') + ' FR.';
+      if (el) el.textContent = displayDesc + rpNavTexte('cashPrefix', ' — Caisse : ') + (c.solde || 0).toLocaleString('fr-FR') + ' FR.';
     }).catch(() => {});
   }
   // REGLE UNIQUE (22 septembre 2026). Cette expression etait recopiee, en version simplifiee,
@@ -1692,7 +1708,7 @@ async function sortirBatiment() {
   // Nettoyer toute infobulle de survol héritée de la vue précédente.
   if (typeof hideBuildingTooltip === 'function') hideBuildingTooltip();
   if (state.estEmprisonne) {
-    showToast('Emprisonné(e)', 'Vous êtes en détention. Impossible de sortir avant la fin de votre peine (' + joursRestantsPeine() + ' jour(s) restant(s), ou tentez une évasion).', false);
+    { const jours = joursRestantsPeine(); showToast('Emprisonné(e)', 'Vous êtes en détention. Impossible de sortir avant la fin de votre peine (' + jours + ' jour(s) restant(s), ou tentez une évasion).', false); globalThis.RPI18nPlateau?.markToast("navigation.detentionExitBody", 'Vous êtes en détention. Impossible de sortir avant la fin de votre peine (' + jours + ' jour(s) restant(s), ou tentez une évasion).', {jours}, 'Emprisonné(e)'); }
     return;
   }
   const contexteSortie=contexteNavigationRue();
@@ -1706,7 +1722,7 @@ async function sortirBatiment() {
   if (state.hospitalisation?.regime === 'pa0' &&
       ['dispensaire-public', 'dispensaire-public-v', 'clinique-privee'].includes(state.currentBuilding)) {
     if (typeof doSortieHopital !== 'function') {
-      showToast('Sortie médicale indisponible', 'Réessayez après avoir rechargé votre session.', false);
+      showToast('Sortie médicale indisponible', 'Réessayez après avoir rechargé votre session.', false); globalThis.RPI18nPlateau?.markToast("navigation.medicalExitBody", 'Réessayez après avoir rechargé votre session.', undefined, 'Sortie médicale indisponible');
       return;
     }
     await doSortieHopital();
@@ -2724,7 +2740,7 @@ function ouvrirModalTransport(mode) {
   const rpNavHtml = (typeof window!=='undefined' && typeof window.RPNavigationI18n?.labelHtml==='function') ? window.RPNavigationI18n.labelHtml : (_key,original)=>original;
 
   if (state.estEmprisonne) {
-    showToast('Emprisonné(e)', 'Vous êtes en détention. Impossible de voyager avant la fin de votre peine (' + joursRestantsPeine() + ' jour(s) restant(s)).', false);
+    { const jours = joursRestantsPeine(); showToast('Emprisonné(e)', 'Vous êtes en détention. Impossible de voyager avant la fin de votre peine (' + jours + ' jour(s) restant(s)).', false); globalThis.RPI18nPlateau?.markToast("navigation.detentionTravelBody", 'Vous êtes en détention. Impossible de voyager avant la fin de votre peine (' + jours + ' jour(s) restant(s)).', {jours}, 'Emprisonné(e)'); }
     return;
   }
   // Tarif national (Sovarka, 09/11/2026) : affichage seulement, le serveur fixe le prix.
@@ -2836,7 +2852,11 @@ async function commanderDouanesServeur() {
     if(frais?.userId===c.uid)afficherPositionNavigationConfirmee(frais);
    }
    showToast('Contrôle refusé',v.arrestation?'Un membre du groupe a été intercepté. Aucun voyage effectué.':
-    v.raison==='controle_a_renouveler'?'Un nouveau contrôle est nécessaire. Réessayez.':'Le serveur refuse ce contrôle : '+(v.raison||'état indisponible')+'.',false);return false;
+    v.raison==='controle_a_renouveler'?'Un nouveau contrôle est nécessaire. Réessayez.':'Le serveur refuse ce contrôle : '+(v.raison||'état indisponible')+'.',false);
+   globalThis.RPI18nPlateau?.markToast(v.arrestation?"toastBodies.bb6525bef":v.raison==='controle_a_renouveler'?"toastBodies.b95092899":"navigation.inspectionRefusedReasonBody",
+    v.arrestation?'Un membre du groupe a été intercepté. Aucun voyage effectué.':
+    v.raison==='controle_a_renouveler'?'Un nouveau contrôle est nécessaire. Réessayez.':'Le serveur refuse ce contrôle : '+(v.raison||'état indisponible')+'.',
+    v.arrestation||v.raison==='controle_a_renouveler'?undefined:{raison:String(v.raison||'état indisponible')},'Contrôle refusé');return false;
   }
   const entre=await commanderNavigationInterieure(c.batiment,'zone_embarquement');
   if(entre===true){ showToast('Contrôle confirmé','Le serveur a autorisé l’embarquement du groupe.',true); globalThis.RPI18nPlateau?.markToast("toastBodies.b24a5d6af", 'Le serveur a autorisé l’embarquement du groupe.', undefined, 'Contrôle confirmé'); }
@@ -2866,7 +2886,8 @@ async function commanderTransportServeur(mode,pays,ville) {
     starovka_train_seulement:"Starovka n'est reliée aux autres villes qu'en train.",
     chef_de_groupe_requis:'Seul le chef du groupe peut engager ce voyage.',fonds_insuffisants:'Le chef du groupe ne dispose pas des fonds nécessaires pour tous les voyageurs.',
     pa_insuffisants:'Le chef du groupe ne dispose pas des PA nécessaires.'};
-   showToast('Voyage non confirmé',motifs[v?.raison]||'Le voyage n’est pas confirmé. Le même reçu sera utilisé si vous réessayez.',false);return false;
+   showToast('Voyage non confirmé',motifs[v?.raison]||'Le voyage n’est pas confirmé. Le même reçu sera utilisé si vous réessayez.',false);
+   globalThis.RPI18nPlateau?.markToast(motifs[v?.raison]?null:"toastBodies.baf6102a4",motifs[v?.raison]||'Le voyage n’est pas confirmé. Le même reçu sera utilisé si vous réessayez.',undefined,'Voyage non confirmé');return false;
   }
   // Un reçu rejoué peut contenir d'anciens soldes : réutiliser le chargement
   // officiel au lieu d'appliquer ces montants ou de fabriquer une position.
@@ -2889,6 +2910,7 @@ async function commanderTransportServeur(mode,pays,ville) {
   if(typeof addJournalEntry==='function')addJournalEntry('Voyage en '+(mode.startsWith('taxi_')?'taxi':mode)+' → '+lieu,'event-info');
   if(typeof addExternalEvent==='function')addExternalEvent((state.char?.name||'Anonyme')+' est arrivé(e) à '+lieu+'.');
   showToast('Voyage confirmé',String(v.voyageurs||1)+' voyageur(s). Transport confirmé par le serveur.',true);
+  globalThis.RPI18nPlateau?.markToast("navigation.journeyConfirmedBody",String(v.voyageurs||1)+' voyageur(s). Transport confirmé par le serveur.',{count:String(v.voyageurs||1)},'Voyage confirmé');
   return true;
  } finally {if(transportServeurEnCours===c)transportServeurEnCours=null;}
 }
@@ -2906,11 +2928,11 @@ async function executerVoyage(mode, empireId, villeId) {
 // PNJ_PROFILS['Alain Bordage'], plateau-core.js), au meme titre que n'importe quel autre PNJ
 // affiche dans une room.
 function ouvrirRenseignementMireilleGuichet() {
-  document.getElementById('postes-modal-title').textContent = 'Mireille Guichet — Hôtesse d\'accueil';
+  document.getElementById('postes-modal-title').textContent = 'Mireille Guichet — ' + rpNavTexte('receptionistRole', 'Hôtesse d\'accueil');
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:1.2rem">' +
     '<div style="font-size:.88rem;color:#c0b090;font-style:italic;line-height:1.8;font-family:Crimson Pro,serif">' +
-    '« C\'est noté ! Pour l\'étranger, l\'avion est de loin le plus rapide, mais le billet coûte 300 FR. Si vous n\'êtes pas pressé(e), vous pouvez aussi prendre le bateau depuis Port-Sainte-Marie : la traversée est nettement plus longue, mais elle ne coûte que 100 FR. »' +
+    rpNavTexteHtml('mireilleAdvice', '« C\'est noté ! Pour l\'étranger, l\'avion est de loin le plus rapide, mais le billet coûte 300 FR. Si vous n\'êtes pas pressé(e), vous pouvez aussi prendre le bateau depuis Port-Sainte-Marie : la traversée est nettement plus longue, mais elle ne coûte que 100 FR. »') +
     '</div></div>';
   document.getElementById('modal-postes').classList.add('open');
 }
@@ -2948,7 +2970,7 @@ async function commanderCorruptionDouanesServeur(pa,cost) {
    {encoreValide:()=>contexteNavigationRueValide(c)}).catch(()=>null);
   if(!contexteNavigationRueValide(c))return false;
   if(!v||v.transport){showToast('Tentative non confirmée','La réponse est incertaine. Le même reçu empêchera un nouveau paiement.',false); globalThis.RPI18nPlateau?.markToast("toastBodies.bdba8b841", 'La réponse est incertaine. Le même reçu empêchera un nouveau paiement.', undefined, 'Tentative non confirmée');return false;}
-  if(v.ok!==true){try{localStorage.removeItem(cle);}catch(_){}showToast('Tentative refusée',v.raison||'Le serveur refuse cette tentative.',false);return false;}
+  if(v.ok!==true){try{localStorage.removeItem(cle);}catch(_){}showToast('Tentative refusée',v.raison||'Le serveur refuse cette tentative.',false); globalThis.RPI18nPlateau?.markToast(v.raison?null:"toastBodies.bcb2ebf8b",v.raison||'Le serveur refuse cette tentative.',undefined,'Tentative refusée');return false;}
   const [frais,comptes]=await Promise.all([sbLoadPersonnage(c.nom).catch(()=>null),sbGetComptesBancaires(c.nom).catch(()=>null)]);
   if(!contexteNavigationRueValide(c))return false;
   if(frais?.userId!==c.uid||!Array.isArray(comptes)){showToast('Tentative enregistrée','Les soldes doivent encore être relus. Le reçu est conservé.',false); globalThis.RPI18nPlateau?.markToast("toastBodies.b660bfd05", 'Les soldes doivent encore être relus. Le reçu est conservé.', undefined, 'Tentative enregistrée');return false;}

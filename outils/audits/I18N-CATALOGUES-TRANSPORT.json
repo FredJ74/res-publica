@@ -302,10 +302,10 @@
     {
       "source": "i18n/navigation-resources.js",
       "packed": "i18n/packed/navigation-resources.js.br",
-      "sourceBytes": 42619,
-      "packedBytes": 11881,
-      "sourceSha256": "dc869a54f22b33280ac19e9f00ad7f357decf3b6186d5c8ee8fab2117c81dcb6",
-      "packedSha256": "608233e5049599fe2e3e8ff680eb6846af06e09ffad81b96c1910a4b1bd079c3"
+      "sourceBytes": 61634,
+      "packedBytes": 16695,
+      "sourceSha256": "1e83134ab2c2a30a092660da6690faebc44fbe22d449573f4b0e69a5508804f1",
+      "packedSha256": "6d252c06f8a33226b7656ec3d3b7b30fd921eeee5cd5d25816ecfa53b458325f"
     },
     {
       "source": "i18n/occupation-resources.js",
@@ -678,18 +678,18 @@
     {
       "source": "i18n/vehicle-garage-resources.js",
       "packed": "i18n/packed/vehicle-garage-resources.js.br",
-      "sourceBytes": 22230,
-      "packedBytes": 6745,
-      "sourceSha256": "97441ea295e88e8f091e6e2ed780432bc1d40decef61df915e566e2ae7c220f8",
-      "packedSha256": "df466f7160d0ddf26c7eeaa05d88424e7533de334abe2bde4d6440d37b15d1a2"
+      "sourceBytes": 33843,
+      "packedBytes": 9456,
+      "sourceSha256": "7f9cca4dfdc5874c4a2dc8b3120b98b89987cd399cc1682875b416130a17a2eb",
+      "packedSha256": "860bb2c835e4a93b9e002d3292d7ed6436d92b7cb888943579c237bcf7eb1540"
     },
     {
       "source": "i18n/vehicle-travel-resources.js",
       "packed": "i18n/packed/vehicle-travel-resources.js.br",
-      "sourceBytes": 23796,
-      "packedBytes": 6640,
-      "sourceSha256": "9951f4689518bd9dfb146bd1451b8c3d5bff4759e6d326a548622c7a4d9fdcbd",
-      "packedSha256": "e922005ad23a7869e231ec996c60d346d77d3d65a27176f977ce791b4815893d"
+      "sourceBytes": 48602,
+      "packedBytes": 12458,
+      "sourceSha256": "47fe28ada7a43316befb6a64713acc45314550425604f0db904e4b32a6bd7b12",
+      "packedSha256": "3d2787be66e19c82438e0de8903cad68cfd8d4fafb482859439965745094d472"
     }
   ]
 }

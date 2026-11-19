@@ -35,9 +35,9 @@ function fixture(locale='fr'){
  vm.runInContext(garageRes,ctx);vm.runInContext(res,ctx);vm.runInContext(original,ctx);
  return{ctx,calls,fields,car,get title(){return modalTitle},get body(){return modalBody}};
 }
-test('47 libellés sur neuf langues, mêmes paramètres dynamiques',()=>{
+test('87 libellés sur neuf langues (47 + 40 motifs et notifications, 19/11/2026), mêmes paramètres dynamiques',()=>{
  const f=fixture(),fr=f.ctx.RP_I18N_RESOURCES.fr.translation.vehicleTravel;
- assert.equal(Object.keys(fr).length,47);
+ assert.equal(Object.keys(fr).length,87);
  const variables=s=>(s.match(/\{[a-z]+\}/g)||[]).sort().join(',');
  for(const lang of langs){
   const tr=f.ctx.RP_I18N_RESOURCES[lang].translation.vehicleTravel;
