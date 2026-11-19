@@ -9,6 +9,8 @@
 // d'urgence (7 jours, renouvelable) et de la rébellion matée (plus de QHS automatique). Chances et pistes viennent du serveur.
 // Lot 7 : Corruption au QHS — « Corrompre le directeur » (crim_corrompre_directeur) et « Corrompre un gardien »
 // (crim_corrompre_gardien : évasion facilitée, message, objet, protection), état lu par crim_corruption_qhs_lire.
+// Lot 8 : délits d'information — résultat de « Lancer une rumeur » (crimRumeurResultat, réponse de rumeur_lancer) et textes
+// des tracts calomnieux (durée du flagrant délit lue dans la réponse du serveur, barème).
 // Le serveur tranche tout : jets (se_cacher, crim_fouiller_cachettes), objet porté (crim_revetir / crim_retirer, marque
 // `porte_par` dans l'inventaire), liste des présents (crim_presents : caché absent, masqué numéroté sans portrait),
 // boutique « Équipement discret » (boutique_discretion_etat / _acheter), événements d'écran (crim_evenements_lire :
@@ -145,7 +147,22 @@ const T = {
     r_destinataire_invalide: 'Destinataire invalide.', r_destinataire_detenu: 'Ce destinataire est lui-même détenu.',
     r_message_invalide: 'Le message est vide ou trop long (1 000 caractères au plus).', r_objet_absent: 'Cet objet n’est plus dans votre inventaire.',
     r_objet_protege: 'Cet objet ne peut pas être confié.', r_service_inconnu: 'Service inconnu.', r_fonds_insuffisants: 'Fonds insuffisants.',
-    r_pa_insuffisants: 'Points d’action insuffisants.', r_ordre_supprime: 'Cet ordre n’existe plus.'
+    r_pa_insuffisants: 'Points d’action insuffisants.', r_ordre_supprime: 'Cet ordre n’existe plus.',
+    rOkTitre: '🗯 Rumeur lancée !', rCible: 'Cible : {cible}',
+    rEffet_pj: '−{perte} POP pour {cible}', rEffet_gouvernement: '−{perte} POP pour {membres} membre(s) du gouvernement de {cible}',
+    rEffet_gouvernement0: 'aucun titulaire en poste dans le gouvernement de {cible}', rEffet_pays: '−{perte} IS pour {cible}',
+    rEffet_organisation: '−{perte} INF pour l’organisation « {cible} »', rEffet_local: 'aucun effet chiffré (rumeur purement RP)',
+    rJournalOk: 'Rumeur lancée contre {cible} : {effet}.',
+    rDetecte: 'On vous a reconnu(e) derrière cette rumeur : recherché(e), {jours} jour(s) de prison d’office.',
+    rKoTitre: 'Rumeur ratée', rKo0: 'Votre tentative échoue, sans conséquence pour vous cette fois.',
+    rKo: 'Votre tentative échoue et se retourne contre vous : −{perte} POP, −{perte} DIS.',
+    rCritTitre: 'Calomniateur démasqué',
+    rCrit: 'La rumeur se retourne contre vous : on sait que vous avez tenté de calomnier {cible}. −{perte} POP ; recherché(e), {jours} jour(s) de prison d’office.',
+    rJournalKo: 'Tentative de rumeur contre {cible} ratée.',
+    tFlagrantTitre: 'Flagrant délit !',
+    tFlagrant: '{pnj} alerte immédiatement la police. Tous vos tracts calomnieux sont détruits. {jours} jour(s) de détention.',
+    tFlagrantJournal: 'Distribution de tract calomnieux à {pnj} — échec critique. Tracts calomnieux détruits, {jours} jour(s) de détention.',
+    tMotif: 'Distribution de tracts calomnieux'
   }
 };
 const etat = () => (typeof state !== 'undefined' && state) ? state : {};
@@ -742,6 +759,40 @@ async function crimCorrompreGardien() {
   else toast(texte('qGarKo'), texte('qGarKoText') + suiteDenonce(r), false);
 }
 
+// ── Lot 8 : délits d'information — résultat de « Lancer une rumeur » (rumeur_lancer) ─────────────────────────────
+// Le serveur tranche tout (jet, échec critique, détection après réussite, perte, peine d'office) ; ceci n'affiche que sa réponse.
+function crimRumeurResultat(v, type, cible, texteRumeur) {
+  const e = etat();
+  if (typeof v.pa === 'number') e.pa = v.pa;
+  if (typeof global.adopterJaugeServeur === 'function') global.adopterJaugeServeur('pop', v.pop);
+  if (Array.isArray(v.recherche)) e.recherche = v.recherche;
+  if (typeof v.dis === 'number') e.dis = v.dis;
+  const jours = v.peine_jours == null ? '?' : v.peine_jours;
+  const journal = (t, c) => { if (typeof global.addJournalEntry === 'function') global.addJournalEntry(t, c); };
+  if (v.reussi) {
+    if (type === 'organisation' && typeof global.chargerOrganisations === 'function') global.chargerOrganisations();
+    const cle = type === 'gouvernement' && !(v.membres > 0) ? 'rEffet_gouvernement0' : 'rEffet_' + type;
+    const effet = texte(T.fr[cle] ? cle : 'rEffet_local', { perte: v.perte, membres: v.membres, cible });
+    titreModale(texte('rOkTitre'));
+    ouvrirModale('<div class="cpj-dialogue"><p class="cpj-note"><em>« ' + esc(texteRumeur) + ' »</em></p><p class="cpj-note">'
+      + esc(texte('rCible', { cible })) + '</p>' + (v.identifie ? '<p class="cpj-note">' + esc(texte('rDetecte', { jours })) + '</p>' : '') + '</div>');
+    journal(texte('rJournalOk', { cible, effet }), 'event-good');
+    if (v.identifie) toast(texte('rOkTitre'), texte('rDetecte', { jours }), false);
+  } else {
+    fermerModale();
+    const corps = v.echec_critique ? texte('rCrit', { cible, perte: v.perte, jours })
+      : (v.perte > 0 ? texte('rKo', { perte: v.perte }) : texte('rKo0'));
+    toast(texte(v.echec_critique ? 'rCritTitre' : 'rKoTitre'), corps, false);
+    journal(texte('rJournalKo', { cible }) + ' ' + corps, 'event-bad');
+  }
+  if (typeof global.updateUI === 'function') global.updateUI();
+}
+function crimTractFlagrant(pnj, jours) {
+  const j = jours == null ? '?' : jours;
+  return { titre: texte('tFlagrantTitre'), corps: texte('tFlagrant', { pnj, jours: j }), journal: texte('tFlagrantJournal', { pnj, jours: j }),
+    motif: texte('tMotif') };
+}
+
 // ── Événements d'écran : « Bas les masques ! » (arrestation d'un PJ masqué), débusqué ───────────────────────────
 function injecterStyle() {
   const doc = global.document;
@@ -813,5 +864,5 @@ Object.assign(global, { ouvrirBoutiqueDiscretion, acheterDiscretion, boutonRevet
   ouvrirNeutraliser, crimNeutraliserConfirmer, crimOuvrirVoler, crimVolerTypes, crimVolerConfirmer, crimVolerChoisirCible,
   crimBoutonsPorte, crimPorteAgir, crimOuvrirCambriolage, crimCambrioler,
   crimOuvrirEmpoisonner, crimEmpoisonnerConfirmer, crimOuvrirSabotage, crimSabotageConfirmer, crimOuvrirEnquetes, crimEnqueter,
-  crimOuvrirCorruptionQhs, crimCorrompreDirecteur, crimCorrompreGardien });
+  crimOuvrirCorruptionQhs, crimCorrompreDirecteur, crimCorrompreGardien, crimRumeurResultat, crimTractFlagrant });
 })(typeof window !== 'undefined' ? window : globalThis);

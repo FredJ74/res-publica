@@ -174,7 +174,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'se_rebeller') { doSeRebeller(pa, cost); return; }
   if (fn === 'archives_police') { doArchivesPolice(pa, cost); return; }
   if (fn === 'pouls_populaire') { doPoulsPopulaire(); return; }
-  if (fn === 'lancer_rumeur_cible') { ouvrirModalLancerRumeur(pa, cost, successRate); return; }
+  if (fn === 'lancer_rumeur_cible') { ouvrirModalLancerRumeur(pa, cost); return; }
   if (fn === 'diner_affaires') { ouvrirModalInvitationSociale('diner_affaires', pa, cost, successRate); return; }
   if (fn === 'recruter_informateur_pnj') { doRecruterInformateurPNJ(pa); return; }
   // Comptoir d'embauche d'une agence (5 octobre 2026). Le routeur ne transmet

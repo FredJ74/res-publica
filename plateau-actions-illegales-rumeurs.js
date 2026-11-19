@@ -6,10 +6,18 @@
 
 // TRACAGE DES ACTIONS (pour le systeme de rumeurs vraies)
 // =====================
+// Identifiants de requete et de trace (Criminalite lot 8) : aucun tirage au hasard dans ce fichier ; le hasard
+// de jeu est tire par le serveur, les identifiants viennent de crypto.randomUUID.
+let compteurIdRumeurs = 0;
+function idRumeurs(prefixe) {
+  const c = globalThis.crypto;
+  return prefixe + '-' + (c && typeof c.randomUUID === 'function' ? c.randomUUID()
+    : Date.now().toString(36) + '-' + (++compteurIdRumeurs).toString(36));
+}
 function tracerActionPourRumeur(typeAction, cibleNom) {
   if (typeof sbTracerAction !== 'function') return;
   const action = {
-    id: 'action-' + Date.now() + '-' + Math.floor(Math.random()*1000),
+    id: idRumeurs('action'),
     auteur: state.char?.name || 'Anonyme',
     cible: cibleNom || null,
     type_action: typeAction,
@@ -322,7 +330,10 @@ const FORMULATIONS_RUMEUR_VRAIE = {
   // "l'organisation « XYZ »", "l'etablissement « Cafe de la Gare »", "le gouvernement de Sovarka",
   // "Sovarka"), construite par confirmerLancerRumeur() selon le type de cible choisi -- jamais de
   // detail supplementaire invente ici, meme principe evasif que les autres formulations.
-  fausse_rumeur: (a, c) => 'On raconte que ' + a + ' aurait lance une rumeur visant ' + c + '.',
+  // Bouche-a-oreille (Criminalite lot 8, § 13) : ces deux traces ne sortent que par le jet serveur de 10 %
+  // (rumeur_ecoute_jauges_interne) ; l'ecran ne fait que formuler.
+  fausse_rumeur: (a, c) => 'On dit que c\'est ' + a + ' qui fait courir ce bruit sur ' + c + '.',
+  tract_calomnieux: (a, c) => 'On dit que c\'est ' + a + ' qui distribue des tracts contre ' + c + '.',
 
   // Trace laissee par un agent de renseignement etranger apres une collecte
   // productive (RPC serveur agent_trace_deposer). `a` est son IDENTITE DE
@@ -498,7 +509,7 @@ async function confirmerFuite(pa, cost) {
       showToast('Action impossible', 'Votre situation n\'a pas pu être enregistrée. Aucun PA n\'a été consommé.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bdae214ac", 'Votre situation n\'a pas pu être enregistrée. Aucun PA n\'a été consommé.', undefined, 'Action impossible');
       return;
     }
-    const requete = 'fuite-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+    const requete = idRumeurs('fuite');
     let res = await sbFuiteReserver(requete, state.char.name, cible).catch(() => null);
     if (!res) res = await sbFuiteReserver(requete, state.char.name, cible).catch(() => null);
     if (!res) {
@@ -635,7 +646,7 @@ async function confirmerCorrompreJournaliste(pa, cost) {
     const sauve = await sbSavePersonnage(state).catch(() => null);
     if (!sauve) { showToast('Action impossible', 'Votre situation n\'a pas pu être enregistrée. Rien n\'a été prélevé.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b44543e95", 'Votre situation n\'a pas pu être enregistrée. Rien n\'a été prélevé.', undefined, 'Action impossible'); return; }
 
-    const requete = 'corrpresse-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+    const requete = idRumeurs('corrpresse');
     const malusISN = typeof getMalusISN === 'function' ? getMalusISN() : 0;
     let res = await sbCorruptionPresseTenter(requete, state.char.name, affaire, option, malusISN).catch(() => null);
     if (!res) res = await sbCorruptionPresseTenter(requete, state.char.name, affaire, option, malusISN).catch(() => null);
@@ -784,7 +795,7 @@ async function confirmerScandale(pa, cost) {
     const sauve = await sbSavePersonnage(state).catch(() => null);
     if (!sauve) { showToast('Action impossible', 'Votre situation n\'a pas pu être enregistrée. Rien n\'a été prélevé.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b44543e95", 'Votre situation n\'a pas pu être enregistrée. Rien n\'a été prélevé.', undefined, 'Action impossible'); return; }
 
-    const requete = 'scandale-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+    const requete = idRumeurs('scandale');
     const malusISN = typeof getMalusISN === 'function' ? getMalusISN() : 0;
     let res = await sbScandaleTenter(requete, state.char.name, cible, accusation, malusISN).catch(() => null);
     if (!res) res = await sbScandaleTenter(requete, state.char.name, cible, accusation, malusISN).catch(() => null);
@@ -1624,7 +1635,7 @@ async function confirmerSubtilisationExplosif() {
     // registre reglementaire -- c'est toute la difference avec un retrait.
     if (typeof sbTracerAction === 'function') {
       await sbTracerAction({
-        id: 'subtilisation-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+        id: idRumeurs('subtilisation'),
         auteur: state.char?.name, cible: null, type_action: 'subtilisation_explosif',
         country: pays, city: ville, jour: state.day || 1, jour_expiration: (state.day || 1) + 15
       }).catch(() => {});
@@ -1662,7 +1673,7 @@ async function confirmerSubtilisationExplosif() {
   // ECHEC DISCRET : rien obtenu, aucune identification, mais le fait reste constatable.
   if (typeof sbTracerAction === 'function') {
     await sbTracerAction({
-      id: 'subtilisationratee-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+      id: idRumeurs('subtilisationratee'),
       auteur: state.char?.name, cible: null, type_action: 'tentative_subtilisation_explosif',
       country: pays, city: ville, jour: state.day || 1, jour_expiration: (state.day || 1) + 15
     }).catch(() => {});
@@ -1897,7 +1908,7 @@ function getInfomateurInfo(niveau) {
       'Le vote de mercredi prochain semble déjà arrangé par deux députés.'
     ],
     3: [
-      'L\'auteur du crime récent semble venir de ' + (['Républia','El Estado','Sovarka','Al-Khalija'][Math.floor(Math.random()*4)]) + '.',
+      'Les milieux criminels parlent d\'un crime récent, sans avancer de nom.',
       'Une cargaison suspecte est attendue au port dans les prochaines 24h.',
       'Des échanges d\'argent non déclarés ont eu lieu entre deux PJ.',
       'Un contrat a été passé dans les milieux criminels contre un élu.'
@@ -1910,7 +1921,8 @@ function getInfomateurInfo(niveau) {
     ]
   };
   const list = infos[niveau] || infos[1];
-  return list[Math.floor(Math.random() * list.length)];
+  // Aucun tirage au navigateur (Criminalite lot 8) : la phrase tourne avec le jour de jeu.
+  return list[Math.abs(Number(state.day) || 0) % list.length];
 }
 
 function ouvrirRecruterInformateur(niveau, pa, cost) {

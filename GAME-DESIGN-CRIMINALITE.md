@@ -627,11 +627,66 @@ Relevé en production (`pg_proc` du projet `jxpwoosmmhohoihxpbuc`, lecture seule
 - Corruption de l'agent lors d'une arrestation en flagrant délit (`arrestation_flagrant_choisir('corruption')`, 500 FR) : hors du
   § 12, inchangée.
 - Le banc SQL `banc-greffe-et-universite.sql` est mis à jour (refus / dénonciation) mais n'a pas été rejoué (il contient des DELETE).
-- Rumeurs (§ 13, lot 8) : leur détection compte encore la dissuasion deux fois.
+- Rumeurs (§ 13, lot 8) : leur détection comptait la dissuasion deux fois — corrigé au lot 8.
+
+## Lot 8 — ce qui est en place (20/11)
+
+Migration `migrations/20261120070000_crim_lot8_rumeurs.sql` (appliquée après essai en transaction annulée) ; banc
+`outils/bancs/test-crim-lot8-rumeurs.cjs`.
+
+- **Lancer une rumeur** (`rumeur_lancer`, même signature, 1 PA gratuit) passe par la résolution commune `crim_resoudre_interne`
+  (acte `fausse_rumeur`) : réussite **60 + 1 par tranche de 3 de DIS au-dessus de 50 + 2 par point de CHA au-dessus de 8**
+  (`crim_rumeur_taux_interne`), **bornes 10-90**, dissuasion #135 comptée **une seule fois** (l'ancien appel à
+  `crime_detecter_interne`, qui ajoutait la dissuasion à un jet de détection tiré à chaque tentative, est retiré). Effets sur la
+  cible inchangés (PJ −5 à −20 POP, organisation −1 à −10 INF, gouvernement −1 à −5 POP par membre, pays −1 à −5 IS en Républia).
+- **Détection après une réussite seulement** : **15 − 1 par tranche de 10 de DIS, minimum 5 %** ; détecté = identifié (recherché,
+  peine d'office du barème par `crim_identifier_interne`, −10 DIS de la détection commune).
+- **Échec critique = 10 % des échecs** : auteur identifié (`crim_identifier_interne`, barème `crim_peine_jours_interne('fausse_rumeur')`
+  = 1 j en Républia) ; le PJ visé reçoit « X a tenté de répandre des calomnies sur votre compte. » ; annonce publique « X a tenté de
+  répandre des calomnies sur Y. » ; −5 POP pour l'auteur. Échec ordinaire : retour de bâton existant (0 à 2 POP et DIS), sans suite.
+- **Plainte contre X** : l'affaire est enregistrée au nom du PJ visé ; le raccord `crim_plainte_x_v1` la rattache à sa plainte et
+  le commissaire enquête dans le cadre commun (lot 6).
+- **Tracts calomnieux** (`calomnie_distribuer_interne`) : formule inchangée (45 + CHA + INF/4 − 2 × (VOL du PNJ − 10), 0-85), jet par
+  la résolution commune (acte `tracts_calomnieux` : dissuasion #135 une fois, échec critique 10 % des échecs, ni détection ni combat) ;
+  flagrant délit et mandat inchangés, mais la durée vient du barème (`crim_peine_jours_interne('imprimer_tracts_calomnieux')`, 1 j) :
+  raccords `crim_tracts_bareme_v1` (`calomnie_distribuer_consommer`) et `crim_tracts_mandat_bareme_v1` (`calomnie_inscrire_mandat`).
+- **Bouche-à-oreille** (`rumeur_ecoute_jauges_interne`, « Écouter les rumeurs ») : **10 %** de chances d'apprendre l'origine d'une
+  rumeur récente (« On dit que c'est X qui fait courir ce bruit sur Y. ») ou qui distribue des tracts contre qui (« On dit que c'est X
+  qui distribue des tracts contre Y. ») ; traces `fausse_rumeur` (rumeur réussie) et `tract_calomnieux` (distribution réussie). Ces
+  deux traces ne sortent plus par le tirage ordinaire.
+- **Correctif de la résolution commune** (raccord `crim_critique_moral_v2`) : `critique_moral = false` coupait aussi l'identification de
+  l'échec critique ; le test du moral n'enveloppe plus que la perte de moral (cambriolage inchangé : il passe aussi
+  `critique_identifie = false`).
+- **Écran** : pop-up « Lancer une rumeur » aux classes `cpj-*`, sans taux (le 75 % n'est plus transmis) ; résultat affiché par
+  `crimRumeurResultat` (`plateau-criminalite.js`, textes T.fr) ; flagrant délit des tracts : durée lue dans la réponse
+  (`crimTractFlagrant`). Plus aucun `Math.random` dans `plateau-actions-illegales-rumeurs.js` (identifiants par `crypto.randomUUID`,
+  phrase d'informateur choisie par le jour de jeu, plus d'empire tiré au hasard).
+
+### Valeurs provisoires du lot 8 (choisies par l'agent, à valider par Fred)
+- **Perte de POP de l'échec critique** : 5 POP (paramètre `rumeur_critique_pop`), à la place du retour de bâton ordinaire, sans perte
+  de moral. — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **« La rumeur se retourne contre lui »** : annonce publique mondiale « X a tenté de répandre des calomnies sur Y. » ; la cible qui
+  apprend le nom est le PJ visé, le chef d'une organisation visée ou les membres d'un gouvernement visé (personne pour un local ou un
+  pays). — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Cachette et masque** : sans effet sur la rumeur (acte à distance : visage découvert forcé, sans identification automatique) ;
+  brouillard sans effet. — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Échec ordinaire** : retour de bâton existant conservé (0 à 2 POP et DIS, sans suite pénale). — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Peines** : barème `fausse_rumeur` (délit mineur, 1 j) pour la rumeur ; `imprimer_tracts_calomnieux` (1 j) pour la distribution.
+  — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Bouche-à-oreille** : « rumeur récente » = trace non expirée (7 jours) de la ville où l'on écoute ; le jet de 10 % passe avant le
+  tirage ordinaire ; seule une distribution de tracts **réussie** laisse une trace. — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Tracts** : la dissuasion #135 s'applique désormais au jet (règle commune « une seule fois pour tous les crimes ») ; pas de perte de
+  moral à l'échec critique (non prévue). — *valeur provisoire choisie par l'agent, à valider par Fred*
+- Autres empires : mêmes valeurs que Républia (paramètres `crim_parametres`).
+
+### Points relevés pour les lots suivants
+- Rumeurs à indices partiels et fausse piste (§ 4) : non traitées ici.
+- Fabriquer un scandale et produire une fuite : inchangés (§ 13).
+- Bancs SQL `banc-rumeur-alerte-chef.sql` et `banc-organisations-etape-b.sql` : ils supposaient un jet de 75 % (setseed) ; non rejoués.
 
 ## Tableau de correspondance (règle → statut → fonction serveur)
 
-Statuts : **décidé** (dans le document), **implémenté** (en production), **testé** (essai en production annulé + bancs `outils/bancs/test-crim-lot1-equipement.cjs`, `outils/bancs/test-crim-lot2-resolution.cjs`, `outils/bancs/test-crim-lot3-voler.cjs`, `outils/bancs/test-crim-lot4-cambriolage.cjs`, `outils/bancs/test-crim-lot5-poison-explosifs-incendie.cjs`, `outils/bancs/test-crim-lot6-justice.cjs`, `outils/bancs/test-crim-lot7-corruption.cjs`).
+Statuts : **décidé** (dans le document), **implémenté** (en production), **testé** (essai en production annulé + bancs `outils/bancs/test-crim-lot1-equipement.cjs`, `outils/bancs/test-crim-lot2-resolution.cjs`, `outils/bancs/test-crim-lot3-voler.cjs`, `outils/bancs/test-crim-lot4-cambriolage.cjs`, `outils/bancs/test-crim-lot5-poison-explosifs-incendie.cjs`, `outils/bancs/test-crim-lot6-justice.cjs`, `outils/bancs/test-crim-lot7-corruption.cjs`, `outils/bancs/test-crim-lot8-rumeurs.cjs`).
 
 | § | Règle | Statut | Lot | Fonction serveur |
 |---|---|---|---|---|
@@ -664,7 +719,7 @@ Statuts : **décidé** (dans le document), **implémenté** (en production), **t
 | 5 | Gilet 380 FR / 60 PSK | implémenté, testé | 1 | `crim_prix_interne` |
 | 6 | Cadre des trois modes pour tous les crimes en pièce | implémenté dans la résolution commune ; branché sur Neutraliser | 2 | `crim_resoudre_interne`, `crim_designation_interne` |
 | 6 | Neutraliser et voler un PNJ (employeur alerté, hors service jusqu'au lendemain) | implémenté (essais sur PJ ; aucun PNJ référencé dans la pièce d'essai) | 2, 3 | `crim_cible_resoudre_interne`, `crim_affaire_notifier_interne`, `pnj_pa_fixer`, `crime_voler` |
-| 6 | Dissuasion #135 conservée pour tous les crimes (une seule fois) | implémenté dans la résolution commune (vol, crochetage, effraction, empoisonnement, explosifs, incendie, corruption branchés ; rumeurs : double compte jusqu'au lot 8) | 2, 3, 4, 5, 7 | `crim_resoudre_interne`, `securite_malus_lieu_interne` |
+| 6 | Dissuasion #135 conservée pour tous les crimes (une seule fois) | implémenté dans la résolution commune (vol, crochetage, effraction, empoisonnement, explosifs, incendie, corruption, rumeurs, tracts branchés) | 2, 3, 4, 5, 7, 8 | `crim_resoudre_interne`, `securite_malus_lieu_interne` |
 | 6 | Peines automatiques par empire (Républia : 2 j / 1 j) | implémenté, testé (assassin 2 j, voleur 1 j, effraction 1 j) | 2, 3, 4 | `crim_peine_jours_interne`, `crim_parametres.peine_jours_<acte>_<empire>` |
 | 7 | Voler un PJ ou un PNJ présent : argent liquide / objet au hasard / objet précis (type), 2 / 2 / 3 PA | implémenté, testé | 3 | `crime_voler(text,text,text,uuid)` ; ancienne route `ordre_remplace` |
 | 7 | Réussite 55 / 45 / 25 ± DIS/3, −3/PER (de groupe) > 8, +15 criminelle / renseignement / escort, 5-85 ; caché sans effet ; dissuasion #135 | implémenté, testé | 3 | `crim_voler_taux_interne`, `crim_per_groupe_interne`, `crim_resoudre_interne` |
@@ -698,7 +753,13 @@ Statuts : **décidé** (dans le document), **implémenté** (en production), **t
 | 12 | Douanier : +20 seulement en zone de transport ; échec 300 FR aux douanes, retenter le lendemain | implémenté, testé | 7 | `douane_corruption_executer_interne`, `crim_zone_transport_interne` |
 | 12 | Suppressions : Falsifier un PV, `corrompre_police`, trois accélérations (permis, notaire, chantier) | implémenté, testé (refus propres, boutons retirés, tarifs retirés) | 7 | `crime_corrompre`, `terrain_permis_corrompre`, `terrain_rdv_notaire_accelerer` (refus) |
 | 12 | Écran : directeur et gardien en cellule du QHS, pop-ups `cpj-*`, aucun taux | implémenté, testé (VM) | 7 | `plateau-criminalite.js` (`crimOuvrirCorruptionQhs`) |
-| 13 | Rumeur : formule, échec critique 10 %, détection 15 %, bouche-à-oreille ; tracts ; scandale ; fuite | décidé | — | — |
+| 13 | Rumeur : 60 + DIS/3 > 50 + 2/CHA > 8, 10-90, dissuasion une fois ; effets sur la cible inchangés | implémenté, testé | 8 | `rumeur_lancer`, `crim_rumeur_taux_interne`, `crim_resoudre_interne` |
+| 13 | Rumeur : échec critique 10 % des échecs (identifié, la cible apprend le nom, annonce, −5 POP) ; détection après réussite 15 − DIS/10, min 5 | implémenté, testé | 8 | `rumeur_lancer`, `crim_identifier_interne`, `crim_detection_interne`, raccord `crim_critique_moral_v2` |
+| 13 | Rumeur : plainte contre X, enquête du commissaire | implémenté (affaire au nom du PJ visé ; rattachement par le raccord du lot 6) | 8, 6 | `crim_affaires`, raccord `crim_plainte_x_v1` |
+| 13 | Bouche-à-oreille 10 % (rumeurs et tracts) | implémenté, testé | 8 | `rumeur_ecoute_jauges_interne`, `crime_trace_rumeur_interne` |
+| 13 | Tracts calomnieux : échec critique 10 %, flagrant délit ou mandat, durée au barème | implémenté, testé | 8 | `calomnie_distribuer_interne`, raccords `crim_tracts_bareme_v1` / `crim_tracts_mandat_bareme_v1` |
+| 13 | Écran rumeur `cpj-*`, aucun calcul ni `Math.random` | implémenté, testé (VM) | 8 | `plateau-pnj.js`, `plateau-criminalite.js` (`crimRumeurResultat`, `crimTractFlagrant`) |
+| 13 | Scandale ; fuite | décidé (inchangés) | — | — |
 | 14 | Doublement démasqué | implémenté, testé | 6 | `crim_peine_office_interne`, `crim_enqueter` |
 | 14 | Fin des catégories lourdes (1 j délit, 2 j crime) ; nomenclature unique ; 11 barèmes rattachés ; durées en dur retirées ; autres empires = Républia | implémenté, testé | 6 | `crim_peine_jours_interne`, `peine_acte_interne`, `infractions_alias`, `plateau-core.js` (`INFRACTIONS_ALIAS`, `INFRACTIONS_RATTACHEES`) |
 | 14 | Seuil du procès 4 j (4 j d'office puis procès) | implémenté, testé | 6 | `crim_seuil_proces_interne`, raccords `detention_ouvrir_interne` / `detention_prolonger_interne` |

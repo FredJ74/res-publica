@@ -8,6 +8,14 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Chantier Criminalité — lot 8 : délits d'information, rumeurs et tracts (Claude, 20/11/2026)
+- **Branche `claude/game-design-criminalite-20261118`**. Détail, valeurs provisoires et tableau : fin de `GAME-DESIGN-CRIMINALITE.md` (« Lot 8 — ce qui est en place »).
+- **Migration APPLIQUÉE** : `20261120070000_crim_lot8_rumeurs` (essai complet en transaction annulée, puis appliquée avec un correctif de raccord, scénario d'échec critique et de mandat rejoué en essai annulé ; idempotente).
+- **Fait** : `rumeur_lancer` sur la résolution commune (60 + DIS/3 > 50 + 2/CHA > 8, 10-90, dissuasion #135 une fois — plus de `crime_detecter_interne` ; détection après réussite 15 − DIS/10 min 5 ; échec critique 10 % des échecs : identifié, peine d'office du barème, la cible apprend le nom, annonce publique, −5 POP) ; tracts calomnieux (`calomnie_distribuer_interne`) sur la résolution commune, flagrant délit et mandat au barème (plus de « 1 jour » en dur) ; bouche-à-oreille 10 % dans `rumeur_ecoute_jauges_interne` (traces `fausse_rumeur` et `tract_calomnieux`). Correctif commun : `critique_moral = false` ne coupe plus l'identification (raccord `crim_critique_moral_v2`).
+- **Écran** : pop-up de la rumeur en `cpj-*` sans taux ; résultat par `crimRumeurResultat` (`plateau-criminalite.js`) ; durée du flagrant délit des tracts lue dans la réponse ; plus aucun `Math.random` dans `plateau-actions-illegales-rumeurs.js`.
+- **Tester** : `node --test outils/bancs/test-crim-lot8-rumeurs.cjs` (et `banc-rumeurs-ecoute-jauges-379.cjs`, mis à jour). En jeu : « Lancer une rumeur » (1 PA), « Écouter les rumeurs » au bar ou au restaurant de l'hôtel, distribuer un tract calomnieux à un PNJ.
+- **Reste** : rumeurs à indices partiels et fausse piste (§ 4), carrière (§ 15), QHS (lot 10). Bancs SQL `banc-rumeur-alerte-chef.sql` / `banc-organisations-etape-b.sql` non rejoués (ils supposaient le jet de 75 %). Textes français à traduire par Codex (`plateau-criminalite.js`, courriers « Calomnies »).
+
 ### Chantier Criminalité — lot 7 : corruption (Claude, 20/11/2026)
 - **Branche `claude/game-design-criminalite-20261118`**. Détail, valeurs provisoires et tableau : fin de `GAME-DESIGN-CRIMINALITE.md` (« Lot 7 — ce qui est en place »).
 - **Migration APPLIQUÉE** : `20261120050000_crim_lot7_corruption` (partie migration essayée en transaction annulée, appliquée, scénarios rejoués en essais annulés ; idempotente).
