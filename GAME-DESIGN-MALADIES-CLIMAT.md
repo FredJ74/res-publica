@@ -277,6 +277,32 @@ bandelettes, plats cuisinés, furet renifleur).
 - **Lot 5** : effets du brouillard, de l'orage (groupe électrogène), de la crue (2 ou 3 lieux, sacs de sable, 20 % de stock)
   et de la canicule (bouteille d'eau, coup de chaleur, nourriture portée avariée).
 
+### Décision de Fred du 19/11 — état de catastrophe naturelle (lot 5, crue)
+
+- Le **Premier ministre** déclare l'état de catastrophe naturelle, sur proposition du **ministre de l'Intérieur**, dans les
+  **72 h** suivant la crue.
+- L'État rembourse **50 %** de la valeur des stocks perdus, au **prix de base**, sur le **budget de l'État**.
+- **Par défaut, l'indemnisation est réservée** aux commerces et entrepôts qui avaient **posé des sacs de sable** ; les autres
+  sont jugés négligents.
+- **Mais** le Premier ministre peut, au moment de la déclaration, **étendre l'indemnisation à tous les sinistrés** (50 % aussi).
+  Dilemme voulu (coût budgétaire contre popularité) : son écran montre les deux options et le **coût estimé** de chacune.
+
+### Lot 4 : choix d'implémentation (19/11/2026)
+
+- **Blizzard** : une fois par mandat présidentiel et par ville de Sovarka (fin de mandat lue dans le cycle électoral du
+  président), dates différentes, alerte 48 h avant. Au début de l'événement (passe horaire) : tous les personnages présents
+  dans la ville perdent 3 PA, sauf s'ils portent un bocal de graisse (castor, ours ou renne, consommé) ; puis grippe selon le
+  tableau du § 5 (hospitalisé = 0 %), moins 5 points avec la graisse. Chacun reçoit à la connexion suivante un message dans sa
+  langue (PA perdus ou graisse consommée).
+- **Graisses** : castor à l'étal de la poissonnière de Novomirsk, ours sur les étals du marché de Krasnov (le marché du
+  kolkhoze), renne toujours au magasin du kolkhoze de Starovka ; 15 PSK (réglable). Dans une pharmacie ouverte par un PJ
+  (fonds dont l'activité comprend « pharmacie »), le propriétaire dépose ses bocaux depuis son inventaire et les clients les
+  achètent depuis la boutique (bouton « Graisses ») ; la recette va à la caisse du fonds.
+- **Contagion** : partage de pièce relevé à chaque passe horaire ; interactions directes relevées dans les tournées et les
+  dîners (saluer et parler n'ont pas de geste serveur à raccorder aujourd'hui) ; tirage unique par malade croisé et par jour,
+  au niveau le plus élevé, une fois la journée terminée.
+- **Images** de la planche de Fred : furet (achat et objet), graisses de castor et d'ours (objets) ; sac de sable au lot 5.
+
 ### Décisions de Fred du 19/11 — points en attente
 
 1. **Canicule** : tirage au hasard dans le trimestre, sans contrainte de saison (le jeu se joue partout dans le monde).

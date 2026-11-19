@@ -8,6 +8,11 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Maladies, péremption et climat — lot 4 : blizzard, graisses, grippe, contagion (Claude, 19/11/2026)
+- **Branche `claude/climat-lot4-20261119`** (part du lot 3 ; contient la branche d'images `claude/images-furet-graisses-sac-20261118`).
+- **Migrations APPLIQUÉES** : `20261119090000_climat_blizzard_grippe` (essai annulé d'abord), `20261119090500_furet_image`.
+- **Codé** : blizzard (calendrier par mandat, effets à la passe horaire, message par personnage), graisses castor/ours (points de vente, pharmacies PJ, dépôt par le propriétaire), tableau de la grippe, contagion (pièce, tournées, dîners), images du furet et des graisses ; ordre `acheter_graisse` (plans 97/219 : 585 lignes ; 424 identifiants d'ordres).
+- **Décision du 19/11** (état de catastrophe naturelle) consignée dans le document de conception, codée au lot 5.
 ### Maladies et climat — corrections du 19/11 (Claude, 19/11/2026)
 - **Branche `claude/climat-corrections-20261119`** (part de main ; lots 2c et 3 déjà fusionnés).
 - **Migration APPLIQUÉE** : `20261119110000_climat_corrections_fred` (essai annulé d'abord) : orages trimestriels avec propagation en Sovarka (Novomirsk 21/11 gardé, Starovka et Krasnov suivent, orages mensuels non annoncés annulés), jet unique de plat contaminé pour toute la tablée (tournées, dîners), furet à 150.

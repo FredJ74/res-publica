@@ -432,7 +432,7 @@ async function ouvrirFuret() {
   const titre = global.document.getElementById('postes-modal-title');
   if (titre) titre.textContent = texteMaladie('ferret');
   global.document.getElementById('postes-body').innerHTML = '<div class="cpj-dialogue" style="padding:1rem">'
-    + '<div style="font-size:2.4rem;text-align:center"><i class="ti ti-paw"></i></div>'
+    + '<div style="text-align:center"><img src="images/objet-furet-renifleur.webp" alt="" style="width:160px;height:160px;object-fit:cover;border:1px solid #2a2010"></div>'
     + '<div class="cpj-note" style="margin:.6rem 0">' + esc(texteMaladie('ferretIntro', { prix: e.prix, cur: devise(), n: e.restant })) + '</div>'
     + '<div style="display:flex;gap:.5rem"><button class="cpj-touche cpj-primaire" style="flex:1"' + (e.restant > 0 ? '' : ' disabled') + ' onclick="confirmerFuret()">' + esc(texteMaladie('ferretBuy')) + '</button>'
     + '<button class="cpj-touche" style="flex:1" onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')">' + esc(texteMaladie('cancel')) + '</button></div></div>';
@@ -492,6 +492,7 @@ async function furetRenifler(idx) {
 function nomObjetMaladie(item) {
   if (item && item.type === 'bandelette_reactive') return texteMaladie('strips');
   if (item && item.type === 'furet') return texteMaladie('ferret');
+  if (item && global.RPClimat && typeof global.RPClimat.nomObjet === 'function') { const n = global.RPClimat.nomObjet(item); if (n) return n; }
   return item && item.type === 'medicament_maladie' ? nomMedicament(item.medicament) : null;
 }
 // Bandelettes réactives (lot 2b) : déposées dans le commerce de la pièce (un don ; le serveur trouve le commerce).

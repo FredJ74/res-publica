@@ -1813,6 +1813,8 @@ async function commercePjEcranBoutique(ctx) {
     html += commercePjBouton("commercePjFicheProduit('" + id + "')", 'Fiche produit');
     html += '</div></div>';
   });
+  // Graisses en vente dans une pharmacie ouverte par un PJ (maladies et climat, lot 4).
+  if (typeof climatGraissesBoutiqueHtml === 'function') html += climatGraissesBoutiqueHtml(f);
   html += '<div style="margin-top:.9rem">' +
     commercePjBouton('commercePjEcranPublic()', tCommercePJ('commercepj.public.retour')) + '</div>';
   html += '</div>';
