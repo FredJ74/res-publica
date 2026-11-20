@@ -504,12 +504,12 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 - **Point 4 :** caisse commune du kolkhoze. On saisit les quantités, puis un seul « Donner » (`kolkhoze_caisse_donner_lot`, tout ou rien). La prise reste par matière.
 - **Point 5, partiel :**
   - le brigadier de garde Matveï Doubov remplace « Brigadier Local », à Krasnov seulement ;
-  - les accents des ordres du commissariat sont corrigés, ainsi que « Sécurité » ;
+  - les accents sont confiés à Codex (voir ci-dessous) ;
   - les textes validés le 19/11 (accueil, bureau du commissaire, geôles) sont introuvables dans le dépôt : Fred les cherche.
 - **Point 8, partiel :** au vol des archives d'écoute, le journal affiche maintenant les 2 PA et la durée de détention.
-- **Pour Codex — textes français modifiés** (`data.js`, gabarit `commissariat-local`) :
-  - libellés : « Témoigner (convocation) », « Tenter de s'évader », « Mener l'enquête », « Organiser une chasse à l'homme », « Recruter une unité cynophile », « Gérer mes effectifs » ;
-  - descriptions de ces ordres ;
-  - catégorie « Sécurité » ;
-  - nom du PNJ « Brigadier Matveï Doubov » et rôle « Brigadier de garde ».
+- **Pour Codex — accents du commissariat** (point 5, à faire par Codex) :
+  - corriger dans `data.js`, gabarit `commissariat-local`, les libellés et descriptions sans accents (« Temoigner », « s'evader », « l'enquete », « chasse a l'homme », « unite cynophile », « Gerer mes effectifs », « Reserve aux emprisonnes », « detentions passees »…) et la catégorie « Securite » ;
+  - mettre à jour en même temps le catalogue des infobulles, qui est indexé sur le texte français exact. Sans cela, les huit autres langues perdent la traduction de ces ordres.
+  - Claude ne l'a pas fait pour ne pas toucher aux traductions.
+- **Pour Codex — nouveau PNJ :** « Brigadier Matveï Doubov », rôle « Brigadier de garde » (`data.js`).
 - **Pour Codex — journal :** nouvelles lignes du vol d'archives (`plateau-sovarka-provinces.js`).
