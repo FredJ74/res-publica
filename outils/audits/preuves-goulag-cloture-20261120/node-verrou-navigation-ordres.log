@@ -1,0 +1,37 @@
+✔ arrestation personnelle : position relue, aucune entrée cliente fictive (13.637659ms)
+✔ membre arrêté : chef relu sans afficher sa propre condamnation (11.625174ms)
+✔ entrée ordinaire : même navigation, aucun rechargement ni dépense (12.074471ms)
+✔ double clic arrêté : une seule mutation et une seule relecture (11.396308ms)
+✔ ordres proposés par pièce, détenu ou personne habilitée (15.640169ms)
+✔ aucune fuite vers le QHS de Républia ni hors du camp (6.266771ms)
+✔ les neuf langues portent tous les textes, noms propres en alphabet latin (8.376364ms)
+✔ doOrder est enveloppé : ordres du goulag routés, autres ordres inchangés (6.68975ms)
+✔ un refus serveur est nommé, sans effet calculé par l’écran (4.459436ms)
+✔ fenêtres : sens d’écriture automatique, aucune couleur en dur (0.503239ms)
+✔ plateau.html charge le module une seule fois, avant le routeur (1.188752ms)
+✔ cron de minuit : contrôle idempotent côté serveur, tolérant à un moteur absent (5.03227ms)
+✔ migrations : additives, verrouillées par #1020, sans écriture par la vue personnages (1.463848ms)
+✔ serveur « sans_transport » : goulag fermé, aucun ordre ni masque, aucune autre RPC (111.382246ms)
+✔ serveur « fonction_absente » : goulag fermé, aucun ordre ni masque, aucune autre RPC (53.37371ms)
+✔ serveur « erreur_serveur » : goulag fermé, aucun ordre ni masque, aucune autre RPC (31.114809ms)
+✔ serveur « injoignable » : goulag fermé, aucun ordre ni masque, aucune autre RPC (15.367699ms)
+✔ serveur « exception » : goulag fermé, aucun ordre ni masque, aucune autre RPC (16.641569ms)
+✔ serveur « session_perdue » : goulag fermé, aucun ordre ni masque, aucune autre RPC (20.463194ms)
+✔ serveur « faux » : goulag fermé, aucun ordre ni masque, aucune autre RPC (35.129265ms)
+✔ serveur « nul » : goulag fermé, aucun ordre ni masque, aucune autre RPC (10.268388ms)
+✔ serveur « chaine_true » : goulag fermé, aucun ordre ni masque, aucune autre RPC (10.638036ms)
+✔ serveur « objet » : goulag fermé, aucun ordre ni masque, aucune autre RPC (17.510853ms)
+✔ serveur « tableau » : goulag fermé, aucun ordre ni masque, aucune autre RPC (17.564088ms)
+✔ serveur « verrou_en_place » : goulag fermé, aucun ordre ni masque, aucune autre RPC (30.341526ms)
+✔ rue de l'école de Krasnov : flèches identiques à main (73.241225ms)
+✔ contre-épreuve : seul un `true` du serveur ouvre (boutons et flèche apparaissent) (10.436883ms)
+✔ juge de Sovarka, goulag fermé : même écran et même condamnation au QHS que main (62.943131ms)
+✔ juge de Sovarka, goulag ouvert (contre-épreuve) : la RPC du goulag est appelée (12.480545ms)
+ℹ tests 29
+ℹ suites 0
+ℹ pass 29
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 839.516268

@@ -1,0 +1,72 @@
+{
+  "commit": "e665c9b88f233394a83585066705d581378e1f74",
+  "alias": "res-publica.vercel.app",
+  "deployment": "dpl_buRwCxTrBsT3F6KY4wWx3HxWxGif",
+  "ressources": [
+    {
+      "path": "plateau.html",
+      "identique": true,
+      "sha256": "10502bc21a2525a5566115d9b40d13e10ace4431d8eed661b00fe1961e001dab"
+    },
+    {
+      "path": "plateau-goulag-ouverture.js",
+      "identique": true,
+      "sha256": "d3c5ca22828c1840cc5b0c6e835b1df3a466dad2e99137523a9de1605f599f53"
+    },
+    {
+      "path": "plateau-goulag-ordres.js",
+      "identique": true,
+      "sha256": "01af417635ae6eb9217caee86abedd34d4994811b04fcb1ea07c377a14a1aaaa"
+    },
+    {
+      "path": "plateau-goulag-toundra.js",
+      "identique": true,
+      "sha256": "16192273d6ce2666705ba120a62f8b51654eb6fcf380afd11e08bf1be245acb9"
+    },
+    {
+      "path": "plateau-goulag-transports.js",
+      "identique": true,
+      "sha256": "3f20dbecb2cc865a3222c79d1ea35d57269b185b17a07bbe20e6e871c6321380"
+    },
+    {
+      "path": "plateau-goulag-refuge.js",
+      "identique": true,
+      "sha256": "a48d2977131fec2fcdda0bcb8d7018184be95095d57164a663c416755d6a0daa"
+    },
+    {
+      "path": "style.css",
+      "identique": true,
+      "sha256": "f2ccec689cf4be9d1b9c668f163d70063f0ff83d1c8b1647ae2a790e5bb3a8f1"
+    },
+    {
+      "path": "rue-centrale.css",
+      "identique": true,
+      "sha256": "35caddf63aa07bc5fb0d4e9e0fd614b658dc41f1509cb9cbcf1598506f925dcd"
+    },
+    {
+      "path": "plateau-exploration-mobile.css",
+      "identique": true,
+      "sha256": "6c74d2f9b7477bfb04c50399522270ebc7e62517d3e830de1a9783aa2b7d3cfb"
+    },
+    {
+      "path": "plateau-mobile-refonte-visible.css",
+      "identique": true,
+      "sha256": "f3c5541cf46554eddcb68e0e94ba5263b91c40ea3649bcb3f6a73ba3acb56333"
+    },
+    {
+      "path": "plateau-mobile-prototype.css",
+      "identique": true,
+      "sha256": "3ed7a21f4fbb432c549a755c918fe96c30d40c85d5ae7e6dd32c42ae3fd7a1cf"
+    },
+    {
+      "path": "plateau-interieurs-mobile.css",
+      "identique": true,
+      "sha256": "11c03b52a3d8cf653e6cbbd48981077b6c916ddaa6f52449a6e2343f33abe22a"
+    },
+    {
+      "path": "i18n/sovarka-descriptions-resources.js",
+      "identique": true,
+      "sha256": "fbe09f41f3be86f6f5dc1f0716c91e01e9f435dc3f78c011b22e8e14ccb505d6"
+    }
+  ]
+}

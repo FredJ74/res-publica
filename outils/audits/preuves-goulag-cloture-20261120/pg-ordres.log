@@ -1,0 +1,837 @@
+/workspace/res-publica/outils/baseline/reconstruire.py:80: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/assemblee/MANIFESTE.json' mode='r' encoding='utf-8'>
+  mans[d] = (json.load(open(chemin, encoding="utf-8")), os.path.dirname(chemin))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:80: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/banque/MANIFESTE.json' mode='r' encoding='utf-8'>
+  mans[d] = (json.load(open(chemin, encoding="utf-8")), os.path.dirname(chemin))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:80: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/communication/MANIFESTE.json' mode='r' encoding='utf-8'>
+  mans[d] = (json.load(open(chemin, encoding="utf-8")), os.path.dirname(chemin))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:80: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/divers-et-technique/MANIFESTE.json' mode='r' encoding='utf-8'>
+  mans[d] = (json.load(open(chemin, encoding="utf-8")), os.path.dirname(chemin))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:80: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/economie/MANIFESTE.json' mode='r' encoding='utf-8'>
+  mans[d] = (json.load(open(chemin, encoding="utf-8")), os.path.dirname(chemin))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:80: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/finances-publiques/MANIFESTE.json' mode='r' encoding='utf-8'>
+  mans[d] = (json.load(open(chemin, encoding="utf-8")), os.path.dirname(chemin))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:80: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/immobilier-et-territoire/MANIFESTE.json' mode='r' encoding='utf-8'>
+  mans[d] = (json.load(open(chemin, encoding="utf-8")), os.path.dirname(chemin))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:80: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/justice/MANIFESTE.json' mode='r' encoding='utf-8'>
+  mans[d] = (json.load(open(chemin, encoding="utf-8")), os.path.dirname(chemin))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:80: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/militaire/MANIFESTE.json' mode='r' encoding='utf-8'>
+  mans[d] = (json.load(open(chemin, encoding="utf-8")), os.path.dirname(chemin))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:80: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/personnage-et-presence/MANIFESTE.json' mode='r' encoding='utf-8'>
+  mans[d] = (json.load(open(chemin, encoding="utf-8")), os.path.dirname(chemin))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:80: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/politique-et-elections/MANIFESTE.json' mode='r' encoding='utf-8'>
+  mans[d] = (json.load(open(chemin, encoding="utf-8")), os.path.dirname(chemin))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:80: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/postes-et-institutions/MANIFESTE.json' mode='r' encoding='utf-8'>
+  mans[d] = (json.load(open(chemin, encoding="utf-8")), os.path.dirname(chemin))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:80: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/presse/MANIFESTE.json' mode='r' encoding='utf-8'>
+  mans[d] = (json.load(open(chemin, encoding="utf-8")), os.path.dirname(chemin))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:80: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/renseignement/MANIFESTE.json' mode='r' encoding='utf-8'>
+  mans[d] = (json.load(open(chemin, encoding="utf-8")), os.path.dirname(chemin))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:80: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/socle-PNJ/MANIFESTE.json' mode='r' encoding='utf-8'>
+  mans[d] = (json.load(open(chemin, encoding="utf-8")), os.path.dirname(chemin))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:80: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/socle/MANIFESTE.json' mode='r' encoding='utf-8'>
+  mans[d] = (json.load(open(chemin, encoding="utf-8")), os.path.dirname(chemin))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:80: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/sport/MANIFESTE.json' mode='r' encoding='utf-8'>
+  mans[d] = (json.load(open(chemin, encoding="utf-8")), os.path.dirname(chemin))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/assemblee/10_tables.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/banque/10_tables.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/communication/10_tables.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/divers-et-technique/10_tables.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/economie/10_tables.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/finances-publiques/10_tables.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/immobilier-et-territoire/10_tables.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/justice/10_tables.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/militaire/10_tables.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/personnage-et-presence/10_tables.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/politique-et-elections/10_tables.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/postes-et-institutions/10_tables.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/presse/10_tables.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/renseignement/10_tables.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/socle/10_tables.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/socle-PNJ/10_tables.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/sport/10_tables.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/assemblee/20_fonctions-1.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/assemblee/20_fonctions-2.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/banque/20_fonctions.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/communication/20_fonctions.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/economie/20_fonctions-1.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/economie/20_fonctions-2.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/economie/20_fonctions-3.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/finances-publiques/20_fonctions-1.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/finances-publiques/20_fonctions-2.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/immobilier-et-territoire/20_fonctions-1.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/immobilier-et-territoire/20_fonctions-2.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/justice/20_fonctions-1.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/justice/20_fonctions-2.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/justice/20_fonctions-3.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/militaire/20_fonctions-1.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/militaire/20_fonctions-2.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/militaire/20_fonctions-3.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/personnage-et-presence/20_fonctions-1.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/personnage-et-presence/20_fonctions-2.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/politique-et-elections/20_fonctions.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/presse/20_fonctions.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/renseignement/20_fonctions.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/socle/20_fonctions.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/socle-PNJ/20_fonctions.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/sport/20_fonctions.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/assemblee/30_contraintes.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/banque/30_contraintes.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/communication/30_contraintes.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/divers-et-technique/30_contraintes.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/economie/30_contraintes.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/finances-publiques/30_contraintes.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/immobilier-et-territoire/30_contraintes.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/justice/30_contraintes.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/militaire/30_contraintes.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/personnage-et-presence/30_contraintes.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/politique-et-elections/30_contraintes.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/postes-et-institutions/30_contraintes.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/presse/30_contraintes.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/renseignement/30_contraintes.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/socle/30_contraintes.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/socle-PNJ/30_contraintes.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/sport/30_contraintes.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/assemblee/35_index.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/banque/35_index.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/communication/35_index.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/divers-et-technique/35_index.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/economie/35_index.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/finances-publiques/35_index.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/immobilier-et-territoire/35_index.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/justice/35_index.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/militaire/35_index.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/personnage-et-presence/35_index.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/politique-et-elections/35_index.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/postes-et-institutions/35_index.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/presse/35_index.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/renseignement/35_index.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/socle/35_index.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/socle-PNJ/35_index.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/sport/35_index.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/economie/40_vues.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/personnage-et-presence/40_vues.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/presse/40_vues.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/assemblee/50_triggers.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/banque/50_triggers.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/communication/50_triggers.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/divers-et-technique/50_triggers.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/economie/50_triggers.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/finances-publiques/50_triggers.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/immobilier-et-territoire/50_triggers.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/justice/50_triggers.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/militaire/50_triggers.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/personnage-et-presence/50_triggers.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/politique-et-elections/50_triggers.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/presse/50_triggers.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/renseignement/50_triggers.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/socle-PNJ/50_triggers.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/sport/50_triggers.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/assemblee/60_rls-policies.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/banque/60_rls-policies.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/communication/60_rls-policies.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/divers-et-technique/60_rls-policies.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/economie/60_rls-policies.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/finances-publiques/60_rls-policies.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/immobilier-et-territoire/60_rls-policies.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/justice/60_rls-policies.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/militaire/60_rls-policies.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/personnage-et-presence/60_rls-policies.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/politique-et-elections/60_rls-policies.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/postes-et-institutions/60_rls-policies.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/presse/60_rls-policies.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/renseignement/60_rls-policies.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/socle/60_rls-policies.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/socle-PNJ/60_rls-policies.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/sport/60_rls-policies.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/assemblee/70_droits.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/banque/70_droits.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/communication/70_droits.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/divers-et-technique/70_droits.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/economie/70_droits.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/finances-publiques/70_droits.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/immobilier-et-territoire/70_droits.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/justice/70_droits.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/militaire/70_droits.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/personnage-et-presence/70_droits.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/politique-et-elections/70_droits.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/postes-et-institutions/70_droits.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/presse/70_droits.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/renseignement/70_droits.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/socle/70_droits.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/socle-PNJ/70_droits.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/sport/70_droits.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/assemblee/80_commentaires.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/banque/80_commentaires.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/communication/80_commentaires.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/divers-et-technique/80_commentaires.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/economie/80_commentaires.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/finances-publiques/80_commentaires.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/immobilier-et-territoire/80_commentaires.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/justice/80_commentaires.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/militaire/80_commentaires.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/personnage-et-presence/80_commentaires.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/politique-et-elections/80_commentaires.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/postes-et-institutions/80_commentaires.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/presse/80_commentaires.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/renseignement/80_commentaires.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/socle/80_commentaires.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/socle-PNJ/80_commentaires.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/sport/80_commentaires.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/domaines/socle/85_default-privileges.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/actes_nocturnes_mecanismes.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/admin_actions_tribunal.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/assemblee_catalogue_illegal.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/assemblee_categories_interdiction.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/budget_national_champs_regles.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/caisses_autorites.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/carrieres.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/chaines_production_usine.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/chantiers_besoins_jour.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/chantiers_paliers.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/commerces_dotations.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/commerces_types.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/communications_salles.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/directions_etablissements.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/dossiers_judiciaires_actes_types.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/entreprises_constantes.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/entreprises_prix_rachat.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/fonds_credits_sources.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/garde_republicaine_postes.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/greffes_tribunaux.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/habilitations.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/habilitations_carrieres.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/habilitations_postes.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/justice_avocats_commis.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/justice_faits_publics.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/mails_expediteurs_systeme.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/objets_achetables.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/offres_emploi_bne.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/ordres_generiques.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/pa_bonus_hotel.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/pa_credits_sources.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/pnj_axes_autorite.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/pnj_familles_classes.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/pnj_fonctions.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/pnj_institutions.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/pnj_metiers_profils.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/pnj_mouvement_individuel.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/pnj_referents_sujets_connus.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/pnj_social_jalons_regles.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/postes_electifs_regles.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/presidence_memoire_ordres.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/presidence_memoire_sources.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/presidence_memoire_sources_absentes.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/repartitions_budgetaires.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/salaires_caisses.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/salaires_civils_declares.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/salaires_religieux_declares.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/subventions_familles.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/90_socle/usines_rachat_config.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/91_empire/armureries_dotations.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/91_empire/camions_destinations.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/91_empire/camions_militaires.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/91_empire/clubs_football.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/91_empire/clubs_sportifs_regles.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/91_empire/contacts_organisations_passeurs.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/91_empire/directeurs_usine.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/91_empire/escorts_agences.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/91_empire/escorts_catalogue.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/91_empire/groupes_presse.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/91_empire/imprimeries_declarees.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/91_empire/indices_villes.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/91_empire/journaux.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/91_empire/locaux_loyers_referentiel.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/91_empire/pnj_candidats_catalogue.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/91_empire/pnj_employeurs.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/91_empire/pnj_referents.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/91_empire/recettes_production.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/91_empire/renseignement_couvertures.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/91_empire/renseignement_identites_reelles.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/91_empire/rp_epoques.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/91_empire/rue_noeuds_serveur.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/91_empire/rue_sorties_batiments.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/91_empire/scandales_predefinis.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/91_empire/terrains_referentiel.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/91_empire/titulaires_pnj.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/91_empire/tracts_pnj_catalogue.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/92_mixte/assemblee_sieges.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/92_mixte/batiments_etat.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/92_mixte/caisses_batiments.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/92_mixte/catalogue_correspondance_legacy.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/92_mixte/catalogue_familles.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/92_mixte/catalogue_generique_type.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/92_mixte/catalogue_generiques.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/92_mixte/catalogue_types.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/92_mixte/catalogue_variantes.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/92_mixte/entrepots_par_ville.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/92_mixte/militaire_armes_bonus.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/92_mixte/niveaux_prison.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/92_mixte/objets_modeles.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/92_mixte/recettes_commerce.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/92_mixte/structures_medicales.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/92_mixte/terrain_actions_regles.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/95_a-regenerer/infractions.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/95_a-regenerer/infractions_categories.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/95_a-regenerer/ordres_couts.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/95_a-regenerer/pa_bonus_differes.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/95_a-regenerer/postes_nommes_regles.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/95_a-regenerer/recettes_militaires.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/95_a-regenerer/ressources_economie.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica/outils/baseline/reconstruire.py:105: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica/baseline/seeds/95_a-regenerer/villes.sql' mode='r' encoding='utf-8'>
+  open(chemin, encoding="utf-8").read()))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+test_cachot_compteur_incoherent_jamais_indefini (__main__.OrdresInternes.test_cachot_compteur_incoherent_jamais_indefini) ... ok
+test_cachot_deux_nuits_puis_retour_dortoir (__main__.OrdresInternes.test_cachot_deux_nuits_puis_retour_dortoir) ... ok
+test_cachot_peine_achevee_libere (__main__.OrdresInternes.test_cachot_peine_achevee_libere) ... ok
+test_corruption_cadeau_transfere_meme_en_echec (__main__.OrdresInternes.test_corruption_cadeau_transfere_meme_en_echec) ... ok
+test_corruption_formule_et_plafond (__main__.OrdresInternes.test_corruption_formule_et_plafond)
+Cadeau obligatoire : min(90, 70 + 10 + 2 × CHARME) ; CHARME absent = valeur de base du jeu (8). ... ok
+test_corruption_objet_absent_ou_protege_refuse_sans_effet (__main__.OrdresInternes.test_corruption_objet_absent_ou_protege_refuse_sans_effet) ... ok
+test_corruption_plusieurs_tentatives_un_objet_chacune (__main__.OrdresInternes.test_corruption_plusieurs_tentatives_un_objet_chacune) ... ok
+test_corruption_reussie_puis_evasion_a_95 (__main__.OrdresInternes.test_corruption_reussie_puis_evasion_a_95) ... ok
+test_corruption_sans_cadeau_refusee_sans_effet (__main__.OrdresInternes.test_corruption_sans_cadeau_refusee_sans_effet) ... ok
+test_couts_declares_au_referentiel (__main__.OrdresInternes.test_couts_declares_au_referentiel) ... ok
+test_dormir_dortoir_un_par_jour_sans_double_repos (__main__.OrdresInternes.test_dormir_dortoir_un_par_jour_sans_double_repos) ... ok
+test_evasion_echouee_cachot_deux_nuits_peine_conservee (__main__.OrdresInternes.test_evasion_echouee_cachot_deux_nuits_peine_conservee) ... ok
+test_evasion_pa_insuffisants_sans_jet (__main__.OrdresInternes.test_evasion_pa_insuffisants_sans_jet) ... ok
+test_evasion_reussie_reliquat_du_sommeil_et_controle_minuit (__main__.OrdresInternes.test_evasion_reussie_reliquat_du_sommeil_et_controle_minuit) ... ok
+test_greve_de_la_faim_absente_du_goulag_seulement (__main__.OrdresInternes.test_greve_de_la_faim_absente_du_goulag_seulement) ... ok
+test_inactif_aucun_effet (__main__.OrdresInternes.test_inactif_aucun_effet) ... ok
+test_interrogatoire_coute_1_pa_et_refus_sans_pa (__main__.OrdresInternes.test_interrogatoire_coute_1_pa_et_refus_sans_pa) ... ok
+test_interrogatoire_pa_plancher_et_refus (__main__.OrdresInternes.test_interrogatoire_pa_plancher_et_refus) ... ok
+test_interrogatoire_probabilites (__main__.OrdresInternes.test_interrogatoire_probabilites) ... ok
+test_interrogatoire_trace_unique_et_courrier_au_seul_juge (__main__.OrdresInternes.test_interrogatoire_trace_unique_et_courrier_au_seul_juge) ... ok
+test_jugement_inconnu_jamais_invente (__main__.OrdresInternes.test_jugement_inconnu_jamais_invente) ... ok
+test_lectures_reservees_aux_habilites_presents (__main__.OrdresInternes.test_lectures_reservees_aux_habilites_presents) ... ok
+test_manger_dortoir_une_fois_par_jour (__main__.OrdresInternes.test_manger_dortoir_une_fois_par_jour) ... ok
+test_migrations_rejouables (__main__.OrdresInternes.test_migrations_rejouables) ... ok
+test_peine_ajoutee_en_detention_comptee_une_fois (__main__.OrdresInternes.test_peine_ajoutee_en_detention_comptee_une_fois)
+Contrat #1020 : détenu à 5 jours + jugement réel de 30 jours = 35, une seule fois. ... ok
+test_permissions_et_rls (__main__.OrdresInternes.test_permissions_et_rls) ... ok
+test_registre_ouvert_par_le_vrai_jugement (__main__.OrdresInternes.test_registre_ouvert_par_le_vrai_jugement) ... ok
+test_reincarceration_puis_nouvelle_peine (__main__.OrdresInternes.test_reincarceration_puis_nouvelle_peine)
+Contrat #1020 : évasion à 5 jours, puis nouveau jugement de 30 jours = 35, une seule fois. ... ok
+test_reincarceration_reprend_le_reliquat (__main__.OrdresInternes.test_reincarceration_reprend_le_reliquat) ... ok
+test_rejeu_lie_a_l_interrogateur_et_au_juge (__main__.OrdresInternes.test_rejeu_lie_a_l_interrogateur_et_au_juge)
+Contrats #1020 : une clé de requête rejouée par un autre acteur est refusée, sans paiement. ... ok
+test_republia_qhs_inchange (__main__.OrdresInternes.test_republia_qhs_inchange)
+Le QHS de Républia garde son repos plafonné à 3 PA et ignore les ordres du goulag. ... ok
+test_retour_arriere_restaure_les_fonctions (__main__.OrdresInternes.test_retour_arriere_restaure_les_fonctions) ... ok
+test_sanction_coute_1_pa_et_refus_sans_pa (__main__.OrdresInternes.test_sanction_coute_1_pa_et_refus_sans_pa) ... ok
+test_sanction_juge_present_seulement (__main__.OrdresInternes.test_sanction_juge_present_seulement) ... ok
+test_sommeil_final_libere_devant_entree (__main__.OrdresInternes.test_sommeil_final_libere_devant_entree) ... ok
+test_temps_ecoule_ne_purge_jamais (__main__.OrdresInternes.test_temps_ecoule_ne_purge_jamais) ... ok
+test_visiteur_part_sans_jet (__main__.OrdresInternes.test_visiteur_part_sans_jet) ... ok
+test_zz_concurrence_sommeil_et_interrogatoire (__main__.OrdresInternes.test_zz_concurrence_sommeil_et_interrogatoire) ... ok
+
+----------------------------------------------------------------------
+Ran 38 tests in 5.633s
+
+OK

@@ -1,0 +1,40 @@
+{
+  "source_commit": "e665c9b88f233394a83585066705d581378e1f74",
+  "production": {
+    "deployment": "dpl_buRwCxTrBsT3F6KY4wWx3HxWxGif",
+    "state": "READY",
+    "target": "production",
+    "alias": "res-publica.vercel.app"
+  },
+  "supabase": {
+    "version": "17.6",
+    "configuration": null,
+    "registre": null,
+    "depart": null,
+    "ouverture": null,
+    "jugement": null,
+    "objets_relationnels_goulag": 0,
+    "verification": "SELECT seulement"
+  },
+  "pr1020": {
+    "merge": "f6eaab9fd07d2de2814fceb6de2925dc5b067754",
+    "merged_at": "2026-11-18T00:17:23Z",
+    "checks": {
+      "SUCCESS": 70,
+      "FAILURE": 0,
+      "CANCELLED": 2,
+      "SKIPPED": 1
+    }
+  },
+  "pr1085": {
+    "merge": "d0dfda48ae6f70182497c14e1fcf8ab51246e39d",
+    "merged_at": "2026-11-18T00:39:04Z",
+    "checks": {
+      "SUCCESS": 58,
+      "FAILURE": 0,
+      "CANCELLED": 0,
+      "SKIPPED": 0
+    }
+  },
+  "releve_le": "2026-11-20T23:00:00Z"
+}
