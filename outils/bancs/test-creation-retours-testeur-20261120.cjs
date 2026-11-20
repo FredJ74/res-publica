@@ -53,3 +53,15 @@ test('Catalogue français : noms accentués des caractéristiques', () => {
   assert.match(res, /VOL: \{ name: "Volonté"/);
   assert.match(res, /DUP: \{ name: "Duplicité"/);
 });
+
+test('Ville de départ : le choix passe à l\'étape suivante ; le retour garde le changement de pays et de ville', () => {
+  // Vérifié dans Chrome mobile le 20/11 : ville → s2 ; Retour → s1 (Suivant actif) ; autre pays → choix de ville rouvert, ville vidée.
+  const f = extraire('selCity');
+  assert.match(f, /if \(G\.country && G\.city\) goTo\(2\);/);
+  const appels = [];
+  const ctx = { G: { country: 'republic', city: null }, rpEmpireOuvertCreation: () => true, goTo: (n) => appels.push(n),
+    document: { getElementById: () => ({ classList: { remove() {} }, disabled: true }) } };
+  vm.createContext(ctx); vm.runInContext(f, ctx); vm.runInContext("selCity('capitale')", ctx);
+  assert.deepEqual(appels, [2]);
+  assert.match(extraire('selCountry'), /G\.city=null;/);
+});

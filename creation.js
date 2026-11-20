@@ -559,6 +559,9 @@ function selCity(key){
   G.city = key;
   document.getElementById('modal-city').classList.remove('open');
   document.getElementById('n1').disabled = !(G.country && G.city);
+  // Retour d'un testeur (20/11/2026) : la ville choisie valide l'étape ; on passe à la suivante comme « Suivant » (goTo(2)).
+  // « Retour » ramène toujours aux pays, où cliquer un pays rouvre le choix de la ville.
+  if (G.country && G.city) goTo(2);
 }
 
 /* ---- Origin ---- */

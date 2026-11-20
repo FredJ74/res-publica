@@ -11,6 +11,7 @@ Règles : voir `AGENTS.md`.
 ### Retours d'un testeur — inscription et création (Claude, 20/11/2026)
 - **Branche `claude/inscription-creation-myakim-20261120`**. Banc `test-creation-retours-testeur-20261120.cjs`.
 - Inscription : le serveur n'a refusé aucune adresse (journaux d'authentification) et rien ne marque le champ pendant la saisie ; la cause retenue est le message « adresse invalide » d'un clic précédent, jamais effacé pendant la correction. Toute saisie l'efface désormais (inscription et connexion) ; caractères invisibles d'un copier-coller retirés avant le contrôle.
+- Ville de départ : le choix de la ville passe directement à l'étape suivante (comme « Suivant ») ; « Retour » permet toujours de changer de pays ou de ville.
 - Création : modificateurs affichés en toutes lettres (« −1 Entregent ») avec la description en infobulle. **Aucune nouvelle clé** : reprise des clés existantes `creation.stats.<CLE>.name` / `.description` (neuf langues). **Pour Codex** : les noms français ont reçu leurs accents (`Volonté`, `Duplicité`) ; les descriptions françaises de `creation.stats.*` restent sans accents, à reprendre si besoin.
 
 ### Consigne pour ouvrir une PR (Fred, 20/11/2026)
