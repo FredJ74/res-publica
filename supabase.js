@@ -5356,7 +5356,14 @@ async function sbTransportRpcBrut(fn, params, options) {
   }
 
   try {
-    return { etat: 'ok', donnees: await res.json(), http: res.status, code: null, envoyee: true };
+    const donnees = await res.json();
+    // Actions réservées aux comptes confirmés (Fred, 20/11/2026) : un seul point d'écoute pour tous les ordres.
+    const v = Array.isArray(donnees) ? donnees[0] : donnees;
+    if (v && (v.raison === 'compte_non_confirme' || v.raison === 'titulaire_compte_non_confirme')
+        && typeof window !== 'undefined' && typeof window.rpCompteNonConfirme === 'function') {
+      try { window.rpCompteNonConfirme(v.action || null, fn, v.raison); } catch (_) {}
+    }
+    return { etat: 'ok', donnees: donnees, http: res.status, code: null, envoyee: true };
   } catch (_) {
     // HTTP reussi ne prouve pas que le navigateur a recu le verdict metier.
     if (typeof noterIncidentSession === 'function') noterIncidentSession('rpc_reponse_invalide', fn + ' : réponse inexploitable, résultat indéterminé.');

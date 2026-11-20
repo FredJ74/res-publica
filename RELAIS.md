@@ -8,6 +8,11 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Actions réservées aux comptes confirmés (Claude, 20/11/2026)
+- **Branche `claude/compte-confirme-actions-20261120`** (part de #1144). **Migration APPLIQUÉE** : `20261120220000_compte_confirme_actions` (essai annulé d'abord). Règle dans `GAME-DESIGN-ELECTIONS.md`. Banc `test-compte-confirme-actions-20261120.cjs`.
+- Candidature, nomination (postes et ambassadeurs), fondation de parti ou d'organisation ; premium : brancher `compte_confirmation_refus_interne(nom, 'premium')` sur le futur achat.
+- **Pour Codex — nouvelles clés** (secours français dans `plateau-core.js`) : `confirmationRequired.title`, `confirmationRequired.self` (`{{action}}`), `confirmationRequired.other` (`{{action}}`), `confirmationRequired.actions.candidature`, `.nomination`, `.fonder`, `.premium`, `.autre`.
+
 ### Inscription : jouer sans confirmation, messages de confirmation, « Retrouver mon personnage » sans nom (Claude, 20/11/2026)
 - **Branche `claude/inscription-session-confirmation-20261120`**. **Migration APPLIQUÉE** : `20261120210000_compte_identifiants_poses` (essai annulé d'abord). Banc `test-inscription-session-confirmation-20261120.cjs`.
 - Cause du blocage : depuis le 17/11, `mon_personnage()` / `est_mon_personnage()` / `ia_quota_consommer()` refusaient tout jeton `is_anonymous` ; GoTrue garde ce drapeau tant que l'adresse n'est pas confirmée. Désormais un compte qui a posé mot de passe et adresse (en attente) joue ; l'anonyme pur reste refusé (objectif de l'audit du 16/11 conservé).
