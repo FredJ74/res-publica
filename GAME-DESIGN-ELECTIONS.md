@@ -84,3 +84,19 @@ propre pays depuis une mairie étrangère.
 
 - Une candidature n'existe que par la publication de son programme (16/09/2026) ; elle coûte
   2 PA. Depuis le 02/11, la publication inscrit le candidat sur le bulletin du scrutin.
+
+## Compte confirmé exigé pour certaines actions (décision de Fred, 20/11/2026)
+
+On joue librement sans adresse e-mail confirmée (sur l'appareil où le compte a été créé), mais **un compte confirmé**
+(`auth.users.email_confirmed_at` renseigné) est exigé, côté serveur, pour :
+- **se porter candidat à une élection** (toutes, tous empires) ;
+- **être nommé à un poste** (le refus vise la nomination du compte non confirmé, y compris les ambassadeurs) ;
+- **créer un parti ou une organisation** ;
+- **acheter du premium**, le jour où l'achat existera.
+
+Contrôle commun : `compte_confirme_interne(nom)` et `compte_confirmation_refus_interne(nom, action)` (migration
+`20261120220000_compte_confirme_actions`), branchés sur `candidature_refus_nationalite_interne` (candidatures),
+`poste_attribuer_interne` et `ambassade_nommer` (nominations), `organisation_vie_commande` action « fonder ». Le futur achat
+premium appellera `compte_confirmation_refus_interne(nom, 'premium')`. Un PNJ (sans compte) n'est jamais concerné.
+Refus : « Confirmez votre adresse e-mail pour [action]. » avec « Renvoyer l'e-mail » (bandeau du jeu) ; une autorité qui
+nomme une personne non confirmée lit « Cette personne doit d'abord confirmer son adresse e-mail pour être nommé(e) à un poste. »

@@ -1588,7 +1588,9 @@ function loadCharacter() {
 // deja implementee et auditee, et s'ouvre depliee via ?connexion=1.
 // Retour testeur (20/11/2026) : tant que l'adresse n'est pas confirmée, un bandeau discret le rappelle, avec « Renvoyer
 // l'e-mail ». Le joueur joue normalement ; la confirmation ne sert qu'à se reconnecter ailleurs ou plus tard.
-async function rpVerifierConfirmationAdresse() {
+async function rpVerifierConfirmationAdresse(motif) {
+  const ancien = document.getElementById('bandeau-confirmation-adresse');
+  if (motif && ancien) ancien.remove();
   if (typeof rpAuthEtatCompte !== 'function' || document.getElementById('bandeau-confirmation-adresse')) return;
   const e = await rpAuthEtatCompte().catch(() => null);
   if (!e || e.ok !== true || e.confirmee || !e.enAttente) return;
@@ -1605,7 +1607,7 @@ async function rpVerifierConfirmationAdresse() {
   const texte = document.createElement('span');
   texte.style.flex = '1 1 14rem';
   const fr = 'Adresse ' + e.enAttente + ' non confirmée : cliquez sur le lien reçu par e-mail pour pouvoir vous reconnecter plus tard ou depuis un autre appareil.';
-  texte.textContent = trad('confirmationBanner.text', fr, { email: e.enAttente });
+  texte.textContent = (motif ? motif + ' ' : '') + trad('confirmationBanner.text', fr, { email: e.enAttente });
   const renvoyer = document.createElement('button');
   renvoyer.type = 'button';
   renvoyer.style.cssText = 'font-size:.74rem;padding:.3rem .6rem;min-height:32px;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer';
@@ -1630,6 +1632,29 @@ async function rpVerifierConfirmationAdresse() {
 if (typeof window !== 'undefined' && typeof document !== 'undefined' && /plateau\.html/.test(String(window.location && window.location.pathname))) {
   setTimeout(function () { rpVerifierConfirmationAdresse().catch(() => {}); }, 6000);
 }
+
+// Refus « compte non confirmé » (Fred, 20/11/2026) : candidature, nomination, fondation, premium. Appelée par
+// sbTransportRpc pour TOUTE réponse serveur portant ce motif ; l'action vient du serveur, sinon de la fonction appelée.
+function rpCompteNonConfirme(action, fn, raison) {
+  const a = action || (/^candidature/.test(fn || '') ? 'candidature' : /^(poste_|ambassade_nommer)/.test(fn || '') ? 'nomination'
+    : /^organisation_vie_commande$/.test(fn || '') ? 'fonder' : null);
+  const trad = (cle, secours, valeurs) => {
+    const t = (typeof i18next !== 'undefined' && i18next.t) ? i18next.t(cle, valeurs ? { values: valeurs, replace: { ...valeurs, values: valeurs } } : undefined) : null;
+    return (typeof t === 'string' && t && t !== cle && !/\{\{[^}]+\}\}/.test(t)) ? t : secours;
+  };
+  const libelles = { candidature: 'vous porter candidat(e) à une élection', nomination: 'être nommé(e) à un poste',
+    fonder: 'créer un parti ou une organisation', premium: 'acheter du premium' };
+  const libelle = a && libelles[a] ? trad('confirmationRequired.actions.' + a, libelles[a]) : trad('confirmationRequired.actions.autre', 'cette action');
+  if (raison === 'titulaire_compte_non_confirme') {
+    const m = trad('confirmationRequired.other', 'Cette personne doit d’abord confirmer son adresse e-mail pour ' + libelle + '.', { action: libelle });
+    if (typeof showToast === 'function') showToast(trad('confirmationRequired.title', 'Adresse non confirmée'), m, false);
+    return;
+  }
+  const message = trad('confirmationRequired.self', 'Confirmez votre adresse e-mail pour ' + libelle + '.', { action: libelle });
+  if (typeof showToast === 'function') showToast(trad('confirmationRequired.title', 'Adresse non confirmée'), message, false);
+  rpVerifierConfirmationAdresse(message).catch(() => {});
+}
+if (typeof window !== 'undefined') window.rpCompteNonConfirme = rpCompteNonConfirme;
 
 function afficherBandeauReconnexion() {
   if (document.getElementById('bandeau-reconnexion')) return;
