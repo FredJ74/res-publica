@@ -833,7 +833,7 @@ function renderCareer(){
       <div class="checkmark"><i class="ti ti-check"></i></div>
       ${bl?'':marqueConseil('career', c.id)}
       <div class="oname"><i class="ti ${c.icon}" style="font-size:1rem;color:#8a6a20"></i> ${t('creation.careers.'+c.id+'.name',{defaultValue:c.name})}</div>
-      <div class="obonus">+${c.argBonus.toLocaleString('fr-FR')} ${cur}${c.statKey?` &middot; <strong>+1 ${c.statKey}</strong>`:''}</div>
+      <div class="obonus">+${c.argBonus.toLocaleString('fr-FR')} ${cur}${c.statKey?` &middot; ${htmlModificateurStat(c.statKey, 1)}`:''}</div>
       <div class="odesc" style="margin-top:.3rem">${t('creation.careers.'+c.id+'.comp',{defaultValue:c.comp})}</div>
       ${c.mineur?`<div class="oblock"><i class="ti ti-info-circle" style="font-size:.7rem;vertical-align:-1px"></i> ${t('creation.careers.minor.notice',{defaultValue:'Personnage mineur, pour toujours : aucune autre carrière possible ; ni alcool, ni drogue, ni escorts, ni séduction.'})}</div>`:''}
     </div>`;
