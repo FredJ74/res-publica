@@ -465,6 +465,19 @@ async function rpAuthDemanderConfirmationAdresse(email) {
   return { ok: true, enAttente: (u && u.new_email) || email };
 }
 
+/* Renvoi du lien d'inscription sans session (connexion refusée pour email_not_confirmed sur un autre appareil).
+   Ne dit jamais si l'adresse possède un compte : la réponse est la même dans tous les cas. */
+async function rpAuthRenvoyerConfirmationInscription(email) {
+  if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return { ok: false, raison: 'email_invalide' };
+  try {
+    const res = await fetch(RP_AUTH_URL + '/resend', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'apikey': rpAuthCleAnon() },
+      body: JSON.stringify({ type: 'signup', email: email })
+    });
+    return res.status === 429 ? { ok: false, raison: 'trop_de_demandes' } : { ok: true };
+  } catch (e) { return { ok: false, raison: 'reseau' }; }
+}
+
 /** Reconnexion explicite d'un compte deja securise (autre appareil, session perdue).
  *
  *  CE QU'ELLE NE FAIT PAS, et c'est l'essentiel : elle ne nomme aucun personnage. On ne

@@ -100,10 +100,9 @@
          le style inline. Sans lui, la propriete vaut '' au premier clic et le panneau se fermerait
          au lieu de s'ouvrir. Le CSS ne pose donc AUCUN display sur #retrouver-panel. -->
     <div id="retrouver-panel" style="display:none">
-      <input id="retrouver-nom" type="text" placeholder="Votre nom de personnage..."
-             data-i18n-placeholder="home.findCharacterPlaceholder" class="hg-champ"/>
-      <button onclick="chargerPersonnageParNom()" data-i18n="home.loadCharacter"
-              class="hg-btn hg-btn-charger">Charger ce personnage</button>
+      <!-- Plus de saisie de nom (retour testeur du 20/11/2026) : retrouverPersonnage() pose ici
+           « Reprendre la partie avec [nom] » (nom donné par le serveur) ou ouvre « Se connecter ». -->
+      <div id="retrouver-action"></div>
       <!-- retrouver-msg : messages dynamiques (JS, creation.js) -- hors perimetre Lot 1 (section 13,
            textes dynamiques/variables), volontairement non marque data-i18n. -->
       <div id="retrouver-msg"></div>
