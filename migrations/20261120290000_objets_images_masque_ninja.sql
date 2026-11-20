@@ -1,7 +1,8 @@
 -- Images des objets de discrétion (Fred, 20/11/2026) : images/objet-masque-carnaval.webp et images/objet-tenue-ninja.webp.
---  • Recettes de commerce (masque des boutiques Habillement, tenue ninja du marché et de l'armurerie militaire) : colonne
+--  • Recettes (masque des boutiques Habillement ; tenue ninja du marché et des boutiques Habillement, sous-types civil et
+--    militaire — tenue_ninja_militaire est le sous-type militaire de l'Habillement, pas un armurier) : colonne
 --    image, recopiée en imageUrl par l'achat et la vente.
---  • Objets déposés par le serveur (crim_objet_interne : boutique « Équipement discret ») : imageUrl.
+--  • Objets déposés par le serveur (crim_objet_interne : boutique « Équipement discret », y compris chez les armuriers) : imageUrl.
 --  • Rattrapage : objets déjà possédés (inventaires) et références des commerces, sans image.
 -- Idempotente (marques objets_images_masque_v1 / objets_images_ninja_v1).
 BEGIN;
