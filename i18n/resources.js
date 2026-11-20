@@ -319,9 +319,9 @@ window.RP_I18N_RESOURCES = {
         stats: {
           INT: { name: "Intelligence", description: "Comprendre, analyser, anticiper : utile pour l'enquete, la finance, et dejouer les pieges les plus subtils.", examples: "Placements financiers, vol, empoisonnement, actions sur les indices de la ville." },
           CHA: { name: "Charisme", description: "Convaincre, seduire, apaiser : la cle de toute negociation, plaidoirie ou discours.", examples: "Tracts électoraux, marchandage à l'Assemblée, corruption de la presse, négociation d'un terrain, se justifier devant une convocation." },
-          VOL: { name: "Volonte", description: "Tenir bon : resister a la pression, a l'arrestation, a la torture -- et se battre quand il n'y a plus le choix.", examples: "Combats, fuir ou résister face à la police, se rebeller en détention, réprimer une manifestation, batailles militaires." },
+          VOL: { name: "Volonté", description: "Tenir bon : resister a la pression, a l'arrestation, a la torture -- et se battre quand il n'y a plus le choix.", examples: "Combats, fuir ou résister face à la police, se rebeller en détention, réprimer une manifestation, batailles militaires." },
           PER: { name: "Perception", description: "Reperer ce qui vous echappe : detecter un mensonge, filer une cible, ne jamais etre surpris.", examples: "Combats, contre-espionnage, contrôle des caisses en douane, repérer une action illégale, vol." },
-          DUP: { name: "Duplicite", description: "Mentir, dissimuler, corrompre : la specialite de tous ceux qui vivent dans l'illegalite.", examples: "Évasion, contrebande, corrompre un douanier, débaucher un PNJ, échapper au flagrant délit." },
+          DUP: { name: "Duplicité", description: "Mentir, dissimuler, corrompre : la specialite de tous ceux qui vivent dans l'illegalite.", examples: "Évasion, contrebande, corrompre un douanier, débaucher un PNJ, échapper au flagrant délit." },
           ENT: { name: "Entregent", description: "Construire et entretenir un reseau : peu spectaculaire dans l'instant, decisif sur la duree.", examples: "Marchandage à l'Assemblée, offrir une tournée au bar, réseau de contacts." }
         }
       }
