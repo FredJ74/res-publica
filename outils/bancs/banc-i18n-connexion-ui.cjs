@@ -37,7 +37,9 @@ test('messages de connexion complets, nom paramétré dans neuf langues',async()
 for(const l of locales)test('connexion '+l+' : mêmes appels, cache, droits et redirection que main',async()=>{
  for(const cas of ['email','password','unavailable','bad','unknown','rate','validation','noCharacter','loadFail','success','array']){
   const before=await bac('fr',cas,true),after=await bac(l,cas);
-  assert.deepEqual(after.calls,before.calls,cas);assert.deepEqual(after.cache,before.cache,cas);
+  assert.deepEqual(after.calls,before.calls,cas);
+  // Fred, 20/11/2026 : la clé locale COMMUNE « respublica_photo » (portrait mélangé entre deux comptes) n'est plus écrite.
+  assert.deepEqual(after.cache,before.cache.filter(([k])=>k!=='respublica_photo'),cas);assert.ok(!after.cache.some(([k])=>k==='respublica_photo'),cas);
   assert.deepEqual(after.timers,before.timers,cas);assert.equal(after.href,before.href,cas);
   assert.equal(after.button,before.button,cas);assert.doesNotMatch(after.message,/{{|connectionUi\./);
   const k=after.key.split('.')[1],text=after.resources[l].translation.connectionUi[k].replace('{{values.name}}','Nom canonique <原 & اسم>');
