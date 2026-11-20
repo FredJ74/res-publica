@@ -5985,7 +5985,7 @@ const BUILDINGS = {
   'commissariat-local': {
     name: "Commissariat Local",
     shortName: "Commissariat",
-    cat: "Securite",
+    cat: "Sécurité",
     icon: "ti-shield-lock",
     bgColor: "#0f1018",
     desc: "Commissariat de ville. Moins de moyens que la capitale.",
@@ -6005,18 +6005,18 @@ const BUILDINGS = {
           {fn:'plainte_police',   label:'Porter plainte',      pa:1, cost:0,   type:'legal',   icon:'ti-file-text', successRate:100},
           // MÊMES POUVOIRS QUE LUTHÉCIA (décision de Fred, 29/10/2026 : « chaque commissaire dispose des
           // mêmes pouvoirs »). Handlers et portes serveur déjà bornés à la ville du commissaire.
-          {fn:'archives_police',  label:'Consulter les archives', pa:1, cost:0,   type:'legal',   icon:'ti-archive',   successRate:100, desc:'Archives judiciaires et detentions passees, consultables par tous. Ne contient aucune information policiere operationnelle.'},
-          {fn:'arreter',          label:"Arrestation d'urgence",  pa:3, cost:0,   type:'legal',   icon:'ti-handcuffs', successRate:100, requiresPost:['president','min_int','min_just','commissaire'], desc:'Pouvoir extrajudiciaire : place immediatement une personne en detention 1 jour, sans condamnation. Securite +1, indice social -1 dans la ville.'},
+          {fn:'archives_police',  label:'Consulter les archives', pa:1, cost:0,   type:'legal',   icon:'ti-archive',   successRate:100, desc:'Archives judiciaires et détentions passées, consultables par tous. Ne contient aucune information policière opérationnelle.'},
+          {fn:'arreter',          label:"Arrestation d'urgence",  pa:3, cost:0,   type:'legal',   icon:'ti-handcuffs', successRate:100, requiresPost:['president','min_int','min_just','commissaire'], desc:'Pouvoir extrajudiciaire : place immédiatement une personne en détention 1 jour, sans condamnation. Sécurité +1, indice social -1 dans la ville.'},
           // §43 : "Se justifier" n'existait qu'au commissariat de Luthecia (audit du 9 septembre).
           // Un joueur convoque a Montrouge ou Port-Sainte-Marie devait donc traverser le pays pour
           // honorer une convocation de 36 h. Le handler n'a jamais eu la moindre garde de lieu :
           // seule l'entree d'ordre manquait ici. Ce template est partage par les deux villes.
-          {fn:'se_justifier',     label:'Se justifier (convocation)', pa:1, cost:0, type:'legal', icon:'ti-message-question', successRate:100, desc:'Se presenter suite a une convocation. Une seule tentative : 50% + (CHA+DUP)/2. Echec = 1 jour de detention.'},
+          {fn:'se_justifier',     label:'Se justifier (convocation)', pa:1, cost:0, type:'legal', icon:'ti-message-question', successRate:100, desc:'Se présenter suite à une convocation. Une seule tentative : 50% + (CHA+DUP)/2. Échec = 1 jour de détention.'},
           // LE TEMOIN SE PRESENTE AU COMMISSARIAT, et c'est la qu'il depose (12 octobre 2026,
           // soir). L'ordre est le MEME dans les deux gabarits de commissariat ; c'est la porte
           // serveur qui verifie que c'est bien le commissariat de la ville du tribunal COMPETENT
           // pour l'affaire -- une affaire de Montrouge ne se depose pas a Luthecia.
-          {fn:'temoin_deposition', label:'Temoigner (convocation)', pa:0, cost:0, type:'legal', icon:'ti-message-2', successRate:100, desc:'Vous avez ete cite comme temoin : deposer librement, ou refuser de temoigner. Le refus est une reponse valide, enregistree comme telle. Votre texte est consigne mot pour mot.'}
+          {fn:'temoin_deposition', label:'Témoigner (convocation)', pa:0, cost:0, type:'legal', icon:'ti-message-2', successRate:100, desc:'Vous avez été cité comme témoin : déposer librement, ou refuser de témoigner. Le refus est une réponse valide, enregistree comme telle. Votre texte est consigne mot pour mot.'}
         ]
       },
       // Salle ajoutee le 2026-08-16, orders raccordes le 26 aout 2026 (lot "ordres carceraux
@@ -6027,7 +6027,7 @@ const BUILDINGS = {
       // plateau-router.js) -- aucun handler duplique, partages tels quels via ce meme template
       // (commissariat-local) entre Montrouge et PSM, meme principe que les orders policiers
       // d'accueil_loc ci-dessus. Les fonctions elles-memes (doSeRebeller/doTentativeEvasion)
-      // agissent deja sur state.estEmprisonne, l'etat carceral REEL du personnage courant,
+      // agissent déjà sur state.estEmprisonne, l'etat carceral REEL du personnage courant,
       // jamais sur un batiment/une ville supposee.
       // « Requerir un avocat » RETIRE des trois lieux de detention le 13 octobre 2026 : la
       // reduction de peine etait tiree au hasard. La defense par un avocat reel se joue au
@@ -6039,8 +6039,8 @@ const BUILDINGS = {
         imageUrl: "images/montrouge/montrouge-commissariat-geoles.jpg",
         persons: [],
         orders: [
-          {fn:'se_rebeller',     label:'Se rebeller',                        pa:2, cost:0,    type:'illegal', icon:'ti-flame',      successRate:30,  desc:'Reserve aux emprisonnes. Defi bruyant aux gardiens : succes = +DIS mais peine allongee, echec = transfert au QHS. Endommage les grilles dans tous les cas.'},
-          {fn:'tentative_evasion',label:'Tenter de s\'evader',               pa:3, cost:0,    type:'illegal', icon:'ti-run',        successRate:10,  desc:'Tres risque, une tentative par jour. Succes : liberte. Echec : transferement en prison.'}
+          {fn:'se_rebeller',     label:'Se rebeller',                        pa:2, cost:0,    type:'illegal', icon:'ti-flame',      successRate:30,  desc:'Réservé aux emprisonnés. Défi bruyant aux gardiens : succès = +DIS mais peine allongée, echec = transfert au QHS. Endommage les grilles dans tous les cas.'},
+          {fn:'tentative_evasion',label:'Tenter de s\'évader',               pa:3, cost:0,    type:'illegal', icon:'ti-run',        successRate:10,  desc:'Très risqué, une tentative par jour. Succès : liberté. Échec : transfèrement en prison.'}
         ]
       },
       // Bureau du commissaire (29/10/2026) : mêmes ordres que BUILDINGS['commissariat'].bureau_commissaire.
@@ -6052,14 +6052,14 @@ const BUILDINGS = {
         desc: "Dossiers, rapports de filature et avis de recherche s'y accumulent. Acces reserve.",
         persons: [],
         orders: [
-          {fn:'dossiers_plaintes',      label:'Dossiers de plainte',         pa:0, cost:0,   type:'legal', icon:'ti-folders',      successRate:100, requiresPost:'commissaire', desc:'Plaintes deposees dans votre ville. Classer sans suite, ou ouvrir une enquete.'},
-          {fn:'mener_enquete',          label:"Mener l'enquete",             pa:2, cost:250, type:'legal', icon:'ti-search',       successRate:35,  requiresPost:'commissaire', desc:"Enqueter sur une personne ou un lieu suite a une plainte deposee. Taux ajuste par PER, influence et securite locale."},
+          {fn:'dossiers_plaintes',      label:'Dossiers de plainte',         pa:0, cost:0,   type:'legal', icon:'ti-folders',      successRate:100, requiresPost:'commissaire', desc:'Plaintes déposées dans votre ville. Classer sans suite, ou ouvrir une enquête.'},
+          {fn:'mener_enquete',          label:"Mener l'enquête",             pa:2, cost:250, type:'legal', icon:'ti-search',       successRate:35,  requiresPost:'commissaire', desc:"Enquêter sur une personne ou un lieu suite à une plainte déposée. Taux ajuste par PER, influence et securite locale."},
           {fn:'organiser_filature',     label:'Organiser une filature',       pa:2, cost:150, type:'legal', icon:'ti-eye',          successRate:50,  requiresPost:'commissaire', desc:"Obtenir un rapport des deplacements d'un PJ sur les dernieres 24h."},
-          {fn:'organiser_chasse_homme', label:"Organiser une chasse a l'homme", pa:3, cost:300, type:'legal', icon:'ti-target-arrow', successRate:100, requiresPost:'commissaire', desc:'Localiser et arreter un PJ recherche.'},
+          {fn:'organiser_chasse_homme', label:"Organiser une chasse à l'homme", pa:3, cost:300, type:'legal', icon:'ti-target-arrow', successRate:100, requiresPost:'commissaire', desc:'Localiser et arrêter un PJ recherché.'},
           {fn:'recruter_policier',      label:'Recruter un policier',         pa:1, cost:0,   type:'legal', icon:'ti-user-plus',    successRate:100, requiresPost:'commissaire', desc:'PER 12, VOL 12. Entretien : 50 FR/jour preleves sur la caisse du commissariat.'},
-          {fn:'recruter_policier_cynophile', label:'Recruter une unite cynophile', pa:1, cost:0, type:'legal', icon:'ti-dog', successRate:100, requiresPost:'commissaire', desc:'Maitre-chien + chien anti-stupefiants. Membre normal du groupe (memes regles PER/VOL). Entretien : 100 FR/jour preleves sur la caisse du commissariat.'},
+          {fn:'recruter_policier_cynophile', label:'Recruter une unité cynophile', pa:1, cost:0, type:'legal', icon:'ti-dog', successRate:100, requiresPost:'commissaire', desc:'Maître-chien + chien anti-stupéfiants. Membre normal du groupe (mêmes règles PER/VOL). Entretien : 100 FR/jour preleves sur la caisse du commissariat.'},
           {fn:'mobiliser_police',     label:'Faire intervenir les forces de l\'ordre', pa:2, cost:0, type:'legal', icon:'ti-shield', successRate:100, requiresPost:'commissaire', desc:'Intervention des forces de l\'ordre dans VOTRE ville : blocus, encadrement, quartier sensible, dispersion.'},
-          {fn:'gerer_effectifs_police', label:'Gerer mes effectifs',          pa:0, cost:0,   type:'legal', icon:'ti-users-group',  successRate:100, requiresPost:'commissaire', desc:'Affecter ou rappeler vos policiers (piece ou rue de votre ville).'}
+          {fn:'gerer_effectifs_police', label:'Gérer mes effectifs',          pa:0, cost:0,   type:'legal', icon:'ti-users-group',  successRate:100, requiresPost:'commissaire', desc:'Affecter ou rappeler vos policiers (pièce ou rue de votre ville).'}
         ]
       }
     }
@@ -12685,6 +12685,14 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     }
     ctx.roomOverrides = Object.assign({}, ctx.roomOverrides);
     ctx.roomOverrides[piece] = Object.assign({}, ro, { persons: copie });
+  }
+  // Lot de Krasnov (Fred, 20/11/2026) : le brigadier de garde Matveï Doubov remplace « Brigadier Local » à Krasnov
+  // seulement (surcharge de ville posée ci-dessus avec son portrait ; le gabarit et les autres villes ne changent pas).
+  {
+    const ro = WORLD.soviet.ville_b.buildingContext['commissariat-local'].roomOverrides.accueil_loc;
+    const p = (ro.persons || []).find(x => x.name === 'Brigadier Local (PNJ)');
+    if (!p) throw new Error('Krasnov : brigadier de garde absent');
+    p.name = 'Brigadier Matveï Doubov (PNJ)'; p.role = 'Brigadier de garde'; p.profilId = 'matvei_doubov';
   }
 })();
 

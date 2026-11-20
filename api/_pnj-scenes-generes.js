@@ -6750,7 +6750,7 @@ export const SCENES_PNJ = {
     "batiment": "Commissariat de Krasnov",
     "piece": "Accueil",
     "personnes": [
-      "Brigadier Local"
+      "Brigadier Matveï Doubov"
     ]
   },
   "[\"soviet\",\"ville_b\",\"commissariat-local\",\"geoles\"]": {
