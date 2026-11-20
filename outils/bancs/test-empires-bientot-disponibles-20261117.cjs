@@ -27,7 +27,7 @@ context.selCountry('narco');assert.equal(context.G.country,null);
 context.selCountry('khalija');assert.equal(context.G.country,null);
 assert.match(js,/async function validateChar\(\)\{\s*\/\/[^\n]*\n\s*if \(!rpEmpireOuvertCreation\(G\.country\)\)/);
 assert.match(html,/\.rp-empire-a-venir\s*\{/);
-assert.match(html,/creation\.js\?v=empires-a-venir-20261117/);
+assert.match(html,/creation\.js\?v=retours-creation-20261120/);
 for(const [lang,label] of Object.entries({fr:'Bientôt disponible',en:'Coming soon',es:'Próximamente',ru:'Скоро будет доступно',de:'Demnächst verfügbar',ko:'곧 이용 가능',ar:'قريبًا','pt-BR':'Em breve','zh-TW':'即將推出'})){
  context.document.documentElement.lang=lang;
  assert.equal(context.rpEmpireBientotLibelle(),label);
