@@ -8,6 +8,7 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+- **Retours testeurs création (20/11, PR dédiée)** : les variations reprennent les clés déjà traduites `creation.stats.INT.name/description`, `creation.stats.CHA.name/description`, `creation.stats.VOL.name/description`, `creation.stats.PER.name/description`, `creation.stats.DUP.name/description`, `creation.stats.ENT.name/description`. Aucune traduction supplémentaire requise.
 ### Consigne pour ouvrir une PR (Fred, 20/11/2026)
 - Ne pas utiliser `gh pr create` (GraphQL bloqué, d'où un 403). Passer par l'API REST : `gh api repos/FredJ74/res-publica/pulls -f title='…' -f head='<branche>' -f base='main' -f body='…'`.
 - Si l'API REST refuse aussi (jeton sans droit d'ouverture de PR), pousser la branche et demander à Fred de l'ouvrir depuis claude.ai.
