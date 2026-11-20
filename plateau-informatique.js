@@ -185,6 +185,7 @@ function ouvrirImprimantes() {
     '<div style="margin-top:1rem">' + equipementsBouton('ouvrirModalEquipements()', texteEquip('retour', 'Retour')) + '</div>');
 }
 async function fauxImprimer(doc) {
+  if (doc === 'faux_laissez_passer' && typeof crimFauxLpOuvrir === 'function') { crimFauxLpOuvrir('imprimante', 0, 0); return; }
   const r = await informatiqueRpc('faux_document_imprimer', { p_doc: doc });
   if (!r || r.ok !== true) { showToast(texteEquip('impRefusee', 'Impression refusée'), informatiqueRefus(r), false); return; }
   informatiqueInventaire(r);

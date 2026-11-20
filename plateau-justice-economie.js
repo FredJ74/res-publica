@@ -2432,7 +2432,9 @@ function ouvrirFalsifierDocument(pa, cost) {
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.8rem;color:#cc4444;font-style:italic;margin-bottom:.8rem">Acte illegal. Taux 45%. Echec : alerte possible. Document ajoute a votre inventaire si succes.</div>';
   DOCUMENTS_FALSIFIABLES.forEach(doc => {
-    html += '<div onclick="confirmerFalsification(\'' + doc.id + '\',' + pa + ',' + cost + ')" style="padding:.6rem .8rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer;transition:background .15s" onmouseover="this.style.background=\'#151005\'" onmouseout="this.style.background=\'#0f0d05\'">';
+    const action = doc.id === 'faux_laissez_passer' && typeof crimFauxLpOuvrir === 'function'
+      ? 'crimFauxLpOuvrir(\'greffe\',' + pa + ',' + cost + ')' : 'confirmerFalsification(\'' + doc.id + '\',' + pa + ',' + cost + ')';
+    html += '<div onclick="' + action + '" style="padding:.6rem .8rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer;transition:background .15s" onmouseover="this.style.background=\'#151005\'" onmouseout="this.style.background=\'#0f0d05\'">';
     html += '<div style="display:flex;align-items:center;gap:.6rem">';
     html += '<i class="ti ' + doc.icon + '" style="font-size:1rem;color:#8a6a20"></i>';
     html += '<div><div style="font-size:.82rem;color:#c0b090">' + doc.name + '</div>';
@@ -13863,6 +13865,9 @@ async function ouvrirAudienceJuge() {
     + 'plus proche. Le jour venu, vous devrez etre dans la salle d\'audience de votre tribunal pour l\'ouvrir.<br>'
     + 'Ouvrir l\'audience <strong style="color:#c0b090">verrouille la defense</strong> : le prevenu ne peut plus '
     + 'revoquer son avocat, l\'avocat ne peut plus abandonner, et il ne peut plus citer de temoin.</div>';
+  // Laissez-passer du QHS (Fred, 20/11/2026) : délivrés par le Ministre de la Justice ou un juge.
+  if (typeof crimOuvrirLaissezPasserQhs === 'function') h += '<button class="cpj-touche" style="margin:0 0 .6rem" onclick="crimOuvrirLaissezPasserQhs()">'
+    + (window.RPCriminalite ? window.RPCriminalite.texte('lpBouton') : 'Laissez-passer du QHS') + '</button>';
   if (dossiers.length === 0) {
     h += '<div style="font-size:.8rem;color:#8a8060">Aucun dossier dont vous soyez saisi.</div>';
   }
