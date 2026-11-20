@@ -2809,6 +2809,62 @@ function representerPositionServeur(buildingId, roomId) {
  try{enterBuilding(buildingId,true);if(roomId)enterRoom(buildingId,roomId,null);}
  finally{if(serveur)navigationInterieureRendu=null;}
 }
+// Lecture légère de la position de SON propre personnage, sans mutation serveur.
+// Un autre PJ peut le neutraliser, l'hospitaliser ou l'emprisonner sans que cet
+// onglet ne déclenche lui-même un ordre. Les présences sont actualisées, mais elles
+// ne déplacent pas le plateau de la victime. Le serveur reste seul arbitre.
+let synchronisationDeplacementSubiEnCours = false;
+async function synchroniserDeplacementSubi() {
+ if (synchronisationDeplacementSubiEnCours || document.hidden ||
+     !state.char?.name || state.personnageChargeDepuisServeur !== true ||
+     typeof sbRpc !== 'function' || typeof sbLoadPersonnage !== 'function' ||
+     typeof afficherPositionNavigationConfirmee !== 'function') return false;
+ const uid = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
+ if (!uid) return false;
+ if ((typeof navigationInterieureEnCours !== 'undefined' && navigationInterieureEnCours) ||
+     (typeof rueCentraleDeplacementEnCours !== 'undefined' && rueCentraleDeplacementEnCours) ||
+     (typeof transportServeurEnCours !== 'undefined' && transportServeurEnCours)) return false;
+ const nom=state.char.name;
+ const positionLocale=()=>JSON.stringify([state.country,state.currentCity,state.currentBuilding,state.currentRoom]);
+ const avant=positionLocale();
+ const valide=()=>!document.hidden && state.personnageChargeDepuisServeur === true &&
+   state.char?.name===nom && typeof rpAuthUid==='function' && rpAuthUid()===uid &&
+   positionLocale()===avant &&
+   !(typeof navigationInterieureEnCours !== 'undefined' && navigationInterieureEnCours) &&
+   !(typeof rueCentraleDeplacementEnCours !== 'undefined' && rueCentraleDeplacementEnCours) &&
+   !(typeof transportServeurEnCours !== 'undefined' && transportServeurEnCours);
+ synchronisationDeplacementSubiEnCours=true;
+ try {
+   const brut=await sbRpc('rue_position_lire',{}).catch(()=>null);
+   if (!valide()) return false;
+   const position=Array.isArray(brut)?brut[0]:brut;
+   if (position?.ok!==true || typeof position.country!=='string' ||
+       typeof position.city!=='string') return false;
+   // Rien ne change : une simple lecture de position ne doit PAS relire une
+   // fiche entière ni réafficher une pièce à chaque cycle.
+   if (position.country===state.country && position.city===state.currentCity &&
+       (position.building||null)===(state.currentBuilding||null) &&
+       (position.room||null)===(state.currentRoom||null)) return false;
+   const frais=await sbLoadPersonnage(nom).catch(()=>null);
+   if (!valide() || !frais || frais.userId!==uid) return false;
+   // Nouvelle lecture canonique, avant tout rendu. Si le joueur a bougé
+   // entre les deux requêtes, seul son ordre fait foi.
+   const cible=[frais.country,frais.currentCity,frais.currentBuilding||null,frais.currentRoom||null];
+   if (JSON.stringify(cible)===JSON.stringify([state.country,state.currentCity,state.currentBuilding||null,state.currentRoom||null])) return false;
+   const hopitalAvant=!!state.hospitalisation;
+   if (Object.prototype.hasOwnProperty.call(frais,'hospitalisation')) state.hospitalisation=frais.hospitalisation;
+   if (Object.prototype.hasOwnProperty.call(frais,'estEmprisonne')) state.estEmprisonne=frais.estEmprisonne;
+   if (Number.isFinite(frais.hp)) state.hp=frais.hp;
+   if (Number.isFinite(frais.pa)) state.pa=frais.pa;
+   afficherPositionNavigationConfirmee(frais);
+   if (state.hospitalisation && !hopitalAvant && typeof showToast==='function')
+     showToast('Hospitalisation','Vous avez été conduit(e) à l’hôpital après une action subie.',false,true);
+   if (typeof updateUI==='function') updateUI();
+   if (typeof chargerVraisJoueursPresents==='function') chargerVraisJoueursPresents();
+   return true;
+ } finally { synchronisationDeplacementSubiEnCours=false; }
+}
+
 // Une porte serveur a DÉJÀ déplacé le PJ (libération, incorporation, hospitalisation) :
 // l'écran relit la fiche et représente cette position, sans rien écrire lui-même.
 async function adopterPositionServeurRelue() {
