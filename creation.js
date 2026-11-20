@@ -559,6 +559,20 @@ function selCity(key){
   G.city = key;
   document.getElementById('modal-city').classList.remove('open');
   document.getElementById('n1').disabled = !(G.country && G.city);
+  goTo(2); // progression identique a Suivant, retour par goTo(1).
+}
+
+/* Variations explicites avec les six caracteristiques et leurs descriptions deja traduites. */
+function libelleVariationStat(k, variation) {
+  const def = STAT_DEFS.find(s => s.k === k);
+  const nom = def ? t('creation.stats.' + k + '.name') : k;
+  const description = def ? t('creation.stats.' + k + '.description') : '';
+  const echapper = texte => String(texte).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  const nombre = variation > 0 ? '+' + variation : String(variation);
+  return '<span class="variation-stat" title="' + echapper(description) + '"'
+    + ' tabindex="0" aria-label="' + echapper(nombre + ' ' + nom + '. ' + description) + '">'
+    + echapper(nombre + ' ' + nom) + '</span>';
 }
 
 /* ---- Origin ---- */
@@ -571,8 +585,8 @@ function renderOrigin(){
       <div class="oname"><i class="ti ${o.icon}" style="font-size:1rem;color:#8a6a20"></i> ${t('creation.origins.'+o.id+'.name')}</div>
       <div class="obonus">
         ${t('creation.common.capitalLabel')} : <strong>${o.arg.toLocaleString('fr-FR')} ${cur}</strong><br>
-        ${Object.entries(o.bonuses).map(([k,v])=>`<strong>+${v} ${k}</strong>`).join('  ')}
-        ${Object.entries(o.malus).map(([k,v])=>`<span style="color:#8a4020">${v} ${k}</span>`).join('  ')}
+        ${Object.entries(o.bonuses).map(([k,v])=>`<strong>${libelleVariationStat(k,v)}</strong>`).join('  ')}
+        ${Object.entries(o.malus).map(([k,v])=>`<span style="color:#8a4020">${libelleVariationStat(k,v)}</span>`).join('  ')}
       </div>
       <div style="font-size:.72rem;color:#7a6040;margin-top:.3rem;font-style:italic">${t('creation.common.traitLabel')} : ${t('creation.origins.'+o.id+'.trait')}</div>
     </div>`).join('');
@@ -593,8 +607,8 @@ function renderSchool(){
       <div class="oname"><i class="ti ${s.icon}" style="font-size:1rem;color:#8a6a20"></i> ${t('creation.schools.'+s.id+'.name')}</div>
       <div class="obonus">
         ${s.argBonus?`<strong>+${s.argBonus.toLocaleString('fr-FR')} ${cur}</strong><br>`:''}
-        ${Object.entries(s.bonuses).map(([k,v])=>`<strong>+${v} ${k}</strong>`).join('  ')}
-        ${Object.entries(s.malus||{}).map(([k,v])=>`<span style="color:#8a4020">${v} ${k}</span>`).join('  ')}
+        ${Object.entries(s.bonuses).map(([k,v])=>`<strong>${libelleVariationStat(k,v)}</strong>`).join('  ')}
+        ${Object.entries(s.malus||{}).map(([k,v])=>`<span style="color:#8a4020">${libelleVariationStat(k,v)}</span>`).join('  ')}
       </div>
       <div class="oblock"><i class="ti ti-lock" style="font-size:.7rem;vertical-align:-1px"></i> ${t('creation.schools.'+s.id+'.blockLabel')}</div>
     </div>`).join('');
@@ -625,8 +639,8 @@ function renderArch(){
       <div class="oname"><i class="ti ${a.icon}" style="font-size:1rem;color:#8a6a20"></i> ${t('creation.archetypes.'+a.id+'.name')}</div>
       <div class="odesc">${t('creation.archetypes.'+a.id+'.description')}</div>
       <div class="obonus">
-        ${Object.entries(a.bonuses).map(([k,v])=>`<strong>+${v} ${k}</strong>`).join('  ')}
-        ${Object.entries(a.malus).map(([k,v])=>`<span style="color:#8a4020">${v} ${k}</span>`).join('  ')}
+        ${Object.entries(a.bonuses).map(([k,v])=>`<strong>${libelleVariationStat(k,v)}</strong>`).join('  ')}
+        ${Object.entries(a.malus).map(([k,v])=>`<span style="color:#8a4020">${libelleVariationStat(k,v)}</span>`).join('  ')}
       </div>
     </div>`).join('');
 }
@@ -735,7 +749,7 @@ function renderCareer(){
       <div class="checkmark"><i class="ti ti-check"></i></div>
       ${bl?'':marqueConseil('career', c.id)}
       <div class="oname"><i class="ti ${c.icon}" style="font-size:1rem;color:#8a6a20"></i> ${t('creation.careers.'+c.id+'.name')}</div>
-      <div class="obonus">+${c.argBonus.toLocaleString('fr-FR')} ${cur} &middot; <strong>+1 ${c.statKey}</strong></div>
+      <div class="obonus">+${c.argBonus.toLocaleString('fr-FR')} ${cur} &middot; <strong>${libelleVariationStat(c.statKey,1)}</strong></div>
       <div class="odesc" style="margin-top:.3rem">${t('creation.careers.'+c.id+'.comp')}</div>
     </div>`;
   }).join('');
@@ -993,6 +1007,15 @@ function ouvrirEcranIdentifiants() {
 function rpMessageIdentifiants(cle, secours, variables) {
   const t = (typeof i18next !== 'undefined' && i18next.t) ? i18next.t(cle, variables) : null;
   return (typeof t === 'string' && t.trim() && t !== cle && !/\{\{[^}]+\}\}/.test(t)) ? t : secours;
+}
+
+// Le message d'une tentative precedente ne doit pas accuser une saisie corrigee.
+function effacerErreurIdentifiants() {
+  const zone = document.getElementById('auth-msg');
+  if (!zone || zone.style.display === 'none') return;
+  zone.style.display = 'none';
+  zone.textContent = '';
+  zone.removeAttribute('data-i18n');
 }
 
 function afficherMessageIdentifiants(texte, cle) {
