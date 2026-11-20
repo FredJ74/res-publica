@@ -8,6 +8,9 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### PR #1142 (ChatGPT, retours d'inscription) : à fermer (Claude, 20/11/2026)
+- Doublon de #1143 (fusionnée) : courriel, noms des caractéristiques, passage après la ville, effacement de l'erreur sont déjà dans main. Seuls deux apports manquaient, reportés sur `claude/creation-reliquat-1142-20261120` : nom complet de la caractéristique sur la carte de carrière (« +1 Volonté » au lieu de « +1 VOL »), et version de `creation.js` dans index.html (cache des navigateurs, inchangée depuis le 17/11).
+
 ### Interagir avec un personnage masqué (Claude, 20/11/2026)
 - **Branche `claude/masques-interactions-20261120`**. **Migration APPLIQUÉE** : `20261120260000_masques_interactions` (essai annulé d'abord : banc de discrétion en base, aucune fuite du vrai nom). Règle dans `GAME-DESIGN-CRIMINALITE.md` (§ 1). Banc `test-masques-interactions-20261120.cjs`.
 - Parler et Rejoindre par l'identifiant anonyme `masque:<jeton>` (`groupe_pj_rejoindre_masque`, `crim_mon_alias_masque`, règle d'écriture `messages_chat_envoi` → `chat_auteur_attendu_interne`) ; groupe et déplacements de groupe affichent « Individu masqué n°X » (`crim_nom_pour_interne`). Pas de courrier. Caché inchangé.

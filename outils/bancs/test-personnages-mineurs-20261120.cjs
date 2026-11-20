@@ -31,7 +31,7 @@ test('data.js : deux carrières sans métier, sans bonus ni blocage', () => {
 
 test('Création : carte sans « +1 null », secours français, mineur jamais conseillé', () => {
   const cr = lire('creation.js');
-  assert.match(cr, /\$\{c\.statKey\?` &middot; <strong>\+1 \$\{c\.statKey\}<\/strong>`:''\}/);
+  assert.match(cr, /\$\{c\.statKey\?` &middot; \$\{htmlModificateurStat\(c\.statKey, 1\)\}`:''\}/);   // nom complet (reliquat #1142)
   assert.match(cr, /t\('creation\.careers\.'\+c\.id\+'\.name',\{defaultValue:c\.name\}\)/);
   assert.match(cr, /if\(ca\.mineur\) return null;/);
   const cons = lire('api/conseiller-creation.js');
