@@ -2832,8 +2832,12 @@ async function sbGreveGeneraleSynchroniser(ggId) {
   return sbRpcVerdict('greve_generale_synchroniser', { p_gg: ggId });
 }
 
+// ORGANISATIONS SECRÈTES (Fred, 20/11/2026) : on lit les organisations par organisations_lire(), qui rend à chacun la vue
+// qui lui revient (extérieur : nom et nature, aucun membre ni compteur ; membre cloisonné : lui seul ; chef : tout).
 async function sbLoadOrganisations() {
-  const rows = await sbGet('organisations', 'select=*');
+  let rows = null;
+  if (typeof sbRpc === 'function') { try { rows = await sbRpc('organisations_lire', {}); } catch (_) { rows = null; } }
+  if (!Array.isArray(rows)) rows = await sbGet('organisations', 'select=*');
   if (!Array.isArray(rows)) throw new Error('organisations_lecture_indisponible');
   return rows.map(r => {
     const data = typeof r.data === 'string' ? JSON.parse(r.data) : r.data;
@@ -2851,7 +2855,11 @@ async function sbLoadOrganisations() {
 // local. Reutilise la meme table 'organisations' (id + data JSON), aucun changement de schema.
 async function sbGetOrganisationParId(orgaId) {
   if (!orgaId) return null;
-  const rows = await sbGet('organisations', `id=eq.${encodeURIComponent(orgaId)}`).catch(() => []);
+  let rows = null;
+  if (typeof sbRpc === 'function') {
+    try { const toutes = await sbRpc('organisations_lire', {}); if (Array.isArray(toutes)) rows = toutes.filter(r => r && r.id === orgaId); } catch (_) { rows = null; }
+  }
+  if (!Array.isArray(rows)) rows = await sbGet('organisations', `id=eq.${encodeURIComponent(orgaId)}`).catch(() => []);
   if (!rows || rows.length === 0) return null;
   try {
     const d=typeof rows[0].data==='string'?JSON.parse(rows[0].data):rows[0].data;

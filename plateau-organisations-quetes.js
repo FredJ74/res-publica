@@ -183,7 +183,8 @@ function ouvrirTableauOrganisations() {
         const _rpOrgTypeMarker = typeof _rpOrgTypeKey==='string' &&
           globalThis.RP_I18N_RESOURCES?.fr?.translation?.organizationDirectory?.[_rpOrgTypeKey]===typeLabel
           ? ' data-i18n="organizationDirectory.'+_rpOrgTypeKey+'"' : '';
-        const masquer = !o.visible && !suisMembreDe(o);
+        // Secrète : chef et siège cachés à l'extérieur, et au membre d'une organisation cloisonnée (il ne connaît que lui).
+        const masquer = !o.visible && (!suisMembreDe(o) || o.membres_masques === true) && o.chef !== state.char?.name;
         let infoLigne;
         if (masquer) {
           infoLigne = '<span data-i18n="organizationDirectory.privateDetails">Chef : non communiqué · Siège : non communiqué</span>';
@@ -201,7 +202,7 @@ function ouvrirTableauOrganisations() {
             buildingNom = BUILDINGS[buildingId]?.shortName || BUILDINGS[buildingId]?.name || buildingId || 'Siège inconnu';
             roomNom = BUILDINGS[buildingId]?.rooms?.[roomId]?.name || '';
           }
-          infoLigne = '<span data-i18n="organizationDirectory.leaderPrefix">Chef : </span>' + _rpOrgText(o.chef || o.fondateur || '?') + ' · <span data-i18n="organizationDirectory.seatPrefix">Siège : </span>' +
+          infoLigne = '<span data-i18n="organizationDirectory.leaderPrefix">Chef : </span>' + (o.chef_masque === true ? '<span data-i18n="organizationMembers.hiddenLeader">le chef</span>' : _rpOrgText(o.chef || o.fondateur || '?')) + ' · <span data-i18n="organizationDirectory.seatPrefix">Siège : </span>' +
             (_rpOrgUnknownSeat ? '<span data-i18n="organizationDirectory.unknownSeat">Siège inconnu</span>' : _rpOrgPlaceText(buildingNom)) +
             (roomNom ? ' (' + _rpOrgPlaceText(roomNom) + ')' : '');
         }
@@ -464,6 +465,20 @@ function ouvrirFormulaireOrga(type) {
     '<input id="orga-nom-input" type="text" maxlength="40" dir="auto" data-i18n-placeholder="organizationCreation.namePlaceholder" placeholder="Ex: Loge du Grand Nord, Parti du Progrès..." style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.9rem;box-sizing:border-box;margin-bottom:.6rem"/>' +
     '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem" data-i18n="organizationCreation.descriptionLabel">DESCRIPTION (optionnel)</div>' +
     '<textarea id="orga-desc-input" maxlength="200" dir="auto" data-i18n-placeholder="organizationCreation.descriptionPlaceholder" placeholder="Décrivez votre organisation en quelques mots..." style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.85rem;box-sizing:border-box;resize:none;height:60px;margin-bottom:.7rem"></textarea>' +
+    // CLOISONNEMENT (Fred, 20/11/2026) : deux options indépendantes, choisies à la création d'une organisation secrète
+    // (les membres se connaissent-ils ? connaissent-ils le chef ?) ; le chef voit toujours tout.
+    (def.secret ? (
+      '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem" data-i18n="organizationCreation.compartmentLabel" data-i18n-fallback="CLOISONNEMENT">CLOISONNEMENT</div>' +
+      '<select id="orga-membres-connus-select" dir="auto" style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.85rem;box-sizing:border-box;margin-bottom:.3rem">' +
+      '<option value="oui" data-i18n="organizationCreation.compartmentKnown" data-i18n-fallback="Les membres se connaissent entre eux">Les membres se connaissent entre eux</option>' +
+      '<option value="non" data-i18n="organizationCreation.compartmentSealed" data-i18n-fallback="Les membres ne se connaissent pas">Les membres ne se connaissent pas</option>' +
+      '</select>' +
+      '<select id="orga-chef-connu-select" dir="auto" style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.85rem;box-sizing:border-box;margin-bottom:.3rem">' +
+      '<option value="oui" data-i18n="organizationCreation.leaderKnown" data-i18n-fallback="Les membres connaissent l\'identité du chef">Les membres connaissent l\'identité du chef</option>' +
+      '<option value="non" data-i18n="organizationCreation.leaderHidden" data-i18n-fallback="L\'identité du chef est cachée aux membres">L\'identité du chef est cachée aux membres</option>' +
+      '</select>' +
+      '<div style="font-size:.72rem;color:#6a5a30;font-style:italic;margin-bottom:.7rem" data-i18n="organizationCreation.compartmentNote" data-i18n-fallback="En tant que chef, vous verrez toujours la liste complète des membres.">En tant que chef, vous verrez toujours la liste complète des membres.</div>'
+    ) : '') +
     (def.secret ? '<div style="font-size:.72rem;color:#6a5a30;font-style:italic;margin-bottom:.7rem" data-i18n="organizationCreation.confidentiality">🔒 Confidentialité automatique : chef, siège et membres resteront cachés au public. L\'adhésion se fera uniquement sur invitation.</div>' : '') +
     // corpsMetier (greves, 3 septembre 2026) : tag structurel optionnel, uniquement pour les
     // syndicats -- §9 du cahier des charges ("ne jamais hardcoder un nom du type Syndicat des
@@ -502,6 +517,10 @@ async function confirmerCreationOrga(type) {
   // disponibilite, puis ecrit l'organisation (identifiant, grade du fondateur, confidentialite).
   // corpsMetier (greves, 3 septembre 2026) : uniquement pour un syndicat.
   const parametres = { type, nom, desc };
+  if (def.secret) {
+    parametres.membres_se_connaissent = document.getElementById('orga-membres-connus-select')?.value !== 'non';
+    parametres.chef_connu = document.getElementById('orga-chef-connu-select')?.value !== 'non';
+  }
   if (type === 'syndicale') {
     const corpsMetier = document.getElementById('orga-corps-metier-select')?.value || '';
     if (corpsMetier) parametres.corpsMetier = corpsMetier;
@@ -679,10 +698,12 @@ function ouvrirGestionMembres(orgaId) {
       '<div style="display:flex;align-items:center;gap:.6rem;padding:.5rem 0;border-bottom:1px solid #1a1208">' +
         '<i class="ti ti-user" style="font-size:.9rem;color:#8a6a20;flex-shrink:0"></i>' +
         '<div style="flex:1;min-width:0">' +
-          '<div style="font-size:.82rem;color:#c0b090">' + _rpMembreTexte(m.nom) + (m.nom === orga.chef ? ' 👑' : '') + '</div>' +
-          '<div style="font-size:.85rem;color:#6a5a30">' + _rpMembreTexte(m.grade) + ' · <span data-i18n="organizationMembers.sinceDay">Depuis Jour </span>' + _rpMembreTexte(m.rejointLe) + '</div>' +
+          (m.chef_anonyme === true
+            ? '<div style="font-size:.82rem;color:#c0b090"><span data-i18n="organizationMembers.hiddenLeader">le chef</span> 👑</div>'
+            : '<div style="font-size:.82rem;color:#c0b090">' + _rpMembreTexte(m.nom) + (m.nom === orga.chef ? ' 👑' : '') + '</div>' +
+          '<div style="font-size:.85rem;color:#6a5a30">' + _rpMembreTexte(m.grade) + ' · <span data-i18n="organizationMembers.sinceDay">Depuis Jour </span>' + _rpMembreTexte(m.rejointLe) + '</div>') +
         '</div>' +
-        (estChef && m.nom !== state.char?.name ?
+        (estChef && !m.chef_anonyme && m.nom !== state.char?.name ?
           '<div style="display:flex;gap:.3rem">' +
             '<button onclick="' + _rpMembreAction('monterGrade', m.nom) + '" title="Monter en grade" aria-label="Monter en grade" data-i18n-title="organizationMembers.promote" data-i18n-aria-label="organizationMembers.promote" style="background:none;border:1px solid #2a3a2a;color:#4a8a4a;cursor:pointer;padding:.2rem .4rem;font-size:.85rem">▲</button>' +
             '<button onclick="' + _rpMembreAction('descendreGrade', m.nom) + '" title="Descendre en grade" aria-label="Descendre en grade" data-i18n-title="organizationMembers.demote" data-i18n-aria-label="organizationMembers.demote" style="background:none;border:1px solid #3a2a1a;color:#8a4a2a;cursor:pointer;padding:.2rem .4rem;font-size:.85rem">▼</button>' +

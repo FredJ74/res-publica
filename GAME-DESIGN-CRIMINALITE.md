@@ -85,6 +85,26 @@ Trois façons d'agir :
     - l'affaire liée est archivée et ses données lourdes (indices, détails) sont purgées.
   - Le plaignant PJ reçoit un **courrier** : « Votre plainte du [date] pour [acte] à [ville] est prescrite : faute d'élément nouveau, l'enquête est close. » C'est une exception voulue à la règle du journal, car il s'agit d'une notification administrative. Un PNJ plaignant (son employeur) ne reçoit rien.
 
+## 3 bis. Organisations secrètes (décisions de Fred du 20/11/2026)
+
+Migrations `20261120330000_organisations_secretes` et `20261120335000_organisations_secretes_deux_options`.
+
+- Une organisation secrète (type secret, comme une organisation criminelle telle que la Main Noire, ou organisation non visible) **apparaît dans la liste des organisations**, avec son nom, sa nature et sa description.
+- Le nom de ses membres n'est **jamais** révélé :
+  - ni dans cette liste ;
+  - ni dans les fiches, les fenêtres d'interaction, la presse, les journaux, l'API ou la recherche ;
+  - aucun compteur de membres n'est montré non plus.
+- **Cloisonnement : deux options indépendantes, réglées par le chef à la création** (correction de Fred du 20/11) :
+  - les membres se connaissent-ils entre eux (oui/non) ? Si non, chacun ne voit que lui-même (et le chef), aucun responsable ni scrutin nommé ;
+  - les membres connaissent-ils l'identité du chef (oui/non) ? Si non, le chef apparaît « le chef », sans nom (ni chef, ni fondateur, ni responsable qui serait le chef) ;
+  - quatre configurations possibles ; aucun nom n'est jamais révélé hors de l'organisation ;
+  - une organisation créée avant la correction garde son réglage : « se connaissent » vaut oui/oui, « cloisonnée » vaut non/non.
+- **Le chef** (et le fondateur) voit toujours la liste complète, par exemple pour repérer une taupe.
+- **Mise en œuvre :**
+  - la table brute d'une organisation secrète n'est lisible que par son chef ;
+  - tout le reste passe par `organisations_lire()`, qui rend à chaque lecteur la vue qui lui revient.
+- **Fuites indirectes fermées :** le vrai auteur d'un message de forum, d'un sujet ou d'un courrier signé au nom d'une organisation secrète n'est plus visible dans la ligne publique. Il est conservé côté serveur (`auteurs_secrets`). Le chef garde ses droits de modification et de suppression, et la modération retrouve l'auteur. Les journaux et interviews excluaient déjà les organisations non visibles.
+
 ## 4. Rumeurs
 
 - Pour un agresseur anonyme, les rumeurs donnent des **indices partiels**, façon « Qui est-ce ? » : **le genre** (« l'assassin semblait être une femme ») et **le type précis d'arme** (kalachnikov, revolver, carabine…). Pas l'origine, la carrière ni le domicile.
