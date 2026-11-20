@@ -183,7 +183,8 @@ function ouvrirTableauOrganisations() {
         const _rpOrgTypeMarker = typeof _rpOrgTypeKey==='string' &&
           globalThis.RP_I18N_RESOURCES?.fr?.translation?.organizationDirectory?.[_rpOrgTypeKey]===typeLabel
           ? ' data-i18n="organizationDirectory.'+_rpOrgTypeKey+'"' : '';
-        const masquer = !o.visible && !suisMembreDe(o);
+        // Secrète : chef et siège cachés à l'extérieur, et au membre d'une organisation cloisonnée (il ne connaît que lui).
+        const masquer = !o.visible && (!suisMembreDe(o) || o.membres_masques === true) && o.chef !== state.char?.name;
         let infoLigne;
         if (masquer) {
           infoLigne = '<span data-i18n="organizationDirectory.privateDetails">Chef : non communiqué · Siège : non communiqué</span>';
@@ -464,6 +465,15 @@ function ouvrirFormulaireOrga(type) {
     '<input id="orga-nom-input" type="text" maxlength="40" dir="auto" data-i18n-placeholder="organizationCreation.namePlaceholder" placeholder="Ex: Loge du Grand Nord, Parti du Progrès..." style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.9rem;box-sizing:border-box;margin-bottom:.6rem"/>' +
     '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem" data-i18n="organizationCreation.descriptionLabel">DESCRIPTION (optionnel)</div>' +
     '<textarea id="orga-desc-input" maxlength="200" dir="auto" data-i18n-placeholder="organizationCreation.descriptionPlaceholder" placeholder="Décrivez votre organisation en quelques mots..." style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.85rem;box-sizing:border-box;resize:none;height:60px;margin-bottom:.7rem"></textarea>' +
+    // CLOISONNEMENT (Fred, 20/11/2026) : choisi à la création d'une organisation secrète ; le chef voit toujours tout.
+    (def.secret ? (
+      '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem" data-i18n="organizationCreation.compartmentLabel" data-i18n-fallback="CLOISONNEMENT">CLOISONNEMENT</div>' +
+      '<select id="orga-cloisonnement-select" dir="auto" style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.85rem;box-sizing:border-box;margin-bottom:.3rem">' +
+      '<option value="connus" data-i18n="organizationCreation.compartmentKnown" data-i18n-fallback="Les membres se connaissent entre eux">Les membres se connaissent entre eux</option>' +
+      '<option value="cloisonne" data-i18n="organizationCreation.compartmentSealed" data-i18n-fallback="Les membres ne se connaissent pas">Les membres ne se connaissent pas</option>' +
+      '</select>' +
+      '<div style="font-size:.72rem;color:#6a5a30;font-style:italic;margin-bottom:.7rem" data-i18n="organizationCreation.compartmentNote" data-i18n-fallback="En tant que chef, vous verrez toujours la liste complète des membres.">En tant que chef, vous verrez toujours la liste complète des membres.</div>'
+    ) : '') +
     (def.secret ? '<div style="font-size:.72rem;color:#6a5a30;font-style:italic;margin-bottom:.7rem" data-i18n="organizationCreation.confidentiality">🔒 Confidentialité automatique : chef, siège et membres resteront cachés au public. L\'adhésion se fera uniquement sur invitation.</div>' : '') +
     // corpsMetier (greves, 3 septembre 2026) : tag structurel optionnel, uniquement pour les
     // syndicats -- §9 du cahier des charges ("ne jamais hardcoder un nom du type Syndicat des
@@ -502,6 +512,7 @@ async function confirmerCreationOrga(type) {
   // disponibilite, puis ecrit l'organisation (identifiant, grade du fondateur, confidentialite).
   // corpsMetier (greves, 3 septembre 2026) : uniquement pour un syndicat.
   const parametres = { type, nom, desc };
+  if (def.secret) parametres.cloisonnement = document.getElementById('orga-cloisonnement-select')?.value === 'cloisonne' ? 'cloisonne' : 'connus';
   if (type === 'syndicale') {
     const corpsMetier = document.getElementById('orga-corps-metier-select')?.value || '';
     if (corpsMetier) parametres.corpsMetier = corpsMetier;

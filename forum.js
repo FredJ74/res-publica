@@ -1316,7 +1316,7 @@ function renderTopicView() {
           </div>
           <div class="forum-post-main">
             <div class="forum-post-toolbar">
-              ${(p.authorReal || p.author) === myName ? `
+              ${(p.authorReal || p.author) === myName || (p.authorIsOrg && p.authorOrgId && getMesOrganisations().some(o => o.id === p.authorOrgId)) ? `
                 <button onclick="editPost('${topic.id}','${p.id || i}')" style="background:transparent;border:none;color:#8a8060;cursor:pointer;font-size:.75rem;padding:.2rem .4rem" title="${rpForumLibelle('edit','Modifier')}">
                   <i class="ti ti-edit"></i>
                 </button>
