@@ -158,6 +158,17 @@ function hideBuildingTooltip() {
 // =====================
 // `batimentQuitte` (optionnel) : le batiment dont on vient de sortir. Il permet de DEDUIRE de la
 // carte le trottoir correspondant, au lieu de dependre d'une memoire locale (voir plus bas).
+// Provenance admissible pour orienter une rue : une rue reliee a celle-ci (liens ou liensParArrivee), sinon aucune.
+function orientationRueVoisine(pays, noeudId, depuis) {
+  if (!depuis || typeof RUE_CENTRALE_NOEUDS === 'undefined') return null;
+  const n = RUE_CENTRALE_NOEUDS[pays]?.[noeudId];
+  if (!n) return null;
+  const voisins = new Set(Object.values(n.liens || {}));
+  Object.keys(n.liensParArrivee || {}).forEach(k => voisins.add(k));
+  Object.values(n.liensParArrivee || {}).forEach(l => Object.values(l || {}).forEach(v => voisins.add(v)));
+  return voisins.has(depuis) ? depuis : null;
+}
+
 function showVueRue(batimentQuitte, positionConfirmee = null) {
   const rpNav = (typeof window!=='undefined' && typeof window.RPNavigationI18n?.label==='function') ? window.RPNavigationI18n.label : (_key,original)=>original;
   const rpNavHtml = (typeof window!=='undefined' && typeof window.RPNavigationI18n?.labelHtml==='function') ? window.RPNavigationI18n.labelHtml : (_key,original)=>original;
@@ -180,6 +191,12 @@ function showVueRue(batimentQuitte, positionConfirmee = null) {
   if (city) {
     document.getElementById('rue-title').textContent = city.streetName || (city.isCapitale ? 'Avenue de la République' : rpNav('mainStreetPrefix', 'Rue principale de ') + city.name);
     document.getElementById('rue-desc').textContent = city.desc;
+  } else {
+    // Ville inconnue en memoire : ne jamais laisser le titre ni le decor d'une autre ville (le gabarit de la page
+    // porte ceux de Luthecia). La position du serveur est relue et la rue sera redessinee dans la bonne ville.
+    document.getElementById('rue-title').textContent = '';
+    document.getElementById('rue-desc').textContent = '';
+    if (typeof adopterPositionServeurRelue === 'function') setTimeout(() => { adopterPositionServeurRelue().catch(() => false); }, 0);
   }
 
   // Villes speciales (Caserne, QHS) : pas de Centre Multinodal sur place pour repartir, donc
@@ -248,7 +265,9 @@ function showVueRue(batimentQuitte, positionConfirmee = null) {
       :souvenir;
     if(positionConfirmee?.country===state.country&&positionConfirmee.city===state.currentCity&&
        positionConfirmee.building===null&&RUE_CENTRALE_NOEUDS[state.country]?.[positionConfirmee.street]){
-      const orientation=Object.prototype.hasOwnProperty.call(positionConfirmee,'depuis')?positionConfirmee.depuis:(souvenir.noeudId===positionConfirmee.street?souvenir.depuisNoeudId:null);
+      const orientationBrute=Object.prototype.hasOwnProperty.call(positionConfirmee,'depuis')?positionConfirmee.depuis:(souvenir.noeudId===positionConfirmee.street?souvenir.depuisNoeudId:null);
+      // Une provenance qui ne mene pas a cette rue (ex. rue d'avant une detention) n'oriente pas la scene.
+      const orientation=typeof orientationRueVoisine==='function'?orientationRueVoisine(state.country,positionConfirmee.street,orientationBrute):orientationBrute;
       afficherNoeudRue(state.country,positionConfirmee.street,orientation,true);
     }else initialiserRueCentrale(state.country,reprise.noeudId,reprise.depuisNoeudId);
   } else {
@@ -1698,6 +1717,22 @@ async function confirmerSortieBatimentServeur(contexte) {
   return {ok:false,verdict:confirmation,etape:'confirmation'};
 }
 
+async function realignerVilleSurServeurAvantSortie() {
+  if (typeof rueCentraleServeur === 'function' && rueCentraleServeur(state.country, state.currentCity)) return false;
+  if (typeof sbRpcVerdict !== 'function') return false;
+  let lu = null;
+  try { lu = await sbRpcVerdict('rue_position_lire', {}); } catch (_) { lu = null; }
+  const p = Array.isArray(lu) ? lu[0] : lu;
+  if (!(p?.ok === true && typeof p.country === 'string' && typeof p.city === 'string' &&
+        typeof WORLD !== 'undefined' && WORLD?.[p.country]?.[p.city] &&
+        typeof rueCentraleServeur === 'function' && rueCentraleServeur(p.country, p.city))) return false;
+  if (p.country === state.country && p.city === state.currentCity) return false;
+  state.country = p.country; state.currentCity = p.city;
+  if (state.char) { state.char.country = p.country; state.char.currentCity = p.city; }
+  if (typeof applyEmpireTheme === 'function') applyEmpireTheme(p.country);
+  return true;
+}
+
 async function sortirBatiment() {
   if (state._navigationServeur && ['caserne','qhs'].includes(state.currentCity)) {
     return commanderNavigationInterieure(null, null);
@@ -1709,6 +1744,10 @@ async function sortirBatiment() {
     { const jours = joursRestantsPeine(); showToast('Emprisonné(e)', 'Vous êtes en détention. Impossible de sortir avant la fin de votre peine (' + jours + ' jour(s) restant(s), ou tentez une évasion).', false); globalThis.RPI18nPlateau?.markToast("navigation.detentionExitBody", 'Vous êtes en détention. Impossible de sortir avant la fin de votre peine (' + jours + ' jour(s) restant(s), ou tentez une évasion).', {jours}, 'Emprisonné(e)'); }
     return;
   }
+  // VILLE EN MEMOIRE INCONNUE OU SANS RUES (Fred, 20/11/2026 : Tom Tom libere des geoles de Krasnov retombait sur
+  // l'ancienne navigation avec le titre et le decor par defaut de Luthecia). La position du serveur fait foi : on la
+  // relit AVANT de fixer le contexte de sortie, et on adopte son pays et sa ville s'ils ont des rues.
+  if (typeof realignerVilleSurServeurAvantSortie === 'function') await realignerVilleSurServeurAvantSortie();
   const contexteSortie=contexteNavigationRue();
   if(sortieBatimentEnCours&&contexteNavigationRueValide(sortieBatimentEnCours))return;
   sortieBatimentEnCours=contexteSortie;
