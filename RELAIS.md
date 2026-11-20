@@ -8,6 +8,8 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Carrière modifiable seulement par le jeu (Claude, 20/11/2026)
+- **Branche `claude/carriere-serveur-seul-20261120`**. **Migration APPLIQUÉE** : `20261120240000_carriere_serveur_seul` (essai annulé d'abord, avec témoin). `personnages_vue_modifier` reprend `career` canonique (marque `carriere_serveur_seul_v1`) : la fiche ne peut plus réécrire la carrière ; seconde carrière uniquement par le cursus universitaire. Banc `test-carriere-serveur-seul-20261120.cjs`.
 ### Carrières sans métier et personnages mineurs (Claude, 20/11/2026)
 - **Branche `claude/carrieres-mineurs-20261120`**. **Migration APPLIQUÉE** : `20261120230000_mineurs_carrieres_garde_fous` (essai annulé d'abord). Règles : `GAME-DESIGN-PERSONNAGES-MINEURS.md`. Banc `test-personnages-mineurs-20261120.cjs`.
 - Carrières `minor` (« Enfant / Adolescent », 50, mineur permanent : `personnages_donnees.est_mineur`) et `sans_experience` (100). Contrôle commun `mineur_refus_interne` (refus neutre `action_non_disponible`) sur escorts, rencontre piège, alcool, drogue ; plus de seconde carrière ni de cursus pour un mineur ; consigne « personne mineure » au dialogue des PNJ.
