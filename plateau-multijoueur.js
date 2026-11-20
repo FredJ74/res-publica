@@ -2235,7 +2235,10 @@ async function rafraichirConversationActuelle(reset) {
       zone.insertAdjacentHTML('beforeend',
         '<div style="margin-bottom:.4rem;text-align:' + (estMoi ? 'right' : 'left') + '">' +
         '<div style="display:inline-block;max-width:80%;padding:.35rem .6rem;border-radius:8px;background:#0f0d05;border:1px solid #2a2010">' +
-        '<div style="font-size:.9rem;color:#a08850">' + chatLibelleParticipant(m.auteur) + ' <span style="font-size:.72rem;color:#6a5a30">' + heureMsg + '</span></div>' +
+        '<div style="font-size:.9rem;color:#a08850">' + chatLibelleParticipant(m.auteur) + ' <span style="font-size:.72rem;color:#6a5a30">' + heureMsg + '</span>' +
+        // Signaler (Fred, 20/11/2026) : sur les messages des autres, file de modération du MJ.
+        (!estMoi && m.id && typeof rpSignalerMessage === 'function' ? ' <span data-signaler-id="' + String(m.id).replace(/[^A-Za-z0-9_-]/g, '') + '" onclick="rpSignalerMessage(\'conversation\', this.dataset.signalerId)" title="Signaler" data-i18n-title="reportMessage.button" style="cursor:pointer;font-size:.72rem;color:#6a5a30"><i class="ti ti-flag"></i></span>' : '') +
+        '</div>' +
         '<div style="font-size:1rem;color:#e0d8c0">' + m.message + '</div>' +
         '</div></div>'
       );

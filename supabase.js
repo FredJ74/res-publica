@@ -5363,6 +5363,11 @@ async function sbTransportRpcBrut(fn, params, options) {
         && typeof window !== 'undefined' && typeof window.rpCompteNonConfirme === 'function') {
       try { window.rpCompteNonConfirme(v.action || null, fn, v.raison); } catch (_) {}
     }
+    // Garde-fous des personnages mineurs (Fred, 20/11/2026) : refus neutre, même point d'écoute.
+    if (v && (v.raison === 'action_non_disponible' || v.raison === 'personnage_mineur_carriere_unique')
+        && typeof window !== 'undefined' && typeof window.rpActionNonDisponible === 'function') {
+      try { window.rpActionNonDisponible(v.raison); } catch (_) {}
+    }
     return { etat: 'ok', donnees: donnees, http: res.status, code: null, envoyee: true };
   } catch (_) {
     // HTTP reussi ne prouve pas que le navigateur a recu le verdict metier.

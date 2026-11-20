@@ -762,6 +762,7 @@ function conseilValide(p){
   const o=ORIGINS.find(x=>x.id===p.origin), sc=SCHOOLS.find(x=>x.id===p.school);
   const ar=ARCHETYPES.find(x=>x.id===p.archetype), ca=CAREERS.find(x=>x.id===p.career);
   if(!o||!sc||!ar||!ca) return null;
+  if(ca.mineur) return null; // un personnage mineur se choisit, il ne se conseille jamais
   if((ca.blocks||[]).includes(sc.id)) return null;
   if((sc.blocks||[]).includes(ca.id)) return null;
   return p;
@@ -833,9 +834,10 @@ function renderCareer(){
       title="${bl?t('creation.career.locked'):''}">
       <div class="checkmark"><i class="ti ti-check"></i></div>
       ${bl?'':marqueConseil('career', c.id)}
-      <div class="oname"><i class="ti ${c.icon}" style="font-size:1rem;color:#8a6a20"></i> ${t('creation.careers.'+c.id+'.name')}</div>
-      <div class="obonus">+${c.argBonus.toLocaleString('fr-FR')} ${cur} &middot; <strong>+1 ${c.statKey}</strong></div>
-      <div class="odesc" style="margin-top:.3rem">${t('creation.careers.'+c.id+'.comp')}</div>
+      <div class="oname"><i class="ti ${c.icon}" style="font-size:1rem;color:#8a6a20"></i> ${t('creation.careers.'+c.id+'.name',{defaultValue:c.name})}</div>
+      <div class="obonus">+${c.argBonus.toLocaleString('fr-FR')} ${cur}${c.statKey?` &middot; <strong>+1 ${c.statKey}</strong>`:''}</div>
+      <div class="odesc" style="margin-top:.3rem">${t('creation.careers.'+c.id+'.comp',{defaultValue:c.comp})}</div>
+      ${c.mineur?`<div class="oblock"><i class="ti ti-info-circle" style="font-size:.7rem;vertical-align:-1px"></i> ${t('creation.careers.minor.notice',{defaultValue:'Personnage mineur, pour toujours : aucune autre carrière possible ; ni alcool, ni drogue, ni escorts, ni séduction.'})}</div>`:''}
     </div>`;
   }).join('');
   const sc=SCHOOLS.find(x=>x.id===G.school);
@@ -1014,7 +1016,7 @@ function renderReview(){
         ${or?`<div class="rbadge-item"><i class="ti ${or.icon}" style="font-size:.85rem"></i> ${t('creation.origins.'+or.id+'.name')}</div>`:''}
         ${sc?`<div class="rbadge-item"><i class="ti ${sc.icon}" style="font-size:.85rem"></i> ${t('creation.schools.'+sc.id+'.name')}</div>`:''}
         ${ar?`<div class="rbadge-item"><i class="ti ${ar.icon}" style="font-size:.85rem"></i> ${arName}</div>`:''}
-        ${ca?`<div class="rbadge-item"><i class="ti ${ca.icon}" style="font-size:.85rem"></i> ${t('creation.careers.'+ca.id+'.name')}</div>`:''}
+        ${ca?`<div class="rbadge-item"><i class="ti ${ca.icon}" style="font-size:.85rem"></i> ${t('creation.careers.'+ca.id+'.name',{defaultValue:ca.name})}</div>`:''}
       </div>
     </div>
     <div class="rsec">

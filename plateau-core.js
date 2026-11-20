@@ -1656,6 +1656,44 @@ function rpCompteNonConfirme(action, fn, raison) {
 }
 if (typeof window !== 'undefined') window.rpCompteNonConfirme = rpCompteNonConfirme;
 
+// Garde-fous des personnages MINEURS (Fred, 20/11/2026) : le serveur refuse d'un motif NEUTRE ('action_non_disponible'),
+// le même que le mineur soit l'acteur ou la cible. Appelée par sbTransportRpc pour toute réponse portant ce motif.
+function rpActionNonDisponible(raison) {
+  const trad = (cle, secours) => {
+    const t = (typeof i18next !== 'undefined' && i18next.t) ? i18next.t(cle) : null;
+    return (typeof t === 'string' && t && t !== cle) ? t : secours;
+  };
+  const corps = raison === 'personnage_mineur_carriere_unique'
+    ? trad('minorGuard.careerLocked', 'Un personnage mineur ne peut exercer aucune autre carrière.')
+    : trad('minorGuard.unavailable', 'Cette action n’est pas disponible.');
+  if (typeof showToast === 'function') showToast(trad('minorGuard.title', 'Action impossible'), corps, false);
+}
+if (typeof window !== 'undefined') window.rpActionNonDisponible = rpActionNonDisponible;
+
+// Signaler un message (Fred, 20/11/2026) : courrier, forum, conversation. Motif libre ; le serveur relit le message,
+// vérifie que le joueur y a accès et place en tête de la file du MJ ceux qui impliquent un personnage mineur.
+async function rpSignalerMessage(source, messageId) {
+  const trad = (cle, secours) => {
+    const t = (typeof i18next !== 'undefined' && i18next.t) ? i18next.t(cle) : null;
+    return (typeof t === 'string' && t && t !== cle) ? t : secours;
+  };
+  if (!source || !messageId || typeof sbRpc !== 'function') return;
+  const motif = window.prompt(trad('reportMessage.prompt', 'Pourquoi signalez-vous ce message ? (motif libre, transmis à la modération)'));
+  if (motif === null) return;
+  if (!String(motif).trim()) {
+    if (typeof showToast === 'function') showToast(trad('reportMessage.title', 'Signalement'), trad('reportMessage.reasonRequired', 'Indiquez un motif.'), false);
+    return;
+  }
+  let v = null;
+  try { v = await sbRpc('message_signaler', { p_source: source, p_message_id: String(messageId), p_motif: String(motif).slice(0, 500) }); } catch (e) { v = null; }
+  if (Array.isArray(v)) v = v[0];
+  const ok = !!(v && v.ok === true);
+  if (typeof showToast === 'function') showToast(trad('reportMessage.title', 'Signalement'),
+    ok ? (v.deja ? trad('reportMessage.already', 'Vous aviez déjà signalé ce message.') : trad('reportMessage.sent', 'Merci : la modération examinera ce message.'))
+       : trad('reportMessage.failed', 'Le signalement n’a pas pu être envoyé.'), ok);
+}
+if (typeof window !== 'undefined') window.rpSignalerMessage = rpSignalerMessage;
+
 function afficherBandeauReconnexion() {
   if (document.getElementById('bandeau-reconnexion')) return;
   const trad = (cle, secours) => {
@@ -3180,6 +3218,8 @@ function signalerPersonnageFantome(nom, resultat) {
 
 function signalerRefusCout(resultat) {
   const r = resultat || {};
+  // Garde-fous mineurs : le message neutre est déjà affiché par sbTransportRpc (rpActionNonDisponible).
+  if (r.raison === 'action_non_disponible' || r.raison === 'personnage_mineur_carriere_unique') return;
   const cur = COUNTRIES[state.char?.country || 'republic']?.cur || 'FR';
   const fmt = (n) => Number(n || 0).toLocaleString('fr-FR');
 

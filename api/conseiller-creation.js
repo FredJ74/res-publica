@@ -74,8 +74,9 @@ function catalogues() {
     ((s.blocks || []).length ? ` — FERME les carrieres : ${s.blocks.join(', ')}` : ' — ouvre toutes les carrieres')).join('\n');
   const natures = CREATION_NATURES_SERVEUR.map(a =>
     `- ${a.id} : ${a.name} (${ligneEffets(a)}) — ${a.desc}`).join('\n');
-  const carrieres = CREATION_CARRIERES_SERVEUR.map(c =>
-    `- ${c.id} : ${c.name} (+1 ${c.statKey}, capital ${c.argBonus} FR) — ${c.comp}` +
+  // « Enfant / Adolescent » (mineur, 20/11/2026) se choisit, il ne se conseille jamais.
+  const carrieres = CREATION_CARRIERES_SERVEUR.filter(c => c.id !== 'minor').map(c =>
+    `- ${c.id} : ${c.name} (${c.statKey ? '+1 ' + c.statKey + ', ' : 'aucun bonus, '}capital ${c.argBonus} FR) — ${c.comp}` +
     ((c.blocks || []).length ? ` — EXIGE des etudes autres que : ${c.blocks.join(', ')}` : '')).join('\n');
   return { origines, ecoles, natures, carrieres };
 }
@@ -132,7 +133,7 @@ function valider(prop) {
   if (!dans(CREATION_ORIGINES_SERVEUR, prop.origin)) return null;
   if (!dans(CREATION_ECOLES_SERVEUR, prop.school)) return null;
   if (!dans(CREATION_NATURES_SERVEUR, prop.archetype)) return null;
-  if (!dans(CREATION_CARRIERES_SERVEUR, prop.career)) return null;
+  if (!dans(CREATION_CARRIERES_SERVEUR, prop.career) || prop.career === 'minor') return null;
 
   const carriere = CREATION_CARRIERES_SERVEUR.find(c => c.id === prop.career);
   if ((carriere.blocks || []).includes(prop.school)) return null;
