@@ -248,8 +248,9 @@ function renderPersonsList(persons, targetId) {
   const ar = ARCHETYPES.find(x => x.id === char?.archetype);
 
   // Carte du PJ lui-meme — cliquable pour ouvrir la fiche personnage centrale
-  const savedPhoto = localStorage.getItem('respublica_photo_' + (state.char?.name || 'default')) || localStorage.getItem('respublica_photo');
-  const photoUrl = savedPhoto || char?.photoUrl;
+  // Mon portrait : celui du serveur (fiche relue), sinon mon cache par compte et par personnage ; jamais une clé commune.
+  const savedPhoto = (typeof rpClePortrait === 'function') ? localStorage.getItem(rpClePortrait(state.char?.name)) : null;
+  const photoUrl = char?.photoUrl || savedPhoto;
   const photoHtml = photoUrl
     ? '<img loading="lazy" decoding="async" src="' + photoUrl + '" alt="Vous" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>'
     : '<i class="ti ti-user" style="font-size:.75rem;color:#C9A84C"></i>';
@@ -494,6 +495,10 @@ function attrHtml(v) {
 }
 
 // Affiche les autres PJ réellement présents dans la pièce courante (rafraîchi périodiquement)
+function rpLibellePresence(cle, secours) {
+  const t = (typeof i18next !== 'undefined' && i18next.t) ? i18next.t('presence.' + cle, { defaultValue: secours }) : null;
+  return String((typeof t === 'string' && t && t !== 'presence.' + cle) ? t : secours).replace(/"/g, '&quot;');
+}
 async function chargerVraisJoueursPresents(buildingIdParam, roomIdParam, targetId) {
   if (typeof sbGetPresencesInRoom !== 'function') return;
   const buildingId = buildingIdParam !== undefined ? buildingIdParam : state.currentBuilding;
@@ -520,8 +525,9 @@ async function chargerVraisJoueursPresents(buildingIdParam, roomIdParam, targetI
 
     // Mettre en cache pour getCurrentRoomPersons() (utilisé par assassinat, dons, etc.)
     // Criminalité : un individu masqué n'a ni nom ni portrait ; il est visé par son jeton (crim_presents).
+    if (window.RPTempsReel && typeof window.RPTempsReel.abonnerSalle === 'function') window.RPTempsReel.abonnerSalle();
     window._vraisJoueursPresents = autres.map(p => ({
-      name: p.name, role: 'Joueur', rel: 'neutral', isPJ: true, job: null,
+      name: p.name, role: 'Joueur', rel: 'neutral', isPJ: true, job: null, connecte: p.connecte !== false,
       photoUrl: p.masque ? null : (photosParNom[p.name] || null),
       ...(p.masque ? { masque: true, jeton: p.jeton || null } : {})
     }));
@@ -536,7 +542,10 @@ async function chargerVraisJoueursPresents(buildingIdParam, roomIdParam, targetI
       avatarHtml +
       '<div><div class="person-name" style="color:#f0ead6">' + p.name + ' <span style="font-size:.8rem;color:' + empireCol + '">[JOUEUR]</span></div>' +
       marqueursJudiciairesHtml(p.name) +
-      '<div class="person-role">Présent ici</div></div></div>';
+      // Présence permanente : un joueur absent reste dans la pièce ; un indicateur discret le dit, sans le retirer.
+      '<div class="person-role">' + (p.connecte === false
+        ? '<span class="rp-absent" title="' + rpLibellePresence('absentTip', 'Son joueur n’est pas connecté ; le personnage reste dans la pièce.') + '">○ ' + rpLibellePresence('absent', 'Absent') + '</span>'
+        : '<span class="rp-connecte">● ' + rpLibellePresence('connected', 'Connecté') + '</span>') + '</div></div></div>';
     };
 
     // PNJ voyageant avec les autres joueurs presents (escorts, employes recrutes) --
