@@ -46,7 +46,7 @@ function basculerVisibiliteMotDePasseConnexion() {
 
 async function connecterAvecMotDePasse() {
   const msg = document.getElementById('connexion-msg');
-  const email = (document.getElementById('connexion-email')?.value || '').trim();
+  const email = String(document.getElementById('connexion-email')?.value || '').replace(/[\u200B-\u200D\u2060\uFEFF]/g, '').trim(); // invisibles retirés (copier-coller mobile)
   const mdp = document.getElementById('connexion-mdp')?.value || '';
   const dire = (texte, erreur, cle, values = {}) => { if (msg) {
     // Marqueurs de présentation uniquement ; les saisies et la session restent intactes.
@@ -571,11 +571,23 @@ function renderOrigin(){
       <div class="oname"><i class="ti ${o.icon}" style="font-size:1rem;color:#8a6a20"></i> ${t('creation.origins.'+o.id+'.name')}</div>
       <div class="obonus">
         ${t('creation.common.capitalLabel')} : <strong>${o.arg.toLocaleString('fr-FR')} ${cur}</strong><br>
-        ${Object.entries(o.bonuses).map(([k,v])=>`<strong>+${v} ${k}</strong>`).join('  ')}
-        ${Object.entries(o.malus).map(([k,v])=>`<span style="color:#8a4020">${v} ${k}</span>`).join('  ')}
+        ${htmlModificateursStats(o.bonuses, o.malus)}
       </div>
       <div style="font-size:.72rem;color:#7a6040;margin-top:.3rem;font-style:italic">${t('creation.common.traitLabel')} : ${t('creation.origins.'+o.id+'.trait')}</div>
     </div>`).join('');
+}
+// Retour d'un testeur (20/11/2026) : les choix qui modifient les caractéristiques affichaient l'abréviation (CHA, ENT…).
+// Nom complet traduit (« −1 Entregent ») et description en infobulle, depuis les clés existantes creation.stats.<CLE>.
+function rpEchapperAttribut(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function htmlModificateurStat(k, v) {
+  const nom = t('creation.stats.' + k + '.name'), desc = t('creation.stats.' + k + '.description');
+  const texte = (v > 0 ? '+' + v : '\u2212' + Math.abs(v)) + ' ' + nom;
+  return v > 0 ? '<strong title="' + rpEchapperAttribut(desc) + '">' + rpEchapperAttribut(texte) + '</strong>'
+    : '<span style="color:#8a4020" title="' + rpEchapperAttribut(desc) + '">' + rpEchapperAttribut(texte) + '</span>';
+}
+function htmlModificateursStats(bonus, malus) {
+  return Object.entries(bonus || {}).map(([k, v]) => htmlModificateurStat(k, Number(v))).join('  ') + ' '
+    + Object.entries(malus || {}).map(([k, v]) => htmlModificateurStat(k, Number(v))).join('  ');
 }
 function selOrigin(id){
   G.origin=id;
@@ -593,8 +605,7 @@ function renderSchool(){
       <div class="oname"><i class="ti ${s.icon}" style="font-size:1rem;color:#8a6a20"></i> ${t('creation.schools.'+s.id+'.name')}</div>
       <div class="obonus">
         ${s.argBonus?`<strong>+${s.argBonus.toLocaleString('fr-FR')} ${cur}</strong><br>`:''}
-        ${Object.entries(s.bonuses).map(([k,v])=>`<strong>+${v} ${k}</strong>`).join('  ')}
-        ${Object.entries(s.malus||{}).map(([k,v])=>`<span style="color:#8a4020">${v} ${k}</span>`).join('  ')}
+        ${htmlModificateursStats(s.bonuses, s.malus)}
       </div>
       <div class="oblock"><i class="ti ti-lock" style="font-size:.7rem;vertical-align:-1px"></i> ${t('creation.schools.'+s.id+'.blockLabel')}</div>
     </div>`).join('');
@@ -625,8 +636,7 @@ function renderArch(){
       <div class="oname"><i class="ti ${a.icon}" style="font-size:1rem;color:#8a6a20"></i> ${t('creation.archetypes.'+a.id+'.name')}</div>
       <div class="odesc">${t('creation.archetypes.'+a.id+'.description')}</div>
       <div class="obonus">
-        ${Object.entries(a.bonuses).map(([k,v])=>`<strong>+${v} ${k}</strong>`).join('  ')}
-        ${Object.entries(a.malus).map(([k,v])=>`<span style="color:#8a4020">${v} ${k}</span>`).join('  ')}
+        ${htmlModificateursStats(a.bonuses, a.malus)}
       </div>
     </div>`).join('');
 }
@@ -1007,6 +1017,25 @@ function afficherMessageIdentifiants(texte, cle) {
   if (typeof appliquerTraductionsRP === 'function') appliquerTraductionsRP();
 }
 
+// Retour d'un testeur (20/11/2026) : un message « adresse invalide » restait affiché pendant que le joueur corrigeait son
+// adresse ; une adresse devenue valide paraissait refusée jusqu'au clic suivant. Toute saisie efface le message précédent.
+function effacerMessageIdentifiants(idZone) {
+  const zone = document.getElementById(idZone || 'auth-msg');
+  if (!zone || !zone.textContent) return;
+  if (idZone === 'connexion-msg') { zone.textContent = ''; zone.removeAttribute('data-i18n'); return; }
+  zone.style.display = 'none'; zone.textContent = ''; zone.removeAttribute('data-i18n');
+}
+function brancherEffacementIdentifiants() {
+  [['auth-email', 'auth-msg'], ['auth-mdp', 'auth-msg'], ['connexion-email', 'connexion-msg'], ['connexion-mdp', 'connexion-msg']].forEach(([id, zone]) => {
+    const champ = document.getElementById(id);
+    if (champ && !champ.dataset.rpEffacement) { champ.dataset.rpEffacement = '1'; champ.addEventListener('input', () => effacerMessageIdentifiants(zone)); }
+  });
+}
+if (typeof document !== 'undefined') {
+  if (document.readyState !== 'loading') brancherEffacementIdentifiants();
+  else document.addEventListener('DOMContentLoaded', brancherEffacementIdentifiants);
+}
+
 async function validerIdentifiants() {
   // MEME DISCIPLINE QUE LA CREATION DU PERSONNAGE : verrou logique d'abord, etat visible ensuite.
   // Poser une adresse est un aller-retour reseau ; sans verrou, deux clics rapides lancent deux
@@ -1015,7 +1044,7 @@ async function validerIdentifiants() {
     console.warn('[auth] second appel a validerIdentifiants() ignore : operation deja en cours.');
     return;
   }
-  const email = (document.getElementById('auth-email')?.value || '').trim();
+  const email = String(document.getElementById('auth-email')?.value || '').replace(/[\u200B-\u200D\u2060\uFEFF]/g, '').trim(); // invisibles retirés (copier-coller mobile)
   const mdp = document.getElementById('auth-mdp')?.value || '';
 
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
