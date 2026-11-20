@@ -12,6 +12,14 @@ Règles : voir `AGENTS.md`.
 - Ne pas utiliser `gh pr create` (GraphQL bloqué, d'où un 403). Passer par l'API REST : `gh api repos/FredJ74/res-publica/pulls -f title='…' -f head='<branche>' -f base='main' -f body='…'`.
 - Si l'API REST refuse aussi (jeton sans droit d'ouverture de PR), pousser la branche et demander à Fred de l'ouvrir depuis claude.ai.
 
+### Criminalité — décisions de Fred du 20/11 sur les valeurs provisoires (Claude, 20/11/2026)
+- **Branche `claude/criminalite-decisions-20261120`**. Détail dans `GAME-DESIGN-CRIMINALITE.md`, « Décisions du 20/11/2026 ». **Migration APPLIQUÉE** : `20261120170000_crim_decisions_fred` (essai annulé d'abord). Banc `test-crim-decisions-20261120.cjs`.
+- **Question à Fred (point 13)** : retrait d'un laissez-passer par le ministre. Appliqué en attendant : le document est confisqué s'il est dans l'inventaire du titulaire, sinon l'habilitation reste retirée au registre mais le document circule. Le QHS n'a aujourd'hui aucun contrôle d'accès et le goulag n'est pas codé : seul l'accès aux archives d'écoute passe par le document.
+- **Polonium** : plus de vente au « Port de Novomirsk » orphelin ; il **reste en vente au marché noir de Novomirsk** (Camarade Kalachnikov, poison de l'empire, 150 PSK). Le militaire du centre d'écoute (radar) de Krasnov sera créé au passage de Fred au radar : rien n'y est fait. La ligne `ordres_couts` (2 PA / 150) n'existe qu'en base, comme `acheter_ghb` 1/300 (le prix du marché noir est dynamique, le générateur ne le voit pas).
+- **Goulag** : les peines automatiques de Sovarka sont doublées (`peine_facteur_soviet`) et se purgent pour l'instant comme ailleurs ; elles basculeront au goulag à son ouverture.
+- **Bouteille d'eau (à venir)** : point d'accroche prêt. Un objet `boisson: 'non_alcoolisee'` (ou une recette étiquetée `non_alcoolisee`) bu par « Boire » (`inventaire_consommer`) laisse la trace `boissons_du_jour` lue par le GHB ; toute nouvelle façon de boire doit appeler `boisson_bue_interne(nom)`.
+- **Pour Codex** : nouveaux textes français à traduire : `t_document` (`plateau-criminalite.js`), `fauxLaissezPasser` (`plateau-informatique.js`), « Faux laissez-passer » (`DOCUMENTS_FALSIFIABLES`), produit de marché « Tenue ninja », description du gilet unique et du laissez-passer (serveur). La traduction `acheter_polonium` reste au catalogue (ordre retiré du port, toléré par `banc-i18n-catalogue-ordres.cjs`).
+
 ### Chantier à part — indices de lieu encore exposés par la vue `personnages` (noté le 20/11/2026, à ne pas lancer sans Fred)
 - La vue expose encore aux autres joueurs `country` (pays courant), `reservation_hotel` (bâtiment), `employes` (pièce des employés) et `locations_actives`. Ville, bâtiment, pièce et inventaire sont déjà masqués (migration `20261120140000_crim_discretion`).
 - `country` filtre beaucoup de requêtes de l'écran : le masquer demande de remplacer ces lectures par des RPC serveur.

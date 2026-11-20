@@ -196,7 +196,7 @@ Trois façons d'agir :
 - **Référendum** : lui seul peut le lancer, au titre de Ministre de la Justice (ou le Premier ministre qui le supplée). C'est un acte de consultation, qui ne coûte rien quelle que soit l'issue. Si le oui l'emporte, l'envoi se fait sans pénalité. Si le non l'emporte, le détenu reste en cellule ordinaire ; si le gouvernement l'envoie quand même, la pénalité est doublée (−10 par membre du gouvernement, −20 au Ministre).
 - **Électeurs** : toutes les personnes domiciliées dans le pays, quelle que soit leur nationalité. Un Républien domicilié à l'étranger ne vote pas, un Sovarkien domicilié en Républia vote. Une voix par PJ. Vote de 24 heures. Chaque domicilié reçoit un courrier à l'ouverture du référendum.
 - **Vote des PNJ** : ils représentent l'état du pays et comptent comme un bloc fixe de 10 voix, réparties entre oui et non. Part de oui : 50 % ; +1 point pour chaque 2 points de Sécurité du pays sous 50 (−1 au-dessus) ; +1 point pour chaque 4 points de Moral du pays sous 50 (−1 au-dessus) ; −1 point pour chaque 2 points de POP du détenu au-dessus de 50 (+1 en dessous) ; bornes 10-90 %. Indices du pays ; à défaut d'indice national, moyenne des villes du pays.
-- **Égalité** : le non l'emporte, parce que le doute profite au détenu.
+- **Égalité** : le non l'emporte, parce que le doute profite au détenu. *(confirmé par Fred le 20/11/2026)*
 - **Durée** : le QHS est un régime, pas une peine supplémentaire. Le détenu y purge le reste de sa peine et sort libre à la fin. Pour allonger la peine, il y a la fourchette de ±50 % du juge (section 14).
 - **Sovarka** : le goulag est le QHS de Sovarka. Pas de pénalité et pas de référendum ; ses règles d'envoi existantes restent inchangées.
 
@@ -256,10 +256,10 @@ Relevé en production (`pg_proc` du projet `jxpwoosmmhohoihxpbuc`, lecture seule
 - Écran : `plateau-criminalite.js` (boutique, Revêtir / Retirer, fouille des cachettes dans « Fouiller ou voler », animation « Bas les masques ! » en CSS, sans image).
 
 ### Valeurs provisoires (choisies par l'agent, à valider par Fred)
-- **Points de vente** : tenue ninja et masque sur les **marchés** (Luthécia, Montrouge, PSM, Novomirsk, Starovka, Krasnov) faute de boutique de déguisements ; tenue ninja aussi chez les **armuriers** (sous-type militaire) ; kit, pied-de-biche et gilet chez les armuriers de Républia **et** de Sovarka (Novomirsk, Chasse et Pêche de Starovka), puisque des prix en PSK sont fixés. — *valeur provisoire choisie par l'agent, à valider par Fred*
-- **Familles de commerce PJ** : les objets portent `famille` / `sousTypes` (habillement civil et militaire, bazar/outil, armement/protection individuelle) pour qu'un futur commerce PJ d'habillement les vende ; aucun commerce PJ d'habillement n'existe encore. — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Points de vente** : tenue ninja et masque **au marché** et dans les **commerces de la famille Habillement** (tenue ninja : sous-types civil et militaire ; masque : civil) ; plus de tenue ninja chez les armuriers. Kit, pied-de-biche et gilet chez les armuriers de Républia et de Sovarka. — *décidé par Fred (20/11/2026)*
+- **Familles de commerce PJ** : recettes système `tenue_ninja_marche` (civil), `tenue_ninja_militaire` (militaire) et `masque_carnaval_habillement` (civil), ouvertes aux commerces « Vêtements » de joueurs. — *décidé par Fred (20/11/2026)*
 - **Autres empires** : prix de Républia (El Estado, Al-Khalija). — *valeur provisoire choisie par l'agent, à valider par Fred*
-- **Gilets déjà détenus** : le premier gilet de chaque personnage a été marqué revêtu à la migration (personne ne perd sa protection) ; le **gilet civil** compte désormais en combat comme le gilet militaire (il n'avait aucun effet). Un seul objet porté par catégorie. — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Gilet pare-balles** : un seul objet, sans distinction civil / militaire, même effet pour tous, seulement revêtu (−20 arme à feu, −5 mains nues / arme blanche ; 380 FR / 60 PSK). Les gilets détenus ont été ralignés sur la fiche unique (personne ne perd le sien ni l'état revêtu). — *décidé par Fred (20/11/2026)*
 - **Se cacher** : le malus ISN de la ville et le +15 fixe de l'ancienne formule disparaissent (le document ne les prévoit pas) ; on ne peut pas se cacher si l'on est déjà caché (PA épargné). — *valeur provisoire choisie par l'agent, à valider par Fred*
 - **Fouiller** : ordre distinct de « Fouiller les lieux » (caméras, 2 PA) ; un jet par PJ caché dans la pièce ; le débusqué est prévenu (nom du fouilleur, sauf s'il est masqué) ; un PJ policier = poste `commissaire*` ou `policier*` (aucun PJ agent de sécurité n'existe). — *valeur provisoire choisie par l'agent, à valider par Fred*
 - **Démasquage** : l'animation est montrée au PJ arrêté seulement ; elle se déclenche à l'entrée en détention (`est_emprisonne`) ; hôpital et QHS rendent les vêtements sans animation. — *valeur provisoire choisie par l'agent, à valider par Fred*
@@ -300,7 +300,7 @@ Relevé en production (`pg_proc` du projet `jxpwoosmmhohoihxpbuc`, lecture seule
 - **Échec critique et passage au combat** : un seul jet ; l'échec critique est la part haute des échecs (2 % de l'intervalle d'échec), la réussite
   critique la part basse des réussites. Le jet de combat s'applique à **tous** les échecs, critiques compris (le document ne le précise que pour
   le masque). — *valeur provisoire choisie par l'agent, à valider par Fred*
-- **Victime d'une neutralisation réussie** : PA à 0 (hôpital par la règle existante), PV inchangés. — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Victime d'une neutralisation réussie** : PA à 0, donc le régime existant d'hospitalisation à 0 PA (2 à 3 jours, sortie à 20 PA) ; PV inchangés. Vérifié le 20/11 : `crime_neutraliser` s'appuie bien sur ce mécanisme. — *décidé par Fred (20/11/2026)*
 - **PER de la cible PJ** : sa vraie PER (10 si absente) au lieu du 10 fixe de l'ancien écran. — *valeur provisoire choisie par l'agent, à valider par Fred*
 - **Détection qui identifie** : −10 DIS à l'auteur (règle existante de `crime_detecter_interne` conservée). — *valeur provisoire choisie par l'agent, à valider par Fred*
 - **Garde du corps ou agence** : agents de sécurité / maîtres-chiens employés par la victime (ou par l'employeur du PNJ visé), ou soldats qu'elle
@@ -349,12 +349,8 @@ Relevé en production (`pg_proc` du projet `jxpwoosmmhohoihxpbuc`, lecture seule
 
 ### Valeurs provisoires du lot 3 (choisies par l'agent, à valider par Fred)
 - **Liquide nul** : voler de l'argent à quelqu'un qui n'a pas de liquide = échec sans autre risque (comme l'objet absent). — *valeur provisoire choisie par l'agent, à valider par Fred*
-- **Objets volables** : tout objet non revêtu de l'inventaire, matières premières comprises (catégorie « autre », visée seulement par
-  l'objet au hasard) ; non volables : objets revêtus (`porte_par`), documents / actes / titres / récépissés / tracts, objets de quête
-  (calepin, colis de Pat), dotation militaire (`origineMilitaire` = lié au poste). Une serrure n'est pas une clé. Aucune arme n'est
-  « portée » tant qu'aucun ordre ne permet de la porter. — *valeur provisoire choisie par l'agent, à valider par Fred*
-- **Types nommables** : arme, clé, médicament (soins, médicaments, trousses), nourriture (aliments comestibles, céréales, produits
-  exotiques), vêtement (habillement, masque, tenue ninja, gilet non revêtu), bocal de graisse (castor, ours, renne). — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Objets volables** : tout objet non revêtu de l'inventaire, **documents et dotation militaire compris** ; seuls restent protégés les objets revêtus (`porte_par`), les objets de quête (calepin, colis de Pat), les biens immobiliers (`titre_propriete`, `bien_id`) et les objets de poste (`lie_poste`). Aucun parcours de restitution de la dotation n'existe : un soldat volé n'est bloqué nulle part. — *décidé par Fred (20/11/2026)*
+- **Types nommables** : arme, clé, médicament, nourriture, vêtement, bocal de graisse, **document** (actes, extraits, laissez-passer, tracts…). — *décidé par Fred (20/11/2026)*
 - **Modificateurs « au-dessus » seulement pour la remarque de l'échec** : le document ne donne pas le sens inverse (+3/PER au-dessus de 8,
   −1/3 DIS au-dessus de 50). Les tranches de DIS sont tronquées vers zéro (DIS 49 : 0 ; DIS 47 : −1). — *valeur provisoire choisie par l'agent, à valider par Fred*
 - **Réussite critique** : part basse des réussites (convention du lot 2), et non « au-delà de 95 sur le jet ». — *valeur provisoire choisie par l'agent, à valider par Fred*
@@ -405,12 +401,11 @@ Relevé en production (`pg_proc` du projet `jxpwoosmmhohoihxpbuc`, lecture seule
   `ORDRES_CAMBRIOLAGE` pour le miroir `ordres_couts` (plans 97 / 219 et seeds régénérés).
 
 ### Valeurs provisoires du lot 4 (choisies par l'agent, à valider par Fred)
-- **Modificateurs « au-dessus » seulement** : rien en dessous de 50 de DIS (crochetage) ni de 8 de FOR (effraction), le document ne donnant
-  pas le sens inverse (même convention que la remarque du vol au lot 3). — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **DIS du crochetage** : règle symétrique, +1 par tranche de 2 au-dessus de 50 et −1 par tranche de 2 en dessous (tranche du § 8 conservée). — *décidé par Fred (20/11/2026)*
+- **FOR de l'effraction** : rien en dessous de 8 (le document ne donne pas le sens inverse). — *valeur provisoire choisie par l'agent, à valider par Fred*
 - **Échec critique du crochetage** : pas de −15 de moral (le § 8 ne cite que le kit cassé et la trace) ; l'auteur n'est jamais identifié par
   cet échec. — *valeur provisoire choisie par l'agent, à valider par Fred*
-- **Passage du crocheteur** : personnel (ni le groupe ni les autres), valable **2 heures** (`intrusion_minutes`), sans limite de passages. —
-  *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Porte crochetée** : elle reste ouverte pour **tout le monde**, sans limite de temps, jusqu'à ce que le propriétaire la referme avec sa clé (ordre existant « fermer à clé », `serrure_basculer`). Plus de fenêtre de 2 h. — *décidé par Fred (20/11/2026)*
 - **Pied-de-biche** : utilisé d'office s'il est dans l'inventaire (pas de choix à l'écran). Pas d'échec critique à l'effraction (le § 8 n'en
   prévoit pas). — *valeur provisoire choisie par l'agent, à valider par Fred*
 - **Propriétaire d'une porte** : le PJ qui a posé la serrure (`serrures.poseur`). — *valeur provisoire choisie par l'agent, à valider par Fred*
@@ -469,15 +464,13 @@ Relevé en production (`pg_proc` du projet `jxpwoosmmhohoihxpbuc`, lecture seule
 ### Valeurs provisoires du lot 5 (choisies par l'agent, à valider par Fred)
 - **Détection de l'empoisonnement** : base 25 (taux existant de l'acte), −20 caché, −10 masqué, plancher 5 (plancher commun). —
   *valeur provisoire choisie par l'agent, à valider par Fred*
-- **« A bu dans la journée »** : au moins un verre d'alcool compté aujourd'hui (heure de Paris) dans `verres_du_jour` (consommation sur place,
-  tournées, boisson) ; les boissons sans alcool ne comptent pas, faute de trace. — *valeur provisoire choisie par l'agent, à valider par Fred*
-- **DIS** : +1 par tranche de 3 au-dessus de 50, rien en dessous (même convention qu'au lot 4). — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **« A bu dans la journée »** : **toute boisson** compte, alcoolisée ou non (trace `boissons_du_jour`, posée par `boisson_bue_interne`). La bouteille d'eau n'existe pas encore : il lui suffira d'être un objet `boisson: 'non_alcoolisee'` (ou une recette étiquetée ainsi) bu par « Boire » pour laisser sa trace. — *décidé par Fred (20/11/2026)*
+- **DIS** : règle symétrique partout (empoisonnement, explosifs, incendie, rumeur) : +1 par tranche de 3 au-dessus de 50, −1 par tranche de 3 en dessous, comme le vol. — *décidé par Fred (20/11/2026)*
 - **Paliers de l'empoisonnement** : le palier « échec partiel » (moitié basse des échecs) garde son effet atténué, sans détection ni
   identification (c'est un échec au sens de la règle commune). — *valeur provisoire choisie par l'agent, à valider par Fred*
 - **Cible de l'empoisonnement** : PJ seulement (l'effet du poison n'existe que pour les fiches de joueurs). Pas de PA (inchangé : seul le
   poison est consommé). — *valeur provisoire choisie par l'agent, à valider par Fred*
-- **Explosion prématurée** : seul le poseur est blessé (15 de santé) ; pas de fermeture, pas d'annonce, les présents sont épargnés.
-  La charge est perdue à tout échec (inchangé). — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Explosion prématurée** : seul le poseur est blessé (15 de santé) ; pas de fermeture, pas d'annonce, les présents sont épargnés. La charge est perdue à tout échec. — *décidé par Fred (20/11/2026)*
 - **Bidon d'essence** : la pile `carburant` existante (station-service) ; un bidon utilisé d'office et consommé à chaque tentative, réussie
   ou non. Aucun nouvel objet créé. — *valeur provisoire choisie par l'agent, à valider par Fred*
 - **Incendie d'un bâtiment officiel** : plus de −30 (le § 11 ne le prévoit pas, contrairement au § 10). Le malus ISN (`crime_malus_isn_interne`)
@@ -555,8 +548,7 @@ Relevé en production (`pg_proc` du projet `jxpwoosmmhohoihxpbuc`, lecture seule
   qu'il court (+7 jours à partir de l'échéance) ; le lever coûte 3 PA (inchangé) ; un état déclaré avant le lot expire 7 jours après la
   migration. — *valeur provisoire choisie par l'agent, à valider par Fred*
 - **Catégories** : délit, délit mineur, délit grave 1 j ; crime, crime d'État 2 j ; amendes inchangées. — *valeur provisoire choisie par l'agent, à valider par Fred*
-- **Nouveaux barèmes de Républia** : effraction 1 j, garde à vue 2 j, rébellion réussie 1 j (`se_rebeller`), rébellion matée 4 j, évasion 2 j
-  (`tentative_evasion`), tentative d'évasion échouée 1 j, résistance à l'arrestation 2 j. — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Nouveaux barèmes de Républia** : effraction 1 j, garde à vue 2 j, **rébellion réussie 2 j** (`se_rebeller`, décidé par Fred le 20/11/2026), rébellion matée 4 j, évasion 2 j (`tentative_evasion`), tentative d'évasion échouée 1 j, résistance à l'arrestation 2 j. — *valeur provisoire choisie par l'agent, à valider par Fred*
 - **Grilles** : par commissariat (`niveaux_prison`) ; bonus ajouté après le plafond ordinaire de 40 %, maximum absolu 90 % ; tranche de
   réparation = un tiers des dégâts cumulés (arrondi au-dessus), recalculée à chaque dégât ; l'insurrection à 0 reste inchangée. — *valeur provisoire choisie par l'agent, à valider par Fred*
 - **Alias** : les lignes `assassiner_*`, `corrompre_fonct`, `acheter_arme_illegale` restent dans `infractions` (aucune suppression) avec le
@@ -665,9 +657,7 @@ Migration `migrations/20261120070000_crim_lot8_rumeurs.sql` (appliquée après e
 ### Valeurs provisoires du lot 8 (choisies par l'agent, à valider par Fred)
 - **Perte de POP de l'échec critique** : 5 POP (paramètre `rumeur_critique_pop`), à la place du retour de bâton ordinaire, sans perte
   de moral. — *valeur provisoire choisie par l'agent, à valider par Fred*
-- **« La rumeur se retourne contre lui »** : annonce publique mondiale « X a tenté de répandre des calomnies sur Y. » ; la cible qui
-  apprend le nom est le PJ visé, le chef d'une organisation visée ou les membres d'un gouvernement visé (personne pour un local ou un
-  pays). — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **« La rumeur se retourne contre lui »** : annonce publique **nationale** (pays du lanceur) « X a tenté de répandre des calomnies sur Y. » ; −5 POP ; la cible qui apprend le nom est le PJ visé, le chef d'une organisation visée ou les membres d'un gouvernement visé. — *décidé par Fred (20/11/2026)*
 - **Cachette et masque** : sans effet sur la rumeur (acte à distance : visage découvert forcé, sans identification automatique) ;
   brouillard sans effet. — *valeur provisoire choisie par l'agent, à valider par Fred*
 - **Échec ordinaire** : retour de bâton existant conservé (0 à 2 POP et DIS, sans suite pénale). — *valeur provisoire choisie par l'agent, à valider par Fred*
@@ -728,9 +718,7 @@ Migration `migrations/20261120090000_crim_lot9_carriere.sql` (appliquée après 
   par l'agent, à valider par Fred*
 - **Carrière effective** : un PJ qui cumule deux carrières à bonus (ex. renseignement + criminelle) reçoit le bonus de la criminelle,
   sans cumul. — *valeur provisoire choisie par l'agent, à valider par Fred*
-- **Achats au marché noir** (+15 `criminal_c` / renseignement / escort dans `crime_acheter_arme_noire`, +15 `criminal_c` dans
-  `crime_acheter_explosifs`) : non touchés et non étendus à la seconde carrière (le § 15 exclut tout avantage « marché noir » ; leur
-  retrait éventuel est à trancher). — *valeur provisoire choisie par l'agent, à valider par Fred*
+- **Achats au marché noir** : plus **aucun** bonus de carrière (criminelle, renseignement, escort) ; les malus de carrière (magistrat, officier, clergé, médecin, −10) restent. Le +15 du renseignement et de l'escort au **vol** reste. — *décidé par Fred (20/11/2026)*
 - Autres empires : même cursus (une seule université, en Républia).
 
 ### Points relevés pour les lots suivants
@@ -904,3 +892,41 @@ Statuts : **décidé** (dans le document), **implémenté** (en production), **t
 | 1 | Discrétion (correctifs du 20/11) : rapports de combat sans nom de masqué (« Individu masqué n°X », même numéro que les présents, figé à l'ouverture) ; fiche d'un masqué sans Parler / Rejoindre / courrier ; position des autres joueurs illisible par l'API (vue `personnages`), tables de bataille non lisibles en direct | implémenté, testé | correctif | `crim_masques_piece_interne`, `crim_designation_interne`, `crim_designations_bataille_interne`, `crim_designation_bataille_interne`, `crim_presents`, raccords `crim_designations_v1` / `crim_designation_adversaire_v1` / `crim_designation_chef_v1`, vue `personnages` ; banc `test-crim-discretion-20261120.cjs` |
 | 15 | Marché noir : plus de +15 de carrière criminelle à l'achat d'armes et d'explosifs (correctif du 20/11) | implémenté, vérifié en production | — | `crime_acheter_arme_noire`, `crime_acheter_explosifs` (raccord `crim_marche_noir_sans_bonus_v1`) |
 | 1 | Vrai nom d'un masqué : écrire reste permis ; une demande de groupe à un chef caché ou masqué répond comme s'il était absent (correctif du 20/11) | implémenté, testé en production (essai annulé) | — | `groupe_pj_rejoindre` (raccord `crim_groupe_masque_v1`) |
+
+## Décisions du 20/11/2026 (Fred) — valeurs provisoires tranchées
+
+Migration `20261120170000_crim_decisions_fred` (essayée en transaction annulée, appliquée, relevé de production dans
+`outils/bancs/test-crim-decisions-20261120.cjs`).
+
+1. QHS sans ministre de la Justice ni Premier ministre : refus d'office (inchangé).
+2. Neutralisation réussie d'un PJ : chute à 0 PA, hospitalisation existante (2 à 3 jours, sortie à 20 PA) — vérifié, rien à corriger.
+3. Tenue ninja et masque : au marché et dans les commerces Habillement (tenue : civil et militaire ; masque : civil) ; plus de tenue chez les armuriers.
+4. Tenue ninja fabriquée au marché (recette `tenue_ninja_marche`) : 1 textile + 1 PA = 1 tenue ; prix = 2 × coût de revient :
+   **110 FR** ((5 + 50) × 2) et **32 PSK** ((1 + 15) × 2). Cartes des trois marchés de Républia et dotations (Krasnov compris) ;
+   Novomirsk et Starovka, sans carte propre, la gardent au comptoir « Équipement discret » au même prix. Masque des commerces
+   Habillement : 1 textile + 1 PA = 2 masques (choix de l'agent, à relire).
+5. Porte crochetée : ouverte pour tous, sans limite, jusqu'à ce que le propriétaire la referme avec sa clé (`serrure_basculer`).
+6. GHB : toutes les boissons comptent (`boissons_du_jour`) ; accroche prête pour la bouteille d'eau.
+7. Polonium : **150 PSK** (`ordres_couts` 2 PA / 150). Ordre retiré du « Port de Novomirsk » orphelin (bâtiment absent de toute carte,
+   laissé en place). Il reste vendu au **marché noir de Novomirsk** (Camarade Kalachnikov), qui proposait déjà le poison de l'empire.
+8. Explosion prématurée : seul le poseur est blessé (inchangé).
+9. Échec critique d'une rumeur : annonce nationale (pays du lanceur), −5 POP inchangés.
+10. Égalité au référendum QHS : le non l'emporte (inchangé).
+11. Gilet pare-balles : fiche unique (`objets_modeles.gilet`), gilets militaires ralignés au retrait (`militaire_retrait`) et dans les
+    inventaires (provenance, lot et port conservés) ; l'ancien ordre « Acheter un gilet » à 600 FR ouvre désormais le comptoir au prix de l'empire.
+12. Vol : documents et dotation militaire volables (type nommable « document ») ; protégés : revêtus, quête, immobilier, objets de poste.
+13. Laissez-passer : l'accès aux archives d'écoute de Sovarka se fait sur présentation d'un document physique
+    (`crim_laissez_passer_detenu_interne` regarde l'inventaire, pas le nom). L'habilitation au registre remet le document ;
+    son retrait confisque le document s'il est dans l'inventaire du titulaire, sinon il circule (**en attente de Fred**).
+    Le QHS n'a aujourd'hui aucun contrôle d'accès (la visite n'est pas contrôlée) et le goulag n'est pas codé : le genre de document
+    est prévu (`crim_laissez_passer_objet_interne`), le contrôle reste à brancher quand Fred aura dit qui délivre et ce qu'il ouvre.
+    Les habilitations de carrière restent au registre, non volables.
+14. Faux laissez-passer : greffe (3 PA + 300 FR, 45 %) et imprimante papier (3 PA + cartouche, 70 %) ; un faux réussi est un vrai
+    laissez-passer au nom du faussaire, sans aucune marque.
+15. DIS : règle symétrique partout (empoisonnement, explosifs, incendie, rumeur, crochetage).
+16. Marché noir : plus aucun bonus de carrière (renseignement et escort perdent leur +15 ; malus conservés).
+
+Écarts corrigés : rébellion réussie **2 j** ; peines automatiques de **Sovarka doublées** (assassin 4 j, voleur 2 j, corrupteur 2 j,
+reste du barème × 2 par `peine_facteur_soviet` ; le juge module toujours autour de la référence non doublée ; empires non ouverts =
+Républia ; purgées comme ailleurs tant que le goulag n'est pas ouvert) ; progression nocturne de l'empoisonnement passée au serveur
+(`crim_poison_nuit_interne`, appelée par `pa_repos_nocturne`, valeurs inchangées : PV ÷ 2, sous 20 → hospitalisation d'urgence).

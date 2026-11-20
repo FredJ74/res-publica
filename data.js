@@ -9261,7 +9261,6 @@ const BUILDINGS = {
           {fn:'expedier_colis', label:'Expédier un colis', pa:2, cost:200, type:'legal', icon:'ti-package-export', successRate:100, desc:'Envoyer un objet à un PJ autre empire. Délai 24h.'},
           {fn:'receptionner_commande', label:'Réceptionner une commande', pa:1, cost:0, type:'legal', icon:'ti-package-import', successRate:100, desc:'Récupérer un objet commandé.'},
           {fn:'contrebande_port', label:'Contrebande portuaire', pa:3, cost:0, type:'illegal', icon:'ti-package-off', successRate:35, desc:'Très risqué à Sovarka. DIS/10 + DUP/10. -20% modificateur Sovarka.'},
-          {fn:'acheter_polonium', label:'Obtenir du Polonium', pa:2, cost:600, type:'illegal', icon:'ti-radioactive', successRate:50, desc:'Objet poison de Sovarka. Usage unique. DUP/10 + DIS/10. Disponible uniquement ici.'},
           {fn:'inspecter_cargaisons', label:'Inspecter les cargaisons', pa:2, cost:0, type:'legal', icon:'ti-search', successRate:90, requiresPost:'min_def', desc:'Révèle contrebandes. Sovarka +25% efficacité surveillance.'}
         ]
       }
@@ -9963,7 +9962,9 @@ const DOCUMENTS_FALSIFIABLES = [
   { id:'fausse_identite',   name:'Fausse identite',          desc:'Change votre nom affiche dans le jeu temporairement.',     icon:'ti-id-badge' },
   { id:'faux_permis',       name:'Faux permis de construire', desc:'Permet de construire sans passer par la mairie.',          icon:'ti-building' },
   { id:'faux_contrat',      name:'Faux contrat commercial',   desc:'Legitime une transaction illegale ou un transfert.',       icon:'ti-file-text' },
-  { id:'fausse_convocation',name:'Fausse convocation officielle', desc:'Attire un PJ dans un lieu de votre choix.',           icon:'ti-mail' }
+  { id:'fausse_convocation',name:'Fausse convocation officielle', desc:'Attire un PJ dans un lieu de votre choix.',           icon:'ti-mail' },
+  // Fred, 20/11/2026 : un faux réussi est identique à un vrai laissez-passer (archives d'écoute), jamais détectable.
+  { id:'faux_laissez_passer', name:'Faux laissez-passer', desc:'Ouvre les archives des centres d\'écoute de Sovarka à qui le présente.', icon:'ti-id-badge' }
 ];
 
 const POSTES_ELECTIFS = {

@@ -263,7 +263,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'gerer_logement_social') { gererLogementSocial(); return; }
   if (fn === 'traiter_demandes_logement_social') { ouvrirTableauLogementsSociaux(); return; }
   if (fn === 'consulter_registre_armes') { doConsulterRegistre(); return; }
-  if (fn === 'acheter_gilet') { doAcheterGilet(); return; }
+  // Gilet pare-balles unique (Fred, 20/11/2026) : vendu au prix de l'empire (380 FR / 60 PSK) par la boutique « Équipement discret ».
+  if (fn === 'acheter_gilet') { if (typeof ouvrirBoutiqueDiscretion === 'function') ouvrirBoutiqueDiscretion(); else doAcheterGilet(); return; }
   if (fn === 'boutique_discretion') { if (typeof ouvrirBoutiqueDiscretion === 'function') ouvrirBoutiqueDiscretion(); return; }
   // « Subtiliser des explosifs » (refonte du 13 septembre 2026). Ce n'etait PAS un vol : l'ordre
   // ouvrait le modal du marche noir a 1 200 FR, alors que son libelle et sa description

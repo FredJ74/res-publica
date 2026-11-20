@@ -245,7 +245,8 @@ test('Écran : boutons sur la porte fermée, aucun calcul, entrée par la naviga
   return (async () => {
     await g.crimPorteAgir('crocheter', 'centre-commercial', 'boutique_milieu');
     assert.deepEqual(JSON.parse(JSON.stringify(appels[0])), ['crim_crocheter', { p_batiment: 'centre-commercial', p_piece: 'boutique_milieu', p_requete: '00000000-0000-4000-8000-000000000000' }]);
-    assert.deepEqual(JSON.parse(JSON.stringify(g.passages[0])), ['centre-commercial', 'boutique_milieu', false]);
+    // Fred, 20/11/2026 : la porte crochetée reste ouverte pour tous (plus de passage personnel) : le cache la retire des portes fermées.
+    assert.deepEqual(JSON.parse(JSON.stringify(g.passages[0])), ['centre-commercial', 'boutique_milieu', true]);
     assert.deepEqual(JSON.parse(JSON.stringify(g.entres[0])), ['centre-commercial', 'boutique_milieu']);
     assert.match(toasts[0][1], /servira encore 3 fois/);
     await g.crimOuvrirCambriolage();

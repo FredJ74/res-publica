@@ -176,7 +176,7 @@ function informatiqueInventaire(r) {
 }
 
 function ouvrirImprimantes() {
-  const docs = [['fausse_identite', texteEquip('fausseIdentite', 'Fausse identité')], ['faux_permis', texteEquip('fauxPermis', 'Faux permis de construire')], ['faux_contrat', texteEquip('fauxContrat', 'Faux contrat commercial')], ['fausse_convocation', texteEquip('fausseConvoc', 'Fausse convocation')]];
+  const docs = [['fausse_identite', texteEquip('fausseIdentite', 'Fausse identité')], ['faux_permis', texteEquip('fauxPermis', 'Faux permis de construire')], ['faux_contrat', texteEquip('fauxContrat', 'Faux contrat commercial')], ['fausse_convocation', texteEquip('fausseConvoc', 'Fausse convocation')], ['faux_laissez_passer', texteEquip('fauxLaissezPasser', 'Faux laissez-passer')]];
   equipementsModale(texteEquip('imprimantes', 'Imprimantes'), '<div class="cpj-titre">' + texteEquip('impPapier', 'Imprimante papier — faux documents') + '</div>' +
     '<p class="cpj-note">' + texteEquip('impPapierNote', '3 PA et une cartouche d\'encre. 70 % de réussite, sans risque d\'être vu. Le modèle est rangé dans vos dossiers.') + '</p>' +
     docs.map(d => equipementsBouton('fauxImprimer(\'' + d[0] + '\')', d[1])).join(' ') +

@@ -60,7 +60,7 @@ const T = {
     vIntro: 'Que cherchez-vous ? Vous ne verrez pas ce que la personne porte. Le serveur tranche tout : réussite, butin, détection, risque d’affrontement. Être caché ne facilite pas le vol mais protège votre identité.',
     vArgent: 'De l’argent liquide — {pa} PA', vHasard: 'Un objet au hasard — {pa} PA', vPrecis: 'Un objet précis — {pa} PA',
     vType: 'Quel type d’objet ?', t_arme: 'Une arme', t_cle: 'Une clé', t_medicament: 'Un médicament', t_nourriture: 'De la nourriture',
-    t_vetement: 'Un vêtement', t_graisse: 'Un bocal de graisse',
+    t_vetement: 'Un vêtement', t_graisse: 'Un bocal de graisse', t_document: 'Un document',
     vOk: 'Vol réussi', vOkText: 'Vous dérobez : {butin}.', vOkCrit: 'Personne ne s’est aperçu de rien.',
     vVide: 'Bredouille', vRien: 'Vous ne trouvez rien à prendre.', vTypeAbsent: 'Elle n’a rien de ce genre sur elle.',
     vFail: 'Vol raté', vFailText: 'Votre tentative échoue. Vous gardez votre cachette et pouvez retenter si vous avez des PA.',
@@ -396,7 +396,7 @@ const ORDRES_VOL = {
   hasard: { fn: 'voler', label: 'Voler un objet au hasard', pa: 2, cost: 0 },
   precis: { fn: 'voler', label: 'Voler un objet précis', pa: 3, cost: 0 }
 };
-const TYPES_VOL = ['arme', 'cle', 'medicament', 'nourriture', 'vetement', 'graisse'];
+const TYPES_VOL = ['arme', 'cle', 'medicament', 'nourriture', 'vetement', 'graisse', 'document']; // documents volables (Fred, 20/11/2026)
 function titreModale(t) { const e = global.document.getElementById('postes-modal-title'); if (e) e.textContent = t; }
 function ouvrirModale(html) {
   global.document.getElementById('postes-body').innerHTML = html;
@@ -520,7 +520,7 @@ async function crimPorteAgir(geste, batiment, piece) {
   else toast(texte('cFail'), texte('cFailText'), false);
   // Porte ouverte par le serveur : on entre par la navigation ordinaire (le serveur revérifie).
   if (r.reussi && r.entrer) {
-    if (typeof global.serruresPassageAccorde === 'function') global.serruresPassageAccorde(r.entrer.batiment, r.entrer.piece, geste === 'forcer');
+    if (typeof global.serruresPassageAccorde === 'function') global.serruresPassageAccorde(r.entrer.batiment, r.entrer.piece, true);
     if (r.entrer.piece && typeof global.enterRoom === 'function') global.enterRoom(r.entrer.batiment, r.entrer.piece);
     else if (!r.entrer.piece && typeof global.enterBuilding === 'function') global.enterBuilding(r.entrer.batiment);
   }

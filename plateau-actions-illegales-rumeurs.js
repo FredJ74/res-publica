@@ -853,7 +853,7 @@ async function confirmerScandale(pa, cost) {
 const POISON_OBJETS = {
   parapluie: { name:'Parapluie républien', icon:'ti-umbrella',   cout:400, empire:'republic', msg:'Un accessoire élégant. Discret. La pointe contient... quelque chose.' },
   ghb:       { name:'GHB de contrebande', icon:'ti-flask',       cout:300, empire:'narco',    msg:'Un flacon transparent. Inodore, incolore. À manier avec précaution.' },
-  polonium:  { name:'Fiole de Polonium',  icon:'ti-radioactive', cout:600, empire:'soviet',   msg:'Un petit contenant blindé. Ne pas ouvrir sans combinaison.' },
+  polonium:  { name:'Fiole de Polonium',  icon:'ti-radioactive', cout:150, empire:'soviet',   msg:'Un petit contenant blindé. Ne pas ouvrir sans combinaison.' },
   vipere:    { name:'Vipère des sables',  icon:'ti-bug',         cout:350, empire:'khalija',  msg:'Une petite boîte percée. On entend un léger sifflement.' }
 };
 
@@ -3460,7 +3460,8 @@ const RECETTES_ALIMENTAIRES = {
 // PRODUITS_MARCHE -- absent de RECETTES_ALIMENTAIRES par construction, jamais teste sur ce
 // registre.
 // « livre » (15/11/2026) : guide des baies sauvages de Krasnov, objet garde en inventaire et lu (2 PA, +1 INT 24 h).
-const FAMILLES_PRODUITS_MARCHE = ['aliment', 'integration_locale', 'carte_postale', 'livre'];
+// « vetement » (20/11/2026) : tenue ninja, objet revêtable (crim_objet_categorie_interne la reconnaît par son id de recette).
+const FAMILLES_PRODUITS_MARCHE = ['aliment', 'integration_locale', 'carte_postale', 'livre', 'vetement'];
 
 // Registre distinct, volontairement VIDE dans ce lot (aucun produit concret cree -- Lots 2/3/4).
 // Lot 2 (23 aout 2026) : 3 objets d'integration locale, rendement/couts valides par Fred (audit
@@ -3559,6 +3560,16 @@ const PRODUITS_MARCHE = {
     materiaux: { textile: 2 }, pa: 1, portions: 6,
     bonusIntegrationVille: 'soviet.ville_b',
     typesAutorises: ['marche'], paysAutorises: ['soviet'], villesAutorisees: ['ville_b'], buildingsAutorises: ['marche']
+  },
+  // Tenue ninja (Fred, 20/11/2026) : fabriquée au marché comme la chemise de bûcheron, mais à l'unité : 1 textile + 1 PA
+  // = 1 tenue ; prix = 2 × coût de revient (110 FR, 32 PSK). Serveur : migration 20261120170000_crim_decisions_fred.
+  tenue_ninja_marche: {
+    id: 'tenue_ninja_marche', label: 'Tenue ninja', familleProduitMarche: 'vetement',
+    desc: 'Noire de la tête aux pieds. Revêtue : +15 % pour se cacher, −15 % aux fouilles qui vous visent.',
+    categorie: 'objet', image: null, icon: 'ti-shirt',
+    materiaux: { textile: 1 }, pa: 1, portions: 1,
+    typesAutorises: ['marche'], paysAutorises: ['republic', 'soviet'], villesAutorisees: ['capitale', 'ville_a', 'ville_b'],
+    buildingsAutorises: ['marche', 'marche-psm']
   },
   // Tabac/Presse de Krasnov (14/11/2026) : famille « Presse & papeterie », objets deposes en inventaire
   // par la vente (carte postale a ecrire ; revue d'integration locale, +1 ENT a Krasnov, non cumulable).

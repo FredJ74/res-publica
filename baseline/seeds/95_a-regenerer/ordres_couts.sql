@@ -13,7 +13,6 @@ INSERT INTO public.ordres_couts (fn,pa,cost) VALUES
   ('acheter_gilet',1,600),
   ('acheter_graisse',0,0),
   ('acheter_parapluie',0,400),
-  ('acheter_polonium',2,600),
   ('acheter_relique',0,500),
   ('acheter_ressources_entrepot',0,0),
   ('acheter_sels_ammoniaque',0,0),
