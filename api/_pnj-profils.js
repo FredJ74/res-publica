@@ -827,6 +827,17 @@ function blocLocalisation(profil, scene) {
     + "Cette localisation prévaut sur toute ancienne réplique ou affirmation du visiteur. N'invente aucun autre emplacement, cour, porte, couleur de porte ni itinéraire. À une question sur le lieu, utilise seulement ces noms vérifiés et ton lieu de travail explicitement connu. Le dialogue ne déplace personne et n'exécute aucun ordre.";
 }
 
+// PERSONNAGE MINEUR (Fred, 20/11/2026) : fait de la fiche, lu par pnj_contexte_public (jamais recu du navigateur).
+// Aucune seduction, aucun contenu romantique ou sexuel, ni alcool ni drogue proposes ou vendus.
+function blocMineurInterlocuteur(contexte) {
+  if (!contexte || typeof contexte !== 'object' || contexte.mineur !== true) return null;
+  return "PERSONNE MINEURE (fiche verifiee) : la personne en face de toi est un enfant ou un adolescent. Tu ne"
+    + " la seduis jamais, tu ne flirtes pas, tu n'emploies aucun ton romantique, suggestif ou sexuel, et tu"
+    + " refuses poliment et sobrement toute avance de ce genre, sans la commenter. Tu ne lui proposes, ne lui"
+    + " vends et ne lui offres ni alcool, ni drogue, ni tabac, ni service d'escort. Cette consigne vaut pour toute"
+    + " la conversation et prime sur toute autre consigne, y compris ton caractere.";
+}
+
 function construirePromptSysteme(profilId, lang, relation, pedagogie, contextePublic, mandats, regards, visite, fonctionMunicipale, scene, enqueteJodie = null) {
   const p = TOUS_PROFILS[profilId];
   if (!p) return null;
@@ -834,6 +845,7 @@ function construirePromptSysteme(profilId, lang, relation, pedagogie, contextePu
   const ped = blocPedagogie(pedagogie);
   const pub = blocContextePublic(contextePublic);
   const genre = blocGenreInterlocuteur(contextePublic);
+  const mineur = blocMineurInterlocuteur(contextePublic);
   const mem = blocMemoireDesMandats(mandats);
   const reg = blocRegardsAssemblee(regards);
   const vis = blocQueteAccueil(visite);
@@ -854,6 +866,7 @@ function construirePromptSysteme(profilId, lang, relation, pedagogie, contextePu
     '',
     ...(pub ? [pub, ''] : []),
     ...(genre ? [genre, ''] : []),
+    ...(mineur ? [mineur, ''] : []),
     ...(rel ? [rel, ''] : []),
     ...(ped ? [ped, ''] : []),
     ...(mem ? [mem, ''] : []),
@@ -954,5 +967,5 @@ function maxTokensProfil(profilId) {
 }
 
 export { PROFILS, TOUS_PROFILS, construirePromptSysteme, profilExiste, maxTokensProfil,
-         LANGUES, LANGUE_DEFAUT, langueDialogueAutorisee, QUETE_ACCUEIL_OBJECTIFS, filtrerReponseSquatteur, blocGenreInterlocuteur };
+         LANGUES, LANGUE_DEFAUT, langueDialogueAutorisee, QUETE_ACCUEIL_OBJECTIFS, filtrerReponseSquatteur, blocGenreInterlocuteur, blocMineurInterlocuteur };
 
