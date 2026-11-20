@@ -8,6 +8,12 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Sortie de bâtiment, provenance de rue, peines au barème (Claude, 20/11/2026)
+- **Branche `claude/navigation-rue-sortie-20261120`**. **Migration APPLIQUÉE** : `20261120250000_navigation_provenance_peines_bareme` (essai annulé d'abord). Banc `test-navigation-provenance-20261120.cjs`.
+- **Cause de l'écran** : quand `state.country` / `state.currentCity` ne désignent pas une ville à rues, `showVueRue` bascule dans l'ancien mode et ne réécrit pas le titre : le gabarit de `plateau.html` affiche alors « Avenue de la Republique » (reproduit au navigateur). À la sortie, l'écran relit désormais `rue_position_lire` et adopte le pays et la ville du serveur (`realignerVilleSurServeurAvantSortie`) ; une ville inconnue ne laisse plus ni titre ni décor d'une autre ville ; l'orientation n'est retenue que si elle est voisine de la porte (`orientationRueVoisine`).
+- **Pourquoi une mise à jour directe de `current_street_from` ne prend pas** : le déclencheur BEFORE UPDATE `navigation_provenance_garder` (`navigation_provenance_garder_interne`) remet `OLD.current_street_from` pour tout le monde, serveur et SQL d'administration compris : la provenance se DÉDUIT des déplacements, ce n'est pas une colonne recalculée. Correction volontaire : `SET LOCAL rp.provenance_imposee = 'on';` puis l'UPDATE, dans la même transaction.
+- **Cohérence** : entrer dans un bâtiment sans venir de la rue de sa porte (cellule, hôpital, téléportation) ou passer d'un bâtiment à un autre vide la provenance ; arriver dans une rue avec une provenance qui n'y mène pas la remplace par la première arrivée déclarée (ou NULL). Toute fin de détention et tout déplacement imposé passent par ce déclencheur.
+- **Peines** : le vol d'archives d'écoute (1 jour en dur) et le vol de matériel militaire en Sovarka (3 jours en dur) passent par `crim_peine_jours_interne` : archives 2 jours en Sovarka, matériel militaire 4 jours en Sovarka (2 × 2). Aucun autre appel de `arrestation_flagrant_interne` n'avait de durée en dur.
 ### Carrière modifiable seulement par le jeu (Claude, 20/11/2026)
 - **Branche `claude/carriere-serveur-seul-20261120`**. **Migration APPLIQUÉE** : `20261120240000_carriere_serveur_seul` (essai annulé d'abord, avec témoin). `personnages_vue_modifier` reprend `career` canonique (marque `carriere_serveur_seul_v1`) : la fiche ne peut plus réécrire la carrière ; seconde carrière uniquement par le cursus universitaire. Banc `test-carriere-serveur-seul-20261120.cjs`.
 ### Carrières sans métier et personnages mineurs (Claude, 20/11/2026)
