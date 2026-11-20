@@ -8,6 +8,9 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Carrière modifiable seulement par le jeu (Claude, 20/11/2026)
+- **Branche `claude/carriere-serveur-seul-20261120`**. **Migration APPLIQUÉE** : `20261120240000_carriere_serveur_seul` (essai annulé d'abord, avec témoin). `personnages_vue_modifier` reprend `career` canonique (marque `carriere_serveur_seul_v1`) : la fiche ne peut plus réécrire la carrière ; seconde carrière uniquement par le cursus universitaire. Banc `test-carriere-serveur-seul-20261120.cjs`.
+
 ### Actions réservées aux comptes confirmés (Claude, 20/11/2026)
 - **Branche `claude/compte-confirme-actions-20261120`** (part de #1144). **Migration APPLIQUÉE** : `20261120220000_compte_confirme_actions` (essai annulé d'abord). Règle dans `GAME-DESIGN-ELECTIONS.md`. Banc `test-compte-confirme-actions-20261120.cjs`.
 - Candidature, nomination (postes et ambassadeurs), fondation de parti ou d'organisation ; premium : brancher `compte_confirmation_refus_interne(nom, 'premium')` sur le futur achat.
