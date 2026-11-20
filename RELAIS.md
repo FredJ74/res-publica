@@ -8,6 +8,11 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Prescription des plaintes (Claude, 20/11/2026)
+- **Branche `claude/plaintes-prescription-20261120`** (part de la branche des retours de tests). **Migration APPLIQUÉE** : `20261120320000_plaintes_prescription` (essai annulé d'abord). Règle : `GAME-DESIGN-CRIMINALITE.md` § 3. Banc `test-plaintes-prescription-20261120.cjs`.
+- `plaintes_prescrire(30)` (serveur seul), appelée par la passe de nuit (`traiterPrescriptionPlaintesServeur`, api/cron-minuit.js) : statuts « au_parquet » / « enquete » seulement, jamais après identification ou procès ; ligne `plaintes_historique`, plainte retirée de `plaintes_en_cours`, affaire archivée (`crim_affaires.archivee_le`, indices et détails purgés), courrier « Plainte prescrite » (Ministère public) au plaignant PJ.
+- **Pour Codex** : ajouter le courrier « Plainte prescrite » au traducteur des courriers du serveur (`RPCourriersSovarka.vu`), sujet + corps paramétré (date, acte, ville).
+
 ### Retours des tests à deux comptes : chat, débusquage, MJ, proximité (Claude, 20/11/2026)
 - **Branche `claude/retours-tests-chat-20261120`** (part de la branche des faits divers). **Migration APPLIQUÉE** : `20261120310000_chat_proximite_signaux_debusque` (essai annulé d'abord). Banc `test-retours-tests-chat-20261120.cjs`.
 - « X vous parle » / « Individu masqué n° X vous parle » : notification cliquable et point rouge, sans ouverture automatique ; signal temps réel `chat_signaux` (lisible par soi seul, identifiant anonyme résolu au serveur). Débusquage : ligne au journal (« … vous a débusqué(e) », rappel « Vous restez masqué(e) »). Déplacements du MJ en base : déjà signalés par le déclencheur `zz_personnages_signaux` (vérifié). Conversations de proximité : `chat_envoyer` refuse un message direct si l'interlocuteur n'est plus dans la pièce (`interlocuteur_absent`, sans dire où il est allé), même règle dans la politique d'écriture ; l'historique reste lisible.
