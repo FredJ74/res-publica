@@ -44,3 +44,26 @@ Nouvelle règle :
 - Bancs : jour normal ; jour complet sans avance ; jour d'avance partiel complété par les PNJ (+2 jours) ; troisième jour refusé ; matériaux insuffisants pour deux jours ; palier d'appel de fonds non versé.
 
 Hors refonte de la règle d'accélération (point 5), ne change aucune règle serveur (coûts, taux, appels de fonds). Fred testera ensuite avec Arnie sur le terrain 3 de Luthécia, et on ajustera.
+
+---
+
+# Complément du 21/11/2026 : terrains à bâtir, cohérence des vues avec l'avancement des constructions — consigne intégrale
+
+TERRAINS À BÂTIR : cohérence des vues avec l'avancement des constructions (décisions de Fred, 21/11). À traiter avec le chantier « construction », après le lot de Krasnov.
+
+Constat : la vue des lots (Luthécia : « LOT 1 À VENDRE… LOT 5 À VENDRE », surfaces dessinées) et la vue de rue figent un état qui devient faux dès qu'un lot est vendu ou construit.
+
+1. VUE DES LOTS : PLAN DU LOTISSEMENT EN VIGNETTES (à tester, Fred jugera le rendu)
+- Remplacer l'image unique des lots par un plan en vignettes : une carte cliquable par lot, qui mène au lot comme aujourd'hui.
+- Chaque vignette montre l'image ACTUELLE du lot : image de terrain nu s'il est à vendre ou acheté sans chantier ; image de l'étape du chantier s'il est en travaux (démarrage commun images/chantier-en-cours.webp, puis gros œuvre / façade par ville et par gabarit) ; image du bâtiment achevé s'il est construit (final-<palier> de la ville). Mêmes fichiers et même convention que le chantier « construction » (images/chantiers/<ville>/…), avec repli sur l'image actuelle si un fichier manque.
+- Sous chaque vignette, une étiquette tirée du serveur, par exemple : « Lot 3 — 2 300 m² — À vendre », « Lot 3 — Chantier 47 % », « Lot 3 — Building de Arnie ».
+- Mise à jour immédiate, sans recharger la page.
+
+2. VUE DE RUE : TROIS ÉTATS PAR VILLE
+- État 1, terrain vague en chantier (image actuelle) : tant qu'aucun bâtiment n'est réceptionné dans le lotissement de la ville.
+- État 2, quartier en partie vivant : dès la réception du PREMIER bâtiment.
+- État 3, quartier achevé : à la réception du DERNIER bâtiment.
+- Seule la zone des terrains change sur l'image ; tout le reste de la rue est identique. Les zones cliquables et les sorties ne bougent pas.
+- Convention de fichiers : images/terrains/<ville>/rue-etat-1.webp, rue-etat-2.webp, rue-etat-3.webp (ville = luthecia, montrouge, psm). Repli sur l'image actuelle si un fichier manque. Fred fournira les images.
+- Même principe pour Montrouge et Port-Sainte-Marie, avec leur lotissement respectif.
+- Bancs : aucune réception → état 1 ; une réception → état 2 ; toutes les réceptions → état 3 ; fichier manquant → repli.
