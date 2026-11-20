@@ -10,6 +10,15 @@ Règles : voir `AGENTS.md`.
 ## En cours
 ### Carrière modifiable seulement par le jeu (Claude, 20/11/2026)
 - **Branche `claude/carriere-serveur-seul-20261120`**. **Migration APPLIQUÉE** : `20261120240000_carriere_serveur_seul` (essai annulé d'abord, avec témoin). `personnages_vue_modifier` reprend `career` canonique (marque `carriere_serveur_seul_v1`) : la fiche ne peut plus réécrire la carrière ; seconde carrière uniquement par le cursus universitaire. Banc `test-carriere-serveur-seul-20261120.cjs`.
+### Carrières sans métier et personnages mineurs (Claude, 20/11/2026)
+- **Branche `claude/carrieres-mineurs-20261120`**. **Migration APPLIQUÉE** : `20261120230000_mineurs_carrieres_garde_fous` (essai annulé d'abord). Règles : `GAME-DESIGN-PERSONNAGES-MINEURS.md`. Banc `test-personnages-mineurs-20261120.cjs`.
+- Carrières `minor` (« Enfant / Adolescent », 50, mineur permanent : `personnages_donnees.est_mineur`) et `sans_experience` (100). Contrôle commun `mineur_refus_interne` (refus neutre `action_non_disponible`) sur escorts, rencontre piège, alcool, drogue ; plus de seconde carrière ni de cursus pour un mineur ; consigne « personne mineure » au dialogue des PNJ.
+- Signalement des messages (courrier, forum, conversations) : `message_signaler` ; file MJ dans admin.html (`admin-signalements.js`), mineurs en tête.
+- **Pour Codex — nouvelles clés** (secours français dans le code) : `creation.careers.minor.name`, `creation.careers.minor.comp`, `creation.careers.minor.notice`, `creation.careers.sans_experience.name`, `creation.careers.sans_experience.comp` ; `minorGuard.title`, `minorGuard.unavailable`, `minorGuard.careerLocked` ; `reportMessage.button`, `.prompt`, `.title`, `.reasonRequired`, `.sent`, `.already`, `.failed` ; forum `forumUI.report` (à ajouter aussi à la liste des clés de `i18n/forum-ui.js`) ; université `r_personnage_mineur_carriere_unique` (`plateau-universite.js`).
+- À vérifier en jeu : créer un personnage « Enfant / Adolescent », tenter un verre au bar, un dealer, l'université ; signaler un courrier et voir la file dans admin.html.
+
+### Charte à rédiger avant le 19/12
+- Règle de Fred (20/11/2026) : « Tout contenu sexuel ou suggestif impliquant un personnage mineur, en message, en forum ou en RP, entraîne un bannissement définitif, sans avertissement. »
 
 ### Actions réservées aux comptes confirmés (Claude, 20/11/2026)
 - **Branche `claude/compte-confirme-actions-20261120`** (part de #1144). **Migration APPLIQUÉE** : `20261120220000_compte_confirme_actions` (essai annulé d'abord). Règle dans `GAME-DESIGN-ELECTIONS.md`. Banc `test-compte-confirme-actions-20261120.cjs`.

@@ -1790,11 +1790,9 @@ async function initialiserRueCentrale(pays, noeudDepart, depuisNoeud) {
     // Position vierge : seul le serveur peut valider le départ officiel.
     // Pas de déplacement local ni de restauration depuis le cache.
     if (!position.street && !position.building) {
-      const departOfficiel = {
-        capitale: 'luthecia-palais-presidentiel',
-        ville_a: 'psm-centre-multimodal',
-        ville_b: 'montrouge-vue-3'
-      }[state.currentCity] || RUE_CENTRALE_DEPART[pays]?.[state.currentCity];
+      // Le pays est indispensable : ville_b est Montrouge en Républia,
+      // mais Krasnov en Sovarka. La table commune est la source de vérité.
+      const departOfficiel = RUE_CENTRALE_DEPART[pays]?.[state.currentCity];
       if (departOfficiel && RUE_CENTRALE_NOEUDS[pays]?.[departOfficiel]) {
         await afficherNoeudRue(pays, departOfficiel, null);
         return;

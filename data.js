@@ -264,7 +264,13 @@ const CAREERS = [
   {id:'worker',    name:'Monde ouvrier — Ouvrier / Syndicaliste',          icon:'ti-hammer',          argBonus:300,  statKey:'VOL', comp:'Force, Solidarite, Mobilisation',       blocks:[]},
   {id:'intel',     name:'Renseignement — Agent des services',              icon:'ti-spy',             argBonus:500,  statKey:'PER', comp:'Surveillance, Infiltration',            blocks:[]},
   {id:'criminal_c',name:'Crime organisé — Criminel organisé',              icon:'ti-lock-open',       argBonus:900,  statKey:'DUP', comp:'Milices, Blanchiment',                  blocks:[]}, // Accessible a tous
-  {id:'escort',    name:'Prostitution — Prostitué(e)',                     icon:'ti-heart',           argBonus:450,  statKey:'CHA', comp:'Seduction, Kompromat',                  blocks:[]}
+  {id:'escort',    name:'Prostitution — Prostitué(e)',                     icon:'ti-heart',           argBonus:450,  statKey:'CHA', comp:'Seduction, Kompromat',                  blocks:[]},
+  // DEUX CARRIERES SANS METIER (decisions de Fred du 20/11/2026, GAME-DESIGN-PERSONNAGES-MINEURS.md) : ni bonus de
+  // caracteristique (statKey null), ni competence, ni blocage d'etudes ; seulement un pecule. « Enfant / Adolescent »
+  // marque le personnage MINEUR, de facon permanente, cote serveur (personnages_donnees.est_mineur) : aucune autre
+  // carriere ensuite, et les garde-fous mineurs s'appliquent (escorts, seduction, alcool, drogue).
+  {id:'minor',     name:'Enfant / Adolescent',                             icon:'ti-mood-kid',        argBonus:50,   statKey:null,  comp:'Argent de poche',                       blocks:[], mineur:true},
+  {id:'sans_experience', name:'Sans expérience professionnelle',           icon:'ti-user',            argBonus:100,  statKey:null,  comp:'Aucune compétence professionnelle',     blocks:[]}
 ];
 
 // Migration des anciens id de carrière (18 -> 10, bêta) pour les personnages déjà créés/

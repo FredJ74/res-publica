@@ -100,7 +100,9 @@ att('AUCUNE nature ne filtre une carriere : seules les ECOLES ferment des portes
 print('');
 print('2. LES DIX CARRIERES, INCHANGEES, ET LE SERVEUR LES RECOIT');
 var carrieres = litCatalogue('CAREERS');
-att('les dix familles professionnelles sont toujours dix', carrieres.length === 10);
+// Fred, 20/11/2026 : + « Enfant / Adolescent » (minor) et « Sans experience professionnelle » (sans_experience).
+att('les dix familles professionnelles, plus les deux carrieres sans metier', carrieres.length === 12
+    && carrieres.some(function (c) { return c.id === 'minor'; }) && carrieres.some(function (c) { return c.id === 'sans_experience'; }));
 att('et ce sont les memes identifiants',
     ['officer','business','magistrat','press','clergy','doctor','worker','intel','criminal_c','escort']
       .every(function (id) { return carrieres.some(function (c) { return c.id === id; }); }));
@@ -143,7 +145,7 @@ print('');
 print('4. L\'ENDPOINT DU CONSEILLER : LES REGLES VIENNENT DU SERVEUR');
 att('le prompt est bati depuis les catalogues GENERES, pas depuis le navigateur',
     conseil.indexOf("from './_referentiels-generes.js'") >= 0
-    && conseil.indexOf('CREATION_CARRIERES_SERVEUR.map') >= 0);
+    && conseil.indexOf("CREATION_CARRIERES_SERVEUR.filter(c => c.id !== 'minor').map") >= 0);
 att('le navigateur n\'envoie que l\'empire et un texte libre',
     bloc(conseil, 'function validerPayload(', 'function ligneEffets(')
       .indexOf("['empire', 'souhait', 'lang', 'historique']") >= 0);
