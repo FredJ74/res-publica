@@ -984,6 +984,19 @@ window.addEventListener('DOMContentLoaded', () => {
   setInterval(recupererDonsEnAttente, 90000);
   setInterval(recupererImpactsEnAttente, 90000);
 
+  // Déplacement subi : lorsqu'un autre joueur neutralise, arrête ou fait
+  // hospitaliser le PJ, relire sa POSITION serveur à cadence courte. Cette
+  // lecture n'écrit rien et ne recharge la fiche complète que si le lieu a
+  // effectivement changé. Les onglets masqués ne déclenchent aucune requête.
+  const surveillerPositionSubie = () => {
+    if (typeof synchroniserDeplacementSubi === 'function')
+      synchroniserDeplacementSubi().catch(e => console.warn('[Position subie]',e));
+  };
+  setInterval(surveillerPositionSubie, 7000);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) surveillerPositionSubie();
+  });
+
   // Présence en pièce — re-publier + rafraîchir les joueurs visibles toutes les 30 secondes
   setInterval(() => {
     // Un onglet masque ne doit pas renouveler les presences ni recharger les vues.
