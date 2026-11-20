@@ -2268,7 +2268,17 @@ async function envoyerMessageConversation() {
   if (!texte || !_conversationActuelle) return;
   input.value = '';
   if (typeof sbEnvoyerMessageChat === 'function') {
-    await sbEnvoyerMessageChat(_conversationActuelle.id, _conversationActuelle.type === 'salon' ? (state.char?.name || 'Anonyme') : chatMoiPour(_conversationActuelle.id), texte, _conversationActuelle.type === 'salon').catch(() => {});
+    const v = await sbEnvoyerMessageChat(_conversationActuelle.id, _conversationActuelle.type === 'salon' ? (state.char?.name || 'Anonyme') : chatMoiPour(_conversationActuelle.id), texte, _conversationActuelle.type === 'salon').catch(() => null);
+    // Message non remis (proximité, 20/11/2026) : l'expéditeur le sait ; son texte lui est rendu.
+    if (v && v.ok === false) {
+      const zone = document.getElementById('chat-messages-zone');
+      const libelle = v.raison === 'interlocuteur_absent'
+        ? rpLibelleChat('notDeliveredAbsent', 'Message non parvenu : votre interlocuteur a quitté la pièce.')
+        : rpLibelleChat('notDelivered', 'Message non parvenu.');
+      if (zone) zone.insertAdjacentHTML('beforeend', '<div class="rp-chat-non-remis" style="margin:.3rem 0;font-size:.75rem;color:#cc6a4a;font-style:italic">' + libelle + '</div>');
+      if (input && !input.value) input.value = texte;
+      return;
+    }
   }
   rafraichirConversationActuelle(false);
 }
@@ -2277,21 +2287,49 @@ async function envoyerMessageConversation() {
 // (survit a une deconnexion : le message reste marque non-lu tant qu'on n'a pas ouvert
 // la conversation, meme si l'auteur est reparti ou hors ligne entre temps).
 let _dernierEtatNonLuChat = false;
+// ON VOUS PARLE (Fred, 20/11/2026) : point rouge clignotant sur le bouton du chat et notification cliquable
+// (« X vous parle », « Individu masqué n° X vous parle ») qui ouvre la conversation. La fenêtre ne s'ouvre JAMAIS
+// d'elle-même : elle pourrait interrompre une action en cours. Le point disparaît quand la conversation est lue.
+let _dernierMessageNotifie = null;
+function rpLibelleChat(cle, secours, valeurs) {
+  const t = (typeof i18next !== 'undefined' && i18next.t) ? i18next.t('chatNotice.' + cle, Object.assign({ defaultValue: secours }, valeurs || {})) : null;
+  let r = (typeof t === 'string' && t && t !== 'chatNotice.' + cle) ? t : secours;
+  Object.keys(valeurs || {}).forEach(k => { r = r.split('{{' + k + '}}').join(String(valeurs[k])); });
+  return String(r).replace(/[<>]/g, '');
+}
+function afficherNotificationChat(nonLu) {
+  if (!nonLu || nonLu.salon || !nonLu.conversation_id) return;
+  const ancienne = document.getElementById('rp-notif-chat'); if (ancienne) ancienne.remove();
+  const qui = chatLibelleParticipant(nonLu.auteur);
+  const n = document.createElement('div');
+  n.id = 'rp-notif-chat';
+  n.setAttribute('role', 'status');
+  n.style.cssText = 'position:fixed;right:1rem;bottom:5.5rem;z-index:9000;background:#121005;border:1px solid #8a6a20;color:#e0d8c0;padding:.5rem .8rem;font-size:.85rem;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.6)';
+  n.textContent = '💬 ' + rpLibelleChat('speaking', '{{nom}} vous parle', { nom: qui });
+  n.onclick = () => {
+    n.remove();
+    const panel = document.getElementById('chat-piece-panel');
+    if (panel) panel.style.display = 'flex';
+    ouvrirConversationParId(nonLu.conversation_id, qui);
+  };
+  document.body.appendChild(n);
+  setTimeout(() => { if (n.parentNode) n.remove(); }, 15000);
+}
 async function verifierNotificationChat() {
   if (typeof sbAMessagesNonLus !== 'function' || !state.char?.name) return;
   try {
+    if (!_chatAliasMoi) await chatRafraichirAlias();
     const nonLu = await sbAMessagesNonLus(state.char.name, _chatAliasMoi);
     const badge = document.getElementById('chat-notif-badge');
-    if (badge) badge.style.display = nonLu ? 'block' : 'none';
-
-    if (nonLu && !_dernierEtatNonLuChat) {
-      const panel = document.getElementById('chat-piece-panel');
-      if (panel && panel.style.display !== 'flex') {
-        panel.style.display = 'flex';
-        if (typeof ouvrirListeConversations === 'function') ouvrirListeConversations();
-      }
+    if (badge) { badge.style.display = nonLu ? 'block' : 'none'; badge.classList.toggle('rp-clignote', !!nonLu); }
+    const dejaOuverte = nonLu && _conversationActuelle && _conversationActuelle.id === nonLu.conversation_id
+      && document.getElementById('chat-messages-zone');
+    if (nonLu && nonLu.id && nonLu.id !== _dernierMessageNotifie && !dejaOuverte) {
+      _dernierMessageNotifie = nonLu.id;
+      afficherNotificationChat(nonLu);
     }
-    _dernierEtatNonLuChat = nonLu;
+    if (!nonLu) { const n = document.getElementById('rp-notif-chat'); if (n) n.remove(); }
+    _dernierEtatNonLuChat = !!nonLu;
   } catch(e) {}
 }
 

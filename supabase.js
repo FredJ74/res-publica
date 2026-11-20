@@ -3905,6 +3905,13 @@ function getConversationId(nom1, nom2) {
 }
 
 async function sbEnvoyerMessageChat(conversationId, auteur, message, estSalon) {
+  // CONVERSATIONS DE PROXIMITÉ (Fred, 20/11/2026) : un message direct passe par le serveur, qui vérifie au moment de
+  // l'envoi que l'interlocuteur est dans la même pièce (refus « interlocuteur_absent », sans dire où il est allé).
+  if (!estSalon && typeof sbRpc === 'function') {
+    let v = null;
+    try { v = await sbRpc('chat_envoyer', { p_conversation: conversationId, p_message: message, p_salon: false }); } catch (_) { v = null; }
+    return Array.isArray(v) ? v[0] : v;
+  }
   const id = 'msg-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
   return sbInsert('messages_chat', {
     id, conversation_id: conversationId, auteur, message,
@@ -3987,7 +3994,7 @@ async function sbAMessagesNonLus(membre, alias) {
       if (messagesConv.length === 0) continue;
       const dernierMessage = messagesConv[0];
       if (!dernierLu || new Date(dernierMessage.created_at) > new Date(dernierLu)) {
-        return true;
+        return { conversation_id: cid, auteur: dernierMessage.auteur, id: dernierMessage.id, salon: idsSalons.has(cid) };
       }
     }
     return false;
