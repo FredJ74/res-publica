@@ -8,6 +8,10 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Faits divers dans le Journal du jour (Claude, 20/11/2026)
+- **Branche `claude/journal-faits-divers-20261120`** (part de la branche des images). **Migration** `20261120300000_journal_faits_divers` (essai annulé). Règles : `GAME-DESIGN-PRESSE.md`. Banc `test-journal-faits-divers-20261120.mjs`.
+- `journal_faits_divers(pays, début, fin)` (serveur seul) rend les crimes de `crim_affaires` déjà anonymisés : auteur nommé seulement si `identifie`, sinon « un individu masqué » / « un inconnu ». `collecterFaitsDivers` (api/_journal-collecte.js) les ajoute aux FACTS (domaine `faits_divers`) ; le prompt (api/_journal-generation.js) interdit toute hypothèse sur l'auteur, rappelle que les PJ font l'actualité et ouvre l'angle de l'incident diplomatique pour un acte transfrontalier.
+
 ### Images du masque de carnaval et de la tenue ninja (Claude, 20/11/2026)
 - **Branche `claude/objets-images-masque-ninja-20261120`** (part de la branche de #1152). Fichiers `images/objet-masque-carnaval.webp` et `images/objet-tenue-ninja.webp` (800 px de large, convertis depuis les PNG de Fred). **Migration** `20261120290000_objets_images_masque_ninja` (essai annulé ; appliquée à la fusion, quand Vercel sert les fichiers). Banc `test-objets-images-masque-ninja-20261120.cjs`.
 - Recettes (`masque_carnaval_habillement` ; `tenue_ninja_marche` au marché ; `tenue_ninja_militaire` = sous-type militaire de l'Habillement, pas un armurier) : colonne `image` ; vente chez les armuriers par la boutique discrète ; objets de la boutique discrète (`crim_objet_interne`) : `imageUrl` ; rattrapage des inventaires et des références de commerce ; à l'écran, `imageUrlObjet` (plateau-personnage.js) retrouve l'image par identité pour la liste d'inventaire et la fiche d'objet ; recette du marché `tenue_ninja_marche` : `image`.

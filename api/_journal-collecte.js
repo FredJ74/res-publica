@@ -472,6 +472,59 @@ async function collecterJustice(periode, pays, personnagesConnus) {
   return facts;
 }
 
+// =====================
+// FAITS DIVERS (décision de Fred du 20/11/2026, GAME-DESIGN-PRESSE.md)
+// =====================
+// Neutralisations, vols (sur personne, cambriolage, en commerce), empoisonnements, explosions, incendies. La matière vient
+// de journal_faits_divers (serveur), qui rend des faits DÉJÀ ANONYMISÉS : l'auteur n'y est nommé que s'il a été identifié
+// par les voies du jeu ; sinon il n'existe que comme « un individu masqué » ou « un inconnu ». Ce module ne demande et ne
+// reçoit donc aucune donnée d'un auteur non identifié, et n'en fabrique aucune.
+const LIBELLES_FAITS_DIVERS = {
+  neutralisation: 'a été neutralisé(e)', vol_personne: 'a été volé(e)', vol_commerce: 'a été volé(e) dans son commerce',
+  cambriolage: 'a été cambriolé(e)', empoisonnement: 'a été empoisonné(e)', explosion: 'Explosion', incendie: 'Incendie'
+};
+function nomBatimentPresse(id) {
+  return id ? String(id).replace(/[-_]+/g, ' ').replace(/\b(\w)/g, c => c.toUpperCase()) : null;
+}
+function faitDiversDepuisServeur(d, personnagesConnus) {
+  const lieu = d.lieu || {}, victime = d.victime || null, auteur = d.auteur || { identifie: false, designation: 'un inconnu' };
+  const ville = resoudreNomVille(lieu.pays, lieu.ville);
+  const ou = [nomBatimentPresse(lieu.batiment), ville].filter(Boolean).join(', ');
+  const qui = auteur.identifie === true && auteur.nom ? auteur.nom : (auteur.designation || 'un inconnu');
+  const statut = victime ? [victime.poste, victime.mandat].filter(Boolean).join(', ') : '';
+  const sujet = victime ? victime.nom + (statut ? ' (' + statut + ')' : '') : null;
+  const verbe = LIBELLES_FAITS_DIVERS[d.type] || 'Fait divers';
+  const resume = (sujet && !['explosion', 'incendie'].includes(d.type)
+      ? `${sujet} ${verbe} par ${qui}`
+      : `${verbe}${ou ? ' à ' + ou : ''}, attribué(e) à ${qui}${sujet ? ' ; victime : ' + sujet : ''}`)
+    + (ou && sujet && !['explosion', 'incendie'].includes(d.type) ? ` (${ou})` : '')
+    + (d.consequence ? ` — ${d.consequence}` : '');
+  const estPJ = !!(victime && victime.estPJ);
+  const responsable = estPJ && !!(victime.poste || victime.mandat);
+  const pj = victime && victime.nom ? identifierActeur(victime.nom, personnagesConnus) : { estPJ: false, photo_url: null };
+  const paysConcernes = [lieu.pays, victime && victime.nationalite].filter((x, i, t) => x && t.indexOf(x) === i);
+  return {
+    id: d.id, domaine: 'faits_divers', type: d.type, issue: d.issue, created_at: d.date,
+    ville, pays: paysConcernes.length > 1 ? paysConcernes : (paysConcernes[0] || null), lieu: { batiment: nomBatimentPresse(lieu.batiment), ville, pays: lieu.pays || null },
+    victime: victime ? { nom: victime.nom, estPJ, poste: victime.poste || null, mandat: victime.mandat || null,
+                         nationalite: victime.nationalite || null, employeur: victime.employeur || null } : null,
+    auteur: auteur.identifie === true && auteur.nom ? { identifie: true, nom: auteur.nom } : { identifie: false, designation: auteur.designation || 'un inconnu' },
+    consequence: d.consequence || null, transfrontalier: d.transfrontalier === true,
+    resume, acteur: victime ? victime.nom : null, estPJ, photo_url: estPJ ? pj.photo_url : null,
+    poids: bumpPoids('secondaire', (estPJ ? 1 : 0) + (responsable ? 1 : 0) + (d.transfrontalier === true ? 1 : 0))
+  };
+}
+async function collecterFaitsDivers(periode, pays, personnagesConnus) {
+  let rows = null;
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/journal_faits_divers`, {
+      method: 'POST', headers: HEADERS, body: JSON.stringify({ p_pays: pays, p_debut: periode.debut, p_fin: periode.fin })
+    });
+    if (res.ok) rows = await res.json(); else console.error('journal_faits_divers', await res.text());
+  } catch (e) { console.error('journal_faits_divers', e); }
+  return (Array.isArray(rows) ? rows : []).slice(0, LIMITE_PAR_DOMAINE).map(d => faitDiversDepuisServeur(d, personnagesConnus));
+}
+
 async function collecterCandidatures(periode, pays, personnagesConnus) {
   const f = `country=eq.${encodeURIComponent(pays)}&` + filtrePeriode(periode);
   const rows = await sbGet('candidatures', `${f}&order=created_at.desc&limit=${LIMITE_PAR_DOMAINE}`);
@@ -1624,7 +1677,7 @@ async function construirePaquetFactuel(pays, periode) {
   const expositionRecente = await chargerExpositionRecente(pays);
 
   const [etatCivil, justice, candidatures, football, declarations, petitesAnnonces,
-         ventesTerrains, successions, organisationsPubliques, grevesGenerales, chroniqueNationale] = await Promise.all([
+         ventesTerrains, successions, organisationsPubliques, grevesGenerales, chroniqueNationale, faitsDivers] = await Promise.all([
     collecterEtatCivil(periode, pays, personnagesConnus),
     collecterJustice(periode, pays, personnagesConnus),
     collecterCandidatures(periode, pays, personnagesConnus),
@@ -1635,7 +1688,8 @@ async function construirePaquetFactuel(pays, periode) {
     collecterSuccessions(periode, pays, personnagesConnus),
     collecterOrganisationsPubliques(periode, pays, personnagesConnus),
     collecterGrevesGenerales(periode, pays, personnagesConnus),
-    collecterChroniqueNationale(periode, pays, personnagesConnus)
+    collecterChroniqueNationale(periode, pays, personnagesConnus),
+    collecterFaitsDivers(periode, pays, personnagesConnus).catch(() => [])
   ]);
 
   const [indicPopulation, indicEcoBrut, indicCaisses, indicClassement, indicBalance] = await Promise.all([
@@ -1655,7 +1709,7 @@ async function construirePaquetFactuel(pays, periode) {
   const sujetsPermanents = await collecterSujetsPermanents(pays, personnagesConnus).catch(() => []);
 
   const FACTS_BRUTS = [...etatCivil, ...justice, ...candidatures, ...football, ...economieRemarquable, ...caissesRemarquables,
-                       ...ventesTerrains, ...successions, ...organisationsPubliques, ...grevesGenerales, ...chroniqueNationale,
+                       ...ventesTerrains, ...successions, ...organisationsPubliques, ...grevesGenerales, ...chroniqueNationale, ...faitsDivers,
                        ...sujetsPermanents]
     .map(f => ({ ...f, expositionRecente: !!(f.estPJ && f.acteur && expositionRecente.has(f.acteur)) }));
 
@@ -1730,5 +1784,7 @@ export {
   collecterOrganisationsPubliques,
   collecterGrevesGenerales,
   collecterChroniqueNationale,
+  collecterFaitsDivers,
+  faitDiversDepuisServeur,
   formaterNomTerrain
 };
