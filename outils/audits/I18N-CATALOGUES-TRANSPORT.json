@@ -486,10 +486,10 @@
     {
       "source": "i18n/resources.js",
       "packed": "i18n/packed/resources.js.br",
-      "sourceBytes": 160535,
-      "packedBytes": 44575,
-      "sourceSha256": "5660c3107d3dc4c2a560c8fd671e27c63bc6f5870561ac7981896890f06dd668",
-      "packedSha256": "a2758bea21acdfb50c268e66690527d1a5645ba85ac64ef45194a546df3d6e93"
+      "sourceBytes": 160537,
+      "packedBytes": 44551,
+      "sourceSha256": "81dbc262d6dfd871f4bd772b85aacf06c3ef0e0247754991e618ecf2add64369",
+      "packedSha256": "e7e8c6e639311a411db58854438a3ea92bc513a0b92e851e46dc8eb2589b5bdd"
     },
     {
       "source": "i18n/room-actions-resources.js",
