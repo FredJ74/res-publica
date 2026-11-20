@@ -22,8 +22,7 @@ test('Écran : plus de boycott en Sovarka, la manifestation ouvre le choix de la
   for (const v of ['capitale', 'ville_a', 'ville_b']) {
     const fns = ctx.__o(salle, ctx.__W.soviet[v].buildingContext.stade, 'siege_supporters').map(o => o.fn);
     assert.ok(!fns.includes('organiser_boycott'), v);
-    // Novomirsk garde sa décision antérieure : aucune manifestation au club du Dynamo.
-    assert.strictEqual(fns.includes('organiser_manifestation'), v !== 'capitale', v);
+    assert.ok(fns.includes('organiser_manifestation'), v);   // Novomirsk compris (Fred, 21/11/2026)
   }
   assert.ok(ctx.__o(salle, ctx.__W.republic.capitale.buildingContext?.stade, 'siege_supporters').some(o => o.fn === 'organiser_boycott'));   // Républia inchangée
   const q = lire('plateau-organisations-quetes.js');

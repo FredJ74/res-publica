@@ -524,7 +524,7 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
   - 2 PA par membre présent ;
   - participation = présents / domiciliés ;
   - popularité de la cible selon `syndicat_etat_effet_pop`, y compris la perte sous 50 %.
-- **Novomirsk :** le club du Dynamo garde sa décision antérieure (pas d'ordre de manifestation). À confirmer par Fred.
+- **Novomirsk :** la manifestation « en faveur » y est ouverte aussi (Fred, 21/11). La règle vaut pour toute la Sovarka.
 - **Restent du point 6 :**
   - l'entraîneur adjoint Pavel Zapasnoï ;
   - les textes du terrain et de la buvette validés le 19/11 (Fred les cherche).

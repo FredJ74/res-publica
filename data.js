@@ -1810,7 +1810,9 @@ const WORLD = {
               name: 'Club des supporters du Dynamo',
               desc: 'Lieu de rassemblement sportif autorisé, sans droit de manifester contre les autorités.',
               imageUrl: 'images/Sovarka/Novomirsk/Novomirsk.stade.club.webp',
-              excludeOrders: ['organiser_manifestation','rejoindre_club_supporters'],
+              // Manifestation « en faveur » ouverte à Novomirsk comme dans toute la Sovarka (Fred, 21/11/2026) ; le boycott
+              // est retiré plus bas pour les trois stades de Sovarka.
+              excludeOrders: ['rejoindre_club_supporters'],
               orders: [
                 {fn:'rejoindre_club_supporters', label:'Rejoindre le club de supporters', pa:1, cost:25, type:'legal', icon:'ti-users-group', successRate:100,
                   desc:'Adhésion au club de supporters du Dynamo : 25 PSK, renouvelable à chaque nouveau championnat.'}
