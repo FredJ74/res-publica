@@ -491,6 +491,7 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
   - nouvelles clés `material_spiritueux_label` (« Spiritueux ») et `material_sucre_label` (« Sucre ») ;
   - une fois fait, retirer ces trois clés de la liste `ATTENTE_CODEX` de `banc-i18n-catalogue-economique.cjs`.
 - **Pour Codex — nouvelle clé :** `distillerie.localSpiritsNote`.
+- **Pour Codex — infobulles de Sovarka :** trois descriptions de la distillerie de Krasnov sont à traduire. Une fois fait, les retirer de la liste `ATTENTE_CODEX` de `test-i18n-sovarka-infobulles-20261113.mjs`.
 - **Pour Codex — nouveaux textes de jeu en français :**
   - ordres `produire_spiritueux`, `produire_sucre` et `acheter_spiritueux_local` (`data.js`, PSM et Krasnov) ;
   - fenêtre « Spiritueux de la maison » et ses messages (`plateau-justice-economie.js`).
