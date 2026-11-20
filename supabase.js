@@ -557,7 +557,7 @@ function rpPurgerPortraitsLocaux() {
   } catch (_) {}
 }
 function sbPayloadPersonnage(charState) {
-  const photoKey = rpClePortrait(charState.char?.name);
+  const photoKey = (typeof rpClePortrait === 'function') ? rpClePortrait(charState.char?.name) : 'respublica_photo_' + (charState.char?.name || 'default');
   let savedPhoto = (typeof localStorage !== 'undefined') ? localStorage.getItem(photoKey) : null;
   // 04/11/2026 (#55/#60) : un ancien portrait brut de plusieurs Mo garde dans ce navigateur
   // n'est plus renvoye a chaque sauvegarde (le serveur le refuserait de toute facon) : on
