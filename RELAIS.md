@@ -8,6 +8,14 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Inscription : jouer sans confirmation, messages de confirmation, « Retrouver mon personnage » sans nom (Claude, 20/11/2026)
+- **Branche `claude/inscription-session-confirmation-20261120`**. **Migration APPLIQUÉE** : `20261120210000_compte_identifiants_poses` (essai annulé d'abord). Banc `test-inscription-session-confirmation-20261120.cjs`.
+- Cause du blocage : depuis le 17/11, `mon_personnage()` / `est_mon_personnage()` / `ia_quota_consommer()` refusaient tout jeton `is_anonymous` ; GoTrue garde ce drapeau tant que l'adresse n'est pas confirmée. Désormais un compte qui a posé mot de passe et adresse (en attente) joue ; l'anonyme pur reste refusé (objectif de l'audit du 16/11 conservé).
+- Connexion depuis un autre appareil avant confirmation : GoTrue répond `invalid_credentials` (l'adresse n'est qu'en attente), pas `email_not_confirmed` ; l'écran explique sans affirmer, et le renvoi du lien se fait depuis le jeu sur l'appareil d'origine. `email_not_confirmed` (adresse d'inscription) a son message et « Renvoyer l'e-mail » (`/resend`).
+- Personnages sans compte rattaché : **aucun** (0 sur 11).
+- **Comptes de test créés en production pendant la reproduction** (adresses jetables `rp-test-…@mailinator.com`) : personnages `Testeur715918`, `Testeur929105`, `Testeur439701` et 5 comptes d'authentification — **rien supprimé, à décider par Fred**.
+- **Pour Codex — nouvelles clés (texte de secours français dans le code)** : `auth.confirmationSent` (variable `{{email}}`), `auth.continueCreation`, `confirmationBanner.text` (`{{email}}`), `confirmationBanner.resend`, `confirmationBanner.sent` (`{{email}}`), `confirmationBanner.failed`, `confirmationBanner.close`, `connectionUi.emailNotConfirmed`, `connectionUi.maybeUnconfirmed`, `connectionUi.resendConfirmation`, `connectionUi.confirmationResent`, `connectionUi.confirmationResendFailed`, `connectionUi.recoveryAlreadyOwnsUnnamed`, `home.findCharacterSignIn`, `home.resumeWith` (`{{name}}`). Clés devenues inutiles : `home.findCharacterPlaceholder`, `home.loadCharacter`, `connectionUi.recoveryAlreadyOwns`.
+
 ### Retours d'un testeur — inscription et création (Claude, 20/11/2026)
 - **Branche `claude/inscription-creation-myakim-20261120`**. Banc `test-creation-retours-testeur-20261120.cjs`.
 - Inscription : le serveur n'a refusé aucune adresse (journaux d'authentification) et rien ne marque le champ pendant la saisie ; la cause retenue est le message « adresse invalide » d'un clic précédent, jamais effacé pendant la correction. Toute saisie l'efface désormais (inscription et connexion) ; caractères invisibles d'un copier-coller retirés avant le contrôle.

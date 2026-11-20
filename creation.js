@@ -44,6 +44,43 @@ function basculerVisibiliteMotDePasseConnexion() {
   if (icone) icone.className = montrer ? 'ti ti-eye-off' : 'ti ti-eye';
 }
 
+// Retour testeur (20/11/2026) : un compte non confirmé qui se connecte depuis un autre appareil doit comprendre pourquoi.
+// GoTrue répond email_not_confirmed (adresse d'inscription) ou, quand l'adresse n'est qu'en attente sur le compte créé
+// en jeu, invalid_credentials — indiscernable d'un mauvais mot de passe : on explique alors sans rien affirmer.
+function rpAideConfirmationConnexion(email, raison) {
+  const msg = document.getElementById('connexion-msg');
+  if (!msg || !msg.parentNode) return;
+  let aide = document.getElementById('connexion-aide-confirmation');
+  if (!aide) { aide = document.createElement('div'); aide.id = 'connexion-aide-confirmation'; msg.parentNode.insertBefore(aide, msg.nextSibling); }
+  aide.textContent = '';
+  aide.style.cssText = 'margin:.4rem 0;font-size:.8rem;line-height:1.5;color:#c0b090';
+  const texte = document.createElement('p'); texte.style.margin = '0 0 .4rem';
+  const cle = raison === 'email_not_confirmed' ? 'connectionUi.emailNotConfirmed' : 'connectionUi.maybeUnconfirmed';
+  const fr = raison === 'email_not_confirmed'
+    ? "Votre adresse n'est pas encore confirmée. Cliquez sur le lien reçu par e-mail (pensez à vérifier vos courriers indésirables), puis reconnectez-vous."
+    : "Si vous venez de créer votre compte, confirmez d'abord votre adresse grâce au lien reçu par e-mail : tant qu'elle n'est pas confirmée, "
+      + "la connexion depuis un autre appareil est impossible. Le lien peut être renvoyé depuis le jeu, sur l'appareil où le compte a été créé.";
+  texte.setAttribute('data-i18n', cle); texte.setAttribute('data-i18n-fallback', fr);
+  texte.textContent = rpMessageIdentifiants(cle, fr);
+  aide.appendChild(texte);
+  if (raison === 'email_not_confirmed' && typeof rpAuthRenvoyerConfirmationInscription === 'function') {
+    const bouton = document.createElement('button');
+    bouton.className = 'hg-btn hg-btn-secondaire';
+    bouton.setAttribute('data-i18n', 'connectionUi.resendConfirmation'); bouton.setAttribute('data-i18n-fallback', "Renvoyer l'e-mail");
+    bouton.textContent = rpMessageIdentifiants('connectionUi.resendConfirmation', "Renvoyer l'e-mail");
+    bouton.onclick = async function () {
+      bouton.disabled = true;
+      const v = await rpAuthRenvoyerConfirmationInscription(email).catch(() => null);
+      const ok = !!(v && v.ok);
+      texte.textContent = ok ? rpMessageIdentifiants('connectionUi.confirmationResent', 'E-mail de confirmation renvoyé.')
+        : rpMessageIdentifiants('connectionUi.confirmationResendFailed', "L'e-mail n'a pas pu être renvoyé. Réessayez dans un instant.");
+      texte.removeAttribute('data-i18n');
+      bouton.disabled = false;
+    };
+    aide.appendChild(bouton);
+  }
+}
+
 async function connecterAvecMotDePasse() {
   const msg = document.getElementById('connexion-msg');
   const email = String(document.getElementById('connexion-email')?.value || '').replace(/[\u200B-\u200D\u2060\uFEFF]/g, '').trim(); // invisibles retirés (copier-coller mobile)
@@ -82,6 +119,7 @@ async function connecterAvecMotDePasse() {
       over_request_rate_limit: 'Trop de tentatives. Réessayez dans un instant.'
     };
     dire((r && motifs[r.raison]) || 'Adresse ou mot de passe incorrect.', true, r?.raison === 'validation_failed' ? 'invalidEmail' : r?.raison === 'over_request_rate_limit' ? 'tooManyAttempts' : 'invalidCredentials');
+    if (r && (r.raison === 'email_not_confirmed' || r.raison === 'invalid_credentials') && typeof rpAideConfirmationConnexion === 'function') rpAideConfirmationConnexion(email, r.raison);
     if (bouton) { bouton.disabled = false; bouton.style.opacity = '1'; }
     return;
   }
@@ -219,13 +257,61 @@ window.addEventListener('DOMContentLoaded', () => {
   try { rpRetourConfirmation(); } catch (e) {}
 });
 
-function retrouverPersonnage() {
+// RETROUVER MON PERSONNAGE, SANS SAISIE DE NOM (retour testeur du 20/11/2026). Un compte ne porte qu'un personnage :
+// le demander par son nom n'avait pas de sens, et un nom tapé faisait apparaître celui d'un autre personnage dans
+// les messages. Le SERVEUR nomme le personnage du compte de ce navigateur (mon_personnage) ; sans session ou sans
+// personnage, on renvoie vers « Se connecter » (adresse e-mail et mot de passe).
+async function retrouverPersonnage() {
   const panel = document.getElementById('retrouver-panel');
-  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+  const msg = document.getElementById('retrouver-msg');
+  const action = document.getElementById('retrouver-action');
+  if (!panel || !msg) return;
+  if (panel.style.display !== 'none') { panel.style.display = 'none'; return; }
+  const connexion = document.getElementById('connexion-panel');
+  if (connexion) connexion.style.display = 'none';
+  panel.style.display = 'block';
+  if (action) action.textContent = '';
+  msg.style.color = '#8a8060';
+  msg.setAttribute('data-i18n', 'home.findCharacterSearching');
+  msg.textContent = t('home.findCharacterSearching');
+  // Aucune session sur ce navigateur : on n'en ouvre pas une neuve (ce serait un compte anonyme vide).
+  const stockee = (typeof rpAuthLireStockage === 'function') ? rpAuthLireStockage() : null;
+  let nom = null;
+  if (stockee && typeof rpAuthAssurerSession === 'function' && typeof sbRpc === 'function') {
+    await rpAuthAssurerSession().catch(() => null);
+    nom = await sbRpc('mon_personnage', {}).then(function (r) {
+      const v = Array.isArray(r) ? r[0] : r;
+      return (typeof v === 'string') ? v : (v && (v.mon_personnage || v.name)) || null;
+    }).catch(() => null);
+  }
+  if (!nom) {
+    panel.style.display = 'none';
+    msg.textContent = ''; msg.removeAttribute('data-i18n');
+    if (connexion && connexion.style.display === 'none' && typeof ouvrirConnexionCompte === 'function') ouvrirConnexionCompte();
+    const note = document.getElementById('connexion-msg');
+    if (note) {
+      note.style.color = '#8a8060';
+      note.setAttribute('data-i18n', 'home.findCharacterSignIn');
+      note.setAttribute('data-i18n-fallback', 'Connectez-vous avec l’adresse e-mail et le mot de passe de votre compte pour retrouver votre personnage.');
+      note.textContent = rpMessageIdentifiants('home.findCharacterSignIn', 'Connectez-vous avec l’adresse e-mail et le mot de passe de votre compte pour retrouver votre personnage.');
+    }
+    return;
+  }
+  msg.textContent = ''; msg.removeAttribute('data-i18n');
+  const bouton = document.createElement('button');
+  bouton.className = 'hg-btn hg-btn-charger';
+  const fr = 'Reprendre la partie avec ' + nom;
+  bouton.setAttribute('data-i18n', 'home.resumeWith');
+  bouton.setAttribute('data-i18n-values', JSON.stringify({ name: nom }));
+  bouton.setAttribute('data-i18n-fallback', fr);
+  bouton.textContent = rpMessageIdentifiants('home.resumeWith', fr, { name: nom });
+  bouton.onclick = function () { chargerPersonnageParNom(nom); };
+  if (action) action.appendChild(bouton); else panel.insertBefore(bouton, msg);
 }
 
-async function chargerPersonnageParNom() {
-  const nom = document.getElementById('retrouver-nom')?.value?.trim();
+// Charge le personnage NOMMÉ PAR LE SERVEUR pour ce compte (jamais un nom saisi).
+async function chargerPersonnageParNom(nomServeur) {
+  const nom = typeof nomServeur === 'string' ? nomServeur.trim() : '';
   const msg = document.getElementById('retrouver-msg');
   msg.removeAttribute('data-i18n');
   msg.removeAttribute('data-i18n-values');
@@ -278,10 +364,10 @@ async function chargerPersonnageParNom() {
             msg.setAttribute('data-i18n','connectionUi.recoveryOwnedElsewhere');
             if (typeof appliquerTraductionsRP === 'function') appliquerTraductionsRP();
           } else if (verdict.raison === 'compte_deja_pourvu') {
-            msg.textContent = 'Ce navigateur possede deja le personnage « ' + (verdict.personnage || '') + ' ». '
-              + 'Un compte ne peut porter qu\'un seul personnage.';
-            msg.setAttribute('data-i18n','connectionUi.recoveryAlreadyOwns');
-            msg.setAttribute('data-i18n-values',JSON.stringify({name:verdict.personnage||''}));
+            // Plus aucun nom de personnage dans ce message (retour testeur du 20/11/2026).
+            msg.textContent = 'Un compte ne peut porter qu\'un seul personnage.';
+            msg.setAttribute('data-i18n','connectionUi.recoveryAlreadyOwnsUnnamed');
+            msg.setAttribute('data-i18n-fallback','Un compte ne peut porter qu\'un seul personnage.');
             if (typeof appliquerTraductionsRP === 'function') appliquerTraductionsRP();
           } else if (/^http_/.test(verdict.raison || '')) {
             // PANNE DE LA VERIFICATION, PAS UN VERDICT DE PROPRIETE (incident du 15 septembre
@@ -1025,7 +1111,7 @@ function afficherMessageIdentifiants(texte, cle) {
 function effacerMessageIdentifiants(idZone) {
   const zone = document.getElementById(idZone || 'auth-msg');
   if (!zone || !zone.textContent) return;
-  if (idZone === 'connexion-msg') { zone.textContent = ''; zone.removeAttribute('data-i18n'); return; }
+  if (idZone === 'connexion-msg') { zone.textContent = ''; zone.removeAttribute('data-i18n'); const aide = document.getElementById('connexion-aide-confirmation'); if (aide) aide.remove(); return; }
   zone.style.display = 'none'; zone.textContent = ''; zone.removeAttribute('data-i18n');
 }
 function brancherEffacementIdentifiants() {
@@ -1037,6 +1123,32 @@ function brancherEffacementIdentifiants() {
 if (typeof document !== 'undefined') {
   if (document.readyState !== 'loading') brancherEffacementIdentifiants();
   else document.addEventListener('DOMContentLoaded', brancherEffacementIdentifiants);
+}
+
+// Annonce du lien de confirmation (clés auth.confirmationSent / auth.continueCreation, textes de secours français).
+function afficherConfirmationEnvoyee(adresse) {
+  const zone = document.getElementById('auth-msg');
+  if (!zone) { goTo(1); return; }
+  zone.removeAttribute('data-i18n'); zone.textContent = '';
+  zone.style.cssText = 'display:block;margin:.2rem 0 .4rem;padding:.7rem .9rem;border:1px solid #4a7a3a;'
+    + 'background:#14200f;color:#cfe3c0;font-size:.85rem;line-height:1.5;border-radius:4px';
+  const texte = document.createElement('p');
+  texte.style.margin = '0 0 .6rem';
+  const fr = "Un e-mail de confirmation vient d'être envoyé à " + adresse + ". Vous pouvez jouer dès maintenant ; "
+    + "cliquez sur le lien pour pouvoir vous reconnecter plus tard ou depuis un autre appareil. Pensez à vérifier vos courriers indésirables.";
+  texte.setAttribute('data-i18n', 'auth.confirmationSent');
+  texte.setAttribute('data-i18n-values', JSON.stringify({ email: adresse }));
+  texte.setAttribute('data-i18n-fallback', fr);
+  texte.textContent = rpMessageIdentifiants('auth.confirmationSent', fr, { email: adresse });
+  const bouton = document.createElement('button');
+  bouton.className = 'hg-btn hg-btn-charger';
+  bouton.setAttribute('data-i18n', 'auth.continueCreation');
+  bouton.setAttribute('data-i18n-fallback', 'Continuer la création du personnage');
+  bouton.textContent = rpMessageIdentifiants('auth.continueCreation', 'Continuer la création du personnage');
+  bouton.onclick = function () { goTo(1); };
+  zone.append(texte, bouton);
+  const valider = document.getElementById('auth-valider');
+  if (valider) valider.style.display = 'none';
 }
 
 async function validerIdentifiants() {
@@ -1112,7 +1224,8 @@ async function validerIdentifiants() {
 
     // Compte pret : user_id definitif, identifiants poses. Le personnage peut naitre.
     rendreLaMain();
-    goTo(1);
+    // Retour testeur (20/11/2026) : le joueur doit SAVOIR qu'un lien lui a été envoyé, et qu'il peut jouer tout de suite.
+    if (r.encore_anonyme === true) afficherConfirmationEnvoyee(r.enAttente || email); else goTo(1);
   } catch (e) {
     afficherMessageIdentifiants(rpMessageIdentifiants('auth.errGeneric',
       "Votre compte n'a pas pu être créé. Réessayez dans un instant."), 'auth.errGeneric');

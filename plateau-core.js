@@ -1586,6 +1586,51 @@ function loadCharacter() {
 // Le message dit l'essentiel : le personnage est intact, il manque seulement la preuve.
 // La connexion elle-meme n'est PAS dupliquee ici : elle vit sur la page d'accueil, ou elle est
 // deja implementee et auditee, et s'ouvre depliee via ?connexion=1.
+// Retour testeur (20/11/2026) : tant que l'adresse n'est pas confirmée, un bandeau discret le rappelle, avec « Renvoyer
+// l'e-mail ». Le joueur joue normalement ; la confirmation ne sert qu'à se reconnecter ailleurs ou plus tard.
+async function rpVerifierConfirmationAdresse() {
+  if (typeof rpAuthEtatCompte !== 'function' || document.getElementById('bandeau-confirmation-adresse')) return;
+  const e = await rpAuthEtatCompte().catch(() => null);
+  if (!e || e.ok !== true || e.confirmee || !e.enAttente) return;
+  const trad = (cle, secours, valeurs) => {
+    const t = (typeof i18next !== 'undefined' && i18next.t) ? i18next.t(cle, valeurs ? { values: valeurs, replace: { ...valeurs, values: valeurs } } : undefined) : null;
+    return (typeof t === 'string' && t && t !== cle && !/\{\{[^}]+\}\}/.test(t)) ? t : secours;
+  };
+  const div = document.createElement('div');
+  div.id = 'bandeau-confirmation-adresse';
+  div.setAttribute('role', 'status');
+  div.style.cssText = 'position:fixed;left:50%;bottom:.6rem;transform:translateX(-50%);z-index:9000;max-width:min(36rem,calc(100% - 1.2rem));'
+    + 'display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;padding:.45rem .7rem;border:1px solid #6a5a20;background:rgba(18,16,10,.95);'
+    + 'color:#c0b090;font-size:.78rem;line-height:1.4;border-radius:4px';
+  const texte = document.createElement('span');
+  texte.style.flex = '1 1 14rem';
+  const fr = 'Adresse ' + e.enAttente + ' non confirmée : cliquez sur le lien reçu par e-mail pour pouvoir vous reconnecter plus tard ou depuis un autre appareil.';
+  texte.textContent = trad('confirmationBanner.text', fr, { email: e.enAttente });
+  const renvoyer = document.createElement('button');
+  renvoyer.type = 'button';
+  renvoyer.style.cssText = 'font-size:.74rem;padding:.3rem .6rem;min-height:32px;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer';
+  renvoyer.textContent = trad('confirmationBanner.resend', "Renvoyer l'e-mail");
+  renvoyer.onclick = async function () {
+    renvoyer.disabled = true;
+    const v = (typeof rpAuthDemanderConfirmationAdresse === 'function') ? await rpAuthDemanderConfirmationAdresse(e.enAttente).catch(() => null) : null;
+    const ok = !!(v && v.ok);
+    texte.textContent = ok ? trad('confirmationBanner.sent', 'E-mail renvoyé à ' + e.enAttente + '. Pensez à vérifier vos courriers indésirables.', { email: e.enAttente })
+      : trad('confirmationBanner.failed', "L'e-mail n'a pas pu être renvoyé. Réessayez dans un instant.");
+    renvoyer.disabled = false;
+  };
+  const fermer = document.createElement('button');
+  fermer.type = 'button';
+  fermer.setAttribute('aria-label', trad('confirmationBanner.close', 'Fermer'));
+  fermer.textContent = '×';
+  fermer.style.cssText = 'font-size:1rem;min-width:32px;min-height:32px;border:none;background:transparent;color:#8a7851;cursor:pointer';
+  fermer.onclick = function () { div.remove(); };
+  div.append(texte, renvoyer, fermer);
+  document.body.appendChild(div);
+}
+if (typeof window !== 'undefined' && typeof document !== 'undefined' && /plateau\.html/.test(String(window.location && window.location.pathname))) {
+  setTimeout(function () { rpVerifierConfirmationAdresse().catch(() => {}); }, 6000);
+}
+
 function afficherBandeauReconnexion() {
   if (document.getElementById('bandeau-reconnexion')) return;
   const trad = (cle, secours) => {
