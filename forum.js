@@ -1326,6 +1326,10 @@ function renderTopicView() {
               <button onclick="quotePost(${i})" style="background:transparent;border:none;color:#8a8060;cursor:pointer;font-size:.75rem;padding:.2rem .4rem" title="${rpForumLibelle('quote','Citer')}">
                 <i class="ti ti-quote"></i>
               </button>
+              ${(p.authorReal || p.author) !== myName && p.id && typeof rpSignalerMessage === 'function' ? `
+                <button data-signaler-id="${escapeHtmlText(String(p.id))}" onclick="rpSignalerMessage('forum', this.dataset.signalerId)" style="background:transparent;border:none;color:#8a8060;cursor:pointer;font-size:.75rem;padding:.2rem .4rem" title="${rpForumLibelle('report','Signaler')}">
+                  <i class="ti ti-flag"></i>
+                </button>` : ''}
             </div>
             <div class="forum-post-content">${p.content_layout ? renderComposedPost(p.content_layout) : ((p.blocks && p.blocks.length > 0) ? sanitizeRichHtml(renderBlocks(p.blocks)) : sanitizeRichHtml(p.content))}</div>
           </div>
@@ -3084,6 +3088,11 @@ function renderMailRead() {
           style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #8a3a2a;background:transparent;color:#8a3a2a;cursor:pointer">
           <i class="ti ti-trash"></i> ${rpForumLibelle('delete','Supprimer')}
         </button>
+        ${mail.from !== myName && mail.id && typeof rpSignalerMessage === 'function' ? `
+          <button data-signaler-id="${escapeHtmlText(String(mail.id))}" onclick="rpSignalerMessage('courrier', this.dataset.signalerId)"
+            style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #6a5a30;background:transparent;color:#8a8060;cursor:pointer">
+            <i class="ti ti-flag"></i> ${rpForumLibelle('report','Signaler')}
+          </button>` : ''}
       </div>
       ${mail.to === myName && mail.fromIsOrg ? '<div style="margin-top:.5rem;font-size:.72rem;color:#9a8a68;font-style:italic">' + rpForumLibelle('orgReplyUnavailable',"La réponse directe à une organisation n'est pas encore disponible — aucune boîte de messagerie propre aux organisations n'existe à ce jour.") + '</div>' : ''}
       ${!mail.archived ? '<div style="margin-top:.5rem;font-size:.72rem;color:#9a8a68;font-style:italic">' + rpForumLibelle('autoDeleteNotice','Ce message sera supprimé automatiquement 14 jours après réception, sauf archivage.') + '</div>' : ''}

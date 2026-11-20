@@ -18,6 +18,7 @@ const T = {
     attendre: 'Formation terminée : il faut attendre la durée minimale du cursus.', fermer: 'Fermer', retour: 'Retour',
     refuse: 'Refusé', r_cursus_ferme: 'Ce cursus n’accepte pas d’inscriptions pour l’instant.',
     r_seconde_carriere_deja_acquise: 'Vous avez déjà acquis votre seconde carrière.',
+    r_personnage_mineur_carriere_unique: 'Un personnage mineur ne peut exercer aucune autre carrière.',
     r_carriere_deja_detenue: 'Vous exercez déjà ce métier.', r_cursus_deja_en_cours: 'Vous suivez déjà un cursus.',
     r_lieu_incorrect: 'Ce n’est pas le bon endroit pour cette étape.', r_objectif_non_valide: 'Ce n’est pas la mission demandée.',
     r_etape_non_ouverte: 'Cette étape n’est pas encore ouverte.', r_etape_non_courante: 'Ce n’est pas l’étape en cours.',

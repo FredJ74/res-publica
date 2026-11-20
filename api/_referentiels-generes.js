@@ -990,5 +990,21 @@ export const CREATION_CARRIERES_SERVEUR = [
     "statKey": "CHA",
     "comp": "Seduction, Kompromat",
     "blocks": []
+  },
+  {
+    "id": "minor",
+    "name": "Enfant / Adolescent",
+    "argBonus": 50,
+    "statKey": null,
+    "comp": "Argent de poche",
+    "blocks": []
+  },
+  {
+    "id": "sans_experience",
+    "name": "Sans expérience professionnelle",
+    "argBonus": 100,
+    "statKey": null,
+    "comp": "Aucune compétence professionnelle",
+    "blocks": []
   }
 ];
