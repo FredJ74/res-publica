@@ -124,13 +124,20 @@ async function volerArchivesEcoute() {
   if (v.reussi) {
     showToast(provT('tStolen'), provT('stolenOk', { centre: PROV_CENTRES[v.centre] }), true, true);
     if (typeof addJournalEntry === 'function') addJournalEntry('Rapport d’écoute volé (' + PROV_CENTRES[v.centre] + ') : −' + PA_VOL_ARCHIVES_ECOUTE + ' PA.', 'event-bad');
+  } else if (v.inapercu) {
+    // Règles communes du vol (lot de Krasnov, 20/11/2026) : échec inaperçu une fois sur deux.
+    showToast(provT('tArchives'), 'Vous n’avez rien trouvé d’utile, et personne ne vous a vu.', false);
+    if (typeof addJournalEntry === 'function') addJournalEntry('Tentative de vol dans les archives d’écoute : échec inaperçu (−' + PA_VOL_ARCHIVES_ECOUTE + ' PA).', 'event-neutral');
+  } else if (!v.arrestation) {
+    showToast(provT('tArchives'), v.bagarre ? 'Bagarre avec l’opérateur : vous lui échappez, mais vous êtes repéré.' : 'L’opérateur vous a repéré et donne l’alerte.', false);
+    if (typeof addJournalEntry === 'function') addJournalEntry('Tentative de vol dans les archives d’écoute : repéré' + (v.bagarre ? ' après une bagarre' : '') + ' (−' + PA_VOL_ARCHIVES_ECOUTE + ' PA).', 'event-bad');
   } else {
     showToast(provT('tCaught'), provT('caught') + (v.interrogatoire ? ' ' + provT('caughtInterro') : ''), false);
     // Lot de Krasnov (Fred, 20/11/2026) : les PA de la tentative et la durée de détention apparaissent au journal.
-    const joursDetention = v.arrestation && typeof v.arrestation.jours === 'number' ? v.arrestation.jours : null;
-    if (typeof addJournalEntry === 'function') addJournalEntry('Surpris en volant les archives d’écoute : arrêté (−' + PA_VOL_ARCHIVES_ECOUTE + ' PA'
+    const joursDetention = typeof v.arrestation.jours === 'number' ? v.arrestation.jours : null;
+    if (typeof addJournalEntry === 'function') addJournalEntry('Surpris en volant les archives d’écoute : arrêté après une bagarre perdue (−' + PA_VOL_ARCHIVES_ECOUTE + ' PA'
       + (joursDetention != null ? ', ' + joursDetention + ' jour(s) de détention' : '') + ').', 'event-bad');
-    if (v.arrestation && typeof adopterArrestationServeur === 'function') await adopterArrestationServeur(v.arrestation);
+    if (typeof adopterArrestationServeur === 'function') await adopterArrestationServeur(v.arrestation);
   }
 }
 
