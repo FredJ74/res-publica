@@ -13164,3 +13164,18 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     if (room) room.orders = (room.orders || []).concat([ordre]);
   }
 })();
+
+// LOT DE KRASNOV, point 6 (Fred, 20/11/2026) : plus de boycott des supporters en Sovarka (les trois stades). La
+// manifestation y devient « en faveur » du président du club ou du maire (plateau-organisations-quetes.js).
+(function () {
+  for (const v of ['capitale', 'ville_a', 'ville_b']) {
+    const cite = WORLD.soviet && WORLD.soviet[v];
+    if (!cite) continue;
+    cite.buildingContext = cite.buildingContext || {};
+    const st = cite.buildingContext.stade = cite.buildingContext.stade || {};
+    st.roomOverrides = Object.assign({}, st.roomOverrides);
+    const ro = st.roomOverrides.siege_supporters = Object.assign({}, st.roomOverrides.siege_supporters);
+    ro.excludeOrders = Array.from(new Set([...(ro.excludeOrders || []), 'organiser_boycott']));
+  }
+})();
+
