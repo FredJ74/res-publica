@@ -51,3 +51,7 @@ Ces états GitHub sont relevés directement pendant la reprise. Les deux exécut
 - Aucun autre chantier engagé. Les quatre anciens arbitrages ne sont plus en attente : ils sont déjà consignés dans le document de game design. Aucun nouveau bonus, coût ou comportement inventé.
 
 Les journaux et le relevé synthétique sont versionnés dans [`preuves-goulag-cloture-20261120/`](preuves-goulag-cloture-20261120/).
+
+## Publication des preuves
+
+[PR documentaire #1161](https://github.com/FredJ74/res-publica/pull/1161), branche `codex/goulag-cloture-preuves-20261120`, conservée en brouillon sans fusion. Première publication `bd7c57d6`, précision de date `7d762e0d`. La CI de cette PR documentaire doit être distinguée des CI finales déjà vertes de #1020 et #1085. Le commit de production contrôlé reste e665c9b8 ; aucun déploiement de ce lot documentaire n’est effectué.
