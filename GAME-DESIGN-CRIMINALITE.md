@@ -952,6 +952,6 @@ Migration `20261120190000_crim_laissez_passer_registre` (essayée en transaction
   d'audience), pour le pays de leur mandat ; même écran pour le journal des passages.
 - **Archives d'écoute** : chaque consultation est un passage (un faux sert une fois) ; le journal s'affiche dans l'écran des
   habilitations du ministre de la Sécurité du Peuple.
-- Choix techniques de l'agent : un vrai est présenté avant un faux si le porteur a les deux ; un seul vrai laissez-passer valide par
-  personne et par lieu ; un groupe entre au QHS seulement si chacun présente un document valide.
+- Un vrai est présenté avant un faux si le porteur a les deux ; un seul vrai laissez-passer valide par personne et par lieu ; un
+  groupe entre au QHS seulement si chacun présente un document valide. — *décidé par Fred (20/11/2026)*
 
