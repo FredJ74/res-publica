@@ -46,6 +46,11 @@ def preparer(destination=None):
  if any((r['fn'],r['pa'],r['cost']) in retires_variantes for r in gen):
   raise ValueError('Tarif retiré réintroduit dans les commandes actuelles')
  retires=retires+retires_variantes
+ # Criminalité, décisions du 20/11/2026 : « Obtenir du Polonium » retiré du port orphelin de Novomirsk.
+ retires_polonium=[('acheter_polonium',2,600)]
+ if any((r['fn'],r['pa'],r['cost']) in retires_polonium for r in gen):
+  raise ValueError('Tarif retiré réintroduit dans les commandes actuelles')
+ retires=retires+retires_polonium
  # Prix d'achat des nouvelles parcelles de PSM (decision de Fred, 04/11/2026), posterieurs a la photographie.
  ajouts_terrains_psm={('acheter_terrain',2,c) for c in (19800,37200,50400,66000)}
  if not ajouts_terrains_psm<= {(r['fn'],r['pa'],r['cost']) for r in gen}:
