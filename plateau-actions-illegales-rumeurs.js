@@ -3566,7 +3566,7 @@ const PRODUITS_MARCHE = {
   tenue_ninja_marche: {
     id: 'tenue_ninja_marche', label: 'Tenue ninja', familleProduitMarche: 'vetement',
     desc: 'Noire de la tête aux pieds. Revêtue : +15 % pour se cacher, −15 % aux fouilles qui vous visent.',
-    categorie: 'objet', image: null, icon: 'ti-shirt',
+    categorie: 'objet', image: 'images/objet-tenue-ninja.webp', icon: 'ti-shirt',
     materiaux: { textile: 1 }, pa: 1, portions: 1,
     typesAutorises: ['marche'], paysAutorises: ['republic', 'soviet'], villesAutorisees: ['capitale', 'ville_a', 'ville_b'],
     buildingsAutorises: ['marche', 'marche-psm']

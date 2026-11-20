@@ -1,3 +1,15 @@
+// IMAGES DES OBJETS DE DISCRÉTION (Fred, 20/11/2026) : masque de carnaval et tenue ninja. Le serveur pose désormais
+// imageUrl à la création (crim_objet_interne, recettes de commerce et du marché) ; cette table rattrape à l'écran les objets
+// déjà possédés, reconnus par leur identité (recette, générique ou type), jamais par leur nom affiché.
+const IMAGES_OBJETS_PAR_IDENTITE = {
+  masque_carnaval: 'images/objet-masque-carnaval.webp', masque_carnaval_habillement: 'images/objet-masque-carnaval.webp',
+  tenue_ninja: 'images/objet-tenue-ninja.webp', tenue_ninja_marche: 'images/objet-tenue-ninja.webp', tenue_ninja_militaire: 'images/objet-tenue-ninja.webp'
+};
+function imageUrlObjet(item) {
+  if (!item) return '';
+  if (item.imageUrl) return item.imageUrl;
+  return IMAGES_OBJETS_PAR_IDENTITE[item.recette_id] || IMAGES_OBJETS_PAR_IDENTITE[item.generique_id] || IMAGES_OBJETS_PAR_IDENTITE[item.type] || '';
+}
 // =====================
 // PLATEAU-PERSONNAGE.JS
 // Fiche personnage, regles du jeu, photo de profil, suppression, detail inventaire
@@ -643,12 +655,13 @@ function switchSelfTab(tab, el) {
       html += '<div style="font-size:.8rem;color:#9a8a68;font-style:italic">Aucun objet en votre possession.</div>';
     } else {
       items.forEach((item, i) => {
-        const hasImage = item.imageUrl && item.imageUrl.length > 5;
+        const imageObjet = imageUrlObjet(item);
+        const hasImage = imageObjet && imageObjet.length > 5;
         html += '<div class="hg-inventaire-ligne" style="display:flex;align-items:center;gap:.5rem;padding:.5rem .3rem;border-bottom:1px solid #1a1810;cursor:pointer" onclick="ouvrirDetailObjet(' + i + ')">';
         // Miniature ou icone
         if (hasImage) {
           html += '<div style="width:44px;height:44px;flex-shrink:0;overflow:hidden;border:1px solid #2a2010;background:#0a0805">';
-          html += '<img loading="lazy" decoding="async" src="' + item.imageUrl + '" style="width:100%;height:100%;object-fit:cover;opacity:.85"/>';
+          html += '<img loading="lazy" decoding="async" src="' + imageObjet + '" style="width:100%;height:100%;object-fit:cover;opacity:.85"/>';
           html += '</div>';
         } else {
           html += '<div style="width:44px;height:44px;flex-shrink:0;background:#0a0805;border:1px solid #2a2010;display:flex;align-items:center;justify-content:center">';
@@ -3429,7 +3442,7 @@ async function ouvrirDetailObjetInventaire(idx) {
 
   const legal = item.legal === false ? '<span style="color:#cc4444;font-size:.72rem" data-i18n="inventoryUi.illegalObject"> ⚠ Objet illégal / compromettant</span>' : '';
   // Médaille de Héros du Travail (13/11/2026) : la plaque gravée.
-  const imageSrc = item.imageUrl || (item.generique_id === 'medaille_heros_travail' && /^images\/[\w.-]+\.webp$/.test(item.image || '') ? item.image : '');
+  const imageSrc = imageUrlObjet(item) || (item.generique_id === 'medaille_heros_travail' && /^images\/[\w.-]+\.webp$/.test(item.image || '') ? item.image : '');
   const imageHtml = imageSrc
     ? '<img src="' + imageSrc + '" style="width:100%;border-radius:4px;margin-bottom:.8rem;max-height:220px;object-fit:cover"/>'
     : '';
