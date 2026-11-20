@@ -87,16 +87,18 @@ Trois façons d'agir :
 
 ## 3 bis. Organisations secrètes (décisions de Fred du 20/11/2026)
 
-Migration `20261120330000_organisations_secretes`.
+Migrations `20261120330000_organisations_secretes` et `20261120335000_organisations_secretes_deux_options`.
 
 - Une organisation secrète (type secret, comme une organisation criminelle telle que la Main Noire, ou organisation non visible) **apparaît dans la liste des organisations**, avec son nom, sa nature et sa description.
 - Le nom de ses membres n'est **jamais** révélé :
   - ni dans cette liste ;
   - ni dans les fiches, les fenêtres d'interaction, la presse, les journaux, l'API ou la recherche ;
   - aucun compteur de membres n'est montré non plus.
-- **Cloisonnement, choisi par le chef à la création :**
-  - soit les membres se connaissent entre eux ;
-  - soit ils ne se connaissent pas : chacun ne voit que lui-même, ni les autres membres, ni le chef, ni les responsables.
+- **Cloisonnement : deux options indépendantes, réglées par le chef à la création** (correction de Fred du 20/11) :
+  - les membres se connaissent-ils entre eux (oui/non) ? Si non, chacun ne voit que lui-même (et le chef), aucun responsable ni scrutin nommé ;
+  - les membres connaissent-ils l'identité du chef (oui/non) ? Si non, le chef apparaît « le chef », sans nom (ni chef, ni fondateur, ni responsable qui serait le chef) ;
+  - quatre configurations possibles ; aucun nom n'est jamais révélé hors de l'organisation ;
+  - une organisation créée avant la correction garde son réglage : « se connaissent » vaut oui/oui, « cloisonnée » vaut non/non.
 - **Le chef** (et le fondateur) voit toujours la liste complète, par exemple pour repérer une taupe.
 - **Mise en œuvre :**
   - la table brute d'une organisation secrète n'est lisible que par son chef ;

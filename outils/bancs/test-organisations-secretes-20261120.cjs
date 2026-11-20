@@ -33,9 +33,25 @@ test('Fuites indirectes : vrai auteur des contenus signés par une secrète hors
 test('Écran : lecture par organisations_lire, cloisonnement à la création, chef qui garde la main', () => {
   assert.match(lire('supabase.js'), /rows = await sbRpc\('organisations_lire', \{\}\);/);
   const q = lire('plateau-organisations-quetes.js');
-  assert.match(q, /<select id="orga-cloisonnement-select"/);
-  assert.match(q, /parametres\.cloisonnement = document\.getElementById\('orga-cloisonnement-select'\)\?\.value === 'cloisonne' \? 'cloisonne' : 'connus';/);
+  assert.match(q, /<select id="orga-membres-connus-select"/);
+  assert.match(q, /<select id="orga-chef-connu-select"/);
+  assert.match(q, /parametres\.membres_se_connaissent = document\.getElementById\('orga-membres-connus-select'\)\?\.value !== 'non';/);
+  assert.match(q, /parametres\.chef_connu = document\.getElementById\('orga-chef-connu-select'\)\?\.value !== 'non';/);
+  assert.match(q, /m\.chef_anonyme === true/);
+  assert.match(q, /o\.chef_masque === true \? '<span data-i18n="organizationMembers\.hiddenLeader">le chef<\/span>'/);
   assert.match(q, /const masquer = !o\.visible && \(!suisMembreDe\(o\) \|\| o\.membres_masques === true\) && o\.chef !== state\.char\?\.name;/);
   assert.match(lire('forum.js'), /p\.authorIsOrg && p\.authorOrgId && getMesOrganisations\(\)\.some\(o => o\.id === p\.authorOrgId\)/);
   assert.match(lire('GAME-DESIGN-CRIMINALITE.md'), /## 3 bis\. Organisations secrètes/);
+});
+
+test('Deux options indépendantes (correction du 20/11) : quatre configurations, chef « le chef » sans nom', () => {
+  const sql = lire('migrations/20261120335000_organisations_secretes_deux_options.sql');
+  assert.match(sql, /v_connus := CASE WHEN jsonb_typeof\(p_data -> 'membres_se_connaissent'\) = 'boolean'/);
+  assert.match(sql, /v_chef_connu := CASE WHEN jsonb_typeof\(p_data -> 'chef_connu'\) = 'boolean'/);
+  assert.match(sql, /v_out := v_out - 'chef' - 'fondateur' - 'election';/);
+  assert.match(sql, /jsonb_build_object\('chef_anonyme', true\)/);
+  assert.match(sql, /'membres_masques', NOT v_connus, 'chef_masque', NOT v_chef_connu/);
+  assert.match(sql, /organisations_secretes_v2/);
+  // L'extérieur ne voit toujours aucun membre.
+  assert.match(sql, /'membres', '\[\]'::jsonb, 'demandesAdhesion', '\[\]'::jsonb/);
 });
