@@ -1199,7 +1199,7 @@ async function confirmerChangementPhoto() {
 
   if (!state.char) return;
   state.char.photoUrl = photoFinal;
-  localStorage.setItem('respublica_photo_' + state.char.name, photoFinal);
+  localStorage.setItem((typeof rpClePortrait === 'function') ? rpClePortrait(state.char.name) : 'respublica_photo_' + state.char.name, photoFinal);
   document.getElementById('modal-postes').classList.remove('open');
 
   if (typeof sbUpdatePhotoBio === 'function') {
@@ -1938,7 +1938,7 @@ async function confirmerDestructionPersonnage() {
   // Nettoyer le localStorage local
   localStorage.removeItem('respublica_char_' + nom);
   localStorage.removeItem('respublica_dormir_' + nom);
-  localStorage.removeItem('respublica_photo_' + nom);
+  localStorage.removeItem((typeof rpClePortrait === 'function') ? rpClePortrait(nom) : 'respublica_photo_' + nom);
   localStorage.removeItem('respublica_evtvus_' + nom);
   localStorage.removeItem('respublica_char');
   localStorage.removeItem('respublica_last_char');

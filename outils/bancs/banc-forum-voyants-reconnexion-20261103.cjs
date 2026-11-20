@@ -117,10 +117,12 @@ test('portrait du PJ et vrai bouton de reconnexion distinct, non étiré',()=>{
  assert.ok(button);assert.match(button.style.cssText,/align-self:flex-start/);
  assert.match(button.style.cssText,/flex:none/);
 });
-test('portrait nominatif en priorité, pas de photo globale d’un autre joueur',()=>{
+// Fred, 20/11/2026 : le portrait de soi vient d'abord du serveur ; le cache local (clé par compte ET par personnage)
+// ne sert qu'en secours, et jamais une photo globale d'un autre joueur.
+test('portrait du serveur en priorité, pas de photo globale d’un autre joueur',()=>{
  const nodes=reconnexionScene({name:'Arnie',photoUrl:'images/arnie.webp'},
    {'respublica_photo_Arnie':'images/arnie-perso.webp',respublica_photo:'images/autre.webp'});
- assert.equal(nodes.find(n=>n.tag==='img').src,'images/arnie-perso.webp');
+ assert.equal(nodes.find(n=>n.tag==='img').src,'images/arnie.webp');
 });
 test('sans portrait : silhouette visible, jamais photo d’un autre compte',()=>{
  const nodes=reconnexionScene({name:'Arnie'}, {respublica_photo:'images/autre.webp'});

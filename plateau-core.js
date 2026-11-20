@@ -1156,6 +1156,7 @@ function rpPurgerCachePersonnage(raison) {
     localStorage.removeItem('respublica_last_char');
     localStorage.removeItem(RP_CLE_CHAR_UID);
     localStorage.removeItem('respublica_photo');
+    if (typeof rpPurgerPortraitsLocaux === 'function') rpPurgerPortraitsLocaux();
     if (nom) {
       localStorage.removeItem('respublica_char_' + nom);
       localStorage.removeItem('respublica_photo_' + nom);
@@ -1730,8 +1731,8 @@ function afficherBandeauReconnexion() {
   let sourcePhoto = typeof identitePJ?.photoUrl === 'string' ? identitePJ.photoUrl : '';
   if (nomPJ) {
     try {
-      const cachePhoto = localStorage.getItem('respublica_photo_' + nomPJ);
-      if (cachePhoto) sourcePhoto = cachePhoto;
+      const cachePhoto = (typeof rpClePortrait === 'function') ? localStorage.getItem(rpClePortrait(nomPJ)) : null;
+      if (cachePhoto && !sourcePhoto) sourcePhoto = cachePhoto;
     } catch (_) {}
   }
   const presentation = document.createElement('div');
@@ -2115,8 +2116,9 @@ function applyCharToState(char) {
 
   // Photo
   try {
-    const photoSaved = localStorage.getItem('respublica_photo_' + (state.char?.name || 'default')) || localStorage.getItem('respublica_photo');
-    const photoUrl = photoSaved || char.photoUrl;
+    // Portrait du serveur d'abord ; cache par compte et par personnage en secours, jamais une clé commune (20/11/2026).
+    const photoSaved = (typeof rpClePortrait === 'function') ? localStorage.getItem(rpClePortrait(state.char?.name)) : null;
+    const photoUrl = char.photoUrl || photoSaved;
     if (photoUrl && photoUrl.length > 10) {
       const imgTag = `<img src="${photoUrl}" alt="Photo" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>`;
       const photoEl = document.getElementById('char-photo-left');
