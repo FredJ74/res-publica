@@ -20,6 +20,9 @@ def main():
  # Criminalité lot 7 (20/11/2026) : « Falsifier un procès-verbal » et les trois accélérations par corruption retirées ; corrompre_fonct reste (directeur du QHS, 3 PA 1 500).
  retires_variantes={('corrompre_chantier',2,1500),('corrompre_fonct',3,500),('corrompre_fonct#reussite',0,500),('corrompre_fonctionnaire_permis',2,800),('corrompre_rdv_notaire',2,800)}
  assert not retires_variantes&{(x['fn'],x['pa'],x['cost']) for x in source},'tarif retiré encore au catalogue';canon|=retires_variantes
+ # Criminalité, décisions du 20/11/2026 : « Obtenir du Polonium » retiré du port orphelin de Novomirsk.
+ retires_polonium={('acheter_polonium',2,600)}
+ assert not retires_polonium&{(x['fn'],x['pa'],x['cost']) for x in source},'tarif retiré encore au catalogue';canon|=retires_polonium
  # Ordres et variantes de tarif ajoutés après le 10/11 (Krasnov, ministères de Sovarka, Pavillon, Résidence, cliniques,
  # énigmes des musées…), postérieurs à la photographie : écartés comme les lots précédents (relevé du 15/11).
  # #1020 : huit menus gratuits du goulag, postérieurs à la photographie.

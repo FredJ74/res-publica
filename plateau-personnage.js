@@ -2075,13 +2075,16 @@ async function doDormir() {
     ? { moral: Number(vRepos.logement.moral) || 0, sante: Number(vRepos.logement.sante) || 0 } : { moral: 0, sante: 0 };
   if (vRepos?.logement) addJournalEntry('Nuit dans votre appartement : +' + (Number(vRepos.logement.pa) || 0) + ' PA.', 'event-good');
 
-  if (state.empoisonnement?.actif) {
-    state.hp = Math.floor((state.hp || 0) / 2);
-    if (state.hp < 20) state.hp = 0;
-    if (state.hp === 0) {
-      const palierPoison = state.empoisonnement.palier || 'partielle';
+  // Empoisonnement (Fred, 20/11/2026 : une seule réalité, celle du serveur) : pa_repos_nocturne a déjà divisé les PV
+  // par deux et, sous 20, hospitalisé d'urgence (crim_poison_nuit_interne). L'écran ne fait que relire et annoncer.
+  if (vRepos?.empoisonnement) {
+    const poison = vRepos.empoisonnement;
+    state.hp = Number(poison.pv) || 0;
+    if (poison.fatal) {
       state.empoisonnement = null;
-      declencherHospitalisation(palierPoison, { poison: true });
+      state.pa = 0;
+      if (typeof relireHospitalisationServeur === 'function') relireHospitalisationServeur(true);
+      if (typeof adopterPositionServeurRelue === 'function') adopterPositionServeurRelue();
       showToast('Empoisonnement fatal', 'Vos PV sont tombes a 0. Hospitalisation d\'urgence.', false, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b7135d043", 'Vos PV sont tombes a 0. Hospitalisation d\'urgence.', undefined, 'Empoisonnement fatal');
       addJournalEntry('L\'empoisonnement a eu raison de vous. Hospitalisation d\'urgence.', 'event-bad');
       updateUI();

@@ -18,8 +18,12 @@ const catalog=Object.fromEntries(languages.map(language=>[
 ]));
 const french=catalog.fr||{};
 const existing=new Map(source.entries.map(entry=>[entry.fn,entry]));
-const covered=[],partiallyCovered=[],missingStable=[],ambiguousWithoutCoverage=[],obsolete=[];
+const covered=[],partiallyCovered=[],missingStable=[],ambiguousWithoutCoverage=[],obsolete=[],retired=[];
+// Ordres retirés du jeu dont la traduction reste au catalogue (traductions confiées à Codex) :
+// acheter_polonium (Fred, 20/11/2026 : plus vendu au port orphelin de Novomirsk).
+const RETIRES=new Set(['acheter_polonium']);
 for(const [fn,label] of Object.entries(french)){
+ if(RETIRES.has(fn)&&!existing.has(fn)){retired.push(fn);continue;}
  const record=existing.get(fn);
  if(!record || !record.labels.includes(label))obsolete.push({fn,label});
  else if(record.ambiguous)partiallyCovered.push({fn,sourceLabels:record.labels});
@@ -49,6 +53,7 @@ const report={
  stableNotCovered:missingStable.length,
  ambiguousNotCovered:ambiguousWithoutCoverage.length,
  obsoleteCanonical:obsolete,
+ retiredCanonical:retired,
  perLocale,
  missingStable,
  ambiguousPartiallyCoveredDetails:partiallyCovered,

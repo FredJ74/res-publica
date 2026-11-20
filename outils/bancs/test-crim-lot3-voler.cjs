@@ -187,7 +187,8 @@ test('Écran : aucun calcul ; fiche → module ; menu « Fouiller ou voler » ; 
   vm.createContext(ctx);
   vm.runInContext('var state = { country: "republic", char: { name: "Arnie" }, inventory: [] };', ctx);
   vm.runInContext(js, ctx);
-  assert.deepEqual(Array.from(ctx.RPCriminalite.TYPES_VOL), ['arme', 'cle', 'medicament', 'nourriture', 'vetement', 'graisse']);
+  // Fred, 20/11/2026 : les documents deviennent volables et nommables.
+  assert.deepEqual(Array.from(ctx.RPCriminalite.TYPES_VOL), ['arme', 'cle', 'medicament', 'nourriture', 'vetement', 'graisse', 'document']);
   const jeton = '0e1f2a3b-4c5d-4e6f-8a9b-0c1d2e3f4a5b';
   const enc = encodeURIComponent(JSON.stringify({ name: 'Individu masqué n°1', isPJ: true, masque: true, jeton }));
   return ctx.crimVolerConfirmer(enc, 'precis', 'arme').then(() => ctx.crimVolerConfirmer(enc, 'argent')).then(() => {

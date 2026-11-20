@@ -118,6 +118,11 @@ def preparer(paquet=None):
  if any(x in source for x in retires_variantes):
   raise ValueError('Un tarif retiré ne doit plus figurer au catalogue actuel')
  source_historique=source_historique+retires_variantes
+ # Criminalité, décisions du 20/11/2026 : « Obtenir du Polonium » retiré du port orphelin de Novomirsk (le marché noir le vend à 150 PSK, tarif serveur hors coupe).
+ retires_polonium=[{'fn':'acheter_polonium','pa':2,'cost':600}]
+ if any(x in source for x in retires_polonium):
+  raise ValueError('Un tarif retiré ne doit plus figurer au catalogue actuel')
+ source_historique=source_historique+retires_polonium
  # 16/11/2026 : récolte passée de 2 à 1 PA (régulation de la production) ; la photographie garde l'ancien tarif.
  source_historique=[{'fn':'recolter_matiere','pa':2,'cost':0} if x=={'fn':'recolter_matiere','pa':1,'cost':0} else x for x in source_historique]
  # 18/11/2026 : naturalisation passée à 2 PA + 50 (nationalité, domicile et élections) ; la coupe historique garde 2 PA sans frais.

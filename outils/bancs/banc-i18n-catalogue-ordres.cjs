@@ -65,7 +65,11 @@ test('tous les libellés pilotes français correspondent exactement aux vrais or
   actual.get(fn).add(label);
  }
  const canonical=win.RP_I18N_RESOURCES.fr.translation.orders;
+ // Ordres retirés du jeu dont la traduction reste au catalogue (traductions confiées à Codex) :
+ // acheter_polonium (Fred, 20/11/2026 : plus vendu au port orphelin de Novomirsk ; le marché noir reste).
+ const RETIRES=new Set(['acheter_polonium']);
  for(const [fn,reference] of Object.entries(canonical)){
+  if(RETIRES.has(fn))continue;
   assert.ok(actual.get(fn)?.has(reference),
    'libellé non canonique : '+fn+' → '+JSON.stringify(reference));
  }
@@ -419,9 +423,9 @@ test('20 ordres supplémentaires douanes et transports : sources et invariants',
 });
 
 
-test('14 ordres portuaires et douaniers : labels source et droits préservés',()=>{
+test('13 ordres portuaires et douaniers : labels source et droits préservés',()=>{
  const source=fs.readFileSync(path.join(root,'data.js'),'utf8');
- const ids=["recruter_douanier","recruter_douanier_cynophile","gerer_effectifs_douane","controler_caisse_douane","declencher_election_syndicat","consulter_manifeste","consulter_administration_port","gerer_logistique_port","acheter_polonium","acheter_ghb","acheter_vipere","orga_benediction","sovarka_reunion_evenement","sovarka_demande_location"];
+ const ids=["recruter_douanier","recruter_douanier_cynophile","gerer_effectifs_douane","controler_caisse_douane","declencher_election_syndicat","consulter_manifeste","consulter_administration_port","gerer_logistique_port","acheter_ghb","acheter_vipere","orga_benediction","sovarka_reunion_evenement","sovarka_demande_location"];
  const found=new Map();for(const m of source.matchAll(/\bfn\s*:\s*(['"])([^'"\n]+)\1\s*,\s*label\s*:\s*(['"])([^'"\n]+)\3/g)){
   if(!found.has(m[2]))found.set(m[2],new Set());found.get(m[2]).add(m[4]);
  }
