@@ -34,7 +34,7 @@ Mêmes rendements partout : 1 PA consomme 5 matières et produit 10 unités.
 |---|---|---|
 | Alcool pur | céréales, 55 FR le PA | fruits et légumes, 15 PSK le PA |
 | Spiritueux | céréales, 55 FR le PA | fruits et légumes, 15 PSK le PA |
-| Sucre | fruits et légumes, 30 FR le PA | fruits et légumes, 15 PSK le PA |
+| Sucre | fruits et légumes, 50 FR le PA (salaire minimum) | fruits et légumes, 15 PSK le PA |
 
 - **Production de nuit :**
   - Républia : `api/cron-minuit.js`, avec trois chaînes de plus à PSM. L'usine reçoit désormais aussi des fruits et légumes de l'entrepôt local.

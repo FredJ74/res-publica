@@ -16,7 +16,7 @@ test('Matières : alcool pur (clé historique), spiritueux, sucre — serveur et
 
 test('Chaînes : PSM (céréales → spiritueux, fruits → sucre) et Krasnov (fruits), jour et nuit', () => {
   assert.match(sql, /'spiritueux', 'ville_a', 'pole-tabac-alcools-psm', 'cereales', 55/);
-  assert.match(sql, /'sucre', 'ville_a', 'pole-tabac-alcools-psm', 'fruits_legumes', 30/);
+  assert.match(sql, /'sucre', 'ville_a', 'pole-tabac-alcools-psm', 'fruits_legumes', 50/);
   assert.match(sql, /'soviet', 'spiritueux', 'ville_b', 'distillerie-krasnov', 'fruits_legumes', 15, 6/);
   assert.match(sql, /'soviet', 'sucre', 'ville_b', 'distillerie-krasnov', 'fruits_legumes', 15, 7/);
   assert.match(sql, /VALUES \('produire_spiritueux'\), \('produire_sucre'\)/);

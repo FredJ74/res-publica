@@ -24,7 +24,7 @@ INSERT INTO public.chaines_production_usine (produit, ville, building_id, matier
 SELECT 'spiritueux', 'ville_a', 'pole-tabac-alcools-psm', 'cereales', 55
  WHERE NOT EXISTS (SELECT 1 FROM public.chaines_production_usine WHERE produit = 'spiritueux');
 INSERT INTO public.chaines_production_usine (produit, ville, building_id, matiere, salaire_pa)
-SELECT 'sucre', 'ville_a', 'pole-tabac-alcools-psm', 'fruits_legumes', 30
+SELECT 'sucre', 'ville_a', 'pole-tabac-alcools-psm', 'fruits_legumes', 50
  WHERE NOT EXISTS (SELECT 1 FROM public.chaines_production_usine WHERE produit = 'sucre');
 INSERT INTO public.chaines_production_pays (pays, produit, ville, building_id, matiere, salaire_pa, rang)
 SELECT 'soviet', 'spiritueux', 'ville_b', 'distillerie-krasnov', 'fruits_legumes', 15, 6
@@ -283,5 +283,8 @@ SELECT pg_temp.rp_raccorder((SELECT oid FROM pg_proc WHERE proname = 'sovarka_pr
   $a$    v_vdq := least(2 * c_volume - v_vers,$a$,
   $b$    v_vdq := least(floor((2 * c_volume - v_vers) * public.penurie_coef_interne('soviet', r.ville, r.produit))::integer, /* penuries_v1_vd */$b$,
   'penuries_v1_vd');
+
+-- Salaire du sucre en Républia : 50 FR le PA, salaire minimum (Fred, 20/11/2026 ; équivalent des 15 PSK de Krasnov).
+UPDATE public.chaines_production_usine SET salaire_pa = 50 WHERE produit = 'sucre' AND building_id = 'pole-tabac-alcools-psm' AND salaire_pa = 30;
 
 COMMIT;

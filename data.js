@@ -8597,7 +8597,7 @@ const BUILDINGS = {
         orders: [
           {fn:'produire_alcool', label:"Produire de l'alcool", pa:1, cost:0, type:'legal', icon:'ti-glass-full', successRate:100, desc:'Fabrication contre salaire fixe : 1 PA, 55 FR. Consomme 5 céréales du stock de matières de l\'usine, produit 10 alcools.'},
           {fn:'produire_spiritueux', label:'Produire des spiritueux', pa:1, cost:0, type:'legal', icon:'ti-glass-full', successRate:100, desc:'Fabrication contre salaire fixe : 1 PA, 55 FR. Consomme 5 céréales du stock de matières de l\'usine, produit 10 spiritueux (l\'alcool à boire des bars et buvettes).'},
-          {fn:'produire_sucre', label:'Produire du sucre', pa:1, cost:0, type:'legal', icon:'ti-cube', successRate:100, desc:'Fabrication contre salaire fixe : 1 PA, 30 FR. Consomme 5 fruits et légumes du stock de matières de l\'usine, produit 10 sucres.'},
+          {fn:'produire_sucre', label:'Produire du sucre', pa:1, cost:0, type:'legal', icon:'ti-cube', successRate:100, desc:'Fabrication contre salaire fixe : 1 PA, 50 FR. Consomme 5 fruits et légumes du stock de matières de l\'usine, produit 10 sucres.'},
           // Audit PSM/Montrouge (01/11/2026) : sans cet ordre, aucune matiere ne pouvait entrer
           // dans cette usine (vendre_matiere_a_usine accepte deja ses chaines cote serveur).
           {fn:'vendre_matiere_usine', label:'Vendre des matières à l\'usine', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre à l\'usine, depuis votre inventaire, les matières premières dont ses chaînes de production ont besoin.'}
