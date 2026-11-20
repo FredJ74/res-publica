@@ -165,6 +165,17 @@ const T = {
     tFlagrant: '{pnj} alerte immédiatement la police. Tous vos tracts calomnieux sont détruits. {jours} jour(s) de détention.',
     tFlagrantJournal: 'Distribution de tract calomnieux à {pnj} — échec critique. Tracts calomnieux détruits, {jours} jour(s) de détention.',
     tMotif: 'Distribution de tracts calomnieux',
+    lpTitre: 'Laissez-passer du QHS', lpBouton: 'Laissez-passer du QHS',
+    lpNote: 'Tout le monde peut se rendre devant le QHS ; seuls les porteurs d’un laissez-passer valide entrent. Le contrôle regarde le document, pas le visage : un laissez-passer volé ouvre aussi. Un retrait l’invalide partout.',
+    lpDelivrer: 'Délivrer', lpNom: 'Nom du bénéficiaire', lpValides: 'Laissez-passer valides', lpAucun: 'Aucun laissez-passer valide.',
+    lpLigne: '{nom} — délivré par {par}', lpRetirer: 'Retirer', lpJournal: 'Passages consignés (nom inscrit sur le document)',
+    lpAucunPassage: 'Aucun passage consigné.', lpOk: 'Laissez-passer délivré à {nom}.', lpRetire: 'Laissez-passer de {nom} retiré.',
+    flpTitre: 'Faux laissez-passer', flpLieu: 'Lieu', flpArchives: 'Archives d’écoute (Sovarka)', flpQhs: 'QHS',
+    flpNom: 'Nom inscrit sur le document', flpNote: 'Un faux réussi passe pour un vrai, mais ne sert qu’une fois : il est retenu au contrôle.',
+    flpValider: 'Fabriquer', flpNomRequis: 'Inscrivez un nom.',
+    r_laissez_passer_requis: 'Entrée réservée aux porteurs d’un laissez-passer valide.', r_autorite_insuffisante: 'Réservé au Ministre de la Justice et aux juges.',
+    r_deja_habilite: 'Cette personne a déjà un laissez-passer valide.', r_pas_habilite: 'Cette personne n’a pas de laissez-passer valide.',
+    r_personnage_introuvable: 'Personnage introuvable.',
     hTitre: 'Envois au QHS', hBouton: 'Envois au QHS (demandes et référendums)',
     hNote: 'Le QHS est réservé aux détenus très dangereux. Le détenu y purge le reste de sa peine, sans un jour de plus. Un envoi sans consultation est ressenti comme un abus de pouvoir ; un référendum ne coûte rien.',
     hSuppleance: 'Le poste de Ministre de la Justice n’est pas tenu par un joueur : vous décidez à sa place, avec les mêmes règles.',
@@ -724,6 +735,55 @@ function blocVotesQhs(liste) {
       + '<button class="cpj-touche" onclick="crimVoterReferendumQhs(' + Number(v.id) + ',\'non\')">' + esc(texte('hNon')) + '</button>')
     + '</div>').join('');
 }
+// ── Laissez-passer (réponses de Fred du 20/11/2026) : registre par lieu, contrôle du document, journal des passages ──
+async function crimOuvrirLaissezPasserQhs(lu) {
+  const r = lu || await rpc('crim_laissez_passer_qhs_lire');
+  titreModale(texte('lpTitre'));
+  if (!r || r.ok !== true) { toast(texte('lpTitre'), motif(r), false); return; }
+  let html = '<div class="cpj-dialogue"><p class="cpj-note">' + esc(texte('lpNote')) + '</p>'
+    + '<input id="crim-lp-nom" type="text" maxlength="60" class="cpj-champ" placeholder="' + esc(texte('lpNom')) + '"> '
+    + '<button class="cpj-touche cpj-primaire" onclick="crimLaissezPasserQhs(\'delivrer\')">' + esc(texte('lpDelivrer')) + '</button>'
+    + '<p class="cpj-titre">' + esc(texte('lpValides')) + '</p>';
+  const valides = Array.isArray(r.valides) ? r.valides : [];
+  html += valides.length ? valides.map(v => '<div style="margin:.3rem 0">' + esc(texte('lpLigne', { nom: v.nom, par: v.par || '?' }))
+      + ' <button class="cpj-touche" onclick="crimLaissezPasserQhs(\'retirer\',' + esc(JSON.stringify(String(v.nom))) + ')">' + esc(texte('lpRetirer')) + '</button></div>').join('')
+    : '<p class="cpj-note">' + esc(texte('lpAucun')) + '</p>';
+  html += '<p class="cpj-titre">' + esc(texte('lpJournal')) + '</p>' + blocPassages(r.passages) + '</div>';
+  ouvrirModale(html);
+}
+function blocPassages(passages) {
+  const p = Array.isArray(passages) ? passages : [];
+  return p.length ? p.map(x => '<div class="cpj-note">' + esc(dateCourte(x.le)) + ' — ' + esc(x.nom) + '</div>').join('')
+    : '<p class="cpj-note">' + esc(texte('lpAucunPassage')) + '</p>';
+}
+async function crimLaissezPasserQhs(action, nom) {
+  const n = action === 'delivrer' ? String((global.document.getElementById('crim-lp-nom') || {}).value || '').trim() : nom;
+  if (!n) { toast(texte('lpTitre'), texte('r_personnage_introuvable'), false); return; }
+  const r = await rpc(action === 'delivrer' ? 'crim_laissez_passer_qhs_delivrer' : 'crim_laissez_passer_qhs_retirer', { p_nom: n });
+  if (!r || r.ok !== true) { toast(texte('lpTitre'), motif(r), false); return; }
+  toast(texte('lpTitre'), action === 'delivrer' ? texte('lpOk', { nom: r.accorde }) : texte('lpRetire', { nom: r.retire }), true);
+  crimOuvrirLaissezPasserQhs(r);
+}
+// Faux laissez-passer : le faussaire choisit le lieu et le nom inscrit ; le serveur reçoit 'faux_laissez_passer|lieu|pays|nom'.
+function crimFauxLpOuvrir(mode, pa, cost) {
+  titreModale(texte('flpTitre'));
+  ouvrirModale('<div class="cpj-dialogue"><p class="cpj-note">' + esc(texte('flpNote')) + '</p>'
+    + '<label class="cpj-note">' + esc(texte('flpLieu')) + ' <select id="crim-flp-lieu" class="cpj-champ">'
+    + '<option value="archives_ecoute">' + esc(texte('flpArchives')) + '</option><option value="qhs">' + esc(texte('flpQhs')) + '</option></select></label>'
+    + '<input id="crim-flp-nom" type="text" maxlength="60" class="cpj-champ" placeholder="' + esc(texte('flpNom')) + '"> '
+    + '<button class="cpj-touche cpj-primaire" onclick="crimFauxLpValider(\'' + (mode === 'greffe' ? 'greffe' : 'imprimante') + '\',' + Number(pa || 0) + ',' + Number(cost || 0) + ')">'
+    + esc(texte('flpValider')) + '</button></div>');
+}
+function crimFauxLpValider(mode, pa, cost) {
+  const d = global.document;
+  const lieu = (d.getElementById('crim-flp-lieu') || {}).value === 'qhs' ? 'qhs' : 'archives_ecoute';
+  const nom = String((d.getElementById('crim-flp-nom') || {}).value || '').replace(/\|/g, ' ').trim();
+  if (!nom) { toast(texte('flpTitre'), texte('flpNomRequis'), false); return; }
+  const pdoc = ['faux_laissez_passer', lieu, lieu === 'qhs' ? (etat().country || 'republic') : 'soviet', nom].join('|');
+  const m = d.getElementById('modal-postes'); if (m) m.classList.remove('open');
+  if (mode === 'greffe') { if (typeof global.confirmerFalsification === 'function') global.confirmerFalsification(pdoc, pa, cost); }
+  else if (typeof global.fauxImprimer === 'function') global.fauxImprimer(pdoc);
+}
 async function crimOuvrirEnvoisQhs() {
   const r = await rpc('crim_qhs_lire');
   titreModale(texte('hTitre'));
@@ -968,7 +1028,7 @@ if (global.document && global.setTimeout) {
   else global.document.addEventListener('DOMContentLoaded', demarrer);
 }
 
-global.RPCriminalite = { T, texte, objetRevetable, objetPorte, ordresBoutiqueDiscretion, LIEUX_BOUTIQUE, identifiantCible, ORDRES_VOL, TYPES_VOL, ORDRES_CAMBRIOLAGE,
+global.RPCriminalite = { T, texte, blocPassages, objetRevetable, objetPorte, ordresBoutiqueDiscretion, LIEUX_BOUTIQUE, identifiantCible, ORDRES_VOL, TYPES_VOL, ORDRES_CAMBRIOLAGE,
   ORDRES_JUSTICE, crimBoutonEnquetes, ORDRES_CORRUPTION_QHS };
 Object.assign(global, { ouvrirBoutiqueDiscretion, acheterDiscretion, boutonRevetir, badgeRevetu, crimRevetir, crimRetirer,
   messageSeCacher, ouvrirFouilleCachettes, fouilleCachettesConfirmer, lireEvenementsCrim, animationDemasquage,
@@ -976,5 +1036,5 @@ Object.assign(global, { ouvrirBoutiqueDiscretion, acheterDiscretion, boutonRevet
   crimBoutonsPorte, crimPorteAgir, crimOuvrirCambriolage, crimCambrioler,
   crimOuvrirEmpoisonner, crimEmpoisonnerConfirmer, crimOuvrirSabotage, crimSabotageConfirmer, crimOuvrirEnquetes, crimEnqueter,
   crimOuvrirCorruptionQhs, crimCorrompreDirecteur, crimCorrompreGardien, crimRumeurResultat, crimTractFlagrant,
-  crimOuvrirEnvoisQhs, crimQhsDecider, crimVoterReferendumQhs });
+  crimOuvrirEnvoisQhs, crimQhsDecider, crimVoterReferendumQhs, crimOuvrirLaissezPasserQhs, crimLaissezPasserQhs, crimFauxLpOuvrir, crimFauxLpValider });
 })(typeof window !== 'undefined' ? window : globalThis);

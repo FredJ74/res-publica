@@ -153,6 +153,9 @@ function provAfficherHabilitations(v) {
     ? liste.map(h => '<div style="margin:.3rem 0">' + provT('habilLine', { nom: provEchapper(h.nom), par: provEchapper(h.par) }) +
         vehBouton(provT('habilRevoke'), provJs('retirerHabilitation', h.nom)) + '</div>').join('')
     : '<p class="cpj-note">' + provT('habilNone') + '</p>');
+  // Journal des passages (Fred, 20/11/2026) : nom inscrit sur le document présenté. Textes à traduire (Codex).
+  if (window.RPCriminalite && typeof window.RPCriminalite.blocPassages === 'function')
+    html += vehSection('Passages consignés', window.RPCriminalite.blocPassages(v.passages));
   provModal(provT('tHabil'), html, ouvrirHabilitations);
 }
 async function accorderHabilitation() {

@@ -904,11 +904,12 @@ Migration `20261120170000_crim_decisions_fred` (essayée en transaction annulée
 4. Tenue ninja fabriquée au marché (recette `tenue_ninja_marche`) : 1 textile + 1 PA = 1 tenue ; prix = 2 × coût de revient :
    **110 FR** ((5 + 50) × 2) et **32 PSK** ((1 + 15) × 2). Cartes des trois marchés de Républia et dotations (Krasnov compris) ;
    Novomirsk et Starovka, sans carte propre, la gardent au comptoir « Équipement discret » au même prix. Masque des commerces
-   Habillement : 1 textile + 1 PA = 2 masques (choix de l'agent, à relire).
+   Habillement : 1 textile + 1 PA = 2 masques (validé par Fred le 20/11/2026).
 5. Porte crochetée : ouverte pour tous, sans limite, jusqu'à ce que le propriétaire la referme avec sa clé (`serrure_basculer`).
 6. GHB : toutes les boissons comptent (`boissons_du_jour`) ; accroche prête pour la bouteille d'eau.
 7. Polonium : **150 PSK** (`ordres_couts` 2 PA / 150). Ordre retiré du « Port de Novomirsk » orphelin (bâtiment absent de toute carte,
-   laissé en place). Il reste vendu au **marché noir de Novomirsk** (Camarade Kalachnikov), qui proposait déjà le poison de l'empire.
+   laissé en place). Point de vente **provisoire** : marché noir de Novomirsk (Camarade Kalachnikov) ; **définitif** : un militaire du
+   centre d'écoute (radar) de Krasnov, à définir au passage de Fred au radar (décidé par Fred le 20/11/2026).
 8. Explosion prématurée : seul le poseur est blessé (inchangé).
 9. Échec critique d'une rumeur : annonce nationale (pays du lanceur), −5 POP inchangés.
 10. Égalité au référendum QHS : le non l'emporte (inchangé).
@@ -924,9 +925,33 @@ Migration `20261120170000_crim_decisions_fred` (essayée en transaction annulée
 14. Faux laissez-passer : greffe (3 PA + 300 FR, 45 %) et imprimante papier (3 PA + cartouche, 70 %) ; un faux réussi est un vrai
     laissez-passer au nom du faussaire, sans aucune marque.
 15. DIS : règle symétrique partout (empoisonnement, explosifs, incendie, rumeur, crochetage).
-16. Marché noir : plus aucun bonus de carrière (renseignement et escort perdent leur +15 ; malus conservés).
+16. Marché noir : plus aucun bonus de carrière (renseignement et escort perdent leur +15 ; malus conservés — validé par Fred le 20/11/2026).
 
 Écarts corrigés : rébellion réussie **2 j** ; peines automatiques de **Sovarka doublées** (assassin 4 j, voleur 2 j, corrupteur 2 j,
-reste du barème × 2 par `peine_facteur_soviet` ; le juge module toujours autour de la référence non doublée ; empires non ouverts =
+reste du barème × 2 par `peine_facteur_soviet` ; le juge module toujours autour de la référence non doublée (validé par Fred) ; empires non ouverts =
 Républia ; purgées comme ailleurs tant que le goulag n'est pas ouvert) ; progression nocturne de l'empoisonnement passée au serveur
 (`crim_poison_nuit_interne`, appelée par `pa_repos_nocturne`, valeurs inchangées : PV ÷ 2, sous 20 → hospitalisation d'urgence).
+
+### Laissez-passer : mécanisme définitif (réponses de Fred, 20/11/2026)
+
+Migration `20261120190000_crim_laissez_passer_registre` (essayée en transaction annulée, puis appliquée), banc
+`test-crim-laissez-passer-20261120.cjs`. Remplace le point 13 ci-dessus.
+
+- **Registre par lieu** (`crim_laissez_passer`) : archives d'écoute (Sovarka), QHS (par empire) ; le goulag suivra la même règle à son
+  ouverture. Chaque laissez-passer y porte un nom.
+- **Contrôle à l'entrée** (`crim_lp_presenter_interne`) : le document présenté doit être valide au registre ; le nom du porteur n'est
+  jamais comparé (un laissez-passer volé fonctionne). Chaque passage est consigné avec le **nom inscrit sur le document**
+  (`crim_laissez_passer_passages`), journal consultable par les autorités qui délivrent.
+- **Vrai** : permanent tant que l'habilitation n'est pas retirée. Le retrait l'invalide **partout**, où que soit le document ; il est
+  confisqué s'il est dans l'inventaire du titulaire.
+- **Faux réussi** (greffe 3 PA + 300 FR, 45 % ; imprimante 3 PA + cartouche, 70 %) : accepté comme un vrai pour **un seul passage**, puis
+  retenu au contrôle (retiré de l'inventaire). Pas de faux permanent. Le faussaire choisit le lieu et le **nom inscrit**.
+- **QHS** : tout le monde peut s'y rendre (le taxi dépose devant le QHS, la vue extérieure reste accessible) ; seuls les porteurs d'un
+  laissez-passer valide entrent (`navigation_interieure_personnage_interne`, refus `laissez_passer_requis`). Les détenus, conduits par le
+  serveur, ne sont pas concernés. Délivré et retiré par le **Ministre de la Justice** (« Gestion du QHS ») ou un **juge** (écran
+  d'audience), pour le pays de leur mandat ; même écran pour le journal des passages.
+- **Archives d'écoute** : chaque consultation est un passage (un faux sert une fois) ; le journal s'affiche dans l'écran des
+  habilitations du ministre de la Sécurité du Peuple.
+- Choix techniques de l'agent : un vrai est présenté avant un faux si le porteur a les deux ; un seul vrai laissez-passer valide par
+  personne et par lieu ; un groupe entre au QHS seulement si chacun présente un document valide.
+
