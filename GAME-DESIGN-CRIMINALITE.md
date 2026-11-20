@@ -76,6 +76,15 @@ Trois façons d'agir :
   - Réussite : coupable identifié (recherché, 2 jours de prison d'office ; dommages et intérêts possibles).
   - Première enquête ratée sur une plainte (**une seule fois par plainte**) : le criminel reçoit « Le commissaire X est sur vos traces. Vous n'êtes pas identifié pour l'instant, mais vous n'avez plus droit à l'erreur. » **−20 de DIS, −15 de moral.**
 
+- **Prescription des plaintes** (décision de Fred du 20/11/2026, migration `20261120320000_plaintes_prescription`).
+  - Une plainte, contre X ou contre une personne nommée, qui n'a pas abouti devient **caduque 30 jours après son dépôt**. « Pas abouti » signifie : toujours au parquet ou en enquête, aucune identification, aucun procès engagé. La passe de nuit s'en charge (`plaintes_prescrire`).
+  - Une plainte qui a mené à une **identification** ou à un **procès** (poursuites, audience, jugement, appel) n'est **jamais** prescrite.
+  - À la prescription :
+    - une ligne d'historique minimale est conservée (date de dépôt, ville, type d'acte, « prescrite ») ;
+    - la plainte est close ;
+    - l'affaire liée est archivée et ses données lourdes (indices, détails) sont purgées.
+  - Le plaignant PJ reçoit un **courrier** : « Votre plainte du [date] pour [acte] à [ville] est prescrite : faute d'élément nouveau, l'enquête est close. » C'est une exception voulue à la règle du journal, car il s'agit d'une notification administrative. Un PNJ plaignant (son employeur) ne reçoit rien.
+
 ## 4. Rumeurs
 
 - Pour un agresseur anonyme, les rumeurs donnent des **indices partiels**, façon « Qui est-ce ? » : **le genre** (« l'assassin semblait être une femme ») et **le type précis d'arme** (kalachnikov, revolver, carabine…). Pas l'origine, la carrière ni le domicile.

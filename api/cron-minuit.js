@@ -4037,6 +4037,7 @@ async function traiterQuotidienNationalServeur(pays) {
   await traiterConvocationsServeur();
   await traiterDecouverteCrimesServeur();
   await traiterAmendesServeur();
+  await traiterPrescriptionPlaintesServeur();
   await traiterInformateursServeur();
 }
 
@@ -4091,6 +4092,22 @@ async function traiterAmendesServeur() {
   if (!reussi) signalerEchec('amendes', JSON.stringify(v));
   // Trace durable de la passe (le serveur garantit un seul prélèvement par jour et par amende).
   await journaliserCron('amendes_tresor', jourParisISO(), reussi ? 'ok' : 'echec',
+    reussi ? null : JSON.stringify(v), resumeContexte(r), Date.now() - debut);
+}
+
+// --- PRESCRIPTION DES PLAINTES (20 novembre 2026, décision de Fred) ------------------------------
+// plaintes_prescrire est globale : une plainte restée au parquet ou en enquête, jamais suivie d'identification ni de
+// procès, est prescrite 30 jours après son dépôt (historique minimal, affaire archivée, courrier au plaignant PJ).
+let prescriptionTraiteeCettePasse = false;
+async function traiterPrescriptionPlaintesServeur() {
+  if (prescriptionTraiteeCettePasse) return;
+  prescriptionTraiteeCettePasse = true;
+  const debut = Date.now();
+  const v = await sbRpc('plaintes_prescrire', { p_jours: 30 }, HEADERS_SERVICE).catch(() => null);
+  const r = Array.isArray(v) ? v[0] : v;
+  const reussi = !!(r && r.ok === true);
+  if (!reussi) signalerEchec('prescription_plaintes', JSON.stringify(v));
+  await journaliserCron('prescription_plaintes', jourParisISO(), reussi ? 'ok' : 'echec',
     reussi ? null : JSON.stringify(v), resumeContexte(r), Date.now() - debut);
 }
 
