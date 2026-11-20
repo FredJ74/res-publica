@@ -8,6 +8,10 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Interagir avec un personnage masqué (Claude, 20/11/2026)
+- **Branche `claude/masques-interactions-20261120`**. **Migration APPLIQUÉE** : `20261120260000_masques_interactions` (essai annulé d'abord : banc de discrétion en base, aucune fuite du vrai nom). Règle dans `GAME-DESIGN-CRIMINALITE.md` (§ 1). Banc `test-masques-interactions-20261120.cjs`.
+- Parler et Rejoindre par l'identifiant anonyme `masque:<jeton>` (`groupe_pj_rejoindre_masque`, `crim_mon_alias_masque`, règle d'écriture `messages_chat_envoi` → `chat_auteur_attendu_interne`) ; groupe et déplacements de groupe affichent « Individu masqué n°X » (`crim_nom_pour_interne`). Pas de courrier. Caché inchangé.
+- Pas de nouvelle clé de traduction (libellés « Parler », « Rejoindre ce joueur » existants ; « Individu masqué » vient du serveur comme dans la liste des présents).
 ### Sortie de bâtiment, provenance de rue, peines au barème (Claude, 20/11/2026)
 - **Branche `claude/navigation-rue-sortie-20261120`**. **Migration APPLIQUÉE** : `20261120250000_navigation_provenance_peines_bareme` (essai annulé d'abord). Banc `test-navigation-provenance-20261120.cjs`.
 - **Cause de l'écran** : quand `state.country` / `state.currentCity` ne désignent pas une ville à rues, `showVueRue` bascule dans l'ancien mode et ne réécrit pas le titre : le gabarit de `plateau.html` affiche alors « Avenue de la Republique » (reproduit au navigateur). À la sortie, l'écran relit désormais `rue_position_lire` et adopte le pays et la ville du serveur (`realignerVilleSurServeurAvantSortie`) ; une ville inconnue ne laisse plus ni titre ni décor d'une autre ville ; l'orientation n'est retenue que si elle est voisine de la porte (`orientationRueVoisine`).

@@ -1957,6 +1957,11 @@ async function rejoindrePJ(encodedPnj) {
   if (!pj || !pj.name || pj.name === state.char?.name) return;
   return commanderGroupePj(options => sbRpc('groupe_pj_rejoindre', {p_chef: pj.name}, options), 'Groupe rejoint');
 }
+// Rejoindre un individu masqué : par son jeton seulement (groupe_pj_rejoindre_masque) ; son nom n'est jamais connu.
+async function rejoindreMasque(jeton) {
+  if (!jeton) return;
+  return commanderGroupePj(options => sbRpc('groupe_pj_rejoindre_masque', {p_jeton: String(jeton)}, options), 'Groupe rejoint');
+}
 async function quitterGroupe() {
   return commanderGroupePj(options => sbRpc('groupe_pj_quitter', {}, options), 'Groupe quitté');
 }
@@ -2076,10 +2081,40 @@ function toggleChatPiece() {
 
 // Ouvre directement une conversation privee avec quelqu'un (appele depuis le bouton
 // "Parler" de la fenetre PNJ/joueur), sans passer par la liste.
-function ouvrirConversationAvec(nom) {
+// CONVERSATIONS ANONYMES (Fred, 20/11/2026). Avec un masqué, la conversation porte son identifiant 'masque:<jeton>' ;
+// s'il est lui-même masqué, chacun écrit sous son identifiant. Le serveur l'exige (règle d'écriture de messages_chat) :
+// le vrai nom n'est jamais écrit, ni dans l'identifiant de la conversation, ni comme auteur.
+let _chatAliasMoi = null, _chatMasqueMoi = false;
+async function chatRafraichirAlias() {
+  if (typeof sbRpc !== 'function') return _chatAliasMoi;
+  try {
+    let v = await sbRpc('crim_mon_alias_masque', {});
+    if (Array.isArray(v)) v = v[0];
+    if (v && v.ok === true) { _chatAliasMoi = v.alias || null; _chatMasqueMoi = v.masque === true; }
+  } catch (_) {}
+  return _chatAliasMoi;
+}
+function chatMoiPour(conversationId) {
+  const parts = String(conversationId || '').split('__');
+  return (_chatAliasMoi && parts.includes(_chatAliasMoi)) ? _chatAliasMoi : (state.char?.name || 'Anonyme');
+}
+function chatLibelleParticipant(id) {
+  if (!id || !String(id).startsWith('masque:')) return id;
+  const jeton = String(id).slice(7);
+  const present = (window._vraisJoueursPresents || []).find(p => p && p.masque && p.jeton === jeton);
+  return present ? present.name : 'Individu masqué';
+}
+async function ouvrirConversationAvec(nom, jeton) {
   const panel = document.getElementById('chat-piece-panel');
   if (panel) panel.style.display = 'flex';
-  _conversationActuelle = { id: getConversationId(state.char?.name, nom), type: 'prive', label: nom };
+  await chatRafraichirAlias();
+  const autre = jeton ? 'masque:' + String(jeton).replace(/[^0-9a-f-]/gi, '') : nom;
+  const moi = (_chatMasqueMoi && _chatAliasMoi) ? _chatAliasMoi : state.char?.name;
+  _conversationActuelle = { id: getConversationId(moi, autre), type: 'prive', label: jeton ? (nom || chatLibelleParticipant(autre)) : nom };
+  afficherVueConversation();
+}
+function ouvrirConversationParId(id, label) {
+  _conversationActuelle = { id, type: 'prive', label };
   afficherVueConversation();
 }
 
@@ -2091,13 +2126,16 @@ async function ouvrirListeConversations() {
   let salons = [];
   try {
     if (typeof sbGet === 'function') {
+      await chatRafraichirAlias();
       const tousMessages = await sbGet('messages_chat', `order=created_at.desc&limit=300`);
       const idsVus = new Set();
       (tousMessages || []).forEach(m => {
-        if (!m.salon && m.conversation_id.split('__').includes(moi) && !idsVus.has(m.conversation_id)) {
+        const parts = m.conversation_id.split('__');
+        const soi = parts.includes(moi) ? moi : (_chatAliasMoi && parts.includes(_chatAliasMoi) ? _chatAliasMoi : null);
+        if (!m.salon && soi && !idsVus.has(m.conversation_id)) {
           idsVus.add(m.conversation_id);
-          const autre = m.conversation_id.split('__').find(n => n !== moi);
-          conversationsPrivees.push({ id: m.conversation_id, label: autre });
+          const autre = parts.find(n => n !== soi);
+          conversationsPrivees.push({ id: m.conversation_id, label: chatLibelleParticipant(autre) });
         }
       });
     }
@@ -2112,7 +2150,7 @@ async function ouvrirListeConversations() {
     html += '<div style="font-size:.72rem;color:#6a5a30;font-style:italic">Aucune conversation pour le moment.</div>';
   }
   conversationsPrivees.forEach(c => {
-    html += '<div onclick="ouvrirConversationAvec(\'' + c.label.replace(/'/g,"\\'") + '\')" style="padding:.4rem .6rem;background:#121005;border:1px solid #2a2010;cursor:pointer;font-size:.78rem;color:#e0d8c0">🔒 ' + c.label + '</div>';
+    html += '<div data-conv="' + String(c.id).replace(/"/g,'') + '" data-label="' + String(c.label).replace(/"/g,'') + '" onclick="ouvrirConversationParId(this.dataset.conv, this.dataset.label)" style="padding:.4rem .6rem;background:#121005;border:1px solid #2a2010;cursor:pointer;font-size:.78rem;color:#e0d8c0">🔒 ' + c.label + '</div>';
   });
   salons.forEach(s => {
     html += '<div onclick="ouvrirSalonChat(\'' + s.id + '\',\'' + s.nom.replace(/'/g,"\\'") + '\')" style="padding:.4rem .6rem;background:#121005;border:1px solid #2a2010;cursor:pointer;font-size:.78rem;color:#e0d8c0">💬 ' + s.nom + '</div>';
@@ -2183,7 +2221,7 @@ async function rafraichirConversationActuelle(reset) {
   _chatLectureEnCours = true;
   try {
     const messages = await sbGetMessagesConversation(_conversationActuelle.id, reset ? null : _chatDernierMessage);
-    const moi = state.char?.name;
+    const moi = chatMoiPour(_conversationActuelle.id);
     const zone = document.getElementById('chat-messages-zone');
     if (!zone) return;
     if (!messages || messages.length === 0) {
@@ -2197,7 +2235,7 @@ async function rafraichirConversationActuelle(reset) {
       zone.insertAdjacentHTML('beforeend',
         '<div style="margin-bottom:.4rem;text-align:' + (estMoi ? 'right' : 'left') + '">' +
         '<div style="display:inline-block;max-width:80%;padding:.35rem .6rem;border-radius:8px;background:#0f0d05;border:1px solid #2a2010">' +
-        '<div style="font-size:.9rem;color:#a08850">' + m.auteur + ' <span style="font-size:.72rem;color:#6a5a30">' + heureMsg + '</span>' +
+        '<div style="font-size:.9rem;color:#a08850">' + chatLibelleParticipant(m.auteur) + ' <span style="font-size:.72rem;color:#6a5a30">' + heureMsg + '</span>' +
         // Signaler (Fred, 20/11/2026) : sur les messages des autres, file de modération du MJ.
         (!estMoi && m.id && typeof rpSignalerMessage === 'function' ? ' <span data-signaler-id="' + String(m.id).replace(/[^A-Za-z0-9_-]/g, '') + '" onclick="rpSignalerMessage(\'conversation\', this.dataset.signalerId)" title="Signaler" data-i18n-title="reportMessage.button" style="cursor:pointer;font-size:.72rem;color:#6a5a30"><i class="ti ti-flag"></i></span>' : '') +
         '</div>' +
@@ -2207,7 +2245,7 @@ async function rafraichirConversationActuelle(reset) {
     });
     zone.scrollTop = zone.scrollHeight;
     _chatDernierMessage = messages[messages.length - 1].created_at;
-    if (typeof sbMarquerConversationLue === 'function') sbMarquerConversationLue(_conversationActuelle.id, moi).catch(() => {});
+    if (typeof sbMarquerConversationLue === 'function') sbMarquerConversationLue(_conversationActuelle.id, state.char?.name).catch(() => {});
     verifierNotificationChat();
   } catch(e) { console.warn('rafraichirConversationActuelle error', e); }
   finally { _chatLectureEnCours = false; }
@@ -2219,7 +2257,7 @@ async function envoyerMessageConversation() {
   if (!texte || !_conversationActuelle) return;
   input.value = '';
   if (typeof sbEnvoyerMessageChat === 'function') {
-    await sbEnvoyerMessageChat(_conversationActuelle.id, state.char?.name || 'Anonyme', texte, _conversationActuelle.type === 'salon').catch(() => {});
+    await sbEnvoyerMessageChat(_conversationActuelle.id, _conversationActuelle.type === 'salon' ? (state.char?.name || 'Anonyme') : chatMoiPour(_conversationActuelle.id), texte, _conversationActuelle.type === 'salon').catch(() => {});
   }
   rafraichirConversationActuelle(false);
 }
@@ -2231,7 +2269,7 @@ let _dernierEtatNonLuChat = false;
 async function verifierNotificationChat() {
   if (typeof sbAMessagesNonLus !== 'function' || !state.char?.name) return;
   try {
-    const nonLu = await sbAMessagesNonLus(state.char.name);
+    const nonLu = await sbAMessagesNonLus(state.char.name, _chatAliasMoi);
     const badge = document.getElementById('chat-notif-badge');
     if (badge) badge.style.display = nonLu ? 'block' : 'none';
 

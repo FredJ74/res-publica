@@ -821,7 +821,17 @@ function openPnjModal(encodedPnj, options = null) {
   const pnjSafeRole = (pnj.role||'').replace(/'/g, '');
   const pnjRel = pnj.rel || 'neutral';
 
-  // Individu masqué (crim_presents) : ni Parler, ni Rejoindre, ni courrier -- son nom n'est pas connu.
+  // Individu masqué (Fred, 20/11/2026 : par ex. un bal masqué) : Parler et Rejoindre passent par son identifiant
+  // anonyme (jeton de crim_presents), jamais par son nom ; pas de courrier, qui passe par le vrai nom.
+  if (isPJ && pnj.masque === true && pnj.jeton) {
+    const jetonSur = String(pnj.jeton).replace(/[^0-9a-f-]/gi, '');
+    const libelleSur = pnjSafeName.replace(/[<>"\\]/g, '');
+    const inGroupMasque = state.group && state.group.members && state.group.members.includes(pnj.name);
+    actionBtns += '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');ouvrirConversationAvec(\'' + libelleSur + '\',\'' + jetonSur + '\')" style="color:#6ada6a;border-color:#2a5a2a"><i class="ti ti-message-circle" style="font-size:.85rem"></i> Parler</button>';
+    actionBtns += (!inGroupMasque
+      ? '<button class="pnj-action-btn" onclick="rejoindreMasque(\'' + jetonSur + '\')"><i class="ti ti-users" style="font-size:.85rem"></i> Rejoindre ce joueur</button>'
+      : '<button class="pnj-action-btn" onclick="quitterGroupe()"><i class="ti ti-user-minus" style="font-size:.85rem"></i> Quitter le groupe</button>');
+  }
   if (isPJ && pnj.masque !== true) {
     const inGroup = state.group && state.group.members && state.group.members.includes(pnj.name);
     const pnjJson = encodePnjSafe(pnj);
