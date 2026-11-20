@@ -8,6 +8,10 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Images du masque de carnaval et de la tenue ninja (Claude, 20/11/2026)
+- **Branche `claude/objets-images-masque-ninja-20261120`** (part de la branche de #1152). Fichiers `images/objet-masque-carnaval.webp` et `images/objet-tenue-ninja.webp` (800 px de large, convertis depuis les PNG de Fred). **Migration** `20261120290000_objets_images_masque_ninja` (essai annulé ; appliquée à la fusion, quand Vercel sert les fichiers). Banc `test-objets-images-masque-ninja-20261120.cjs`.
+- Recettes (`masque_carnaval_habillement` ; `tenue_ninja_marche` au marché ; `tenue_ninja_militaire` = sous-type militaire de l'Habillement, pas un armurier) : colonne `image` ; vente chez les armuriers par la boutique discrète ; objets de la boutique discrète (`crim_objet_interne`) : `imageUrl` ; rattrapage des inventaires et des références de commerce ; à l'écran, `imageUrlObjet` (plateau-personnage.js) retrouve l'image par identité pour la liste d'inventaire et la fiche d'objet ; recette du marché `tenue_ninja_marche` : `image`.
+
 ### Portraits mélangés entre deux comptes du même navigateur (Claude, 20/11/2026)
 - **Branche `claude/crim-victimes-journal-20261120`**. Aucune migration : la base était juste. Banc `test-portraits-comptes-20261120.cjs` ; banc `banc-forum-voyants-reconnexion-20261103.cjs` mis à jour (le portrait du serveur passe désormais avant le cache).
 - Cause : l'affichage de SON portrait (fiche gauche, carte « Vous ») retombait sur la clé locale COMMUNE `respublica_photo`, écrite par la création du dernier personnage du navigateur. Correctif : clé `rpClePortrait(nom)` = compte + personnage (supabase.js), clé commune ni écrite ni lue, portrait du serveur en premier, purge de tous les portraits locaux à la déconnexion et au changement de compte (`rpPurgerPortraitsLocaux` dans `rpPurgerCachePersonnage`). Liste des présents et fiches des autres : annuaire serveur indexé par nom, déjà correct.
