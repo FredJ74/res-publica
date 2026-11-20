@@ -8,6 +8,11 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Organisations secrètes (Claude, 20/11/2026)
+- **Branche `claude/organisations-secretes-20261120`** (part de la branche de la prescription). **Migration APPLIQUÉE** : `20261120330000_organisations_secretes` (essai annulé d'abord). Règles : `GAME-DESIGN-CRIMINALITE.md` § 3 bis. Banc `test-organisations-secretes-20261120.cjs`.
+- `organisations_lire()` rend à chacun sa vue (extérieur : nom et nature, aucun membre ni compteur ; membre cloisonné : lui seul ; chef/fondateur : tout) ; la table brute d'une secrète n'est lisible que par son chef ; cloisonnement `connus` / `cloisonne` choisi à la fondation ; vrai auteur des contenus signés par une secrète rangé dans `auteurs_secrets` (règles d'écriture du forum et du courrier : le chef garde la main ; signalements : auteur retrouvé).
+- **Pour Codex — nouvelles clés** (secours français dans `plateau-organisations-quetes.js`) : `organizationCreation.compartmentLabel`, `.compartmentKnown`, `.compartmentSealed`, `.compartmentNote`.
+
 ### Prescription des plaintes (Claude, 20/11/2026)
 - **Branche `claude/plaintes-prescription-20261120`** (part de la branche des retours de tests). **Migration APPLIQUÉE** : `20261120320000_plaintes_prescription` (essai annulé d'abord). Règle : `GAME-DESIGN-CRIMINALITE.md` § 3. Banc `test-plaintes-prescription-20261120.cjs`.
 - `plaintes_prescrire(30)` (serveur seul), appelée par la passe de nuit (`traiterPrescriptionPlaintesServeur`, api/cron-minuit.js) : statuts « au_parquet » / « enquete » seulement, jamais après identification ou procès ; ligne `plaintes_historique`, plainte retirée de `plaintes_en_cours`, affaire archivée (`crim_affaires.archivee_le`, indices et détails purgés), courrier « Plainte prescrite » (Ministère public) au plaignant PJ.
