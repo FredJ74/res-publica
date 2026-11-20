@@ -1,0 +1,90 @@
+[
+  {
+    "commande": "node --check api/_goulag-survie.js",
+    "code": 0
+  },
+  {
+    "commande": "node --check api/_goulag-parcours.js",
+    "code": 0
+  },
+  {
+    "commande": "node --check outils/bancs/test-goulag-parcours-20261116.cjs",
+    "code": 0
+  },
+  {
+    "commande": "node outils/bancs/test-goulag-parcours-20261116.cjs",
+    "code": 0
+  },
+  {
+    "commande": "node outils/bancs/test-goulag-sql-structure-20261116.cjs",
+    "code": 0
+  },
+  {
+    "commande": "node --check outils/bancs/test-goulag-survie-20261116.cjs",
+    "code": 0
+  },
+  {
+    "commande": "node outils/bancs/test-goulag-survie-20261116.cjs",
+    "code": 0
+  },
+  {
+    "commande": "node --check plateau-goulag-toundra.js",
+    "code": 0
+  },
+  {
+    "commande": "node --check plateau-goulag-transports.js",
+    "code": 0
+  },
+  {
+    "commande": "node --check plateau-goulag-refuge.js",
+    "code": 0
+  },
+  {
+    "commande": "node --check plateau-router.js",
+    "code": 0
+  },
+  {
+    "commande": "node --check plateau-justice-economie.js",
+    "code": 0
+  },
+  {
+    "commande": "node outils/bancs/test-goulag-interface-circuits-20261116.cjs",
+    "code": 0
+  },
+  {
+    "commande": "node --check plateau-politique.js",
+    "code": 0
+  },
+  {
+    "commande": "node --check plateau-router.js",
+    "code": 0
+  },
+  {
+    "commande": "node outils/bancs/test-goulag-decors-20261116.cjs",
+    "code": 0
+  },
+  {
+    "commande": "node outils/bancs/test-goulag-decor-runtime-20261116.cjs",
+    "code": 0
+  },
+  {
+    "commande": "node outils/bancs/test-goulag-ecran-interactif-20261116.cjs",
+    "code": 0
+  },
+  {
+    "commande": "node --test outils/bancs/test-goulag-navigation-20261117.cjs",
+    "code": 0
+  },
+  {
+    "commande": "node --check plateau-goulag-ouverture.js",
+    "code": 0
+  },
+  {
+    "commande": "node --test outils/bancs/test-goulag-verrou-client-20261117.cjs",
+    "code": 0
+  },
+  {
+    "commande": "node --test outils/bancs/test-krasnov-gare-rue-20261105.mjs",
+    "code": 0
+  }
+]
