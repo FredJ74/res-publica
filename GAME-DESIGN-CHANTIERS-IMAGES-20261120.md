@@ -37,3 +37,20 @@ Nouvelle interface : UN seul ordre « Le chantier » ouvrant UNE fenêtre, sur l
 - Ne change aucune règle serveur (coûts, taux, appels de fonds) : c'est une refonte d'interface.
 
 Après livraison, Fred teste avec Arnie et on ajuste.
+
+---
+
+# Complément du 21/11/2026 : accélération du chantier par le travail des joueurs — consigne intégrale
+
+Construction : accélération du chantier par le travail des joueurs (décision de Fred, 21/11). À intégrer au chantier « construction » déjà transmis (images par étape + fenêtre unique « Le chantier »).
+
+Règle actuelle (chantier_travailler / chantier_jour_traiter) : 1 jour d'avancement par nuit au maximum ; capacité = coutTravail / taux / durée (50 h par jour pour un building) ; les heures faites par les joueurs remplacent celles des PNJ, sans aucun gain de vitesse.
+
+Nouvelle règle :
+- Quand les heures du jour en cours ont toutes été faites par des joueurs, les heures du jour suivant s'ouvrent aussitôt (jour d'avance). Les joueurs peuvent y travailler dans la journée, aux mêmes conditions (1 PA par heure, salaire fixé par le propriétaire, payé par la trésorerie).
+- À minuit, si un jour d'avance a été ouvert : les PNJ terminent les heures restantes du jour d'avance (payées comme aujourd'hui), et le chantier avance de DEUX jours au lieu d'un.
+- Limite stricte : un seul jour d'avance par jour. Une fois le jour d'avance complet, plus aucune heure n'est disponible jusqu'à minuit. Un chantier va donc au plus deux fois plus vite (12 jours au minimum pour un building de 24 jours). Ne pas ouvrir de troisième jour (l'accélération au-delà est réservée au P2W des futurs empires).
+- Garde-fous inchangés : le jour d'avance exige les matériaux des deux jours (sinon avancement proportionnel, comme aujourd'hui) et respecte les paliers d'appel de fonds (pas de dépassement du tiers sans les 70 %, ni des deux tiers sans les 100 %). Le coût total du chantier ne change pas : on paie plus vite, pas plus.
+- Fenêtre « Le chantier », partie ÉTAT : afficher les heures du jour faites / restantes, si le jour d'avance est ouvert et ses heures restantes, et une phrase explicative du type « Si les joueurs terminent les heures du jour, le jour suivant s'ouvre en avance : le chantier gagne une journée cette nuit. »
+- Journal du chantier / événements : signaler les nuits où un jour a été gagné.
+- Bancs : jour normal ; jour complet sans avance ; jour d'avance partiellement fait puis complété par les PNJ (+2 jours) ; tentative d'ouvrir un troisième jour refusée ; matériaux insuffisants pour deux jours ; palier d'appel de fonds non versé.
