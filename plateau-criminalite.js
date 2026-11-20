@@ -1016,19 +1016,72 @@ async function lireEvenementsCrim() {
     for (const ev of (r.evenements || [])) {
       if (ev.type === 'demasque') animationDemasquage();
       else if (ev.type === 'debusque') toast(texte('flushed'), ev.donnees && ev.donnees.par ? texte('flushedBy', { par: ev.donnees.par }) : texte('flushedAnon'), false);
+      else if (ev.type === 'journal') inscrireAuJournal(ev.donnees || {});
     }
   } finally { lectureEnCours = false; }
+}
+// VICTIMES PRÉVENUES PAR LE JOURNAL (Fred, 20/11/2026) : tout crime s'inscrit au journal d'événements, plus jamais par
+// un courrier « Événement ». Le serveur a déjà appliqué l'anonymat ; le texte est affiché en texte brut (échappé).
+function texteBrut(v) { return String(v == null ? '' : v).replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim(); }
+function inscrireAuJournal(d) {
+  const sujet = texteBrut(d.sujet), corps = texteBrut(d.texte);
+  const ligne = esc(sujet && corps ? sujet + ' — ' + corps : (sujet || corps));
+  if (ligne && typeof global.addJournalEntry === 'function') global.addJournalEntry(ligne, 'event-bad');
+}
+
+// STATUT DE DISCRÉTION, POUR MOI SEUL (Fred, 20/11/2026) : « Masqué », « Caché », « Masqué et caché » sous mon nom, avec
+// en infobulle ce que les autres voient. Lu au serveur (crim_mon_statut_discretion), jamais montré aux autres.
+function trad(cle, secours, valeurs) {
+  const t = (global.i18next && typeof global.i18next.t === 'function') ? global.i18next.t(cle, Object.assign({ defaultValue: secours }, valeurs || {})) : null;
+  let r = (typeof t === 'string' && t && t !== cle) ? t : secours;
+  Object.keys(valeurs || {}).forEach(k => { r = r.split('{{' + k + '}}').join(String(valeurs[k])); });
+  return r;
+}
+function libellesStatutDiscretion(mode, numero) {
+  const masque = mode === 'masque' || mode === 'cache_masque', cache = mode === 'cache' || mode === 'cache_masque';
+  if (!masque && !cache) return null;
+  const libelle = masque && cache ? trad('discretionStatus.both', 'Masqué et caché')
+    : masque ? trad('discretionStatus.masked', 'Masqué') : trad('discretionStatus.hidden', 'Caché');
+  const info = cache ? trad('discretionStatus.hiddenTip', 'Vous n’apparaissez pas dans la liste des présents.')
+    : (numero ? trad('discretionStatus.maskedTip', 'Les autres vous voient comme Individu masqué n° {{numero}}.', { numero })
+              : trad('discretionStatus.maskedTipNoNumber', 'Les autres vous voient comme un individu masqué.'));
+  return { libelle, info };
+}
+let statutEnCours = false;
+async function rafraichirStatutDiscretion() {
+  const doc = global.document;
+  if (statutEnCours || !doc || !(etat().char && etat().char.name)) return;
+  statutEnCours = true;
+  try {
+    const r = await rpc('crim_mon_statut_discretion');
+    if (!r || r.ok !== true) return;
+    const l = libellesStatutDiscretion(r.mode, r.numero);
+    let el = doc.getElementById('rp-statut-discretion');
+    if (!l) { if (el) el.remove(); return; }
+    if (!el) {
+      const ancre = doc.getElementById('char-fullname-left');
+      if (!ancre || !ancre.parentNode) return;
+      el = doc.createElement('div');
+      el.id = 'rp-statut-discretion';
+      el.style.cssText = 'display:inline-block;margin:.25rem 0;padding:.1rem .5rem;border:1px solid #6a5a30;border-radius:3px;font-size:.72rem;color:#C9A84C;cursor:help';
+      ancre.parentNode.insertBefore(el, ancre.nextSibling);
+    }
+    el.textContent = '🎭 ' + l.libelle;
+    el.title = l.info;
+  } finally { statutEnCours = false; }
 }
 function demarrer() {
   setTimeout(lireEvenementsCrim, 8000);
   setInterval(lireEvenementsCrim, 60000);
+  setTimeout(rafraichirStatutDiscretion, 9000);
+  setInterval(rafraichirStatutDiscretion, 60000);
 }
 if (global.document && global.setTimeout) {
   if (global.document.readyState !== 'loading') demarrer();
   else global.document.addEventListener('DOMContentLoaded', demarrer);
 }
 
-global.RPCriminalite = { T, texte, blocPassages, objetRevetable, objetPorte, ordresBoutiqueDiscretion, LIEUX_BOUTIQUE, identifiantCible, ORDRES_VOL, TYPES_VOL, ORDRES_CAMBRIOLAGE,
+global.RPCriminalite = { rafraichirStatutDiscretion, libellesStatutDiscretion, inscrireAuJournal, T, texte, blocPassages, objetRevetable, objetPorte, ordresBoutiqueDiscretion, LIEUX_BOUTIQUE, identifiantCible, ORDRES_VOL, TYPES_VOL, ORDRES_CAMBRIOLAGE,
   ORDRES_JUSTICE, crimBoutonEnquetes, ORDRES_CORRUPTION_QHS };
 Object.assign(global, { ouvrirBoutiqueDiscretion, acheterDiscretion, boutonRevetir, badgeRevetu, crimRevetir, crimRetirer,
   messageSeCacher, ouvrirFouilleCachettes, fouilleCachettesConfirmer, lireEvenementsCrim, animationDemasquage,

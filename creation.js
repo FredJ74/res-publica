@@ -160,8 +160,7 @@ async function connecterAvecMotDePasse() {
     localStorage.setItem('respublica_last_char', charData.name);
     rpMarquerProprietaireCache();
     if (sbState.char?.photoUrl) {
-      localStorage.setItem('respublica_photo_' + charData.name, sbState.char.photoUrl);
-      localStorage.setItem('respublica_photo', sbState.char.photoUrl);
+      localStorage.setItem((typeof rpClePortrait === 'function') ? rpClePortrait(charData.name) : 'respublica_photo_' + charData.name, sbState.char.photoUrl);
     }
   } catch (e) { console.warn('Cache local non ecrit (quota) :', e); }
 
@@ -411,8 +410,7 @@ async function chargerPersonnageParNom(nomServeur) {
     localStorage.setItem('respublica_last_char', charData.name);
     rpMarquerProprietaireCache();
     if (sbState.char?.photoUrl) {
-      localStorage.setItem('respublica_photo_' + sbState.char.name, sbState.char.photoUrl);
-      localStorage.setItem('respublica_photo', sbState.char.photoUrl);
+      localStorage.setItem((typeof rpClePortrait === 'function') ? rpClePortrait(sbState.char.name) : 'respublica_photo_' + sbState.char.name, sbState.char.photoUrl);
     }
 
     msg.style.color = '#4a8a4a';
@@ -1400,8 +1398,7 @@ async function validateChar(){
     // Photo sauvegardee separement car peut etre volumineuse
     if(G.photoUrl){
       try{
-        localStorage.setItem('respublica_photo_' + char.name, G.photoUrl);
-        localStorage.setItem('respublica_photo', G.photoUrl);
+        localStorage.setItem((typeof rpClePortrait === 'function') ? rpClePortrait(char.name) : 'respublica_photo_' + char.name, G.photoUrl);
       }
       catch(e){ console.warn('Photo trop volumineuse pour localStorage'); }
     }

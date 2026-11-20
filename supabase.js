@@ -541,8 +541,23 @@ async function sbSavePersonnage(charState) {
 // que la PREMIERE ecriture d'un personnage puisse emprunter exactement les memes 48 colonnes
 // sans les recopier. Aucune valeur, aucun defaut, aucun commentaire n'a change : seul
 // l'emplacement du bloc bouge.
+// PORTRAITS EN CACHE LOCAL : UNE CLÉ PAR COMPTE ET PAR PERSONNAGE (Fred, 20/11/2026 : Arnie s'affichait avec le portrait
+// de Tom Tom après un changement de compte dans le même navigateur). L'ancienne clé générique « respublica_photo »,
+// commune à tous les personnages du navigateur, n'est plus ni écrite ni lue ; tous les portraits locaux sont purgés à
+// la déconnexion et au changement de compte (rpPurgerCachePersonnage).
+function rpClePortrait(nom) {
+  const uid = (typeof rpAuthUid === 'function' && rpAuthUid()) || 'anonyme';
+  return 'respublica_photo_' + uid + '_' + (nom || 'default');
+}
+function rpPurgerPortraitsLocaux() {
+  try {
+    const cles = [];
+    for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.indexOf('respublica_photo') === 0) cles.push(k); }
+    cles.forEach(k => localStorage.removeItem(k));
+  } catch (_) {}
+}
 function sbPayloadPersonnage(charState) {
-  const photoKey = 'respublica_photo_' + (charState.char?.name || 'default');
+  const photoKey = (typeof rpClePortrait === 'function') ? rpClePortrait(charState.char?.name) : 'respublica_photo_' + (charState.char?.name || 'default');
   let savedPhoto = (typeof localStorage !== 'undefined') ? localStorage.getItem(photoKey) : null;
   // 04/11/2026 (#55/#60) : un ancien portrait brut de plusieurs Mo garde dans ce navigateur
   // n'est plus renvoye a chaque sauvegarde (le serveur le refuserait de toute facon) : on
@@ -2113,6 +2128,11 @@ async function sbGetHistoriqueDeplacements(name, depuisJour) {
   return Array.isArray(r.deplacements) ? r.deplacements : [];
 }
 
+// Refus qui trahissent un écran en retard sur le serveur (position, détention, hôpital, incapacité).
+const RP_RAISONS_ETAT_PERIME = new Set(['pas_sur_place', 'personnage_indisponible', 'sortie_invalide', 'sortie_non_referencee',
+  'pas_dans_un_batiment', 'position_initiale_invalide', 'trajet_invalide', 'acteur_incapacite', 'emprisonne', 'hospitalise',
+  'deja_detenu', 'groupe_disperse', 'destination_inconnue', 'hors_batiment', 'contexte_obsolete']);
+
 async function sbGetPresencesInRoom(country, city, buildingId, roomId) {
   // Si pas dans un batiment/piece (rue centrale), pas de presence a chercher
   if (!buildingId || !roomId) return [];
@@ -2128,9 +2148,10 @@ async function sbGetPresencesInRoom(country, city, buildingId, roomId) {
   const filtre = `country=eq.${encodeURIComponent(country)}&city=eq.${encodeURIComponent(city)}&building_id=eq.${encodeURIComponent(buildingId)}&room_id=eq.${encodeURIComponent(roomId)}`;
   const rows = await sbGet('presences', filtre);
   if (!rows) return [];
-  // Filtrer les présences trop anciennes (>5 min = probablement déconnecté)
+  // PRÉSENCE PERMANENTE (Fred, 20/11/2026) : presences porte la position du serveur ; un joueur déconnecté reste là.
+  // Le battement de moins de 5 min ne donne que l'indicateur « connecté ».
   const now = Date.now();
-  return rows.filter(r => (now - new Date(r.updated_at).getTime()) < 5 * 60 * 1000);
+  return rows.map(r => Object.assign({}, r, { connecte: !!r.updated_at && (now - new Date(r.updated_at).getTime()) < 5 * 60 * 1000 }));
 }
 
 // =====================
@@ -5362,6 +5383,12 @@ async function sbTransportRpcBrut(fn, params, options) {
     if (v && (v.raison === 'compte_non_confirme' || v.raison === 'titulaire_compte_non_confirme')
         && typeof window !== 'undefined' && typeof window.rpCompteNonConfirme === 'function') {
       try { window.rpCompteNonConfirme(v.action || null, fn, v.raison); } catch (_) {}
+    }
+    // ÉTAT LOCAL PÉRIMÉ (Fred, 20/11/2026) : une action refusée parce que l'écran croit le personnage ailleurs, libre ou
+    // valide relance la resynchronisation avec le serveur (plateau-temps-reel.js), au lieu de laisser le joueur bloqué.
+    if (v && v.ok === false && RP_RAISONS_ETAT_PERIME.has(v.raison)
+        && typeof window !== 'undefined' && typeof window.rpResynchroniserEtat === 'function') {
+      try { window.rpResynchroniserEtat('refus:' + v.raison); } catch (_) {}
     }
     // Garde-fous des personnages mineurs (Fred, 20/11/2026) : refus neutre, même point d'écoute.
     if (v && (v.raison === 'action_non_disponible' || v.raison === 'personnage_mineur_carriere_unique')
