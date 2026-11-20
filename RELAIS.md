@@ -8,6 +8,11 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Victimes prévenues par le journal ; statut Masqué / Caché pour soi (Claude, 20/11/2026)
+- **Branche `claude/crim-victimes-journal-20261120`** (part de la branche des masqués). **Migration APPLIQUÉE** : `20261120270000_crim_victimes_journal_discretion` (essai annulé d'abord). Règles : `GAME-DESIGN-CRIMINALITE.md` (§ 1 et « Messages »). Banc `test-crim-victimes-journal-20261120.cjs`.
+- Tout courrier « Événement » / « Événement mystérieux » devient une ligne du journal (aiguillage unique dans `mail_systeme_poser_interne` → `crim_evenements` type `journal`, relevé par `lireEvenementsCrim`). Indicateur `#rp-statut-discretion` sous le nom (fiche), lu par `crim_mon_statut_discretion`.
+- **Pour Codex — nouvelles clés** (secours français dans `plateau-criminalite.js`) : `discretionStatus.masked`, `.hidden`, `.both`, `.maskedTip` (`{{numero}}`), `.maskedTipNoNumber`, `.hiddenTip`.
+
 ### Interagir avec un personnage masqué (Claude, 20/11/2026)
 - **Branche `claude/masques-interactions-20261120`**. **Migration APPLIQUÉE** : `20261120260000_masques_interactions` (essai annulé d'abord : banc de discrétion en base, aucune fuite du vrai nom). Règle dans `GAME-DESIGN-CRIMINALITE.md` (§ 1). Banc `test-masques-interactions-20261120.cjs`.
 - Parler et Rejoindre par l'identifiant anonyme `masque:<jeton>` (`groupe_pj_rejoindre_masque`, `crim_mon_alias_masque`, règle d'écriture `messages_chat_envoi` → `chat_auteur_attendu_interne`) ; groupe et déplacements de groupe affichent « Individu masqué n°X » (`crim_nom_pour_interne`). Pas de courrier. Caché inchangé.

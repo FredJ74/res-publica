@@ -512,6 +512,8 @@ async function chargerVraisJoueursPresents(buildingIdParam, roomIdParam, targetI
       return;
     }
     const autres = presents.filter(p => p.name !== moi);
+    // Mon statut de discrétion (masqué / caché) suit la pièce : relu à chaque relevé des présents.
+    if (window.RPCriminalite && typeof window.RPCriminalite.rafraichirStatutDiscretion === 'function') window.RPCriminalite.rafraichirStatutDiscretion();
 
     // Recuperer les photos depuis l'annuaire des personnages (presences n'a pas de photo)
     const photosParNom = await rafraichirCachePhotosJoueurs();
