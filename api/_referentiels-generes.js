@@ -245,6 +245,18 @@ export const RESSOURCES_ECONOMIE_SERVEUR = {
     "prixAchatFournisseur": 7,
     "source": "transformation"
   },
+  "spiritueux": {
+    "plafond": 100,
+    "prixBase": 14,
+    "prixAchatFournisseur": 7,
+    "source": "transformation"
+  },
+  "sucre": {
+    "plafond": 150,
+    "prixBase": 5,
+    "prixAchatFournisseur": 2.5,
+    "source": "transformation"
+  },
   "tabac": {
     "plafond": 100,
     "prixBase": 18,

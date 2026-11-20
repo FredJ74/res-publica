@@ -8573,7 +8573,8 @@ const BUILDINGS = {
         imageUrl: "images/psm-pole-alcool-tabac-salle-ventes.webp",
         desc: "L'accueil et la salle de vente directe, alcools et tabac confondus.",
         persons: [],
-        orders: [{fn:'vente_directe_usine', label:'Vente directe', pa:0, cost:0, type:'legal', icon:'ti-cash-register', successRate:100, desc:'Acheter la production locale, disponible en quantité limitée.'}]
+        orders: [{fn:'vente_directe_usine', label:'Vente directe', pa:0, cost:0, type:'legal', icon:'ti-cash-register', successRate:100, desc:'Acheter la production locale, disponible en quantité limitée.'},
+          {fn:'acheter_spiritueux_local', label:'Spiritueux de la maison', pa:0, cost:0, type:'legal', icon:'ti-bottle', successRate:100, desc:'Une bouteille de champagne, de cognac ou de pastis de la distillerie d\'État, au prix du spiritueux en vente directe.'}]
       },
       bureau_direction: {
         name: "Bureau de Direction",
@@ -8595,6 +8596,8 @@ const BUILDINGS = {
         persons: [],
         orders: [
           {fn:'produire_alcool', label:"Produire de l'alcool", pa:1, cost:0, type:'legal', icon:'ti-glass-full', successRate:100, desc:'Fabrication contre salaire fixe : 1 PA, 55 FR. Consomme 5 céréales du stock de matières de l\'usine, produit 10 alcools.'},
+          {fn:'produire_spiritueux', label:'Produire des spiritueux', pa:1, cost:0, type:'legal', icon:'ti-glass-full', successRate:100, desc:'Fabrication contre salaire fixe : 1 PA, 55 FR. Consomme 5 céréales du stock de matières de l\'usine, produit 10 spiritueux (l\'alcool à boire des bars et buvettes).'},
+          {fn:'produire_sucre', label:'Produire du sucre', pa:1, cost:0, type:'legal', icon:'ti-cube', successRate:100, desc:'Fabrication contre salaire fixe : 1 PA, 30 FR. Consomme 5 fruits et légumes du stock de matières de l\'usine, produit 10 sucres.'},
           // Audit PSM/Montrouge (01/11/2026) : sans cet ordre, aucune matiere ne pouvait entrer
           // dans cette usine (vendre_matiere_a_usine accepte deja ses chaines cote serveur).
           {fn:'vendre_matiere_usine', label:'Vendre des matières à l\'usine', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre à l\'usine, depuis votre inventaire, les matières premières dont ses chaînes de production ont besoin.'}
@@ -10488,7 +10491,11 @@ const RESSOURCES_ECONOMIE = {
 
   // --- Produits transformes (redistribution 20% des transformateurs, jamais livres directement) ---
   medicaments:  { label: 'Médicaments',  icon: 'ti-pill',        prixBase: 22, prixAchatFournisseur: 11,  plafond: 100, source: 'transformation' },
-  alcool:       { label: 'Alcool',       icon: 'ti-glass-full',  prixBase: 14, prixAchatFournisseur: 7,   plafond: 100, source: 'transformation' },
+  // Distillerie (Fred, 20/11/2026, GAME-DESIGN-DISTILLERIE-ALCOOLS.md) : « alcool » est l'ALCOOL PUR (industriel,
+  // désinfectant) ; le SPIRITUEUX est l'alcool à boire (bars, buvettes) ; le SUCRE entre dans le circuit logistique.
+  alcool:       { label: 'Alcool pur',   icon: 'ti-flask-2',     prixBase: 14, prixAchatFournisseur: 7,   plafond: 100, source: 'transformation' },
+  spiritueux:   { label: 'Spiritueux',   icon: 'ti-glass-full',  prixBase: 14, prixAchatFournisseur: 7,   plafond: 100, source: 'transformation' },
+  sucre:        { label: 'Sucre',        icon: 'ti-cube',        prixBase: 5,  prixAchatFournisseur: 2.5, plafond: 150, source: 'transformation' },
   tabac:        { label: 'Tabac',        icon: 'ti-cigarette',   prixBase: 18, prixAchatFournisseur: 9,   plafond: 100, source: 'transformation' },
   carburant:    { label: 'Carburant',    icon: 'ti-gas-station', prixBase: 20, prixAchatFournisseur: 10,  plafond: 100, source: 'transformation' },
   derives_petrochimiques: { label: 'Dérivés pétrochimiques', icon: 'ti-flask', prixBase: 20, prixAchatFournisseur: 10, plafond: 100, source: 'transformation' },
@@ -12352,7 +12359,6 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
   // et personnel de l'usine, sans ordre.
   {
     const dist = BUILDINGS['distillerie-krasnov'];
-    const ordresLocal = dist.rooms.atelier_distillerie.orders;
     dist.imagesAVenir = false;
     dist.rooms = {
       salle_ventes: {
@@ -12363,9 +12369,11 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
         persons: [],
         // Usine d'État de Sovarka (Fred, 15/11/2026 au soir) : la vente directe de l'usine s'ajoute au
         // commerce du PJ exploitant, qui reste inchangé.
-        orders: ordresLocal.concat([
-          { fn: 'vente_directe_usine', label: 'Vente directe', pa: 0, cost: 0, type: 'legal', icon: 'ti-cash-register', successRate: 100, desc: 'Acheter la production locale, disponible en quantité limitée.' }
-        ])
+        // Distillerie d'État, jamais à louer (Fred, 20/11/2026) : plus d'ordre de location ni de commerce de PJ.
+        orders: [
+          { fn: 'vente_directe_usine', label: 'Vente directe', pa: 0, cost: 0, type: 'legal', icon: 'ti-cash-register', successRate: 100, desc: 'Acheter la production locale, disponible en quantité limitée.' },
+          { fn: 'acheter_spiritueux_local', label: 'Spiritueux de la maison', pa: 0, cost: 0, type: 'legal', icon: 'ti-bottle', successRate: 100, desc: 'Une bouteille de vodka, de slivovitz ou de samogon de la distillerie d’État, au prix du spiritueux en vente directe.' }
+        ]
       },
       bureau_direction: {
         name: 'Bureau de direction',
@@ -12389,6 +12397,8 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
         // Alcool tiré des fruits et légumes (décision du 10/11/2026), contre salaire (15 PSK par PA).
         orders: [
           { fn: 'produire_alcool', label: 'Produire de l\'alcool', pa: 1, cost: 0, type: 'legal', icon: 'ti-bottle', successRate: 100, desc: 'Fabrication contre salaire fixe : 1 PA, 15 PSK. Consomme 5 fruits et légumes du stock de matières de l\'usine, produit 10 alcools.' },
+          { fn: 'produire_spiritueux', label: 'Produire des spiritueux', pa: 1, cost: 0, type: 'legal', icon: 'ti-glass-full', successRate: 100, desc: 'Fabrication contre salaire fixe : 1 PA, 15 PSK. Consomme 5 fruits et légumes du stock de matières de l\'usine, produit 10 spiritueux (l\'alcool à boire des bars et buvettes).' },
+          { fn: 'produire_sucre', label: 'Produire du sucre', pa: 1, cost: 0, type: 'legal', icon: 'ti-cube', successRate: 100, desc: 'Fabrication contre salaire fixe : 1 PA, 15 PSK. Consomme 5 fruits et légumes du stock de matières de l\'usine, produit 10 sucres.' },
           { fn: 'vendre_matiere_usine', label: 'Vendre des matières à l\'usine', pa: 0, cost: 0, type: 'legal', icon: 'ti-package-export', successRate: 100, desc: 'Vendre à l\'usine, depuis votre inventaire, les matières premières dont ses chaînes de production ont besoin.' }
         ]
       }

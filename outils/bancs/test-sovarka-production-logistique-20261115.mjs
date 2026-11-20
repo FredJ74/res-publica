@@ -35,8 +35,9 @@ test('Distillerie de Krasnov : usine d’État à côté du commerce du PJ', () 
   const ctx = charger('ville_b');
   const r = JSON.parse(vm.runInContext(`JSON.stringify(BUILDINGS['distillerie-krasnov'].rooms)`, ctx));
   const ventes = r.salle_ventes.orders.map(o => o.fn);
-  assert.ok(ventes.includes('commerce_pj') && ventes.includes('sovarka_demande_location') && ventes.includes('vente_directe_usine'));
-  assert.deepEqual(r.atelier_distillerie.orders.map(o => o.fn), ['produire_alcool', 'vendre_matiere_usine']);
+  // Distillerie d'État jamais à louer (Fred, 20/11/2026) : plus de commerce de PJ dans la salle des ventes.
+  assert.ok(!ventes.includes('commerce_pj') && !ventes.includes('sovarka_demande_location') && ventes.includes('vente_directe_usine'));
+  assert.deepEqual(r.atelier_distillerie.orders.map(o => o.fn), ['produire_alcool', 'produire_spiritueux', 'produire_sucre', 'vendre_matiere_usine']);
   assert.match(r.atelier_distillerie.orders[0].desc, /5 fruits et légumes/);
   assert.equal(r.bureau_direction.persons[0].job, 'directeur_tabac_alcools');
   assert.ok(r.bureau_direction.orders.every(o => o.requiresPost === 'directeur_tabac_alcools'));

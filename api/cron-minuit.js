@@ -2771,7 +2771,8 @@ function repartirSelonPourcentages(montantTotal, pourcentages, villes) {
 // DIRECTEUR_USINE_INFO et verifierSalaireDirecteur dans plateau-justice-economie.js.
 const TRANSFORMATEURS = [
   { buildingId: 'usine-pharmaceutique-luthecia', city: 'capitale', chaines: [{ matiere: 'plantes', produit: 'medicaments' }, { matiere: 'alcool', produit: 'desinfectant' }] },
-  { buildingId: 'pole-tabac-alcools-psm',        city: 'ville_a',  chaines: [{ matiere: 'cereales', produit: 'alcool' }, { matiere: 'plantes', produit: 'tabac' }] },
+  // Distillerie (Fred, 20/11/2026) : spiritueux (cereales) et sucre (fruits et legumes) s'ajoutent a l'alcool pur.
+  { buildingId: 'pole-tabac-alcools-psm',        city: 'ville_a',  chaines: [{ matiere: 'cereales', produit: 'alcool' }, { matiere: 'cereales', produit: 'spiritueux' }, { matiere: 'fruits_legumes', produit: 'sucre' }, { matiere: 'plantes', produit: 'tabac' }] },
   { buildingId: 'raffinerie-montrouge',          city: 'ville_b',  chaines: [{ matiere: 'petrole', produit: 'carburant' }] }
 ];
 
@@ -2796,7 +2797,7 @@ const PLAFOND_VENTE_DIRECTE = 50;
 // place, le surplus reste simplement a l'entrepot (pas de perte), demande de Fred.
 const USINE_LOCALE_PAR_VILLE = {
   capitale: { buildingId: 'usine-pharmaceutique-luthecia', matieres: ['plantes'] },
-  ville_a:  { buildingId: 'pole-tabac-alcools-psm',        matieres: ['cereales', 'plantes'] },
+  ville_a:  { buildingId: 'pole-tabac-alcools-psm',        matieres: ['cereales', 'plantes', 'fruits_legumes'] },
   ville_b:  { buildingId: 'raffinerie-montrouge',          matieres: ['petrole'] }
 };
 const PART_REDIRECTION_USINE = 0.20;
@@ -2836,11 +2837,29 @@ function chaineDependDUnAchatInterUsine(buildingId, matiere) {
 // deja reduite la veille (VOLUME_MATIERE_PAR_CHAINE_JOUR reste la seule reference, relue a
 // l'identique chaque jour -- voir appliquerEffetsGrevesOrdinaires ci-dessous, aucune composition
 // multiplicative possible d'un jour sur l'autre).
+// PENURIES DU MJ (20/11/2026, GAME-DESIGN-DISTILLERIE-ALCOOLS.md) : lues une fois par nuit (penuries_actives_lire).
+// coefPenurie rend la part de production qui subsiste (1 = normale, 0 = coupee) pour une matiere, un pays, une ville.
+// Lecture impossible : aucune penurie appliquee (la nuit n'est jamais bloquee par cet outil).
+let PENURIES_ACTIVES = [];
+async function chargerPenuries() {
+  try { const r = await sbRpc('penuries_actives_lire', {}, HEADERS_SERVICE); PENURIES_ACTIVES = Array.isArray(r) ? r : []; }
+  catch (e) { PENURIES_ACTIVES = []; }
+  return PENURIES_ACTIVES.length;
+}
+function coefPenurie(pays, ville, cle) {
+  let max = 0;
+  for (const p of PENURIES_ACTIVES) {
+    if (p && p.pays === pays && p.matiere === cle && (!p.ville || p.ville === ville)) max = Math.max(max, Number(p.intensite) || 0);
+  }
+  return Math.max(0, 1 - Math.min(100, max) / 100);
+}
+
 async function produireUneChaine(transfo, chaine, usine, stockMatieres, venteDirecte, coefficientActivite) {
   const matiereCfg = RESSOURCES_ECONOMIE_SERVEUR[chaine.matiere];
   if (!matiereCfg) return 0;
 
-  const coeff = coefficientActivite != null ? coefficientActivite : 1;
+  // Penurie declaree par le MJ (20/11/2026) : la part qui subsiste du produit, multipliee au coefficient de greve.
+  const coeff = (coefficientActivite != null ? coefficientActivite : 1) * coefPenurie('republic', transfo.city, chaine.produit);
   const volumeJour = Math.max(0, Math.round(VOLUME_MATIERE_PAR_CHAINE_JOUR * coeff));
   if (volumeJour <= 0) return 0;
 
@@ -3265,7 +3284,7 @@ async function livrerEntrepotsQuotidien() {
 
       {
         besoins.forEach(({ cle, res, besoin, prix }) => {
-          const qteLivree = Math.floor(besoin * facteurBudget);
+          const qteLivree = Math.floor(besoin * facteurBudget * coefPenurie('republic', city, cle)); // penurie MJ
           if (qteLivree <= 0) return;
 
           // Redirection vers l'usine locale, carvee sur cette meme livraison (pas un volume
@@ -6665,6 +6684,7 @@ export default async function handler(req, res) {
 
     // 12. Livraisons quotidiennes des entrepots logistiques (6 livraisons simulees en une
     // passe, limite du plan Vercel Hobby)
+    await chargerPenuries();
     const livraisons = await tacheQuotidienne('livraisons_entrepots', livrerEntrepotsQuotidien);
 
     // 12b. Exportations institutionnelles du Port de PSM (lot logistique portuaire, 25 aout
