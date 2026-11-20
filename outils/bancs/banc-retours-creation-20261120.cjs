@@ -18,32 +18,32 @@ function func(name){
   return js.slice(start,end);
 }
 test('Gmail valide : ancienne erreur effacee a la nouvelle saisie, types email conserves',()=>{
-  assert.match(html,/<input id="auth-email" type="email"[^>]*oninput="effacerErreurIdentifiants\\(\\)"/);
-  assert.match(html,/<input id="auth-mdp"[^>]*oninput="effacerErreurIdentifiants\\(\\)"/);
+  assert.match(html,/<input id="auth-email" type="email"[^>]*oninput="effacerErreurIdentifiants\(\)"/);
+  assert.match(html,/<input id="auth-mdp"[^>]*oninput="effacerErreurIdentifiants\(\)"/);
   const msg={style:{display:'block'},textContent:'Adresse invalide',attrs:{'data-i18n':'auth.errEmail'},
     removeAttribute(k){delete this.attrs[k];}};
   const context={document:{getElementById:id=>id==='auth-msg'?msg:null}};
   vm.createContext(context);vm.runInContext(func('effacerErreurIdentifiants'),context);
-  assert.match('prenom.nom@gmail.com',/^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$/);
+  assert.match('prenom.nom@gmail.com',/^[^@\s]+@[^@\s]+\.[^@\s]+$/);
   context.effacerErreurIdentifiants();
   assert.equal(msg.style.display,'none');assert.equal(msg.textContent,'');
   assert.equal(msg.attrs['data-i18n'],undefined);
-  assert.match(js,/const email = \\(document.getElementById\\('auth-email'\\)\\?\\.value \\|\\| ''\\)\\.trim\\(\\)/);
+  assert.match(js,/const email = \(document.getElementById\('auth-email'\)\?\.value \|\| ''\)\.trim\(\)/);
 });
 test('Variations : noms et descriptions via traduction existante, valeurs preservees',()=>{
   const defs=[['INT','Intelligence'],['CHA','Charisme'],['VOL','Volonte'],['PER','Perception'],['DUP','Duplicite'],['ENT','Entregent']];
   for(const [k,n]of defs)assert.ok(data.includes("k:'"+k+"'")&&data.includes(n));
   const s=js.slice(js.indexOf('function libelleVariationStat('),js.indexOf('/* ---- Origin ---- */'));
-  assert.match(s,/creation\\.stats\\./);
+  assert.match(s,/creation\.stats\./);
   const ctx={STAT_DEFS:defs.map(([k,n])=>({k,n,d:n+' description'})),
     t:key=>{const k=key.split('.')[2],prop=key.split('.')[3],d=defs.find(x=>x[0]===k);return prop==='name'?d[1]:d[1]+' description';}};
   vm.createContext(ctx);vm.runInContext(s,ctx);
   assert.match(ctx.libelleVariationStat('ENT',-1),/-1 Entregent/);
-  assert.match(ctx.libelleVariationStat('DUP',1),/\\+1 Duplicite/);
+  assert.match(ctx.libelleVariationStat('DUP',1),/\+1 Duplicite/);
   assert.match(ctx.libelleVariationStat('DUP',1),/title="Duplicite description"/);
   for(const key of ['o.bonuses','o.malus','s.bonuses','s.malus','a.bonuses','a.malus'])
     assert.ok(js.includes('Object.entries('+key),key+' toujours utilise');
-  assert.match(js,/libelleVariationStat\\(c.statKey,1\\)/);
+  assert.match(js,/libelleVariationStat\(c.statKey,1\)/);
 });
 test('Ville : apres selection valide, prochaine etape et retour possible',()=>{
   const city=js.slice(js.indexOf('function selCity('),js.indexOf('/* Variations explicites'));
@@ -53,6 +53,6 @@ test('Ville : apres selection valide, prochaine etape et retour possible',()=>{
   vm.createContext(context);vm.runInContext(city,context);
   context.selCity('capitale');
   assert.equal(G.city,'capitale');assert.deepEqual(calls,['open',2]);
-  assert.match(html,/id="n1"[^>]*onclick="goTo\\(2\\)"/);
-  assert.match(html,/id="s2"[\\s\\S]*?onclick="goTo\\(1\\)"/);
+  assert.match(html,/id="n1"[^>]*onclick="goTo\(2\)"/);
+  assert.match(html,/id="s2"[\s\S]*?onclick="goTo\(1\)"/);
 });
