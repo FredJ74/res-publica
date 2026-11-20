@@ -28,7 +28,7 @@ test('Écran : inventaire et fiche d\'objet trouvent l\'image par identité, jam
   assert.equal(g.f({ generique_id: 'tenue_ninja' }), 'images/objet-tenue-ninja.webp');
   assert.equal(g.f({ name: 'Tenue ninja' }), '');                         // jamais par le nom affiché
   assert.equal(g.f({ imageUrl: 'images/autre.webp', generique_id: 'tenue_ninja' }), 'images/autre.webp');
-  assert.match(src, /const imageSrc = imageUrlObjet\(item\) \|\|/);
+  assert.match(src, /const imageSrc = \(\(typeof imageUrlObjet === 'function'\) \? imageUrlObjet\(item\) : item\.imageUrl\) \|\|/);
   assert.match(src, /src="' \+ imageObjet \+ '"/);
   assert.match(lire('plateau-actions-illegales-rumeurs.js'), /categorie: 'objet', image: 'images\/objet-tenue-ninja\.webp', icon: 'ti-shirt',/);
 });
