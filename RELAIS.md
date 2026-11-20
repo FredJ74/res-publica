@@ -8,6 +8,11 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Retours des tests à deux comptes : chat, débusquage, MJ, proximité (Claude, 20/11/2026)
+- **Branche `claude/retours-tests-chat-20261120`** (part de la branche des faits divers). **Migration APPLIQUÉE** : `20261120310000_chat_proximite_signaux_debusque` (essai annulé d'abord). Banc `test-retours-tests-chat-20261120.cjs`.
+- « X vous parle » / « Individu masqué n° X vous parle » : notification cliquable et point rouge, sans ouverture automatique ; signal temps réel `chat_signaux` (lisible par soi seul, identifiant anonyme résolu au serveur). Débusquage : ligne au journal (« … vous a débusqué(e) », rappel « Vous restez masqué(e) »). Déplacements du MJ en base : déjà signalés par le déclencheur `zz_personnages_signaux` (vérifié). Conversations de proximité : `chat_envoyer` refuse un message direct si l'interlocuteur n'est plus dans la pièce (`interlocuteur_absent`, sans dire où il est allé), même règle dans la politique d'écriture ; l'historique reste lisible.
+- **Pour Codex — nouvelles clés** (secours français dans le code) : `chatNotice.speaking` (`{{nom}}`), `chatNotice.notDeliveredAbsent`, `chatNotice.notDelivered` ; `flushedLog.by` (`{{nom}}`), `flushedLog.masked`, `flushedLog.stillMasked`.
+
 ### Faits divers dans le Journal du jour (Claude, 20/11/2026)
 - **Branche `claude/journal-faits-divers-20261120`** (part de la branche des images). **Migration** `20261120300000_journal_faits_divers` (essai annulé). Règles : `GAME-DESIGN-PRESSE.md`. Banc `test-journal-faits-divers-20261120.mjs`.
 - `journal_faits_divers(pays, début, fin)` (serveur seul) rend les crimes de `crim_affaires` déjà anonymisés : auteur nommé seulement si `identifie`, sinon « un individu masqué » / « un inconnu ». `collecterFaitsDivers` (api/_journal-collecte.js) les ajoute aux FACTS (domaine `faits_divers`) ; le prompt (api/_journal-generation.js) interdit toute hypothèse sur l'auteur, rappelle que les PJ font l'actualité et ouvre l'angle de l'incident diplomatique pour un acte transfrontalier.

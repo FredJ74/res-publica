@@ -100,7 +100,22 @@ async function rpResynchroniserEtat(motif) {
 // Temps réel Supabase (protocole Phoenix, vsn 1.0.0)
 // ---------------------------------------------------------------------------------------------------------------
 let ws = null, ref = 0, battement = null, salleAbonnee = null, personnageAbonne = null, reconnexion = null;
-const SUJET_SALLE = 'realtime:hg-salle', SUJET_PERSO = 'realtime:hg-personnage';
+const SUJET_SALLE = 'realtime:hg-salle', SUJET_PERSO = 'realtime:hg-personnage', SUJET_CHAT = 'realtime:hg-chat';
+let chatAbonne = null;
+// « On vous parle » (20/11/2026) : chat_signaux, lisible par soi seul ; relit les messages non lus.
+function abonnerChat() {
+  const s = etat(), nom = s && s.char && s.char.name;
+  if (!nom || nom === chatAbonne) return;
+  if (chatAbonne) quitter(SUJET_CHAT);
+  chatAbonne = nom;
+  rejoindre(SUJET_CHAT, 'chat_signaux', 'personnage=eq.' + nom);
+}
+function signalChat() {
+  if (typeof global.verifierNotificationChat === 'function') { try { global.verifierNotificationChat(); } catch (_) {} }
+  if (typeof global.rafraichirConversationActuelle === 'function' && global.document && global.document.getElementById('chat-messages-zone')) {
+    try { global.rafraichirConversationActuelle(false); } catch (_) {}
+  }
+}
 const versions = { salle: null, perso: null };
 
 function jeton() { return typeof global.rpAuthJeton === 'function' ? global.rpAuthJeton() : null; }
@@ -135,6 +150,7 @@ function traiterMessage(m) {
   const rec = (m.payload && m.payload.data && (m.payload.data.record || m.payload.data.old_record)) || {};
   if (m.topic === SUJET_SALLE) { versions.salle = rec.version || versions.salle; rafraichirPresents(); }
   else if (m.topic === SUJET_PERSO) { versions.perso = rec.version || versions.perso; rpResynchroniserEtat('signal'); }
+  else if (m.topic === SUJET_CHAT) signalChat();
 }
 
 function connecter() {
@@ -143,14 +159,15 @@ function connecter() {
   const url = SUPABASE_URL.replace(/^http/, 'ws') + '/realtime/v1/websocket?apikey=' + encodeURIComponent(SUPABASE_ANON) + '&vsn=1.0.0';
   try { ws = new global.WebSocket(url); } catch (_) { ws = null; return; }
   ws.onopen = () => {
-    salleAbonnee = null; personnageAbonne = null;
-    abonnerPersonnage(); abonnerSalle();
+    salleAbonnee = null; personnageAbonne = null; chatAbonne = null;
+    abonnerPersonnage(); abonnerSalle(); abonnerChat();
     clearInterval(battement);
     battement = setInterval(() => {
       envoyer({ topic: 'phoenix', event: 'heartbeat', payload: {}, ref: String(++ref) });
       const t = jeton();
       if (t) { envoyer({ topic: SUJET_SALLE, event: 'access_token', payload: { access_token: t }, ref: String(++ref) });
-               envoyer({ topic: SUJET_PERSO, event: 'access_token', payload: { access_token: t }, ref: String(++ref) }); }
+               envoyer({ topic: SUJET_PERSO, event: 'access_token', payload: { access_token: t }, ref: String(++ref) });
+               envoyer({ topic: SUJET_CHAT, event: 'access_token', payload: { access_token: t }, ref: String(++ref) }); }
     }, 25000);
   };
   ws.onmessage = (e) => { let m = null; try { m = JSON.parse(e.data); } catch (_) {} traiterMessage(m); };
@@ -194,5 +211,5 @@ if (global.document && global.setTimeout) {
 }
 
 global.rpResynchroniserEtat = rpResynchroniserEtat;
-global.RPTempsReel = { cleSalle, maSalle, messageChangement, traiterMessage, abonnerSalle, verifierVersions, rpResynchroniserEtat, versions };
+global.RPTempsReel = { signalChat, cleSalle, maSalle, messageChangement, traiterMessage, abonnerSalle, verifierVersions, rpResynchroniserEtat, versions };
 })(typeof window !== 'undefined' ? window : globalThis);

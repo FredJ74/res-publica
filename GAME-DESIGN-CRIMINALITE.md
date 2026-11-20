@@ -23,6 +23,7 @@ Trois façons d'agir :
   - **Parler** : depuis la fiche d'un masqué, la conversation se fait avec « Individu masqué n° X » (même numéro que dans la liste des présents). Le masqué répond sous ce même anonymat. Le vrai nom n'apparaît jamais, d'un côté comme de l'autre : ni en-tête, ni historique, ni notification, ni ligne de la base lisible par l'API. La conversation porte l'identifiant anonyme `masque:<jeton>`, et le serveur interdit au masqué d'y signer de son vrai nom.
   - **Rejoindre** : la demande passe par l'identifiant anonyme. Dans le groupe, un membre apparaît comme « Individu masqué n° X » tant qu'il reste masqué, et sous son vrai nom quand il retire son masque. Il en va de même dans les réponses des déplacements de groupe. Une demande envoyée au **vrai nom** d'un masqué présent répond toujours comme s'il était absent.
   - **Envoyer un mail** reste impossible sur la fiche d'un masqué, puisque le courrier passe par le vrai nom.
+  - **On ne parle qu'à quelqu'un de la même pièce** (décision de Fred du 20/11/2026), masqué ou non. Si l'interlocuteur est parti, ou si je suis sorti, le message n'est pas remis : « Message non parvenu : votre interlocuteur a quitté la pièce. » Le joueur n'apprend jamais où l'autre est allé, et l'historique reste lisible.
   - Un **caché** reste inaccessible : rien ne change pour lui.
   - Remettre un masque donne un nouveau jeton : les conversations du masque précédent ne relient pas les deux apparitions.
 

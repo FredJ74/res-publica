@@ -1015,7 +1015,10 @@ async function lireEvenementsCrim() {
     if (!r || r.ok !== true) return;
     for (const ev of (r.evenements || [])) {
       if (ev.type === 'demasque') animationDemasquage();
-      else if (ev.type === 'debusque') toast(texte('flushed'), ev.donnees && ev.donnees.par ? texte('flushedBy', { par: ev.donnees.par }) : texte('flushedAnon'), false);
+      else if (ev.type === 'debusque') {
+        toast(texte('flushed'), ev.donnees && ev.donnees.par ? texte('flushedBy', { par: ev.donnees.par }) : texte('flushedAnon'), false);
+        inscrireDebusquage(ev.donnees || {});
+      }
       else if (ev.type === 'journal') inscrireAuJournal(ev.donnees || {});
     }
   } finally { lectureEnCours = false; }
@@ -1023,6 +1026,16 @@ async function lireEvenementsCrim() {
 // VICTIMES PRÉVENUES PAR LE JOURNAL (Fred, 20/11/2026) : tout crime s'inscrit au journal d'événements, plus jamais par
 // un courrier « Événement ». Le serveur a déjà appliqué l'anonymat ; le texte est affiché en texte brut (échappé).
 function texteBrut(v) { return String(v == null ? '' : v).replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim(); }
+// DÉBUSQUÉ (Fred, 20/11/2026) : une ligne au journal ; un débusqué masqué le reste, et on le lui rappelle.
+function ligneDebusquage(d) {
+  const ligne = d.par
+    ? trad('flushedLog.by', '{{nom}} a fouillé la pièce et vous a débusqué(e) : vous n’êtes plus caché(e).', { nom: texteBrut(d.par) })
+    : trad('flushedLog.masked', 'Un individu masqué a fouillé la pièce et vous a débusqué(e) : vous n’êtes plus caché(e).');
+  return ligne + (d.vous_masque ? ' ' + trad('flushedLog.stillMasked', 'Vous restez masqué(e).') : '');
+}
+function inscrireDebusquage(d) {
+  if (typeof global.addJournalEntry === 'function') global.addJournalEntry(esc(ligneDebusquage(d)), 'event-bad');
+}
 function inscrireAuJournal(d) {
   const sujet = texteBrut(d.sujet), corps = texteBrut(d.texte);
   const ligne = esc(sujet && corps ? sujet + ' — ' + corps : (sujet || corps));
@@ -1081,7 +1094,7 @@ if (global.document && global.setTimeout) {
   else global.document.addEventListener('DOMContentLoaded', demarrer);
 }
 
-global.RPCriminalite = { rafraichirStatutDiscretion, libellesStatutDiscretion, inscrireAuJournal, T, texte, blocPassages, objetRevetable, objetPorte, ordresBoutiqueDiscretion, LIEUX_BOUTIQUE, identifiantCible, ORDRES_VOL, TYPES_VOL, ORDRES_CAMBRIOLAGE,
+global.RPCriminalite = { ligneDebusquage, rafraichirStatutDiscretion, libellesStatutDiscretion, inscrireAuJournal, T, texte, blocPassages, objetRevetable, objetPorte, ordresBoutiqueDiscretion, LIEUX_BOUTIQUE, identifiantCible, ORDRES_VOL, TYPES_VOL, ORDRES_CAMBRIOLAGE,
   ORDRES_JUSTICE, crimBoutonEnquetes, ORDRES_CORRUPTION_QHS };
 Object.assign(global, { ouvrirBoutiqueDiscretion, acheterDiscretion, boutonRevetir, badgeRevetu, crimRevetir, crimRetirer,
   messageSeCacher, ouvrirFouilleCachettes, fouilleCachettesConfirmer, lireEvenementsCrim, animationDemasquage,
