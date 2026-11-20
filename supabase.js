@@ -3949,7 +3949,7 @@ async function sbMarquerConversationLue(conversationId, membre) {
 
 // Verifie s'il existe au moins un message non lu, dans une conversation privee OU un salon
 // dont le joueur fait partie — sert au point clignotant, persiste au-dela de la deconnexion.
-async function sbAMessagesNonLus(membre) {
+async function sbAMessagesNonLus(membre, alias) {
   try {
     const tousMessages = await sbGet('messages_chat', `order=created_at.desc&limit=200`);
     const mesSalons = await sbGetMesSalons(membre);
@@ -3957,12 +3957,12 @@ async function sbAMessagesNonLus(membre) {
     const mesConversations = new Set(
       (tousMessages || [])
         .map(m => m.conversation_id)
-        .filter(cid => cid.split('__').includes(membre) || idsSalons.has(cid))
+        .filter(cid => cid.split('__').includes(membre) || (alias && cid.split('__').includes(alias)) || idsSalons.has(cid))
     );
     for (const cid of mesConversations) {
       const lecture = await sbGet('lectures_chat', `id=eq.${encodeURIComponent(cid + '__' + membre)}`);
       const dernierLu = lecture?.[0]?.dernier_lu || null;
-      const messagesConv = (tousMessages || []).filter(m => m.conversation_id === cid && m.auteur !== membre);
+      const messagesConv = (tousMessages || []).filter(m => m.conversation_id === cid && m.auteur !== membre && (!alias || m.auteur !== alias));
       if (messagesConv.length === 0) continue;
       const dernierMessage = messagesConv[0];
       if (!dernierLu || new Date(dernierMessage.created_at) > new Date(dernierLu)) {

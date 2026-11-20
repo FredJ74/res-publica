@@ -8,6 +8,11 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Interagir avec un personnage masqué (Claude, 20/11/2026)
+- **Branche `claude/masques-interactions-20261120`**. **Migration APPLIQUÉE** : `20261120260000_masques_interactions` (essai annulé d'abord : banc de discrétion en base, aucune fuite du vrai nom). Règle dans `GAME-DESIGN-CRIMINALITE.md` (§ 1). Banc `test-masques-interactions-20261120.cjs`.
+- Parler et Rejoindre par l'identifiant anonyme `masque:<jeton>` (`groupe_pj_rejoindre_masque`, `crim_mon_alias_masque`, règle d'écriture `messages_chat_envoi` → `chat_auteur_attendu_interne`) ; groupe et déplacements de groupe affichent « Individu masqué n°X » (`crim_nom_pour_interne`). Pas de courrier. Caché inchangé.
+- Pas de nouvelle clé de traduction (libellés « Parler », « Rejoindre ce joueur » existants ; « Individu masqué » vient du serveur comme dans la liste des présents).
+
 ### Actions réservées aux comptes confirmés (Claude, 20/11/2026)
 - **Branche `claude/compte-confirme-actions-20261120`** (part de #1144). **Migration APPLIQUÉE** : `20261120220000_compte_confirme_actions` (essai annulé d'abord). Règle dans `GAME-DESIGN-ELECTIONS.md`. Banc `test-compte-confirme-actions-20261120.cjs`.
 - Candidature, nomination (postes et ambassadeurs), fondation de parti ou d'organisation ; premium : brancher `compte_confirmation_refus_interne(nom, 'premium')` sur le futur achat.

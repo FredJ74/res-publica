@@ -17,6 +17,12 @@ Trois façons d'agir :
 - **Caché** (ordre « Se cacher ») : le PJ est dans la pièce et voit tout, mais n'apparaît pas dans la liste des présents.
 - **Masqué** (masque de carnaval revêtu) : le PJ apparaît comme « Individu masqué », sans portrait ; plusieurs masqués dans la même pièce sont numérotés (« Individu masqué n°1 », « n°2 »).
 - Caché et masqué se cumulent : débusqué, il n'apparaît que comme individu masqué.
+- **Interagir avec un masqué, sous son anonymat** (décision de Fred du 20/11/2026, par exemple pour un bal masqué entre joueurs). Migration `20261120260000_masques_interactions`.
+  - **Parler** : depuis la fiche d'un masqué, la conversation se fait avec « Individu masqué n° X » (même numéro que dans la liste des présents). Le masqué répond sous ce même anonymat. Le vrai nom n'apparaît jamais, d'un côté comme de l'autre : ni en-tête, ni historique, ni notification, ni ligne de la base lisible par l'API. La conversation porte l'identifiant anonyme `masque:<jeton>`, et le serveur interdit au masqué d'y signer de son vrai nom.
+  - **Rejoindre** : la demande passe par l'identifiant anonyme. Dans le groupe, un membre apparaît comme « Individu masqué n° X » tant qu'il reste masqué, et sous son vrai nom quand il retire son masque. Il en va de même dans les réponses des déplacements de groupe. Une demande envoyée au **vrai nom** d'un masqué présent répond toujours comme s'il était absent.
+  - **Envoyer un mail** reste impossible sur la fiche d'un masqué, puisque le courrier passe par le vrai nom.
+  - Un **caché** reste inaccessible : rien ne change pour lui.
+  - Remettre un masque donne un nouveau jeton : les conversations du masque précédent ne relient pas les deux apparitions.
 
 ### Se cacher
 
