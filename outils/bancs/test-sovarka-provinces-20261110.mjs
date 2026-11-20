@@ -52,7 +52,7 @@ test('Centres d’écoute : façades, une pièce, opérateur, vol d’archives ;
   })()`, ctx);
   assert.ok(r.poste && r.radar);
   assert.equal(r.pieces, 'salle_ecoute|salle_ecoute');
-  assert.equal(r.vol, 'voler_archives_ecoute:2,consulter_archives_ecoute:1'); // consultation des habilités (13/11)
+  assert.equal(r.vol, 'voler_archives_ecoute:2,consulter_archives_ecoute:1,acheter_polonium_colonel:2'); // consultation des habilités (13/11) ; polonium du colonel, caché sans le secret (21/11)
   assert.equal(r.operateurs, 'Sergent Oleg Sloukhov (PNJ)|Colonel Gleb Voronov (PNJ)');
   assert.match(fs.readFileSync(path.join(root, 'data.js'), 'utf8'), /fn: 'sovarka_ecoutes', label: 'Rapports des centres d’écoute'[^\n]*requiresPost: 'min_def'/);
   const routeur = fs.readFileSync(path.join(root, 'plateau-router.js'), 'utf8');
