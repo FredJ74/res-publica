@@ -6031,7 +6031,7 @@ const CHAINES_PRODUCTION_USINE = {
   alcool:       { buildingId: 'pole-tabac-alcools-psm',        city: 'ville_a',  matiere: 'cereales', salairePA: 55 },
   // Distillerie (Fred, 20/11/2026) : spiritueux (alcool à boire) et sucre, mêmes rendements que l'alcool pur.
   spiritueux:   { buildingId: 'pole-tabac-alcools-psm',        city: 'ville_a',  matiere: 'cereales', salairePA: 55 },
-  sucre:        { buildingId: 'pole-tabac-alcools-psm',        city: 'ville_a',  matiere: 'fruits_legumes', salairePA: 30 },
+  sucre:        { buildingId: 'pole-tabac-alcools-psm',        city: 'ville_a',  matiere: 'fruits_legumes', salairePA: 50 },
   tabac:        { buildingId: 'pole-tabac-alcools-psm',        city: 'ville_a',  matiere: 'plantes',  salairePA: 66 },
   carburant:    { buildingId: 'raffinerie-montrouge',          city: 'ville_b',  matiere: 'petrole',  salairePA: 70 },
   derives_petrochimiques: { buildingId: 'raffinerie-montrouge', city: 'ville_b', matiere: 'petrole', salairePA: 70 },
