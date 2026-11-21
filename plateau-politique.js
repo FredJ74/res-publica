@@ -4505,18 +4505,25 @@ function renderRoomActions(room, buildingId, roomId) {
       { titre: 'Achat de terrains', fns: ['acheter_terrain','signer_compromis','racheter_terrain'] },
       { titre: 'Gestion des intrus', fns: ['negocier_squatteurs','appeler_police_terrain','faire_disparaitre_cadavre'] },
       { titre: 'Démarrage du chantier', fns: ['construire_sur_terrain','emprunter_construction'] },
-      { titre: 'Information et approvisionnement du chantier', fns: ['payer_versement_chantier','vendre_materiaux_chantier','donner_materiaux_chantier','prix_chantier'] },
-      { titre: 'Travail et division des lots', fns: ['travailler_chantier','modifier_plan_chantier','diviser_construction'] },
-      { titre: 'Fin du chantier', fns: ['receptionner_chantier'] },
+      // Chantier en cours : un seul ordre « Le chantier » (fenêtre unique, plateau-chantier-vue.js, Fred 21/11/2026).
+      { titre: 'Le chantier', chantier: true, fns: ['payer_versement_chantier','vendre_materiaux_chantier','donner_materiaux_chantier','prix_chantier','taux_chantier','travailler_chantier','modifier_plan_chantier','receptionner_chantier'] },
+      { titre: 'Division des lots', fns: ['modifier_plan_chantier','diviser_construction'] },
       { titre: 'Information et réorganisation des locaux', fns: ['reconfigurer_lots','gerer_lot_loue','gerer_fonds_commerce'] }
     ];
     window._terrainOrdresGroupes = {};
     const deja = new Set();
     const grouped = groupesTerrain.map((g, index) => {
       const entries = ordresTerrainLuthecia.map((o, i) => ({ o, html: buttons[i] }))
-        .filter(x => g.fns.includes(x.o.fn));
+        .filter(x => g.fns.includes(x.o.fn) && !deja.has(x.o.fn));
       if (!entries.length) return '';
       entries.forEach(e => deja.add(e.o.fn));
+      if (g.chantier) {
+        const tsGroupe = typeof getTerrainState === 'function' ? getTerrainState(buildingId) : null;
+        if (tsGroupe?.chantier) return '<button class="action-btn legal" onclick="ouvrirFenetreChantier()" title="Le chantier"><i class="ti ti-crane"></i> Le chantier</button>';
+        // Avant le lancement : seule la définition des lots reste, dans « Division des lots ».
+        entries.filter(e => e.o.fn === 'modifier_plan_chantier').forEach(e => deja.delete(e.o.fn));
+        return '';
+      }
       window._terrainOrdresGroupes[index] = { titre: g.titre, entries };
       if (g.titre === 'Achat de terrains' && achatTerrainBloqueParIntrus) {
         return '<button type="button" class="action-btn legal blocked" aria-disabled="true" onclick="doVerifierTerrain()">' +
@@ -4540,12 +4547,9 @@ function renderRoomActions(room, buildingId, roomId) {
     if (state.country !== 'soviet' && !tsInfo?.proprietaire && !tsInfo?.chantier && !tsInfo?.niveau_construction) {
       buttons.push(btnInfo('Coût de construction', 'budget'));
     }
-    if (tsInfo?.chantier) buttons.push(btnInfo('Information sur le chantier', 'chantier'));
+    // Chantier en cours : l'information est dans la fenêtre « Le chantier ».
+    if (tsInfo?.chantier && !buttons.some(b => String(b).includes('ouvrirFenetreChantier'))) buttons.push('<button class="action-btn legal" onclick="ouvrirFenetreChantier()" title="Le chantier"><i class="ti ti-crane"></i> Le chantier</button>');
     if (tsInfo?.niveau_construction && !tsInfo?.chantier) buttons.push(btnInfo('Information sur les locaux', 'locaux'));
-    if (tsInfo?.chantier && typeof ouvrirApprovisionnementChantier === 'function' &&
-        typeof chantierAccepteMateriaux === 'function' && chantierAccepteMateriaux(tsInfo.chantier)) {
-      buttons.push('<button class="action-btn legal" onclick="ouvrirApprovisionnementChantier()"><i class="ti ti-truck"></i> Approvisionner le chantier</button>');
-    }
   }
 
   // Redactions de La Tribune : trois menus, sans changer les ordres ni leurs handlers.
