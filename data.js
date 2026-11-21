@@ -12474,8 +12474,8 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     };
   });
   // La clairière : première et dernière image de l'exploration (image de Fred, 21/11/2026).
+  // Sans description propre tant qu'elle n'est pas au catalogue des traductions (Codex) : l'image parle d'elle-même.
   ctx.roomsExtra.foret_clairiere = { name: 'La clairière', imageBg: 'linear-gradient(135deg,#0a120c,#132016)', persons: [],
-    desc: 'Une clairière de coupe : des souches, des piles de bois, un feu qui fume. Le sentier s’enfonce entre les grands arbres.',
     imageUrl: 'images/Sovarka/Krasnov/Krasnov_foret_clairiere.webp', orders: [FORET_ORDRE_CAMPEMENT] };
   ctx.roomsMasquees = Array.from(new Set([...(ctx.roomsMasquees || []), 'foret_vue_1', 'foret_vue_2', 'foret_vue_3', 'foret_vue_4', 'foret_clairiere']));
 })();
