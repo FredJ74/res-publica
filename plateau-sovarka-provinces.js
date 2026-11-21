@@ -353,6 +353,11 @@ Object.assign(PROV_MOTIFS, provRaisons(['pas_de_guide', 'effet_deja_actif']));
 async function lireGuideBaies() {
   const v = await provActe('guide_baies_lire', {}, 'lire');
   if (!v) return;
+  // Une lecture par semaine (lot de Krasnov, point 7, 20/11/2026).
+  if (v.ok !== true && v.raison === 'deja_lu_cette_semaine') {
+    const jour = v.prochaine ? new Date(v.prochaine).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }) : '';
+    showToast(provT('tGuide'), 'Vous l’avez déjà lu cette semaine' + (jour ? ' : prochaine lecture le ' + jour : '') + '.', false); return;
+  }
   if (v.ok !== true) { provRefus(provT('tGuide'), v); return; }
   if (Array.isArray(v.effets_actifs)) state.effetsActifs = v.effets_actifs;
   if (typeof updateUI === 'function') updateUI();

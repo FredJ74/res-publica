@@ -554,3 +554,35 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
   - **nouveau texte de la salle d'écoute de Krasnov (Fred) :** « Cinq téléphones : une ligne pour Luthécia, une pour la Républia, une pour El Estado, une pour Al-Khalija… et la rouge, pour Novomirsk. Personne ne sait vraiment qui décroche à l'autre bout, mais le colonel Voronov prend des notes. Le caporal Sorokine branche les fiches du standard. » Il est à poser dans `data.js` en même temps que son catalogue de descriptions (`i18n/sovarka-descriptions-resources.js`, indexé sur le français exact) ;
   - **description de l'ordre « Voler un rapport dans les archives » :** elle annonce encore « bagarre puis prison » ; à aligner sur les nouvelles règles, avec le catalogue des infobulles.
 - **Image de la salle d'écoute :** retouchée par Fred (#1171).
+
+## Lot de Krasnov, point 7 — école et énigme de Krasnov (Claude, 21/11/2026)
+
+- **Migration :** `20261121060000_krasnov_ecole_enigme` (appliquée).
+- **Banc :** `outils/bancs/test-krasnov-ecole-enigme-20261121.cjs`.
+- **École :**
+  - ordres copiés de l'université retirés (conférence, recruter des militants, formation) ;
+  - « Stage de survie en forêt » de l'institutrice Alevtina Gramotova : 3 PA + 25 PSK versés à la mairie de Krasnov, +4 VOL pendant 24 h ;
+  - la salle de réunion garde la domiciliation des syndicats étudiants (non citée par Fred).
+- **Guide des baies sauvages :**
+  - lecture une fois par semaine ;
+  - vendu au musée de Krasnov au prix provisoire de 10 PSK, à fixer par Fred ;
+  - retiré du marché.
+- **Feuille volante :**
+  - glissée dans chaque guide : objet échangeable qui ne disparaît jamais, avec l'énigme et la recette incomplète ;
+  - la résolution est attachée au personnage (`enigmes_resolues`) ;
+  - fenêtre générique « Ici commence l'énigme de … : saurez-vous la résoudre… ? » au premier guide.
+- **Résolution :**
+  - on répond au nouveau « Directeur du musée de Krasnov » (PNJ sans nom ni portrait : Fred peut le nommer et fournir l'image) ;
+  - réponse : la graisse d'ours (n'importe quelle tournure contenant « graisse » et « ours ») ;
+  - distinction « Résolveur de l'énigme de Krasnov » et liste « Énigmes résolues » sous les objets de l'inventaire.
+- **Chaîne de dialogues**, dans les fiches de PNJ :
+  - Alevtina oriente vers le musée et le guide, et s'effondre à l'annonce (« … que l'on puisse continuer à manger du miel ») ;
+  - Praskovia raconte son père et le bocal ;
+  - Kouzma, après avoir bu, évoque le marché ;
+  - Nina reconnaît le bocal (un ours = dix pots de graisse) ;
+  - le directeur est consterné ;
+  - les habitués du Bar Sever vantent leur « Miss », une fois par session.
+- **Armoire à souvenirs :** la fonction serveur `souvenir_utilisable_interne` dit que la feuille n'est utilisable que si l'énigme est résolue. Mais il n'existe encore aucun mécanisme pour ranger un objet dans l'armoire : à décider avec Fred.
+- **Pour Codex :**
+  - **nouvelles clés :** `enigmes.solved` ;
+  - **textes à traduire :** les trois descriptions d'ordres (dans `ATTENTE_CODEX` de l'infobulle de Sovarka), les toasts et la fenêtre de `plateau-enigme-krasnov.js`, le refus hebdomadaire du guide (`plateau-sovarka-provinces.js`).
