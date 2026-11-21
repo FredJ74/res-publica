@@ -48,3 +48,12 @@ test('Écran : ordre du colonel caché sans le secret, sources raccordées, carn
   for (const fn of ['offrir_verre_habitue_krasnov', 'demander_fournisseur_kalachnikov', 'interroger_ganbaatar_polonium', 'acheter_polonium_colonel'])
     assert.ok(r.includes("fn === '" + fn + "'"), fn);
 });
+
+test('Barème commun des informateurs (Fred, 19/11) : Sovarka 7-11 / 12-17 / 18-20 PSK, Républia 20-29 / 30-44 / 45-50 FR', () => {
+  const m = lire('migrations/20261121040000_informateurs_sovarka_bareme.sql');
+  assert.match(m, /WHEN p_montant BETWEEN 18 AND 20 THEN 'premier_choix' WHEN p_montant BETWEEN 12 AND 17 THEN 'correct'\s+WHEN p_montant BETWEEN 7 AND 11 THEN 'flou'/);
+  assert.match(m, /WHEN p_montant BETWEEN 45 AND 50 THEN 'premier_choix' WHEN p_montant BETWEEN 30 AND 44 THEN 'correct'\s+WHEN p_montant BETWEEN 20 AND 29 THEN 'flou'/);
+  assert.match(m, /v_palier := public\.informateur_palier_interne\('soviet', p_montant\);/);
+  assert.match(lire('GAME-DESIGN-CRIMINALITE.md'), /Barème commun des informateurs/);
+});
+

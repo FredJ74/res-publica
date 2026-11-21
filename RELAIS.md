@@ -545,8 +545,7 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
   - ordre caché tant que le secret est inconnu ;
   - Kalachnikov donne toujours la phrase ; Ganbaatar refuse (« je ne suis pas une balance ») ;
   - achat : 2 PA, 50 %, 150 PSK payés seulement en cas de succès ; jet de 98 à 100 : dénonciation et trace contre l'acheteur.
-- **Habitué du Bar Sever :** règle commune des informateurs de Sovarka. On le paie de 7 à 20 PSK ; flou de 7 à 12, correct de 13 à 19, premier choix à 20 PSK, qui donne la phrase de passe et le secret.
-  - Les bornes 12/13 ont été posées par Claude : seule la borne de 20 PSK est fixée par Fred, et le barème « 7 à 20 PSK » n'a pas été retrouvé dans le dépôt.
+- **Habitué du Bar Sever :** règle commune des informateurs, Sovarka (Fred, 19/11). On le paie de 7 à 20 PSK : 7 à 11 PSK flou, 12 à 17 correct, 18 à 20 premier choix (phrase de passe et secret). C'est le barème de Républia (20-29 / 30-44 / 45-50 FR) repris en proportion ; il est consigné dans `GAME-DESIGN-CRIMINALITE.md` et porté par la fonction serveur `informateur_palier_interne(pays, montant)`, migration `20261121040000_informateurs_sovarka_bareme` (appliquée).
 - **Carnet « Contacts et secrets » :** dans l'inventaire, visible du seul joueur (`plateau-secrets.js`, `secrets_lire`).
 - **Pour Codex :**
   - **nouvelles clés :** `secrets.notebook`, `secrets.empty`, `secrets.regularRule`, `secrets.pay` ;

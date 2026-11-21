@@ -993,3 +993,18 @@ Migration `20261120190000_crim_laissez_passer_registre` (essayée en transaction
 - Un vrai est présenté avant un faux si le porteur a les deux ; un seul vrai laissez-passer valide par personne et par lieu ; un
   groupe entre au QHS seulement si chacun présente un document valide. — *décidé par Fred (20/11/2026)*
 
+## Barème commun des informateurs (Fred, 19/11/2026 ; consigné le 21/11)
+
+- Un informateur payé à la somme rend **toujours** un service. La **qualité** dépend de la somme versée.
+- **Républia :**
+  - 20 à 29 FR : flou, il met sur la piste sans rien livrer ;
+  - 30 à 44 FR : correct ;
+  - 45 à 50 FR : premier choix.
+- **Sovarka :** « Sovarka fonctionne de la même façon, avec des sommes de 7 à 20 PSK ». Ce sont les mêmes paliers en proportion :
+  - 7 à 11 PSK : flou ;
+  - 12 à 17 PSK : correct ;
+  - 18 à 20 PSK : premier choix.
+- **Côté serveur :** la fonction `informateur_palier_interne(pays, montant)` donne le palier (migration `20261121040000_informateurs_sovarka_bareme`). Tout informateur payé à la somme doit l'utiliser.
+- **Première application :** l'habitué du Bar Sever de Krasnov, qui met sur la piste du colonel Voronov (lot de Krasnov, point 8). Le premier choix donne la phrase de passe et inscrit le colonel au carnet « Contacts et secrets ».
+- « Écouter le barman » (gratuit) et « Recruter un informateur » (150 par jour) gardent leur propre fonctionnement.
+
