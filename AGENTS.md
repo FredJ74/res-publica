@@ -174,6 +174,12 @@ ordre), sans jamais réécrire ni annuler ces cinq migrations. Aucune ne touche 
   `chantier_jour_avance_enregistrer_v1`) et **un seul appel** dans `chantier_jour_traiter`, juste avant `jourTraite`
   (marque `chantier_jour_avance_nuit_v1`). `api/cron-minuit.js` n'est pas modifié.
 
+- `20261121150000_foret_krasnov_clairiere_retour` : `sovarka_foret_aller` (réécrite : forêt, non commune), `sovarka_foret_vue_interne`,
+  nouvelle `sovarka_foret_tirer_vue_interne`, raccord dans `sovarka_foret_couper` (marque `foret_clairiere_v1`), `navigation_lieux_regles`
+  (pièce `foret_clairiere`), réglage `aliments_parametres.foret_egarement_pct`. N'utilise pas les nœuds du camp de bûcherons de Codex.
+- `20261121160000_presse_noms_cites_monde_reel` : nouvelle `journal_noms_cites_interne`, raccord dans `journal_edition_lire`
+  (marque `presse_noms_cites_v1`), correction de quatre `journal_editions` (« soviétique » → « de Sovarka »).
+
 ### Fonctions communes et points de jonction
 - **Traitement de nuit** : `api/cron-minuit.js` (commun : il appelle aussi `sovarka_goulag_controle_minuit`, tâche
   `controle_goulag_sovarka`). Claude **ne le réécrit pas** : la nuit des chantiers reste l'appel existant

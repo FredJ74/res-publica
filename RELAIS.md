@@ -15,6 +15,17 @@ Règles : voir `AGENTS.md`.
   `incidents_client` était déjà en place (incident de test id 1, marqué `test`).
 - **En ligne** : première rue (relance, filet « La ville se charge encore… », minuteur 8 s), climat définitif, fenêtre unique « Le chantier »
   (`plateau-chantier-vue.js` ; image par étape `images/chantiers/<ville>/{gros-oeuvre,facade}-{bas,haut}.webp`, `final-<palier-avec-tirets>.webp`).
+- **Forêt de Krasnov** (en ligne, migration `20261121150000` appliquée) : portique cliquable → clairière (`foret_clairiere`), sentier et
+  sous-bois cliquables → tirage existant (jamais deux vues des coupes de suite), « Retour au campement » (deux clics au plus, 80 %
+  d'égarement en réglage `foret_egarement_pct`), aucun PA pour se déplacer, groupe inchangé (le chef clique, le groupe suit, combat
+  de groupe contre la faune). Image de bois supplémentaire attendue de Fred. `plateau-foret-krasnov.js`.
+- **Presse** (en ligne, migration `20261121160000` appliquée) : consignes du rédacteur (monde fictif, point de vue du pays, anonymat
+  absolu), filet `assainirMondeReel`, noms cliquables (`plateau-presse-noms.js`, `noms_cites` de `journal_edition_lire`).
+- **Socles PGlite** : `outils/bancs/fixtures/*-pglite-socle.sql.txt` (extension .txt : aucun .sql hors de ses maisons).
+- **Pour Codex (presse, forêt)** : `TXT` de `plateau-presse-noms.js` (`ecrire`, `fermer`, `fiche`) et `plateau-foret-krasnov.js` (`explorer`),
+  `FORET_TXT` de `plateau-sovarka-provinces.js` (`bonChemin`, `clairiere`, `clairiereCorps`) ; ordres « Retour au campement »
+  (`foret_campement`) à ajouter au catalogue ; libellés retirés `foret_enfoncer`, `foret_revenir`, `foret_retrouver` à retirer du
+  catalogue (puis supprimer leur commentaire dans `data.js`) ; description de la clairière à rédiger et traduire.
 - **Pour Codex** : textes français du chantier dans `TXT` de `plateau-chantier-vue.js` (toutes les clés), à brancher sur la traduction ;
   `RUE_CENTRALE_PANNE` (`message`, `aide`, `bouton`) dans `plateau-rue-centrale.js`.
 
