@@ -8,6 +8,43 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Mission du soir du 21/11/2026, suite (Claude) — décisions : GAME-DESIGN-MISSION-SOIR-20261121.md
+- **Appliquées** (PGlite d'abord, contrôle en lecture après, goulag `active=false` vérifié) :
+  `20261121170000_point_eau_puiser_mairie_krasnov` (puisage 1 PA, 10 bouteilles par tranche de 6 h ; mairie de Krasnov à une seule
+  sortie) et `20261121180000_groupes_presents_masques_cachette` (`presents_ici`, cachette collective, signaux de salle).
+- **Fait** : accueil (titre et paragraphe « deux empires », 9 langues, paquet `i18n/packed/resources.js.br` régénéré — tout changement
+  de `i18n/*resources.js` exige `node outils/generateurs/compresser-catalogues-i18n.cjs`, sinon le site sert l'ancien texte) ;
+  eau de la place de l'Ours (ordre vert de rue, fenêtre illustrée, textes exacts) ; mairie de Krasnov ; groupes en bloc, masqué
+  visible, battement de présence aussi dans la rue (cause de « Absent »), rafraîchissement en direct de la liste de la rue (cause du
+  rechargement de Tom Tom), infobulle du membre, chances annoncées avant le jet ; fenêtre « Le chantier » à quatre onglets ; ordre
+  « Voler du matériel de chantier » remis ; images de Port-Sainte-Marie branchées (fichiers attendus dans `images/chantiers/psm/`) ;
+  presse (interview de Jodie assainie) ; forum (ordre de lecture, aucun chevauchement à l'affichage et dans l'éditeur, empilement
+  sur petit écran).
+- **Non fait, à reprendre (Codex)** :
+  - **Refonte des types de bâtiments (point 4)** : seul le chantier d'Arnie existe (building) : aucune conversion nécessaire. Plan :
+    `chantiers_paliers` (ajouter `logement` 90 000 / 18 j / 900 h ; laisser les trois `logements_*` tant qu'aucun écran ne les propose),
+    fonctions qui citent les anciens types : `terrain_permis_deposer` (durées, libellés, surface minimale), `terrain_permis_decider`
+    (libellé), `terrain_acquisition_commande` (liste des paliers), `chantier_plan_normaliser_interne` (logement : 3 × 45 m² + 3 × 75 m² ;
+    building : 6 commerces au plus de 300 m² minimum, 14 appartements au plus de 150 m² minimum, somme ≤ surface),
+    `logements_sociaux_lots_interne` ; catégorie selon le donneur d'ordre (mairie = social, joueur = classique) ; valeur pour Helvetia
+    (`traiter_prets_helvetia_quotidien`, `pret_national_jour_traiter`) qui doit compter les logements ; client `NIVEAUX_CONSTRUCTION`,
+    `PALIER_ORDRE`, éditeur de lots. Ces fonctions sont communes : par appel ajouté à une fonction séparée (normaliser le palier).
+  - **Forum, images** : coller (presse-papiers), glisser un fichier, copie des images extérieures dans le stockage (dont le message de
+    Peter Kropotkine `post-fcdbe99a-ee9b-4706-95d3-92e3cfb30a87`, texte à ne pas toucher). Il faut un seau de stockage et un point
+    d'envoi serveur ; le projet est à **12 fonctions Vercel** (plafond) : greffer l'envoi sur `api/upload-org-avatar.js` (paramètre de
+    mode + réécriture `/api/forum-image`), comme `/api/aide` → `chat`. Bouton « Ajouter une image » : aujourd'hui une adresse demandée.
+  - **Étapes G (fenêtres sans chevauchement, nom Human Gambit dans l'interface), H (interview d'accueil), I (Krasnov 2/3/9),
+    J (terrains : plan des lots, rue en trois états), K (informateurs)** : non commencées. Décisions dans les GAME-DESIGN du 21/11.
+  - **Commande de matériaux** (onglet Gestion) : aucune action serveur n'existe ; la fenêtre explique l'achat automatique de nuit.
+  - **Heures du chantier** : la règle commune borne les heures du jour par les matériaux livrés (serveur et client). Au matin le stock
+    repart de zéro : 0 heure ouverte tant que bois, minerai et métal manquent. Question posée à Fred (heures indépendantes des
+    matériaux ?) avant toute modification.
+- **Pour Codex (traductions)** : `EAU_TXT` et `ORDRE_PUISER.label` (`plateau-climat.js`), `TXT4` (`plateau-chantier-vue.js`),
+  `RP_MSG_MEMBRE_GROUPE` (`plateau-navigation.js`), libellés « Groupe … », « Personnage masqué », « MASQUÉ » (serveur `presents_ici`
+  et `plateau-multijoueur.js`), fenêtre « Se cacher avec votre groupe » (`plateau-actions-illegales-rumeurs.js`).
+- **Images manquantes** : `images/Sovarka/Krasnov/Krasnov_place_ours_fontaine.webp` ; `images/chantiers/psm/PSM_*` (10 fichiers) ;
+  nouvelle `rue-terrains-lots-detail-psm.webp` (6 lots : celle du dépôt en montre 5) ; `rue-terrains-psm-etat2/3.webp`.
+
 ### Soir du 21/11/2026 (Claude) : pause Supabase levée, migrations appliquées
 - **Appliquées** (banc PGlite d'abord ; goulag vérifié `active=false` avant et après ; aucune table ou fonction du goulag touchée) :
   `20261121130000_climat_horaire_cadence_catastrophe_sacs` (calendrier recalculé : 17 brouillards en trop annulés, crues remises au
