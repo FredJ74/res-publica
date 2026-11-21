@@ -119,12 +119,15 @@ const EXPLIC = { fr: {
   annonce_crue: 'Crue annoncée {lieu}.', annonce_orage: 'Orage annoncé {lieu}.', annonce_canicule: 'Canicule annoncée {lieu}.',
   annonce_brouillard: 'Brouillard annoncé {lieu}.', annonce_blizzard: 'Blizzard annoncé {lieu}.',
   consignes: 'Consignes',
+  o_bidon_carburant: 'Bidon de carburant', o_sels_rehydratation: 'Sels de réhydratation',
   eau_bouton: 'Remplir une bouteille d’eau', eau_infobulle: 'Gratuit, 0 PA : une bouteille d’eau, comme celle du commerce.',
   eau_ok: 'Vous avez rempli une bouteille d’eau à {nom}.', eau_titre: 'Point d’eau', eau_refus: 'Il n’y a pas de point d’eau ici.',
   accueil_titre: 'Bienvenue à {ville}',
   accueil_intro: 'Bienvenue parmi nous ! Un événement climatique frappe la ville en ce moment ({evenement}). Rien de grave : il est passager, et voici comment vous en protéger.',
   accueil_ok: 'J’ai compris, allons-y'
 } };
+// Nom d'un article de la boutique climat : table T (neuf langues), sinon EXPLIC (articles du complément du 21/11).
+function nomArticle(cle) { const k = 'o_' + cle; return (T.fr[k] ? texte(k) : explic(k)); }
 function explic(cle, vars) {
   const s = (EXPLIC[langue()] && EXPLIC[langue()][cle]) || EXPLIC.fr[cle] || cle;
   return String(s).replace(/\{(\w+)\}/g, (m, k) => (vars && Object.prototype.hasOwnProperty.call(vars, k)) ? String(vars[k]) : m);
@@ -514,7 +517,7 @@ async function ouvrirBoutiqueClimat() {
   const titre = global.document.getElementById('postes-modal-title');
   if (titre) titre.textContent = texte('shop');
   let html = '<div class="cpj-dialogue" style="padding:1rem"><select id="climat-objet" class="cpj-champ" style="width:100%;margin-bottom:.6rem">';
-  for (const o of (e.offre || [])) html += '<option value="' + esc(o.cle) + '">' + esc(texte('o_' + o.cle)) + ' — ' + esc(o.prix) + ' ' + esc(devise()) + '</option>';
+  for (const o of (e.offre || [])) html += '<option value="' + esc(o.cle) + '">' + esc(nomArticle(o.cle)) + ' — ' + esc(o.prix) + ' ' + esc(devise()) + '</option>';
   html += '</select><label class="cpj-note" for="climat-qte">' + esc(texte('quantity')) + '</label>'
     + '<input id="climat-qte" class="cpj-champ" type="number" min="1" max="10" value="1" style="width:100%;margin-bottom:.8rem">'
     + '<div style="display:flex;gap:.5rem"><button class="cpj-touche cpj-primaire" style="flex:1" onclick="confirmerBoutiqueClimat()">' + esc(texte('buy')) + '</button>'
@@ -534,7 +537,7 @@ async function confirmerBoutiqueClimat() {
     if (!r || r.ok !== true) { global.showToast(texte('shop'), motif(r), false); return; }
     appliquerInventaire(r);
     global.document.getElementById('modal-postes')?.classList.remove('open');
-    global.showToast(texte('shop'), texte('shopBought', { qte: r.quantite, nom: texte('o_' + cle), paye: r.paye, cur: devise() }), true);
+    global.showToast(texte('shop'), texte('shopBought', { qte: r.quantite, nom: nomArticle(cle), paye: r.paye, cur: devise() }), true);
     if (typeof global.updateUI === 'function') global.updateUI();
   } finally { boutiqueEnCours = false; }
 }

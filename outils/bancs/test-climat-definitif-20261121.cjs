@@ -88,9 +88,7 @@ test('consignes : textes de Fred, lieux de vente vérifiés, un seul texte serve
     "de castor chez la poissonnière de Novomirsk, ou dans une pharmacie tenue par un joueur.",
   ]) assert.ok(sql.includes(fragment), fragment);
   // Corrections : pas de garagiste ni de « pharmacie » en Républia.
-  assert.match(sql, /\('groupe_electrogene', 'republic', 'capitale', 'à l''Armurerie Martinon, à Luthécia'\)/);
-  assert.match(sql, /\('groupe_electrogene', 'soviet', +'capitale', 'au Garage de Novomirsk'\)/);
-  assert.match(sql, /\('sels_rehydratation', 'republic', 'ville_b', +'à l''entrepôt logistique de Montrouge'\)/);
+  // Lieux de vente : voir le banc « parades en vente dans chaque pays » (complément du 21/11).
   assert.match(sql, /employeur_id = 'grobras-securite' AND p_pays = 'republic' AND p_ville = 'capitale'/);
   // Presse et journal (climat_texte_alerte_interne), client (climat_etat → consigne) : même source.
   assert.match(code, /'\. ' \|\| coalesce\(public\.climat_consigne_interne\(e\.type, e\.pays, e\.ville\), ''\) \/\* climat_consignes_v1 \*\//);
@@ -129,4 +127,48 @@ test('pluie de l’orage : transform seul, boucle d’une tuile exacte, réduite
   assert.match(client, /background-size:80px 120px/);
   assert.match(client, /@media \(prefers-reduced-motion: reduce\)\{#climat-filtre,#climat-filtre::before,#climat-filtre::after,#climat-alerte\{animation:none!important\}\}/);
   assert.ok(!/climatPluie \.4s|background-position:-20px 40px/.test(client), 'ancienne pluie saccadée retirée');
+});
+
+// Complément du 21/11 : « une consigne ne doit jamais renvoyer vers un lieu qui n'existe pas dans le pays ».
+// Rejoue, à partir des migrations, la table des vendeurs réels et celle des lieux cités ; même contrôle que
+// climat_parades_verifier_interne() (appelé aussi par la migration, qui échoue s'il trouve un problème).
+test('parades en vente dans chaque pays : chaque lieu cité vend vraiment, chaque parade citée existe dans le pays', () => {
+  const parades = lire('migrations/20261121110000_climat_parades_vente.sql');
+  const effets = lire('migrations/20261119100000_climat_effets.sql');
+  const vendeurs = new Set();
+  const ajoute = (pays, ville, cle) => vendeurs.add(pays + '/' + ville + '/' + cle);
+  // Boutiques climat (lot 5) + bidons dans les quincailleries de Républia + sels à Pharmanov.
+  for (const m of effets.matchAll(/\('([\w-]+)', +'(\w+)', +'(\w+)', +'[\w-]+', +'\w+', +ARRAY\[([^\]]+)\]\)/g))
+    for (const k of m[4].match(/'(\w+)'/g).map(x => x.slice(1, -1))) ajoute(m[2], m[3], k);
+  assert.match(parades, /UPDATE public\.climat_boutiques SET cles = cles \|\| ARRAY\['bidon_carburant'\]\n WHERE id IN \('armurerie-luthecia', 'armurerie-montrouge'\)/);
+  ajoute('republic', 'capitale', 'bidon_carburant'); ajoute('republic', 'ville_b', 'bidon_carburant');
+  assert.match(parades, /\('usine-pharma-novomirsk', 'soviet', 'capitale', 'usine-pharmaceutique-luthecia', 'salle_ventes', ARRAY\['sels_rehydratation'\]\)/);
+  ajoute('soviet', 'capitale', 'sels_rehydratation');
+  // Points de vente des médicaments, station-service de Krasnov, fontaine de la place de l'Ours.
+  for (const f of ['migrations/20261118060000_maladies_socle.sql', 'migrations/20261118061000_maladies_boissons_repartition.sql'])
+    for (const m of lire(f).matchAll(/\('[\w-]+', +'(republic|soviet)', +'(\w+)', +'[\w-]+', +'\w+'/g)) ajoute(m[1], m[2], 'sels_rehydratation');
+  assert.match(lire('migrations/20261105222000_vehicules_socle.sql'), /'type', 'station-service', 'country', 'soviet', 'city', 'ville_b'/);
+  ajoute('soviet', 'ville_b', 'bidon_carburant');
+  ajoute('soviet', 'ville_b', 'bouteille_eau');
+  // Lieux cités : ceux du matin (eau, sacs), groupe et sels remplacés par le complément.
+  const cites = [];
+  const matin = sql.split('INSERT INTO public.climat_lieux_vente')[1].split(';')[0];
+  for (const m of matin.matchAll(/\('(\w+)', +'(\w+)', +'(\w+)', +'((?:[^']|'')+)'\)/g)) if (!['groupe_electrogene', 'sels_rehydratation'].includes(m[1])) cites.push(m.slice(1, 5));
+  assert.match(parades, /DELETE FROM public\.climat_lieux_vente WHERE cle IN \('groupe_electrogene', 'sels_rehydratation'\);/);
+  for (const m of parades.split('INSERT INTO public.climat_lieux_vente')[1].split(';')[0].matchAll(/\('(\w+)', +'(\w+)', +'(\w+)', +'((?:[^']|'')+)'\)/g)) cites.push(m.slice(1, 5));
+  assert.ok(cites.length >= 9);
+  for (const [cle, pays, ville, chez] of cites) assert.ok(vendeurs.has(pays + '/' + ville + '/' + cle), `${pays} : « ${chez} » ne vend pas ${cle}`);
+  // Chaque parade des consignes des événements actifs du pays est en vente quelque part dans le pays.
+  const types = { republic: ['crue', 'canicule', 'orage', 'brouillard'], soviet: ['orage', 'brouillard', 'blizzard'] };
+  const paradesDe = { orage: ['groupe_electrogene', 'bidon_carburant'], crue: ['sac_de_sable'], canicule: ['bouteille_eau', 'sels_rehydratation'] };
+  for (const [pays, ts] of Object.entries(types)) for (const t of ts) for (const cle of paradesDe[t] || [])
+    assert.ok([...vendeurs].some(v => v.startsWith(pays + '/') && v.endsWith('/' + cle)), `${pays} : ${cle} (${t}) introuvable`);
+  // Textes de Fred : quincaillerie de la ville, usine pharmaceutique ou pharmacie ; nom de la ville toujours présent.
+  assert.match(parades, /'à la quincaillerie de Luthécia \(Armurerie Martinon\)'/);
+  assert.match(parades, /'à l''usine pharmaceutique de Novomirsk \(Pharmanov\)'/);
+  assert.match(parades, /\|\| ' ou ', ''\) \|\| 'dans une pharmacie\.' \/\* climat_parades_v1 \*\//);
+  assert.match(parades, /IF EXISTS \(SELECT 1 FROM public\.climat_parades_verifier_interne\(\)\) THEN\n    RAISE EXCEPTION/);
+  // Objets identiques à ceux des commerces existants.
+  assert.match(parades, /WHEN 'bidon_carburant' THEN jsonb_build_object\('name', 'carburant', 'stackKey', 'carburant'/);
+  assert.match(parades, /'stackKey', 'medicament_sels_rehydratation'/);
 });
