@@ -116,8 +116,11 @@ const EXPLIC = { fr: {
   lieux_fermes: 'Lieux fermés : {lieux}.', aucun_lieu: 'Aucun lieu n’est fermé.',
   pourquoi: 'Pourquoi cet effet sur l’image ?',
   lieux_proteges: 'Protégés par des sacs de sable, donc ouverts : {lieux}.',
-  annonce_crue: 'Crue annoncée {lieu}.', annonce_orage: 'Orage annoncé {lieu}.', annonce_canicule: 'Canicule annoncée {lieu}.',
-  annonce_brouillard: 'Brouillard annoncé {lieu}.', annonce_blizzard: 'Blizzard annoncé {lieu}.',
+  annonce_crue: 'Crue annoncée {lieu}, à {heure} (heure du jeu).', annonce_orage: 'Orage annoncé {lieu}, à {heure} (heure du jeu).',
+  annonce_canicule: 'Canicule annoncée {lieu}, à {heure} (heure du jeu).', annonce_brouillard: 'Brouillard annoncé {lieu}, à {heure} (heure du jeu).',
+  annonce_blizzard: 'Blizzard annoncé {lieu}, à {heure} (heure du jeu).', debut_le: 'Début : le {date} à {heure} (heure du jeu).',
+  cat_tous: 'Sinistrés de la crue (lieux non protégés qui ont perdu des stocks) : {n} sinistré(s), indemnisés à {part} % des stocks perdus, coût {cout} {cur}.',
+  cat_libre: 'Vous restez libre de ne pas déclarer l’état de catastrophe naturelle.', cat_aucun: 'Aucun sinistré : aucun lieu non protégé n’a perdu de stock.',
   consignes: 'Consignes',
   o_bidon_carburant: 'Bidon de carburant', o_sels_rehydratation: 'Sels de réhydratation',
   eau_bouton: 'Remplir une bouteille d’eau', eau_infobulle: 'Gratuit, 0 PA : une bouteille d’eau, comme celle du commerce.',
@@ -143,6 +146,11 @@ function dureeRestante(ev, maintenant) {
   if (!(ms > 60000)) return null;
   const min = Math.ceil(ms / 60000), h = Math.floor(min / 60), m = min % 60;
   return h ? explic('duree_h', { h, m: String(m).padStart(2, '0') }) : explic('duree_m', { m });
+}
+// Heure du jeu (Paris) d'un instant ISO : heure de début annoncée (décision du 21/11 : début tiré au hasard sur 24 heures).
+function heureDe(iso) {
+  try { return new Date(iso).toLocaleTimeString(langue() === 'zh-TW' ? 'zh-TW' : langue(), { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Paris' }); }
+  catch (_) { return String(iso).slice(11, 16); }
 }
 function heureFin(ev) {
   try { return new Date(ev.fin).toLocaleTimeString(langue() === 'zh-TW' ? 'zh-TW' : langue(), { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Paris' }); }
@@ -177,6 +185,7 @@ function fenetreExplication(ev, opts) {
   fond.innerHTML = '<div style="max-width:460px;width:100%;max-height:90vh;overflow:auto;background:#12100c;border:1px solid #8a6a20;padding:1.1rem 1.2rem;color:#e0d4b0;font-size:.9rem;line-height:1.55">'
     + '<div style="font-family:Bebas Neue,sans-serif;letter-spacing:.12em;color:#C9A84C;font-size:1.1rem;margin-bottom:.6rem"><i class="ti ti-cloud-storm"></i> ' + esc(titre) + '</div>'
     + intro + '<p style="margin:0" class="climat-restant">' + esc(ligneRestant(ev)) + '</p>'
+    + '<p style="margin:.2rem 0 0;opacity:.85" class="climat-debut">' + esc(explic('debut_le', { date: dateCourte(ev.debut), heure: heureDe(ev.debut) })) + '</p>'
     + (lieuxFermes(ev) ? '<p style="margin:.4rem 0 0" class="climat-lieux">' + esc(lieuxFermes(ev)) + '</p>' : '')
     + (lieuxProteges(ev) ? '<p style="margin:.4rem 0 0" class="climat-proteges">' + esc(lieuxProteges(ev)) + '</p>' : '')
     + (ev.consigne ? sec(explic('consignes'), ev.consigne) : '')
@@ -275,12 +284,12 @@ function dateCourte(iso) {
 function message(ev) {
   const pays = etat().country || 'republic';
   const lieu = texte('at', { ville: (VILLES[pays] && VILLES[pays][ev.ville]) || ev.ville, date: dateCourte(ev.debut) });
-  return [explic('annonce_' + typeConnu(ev), { lieu }), lieuxFermes(ev), ev.consigne || ''].filter(Boolean).join(' ');
+  return [explic('annonce_' + typeConnu(ev), { lieu, heure: heureDe(ev.debut) }), lieuxFermes(ev), ev.consigne || ''].filter(Boolean).join(' ');
 }
 
 // ── Fenêtre du gouvernement : une fois par alerte et par personnage ──────────────────────────────
 // Un événement reporté (un seul à la fois par pays) est annoncé de nouveau : la clé suit sa date.
-const cleVu = (id, debut) => 'rp-climat-vu:' + (etat().char && etat().char.name || '') + ':' + id + (debut ? ':' + String(debut).slice(0, 10) : '');
+const cleVu = (id, debut) => 'rp-climat-vu:' + (etat().char && etat().char.name || '') + ':' + id + (debut ? ':' + String(debut).slice(0, 16) : '');
 function dejaVu(ev) { try { return global.localStorage.getItem(cleVu(ev.id, ev.debut)) === '1'; } catch (_) { return false; } }
 function marquerVu(ev) { try { global.localStorage.setItem(cleVu(ev.id, ev.debut), '1'); } catch (_) {} }
 let fileAlertes = [];
@@ -541,7 +550,7 @@ async function confirmerBoutiqueClimat() {
     if (typeof global.updateUI === 'function') global.updateUI();
   } finally { boutiqueEnCours = false; }
 }
-// Sacs de sable de l'inventaire : les poser (tous, plafond 9 par bâtiment) devant le bâtiment où l'on se trouve (le serveur vérifie zone et droits).
+// Sac de sable de l'inventaire : en poser un (1 PA) devant le bâtiment où l'on se trouve ; il le protège pour la prochaine crue (le serveur vérifie zone et droits).
 function boutonPoserSacs(item, style) {
   if (!item || item.stackKey !== 'sac_de_sable') return '';
   return '<button onclick="poserSacsSable()" style="' + (style || '') + '"><i class="ti ti-bag"></i> ' + esc(texte('pose')) + '</button>';
@@ -552,7 +561,7 @@ async function poserSacsSable() {
   appliquerInventaire(r);
   if (typeof r.pa === 'number' && typeof state !== 'undefined' && state) state.pa = r.pa;
   global.document.getElementById('modal-postes')?.classList.remove('open');
-  global.showToast(texte('o_sac_de_sable'), texte('posed', { n: r.poses, total: r.sacs, max: r.plafond, perte: r.perte_pct }), true);
+  global.showToast(texte('o_sac_de_sable'), texte('posed'), true);
   if (typeof global.updateUI === 'function') global.updateUI();
 }
 // Groupe électrogène installé dans le bureau : le remplir de bidons de carburant (plateau-equipements.js).
@@ -588,12 +597,13 @@ async function catastropheExaminer(id) {
   let html = '<div class="cpj-dialogue" style="padding:1rem">'
     + '<p class="cpj-note">' + esc(texte('catIntro', { ville, pertes: e.pertes, cur, part: e.part })) + '</p>'
     + '<p class="cpj-note">' + esc(texte('catReserve', { reserve: e.reserve, cur })) + ' ' + esc(texte('catDeadline', { date: new Date(e.limite).toLocaleString() })) + '</p>';
-  if (e.declare) html += '<p class="cpj-note">' + esc(texte('catDone', { cout: e.cout, cur })) + '</p>';
+  if (e.declare) html += '<p class="cpj-note">' + esc(texte('catDone', { cout: e.cout_verse, cur })) + '</p>';
   else if (e.poste === 'pm') {
-    html += '<div style="border:1px solid #394656;padding:.7rem;margin:.6rem 0"><p class="cpj-note">' + esc(texte('catSacs', { n: e.sinistres_sacs, cout: e.cout_sacs, cur })) + '</p>'
-      + '<button class="cpj-touche cpj-primaire" style="width:100%" onclick="catastropheDeclarer(' + Number(e.evenement) + ',false)">' + esc(texte('catDeclared')) + '</button></div>'
-      + '<div style="border:1px solid #394656;padding:.7rem;margin:.6rem 0"><p class="cpj-note">' + esc(texte('catTous', { n: e.sinistres_tous, cout: e.cout_tous, cur })) + '</p>'
-      + '<button class="cpj-touche cpj-primaire" style="width:100%" onclick="catastropheDeclarer(' + Number(e.evenement) + ',true)">' + esc(texte('catDeclared')) + '</button></div>';
+    // Décision du 21/11 : une seule option, tous les sinistrés (lieux non protégés qui ont perdu des stocks) à 50 %.
+    html += '<div style="border:1px solid #394656;padding:.7rem;margin:.6rem 0"><p class="cpj-note">'
+      + esc(Number(e.sinistres) > 0 ? explic('cat_tous', { n: e.sinistres, part: e.part, cout: e.cout, cur }) : explic('cat_aucun')) + '</p>'
+      + '<p class="cpj-note">' + esc(explic('cat_libre')) + '</p>'
+      + '<button class="cpj-touche cpj-primaire" style="width:100%" onclick="catastropheDeclarer(' + Number(e.evenement) + ')">' + esc(texte('catDeclared')) + '</button></div>';
   } else if (!e.propose) {
     html += '<button class="cpj-touche cpj-primaire" style="width:100%" onclick="catastropheProposer(' + Number(e.evenement) + ')">' + esc(texte('catPropose')) + '</button>';
   }
@@ -601,8 +611,8 @@ async function catastropheExaminer(id) {
   doc.getElementById('postes-body').innerHTML = html;
   doc.getElementById('modal-postes').classList.add('open');
 }
-async function catastropheDeclarer(id, etendre) {
-  const r = un(await global.sbRpc('catastrophe_declarer', { p_evenement: Number(id), p_etendre: !!etendre }).catch(() => null));
+async function catastropheDeclarer(id) {
+  const r = un(await global.sbRpc('catastrophe_declarer', { p_evenement: Number(id), p_etendre: true }).catch(() => null));
   if (!r || r.ok !== true) { global.showToast(texte('cat'), motif(r), false); return; }
   global.document.getElementById('modal-postes')?.classList.remove('open');
   global.showToast(texte('cat'), texte('catDone', { cout: r.cout, cur: devise() }), true);

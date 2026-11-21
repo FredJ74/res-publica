@@ -93,7 +93,7 @@ test('consignes : textes de Fred, lieux de vente vérifiés, un seul texte serve
   // Presse et journal (climat_texte_alerte_interne), client (climat_etat → consigne) : même source.
   assert.match(code, /'\. ' \|\| coalesce\(public\.climat_consigne_interne\(e\.type, e\.pays, e\.ville\), ''\) \/\* climat_consignes_v1 \*\//);
   assert.match(code, /'consigne', public\.climat_consigne_interne\(e\.type, e\.pays, e\.ville\)\);/);
-  assert.match(client, /return \[explic\('annonce_' \+ typeConnu\(ev\), \{ lieu \}\), lieuxFermes\(ev\), ev\.consigne \|\| ''\]/);
+  assert.match(client, /return \[explic\('annonce_' \+ typeConnu\(ev\), \{ lieu, heure: heureDe\(ev\.debut\) \}\), lieuxFermes\(ev\), ev\.consigne \|\| ''\]/);
 });
 
 test('eau gratuite : point d’eau en configuration, 0 PA, bouteille identique', () => {
