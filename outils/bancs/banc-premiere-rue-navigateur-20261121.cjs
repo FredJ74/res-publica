@@ -24,10 +24,14 @@ async function avecPage(fn) {
     const url = decodeURIComponent(req.url.split('?')[0]);
     if (url === '/') { res.setHeader('Content-Type', 'text/html; charset=utf-8'); res.end(page0); return; }
     if (!FICHIERS.includes(url) && !url.startsWith('/images/')) { res.writeHead(404); res.end(); return; }
-    try {
-      res.setHeader('Content-Type', url.endsWith('.js') ? 'text/javascript' : url.endsWith('.css') ? 'text/css' : url.endsWith('.png') ? 'image/png' : 'image/webp');
-      res.end(fs.readFileSync(path.join(racine, url.slice(1))));
-    } catch (_) { res.writeHead(404); res.end(); }
+    res.setHeader('Content-Type', url.endsWith('.js') ? 'text/javascript' : url.endsWith('.css') ? 'text/css' : url.endsWith('.png') ? 'image/png' : 'image/webp');
+    // HG_SOURCE_URL=https://… : mêmes scénarios avec les fichiers réellement déployés (vérification après mise en ligne).
+    if (process.env.HG_SOURCE_URL) {
+      fetch(process.env.HG_SOURCE_URL + encodeURI(url)).then(async r => { if (!r.ok) throw 0; res.end(Buffer.from(await r.arrayBuffer())); })
+        .catch(() => { res.writeHead(404); res.end(); });
+      return;
+    }
+    try { res.end(fs.readFileSync(path.join(racine, url.slice(1)))); } catch (_) { res.writeHead(404); res.end(); }
   });
   const profil = fs.mkdtempSync(path.join(os.tmpdir(), 'hg-premiere-rue-')); let nav, browser;
   try {
