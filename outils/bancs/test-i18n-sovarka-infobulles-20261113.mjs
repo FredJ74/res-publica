@@ -64,7 +64,16 @@ test('toute description et mention « Bientôt » propre à Sovarka affichée pa
   // dans le catalogue des infobulles de Sovarka ; Codex retire ensuite ces lignes de la liste.
   const ATTENTE_CODEX = ['Une bouteille de vodka, de slivovitz ou de samogon de la distillerie d’État, au prix du spiritueux en vente directe.',
     "Fabrication contre salaire fixe : 1 PA, 15 PSK. Consomme 5 fruits et légumes du stock de matières de l'usine, produit 10 spiritueux (l'alcool à boire des bars et buvettes).",
-    "Fabrication contre salaire fixe : 1 PA, 15 PSK. Consomme 5 fruits et légumes du stock de matières de l'usine, produit 10 sucres."];
+    "Fabrication contre salaire fixe : 1 PA, 15 PSK. Consomme 5 fruits et légumes du stock de matières de l'usine, produit 10 sucres.",
+    // Radar de Krasnov (lot de Krasnov, point 8, 21/11/2026) : sources du secret du colonel et achat du polonium.
+    'Demander au camarade Kalachnikov où trouver ce qu’il ne vend pas lui-même.',
+    'Demander au chef de quai Ganbaatar Tsybikov qui, à Sovarka, vend du polonium.',
+    'Un vieil habitué du Bar Sever connaît tout le monde à Krasnov. Il parle plus volontiers à ceux qui ont déjà leurs informateurs.',
+    'Phrase de passe pour acheter une fiole de polonium au colonel Voronov : 150 PSK, payés seulement s’il accepte. Une chance sur deux.',
+    // École et énigme de Krasnov (lot de Krasnov, point 7, 21/11/2026).
+    'Une journée avec l’institutrice Alevtina Gramotova pour apprendre à survivre dans la forêt de Krasnov : +4 VOL pendant 24 h. Les 25 PSK sont versés à la mairie.',
+    'Le guide des baies sauvages de Krasnov (lecture une fois par semaine : +1 INT pendant 24 h). Une feuille volante est glissée dedans.',
+    'Vous croyez avoir trouvé l’ingrédient effacé de la feuille volante ? Le directeur du musée vous écoute.'];
   assert.deepEqual(descs.filter(d => !textes.has(d) && !ATTENTE_CODEX.includes(d)), []);
   assert.deepEqual(bientot.filter(d => !textes.has(d)), []);
 });

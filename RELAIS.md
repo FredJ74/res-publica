@@ -514,3 +514,75 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
   - Claude ne l'a pas fait pour ne pas toucher aux traductions.
 - **Pour Codex — nouveau PNJ :** « Brigadier Matveï Doubov », rôle « Brigadier de garde » (`data.js`).
 - **Pour Codex — journal :** nouvelles lignes du vol d'archives (`plateau-sovarka-provinces.js`).
+
+## Lot de Krasnov, point 6 — supporters en Sovarka (Claude, 21/11/2026)
+
+- **Migration :** `20261120360000_supporters_sovarka_manifestation` (appliquée).
+- **Banc :** `outils/bancs/test-krasnov-supporters-20261121.cjs`.
+- **Boycott :** il n'y en a plus en Sovarka (ordre retiré des trois stades, refusé à l'écran).
+- **Manifestation « en faveur » seulement :** cible au choix, le président du club ou le maire. Même mécanisme que la manifestation de soutien du Syndicat national :
+  - 10 membres au moins, une par jour et par ville ;
+  - 2 PA par membre présent ;
+  - participation = présents / domiciliés ;
+  - popularité de la cible selon `syndicat_etat_effet_pop`, y compris la perte sous 50 %.
+- **Novomirsk :** la manifestation « en faveur » y est ouverte aussi (Fred, 21/11). La règle vaut pour toute la Sovarka.
+- **Restent du point 6 :**
+  - l'entraîneur adjoint Pavel Zapasnoï ;
+  - les textes du terrain et de la buvette validés le 19/11 (Fred les cherche).
+  - Avdotia Doubova et la vente de matières à la buvette sont déjà en place.
+- **Pour Codex — nouvelles clés** (secours français dans `plateau-organisations-quetes.js`) : `supportersSovarka.rule`, `supportersSovarka.forClubPresident`, `supportersSovarka.forMayor`. Les toasts et le journal de la manifestation sont aussi à traduire.
+
+
+## Lot de Krasnov, point 8 — radar de Krasnov (Claude, 21/11/2026)
+
+- **Migrations (appliquées) :** `20261121010000_krasnov_radar_vol_archives`, `20261121020000_krasnov_radar_polonium_secrets`, `20261121030000_krasnov_radar_sorokine_habitue` (décisions de Fred du 21/11 sur #1169).
+- **Banc :** `outils/bancs/test-krasnov-radar-20261121.cjs`.
+- **Vol des archives d'écoute :**
+  - moteur commun du vol (`crim_resoudre_interne`, comme le cambriolage) ;
+  - l'opérateur Ilia Sorokine a désormais une fiche de PNJ (`pnj_membres`, profil de combat par défaut : ENT 10, VOL 12, PER 12, DUP 8) ;
+  - la bagarre passe par le vrai moteur de combat (modificateurs et plafond de la neutralisation) ;
+  - sans personne de présent (opérateur neutralisé), le vol réussit d'office.
+- **Polonium du colonel Voronov :**
+  - ordre caché tant que le secret est inconnu ;
+  - Kalachnikov donne toujours la phrase ; Ganbaatar refuse (« je ne suis pas une balance ») ;
+  - achat : 2 PA, 50 %, 150 PSK payés seulement en cas de succès ; jet de 98 à 100 : dénonciation et trace contre l'acheteur.
+- **Habitué du Bar Sever :** règle commune des informateurs, Sovarka (Fred, 19/11). On le paie de 7 à 20 PSK : 7 à 11 PSK flou, 12 à 17 correct, 18 à 20 premier choix (phrase de passe et secret). C'est le barème de Républia (20-29 / 30-44 / 45-50 FR) repris en proportion ; il est consigné dans `GAME-DESIGN-CRIMINALITE.md` et porté par la fonction serveur `informateur_palier_interne(pays, montant)`, migration `20261121040000_informateurs_sovarka_bareme` (appliquée).
+- **Carnet « Contacts et secrets » :** dans l'inventaire, visible du seul joueur (`plateau-secrets.js`, `secrets_lire`).
+- **Pour Codex :**
+  - **nouvelles clés :** `secrets.notebook`, `secrets.empty`, `secrets.regularRule`, `secrets.pay` ;
+  - **textes français à traduire :** quatre ordres (habitué, Kalachnikov, Ganbaatar, colonel) et leurs descriptions, déjà dans `ATTENTE_CODEX` de `test-i18n-sovarka-infobulles-20261113.mjs` ; toasts et journal de `plateau-secrets.js` et de `volerArchivesEcoute` ;
+  - **nouveau texte de la salle d'écoute de Krasnov (Fred) :** « Cinq téléphones : une ligne pour Luthécia, une pour la Républia, une pour El Estado, une pour Al-Khalija… et la rouge, pour Novomirsk. Personne ne sait vraiment qui décroche à l'autre bout, mais le colonel Voronov prend des notes. Le caporal Sorokine branche les fiches du standard. » Il est à poser dans `data.js` en même temps que son catalogue de descriptions (`i18n/sovarka-descriptions-resources.js`, indexé sur le français exact) ;
+  - **description de l'ordre « Voler un rapport dans les archives » :** elle annonce encore « bagarre puis prison » ; à aligner sur les nouvelles règles, avec le catalogue des infobulles.
+- **Image de la salle d'écoute :** retouchée par Fred (#1171).
+
+## Lot de Krasnov, point 7 — école et énigme de Krasnov (Claude, 21/11/2026)
+
+- **Migration :** `20261121060000_krasnov_ecole_enigme` (appliquée).
+- **Banc :** `outils/bancs/test-krasnov-ecole-enigme-20261121.cjs`.
+- **École :**
+  - ordres copiés de l'université retirés (conférence, recruter des militants, formation) ;
+  - « Stage de survie en forêt » de l'institutrice Alevtina Gramotova : 3 PA + 25 PSK versés à la mairie de Krasnov, +4 VOL pendant 24 h ;
+  - la salle de réunion garde la domiciliation des syndicats étudiants (non citée par Fred).
+- **Guide des baies sauvages :**
+  - lecture une fois par semaine ;
+  - vendu au musée de Krasnov au prix provisoire de 10 PSK, à fixer par Fred ;
+  - retiré du marché.
+- **Feuille volante :**
+  - glissée dans chaque guide : objet échangeable qui ne disparaît jamais, avec l'énigme et la recette incomplète ;
+  - la résolution est attachée au personnage (`enigmes_resolues`) ;
+  - fenêtre générique « Ici commence l'énigme de … : saurez-vous la résoudre… ? » au premier guide.
+- **Résolution :**
+  - on répond au nouveau « Directeur du musée de Krasnov » (PNJ sans nom ni portrait : Fred peut le nommer et fournir l'image) ;
+  - réponse : la graisse d'ours (n'importe quelle tournure contenant « graisse » et « ours ») ;
+  - distinction « Résolveur de l'énigme de Krasnov » et liste « Énigmes résolues » sous les objets de l'inventaire.
+- **Chaîne de dialogues**, dans les fiches de PNJ :
+  - Alevtina oriente vers le musée et le guide, et s'effondre à l'annonce (« … que l'on puisse continuer à manger du miel ») ;
+  - Praskovia raconte son père et le bocal ;
+  - Kouzma, après avoir bu, évoque le marché ;
+  - Nina reconnaît le bocal (un ours = dix pots de graisse) ;
+  - le directeur est consterné ;
+  - les habitués du Bar Sever vantent leur « Miss », une fois par session.
+- **Armoire à souvenirs :** la fonction serveur `souvenir_utilisable_interne` dit que la feuille n'est utilisable que si l'énigme est résolue. Mais il n'existe encore aucun mécanisme pour ranger un objet dans l'armoire : à décider avec Fred.
+- **Pour Codex :**
+  - **nouvelles clés :** `enigmes.solved` ;
+  - **textes à traduire :** les trois descriptions d'ordres (dans `ATTENTE_CODEX` de l'infobulle de Sovarka), les toasts et la fenêtre de `plateau-enigme-krasnov.js`, le refus hebdomadaire du guide (`plateau-sovarka-provinces.js`).

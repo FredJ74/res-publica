@@ -1810,7 +1810,9 @@ const WORLD = {
               name: 'Club des supporters du Dynamo',
               desc: 'Lieu de rassemblement sportif autorisé, sans droit de manifester contre les autorités.',
               imageUrl: 'images/Sovarka/Novomirsk/Novomirsk.stade.club.webp',
-              excludeOrders: ['organiser_manifestation','rejoindre_club_supporters'],
+              // Manifestation « en faveur » ouverte à Novomirsk comme dans toute la Sovarka (Fred, 21/11/2026) ; le boycott
+              // est retiré plus bas pour les trois stades de Sovarka.
+              excludeOrders: ['rejoindre_club_supporters'],
               orders: [
                 {fn:'rejoindre_club_supporters', label:'Rejoindre le club de supporters', pa:1, cost:25, type:'legal', icon:'ti-users-group', successRate:100,
                   desc:'Adhésion au club de supporters du Dynamo : 25 PSK, renouvelable à chaque nouveau championnat.'}
@@ -12063,7 +12065,12 @@ function CHAMBRE_HOPITAL_ORDRES_SOVARKA() { return CHAMBRE_HOPITAL_ORDRES(); }
   Object.assign(contexte('ville_b', 'universite'), { name: 'École de Krasnov', desc: 'L\'école du kolkhoze : on y apprend à lire, à compter et à réciter les rendements de la récolte.' });
   // Seule PNJ de la classe (Fred, 14/11/2026) : l'institutrice de l'image, nom proposé par Claude (« gramota », savoir lire et écrire).
   Object.assign(piece(contexte('ville_b', 'universite'), 'amphi'), { name: 'Salle de classe', persons: [pnj('Alevtina Gramotova', 'Institutrice', 'professeur')],
-    imageUrl: 'images/Sovarka/Krasnov/Krasnov_ecole_salle_classe.webp' }); // image de Fred (14/11/2026) ; mécanique de l'école à décider
+    imageUrl: 'images/Sovarka/Krasnov/Krasnov_ecole_salle_classe.webp', // image de Fred (14/11/2026)
+    // Lot de Krasnov, point 7 (Fred, 20/11/2026) : plus d'ordres copiés de l'université ; stage de survie de l'institutrice.
+    excludeOrders: ['donner_conf', 'recruter_etud', 'suivre_formation'],
+    orders: [{ fn: 'stage_survie_foret', label: 'Stage de survie en forêt', pa: 3, cost: 25, type: 'legal', icon: 'ti-trees', successRate: 100,
+      desc: 'Une journée avec l’institutrice Alevtina Gramotova pour apprendre à survivre dans la forêt de Krasnov : +4 VOL pendant 24 h. Les 25 PSK sont versés à la mairie.' }] });
+  Object.assign(piece(contexte('ville_b', 'universite'), 'salle_reunion'), { excludeOrders: ['recruter_etud'] });
   // Nom proposé par Claude, validé par Fred le 15/11/2026 : l'église orthodoxe de Krasnov EST l'Église du Tractorisme (parodie).
   Object.assign(contexte('ville_b', 'kolkhoze-spirituel'), { name: 'Église de la Sainte-Moisson-Commune', desc: 'Une église aux bulbes dorés, consacrée au Tractorisme : on y prie pour la récolte et la santé des moteurs.',
     // Fred (14/11/2026) : à Krasnov, c'est une église, pas un kolkhoze ; même ordre (faire_don), seul le libellé change.
@@ -12128,8 +12135,16 @@ function CHAMBRE_HOPITAL_ORDRES_SOVARKA() { return CHAMBRE_HOPITAL_ORDRES(); }
       {name:'Guide du musée de Krasnov (PNJ)', role:'Guide du musée', rel:'neutral', job:'guide', photoUrl:'images/Sovarka/Krasnov/Krasnov_musee_accueil_guide.webp'}
     ],
     excludeOrders: ['ilia_ecouter_guide'],
-    orders: []
+    // Lot de Krasnov, point 7 (Fred, 20/11/2026) : le guide des baies se vend au musée (prix provisoire), avec sa feuille
+    // volante ; la réponse à l'énigme se donne au directeur du musée.
+    orders: [
+      { fn: 'acheter_guide_baies_musee', label: 'Acheter le guide des baies sauvages', pa: 0, cost: 10, type: 'legal', icon: 'ti-book', successRate: 100,
+        desc: 'Le guide des baies sauvages de Krasnov (lecture une fois par semaine : +1 INT pendant 24 h). Une feuille volante est glissée dedans.' },
+      { fn: 'repondre_enigme_krasnov', label: 'Soumettre la solution de l’énigme au directeur', pa: 0, cost: 0, type: 'legal', icon: 'ti-bulb', successRate: 100,
+        desc: 'Vous croyez avoir trouvé l’ingrédient effacé de la feuille volante ? Le directeur du musée vous écoute.' }
+    ]
   });
+  piece(musee, 'hall').persons.push({ name: 'Directeur du musée de Krasnov (PNJ)', role: 'Directeur du musée', rel: 'neutral', job: 'conservateur', profilId: 'directeur_musee_krasnov' });
   Object.assign(contexte('ville_b', 'cafe-tabac-cheminots-montrouge'), { name: 'Bar Sever', desc: 'Le bar-tabac de Krasnov (« Бар Север ») : vodka, cigarettes, journaux du Parti et le match à la radio.' });
   Object.assign(piece(contexte('ville_b', 'cafe-tabac-cheminots-montrouge'), 'salle'), { persons: [pnj('Grigori Zaitsev', 'Patron du bar', 'serveur')] });
   Object.assign(piece(contexte('ville_b', 'cafe-tabac-cheminots-montrouge'), 'salle'), { imageUrl: 'images/Sovarka/Krasnov/Krasnov_bar_sever_salle.webp' });
@@ -12217,7 +12232,7 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     'Quatre téléphones, un par pays étranger, et un cinquième, rouge, pour Novomirsk. Le colonel Voronov tend l’oreille ; le caporal Sorokine branche les fiches du standard.');
   // Décor propre au poste d'écoute de Krasnov : ne modifie pas Starovka.
   BUILDINGS['station-radar-krasnov'].rooms.salle_ecoute.imageUrl =
-    'images/Sovarka/Krasnov/Krasnov_centre_ecoute_salle.webp';
+    'images/Sovarka/Krasnov/Krasnov_centre_ecoute_salle.webp?v=20261121';
   // Personnel accordé à l'image de Fred (14/11/2026) : un colonel à son bureau aux quatre téléphones (il remplace la
   // lieutenante Sokolova) et un opérateur casqué au standard, celui qu'on affronte si le vol des archives échoue.
   BUILDINGS['station-radar-krasnov'].rooms.salle_ecoute.persons.push(
@@ -13163,4 +13178,52 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     const room = BUILDINGS[bat] && BUILDINGS[bat].rooms && BUILDINGS[bat].rooms[piece];
     if (room) room.orders = (room.orders || []).concat([ordre]);
   }
+})();
+
+// LOT DE KRASNOV, point 6 (Fred, 20/11/2026) : plus de boycott des supporters en Sovarka (les trois stades). La
+// manifestation y devient « en faveur » du président du club ou du maire (plateau-organisations-quetes.js).
+(function () {
+  for (const v of ['capitale', 'ville_a', 'ville_b']) {
+    const cite = WORLD.soviet && WORLD.soviet[v];
+    if (!cite) continue;
+    cite.buildingContext = cite.buildingContext || {};
+    const st = cite.buildingContext.stade = cite.buildingContext.stade || {};
+    st.roomOverrides = Object.assign({}, st.roomOverrides);
+    const ro = st.roomOverrides.siege_supporters = Object.assign({}, st.roomOverrides.siege_supporters);
+    ro.excludeOrders = Array.from(new Set([...(ro.excludeOrders || []), 'organiser_boycott']));
+  }
+})();
+
+
+// LOT DE KRASNOV, point 8 (Fred, 20/11/2026 ; migration 20261121020000) : le colonel Gleb Voronov vend le polonium sous
+// le manteau. L'ordre du colonel porte « secret » : il reste caché tant que le PJ n'a pas appris l'information
+// (personnages_secrets, carnet « Contacts et secrets »). Sources : l'habitué du Bar Sever de Krasnov (selon le palier
+// d'informateur), Kalachnikov à Novomirsk ; Ganbaatar Tsybikov, à Starovka, refuse d'en parler.
+(function () {
+  const sov = WORLD.soviet || {};
+  const bar = sov.ville_b && sov.ville_b.buildingContext && sov.ville_b.buildingContext['cafe-tabac-cheminots-montrouge'];
+  if (!bar) throw new Error('Krasnov : Bar Sever absent');
+  bar.orders = (bar.orders || []).concat([
+    { fn: 'offrir_verre_habitue_krasnov', label: 'Offrir un verre à l’habitué', pa: 0, cost: 0, type: 'grey', icon: 'ti-glass-full', successRate: 100,
+      desc: 'Un vieil habitué du Bar Sever connaît tout le monde à Krasnov. Il parle plus volontiers à ceux qui ont déjà leurs informateurs.' }
+  ]);
+  const arsenal = sov.capitale && sov.capitale.buildingContext && sov.capitale.buildingContext.armurerie;
+  if (!arsenal) throw new Error('Novomirsk : Arsenal collectif absent');
+  arsenal.orders = (arsenal.orders || []).concat([
+    { fn: 'demander_fournisseur_kalachnikov', label: 'Demander un autre fournisseur', pa: 1, cost: 0, type: 'grey', icon: 'ti-user-question', successRate: 100,
+      desc: 'Demander au camarade Kalachnikov où trouver ce qu’il ne vend pas lui-même.' }
+  ]);
+  const quai = BUILDINGS['port-starovka'] && BUILDINGS['port-starovka'].rooms.quai_principal;
+  if (!quai) throw new Error('Starovka : quai principal absent');
+  quai.orders = (quai.orders || []).concat([
+    { fn: 'interroger_ganbaatar_polonium', label: 'Interroger le chef de quai sur le polonium', pa: 0, cost: 0, type: 'grey', icon: 'ti-message-question', successRate: 100,
+      desc: 'Demander au chef de quai Ganbaatar Tsybikov qui, à Sovarka, vend du polonium.' }
+  ]);
+  const ecoute = BUILDINGS['station-radar-krasnov'] && BUILDINGS['station-radar-krasnov'].rooms.salle_ecoute;
+  if (!ecoute) throw new Error('Krasnov : station radar absente');
+  ecoute.orders = ecoute.orders.concat([
+    { fn: 'acheter_polonium_colonel', label: 'Demander au colonel des nouvelles de notre ami de Luthécia', pa: 2, cost: 0, type: 'illegal', icon: 'ti-radioactive', successRate: 50,
+      secret: 'colonel_polonium',
+      desc: 'Phrase de passe pour acheter une fiole de polonium au colonel Voronov : 150 PSK, payés seulement s’il accepte. Une chance sur deux.' }
+  ]);
 })();

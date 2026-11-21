@@ -12,13 +12,14 @@ assert.deepEqual(Array.from(Object.keys(c.roomsExtra)),expected.slice(1));
 assert.equal(c.roomsExclues.length,13);
 assert.ok(!c.roomsExclues.includes('hall'));
 assert.equal(c.roomOverrides.hall.name,'Accueil du musée de Krasnov');
-assert.equal(c.roomOverrides.hall.persons.length,2);
+assert.equal(c.roomOverrides.hall.persons.length,3); // hôtesse, guide, directeur du musée (énigme de Krasnov, 21/11)
 assert.deepEqual(Array.from(c.roomOverrides.hall.excludeOrders),['ilia_ecouter_guide']);
-assert.equal(c.roomOverrides.hall.orders.length,0);
-for(const p of c.roomOverrides.hall.persons)assert.ok(p.photoUrl.includes('Krasnov_musee_accueil_'));
+assert.equal(c.roomOverrides.hall.orders.length,2); // guide des baies et réponse à l'énigme (21/11)
+// Directeur du musée (énigme de Krasnov, 21/11) : pas encore de portrait, Fred le fournira.
+for(const p of c.roomOverrides.hall.persons.filter(p=>p.profilId!=='directeur_musee_krasnov'))assert.ok(p.photoUrl.includes('Krasnov_musee_accueil_'));
 const paths=[
  c.roomOverrides.hall.imageUrl,...Object.values(c.roomsExtra).map(r=>r.imageUrl),
- ...c.roomOverrides.hall.persons.map(p=>p.photoUrl)
+ ...c.roomOverrides.hall.persons.filter(p=>p.photoUrl).map(p=>p.photoUrl)
 ];
 assert.equal(new Set(paths).size,8);
 for(const path of paths){

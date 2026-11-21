@@ -1108,7 +1108,7 @@ const RUE_CENTRALE_NOEUDS = {
     },
 
     'krasnov-rue-stade-commissariat': {
-      image: 'images/Sovarka/Krasnov/Krasnov rue stade commissariat.webp',
+      image: 'images/Sovarka/Krasnov/Krasnov rue stade commissariat.webp?v=20261121',
       zones: [
         // Façades identifiées sur l'image : police à gauche, stade à droite.
         // Les pièces et les ordres sont hérités des gabarits partagés, non dupliqués.

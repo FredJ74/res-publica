@@ -38,7 +38,8 @@ test('141 descriptions du catalogue Républia : françaises exactes et réelleme
  // 154 → 162 le 16/11 : les huit descriptions distinctes héritées du QHS républicain ne sont plus affichées dans le nouveau bâtiment Goulag de Sovarka. Elles restent affichées en Républia et traduites dans le catalogue commun.
  // 162 → 159 le 20/11 (criminalité lot 7) : « Falsifier un procès-verbal » et les deux accélérations par corruption (permis, rendez-vous) sont supprimés.
  // 159 → 162 le 20/11 (distillerie) : produire des spiritueux, produire du sucre et « Spiritueux de la maison » au pôle de Port-Sainte-Marie.
- assert.equal(spec.length,162,'inventaire réel après séparation du goulag de Sovarka et du QHS républicain');
+ // 162 → 163 le 21/11 (lot de Krasnov, point 6) : « Organiser un boycott » n'est plus affiché en Sovarka.
+ assert.equal(spec.length,163,'inventaire réel après séparation du goulag de Sovarka et du QHS républicain');
  const rows=setup('republic','fr').RP_INFOBULLES_REPUBLIA;
  assert.equal(rows.length,141);
  // Lignes livrées dont l'ordre est supprimé (criminalité lot 7, 20/11 : le temps ne s'achète pas) : gardées au catalogue.

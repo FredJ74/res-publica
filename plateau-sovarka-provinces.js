@@ -121,17 +121,19 @@ async function volerArchivesEcoute() {
   if (!v) return;
   if (v.ok !== true) { showToast(provT('tArchives'), provMotif(v), false); return; }
   if (typeof adopterEtatCrimeServeur === 'function') adopterEtatCrimeServeur(v);
-  if (v.reussi) {
+  // Moteur commun du vol (Fred, 21/11/2026) : réussite, échec (remarqué ou non) ou vrai combat contre l'opérateur.
+  if (v.issue === 'reussite') {
     showToast(provT('tStolen'), provT('stolenOk', { centre: PROV_CENTRES[v.centre] }), true, true);
     if (typeof addJournalEntry === 'function') addJournalEntry('Rapport d’écoute volé (' + PROV_CENTRES[v.centre] + ') : −' + PA_VOL_ARCHIVES_ECOUTE + ' PA.', 'event-bad');
+  } else if (v.issue === 'combat') {
+    showToast(provT('tArchives'), 'L’opérateur Sorokine vous a surpris : la bagarre éclate.', false);
+    if (typeof addJournalEntry === 'function') addJournalEntry('Tentative de vol dans les archives d’écoute : bagarre avec l’opérateur Sorokine (−' + PA_VOL_ARCHIVES_ECOUTE + ' PA).', 'event-bad');
   } else {
-    showToast(provT('tCaught'), provT('caught') + (v.interrogatoire ? ' ' + provT('caughtInterro') : ''), false);
-    // Lot de Krasnov (Fred, 20/11/2026) : les PA de la tentative et la durée de détention apparaissent au journal.
-    const joursDetention = v.arrestation && typeof v.arrestation.jours === 'number' ? v.arrestation.jours : null;
-    if (typeof addJournalEntry === 'function') addJournalEntry('Surpris en volant les archives d’écoute : arrêté (−' + PA_VOL_ARCHIVES_ECOUTE + ' PA'
-      + (joursDetention != null ? ', ' + joursDetention + ' jour(s) de détention' : '') + ').', 'event-bad');
-    if (v.arrestation && typeof adopterArrestationServeur === 'function') await adopterArrestationServeur(v.arrestation);
+    showToast(provT('tArchives'), v.remarque ? 'Échec : l’opérateur vous a remarqué.' : 'Vous n’avez rien trouvé d’utile, et personne ne vous a vu.', false);
+    if (typeof addJournalEntry === 'function') addJournalEntry('Tentative de vol dans les archives d’écoute : échec' + (v.remarque ? ', remarqué' : ' inaperçu') + ' (−' + PA_VOL_ARCHIVES_ECOUTE + ' PA).', v.remarque ? 'event-bad' : 'event-neutral');
   }
+  if (typeof updateUI === 'function') updateUI();
+  if (v.issue === 'combat' && Number.isSafeInteger(Number(v.bataille)) && typeof ouvrirPanneauCombat === 'function') await ouvrirPanneauCombat(Number(v.bataille));
 }
 
 // ---------- HABILITATIONS, CONSULTATION ET INTERROGATOIRE (Fred, 13/11/2026) ----------
@@ -351,6 +353,11 @@ Object.assign(PROV_MOTIFS, provRaisons(['pas_de_guide', 'effet_deja_actif']));
 async function lireGuideBaies() {
   const v = await provActe('guide_baies_lire', {}, 'lire');
   if (!v) return;
+  // Une lecture par semaine (lot de Krasnov, point 7, 20/11/2026).
+  if (v.ok !== true && v.raison === 'deja_lu_cette_semaine') {
+    const jour = v.prochaine ? new Date(v.prochaine).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }) : '';
+    showToast(provT('tGuide'), 'Vous l’avez déjà lu cette semaine' + (jour ? ' : prochaine lecture le ' + jour : '') + '.', false); return;
+  }
   if (v.ok !== true) { provRefus(provT('tGuide'), v); return; }
   if (Array.isArray(v.effets_actifs)) state.effetsActifs = v.effets_actifs;
   if (typeof updateUI === 'function') updateUI();

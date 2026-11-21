@@ -33,7 +33,19 @@ test('5. Commissariat : brigadier Matveï Doubov à Krasnov seulement', () => {
 test('8. Vol des archives d’écoute : PA et détention au journal', () => {
   const p = lire('plateau-sovarka-provinces.js');
   assert.match(p, /const PA_VOL_ARCHIVES_ECOUTE = 2;/);
-  assert.match(p, /arrêté \(−' \+ PA_VOL_ARCHIVES_ECOUTE \+ ' PA'/);
-  assert.match(p, /jour\(s\) de détention/);
+  assert.match(p, /bagarre avec l’opérateur Sorokine \(−' \+ PA_VOL_ARCHIVES_ECOUTE \+ ' PA\)/);
   assert.match(lire('data.js'), /fn: 'voler_archives_ecoute', label: 'Voler un rapport dans les archives', pa: 2,/);
+});
+
+test('8. Vol des archives : moteur commun du vol et vrai combat contre l’opérateur Sorokine', () => {
+  const m = lire('migrations/20261121030000_krasnov_radar_sorokine_habitue.sql');
+  assert.match(m, /'sovarka-radar-krasnov-sorokine', 'employe', 'Caporal Ilia Sorokine'/);
+  assert.match(m, /10, 8, 8, 10, 12, 12, 'station_radar', 'soviet:ville_b:station-radar-krasnov'/);
+  assert.match(m, /t := public\.crim_temoin_interne\(a, NULL\);/);
+  assert.match(m, /rr := public\.crim_resoudre_interne\('voler_archives_ecoute', a,/);
+  assert.match(m, /'combat', true, 'per_victime'/);
+  assert.match(m, /IF rr ->> 'issue' = 'combat' THEN rr := public\.crim_combat_ouvrir_interne\(a, rr, t, 'mains', v_req\); END IF;/);
+  assert.doesNotMatch(m, /random\(\) < 0\.5/);
+  const p = lire('plateau-sovarka-provinces.js');
+  assert.match(p, /v\.issue === 'combat' && Number\.isSafeInteger\(Number\(v\.bataille\)\) && typeof ouvrirPanneauCombat === 'function'/);
 });
