@@ -2,7 +2,7 @@
 
 Consigne intégrale, recopiée mot pour mot. Elle remplace la version consignée au commit 78b4f2e2.
 
-> ⚠️ **Message reçu tronqué** : il s'arrête au milieu du point 4 (« Depuis la clairière, un clic »). La suite du point 4 et les points suivants (contrôle, rapport) sont à compléter dès que Fred les renverra. Image de la clairière déposée : `images/Sovarka/Krasnov/Krasnov_foret_clairiere.webp` (commit 93d3956e).
+Image de la clairière déposée : `images/Sovarka/Krasnov/Krasnov_foret_clairiere.webp` (commit 93d3956e). Message reçu en deux parties (la seconde complète le point 4).
 
 ---
 
@@ -32,6 +32,9 @@ Règle générale de Fred : les déplacements à l'intérieur d'une ville ne con
 - Le retour vers la clairière se fait en deux clics au maximum :
   - Premier clic : soit le joueur arrive à la clairière, soit il s'égare. S'il s'égare, il passe par le même mécanisme aléatoire que l'aller (bois / loup(s) / ours / Olga, rencontres comprises) et le message « Était-ce le bon chemin… ? » s'affiche.
   - Second clic : il arrive toujours à la clairière, sans rencontre.
-- Depuis la clairière, un clic
+- Depuis la clairière, un clic de plus sur « Retour au campement » ramène à l'Exploitation forestière (point 3).
+- Probabilité de s'égarer au premier clic : si le code définit déjà une probabilité de se perdre en forêt, garde-la ; sinon, une chance sur deux. Écris-la en configuration pour que Fred puisse l'ajuster.
 
-[… message tronqué ici, suite à recevoir …]
+5. Contrôle
+Tests couvrant : clic sur le portique vers la clairière, bouton « S'enfoncer dans la forêt » absent, sentier de la clairière vers le tirage aléatoire, jamais deux images de bois identiques à la suite, retour en deux clics maximum jusqu'à la clairière avec message « Était-ce le bon chemin… ? » en cas d'égarement, arrivée garantie au second clic, retour direct de la clairière au campement, aucun PA consommé par ces déplacements.
+Rapport attendu : coût en PA supprimé s'il existait, probabilité d'égarement retenue, image de bois supplémentaire attendue, ce qui reste à décider par Fred.
