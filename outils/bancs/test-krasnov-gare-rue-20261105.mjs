@@ -154,7 +154,7 @@ test('Krasnov : continuité de la gare au radar, toutes les flèches validées',
   assert.equal(got.contexte.roomOverrides.hall_gare_montrouge.personsVides,true);
   assert.notEqual(got.hallPSM,got.contexte.roomOverrides.hall_gare_montrouge.imageUrl);
   for (const f of [got.noeud.image,got.entrepot.image,got.maison.image,got.terrains.image,got.eglise.image,got.marche.image,got.artisanal.image,got.stade.image,got.ecole.image,got.distillerie.image,got.immeubles.image,got.mairie.image,got.tabac.image,got.station.image,got.bureaux.image,got.descendante.image,got.contexte.roomOverrides.hall_gare_montrouge.imageUrl]){
-    assert.ok(fs.statSync(path.join(root,f)).size>0,f);
+    assert.ok(fs.statSync(path.join(root,f.split('?')[0])).size>0,f);   // version de cache ignorée
   }
 });
 
