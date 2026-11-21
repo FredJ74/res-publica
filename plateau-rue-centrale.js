@@ -1706,7 +1706,8 @@ function trouverNoeudRueCentralePourBatiment(pays, buildingId) {
 // abandonnée EN SILENCE, la vue de rue restait vide (sans image, sans flèche ni bâtiment), et la position du
 // personnage ne quittait jamais l'état vierge. Le joueur ne pouvait plus bouger. On relance donc l'initialisation,
 // deux fois au plus, tant qu'aucune scène n'est affichée pour un personnage qui est dans la rue.
-async function initialiserRueCentrale(pays, noeudDepart, depuisNoeud) {
+// initialiserRueCentrale reste l'initialisation d'origine (un seul essai) ; initialiserRueCentraleSure l'enveloppe.
+async function initialiserRueCentraleSure(pays, noeudDepart, depuisNoeud) {
   const nom = state.char?.name;
   const vueVide = () => {
     if (typeof document === 'undefined') return null;
@@ -1721,13 +1722,13 @@ async function initialiserRueCentrale(pays, noeudDepart, depuisNoeud) {
     if (v && !rueCentraleDeplacementEnCours) rueCentraleChargementEnPanne(v, pays, noeudDepart, depuisNoeud);
   }, RUE_CENTRALE_PANNE.delaiMs);
   try {
-    await initialiserRueCentraleUneFois(pays, noeudDepart, depuisNoeud);
+    await initialiserRueCentrale(pays, noeudDepart, depuisNoeud);
     if (typeof document === 'undefined') return;
     for (let essai = 0; essai < 2; essai++) {
       await new Promise(r => setTimeout(r, 500 + essai * 700));
       if (!vueVide()) return;
       if (rueCentraleDeplacementEnCours) continue;
-      await initialiserRueCentraleUneFois(state.country, noeudDepart, depuisNoeud);
+      await initialiserRueCentrale(state.country, noeudDepart, depuisNoeud);
     }
     // Filet de sécurité (Fred, 21/11/2026) : jamais de vue vide et muette. Après les relances, si la rue n'est
     // toujours pas affichée, un message clair et un bouton « Réessayer » (sans recharger la page), et l'incident
@@ -1759,10 +1760,10 @@ function rueCentraleChargementEnPanne(vueRue, pays, noeudDepart, depuisNoeud) {
     + '<div style="font-size:.85rem;opacity:.85">' + RUE_CENTRALE_PANNE.aide + '</div>'
     + '<button type="button" id="rc-panne-reessayer" class="cpj-touche cpj-primaire"><i class="ti ti-refresh"></i> ' + RUE_CENTRALE_PANNE.bouton + '</button></div>';
   const b = document.getElementById('rc-panne-reessayer');
-  if (b) b.onclick = () => { b.disabled = true; initialiserRueCentrale(state.country || pays, noeudDepart, depuisNoeud); };
+  if (b) b.onclick = () => { b.disabled = true; initialiserRueCentraleSure(state.country || pays, noeudDepart, depuisNoeud); };
 }
 
-async function initialiserRueCentraleUneFois(pays, noeudDepart, depuisNoeud) {
+async function initialiserRueCentrale(pays, noeudDepart, depuisNoeud) {
   const contexte=contexteNavigationRue(),lecture=++rueCentraleLecturePosition;
   if ((typeof rueCentraleServeur === 'function' ? rueCentraleServeur(pays, state.currentCity) : pays === 'republic')) {
     // Une reconnexion ne reprend jamais une position provenant du localStorage.

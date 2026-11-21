@@ -269,7 +269,7 @@ function showVueRue(batimentQuitte, positionConfirmee = null) {
       // Une provenance qui ne mene pas a cette rue (ex. rue d'avant une detention) n'oriente pas la scene.
       const orientation=typeof orientationRueVoisine==='function'?orientationRueVoisine(state.country,positionConfirmee.street,orientationBrute):orientationBrute;
       afficherNoeudRue(state.country,positionConfirmee.street,orientation,true);
-    }else initialiserRueCentrale(state.country,reprise.noeudId,reprise.depuisNoeudId);
+    }else (typeof initialiserRueCentraleSure==='function'?initialiserRueCentraleSure:initialiserRueCentrale)(state.country,reprise.noeudId,reprise.depuisNoeudId);
   } else {
     // Ancien systeme (image statique + mini-carte des batiments) — pour les villes pas encore converties
     if (minimap) minimap.style.display = '';

@@ -40,7 +40,7 @@ async function avecPage(fn) {
     browser = await chromium.connectOverCDP('http://127.0.0.1:' + nav.port);
     const page = await browser.contexts()[0].newPage(); await page.setViewportSize({ width: 1100, height: 800 });
     await page.goto('http://127.0.0.1:' + serveur.address().port);
-    await page.waitForFunction(() => typeof initialiserRueCentrale === 'function' && typeof RUE_CENTRALE_NOEUDS === 'object');
+    await page.waitForFunction(() => typeof initialiserRueCentraleSure === 'function' && typeof RUE_CENTRALE_NOEUDS === 'object');
     await fn(page);
   } finally {
     if (browser) await browser.close(); if (nav) await nav.arreter();
@@ -70,7 +70,7 @@ async function preparer(page, v, mode) {
     };
   }, { v, mode });
 }
-const lancer = (page, v) => page.evaluate(v => { initialiserRueCentrale(v.pays, v.depart, null); }, v);
+const lancer = (page, v) => page.evaluate(v => { initialiserRueCentraleSure(v.pays, v.depart, null); }, v);
 async function sceneAffichee(page, v, delai = 6000) {
   await page.waitForSelector('#rc-scene #rc-image', { timeout: delai });
   const ok = await page.evaluate(async () => { const i = document.getElementById('rc-image'); await i.decode(); return i.naturalWidth > 0; });
