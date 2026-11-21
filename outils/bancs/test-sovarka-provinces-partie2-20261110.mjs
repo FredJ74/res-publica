@@ -54,10 +54,11 @@ test('Forêt de Krasnov : entrée, 4 vues masquées, coupe 2 PA, retour', () => 
       ordres: c.roomsExtra.foret_vue_3.orders.map(o => o.fn + ':' + o.pa).join(),
       ailleurs: !(WORLD.soviet.ville_a.buildingContext['zone-production']?.roomsExtra?.foret_vue_1) };
   })()`, ctx);
-  assert.equal(r.entree, 'recolter_matiere,foret_enfoncer');
+  // Version définitive du 21/11 : plus de bouton « S'enfoncer » ; on entre par le portique de l'image.
+  assert.equal(r.entree, 'recolter_matiere');
   assert.equal(r.vues, 'foret_vue_1,foret_vue_2,foret_vue_3,foret_vue_4');
   assert.equal(r.masquees, 4);
-  assert.equal(r.ordres, 'foret_couper:1,foret_enfoncer:0,foret_revenir:0,foret_retrouver:1');
+  assert.equal(r.ordres, 'foret_couper:1,foret_campement:0');
   assert.ok(r.ailleurs, 'la forêt profonde ne doit exister qu’à Krasnov');
 });
 

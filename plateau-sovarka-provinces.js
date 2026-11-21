@@ -455,6 +455,9 @@ Object.assign(PROV_MOTIFS, provRaisons(['deja_en_foret', 'deja_a_l_entree', 'ren
 // choisir entre « Revenir à l'entrée » et « Retrouver son chemin » à l'écran ; il est réécrit à chaque réponse du serveur.
 let foretPerduServeur = false;
 let foretPerduLu = false;
+// Textes de la version définitive (français ; clés pour Codex dans RELAIS).
+const FORET_TXT = { bonChemin: 'Était-ce le bon chemin… ?', clairiere: 'La clairière',
+  clairiereCorps: 'Le sentier s’enfonce entre les arbres. Cliquez-le pour explorer la forêt, ou retournez au campement.' };
 function foretEstPerdu() {
   const enForet = /^foret_vue_[1-4]$/.test(state.currentRoom || '');
   // Première vue profonde affichée depuis le chargement : l'état est relu une fois au serveur.
@@ -498,8 +501,11 @@ async function foretAller(sens) {
   }
   foretNoterPerdu(v);
   provForetRendre(v.room);
-  if (Number(v.vue) === 0) showToast(provT('tOut'), provT(sens === 'retrouver' ? 'found' : 'out'), true);
-  else if (v.egare === true) foretFenetrePerdu(provT(sens === 'retrouver' ? 'tStill' : 'tLost'), v.vue);
+  // Forêt de Krasnov, version définitive (Fred, 21/11/2026) : égaré au retour → « Était-ce le bon chemin… ? » ;
+  // la clairière (vue 5) est la première et la dernière image, le campement est l'entrée de l'exploitation.
+  if (Number(v.vue) === 0) showToast(provT('tOut'), provT('out'), true);
+  else if (v.egare === true) foretFenetrePerdu(FORET_TXT.bonChemin, v.vue);
+  else if (Number(v.vue) === 5) showToast(FORET_TXT.clairiere, FORET_TXT.clairiereCorps, true);
   else showToast(provT('tDeep'), provT('deeper'), true);
   if (Number(v.vue) > 0) foretPrechargerImages();
 }
