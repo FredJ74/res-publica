@@ -42,6 +42,8 @@ const GRAINE = `
   INSERT INTO climat_evenements (id, type, pays, ville, debut, fin, periode) VALUES
     (130, 'blizzard', 'soviet', 'ville_a', pg_temp.j(6), pg_temp.j(7), 'mandat-1'),
     (131, 'brouillard', 'soviet', 'capitale', pg_temp.j(6), pg_temp.j(6) + interval '6 hours', 'M4');
+  INSERT INTO climat_evenements (id, type, pays, ville, debut, fin, periode, alerte_le) VALUES
+    (132, 'brouillard', 'soviet', 'ville_b', pg_temp.j(1), pg_temp.j(1) + interval '6 hours', 'M5', now() - interval '1 day');
   SELECT setval('climat_evenements_id_seq', 1000);
 `;
 
@@ -69,13 +71,21 @@ test('Q1 : heure de début au hasard (heure pleine), durée conservée, alerte a
   // Le brouillard en cours ne bouge pas.
   const enCours = await ev(db, 100);
   assert.ok(new Date(enCours.debut) < new Date());
-  // Annoncé de nouveau : le brouillard 101 (décalé après celui en cours + 48 h) n'est plus marqué annoncé ; son alerte
-  // donnera le jour et l'heure (heure du jeu).
-  assert.equal((await ev(db, 101)).alerte_le, null);
-  const txt = (await lignes(db, 'SELECT climat_texte_alerte_interne(e) t FROM climat_evenements e WHERE id = 101'))[0].t;
-  assert.match(txt, /^Brouillard annoncé à Port-Sainte-Marie le \d\d\/\d\d à \d\d h 00 \(heure du jeu\)\. Consigne brouillard\./);
+  // Déjà annoncé et imminent, sans conflit (132, Sovarka) : il a eu son préavis, il garde date, heure et annonce.
+  const b132 = await ev(db, 132);
+  assert.notEqual(b132.alerte_le, null);
+  assert.equal(new Date(b132.debut).getUTCMinutes() + new Date(b132.debut).getUTCSeconds(), 0);
+  // Annoncé mais en conflit avec le brouillard en cours (101) : déplacé, à annoncer de nouveau, au moins 48 h plus tard.
+  const b101 = await ev(db, 101);
+  assert.equal(b101.alerte_le, null);
+  assert.ok(+new Date(b101.debut) >= Date.now() + 48 * H);
+  // Aucun événement non annoncé ne commence moins de 48 h après maintenant.
+  const tot = await lignes(db, "SELECT id FROM climat_evenements WHERE NOT annule AND alerte_le IS NULL AND debut > now() AND debut < now() + interval '48 hours'");
+  assert.deepEqual(tot, [], 'jamais sans préavis de 48 h');
+  const txt = (await lignes(db, 'SELECT climat_texte_alerte_interne(e) t FROM climat_evenements e WHERE id = 102'))[0].t;
+  assert.match(txt, /^Brouillard annoncé à Montrouge le \d\d\/\d\d à \d\d h 00 \(heure du jeu\)\. Consigne brouillard\./);
   // Publication 48 h avant : l'article porte le jour ET l'heure dans sa clé.
-  await db.exec("INSERT INTO climat_evenements (id, type, pays, ville, debut, fin, periode) VALUES (140, 'orage', 'soviet', 'ville_b', date_trunc('hour', now()) + interval '30 hours', date_trunc('hour', now()) + interval '36 hours', 'Y')");
+  await db.exec("INSERT INTO climat_evenements (id, type, pays, ville, debut, fin, periode) VALUES (140, 'orage', 'soviet', 'ville_b', date_trunc('hour', now()) + interval '49 hours', date_trunc('hour', now()) + interval '55 hours', 'Y')");
   await db.query('SELECT climat_alertes_publier_interne()');
   const art = await lignes(db, "SELECT id, texte FROM journal_articles_en_attente WHERE id LIKE 'climat-140-%'");
   assert.equal(art.length, 1);

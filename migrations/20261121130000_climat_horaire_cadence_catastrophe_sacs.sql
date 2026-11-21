@@ -1,6 +1,9 @@
 -- CLIMAT — décisions de Fred du 21/11/2026 sur les quatre questions (GAME-DESIGN-CLIMAT-20261121.md).
 -- ⚠️ NON APPLIQUÉE : pause sur Supabase en production (Codex termine le goulag). Testée en local (PGlite,
 --    outils/bancs/banc-climat-pglite-20261121.cjs). À appliquer seulement sur feu vert de Fred.
+-- Règle d'application (Fred, 21/11 au soir) : aucun événement ne commence sans annonce 48 h avant. Les épisodes non annoncés
+--    sont placés au plus tôt 48 h après maintenant ; les événements déjà annoncés qui commencent dans moins de 48 h gardent
+--    date, heure et annonce (ils ont eu leur préavis) ; les alertes paraissent entre 49 et 48 h avant le début.
 -- Q1 Heure de début tirée au hasard sur les 24 heures (une heure pleine, uniforme), durée inchangée (6 h ; blizzard 24 h) ;
 --    l'alerte 48 h avant annonce l'heure exacte (heure du jeu). Appliqué aux événements déjà planifiés : chaque événement non
 --    commencé reçoit une heure tirée au hasard ; s'il avait déjà été annoncé, il est annoncé de nouveau, avec l'heure.
@@ -64,7 +67,7 @@ DECLARE e public.climat_evenements; v_n integer := 0; v_txt text; v_cle text;
 BEGIN
   FOR e IN SELECT ev.* FROM public.climat_evenements ev JOIN public.climat_parametres c ON c.type = ev.type AND c.pays = ev.pays
             WHERE NOT ev.annule AND ev.alerte_le IS NULL AND ev.fin > now()
-              AND ev.debut <= now() + make_interval(hours => c.preavis_heures) FOR UPDATE OF ev LOOP
+              AND ev.debut <= now() + make_interval(hours => c.preavis_heures + 1) /* climat_preavis_garanti_v1 */ FOR UPDATE OF ev LOOP
     v_txt := public.climat_texte_alerte_interne(e);
     v_cle := 'climat-' || e.id || '-' || to_char(e.debut AT TIME ZONE 'Europe/Paris', 'YYYYMMDDHH24MI') /* climat_report_v1 */;
     INSERT INTO public.evenements_globaux (country, city, texte, jour) VALUES (e.pays, e.ville, '⚠️ ' || v_txt, NULL);
@@ -106,7 +109,9 @@ UPDATE public.climat_evenements e
    SET debut_prevu = n.prevu, debut = n.prevu, fin = n.prevu + (e.fin - e.debut)
   FROM (SELECT ev.id, public.climat_heure_hasard_interne(coalesce(d.jour, (ev.debut AT TIME ZONE 'Europe/Paris')::date)) AS prevu
           FROM public.climat_evenements ev LEFT JOIN climat_dates_origine d ON d.id = ev.id
-         WHERE NOT ev.annule AND now() < ev.debut) n
+         WHERE NOT ev.annule AND now() < ev.debut
+           -- Déjà annoncé et imminent (moins de 48 h) : il a eu son préavis, il garde sa date, son heure et son annonce.
+           AND NOT (ev.alerte_le IS NOT NULL AND ev.debut <= now() + interval '48 hours')) n
  WHERE n.id = e.id;
 
 -- Brouillards en trop (au plus un par ville et par mois, déjà passés compris) : on garde le premier, on annule les autres.
@@ -145,7 +150,12 @@ BEGIN
     END IF;
     -- Point de départ : la date actuelle d'un épisode annoncé, sinon sa date prévue.
     IF r.annonce THEN v_debut := r.d0; v_long := (r.f1 - r.d0) + make_interval(hours => r.preavis);
-    ELSE v_debut := r.p0; v_long := (r.pf1 - r.p0) + make_interval(hours => r.preavis); END IF;
+    ELSE v_debut := r.p0; v_long := (r.pf1 - r.p0) + make_interval(hours => r.preavis);
+      -- Jamais sans préavis : un épisode non annoncé commence au plus tôt 48 h après maintenant, à l'heure pleine.
+      IF v_debut < now() + make_interval(hours => r.preavis) THEN
+        v_debut := date_trunc('hour', now() + make_interval(hours => r.preavis)) + interval '1 hour';
+      END IF;
+    END IF;
     LOOP
       SELECT x INTO v_conflit FROM unnest(v_places) x WHERE x && tstzrange(v_debut, v_debut + v_long) ORDER BY upper(x) DESC LIMIT 1;
       EXIT WHEN v_conflit IS NULL;
@@ -179,7 +189,8 @@ BEGIN
 END $$;
 
 -- Événements non commencés déjà annoncés sans heure : on les annonce de nouveau (avec l'heure) dès leur nouvelle date.
-UPDATE public.climat_evenements SET alerte_le = NULL WHERE NOT annule AND now() < debut AND alerte_le IS NOT NULL;
+UPDATE public.climat_evenements SET alerte_le = NULL WHERE NOT annule AND now() < debut AND alerte_le IS NOT NULL
+   AND debut > now() + interval '48 hours';
 -- Recalcul immédiat du calendrier des deux pays à partir des dates prévues.
 SELECT public.climat_espacer_interne('republic'), public.climat_espacer_interne('soviet');
 -- Avis public pour chaque événement déjà annoncé dont le jour change (l'heure exacte suivra dans la nouvelle alerte).

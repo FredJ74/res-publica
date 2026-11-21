@@ -33,6 +33,12 @@ test('lieu protégé ouvert, stocks intacts ; lieu non protégé fermé (20 %)',
   assert.match(client, /lieux_proteges: 'Protégés par des sacs de sable, donc ouverts : \{lieux\}\.'/);
 });
 
+test('sac de sable : 60 FR, 1 PA pour le poser', () => {
+  assert.match(lire('migrations/20261119100000_climat_effets.sql'), /\('prix_sac_sable', 60\)/);
+  assert.match(lire('migrations/20261119100000_climat_effets.sql'), /'poser_sacs_sable', 1, 0/);
+  assert.match(lire('migrations/20261121130000_climat_horaire_cadence_catastrophe_sacs.sql'), /payer_ordre\(a, 'poser_sacs_sable', 1, 0\)/);
+});
+
 test('6 heures pour crue, orage, canicule, brouillard ; blizzard inchangé', () => {
   assert.match(code, /UPDATE public\.climat_parametres SET duree_heures = 6 WHERE type IN \('crue', 'orage', 'canicule', 'brouillard'\);/);
   assert.match(code, /SET fin = debut \+ interval '6 hours'\n WHERE type IN \('crue', 'orage', 'canicule', 'brouillard'\) AND fin_traitee_le IS NULL/);
