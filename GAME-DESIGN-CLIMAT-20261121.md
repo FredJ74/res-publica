@@ -98,3 +98,30 @@ Contrôle : test qui vérifie, pour chaque pays, que chaque parade citée dans u
 1. Sels de réhydratation en Sovarka : règle de moitié prix, soit 22 PSK (44 FR en Républia, inchangé).
 2. Port-Sainte-Marie sans quincaillerie : c'est voulu. Aux joueurs de créer les commerces qui manquent ; la consigne continue de renvoyer aux quincailleries de Luthécia et de Montrouge.
 3. Bidons de carburant en Sovarka : vends-les aussi au garage de Novomirsk, au même prix qu'à la station-service de Krasnov, pour qu'on y trouve le groupe électrogène et son carburant au même endroit. Mets à jour la consigne de l'orage en Sovarka en conséquence, et refais passer le contrôle des parades pays par pays.
+
+---
+
+## Décisions de Fred du 21/11/2026 sur les quatre questions climat, recopiées mot pour mot
+
+> ⚠️ Message reçu tronqué : il s'arrête à « Contrôle : tests ». La liste des tests est à compléter dès que Fred la renverra.
+
+Décisions de Fred du 21/11/2026 sur tes quatre questions climat. Ajoute-les mot pour mot à GAME-DESIGN-CLIMAT-20261121.md et intègre-les dans la PR climat (claude/climat-crue-accueil-20261121).
+Rappel : la pause sur Supabase en production est toujours en vigueur (Codex termine les migrations du goulag). Prépare et teste les migrations nécessaires en local, versionne-les, mais ne les applique pas en production avant le feu vert de Fred.
+
+Q1 – Horaire : l'heure de début de chaque événement climatique est tirée au hasard sur les 24 heures, uniformément, car le jeu sera joué dans le monde entier. Durée de 6 heures inchangée. L'alerte reste donnée 48 heures avant et annonce l'heure exacte de début (heure du jeu), dans la presse, le journal d'événements, le message du gouvernement et la fenêtre de l'alerte. Applique-le aussi aux événements déjà planifiés.
+
+Q2 – Cadence : le brouillard passe à 1 par mois et par ville, dans les deux pays. Recalcule le calendrier pour que crues, orages et canicules reviennent à leur date quand c'est possible, toujours avec la règle d'un seul événement à la fois par pays et 48 heures d'écart. Indique dans ton rapport les dates qui bougent.
+
+Q3 – Catastrophe naturelle : une seule option. Si le Premier ministre déclare l'état de catastrophe naturelle, tous les sinistrés sont indemnisés à 50 % de la valeur des stocks perdus. Il reste libre de ne pas la déclarer.
+Définition du sinistré : le propriétaire d'un commerce ou d'un entrepôt tiré par la crue, non protégé par des sacs de sable, qui a réellement perdu des stocks.
+- Un lieu protégé ne perd rien : il n'est pas sinistré.
+- Un lieu tiré mais sans stock ne perd rien : il n'est pas sinistré.
+- La fermeture n'est pas indemnisée : seul compte le stock perdu, jamais le manque à gagner.
+- L'état de catastrophe naturelle ne concerne que la crue.
+Supprime l'option « seulement ceux qui avaient posé des sacs ».
+
+Q4 – Sacs de sable : un seul sac (60 FR, 1 PA pour le poser) protège entièrement un lieu pour une crue. Il remplace définitivement la règle du 19/11 (10 % de perte en moins par sac, 9 sacs au plus) : supprime toute trace de cette ancienne règle dans le code et les textes.
+
+Contrôle : tests
+
+[… message tronqué ici, suite à recevoir …]
