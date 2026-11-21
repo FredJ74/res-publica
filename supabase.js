@@ -2139,6 +2139,17 @@ async function sbGetPresencesInRoom(country, city, buildingId, roomId) {
   // Criminalité lot 1 (19/11/2026) : MA pièce passe par crim_presents (le serveur retire les PJ cachés et présente
   // les masqués en « Individu masqué n°X », sans nom ni portrait). La table presences ne montre d'ailleurs plus
   // aux autres les PJ cachés ou masqués (RLS). Repli sur la table si la fonction ne répond pas.
+  // Groupes et masques (Fred, 21/11/2026, soir) : presents_ici sert MA vue, dans un bâtiment comme dans la rue. Le masqué
+  // reste listé (« Personnage masqué », sans nom réel) ; chaque ligne porte la clé opaque et le libellé de son groupe.
+  const maVueRue = buildingId === 'rue-centrale' && typeof state !== 'undefined' && state && !state.currentBuilding
+      && typeof rueCentraleNoeudActuel !== 'undefined' && rueCentraleNoeudActuel === roomId;
+  const maVueBatiment = typeof state !== 'undefined' && state && state.currentBuilding === buildingId && state.currentRoom === roomId;
+  if (typeof state !== 'undefined' && state && state.country === country && state.currentCity === city
+      && (maVueRue || maVueBatiment) && typeof sbRpc === 'function') {
+    const vp = await sbRpc('presents_ici', {}).catch(() => null);
+    const rp = Array.isArray(vp) ? vp[0] : vp;
+    if (rp && rp.ok === true && Array.isArray(rp.presents)) { window.RP_PRESENTS_MOI = rp.moi || null; return rp.presents; }
+  }
   if (typeof state !== 'undefined' && state && state.country === country && state.currentCity === city
       && state.currentBuilding === buildingId && state.currentRoom === roomId && typeof sbRpc === 'function') {
     const v = await sbRpc('crim_presents', {}).catch(() => null);

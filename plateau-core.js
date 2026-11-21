@@ -992,6 +992,12 @@ window.addEventListener('DOMContentLoaded', () => {
     if (typeof sbUpdatePresence === 'function' && state.char?.name && state.currentBuilding && state.currentRoom) {
       sbUpdatePresence(state.char.name, state.country, state.currentCity, state.currentBuilding, state.currentRoom, typeof getMonGroupePNJ === 'function' ? getMonGroupePNJ() : []).catch(() => {});
     }
+    // Dans la rue aussi (Fred, 21/11/2026) : sans battement, un chef de groupe qui attendait dans la rue paraissait
+    // « Absent » aux autres au bout de 5 minutes alors qu'il était connecté.
+    else if (typeof sbUpdatePresence === 'function' && state.char?.name && !state.currentBuilding
+             && typeof rueCentraleNoeudActuel !== 'undefined' && rueCentraleNoeudActuel) {
+      sbUpdatePresence(state.char.name, state.country, state.currentCity, 'rue-centrale', rueCentraleNoeudActuel, typeof getMonGroupePNJ === 'function' ? getMonGroupePNJ() : []).catch(() => {});
+    }
     if (typeof chargerVraisJoueursPresents === 'function') chargerVraisJoueursPresents();
     if (typeof rafraichirTitulairesPostesElectifs === 'function') rafraichirTitulairesPostesElectifs();
     // Assemblee (chantier du 10 septembre 2026). Deux caches distincts, rafraichis a des rythmes

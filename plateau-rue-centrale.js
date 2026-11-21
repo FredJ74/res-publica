@@ -1885,7 +1885,7 @@ async function afficherNoeudRue(pays, noeudId, depuisNoeudId, positionDejaConfir
     if(!contexteNavigationRueValide(contexte))return;
     ++rueCentraleLecturePosition;
     if(position?.ok!==true){
-      if(typeof showToast==='function')showToast('Déplacement refusé',position?.raison||'Position serveur inaccessible.',false);
+      if(typeof showToast==='function')showToast('Déplacement refusé',position?.raison==='chef_de_groupe_requis'&&typeof RP_MSG_MEMBRE_GROUPE!=='undefined'?RP_MSG_MEMBRE_GROUPE:(position?.raison||'Position serveur inaccessible.'),false);
       if(['combat_en_cours','combat_membre_pnj'].includes(position?.raison)&&typeof reprendreCombatConfirme==='function')await reprendreCombatConfirme().catch(()=>false);
       return;
     }
@@ -2106,6 +2106,7 @@ function masquerTooltipRue() {
 
 // Deplacement d'un noeud de rue a l'autre (fondu, sans zoom — mouvement lateral/longitudinal)
 function deplacerRueCentrale(pays, direction) {
+  if (typeof rpMembreGroupeBloque === 'function' && rpMembreGroupeBloque()) return;
   const contexte=contexteNavigationRue();
   const noeudOrigine = rueCentraleNoeudActuel;
   const noeud = RUE_CENTRALE_NOEUDS[pays]?.[rueCentraleNoeudActuel];
@@ -2151,6 +2152,7 @@ function naviguerVersNoeudRue(pays, noeudId, nom) {
 }
 
 function entrerDansBatimentRue(buildingId, nom) {
+  if (typeof rpMembreGroupeBloque === 'function' && rpMembreGroupeBloque()) return;
   masquerTooltipRue();
   const img = document.getElementById('rc-image');
   const overlay = document.getElementById('rc-overlay');

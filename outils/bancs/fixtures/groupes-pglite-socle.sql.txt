@@ -1,0 +1,75 @@
+-- Socle minimal (PGlite) pour la migration 20261121180000 : mêmes signatures que la production, corps simplifiés.
+-- se_cacher reprend le corps de production (sans payer_ordre réel) pour éprouver le raccord.
+CREATE SCHEMA IF NOT EXISTS auth;
+CREATE ROLE anon; CREATE ROLE authenticated;
+CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$ SELECT nullif(current_setting('test.uid', true), '')::uuid $$;
+CREATE TABLE public.personnages (name text PRIMARY KEY, user_id uuid);
+CREATE TABLE public.personnages_donnees (name text PRIMARY KEY, country text, current_city text, current_building text, current_room text,
+  current_street text, pa integer DEFAULT 10, moral integer DEFAULT 50, liquide numeric DEFAULT 0, arg numeric DEFAULT 0, resources jsonb, dis integer DEFAULT 50, masque boolean DEFAULT false, ninja boolean DEFAULT false);
+CREATE OR REPLACE FUNCTION public.mon_personnage() RETURNS text LANGUAGE sql STABLE AS $$ SELECT name FROM public.personnages WHERE user_id = auth.uid() $$;
+CREATE TABLE public.presences (name text PRIMARY KEY, updated_at timestamptz, groupe_pnj jsonb DEFAULT '[]');
+CREATE TABLE public.crim_parametres (cle text PRIMARY KEY, valeur numeric NOT NULL);
+CREATE OR REPLACE FUNCTION public.crim_param_interne(p_cle text, p_defaut numeric DEFAULT 0) RETURNS numeric LANGUAGE sql STABLE AS
+$$ SELECT coalesce((SELECT valeur FROM public.crim_parametres WHERE cle = p_cle), p_defaut) $$;
+CREATE TABLE public.caches_pj (personnage text PRIMARY KEY, pays text, ville text, batiment text, piece text, le timestamptz);
+CREATE TABLE public.groupes_pj_adhesions (membre text PRIMARY KEY, chef text NOT NULL, cree_le timestamptz DEFAULT now());
+CREATE TABLE public.crim_jetons_masque (personnage text PRIMARY KEY, jeton text, le timestamptz);
+CREATE TABLE public.salles_signaux (salle text PRIMARY KEY, version integer DEFAULT 1, maj timestamptz);
+CREATE OR REPLACE FUNCTION public.salle_signaler_interne(p_salle text) RETURNS void LANGUAGE sql AS $$
+  INSERT INTO public.salles_signaux (salle) VALUES (p_salle) ON CONFLICT (salle) DO UPDATE SET version = public.salles_signaux.version + 1, maj = now(); $$;
+CREATE OR REPLACE FUNCTION public.salle_cle_interne(p_pays text, p_ville text, p_batiment text, p_piece text, p_rue text) RETURNS text LANGUAGE sql IMMUTABLE AS $$
+  SELECT coalesce(p_pays, '') || '|' || coalesce(p_ville, '') || '|' || CASE WHEN coalesce(p_batiment, '') <> '' THEN p_batiment || '|' || coalesce(p_piece, '') ELSE 'rue|' || coalesce(p_rue, '') END; $$;
+CREATE OR REPLACE FUNCTION public.crim_masque_interne(p_nom text) RETURNS boolean LANGUAGE sql STABLE AS $$ SELECT coalesce((SELECT masque FROM public.personnages_donnees WHERE name = p_nom), false) $$;
+CREATE OR REPLACE FUNCTION public.crim_objet_porte_interne(p_nom text, p_cat text) RETURNS boolean LANGUAGE sql STABLE AS
+$$ SELECT CASE p_cat WHEN 'tenue_ninja' THEN coalesce((SELECT ninja FROM public.personnages_donnees WHERE name = p_nom), false) ELSE false END $$;
+CREATE OR REPLACE FUNCTION public.crim_stat_interne(p_nom text, p_stat text, p_defaut numeric) RETURNS numeric LANGUAGE sql STABLE AS $$ SELECT dis FROM public.personnages_donnees WHERE name = p_nom $$;
+CREATE OR REPLACE FUNCTION public.crim_cache_interne(p_nom text) RETURNS boolean LANGUAGE sql STABLE AS $$
+  SELECT EXISTS (SELECT 1 FROM public.caches_pj k JOIN public.personnages_donnees d ON d.name = k.personnage
+   WHERE k.personnage = p_nom AND k.pays IS NOT DISTINCT FROM d.country AND k.ville IS NOT DISTINCT FROM d.current_city
+     AND k.batiment IS NOT DISTINCT FROM d.current_building AND k.piece IS NOT DISTINCT FROM d.current_room AND coalesce(d.current_building, '') <> '') $$;
+CREATE OR REPLACE FUNCTION public.crim_cacher_taux_interne(p_dis numeric, p_ninja boolean) RETURNS integer LANGUAGE sql STABLE AS $function$
+  SELECT least(public.crim_param_interne('cacher_plafond', 98),
+               public.crim_param_interne('cacher_base', 70)
+               + public.crim_param_interne('cacher_par_20_dis', 5) * floor(greatest(0, coalesce(p_dis, 50)) / 20)
+               + CASE WHEN p_ninja THEN public.crim_param_interne('cacher_ninja', 15) ELSE 0 END)::integer;
+$function$;
+CREATE OR REPLACE FUNCTION public.payer_ordre(a text, f text, pa integer, c numeric) RETURNS jsonb LANGUAGE sql AS $$
+  UPDATE public.personnages_donnees SET pa = pa - $3 WHERE name = $1 RETURNING jsonb_build_object('ok', true) $$;
+CREATE OR REPLACE FUNCTION public.se_cacher()
+ RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; m record; v_paie jsonb; v_taux integer; v_roll integer; v_ok boolean; v_critique boolean := false;
+        v_ninja boolean;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  SELECT country, current_city, current_building, current_room, resources INTO m
+    FROM public.personnages_donnees WHERE name = v_moi FOR UPDATE;
+  IF coalesce(m.current_building, '') = '' THEN RETURN jsonb_build_object('ok', false, 'raison', 'hors_batiment'); END IF;
+  IF public.crim_cache_interne(v_moi) THEN RETURN jsonb_build_object('ok', false, 'raison', 'deja_cache'); END IF;
+  v_paie := public.payer_ordre(v_moi, 'se_cacher', 1, 0);
+  IF coalesce((v_paie ->> 'ok')::boolean, false) IS NOT TRUE THEN RETURN v_paie; END IF;
+  v_ninja := public.crim_objet_porte_interne(v_moi, 'tenue_ninja');
+  v_taux := public.crim_cacher_taux_interne(public.crim_stat_interne(v_moi, 'dis', 50), v_ninja);
+  v_roll := coalesce(nullif(current_setting('test.jet', true), '')::integer, floor(random() * 100)::integer + 1);
+  v_critique := v_roll > 100 - public.crim_param_interne('cacher_critique_points', 2)::integer;
+  v_ok := v_roll <= v_taux AND NOT v_critique;
+  IF v_ok THEN
+    INSERT INTO public.caches_pj (personnage, pays, ville, batiment, piece, le)
+    VALUES (v_moi, m.country, m.current_city, m.current_building, m.current_room, now())
+    ON CONFLICT (personnage) DO UPDATE SET pays = EXCLUDED.pays, ville = EXCLUDED.ville,
+      batiment = EXCLUDED.batiment, piece = EXCLUDED.piece, le = now();
+  END IF;
+  RETURN jsonb_build_object('ok', true, 'cache', v_ok, 'critique', v_critique, 'taux', v_taux, 'jet', v_roll, 'ninja', v_ninja);
+END; $function$;
+CREATE OR REPLACE FUNCTION public.crim_debusquer_interne(p_nom text, p_motif text DEFAULT 'debusque') RETURNS boolean LANGUAGE plpgsql AS $$
+BEGIN DELETE FROM public.caches_pj WHERE personnage = p_nom; RETURN FOUND; END $$;
+INSERT INTO public.personnages VALUES ('Tom Tom', '00000000-0000-0000-0000-000000000001'), ('Arnie', '00000000-0000-0000-0000-000000000002'),
+  ('Vlad', '00000000-0000-0000-0000-000000000003'), ('Olga', '00000000-0000-0000-0000-000000000004');
+INSERT INTO public.personnages_donnees (name, country, current_city, current_building, current_room, current_street) VALUES
+  ('Tom Tom', 'soviet', 'ville_b', NULL, NULL, 'krasnov-place-ours'),
+  ('Arnie', 'soviet', 'ville_b', NULL, NULL, 'krasnov-place-ours'),
+  ('Vlad', 'soviet', 'ville_b', NULL, NULL, 'krasnov-place-ours'),
+  ('Olga', 'soviet', 'ville_b', NULL, NULL, 'krasnov-rue-gare');
+INSERT INTO public.presences (name, updated_at) VALUES ('Tom Tom', now()), ('Arnie', now()), ('Vlad', now() - interval '1 hour');
+INSERT INTO public.crim_jetons_masque VALUES ('Tom Tom', 'jeton-tt', now());

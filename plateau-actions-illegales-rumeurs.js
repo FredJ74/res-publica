@@ -2093,7 +2093,28 @@ function congediерInformateur(idx) {
 // SE CACHER PAR LE SERVEUR (05/11/2026) : se_cacher preleve 1 PA, tire le de et enregistre la
 // cachette pour la piece courante (bonus de l'empoisonnement depuis le lot 5, plus exigee). state.estCache n'est
 // plus qu'un rappel d'affichage.
+// CACHETTE DE GROUPE (Fred, 21/11/2026) : le chef qui se cache emmène tout son groupe, sur un seul jet. Avant le jet, la
+// fenêtre annonce les chances et le malus (5 points par membre) ; le joueur confirme ou renonce.
 async function doSeCacher() {
+  const ch = (typeof sbRpc === 'function') ? await sbRpc('se_cacher_chances', {}).then(x => Array.isArray(x) ? x[0] : x).catch(() => null) : null;
+  if (ch && ch.ok === true && ch.chef && ch.membres > 0) {
+    const pers = ch.membres > 1 ? ch.membres + ' membres' : '1 membre';
+    document.getElementById('postes-modal-title').textContent = 'Se cacher avec votre groupe';
+    document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;font-size:1rem;line-height:1.5">'
+      + '<p style="margin:0 0 .6rem">Vous êtes chef de groupe : si vous vous cachez, tout votre groupe présent ici se cache avec vous, sur un seul jet.</p>'
+      + '<p style="margin:0 0 .6rem">Seul, vous auriez <b>' + ch.base + ' %</b> de chances' + (ch.ninja ? ' (tenue de ninja comprise)' : '') + '. Avec ' + pers
+      + ', le groupe est plus difficile à dissimuler : <b>−' + (ch.malus_par_membre * ch.membres) + ' points</b> (' + ch.malus_par_membre + ' par membre).</p>'
+      + '<p style="margin:0 0 .6rem;font-size:1.1rem">Chances de réussite : <b>' + ch.taux + ' %</b>. Réussite : tout le groupe est caché. Échec : personne. '
+      + 'Il reste toujours ' + ch.critique + ' % de risque d’échec critique.</p>'
+      + '<p style="margin:0 0 .8rem;color:#9a8a68">Coût : 1 PA. Quand vous sortirez de votre cachette ou serez découvert, tout le groupe redeviendra visible.</p>'
+      + '<div style="display:flex;gap:.5rem"><button type="button" class="cpj-touche cpj-primaire" style="flex:1" onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\');doSeCacherJet()">Se cacher (1 PA)</button>'
+      + '<button type="button" class="cpj-touche" style="flex:1" onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')">Renoncer</button></div></div>';
+    document.getElementById('modal-postes').classList.add('open');
+    return;
+  }
+  return doSeCacherJet();
+}
+async function doSeCacherJet() {
   const brut = (typeof sbRpc === 'function') ? await sbRpc('se_cacher', {}).catch(() => null) : null;
   const v = Array.isArray(brut) ? brut[0] : brut;
   // Criminalité lot 1 : formule et échec critique au serveur ; messages par plateau-criminalite.js.
