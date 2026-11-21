@@ -66,3 +66,27 @@ Blizzard :
 9. Contrôle
 Tests couvrant : déplacements libres pendant une crue, gare jamais tirée, lieu protégé ouvert et stocks intacts, lieu non protégé fermé avec message, durée de 6 heures pour les quatre événements, jamais deux événements ni deux alertes simultanés dans un pays, alerte cliquable avec fenêtre, fenêtre d'accueil du nouveau personnage affichée une seule fois, remplissage gratuit à la fontaine de la place de l'Ours.
 Rapport attendu : cause du blocage subi par Régis, ce qui a changé, lieux de vente corrigés, ce qui reste à décider par Fred.
+
+---
+
+## Complément du 21/11/2026 (lieux de vente des parades), recopié mot pour mot
+
+Complément climat, décisions de Fred du 21/11/2026, à intégrer dans la PR climat (claude/climat-crue-accueil-20261121) avant que Fred l'ouvre. Ajoute ces décisions à GAME-DESIGN-CLIMAT-20261121.md.
+
+Principe à consigner : certains commerces n'existent volontairement que dans une seule ville. Ce sont des vitrines, pour donner aux joueurs l'envie d'ouvrir le même genre de commerce dans leur ville. En attendant, les parades climatiques doivent toujours pouvoir s'acheter quelque part dans chaque pays.
+
+1. Groupe électrogène et carburant en Républia
+- Le groupe électrogène et les bidons de carburant (5 bidons par journée de coupure, règle inchangée) sont vendus à la quincaillerie, en plus du garagiste là où il existe.
+- Prix : règle commune des prix du jeu.
+
+2. Sels de réhydratation
+- Les sels de réhydratation (parade du coup de chaleur) sont produits et vendus à l'usine pharmaceutique de Républia et à l'usine pharmaceutique de Novomirsk, en plus des pharmacies ouvertes par des joueurs.
+- Prix : règle commune des prix du jeu.
+
+3. Textes des consignes
+Mets à jour les consignes de l'orage et de la canicule (alertes 48 heures avant, presse, journal, message du gouvernement, fenêtre de l'alerte) pour qu'elles citent les vrais lieux de vente de chaque ville, avec le nom de la ville quand le commerce n'existe que dans une autre :
+- Orage : « équipez-vous d'un groupe électrogène, en vente à la quincaillerie [de ville], avec 5 bidons de carburant ».
+- Canicule : « En cas de coup de chaleur, achetez des sels de réhydratation à l'usine pharmaceutique [de ville] ou dans une pharmacie. »
+Une consigne ne doit jamais renvoyer vers un lieu qui n'existe pas dans le pays.
+
+Contrôle : test qui vérifie, pour chaque pays, que chaque parade citée dans une consigne est réellement en vente dans au moins un lieu de ce pays. Confirme quand c'est intégré.
