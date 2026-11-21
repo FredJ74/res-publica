@@ -31,7 +31,9 @@ test('filet du générateur : aucune référence au monde réel ne passe', async
 
 test('migration : noms cités (jamais l’auteur anonyme) et numéros corrigés (PGlite)', async () => {
   const charger = process.env.PGLITE_DIR ? require('node:module').createRequire(path.join(process.env.PGLITE_DIR, 'index.js')) : require;
-  const { PGlite } = charger('@electric-sql/pglite');
+  let PGlite = null;
+  try { ({ PGlite } = charger('@electric-sql/pglite')); } catch (_) { PGlite = null; }
+  if (!PGlite) return;   // contrôleur général sans PGlite : le workflow presse l'exécute avec PGLITE_DIR
   const db = new PGlite();
   await db.exec(lire('outils/bancs/fixtures/presse-pglite-socle.sql.txt'));
   await db.query("INSERT INTO journaux VALUES ('pravdovka', 'Pravdovka', 'soviet', 'pravdovka')");
@@ -60,7 +62,7 @@ test('noms cliquables dans un vrai Chromium : lien vers la fiche, « Écrire à 
   const profil = fs.mkdtempSync(path.join(os.tmpdir(), 'hg-presse-')); let nav, browser;
   try {
     await new Promise(r => serveur.listen(0, '127.0.0.1', r));
-    nav = await lancerChromium({ executable: process.env.HG_CHROMIUM || '/usr/bin/chromium', profil });
+    nav = await lancerChromium({ executable: process.env.HG_CHROMIUM || ['/usr/bin/chromium', '/usr/bin/google-chrome', '/usr/bin/google-chrome-stable'].find(p => require('node:fs').existsSync(p)), profil });
     browser = await chromium.connectOverCDP('http://127.0.0.1:' + nav.port);
     const page = await browser.contexts()[0].newPage();
     await page.goto('http://127.0.0.1:' + serveur.address().port);

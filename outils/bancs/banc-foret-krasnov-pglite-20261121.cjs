@@ -8,7 +8,10 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const lire = f => fs.readFileSync(path.join(root, f), 'utf8');
 const charger = process.env.PGLITE_DIR ? require('node:module').createRequire(path.join(process.env.PGLITE_DIR, 'index.js')) : require;
-const { PGlite } = charger('@electric-sql/pglite');
+let PGlite = null;
+try { ({ PGlite } = charger('@electric-sql/pglite')); } catch (_) { PGlite = null; }
+// Sans PGlite (contrôleur général des bancs), le banc s'annonce ignoré : son workflow dédié l'installe (PGLITE_DIR).
+if (!PGlite) { test('PGlite absent : banc exécuté par son workflow dédié (PGLITE_DIR)', { skip: true }, () => {}); return; }
 const UID = { 'Tom Tom': '00000000-0000-0000-0000-000000000001', Arnie: '00000000-0000-0000-0000-000000000002' };
 
 async function base({ groupe = false } = {}) {

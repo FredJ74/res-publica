@@ -19,7 +19,7 @@ async function avecPage(fn, { maintenant, creationRecente = true, ville = 'ville
   const profil = fs.mkdtempSync(path.join(os.tmpdir(), 'hg-climat-crue-')); let nav, browser;
   try {
     await new Promise((r, j) => { serveur.once('error', j); serveur.listen(0, '127.0.0.1', r); });
-    nav = await lancerChromium({ executable: process.env.HG_CHROMIUM || '/usr/bin/chromium', profil });
+    nav = await lancerChromium({ executable: process.env.HG_CHROMIUM || ['/usr/bin/chromium', '/usr/bin/google-chrome', '/usr/bin/google-chrome-stable'].find(p => require('node:fs').existsSync(p)), profil });
     browser = await chromium.connectOverCDP('http://127.0.0.1:' + nav.port);
     const page = await browser.contexts()[0].newPage(); await page.setViewportSize({ width: 1000, height: 700 });
     await page.goto('http://127.0.0.1:' + serveur.address().port);
