@@ -173,7 +173,7 @@ function orientationRueVoisine(pays, noeudId, depuis) {
 // explique pourquoi il ne bouge pas et comment faire. Le serveur refuse de toute façon (chef_de_groupe_requis).
 const RP_MSG_MEMBRE_GROUPE = 'Impossible de vous déplacer : vous n’êtes pas chef de groupe. Quittez le groupe pour vous déplacer seul.';
 let rpDernierClic = null;
-if (typeof document !== 'undefined') document.addEventListener('pointerdown', e => { rpDernierClic = { x: e.clientX, y: e.clientY }; }, true);
+if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') document.addEventListener('pointerdown', e => { rpDernierClic = { x: e.clientX, y: e.clientY }; }, true);
 function rpInfobulleMembreGroupe() {
   let b = document.getElementById('rp-infobulle-groupe');
   if (b) b.remove();

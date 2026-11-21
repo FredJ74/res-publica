@@ -210,7 +210,7 @@ function rpCanvasMeasureAndFix(canvas) {
 // inconnue avant onload/onerror) et quand un enfant change effectivement de dimensions
 // (ResizeObserver, léger, un seul par canvas -- ex. police de secours chargée tardivement).
 (function rpCanvasStylePetitEcran() {
-  if (typeof document === 'undefined' || document.getElementById('rp-composed-petit-ecran')) return;
+  if (typeof document === 'undefined' || typeof document.createElement !== 'function' || typeof document.getElementById !== 'function' || document.getElementById('rp-composed-petit-ecran')) return;
   const st = document.createElement('style'); st.id = 'rp-composed-petit-ecran';
   st.textContent = '@media (max-width:640px){'
     + '.rp-composed-wrap{overflow-x:visible!important}'
@@ -1363,7 +1363,7 @@ function rpCanvasEcarterCompose(prioritaire) {
   if (change && typeof rpCanvasRecalcComposeHeight === 'function') rpCanvasRecalcComposeHeight();
 }
 (function rpCanvasSurveillerChevauchements() {
-  if (typeof document === 'undefined') return;
+  if (typeof document === 'undefined' || typeof document.addEventListener !== 'function') return;
   const apres = ev => {
     if (!rpComposeController) return;
     const cible = ev && ev.target && ev.target.closest ? ev.target.closest('.rp-canvas-el') : null;
