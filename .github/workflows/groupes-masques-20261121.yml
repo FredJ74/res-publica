@@ -21,4 +21,11 @@ jobs:
       - env:
           HG_CHROMIUM: /usr/bin/google-chrome
           PGLITE_DIR: ${{ runner.temp }}/pglite
-        run: node --check plateau-multijoueur.js && node --test outils/bancs/banc-groupes-pglite-20261121.cjs outils/bancs/banc-groupes-presents-navigateur-20261121.cjs outils/bancs/banc-groupes-interieurs-client.cjs
+        run: |
+          node --check plateau-multijoueur.js
+          set +e
+          node --test outils/bancs/banc-groupes-pglite-20261121.cjs outils/bancs/banc-groupes-presents-navigateur-20261121.cjs outils/bancs/banc-groupes-interieurs-client.cjs > "$RUNNER_TEMP/groupes.txt" 2>&1
+          code=$?
+          cat "$RUNNER_TEMP/groupes.txt"
+          grep -E "✖|Error|expected|actual" "$RUNNER_TEMP/groupes.txt" | head -8 | sed 's/^/::error::/'
+          exit $code
