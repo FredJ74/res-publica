@@ -12449,6 +12449,7 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
   // Images de Fred (14/11/2026, converties par ChatGPT) : la cour de l'exploitation à l'entrée ; en forêt profonde, les
   // vues 1 et 2 (deux coupes, fausses alertes) montrent la forêt exploitée, les vues 3 et 4 (ours, Olga) la forêt dense et intacte.
   entree.imageUrl = 'images/Sovarka/Krasnov/Krasnov_exploitation_forestiere_cour.webp';
+  // Libellés retirés le 21/11/2026, encore au catalogue i18n (à retirer par Codex) : S’enfoncer dans la forêt ; Revenir à l’entrée de la forêt ; Retrouver son chemin.
   // Forêt de Krasnov, version définitive (Fred, 21/11/2026) : plus de bouton « S'enfoncer dans la forêt » ; on entre par le
   // portique de l'image (zone cliquable, plateau-foret-krasnov.js), qui mène toujours à la clairière.
   entree.orders = (entree.orders || []).filter(o => o.fn !== 'foret_enfoncer');
