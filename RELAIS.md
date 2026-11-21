@@ -554,3 +554,11 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
   - **nouveau texte de la salle d'écoute de Krasnov (Fred) :** « Cinq téléphones : une ligne pour Luthécia, une pour la Républia, une pour El Estado, une pour Al-Khalija… et la rouge, pour Novomirsk. Personne ne sait vraiment qui décroche à l'autre bout, mais le colonel Voronov prend des notes. Le caporal Sorokine branche les fiches du standard. » Il est à poser dans `data.js` en même temps que son catalogue de descriptions (`i18n/sovarka-descriptions-resources.js`, indexé sur le français exact) ;
   - **description de l'ordre « Voler un rapport dans les archives » :** elle annonce encore « bagarre puis prison » ; à aligner sur les nouvelles règles, avec le catalogue des infobulles.
 - **Image de la salle d'écoute :** retouchée par Fred (#1171).
+## Climat : affichage dans les vues de rue (Claude, 21/11/2026)
+
+- Décisions de Fred après le test du brouillard à Krasnov.
+- **Flèches de navigation :** elles restent nettes, au-dessus de l'effet. Le filtre se pose dans la scène de rue (`#rc-scene`), sous les flèches.
+- **Message d'alerte :** dans les vues de rue uniquement, un message discret qui clignote lentement, selon l'événement en cours : « Attention brouillard / blizzard / orage / crue / canicule ».
+- **Banc :** `outils/bancs/test-climat-affichage-20261121.cjs`.
+- **Pour Codex :** table `ALERTES` de `plateau-climat.js` (clés `brouillard`, `blizzard`, `orage`, `crue`, `canicule`), français seulement. Ajouter les huit autres langues ; elle pourra ensuite rejoindre la table `T`.
+
