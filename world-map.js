@@ -6,7 +6,7 @@
 function renderWorldMapSVG() {
   return `
   <div style="padding:.5rem 1rem;background:#0a0805;border-bottom:1px solid #1a1810;display:flex;align-items:center;justify-content:space-between">
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:.75rem;letter-spacing:.15em;color:#6a5a20">CARTE DU MONDE — RES PUBLICA</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:.75rem;letter-spacing:.15em;color:#6a5a20">CARTE DU MONDE — HUMAN GAMBIT</div>
     <div style="font-size:.72rem;color:#4a4030;font-style:italic">Cliquez sur une ville pour vous y rendre</div>
   </div>
   <div style="flex:1;overflow:hidden;position:relative;background:#0a0f1a">

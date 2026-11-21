@@ -676,7 +676,7 @@ function afficherBandeauNouvelleVersion() {
   bandeau.id = 'bandeau-nouvelle-version';
   bandeau.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:300;background:#1a1005;border-bottom:1px solid #8a6a20;color:#f0ead6;padding:.7rem 1rem;display:flex;align-items:center;justify-content:center;gap:1rem;flex-wrap:wrap;font-size:.85rem;font-family:inherit';
   bandeau.innerHTML =
-    '<span>🔄 Une nouvelle version de Res Publica est disponible.</span>' +
+    '<span>🔄 Une nouvelle version de Human Gambit est disponible.</span>' +
     '<button id="bandeau-nouvelle-version-btn" style="font-family:\'Bebas Neue\',sans-serif;font-size:.8rem;letter-spacing:.08em;padding:.4rem 1rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Recharger</button>';
   document.body.appendChild(bandeau);
   document.getElementById('bandeau-nouvelle-version-btn').addEventListener('click', () => { window.location.reload(); });
