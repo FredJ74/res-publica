@@ -8,6 +8,9 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Première rue jamais affichée : nouveau joueur bloqué à Novomirsk (Claude, 21/11/2026)
+- **Branche `claude/position-initiale-20261121`**. Aucune migration. Incident de la nuit du 20 au 21/11 (Peter Kropotkine, créé à 01:52 à Novomirsk) : position restée vierge (ni rue ni bâtiment), aucune demande de déplacement reçue par le serveur. Cause : à la création, la fiche est rechargée pendant la lecture de position ; `initialiserRueCentrale` voyait le contexte changé (`contexteNavigationRueValide` compare la fiche par identité) et s'arrêtait sans rien afficher. La vue de rue restait vide, recouverte du filtre de l'orage en cours (rayures : la « carte zébrée »). Correctif : relance bornée (deux fois) tant qu'aucune scène n'est affichée pour un personnage dans la rue. Banc `banc-position-initiale-relance-20261121.cjs` (échoue sur l'ancien code), workflow `position-initiale-relance-20261121.yml`. Aucun texte nouveau.
+
 ### Organisations secrètes (Claude, 20/11/2026)
 - **Branche `claude/organisations-secretes-20261120`** (part de la branche de la prescription). **Migration APPLIQUÉE** : `20261120330000_organisations_secretes` (essai annulé d'abord). Règles : `GAME-DESIGN-CRIMINALITE.md` § 3 bis. Banc `test-organisations-secretes-20261120.cjs`.
 - `organisations_lire()` rend à chacun sa vue (extérieur : nom et nature, aucun membre ni compteur ; membre cloisonné : lui seul ; chef/fondateur : tout) ; la table brute d'une secrète n'est lisible que par son chef ; cloisonnement `connus` / `cloisonne` choisi à la fondation ; vrai auteur des contenus signés par une secrète rangé dans `auteurs_secrets` (règles d'écriture du forum et du courrier : le chef garde la main ; signalements : auteur retrouvé).

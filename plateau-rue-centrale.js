@@ -1700,7 +1700,26 @@ function trouverNoeudRueCentralePourBatiment(pays, buildingId) {
   return null;
 }
 
+// PREMIÈRE RUE JAMAIS AFFICHÉE (incident du 21/11/2026, nouveau joueur à Novomirsk). Chaque attente réseau de
+// l'initialisation vérifie que le contexte n'a pas changé (contexteNavigationRueValide compare la fiche par identité).
+// À la création d'un personnage, la fiche est rechargée pendant la lecture de position : l'initialisation était alors
+// abandonnée EN SILENCE, la vue de rue restait vide (sans image, sans flèche ni bâtiment), et la position du
+// personnage ne quittait jamais l'état vierge. Le joueur ne pouvait plus bouger. On relance donc l'initialisation,
+// deux fois au plus, tant qu'aucune scène n'est affichée pour un personnage qui est dans la rue.
 async function initialiserRueCentrale(pays, noeudDepart, depuisNoeud) {
+  await initialiserRueCentraleUneFois(pays, noeudDepart, depuisNoeud);
+  if (typeof document === 'undefined') return;
+  const nom = state.char?.name;
+  for (let essai = 0; essai < 2; essai++) {
+    await new Promise(r => setTimeout(r, 500 + essai * 700));
+    const vueRue = document.getElementById('rue-centrale-conteneur');
+    if (!vueRue || document.getElementById('rc-scene') || state.currentBuilding || !nom || state.char?.name !== nom) return;
+    if (rueCentraleDeplacementEnCours) continue;
+    await initialiserRueCentraleUneFois(state.country, noeudDepart, depuisNoeud);
+  }
+}
+
+async function initialiserRueCentraleUneFois(pays, noeudDepart, depuisNoeud) {
   const contexte=contexteNavigationRue(),lecture=++rueCentraleLecturePosition;
   if ((typeof rueCentraleServeur === 'function' ? rueCentraleServeur(pays, state.currentCity) : pays === 'republic')) {
     // Une reconnexion ne reprend jamais une position provenant du localStorage.
