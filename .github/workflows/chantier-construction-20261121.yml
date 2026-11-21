@@ -1,0 +1,30 @@
+name: "Chantier « construction » — fenêtre unique, images par étape, accélération"
+on:
+  pull_request:
+    paths: [plateau-chantier-vue.js, plateau-chantiers.js, plateau-construction-commandes.js, plateau-politique.js, plateau-navigation.js, plateau.html, 'migrations/20261121140000_chantier_jour_avance.sql', 'outils/bancs/*chantier*', 'outils/bancs/fixtures/chantier-pglite-socle.sql', .github/workflows/chantier-construction-20261121.yml]
+  push:
+    branches: [main, 'claude/**']
+    paths: [plateau-chantier-vue.js, plateau-chantiers.js, plateau-construction-commandes.js, plateau-politique.js, plateau-navigation.js, plateau.html, 'migrations/20261121140000_chantier_jour_avance.sql', 'outils/bancs/*chantier*', 'outils/bancs/fixtures/chantier-pglite-socle.sql', .github/workflows/chantier-construction-20261121.yml]
+permissions:
+  contents: read
+jobs:
+  chantier:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
+      - run: node --check plateau-chantier-vue.js && node --test outils/bancs/banc-construction-commandes.cjs
+      - name: Chromium réel
+        env:
+          HG_CHROMIUM: /usr/bin/google-chrome
+        run: node --test outils/bancs/banc-chantier-vue-navigateur-20261121.cjs
+      - name: PostgreSQL local (PGlite)
+        run: |
+          if [ -f migrations/20261121140000_chantier_jour_avance.sql ]; then
+            npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund --prefix "$RUNNER_TEMP/pglite" @electric-sql/pglite@0.2.17
+            PGLITE_DIR="$RUNNER_TEMP/pglite" node --test outils/bancs/banc-chantier-avance-pglite-20261121.cjs
+          fi

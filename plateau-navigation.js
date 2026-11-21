@@ -1065,9 +1065,11 @@ function enterRoom(buildingId, roomId, tabEl) {
   if (buildingId?.startsWith('terrain-a-batir') && typeof getTerrainState === 'function') {
     const tsChantier = getTerrainState(buildingId);
     if (tsChantier?.chantier) {
-      chantierImg = 'images/chantier-en-cours.webp';
+      // Image par étape, ville et gabarit, avec repli (plateau-chantier-vue.js, 21/11/2026).
+      chantierImg = typeof chantierImageImmediate === 'function' ? chantierImageImmediate(tsChantier) : 'images/chantier-en-cours.webp';
     } else if (tsChantier?.niveau_construction && typeof NIVEAUX_CONSTRUCTION !== 'undefined') {
-      chantierImg = NIVEAUX_CONSTRUCTION[tsChantier.niveau_construction]?.imageUrl || null;
+      chantierImg = (typeof chantierImageImmediate === 'function' ? chantierImageImmediate(tsChantier) : null)
+        || NIVEAUX_CONSTRUCTION[tsChantier.niveau_construction]?.imageUrl || null;
     }
   }
   // Variante d'etat (plateau-variantes-pieces.js) : une piece declaree peut

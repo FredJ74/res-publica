@@ -79,6 +79,8 @@ if (typeof window !== 'undefined') {
     if (!constructionPeutGerer(ts)) return [];
     const plan={fn:'modifier_plan_chantier',label:'Définir les lots intérieurs',icon:'ti-layout-grid',pa:0,cost:0,type:'legal',successRate:100};
     if (!ch) return ts.niveau_construction && !ts.planInitialValide && !(ts.subdivisions||[]).length ? [plan] : [];
+    // Chantier en cours ou terminé : tout est dans la fenêtre « Le chantier » (Fred, 21/11/2026).
+    if (ch) return [];
     if (!chantierTermine(ch)) {
       const ordres=[{fn:'prix_chantier',label:'Prix d’achat des matériaux',icon:'ti-coins',pa:0,cost:0,type:'legal',successRate:100},
         // Salaire des ouvriers (Fred, 25/10/2026) : taux horaire fixe par le titulaire, minimum 50 FR.
