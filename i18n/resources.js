@@ -77,8 +77,8 @@ window.RP_I18N_RESOURCES = {
     translation: {
       home: {
         beta: {
-          title: "Human Gambit ouvre sa beta.",
-          body: "Republia est le premier empire a ouvrir ses portes : trois villes, une Assemblee, des tribunaux, un championnat et quelques personnes peu recommandables. D'autres systemes se construisent encore, et les empires voisins attendent leur tour. Ce que vous ferez ici — et ce que vous nous en direz — faconnera la suite."
+          title: "HUMAN GAMBIT OUVRE SA BÊTA.",
+          body: "Deux empires ouvrent leurs portes. En Républia : trois villes, une Assemblée, des tribunaux, un championnat et quelques personnes peu recommandables. En Sovarka : le Parti, ses kolkhozes, ses Héros du Travail et une forêt où rôde un ours. Les empires voisins attendent leur tour. Ce que vous ferez ici — et ce que vous nous en direz — façonnera la suite."
         },
         // Accueil Human Gambit : la marque est un nom propre, identique partout ;
         // le descripteur, lui, se traduit. Tous deux ne servent qu'au <h1> masque
@@ -331,8 +331,8 @@ window.RP_I18N_RESOURCES = {
     translation: {
       home: {
         beta: {
-          title: "Human Gambit opens its beta.",
-          body: "Republia is the first empire to open its doors: three cities, an Assembly, courts, a football league and a few disreputable characters. Other systems are still being built, and the neighbouring empires are waiting their turn. What you do here — and what you tell us about it — will shape what comes next."
+          title: "HUMAN GAMBIT OPENS ITS BETA.",
+          body: "Two empires open their doors. In Republia: three cities, an Assembly, courts, a championship and a few disreputable people. In Sovarka: the Party, its kolkhozes, its Heroes of Labour and a forest where a bear prowls. The neighbouring empires are waiting their turn. What you do here — and what you tell us about it — will shape what comes next."
         },
         // Accueil Human Gambit : la marque est un nom propre, identique partout ;
         // le descripteur, lui, se traduit. Tous deux ne servent qu'au <h1> masque
@@ -1510,7 +1510,7 @@ window.RP_I18N_RESOURCES = {
     findCharacter: "العثور على شخصيتي",
     findCharacterPlaceholder: "اسم شخصيتك...",
     loadCharacter: "تحميل هذه الشخصية",
-    beta: { title: "تفتح Human Gambit نسختها التجريبية.", body: "تفتح ريبوبليا أبوابها أولًا: ثلاث مدن ومجلس ومحاكم وبطولة وشخصيات لا تخلو من الشبهات. لا تزال أنظمة أخرى قيد التطوير، والإمبراطوريات المجاورة تنتظر دورها. ما تفعله هنا وما تشاركه معنا سيؤثر في مستقبل اللعبة." }
+    beta: { title: "HUMAN GAMBIT تفتح نسختها التجريبية.", body: "إمبراطوريتان تفتحان أبوابهما. في Republia: ثلاث مدن، وجمعية، ومحاكم، وبطولة، وبعض الأشخاص غير الجديرين بالثقة. في Sovarka: الحزب، ومزارعه الجماعية، وأبطال العمل فيه، وغابة يتجوّل فيها دبّ. الإمبراطوريات المجاورة تنتظر دورها. ما ستفعلونه هنا — وما ستخبروننا به — سيشكّل ما سيأتي." }
   }, auth: {
       title: "قبل إنشاء شخصيتك",
       intro: "أدخل عنوان بريد إلكتروني واختر كلمة مرور. ستساعدك هذه البيانات على استعادة شخصيتك وتسجيل الدخول من أي جهاز.",
@@ -1576,7 +1576,7 @@ window.RP_I18N_RESOURCES = {
     findCharacter: "Encontrar meu personagem",
     findCharacterPlaceholder: "Nome do personagem...",
     loadCharacter: "Carregar este personagem",
-    beta: { title: "Human Gambit abre sua versão beta.", body: "Républia é o primeiro império a abrir suas portas: três cidades, uma Assembleia, tribunais, um campeonato e algumas figuras pouco recomendáveis. Outros sistemas ainda estão em desenvolvimento, e os impérios vizinhos aguardam sua vez. Suas ações e seus comentários ajudarão a moldar o futuro do jogo." }
+    beta: { title: "HUMAN GAMBIT ABRE SUA BETA.", body: "Dois impérios abrem suas portas. Na Républia: três cidades, uma Assembleia, tribunais, um campeonato e algumas pessoas pouco recomendáveis. Na Sovarka: o Partido, seus kolkhozes, seus Heróis do Trabalho e uma floresta onde ronda um urso. Os impérios vizinhos aguardam sua vez. O que você fizer aqui — e o que nos contar sobre isso — vai moldar o que vem a seguir." }
   }, auth: {
       title: "Antes de criar seu personagem",
       intro: "Informe seu e-mail e escolha uma senha. Assim você poderá recuperar seu personagem e entrar em Res Publica de qualquer dispositivo.",
@@ -1642,7 +1642,7 @@ window.RP_I18N_RESOURCES = {
     findCharacter: "Charakter wiederfinden",
     findCharacterPlaceholder: "Name deines Charakters...",
     loadCharacter: "Diesen Charakter laden",
-    beta: { title: "Human Gambit startet die Beta.", body: "Républia öffnet als erstes Imperium seine Tore: drei Städte, eine Versammlung, Gerichte, eine Meisterschaft und einige fragwürdige Gestalten. Weitere Systeme werden noch entwickelt, und die benachbarten Imperien warten auf ihren Einsatz. Was du hier tust und uns berichtest, gestaltet die Zukunft des Spiels." }
+    beta: { title: "HUMAN GAMBIT STARTET DIE BETA.", body: "Zwei Imperien öffnen ihre Tore. In Républia: drei Städte, eine Versammlung, Gerichte, eine Meisterschaft und ein paar zwielichtige Gestalten. In Sovarka: die Partei, ihre Kolchosen, ihre Helden der Arbeit und ein Wald, in dem ein Bär umherstreift. Die Nachbarimperien warten darauf, dass sie an der Reihe sind. Was Sie hier tun – und was Sie uns darüber erzählen – wird die Fortsetzung prägen." }
   }, auth: {
       title: "Bevor du deinen Charakter erstellst",
       intro: "Gib deine E-Mail-Adresse ein und wähle ein Passwort. Damit kannst du deinen Charakter wiederfinden und dich von jedem Gerät bei Res Publica anmelden.",
@@ -1697,7 +1697,7 @@ window.RP_I18N_RESOURCES = {
 // Compléments des six langues initiales : mêmes clés i18next que les trois extensions.
 {
  const tr=window.RP_I18N_RESOURCES["es"].translation;
- tr.home.beta={title:"Human Gambit abre su beta.",body:"Républia es el primer imperio en abrir sus puertas: tres ciudades, una Asamblea, tribunales, un campeonato y personajes poco recomendables. Otros sistemas siguen en desarrollo y los imperios vecinos esperan su turno. Lo que hagas aquí y lo que nos cuentes dará forma al futuro del juego."};
+ tr.home.beta={title:"HUMAN GAMBIT ABRE SU BETA.",body:"Dos imperios abren sus puertas. En Republia: tres ciudades, una Asamblea, tribunales, un campeonato y algunas personas poco recomendables. En Sovarka: el Partido, sus koljoses, sus Héroes del Trabajo y un bosque donde merodea un oso. Los imperios vecinos esperan su turno. Lo que hagáis aquí —y lo que nos contéis— dará forma a lo que viene."};
  Object.assign(tr.auth,{"promise":"Tu personaje te acompañará a todas partes.","emailPlaceholder":"Tu correo electrónico...","emailHint":"Esta dirección protege tu cuenta y permite recuperarla. No se usa para nada más.","passwordPlaceholder":"Elige una contraseña...","passwordHint":"Ocho caracteres como mínimo.","working":"Creando tu cuenta...","alreadyHaveAccount":"Ya tengo cuenta — volver al inicio","errEmail":"Esta dirección de correo no parece válida. Compruébala.","errPassword":"Elige una contraseña de al menos ocho caracteres.","errEmailTaken":"Esta dirección ya está en uso. Vuelve al inicio y elige iniciar sesión.","errSession":"No se pudo abrir la sesión. Comprueba tu conexión e inténtalo de nuevo.","errUnavailable":"La creación de cuentas no está disponible temporalmente. Inténtalo después.","errGeneric":"No se pudo crear tu cuenta. Inténtalo de nuevo.","reconnectBody":"Tu sesión ha caducado. Inicia sesión con tu correo electrónico y contraseña para recuperar a tu personaje.","reconnectButton":"Volver a iniciar sesión"});
  Object.assign(tr.creation.steps.identity,{"genderLabel":"Género del personaje","genderOtherPlaceholder":"Cómo se define tu personaje..."});
  tr.creation.genders={"male":"Hombre","female":"Mujer","nonbinary":"No binario","other":"Otro"};
@@ -1705,7 +1705,7 @@ window.RP_I18N_RESOURCES = {
 }
 {
  const tr=window.RP_I18N_RESOURCES["zh-TW"].translation;
- tr.home.beta={title:"Human Gambit 公開測試正式開始。",body:"Républia 是首個開放的帝國：三座城市、議會、法院、聯賽，以及形形色色的人物。其他系統仍在開發，鄰近的帝國也等待開放。你在這裡的行動和意見，都將影響遊戲的未來。"};
+ tr.home.beta={title:"HUMAN GAMBIT 公開測試正式開始。",body:"兩個帝國敞開大門。在 Republia：三座城市、一座議會、法院、一場聯賽，還有幾個不太值得信任的人。在 Sovarka：黨、它的集體農場、它的勞動英雄，以及一片有熊出沒的森林。鄰近的帝國正在等待輪到自己。你在這裡做的一切——以及你告訴我們的一切——將塑造接下來的發展。"};
  Object.assign(tr.auth,{"promise":"你的角色會一直陪伴你。","emailPlaceholder":"你的電子郵件地址…","emailHint":"此地址僅用於保護及恢復帳號。","passwordPlaceholder":"設定密碼…","passwordHint":"至少八個字元。","working":"正在建立帳號…","alreadyHaveAccount":"我已有帳號 — 返回首頁","errEmail":"電子郵件地址似乎無效，請確認。","errPassword":"密碼至少需要八個字元。","errEmailTaken":"此地址已被使用。請返回首頁登入。","errSession":"目前無法建立登入工作階段，請檢查連線後重試。","errUnavailable":"暫時無法建立帳號，請稍後再試。","errGeneric":"帳號建立失敗，請稍後再試。","reconnectBody":"工作階段已過期。請使用電子郵件與密碼重新登入，以取回你的角色。","reconnectButton":"重新登入"});
  Object.assign(tr.creation.steps.identity,{"genderLabel":"角色性別","genderOtherPlaceholder":"你的角色如何定義自己…"});
  tr.creation.genders={"male":"男性","female":"女性","nonbinary":"非二元","other":"其他"};
@@ -1713,7 +1713,7 @@ window.RP_I18N_RESOURCES = {
 }
 {
  const tr=window.RP_I18N_RESOURCES["ru"].translation;
- tr.home.beta={title:"Human Gambit открывает бета-версию.",body:"Републия — первая открытая империя: три города, Ассамблея, суды, чемпионат и несколько сомнительных персонажей. Другие системы ещё разрабатываются, соседние империи ждут своей очереди. Ваши действия и отзывы помогут определить будущее игры."};
+ tr.home.beta={title:"HUMAN GAMBIT ОТКРЫВАЕТ БЕТА-ВЕРСИЮ.",body:"Две империи открывают свои двери. В Republia: три города, Ассамблея, суды, чемпионат и несколько сомнительных личностей. В Sovarka: Партия, её колхозы, её Герои Труда и лес, где бродит медведь. Соседние империи ждут своей очереди. То, что вы сделаете здесь, — и то, что вы нам об этом расскажете, — определит продолжение."};
  Object.assign(tr.auth,{"promise":"Ваш персонаж будет с вами повсюду.","emailPlaceholder":"Ваш адрес электронной почты...","emailHint":"Адрес нужен для защиты и восстановления учётной записи и не используется для других целей.","passwordPlaceholder":"Придумайте пароль...","passwordHint":"Не менее восьми символов.","working":"Создание учётной записи...","alreadyHaveAccount":"У меня уже есть учётная запись — на главную","errEmail":"Проверьте адрес электронной почты.","errPassword":"Пароль должен содержать не менее восьми символов.","errEmailTaken":"Этот адрес уже используется. Вернитесь на главную и войдите.","errSession":"Не удалось открыть сеанс. Проверьте соединение и повторите попытку.","errUnavailable":"Создание учётных записей временно недоступно.","errGeneric":"Не удалось создать учётную запись. Повторите попытку.","reconnectBody":"Ваш сеанс завершился. Войдите с помощью электронной почты и пароля, чтобы вернуть персонажа.","reconnectButton":"Войти снова"});
  Object.assign(tr.creation.steps.identity,{"genderLabel":"Пол персонажа","genderOtherPlaceholder":"Как ваш персонаж определяет себя..."});
  tr.creation.genders={"male":"Мужчина","female":"Женщина","nonbinary":"Небинарный","other":"Другое"};
@@ -1721,7 +1721,7 @@ window.RP_I18N_RESOURCES = {
 }
 {
  const tr=window.RP_I18N_RESOURCES["ko"].translation;
- tr.home.beta={title:"Human Gambit 베타가 시작됩니다.",body:"Républia가 첫 번째로 문을 엽니다. 세 도시와 의회, 법원, 챔피언십, 그리고 수상한 인물들이 기다립니다. 다른 시스템은 개발 중이며 주변 제국도 차례를 기다리고 있습니다. 여러분의 행동과 의견이 게임의 미래를 만듭니다."};
+ tr.home.beta={title:"HUMAN GAMBIT 베타가 시작됩니다.",body:"두 제국이 문을 엽니다. Republia에는 세 도시, 의회, 법원, 챔피언십, 그리고 그다지 추천하기 어려운 몇몇 사람들이 있습니다. Sovarka에는 당, 그 콜호스들, 노동 영웅들, 그리고 곰이 어슬렁거리는 숲이 있습니다. 이웃 제국들은 자기 차례를 기다리고 있습니다. 여러분이 여기서 하는 일, 그리고 여러분이 들려주는 이야기가 앞으로의 모습을 만들어 갑니다."};
  Object.assign(tr.auth,{"promise":"어디에서든 캐릭터와 함께할 수 있습니다.","emailPlaceholder":"이메일 주소...","emailHint":"이 주소는 계정 보호와 복구에만 사용됩니다.","passwordPlaceholder":"비밀번호 설정...","passwordHint":"8자 이상 입력하세요.","working":"계정 생성 중...","alreadyHaveAccount":"이미 계정이 있습니다 — 홈으로","errEmail":"유효한 이메일 주소인지 확인하세요.","errPassword":"비밀번호는 8자 이상이어야 합니다.","errEmailTaken":"이미 사용 중인 이메일 주소입니다. 홈으로 돌아가 로그인하세요.","errSession":"세션을 시작할 수 없습니다. 연결을 확인하고 다시 시도하세요.","errUnavailable":"현재 계정을 만들 수 없습니다. 나중에 다시 시도하세요.","errGeneric":"계정을 만들 수 없었습니다. 다시 시도하세요.","reconnectBody":"세션이 만료되었습니다. 이메일과 비밀번호로 다시 로그인해 캐릭터를 찾으세요.","reconnectButton":"다시 로그인"});
  Object.assign(tr.creation.steps.identity,{"genderLabel":"캐릭터 성별","genderOtherPlaceholder":"캐릭터가 스스로를 정의하는 방식..."});
  tr.creation.genders={"male":"남성","female":"여성","nonbinary":"논바이너리","other":"기타"};
