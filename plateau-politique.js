@@ -4034,6 +4034,8 @@ function renderRoomActions(room, buildingId, roomId) {
     .filter(o => o.fn !== 'foret_revenir' || !(typeof foretEstPerdu === 'function' && foretEstPerdu()))
     .filter(o => o.fn !== 'foret_retrouver' || (typeof foretEstPerdu === 'function' && foretEstPerdu()))
     .filter(o => !['produire_commerce','produire_arme'].includes(o.fn))
+    // Ordres « secret » (lot de Krasnov, 20/11/2026) : cachés tant que le personnage n'a pas appris l'information.
+    .filter(o => !o.secret || (typeof rpSecretConnu === 'function' && rpSecretConnu(o.secret)))
     .filter(o => o.fn !== 'gerer_commerce' || (typeof commerceDroitsPiece === 'function' && commerceDroitsPiece(buildingId, roomId)))
     .filter(o => !dynOrders.some(d => d.fn === o.fn))
     .concat(dynOrders.filter(d => !d.basDeListe))

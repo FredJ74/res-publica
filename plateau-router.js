@@ -600,6 +600,11 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'acheter_parapluie')      { doAcheterPoisonObjet('parapluie'); return; }
   if (fn === 'acheter_ghb')            { doAcheterPoisonObjet('ghb', pa, cost); return; }
   if (fn === 'acheter_polonium')       { doAcheterPoisonObjet('polonium', pa, cost); return; }
+  // Lot de Krasnov, point 8 (20/11/2026) : contacts et secrets, polonium du colonel Voronov.
+  if (fn === 'offrir_verre_habitue_krasnov') { ecouterSourceSecret('habitue_krasnov'); return; }
+  if (fn === 'demander_fournisseur_kalachnikov') { ecouterSourceSecret('kalachnikov'); return; }
+  if (fn === 'interroger_ganbaatar_polonium') { ganbaatarPolonium(); return; }
+  if (fn === 'acheter_polonium_colonel') { acheterPoloniumColonel(); return; }
   if (fn === 'acheter_vipere')         { doAcheterPoisonObjet('vipere', pa, cost); return; }
   // Doublon supprime (audit du 9 septembre 2026) : cette seconde route 'assassiner' etait
   // INATTEIGNABLE -- le test identique plus haut dans cette meme fonction fait return avant. Elle

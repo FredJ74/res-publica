@@ -532,3 +532,25 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
   - Avdotia Doubova et la vente de matières à la buvette sont déjà en place.
 - **Pour Codex — nouvelles clés** (secours français dans `plateau-organisations-quetes.js`) : `supportersSovarka.rule`, `supportersSovarka.forClubPresident`, `supportersSovarka.forMayor`. Les toasts et le journal de la manifestation sont aussi à traduire.
 
+
+## Lot de Krasnov, point 8 — radar de Krasnov (Claude, 21/11/2026)
+
+- **Migrations (appliquées) :** `20261121010000_krasnov_radar_vol_archives`, `20261121020000_krasnov_radar_polonium_secrets`, `20261121030000_krasnov_radar_sorokine_habitue` (décisions de Fred du 21/11 sur #1169).
+- **Banc :** `outils/bancs/test-krasnov-radar-20261121.cjs`.
+- **Vol des archives d'écoute :**
+  - moteur commun du vol (`crim_resoudre_interne`, comme le cambriolage) ;
+  - l'opérateur Ilia Sorokine a désormais une fiche de PNJ (`pnj_membres`, profil de combat par défaut : ENT 10, VOL 12, PER 12, DUP 8) ;
+  - la bagarre passe par le vrai moteur de combat (modificateurs et plafond de la neutralisation) ;
+  - sans personne de présent (opérateur neutralisé), le vol réussit d'office.
+- **Polonium du colonel Voronov :**
+  - ordre caché tant que le secret est inconnu ;
+  - Kalachnikov donne toujours la phrase ; Ganbaatar refuse (« je ne suis pas une balance ») ;
+  - achat : 2 PA, 50 %, 150 PSK payés seulement en cas de succès ; jet de 98 à 100 : dénonciation et trace contre l'acheteur.
+- **Habitué du Bar Sever :** règle commune des informateurs, Sovarka (Fred, 19/11). On le paie de 7 à 20 PSK : 7 à 11 PSK flou, 12 à 17 correct, 18 à 20 premier choix (phrase de passe et secret). C'est le barème de Républia (20-29 / 30-44 / 45-50 FR) repris en proportion ; il est consigné dans `GAME-DESIGN-CRIMINALITE.md` et porté par la fonction serveur `informateur_palier_interne(pays, montant)`, migration `20261121040000_informateurs_sovarka_bareme` (appliquée).
+- **Carnet « Contacts et secrets » :** dans l'inventaire, visible du seul joueur (`plateau-secrets.js`, `secrets_lire`).
+- **Pour Codex :**
+  - **nouvelles clés :** `secrets.notebook`, `secrets.empty`, `secrets.regularRule`, `secrets.pay` ;
+  - **textes français à traduire :** quatre ordres (habitué, Kalachnikov, Ganbaatar, colonel) et leurs descriptions, déjà dans `ATTENTE_CODEX` de `test-i18n-sovarka-infobulles-20261113.mjs` ; toasts et journal de `plateau-secrets.js` et de `volerArchivesEcoute` ;
+  - **nouveau texte de la salle d'écoute de Krasnov (Fred) :** « Cinq téléphones : une ligne pour Luthécia, une pour la Républia, une pour El Estado, une pour Al-Khalija… et la rouge, pour Novomirsk. Personne ne sait vraiment qui décroche à l'autre bout, mais le colonel Voronov prend des notes. Le caporal Sorokine branche les fiches du standard. » Il est à poser dans `data.js` en même temps que son catalogue de descriptions (`i18n/sovarka-descriptions-resources.js`, indexé sur le français exact) ;
+  - **description de l'ordre « Voler un rapport dans les archives » :** elle annonce encore « bagarre puis prison » ; à aligner sur les nouvelles règles, avec le catalogue des infobulles.
+- **Image de la salle d'écoute :** retouchée par Fred (#1171).

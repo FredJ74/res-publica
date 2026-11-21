@@ -12219,7 +12219,7 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     'Quatre téléphones, un par pays étranger, et un cinquième, rouge, pour Novomirsk. Le colonel Voronov tend l’oreille ; le caporal Sorokine branche les fiches du standard.');
   // Décor propre au poste d'écoute de Krasnov : ne modifie pas Starovka.
   BUILDINGS['station-radar-krasnov'].rooms.salle_ecoute.imageUrl =
-    'images/Sovarka/Krasnov/Krasnov_centre_ecoute_salle.webp';
+    'images/Sovarka/Krasnov/Krasnov_centre_ecoute_salle.webp?v=20261121';
   // Personnel accordé à l'image de Fred (14/11/2026) : un colonel à son bureau aux quatre téléphones (il remplace la
   // lieutenante Sokolova) et un opérateur casqué au standard, celui qu'on affronte si le vol des archives échoue.
   BUILDINGS['station-radar-krasnov'].rooms.salle_ecoute.persons.push(
@@ -13181,3 +13181,36 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
   }
 })();
 
+
+// LOT DE KRASNOV, point 8 (Fred, 20/11/2026 ; migration 20261121020000) : le colonel Gleb Voronov vend le polonium sous
+// le manteau. L'ordre du colonel porte « secret » : il reste caché tant que le PJ n'a pas appris l'information
+// (personnages_secrets, carnet « Contacts et secrets »). Sources : l'habitué du Bar Sever de Krasnov (selon le palier
+// d'informateur), Kalachnikov à Novomirsk ; Ganbaatar Tsybikov, à Starovka, refuse d'en parler.
+(function () {
+  const sov = WORLD.soviet || {};
+  const bar = sov.ville_b && sov.ville_b.buildingContext && sov.ville_b.buildingContext['cafe-tabac-cheminots-montrouge'];
+  if (!bar) throw new Error('Krasnov : Bar Sever absent');
+  bar.orders = (bar.orders || []).concat([
+    { fn: 'offrir_verre_habitue_krasnov', label: 'Offrir un verre à l’habitué', pa: 0, cost: 0, type: 'grey', icon: 'ti-glass-full', successRate: 100,
+      desc: 'Un vieil habitué du Bar Sever connaît tout le monde à Krasnov. Il parle plus volontiers à ceux qui ont déjà leurs informateurs.' }
+  ]);
+  const arsenal = sov.capitale && sov.capitale.buildingContext && sov.capitale.buildingContext.armurerie;
+  if (!arsenal) throw new Error('Novomirsk : Arsenal collectif absent');
+  arsenal.orders = (arsenal.orders || []).concat([
+    { fn: 'demander_fournisseur_kalachnikov', label: 'Demander un autre fournisseur', pa: 1, cost: 0, type: 'grey', icon: 'ti-user-question', successRate: 100,
+      desc: 'Demander au camarade Kalachnikov où trouver ce qu’il ne vend pas lui-même.' }
+  ]);
+  const quai = BUILDINGS['port-starovka'] && BUILDINGS['port-starovka'].rooms.quai_principal;
+  if (!quai) throw new Error('Starovka : quai principal absent');
+  quai.orders = (quai.orders || []).concat([
+    { fn: 'interroger_ganbaatar_polonium', label: 'Interroger le chef de quai sur le polonium', pa: 0, cost: 0, type: 'grey', icon: 'ti-message-question', successRate: 100,
+      desc: 'Demander au chef de quai Ganbaatar Tsybikov qui, à Sovarka, vend du polonium.' }
+  ]);
+  const ecoute = BUILDINGS['station-radar-krasnov'] && BUILDINGS['station-radar-krasnov'].rooms.salle_ecoute;
+  if (!ecoute) throw new Error('Krasnov : station radar absente');
+  ecoute.orders = ecoute.orders.concat([
+    { fn: 'acheter_polonium_colonel', label: 'Demander au colonel des nouvelles de notre ami de Luthécia', pa: 2, cost: 0, type: 'illegal', icon: 'ti-radioactive', successRate: 50,
+      secret: 'colonel_polonium',
+      desc: 'Phrase de passe pour acheter une fiole de polonium au colonel Voronov : 150 PSK, payés seulement s’il accepte. Une chance sur deux.' }
+  ]);
+})();
