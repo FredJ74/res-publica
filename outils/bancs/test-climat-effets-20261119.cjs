@@ -37,7 +37,8 @@ test('sacs de sable proportionnels (décision du 19/11) : 10 % par sac, plafond 
   assert.deepEqual([0, 3, 5, 9, 12].map(perte), [20, 14, 10, 2, 2]);
   const js = lire('plateau-climat.js');
   assert.match(js, /texte\('posed', \{ n: r\.poses, total: r\.sacs, max: r\.plafond, perte: r\.perte_pct \}\)/);
-  assert.equal((js.match(/posed: '[^']*\{total\}\/\{max\}/g) || []).length, 9);
+  // Décision définitive du 21/11 : un sac protège entièrement pour une crue (plafond 1) ; français à jour, autres langues : Codex.
+  assert.match(js, /posed: 'Sac de sable posé : à la prochaine crue, ce lieu restera ouvert et gardera tous ses stocks\.'/);
 });
 
 test('écran : boutique, sacs, groupe, catastrophe (deux options et coûts) dans les neuf langues', () => {

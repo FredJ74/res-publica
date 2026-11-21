@@ -34,7 +34,7 @@ test('gare jamais tirée : exclue du tirage et interdite dans les zones inondabl
   for (const z of zones) assert.ok(!estGare(z), z);
 });
 
-test('durées : 12 heures pour crue, orage, canicule, brouillard ; blizzard inchangé', () => {
+test('durées (12 heures le matin du 21/11, remplacées par 6 heures) : crue, orage, canicule, brouillard ; blizzard inchangé', () => {
   assert.match(sql, /UPDATE public\.climat_parametres SET duree_heures = 12 WHERE type IN \('crue', 'orage', 'canicule', 'brouillard'\);/);
   assert.match(sql, /UPDATE public\.climat_evenements SET fin = debut \+ interval '12 hours'\n WHERE type IN \('crue', 'orage', 'canicule', 'brouillard'\) AND fin_traitee_le IS NULL/);
   assert.ok(!/blizzard'\)/.test(sql.split('UPDATE public.climat_parametres')[1].split(';')[0]), 'le blizzard reste à 24 h');
@@ -45,9 +45,7 @@ test('durées : 12 heures pour crue, orage, canicule, brouillard ; blizzard inch
     assert.match(effets.split('FUNCTION public.' + f)[1].split('$$;')[0], /now\(\) >= e\.debut AND now\(\) < e\.fin/, f);
   assert.match(lire('migrations/20261118080000_climat_socle.sql'), /now\(\) >= e\.debut AND now\(\) < e\.fin AND c\.bloque_chantiers/);
   assert.match(effets, /fin_traitee_le IS NULL AND now\(\) >= fin/);
-  // Textes français des alertes ; les huit autres langues sont confiées à Codex (RELAIS).
-  assert.match(client, /seront sous les eaux pendant 12 heures\. Mettez vos biens à l’abri\./);
-  assert.match(client, /coupures d’électricité et d’internet attendues pendant 12 heures\./);
+  // Version définitive du 21/11 : 6 heures (migration 20261121090000, banc test-climat-definitif-20261121.cjs).
 });
 
 test('aucune exemption : les effets ne regardent jamais l’âge du personnage', () => {
