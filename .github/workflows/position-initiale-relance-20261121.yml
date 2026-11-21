@@ -3,7 +3,7 @@ on:
   pull_request:
     paths: [plateau-rue-centrale.js, plateau.html, 'outils/bancs/banc-position-initiale-relance-20261121.cjs', 'outils/bancs/banc-initialisation-rue-sovarka-20261120.cjs', 'outils/bancs/banc-premiere-rue-navigateur-20261121.cjs', .github/workflows/position-initiale-relance-20261121.yml]
   push:
-    branches: [main]
+    branches: [main, 'claude/**']
     paths: [plateau-rue-centrale.js, plateau.html, 'outils/bancs/banc-position-initiale-relance-20261121.cjs', 'outils/bancs/banc-initialisation-rue-sovarka-20261120.cjs', 'outils/bancs/banc-premiere-rue-navigateur-20261121.cjs', .github/workflows/position-initiale-relance-20261121.yml]
 permissions:
   contents: read
