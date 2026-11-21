@@ -244,6 +244,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (/^ferme_(renne|traire|legumes|oeufs|vaches|poulet|lapin)$/.test(fn)) { travaillerFerme(fn); return; }
   if (fn === 'kolkhoze_caisse') { ouvrirCaisseKolkhoze(); return; }
   if (fn === 'foret_enfoncer') { foretAller('enfoncer'); return; }
+  if (fn === 'foret_campement') { foretAller('campement'); return; }
   if (fn === 'foret_revenir') { foretAller('revenir'); return; }
   if (fn === 'foret_retrouver') { foretAller('retrouver'); return; }
   if (fn === 'foret_couper') { foretCouper(); return; }

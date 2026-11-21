@@ -12449,9 +12449,10 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
   // Images de Fred (14/11/2026, converties par ChatGPT) : la cour de l'exploitation à l'entrée ; en forêt profonde, les
   // vues 1 et 2 (deux coupes, fausses alertes) montrent la forêt exploitée, les vues 3 et 4 (ours, Olga) la forêt dense et intacte.
   entree.imageUrl = 'images/Sovarka/Krasnov/Krasnov_exploitation_forestiere_cour.webp';
-  entree.orders = [...(entree.orders || []).filter(o => o.fn !== 'foret_enfoncer'),
-    { fn: 'foret_enfoncer', label: 'S’enfoncer dans la forêt', pa: 0, cost: 0, type: 'legal', icon: 'ti-trees', successRate: 100,
-      desc: 'Plus loin, le bois est plus beau : chaque coupe rapporte le double. Mais on dit que les loups et l’ours rôdent sous les arbres… et qu’on s’y perd facilement.' }];
+  // Forêt de Krasnov, version définitive (Fred, 21/11/2026) : plus de bouton « S'enfoncer dans la forêt » ; on entre par le
+  // portique de l'image (zone cliquable, plateau-foret-krasnov.js), qui mène toujours à la clairière.
+  entree.orders = (entree.orders || []).filter(o => o.fn !== 'foret_enfoncer');
+  const FORET_ORDRE_CAMPEMENT = { fn: 'foret_campement', label: 'Retour au campement', pa: 0, cost: 0, type: 'legal', icon: 'ti-arrow-back-up', successRate: 100 };
   const vues = {
     1: ['Sous les grands pins', 'Des troncs immenses, la neige qui étouffe les bruits. Le chemin a disparu derrière vous.'],
     2: ['La clairière des bouleaux', 'Une clairière blanche, des bouleaux couchés par le vent. Quelque chose a gratté l’écorce, bien haut.'],
@@ -12466,18 +12467,17 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
       orders: [
         { fn: 'foret_couper', label: 'Couper du bois', pa: 1, cost: 0, type: 'legal', icon: 'ti-axe', successRate: 100,
           desc: 'Le bois de la forêt profonde : une coupe rapporte le double d’une récolte. Combien de fois avant que quelque chose ne bouge dans les fourrés ?' },
-        // Retour de Fred (14/11/2026) : on peut s'enfoncer encore depuis une vue profonde (vers une autre vue), sans repasser par l'entrée.
-        { fn: 'foret_enfoncer', label: 'S’enfoncer dans la forêt', pa: 0, cost: 0, type: 'legal', icon: 'ti-trees', successRate: 100,
-          desc: 'Plus loin, le bois est plus beau : chaque coupe rapporte le double. Mais on dit que les loups et l’ours rôdent sous les arbres… et qu’on s’y perd facilement.' },
-        { fn: 'foret_revenir', label: 'Revenir à l’entrée de la forêt', pa: 0, cost: 0, type: 'legal', icon: 'ti-arrow-back-up', successRate: 100,
-          desc: 'Retrouver le chemin de l’entrée… si l’on ne se perd pas en route.' },
-        // Perdu (état serveur sovarka_foret_perdus) : « Revenir » est masqué et remplacé par cet ordre (renderRoomActions).
-        { fn: 'foret_retrouver', label: 'Retrouver son chemin', pa: 1, cost: 0, type: 'legal', icon: 'ti-compass', successRate: 100,
-          desc: 'Chercher la sortie à l’instinct, entre des troncs qui se ressemblent tous (1 PA). Peut-être l’entrée de la forêt… peut-être plus loin encore.' }
+        // Au-delà de la clairière, « Retour au campement » remplace tout autre moyen de sortie (Fred, 21/11/2026) ; on continue
+        // l'exploration en cliquant l'image (plateau-foret-krasnov.js).
+        FORET_ORDRE_CAMPEMENT
       ]
     };
   });
-  ctx.roomsMasquees = Array.from(new Set([...(ctx.roomsMasquees || []), 'foret_vue_1', 'foret_vue_2', 'foret_vue_3', 'foret_vue_4']));
+  // La clairière : première et dernière image de l'exploration (image de Fred, 21/11/2026).
+  // Sans description propre tant qu'elle n'est pas au catalogue des traductions (Codex) : l'image parle d'elle-même.
+  ctx.roomsExtra.foret_clairiere = { name: 'La clairière', imageBg: 'linear-gradient(135deg,#0a120c,#132016)', persons: [],
+    imageUrl: 'images/Sovarka/Krasnov/Krasnov_foret_clairiere.webp', orders: [FORET_ORDRE_CAMPEMENT] };
+  ctx.roomsMasquees = Array.from(new Set([...(ctx.roomsMasquees || []), 'foret_vue_1', 'foret_vue_2', 'foret_vue_3', 'foret_vue_4', 'foret_clairiere']));
 })();
 
 

@@ -27,15 +27,13 @@ function bac(room, reponses) {
   return { ctx, T: ctx.T, appels, toasts, modales, rendus };
 }
 
-test('données : chaque vue profonde propose couper, s’enfoncer, revenir, retrouver (1 PA)', () => {
+test('données (version définitive du 21/11) : chaque vue profonde propose couper et « Retour au campement » (0 PA)', () => {
   const d = read('data.js');
   const bloc = d.slice(d.indexOf('// FORET PROFONDE DE KRASNOV'), d.indexOf("ctx.roomsMasquees = Array.from(new Set([...(ctx.roomsMasquees || []), 'foret_vue_1'"));
   const fns = [...bloc.slice(bloc.indexOf('orders: [', bloc.indexOf('roomsExtra'))).matchAll(/fn: '(foret_[a-z]+)'[^}]*?pa: (\d+)/g)].map(m => m[1] + ':' + m[2]);
-  assert.deepEqual(fns, ['foret_couper:1', 'foret_enfoncer:0', 'foret_revenir:0', 'foret_retrouver:1']);
-  assert.match(read('plateau-router.js'), /fn === 'foret_retrouver'\) \{ foretAller\('retrouver'\)/);
-  const pol = read('plateau-politique.js');
-  assert.match(pol, /o\.fn !== 'foret_revenir' \|\| !\(typeof foretEstPerdu === 'function' && foretEstPerdu\(\)\)/);
-  assert.match(pol, /o\.fn !== 'foret_retrouver' \|\| \(typeof foretEstPerdu === 'function' && foretEstPerdu\(\)\)/);
+  assert.deepEqual(fns, ['foret_couper:1']);
+  assert.match(bloc, /FORET_ORDRE_CAMPEMENT = \{ fn: 'foret_campement', label: 'Retour au campement', pa: 0/);
+  assert.match(read('plateau-router.js'), /fn === 'foret_campement'\) \{ foretAller\('campement'\)/);
 });
 
 test('s’enfoncer depuis une vue profonde : nouvelle vue, toast, pas perdu', async () => {
@@ -46,25 +44,17 @@ test('s’enfoncer depuis une vue profonde : nouvelle vue, toast, pas perdu', as
   assert.equal(b.T.foretEstPerdu(), false);
 });
 
-test('revenir et s’égarer : fenêtre angoissante (texte selon la vue), puis « Retrouver » remplace « Revenir »', async () => {
-  const b = bac('foret_vue_1', [{ ok: true, vue: 2, room: 'foret_vue_2', perdu: true, egare: true }]);
-  await b.T.foretAller('revenir');
+test('retour et égarement : « Était-ce le bon chemin… ? » (texte selon la vue), puis arrivée à la clairière', async () => {
+  const b = bac('foret_vue_1', [{ ok: true, vue: 2, room: 'foret_vue_2', perdu: true, egare: true },
+    { ok: true, vue: 5, room: 'foret_clairiere', perdu: false, egare: false }]);
+  await b.T.foretAller('campement');
   assert.equal(b.modales.length, 1);
-  assert.equal(b.modales[0][0], 'tLost');
+  assert.equal(b.modales[0][0], 'Était-ce le bon chemin… ?');
   assert.match(b.modales[0][1], /lost_2/);
-  assert.match(b.modales[0][1], /lostHint/);
-  assert.equal(b.toasts.length, 0, 'plus d’infobulle « Perdu ! »');
   assert.equal(b.T.foretEstPerdu(), true);
-});
-
-test('retrouver raté : « Toujours perdu » ; réussi : sortie, plus perdu', async () => {
-  const b = bac('foret_vue_2', [{ ok: true, vue: 4, room: 'foret_vue_4', perdu: true, egare: true },
-    { ok: true, vue: 0, room: 'zone_recolte', perdu: false, egare: false }]);
-  await b.T.foretAller('retrouver');
-  assert.equal(b.modales[0][0], 'tStill');
-  assert.match(b.modales[0][1], /lost_4/);
-  await b.T.foretAller('retrouver');
-  assert.deepEqual(b.toasts.at(-1), ['tOut', 'found', true]);
+  await b.T.foretAller('campement');
+  assert.deepEqual(b.rendus.at(-1), 'foret_clairiere');
+  assert.equal(b.toasts.at(-1)[0], 'La clairière');
   assert.equal(b.T.foretEstPerdu(), false);
 });
 

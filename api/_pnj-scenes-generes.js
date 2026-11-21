@@ -7299,6 +7299,13 @@ export const SCENES_PNJ = {
     "piece": "Forêt profonde — Près de la vieille isba",
     "personnes": []
   },
+  "[\"soviet\",\"ville_b\",\"zone-production\",\"foret_clairiere\"]": {
+    "pays": "Sovarka",
+    "ville": "Krasnov",
+    "batiment": "Exploitation forestière de Krasnov",
+    "piece": "La clairière",
+    "personnes": []
+  },
   "[\"soviet\",\"ville_b\",\"entrepot-logistique-krasnov\",\"salle_ventes\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",

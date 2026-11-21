@@ -1,0 +1,28 @@
+name: "Forêt de Krasnov — portique, clairière, retour au campement, groupe"
+on:
+  pull_request:
+    paths: [plateau-foret-krasnov.js, plateau-sovarka-provinces.js, plateau-router.js, data.js, plateau.html, 'migrations/20261121150000_foret_krasnov_clairiere_retour.sql', 'outils/bancs/*foret*', 'outils/bancs/fixtures/foret-pglite-socle.sql', .github/workflows/foret-krasnov-20261121.yml]
+  push:
+    branches: [main, 'claude/**']
+    paths: [plateau-foret-krasnov.js, plateau-sovarka-provinces.js, plateau-router.js, data.js, plateau.html, 'migrations/20261121150000_foret_krasnov_clairiere_retour.sql', 'outils/bancs/*foret*', 'outils/bancs/fixtures/foret-pglite-socle.sql', .github/workflows/foret-krasnov-20261121.yml]
+permissions:
+  contents: read
+jobs:
+  foret:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
+      - run: node --check plateau-foret-krasnov.js && node --test outils/bancs/test-foret-perdu-20261114.mjs outils/bancs/test-sovarka-provinces-20261110.mjs outils/bancs/test-sovarka-provinces-partie2-20261110.mjs
+      - name: Chromium réel
+        env:
+          HG_CHROMIUM: /usr/bin/google-chrome
+        run: node --test outils/bancs/banc-foret-krasnov-navigateur-20261121.cjs
+      - name: PostgreSQL local (PGlite)
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund --prefix "$RUNNER_TEMP/pglite" @electric-sql/pglite@0.2.17
+          PGLITE_DIR="$RUNNER_TEMP/pglite" node --test outils/bancs/banc-foret-krasnov-pglite-20261121.cjs
