@@ -1,10 +1,10 @@
 name: "Climat (décisions définitives du 21/11) — 6 heures, sacs de sable, un événement par pays, pictogrammes, eau gratuite"
 on:
   pull_request:
-    paths: [plateau-climat.js, plateau-rue-centrale.js, plateau.html, 'migrations/2026111*climat*.sql', 'migrations/20261121070000_climat_douze_heures_gare_accueil.sql', 'migrations/20261121090000_climat_six_heures_pays_sacs_eau.sql', 'migrations/20261121110000_climat_parades_vente.sql', 'migrations/20261121120000_climat_parades_sovarka.sql', 'migrations/20261121130000_climat_horaire_cadence_catastrophe_sacs.sql', data.js, 'outils/bancs/*climat*', .github/workflows/climat-crue-accueil-20261121.yml]
+    paths: [plateau-climat.js, plateau-rue-centrale.js, plateau.html, 'migrations/2026111*climat*.sql', 'migrations/20261121070000_climat_douze_heures_gare_accueil.sql', 'migrations/20261121090000_climat_six_heures_pays_sacs_eau.sql', 'migrations/20261121110000_climat_parades_vente.sql', 'migrations/20261121120000_climat_parades_sovarka.sql', 'migrations/20261121130000_climat_horaire_cadence_catastrophe_sacs.sql', 'migrations/20261121170000_point_eau_puiser_mairie_krasnov.sql', data.js, 'outils/bancs/*climat*', 'outils/bancs/*point-eau*', .github/workflows/climat-crue-accueil-20261121.yml]
   push:
     branches: [main, 'claude/**']
-    paths: [plateau-climat.js, plateau-rue-centrale.js, plateau.html, 'migrations/2026111*climat*.sql', 'migrations/20261121070000_climat_douze_heures_gare_accueil.sql', 'migrations/20261121090000_climat_six_heures_pays_sacs_eau.sql', 'migrations/20261121110000_climat_parades_vente.sql', 'migrations/20261121120000_climat_parades_sovarka.sql', 'migrations/20261121130000_climat_horaire_cadence_catastrophe_sacs.sql', data.js, 'outils/bancs/*climat*', .github/workflows/climat-crue-accueil-20261121.yml]
+    paths: [plateau-climat.js, plateau-rue-centrale.js, plateau.html, 'migrations/2026111*climat*.sql', 'migrations/20261121070000_climat_douze_heures_gare_accueil.sql', 'migrations/20261121090000_climat_six_heures_pays_sacs_eau.sql', 'migrations/20261121110000_climat_parades_vente.sql', 'migrations/20261121120000_climat_parades_sovarka.sql', 'migrations/20261121130000_climat_horaire_cadence_catastrophe_sacs.sql', 'migrations/20261121170000_point_eau_puiser_mairie_krasnov.sql', data.js, 'outils/bancs/*climat*', 'outils/bancs/*point-eau*', .github/workflows/climat-crue-accueil-20261121.yml]
 permissions:
   contents: read
 jobs:
@@ -26,7 +26,7 @@ jobs:
       - name: PostgreSQL local (PGlite) — migrations non appliquées en production
         run: |
           npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund --prefix "$RUNNER_TEMP/pglite" @electric-sql/pglite@0.2.17
-          PGLITE_DIR="$RUNNER_TEMP/pglite" node --test outils/bancs/banc-climat-pglite-20261121.cjs
+          PGLITE_DIR="$RUNNER_TEMP/pglite" node --test outils/bancs/banc-climat-pglite-20261121.cjs outils/bancs/banc-point-eau-pglite-20261121.cjs
       - name: Chromium réel
         env:
           HG_CHROMIUM: /usr/bin/google-chrome

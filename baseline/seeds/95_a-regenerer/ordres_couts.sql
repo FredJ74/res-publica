@@ -419,6 +419,7 @@ INSERT INTO public.ordres_couts (fn,pa,cost) VALUES
   ('proposer_transfert',2,0),
   ('proposer_treve',3,0),
   ('publicite_premium',0,0),
+  ('puiser_eau',1,0),
   ('quitter_armee',0,0),
   ('quitter_syndicat_etat',0,0),
   ('racheter_entreprise',0,0),
