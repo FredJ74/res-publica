@@ -8357,7 +8357,44 @@ async function doOrganiserManifestation() {
   if (!orga) { showToast('Indisponible', 'Aucun club de supporters ici.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bc860f410", 'Aucun club de supporters ici.', undefined, 'Indisponible'); return; }
   const estChef = orga.chef === state.char?.name;
   if (!estChef) { showToast('Réservé au président', 'Seul le président du club de supporters peut organiser une manifestation.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bb8eb6cdc", 'Seul le président du club de supporters peut organiser une manifestation.', undefined, 'Réservé au président'); return; }
+  // Sovarka (lot de Krasnov, Fred, 20/11/2026) : manifestation « en faveur » seulement, cible au choix.
+  if (state.country === 'soviet') { ouvrirManifestationSupportersSovarka(); return; }
   ouvrirDemandeAutorisationManifester(orga.id);
+}
+
+// MANIFESTATION DES SUPPORTERS EN SOVARKA (lot de Krasnov, point 6 ; migration 20261120360000) : en faveur du président
+// du club ou du maire, même mécanisme que la manifestation de soutien du Syndicat national. Le serveur décide de tout.
+function ouvrirManifestationSupportersSovarka() {
+  document.getElementById('postes-modal-title').textContent = 'Manifestation des supporters';
+  const bouton = (cible, cle, texte) => '<button onclick="lancerManifestationSupportersSovarka(\'' + cible + '\')" style="width:100%;margin-bottom:.4rem;font-family:Bebas Neue,sans-serif;font-size:.9rem;letter-spacing:.1em;padding:.55rem;background:#1a1408;border:1px solid #5a4a20;color:#c9a84c;cursor:pointer" data-i18n="supportersSovarka.' + cle + '">' + texte + '</button>';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem">'
+    + '<div style="font-size:.82rem;color:#8a8060;margin-bottom:.8rem" data-i18n="supportersSovarka.rule">En Sovarka, les supporters ne manifestent qu’en faveur de quelqu’un. 10 membres au moins, une manifestation par jour et par ville. Chaque membre présent dans la ville défile et paie 2 PA (pas à 3 PA ou moins). Participation au-dessus de 50 % : la cible gagne en popularité ; en dessous : elle en perd.</div>'
+    + bouton('president_club', 'forClubPresident', 'En faveur du président du club')
+    + bouton('maire', 'forMayor', 'En faveur du maire')
+    + '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+async function lancerManifestationSupportersSovarka(cible) {
+  const cle = 'hg-supporters-sovarka:' + (state.char?.name || '') + ':' + cible;
+  let requete = sessionStorage.getItem(cle);
+  if (!requete) { requete = crypto.randomUUID(); sessionStorage.setItem(cle, requete); }
+  const v = await sbRpcVerdict('supporters_sovarka_manifester', { p_requete: requete, p_cible: cible }).catch(() => null);
+  if (v && !v.transport) sessionStorage.removeItem(cle);
+  if (!v || v.ok !== true) {
+    const motifs = { pas_au_siege_supporters: 'Rendez-vous au siège des supporters du stade de votre ville.',
+      club_supporters_absent: 'Aucun club de supporters ici.', reserve_au_president: 'Réservé au président du club de supporters.',
+      club_trop_petit: 'Il faut au moins 10 membres.', deja_manifeste_aujourdhui: 'Les supporters ont déjà manifesté aujourd’hui dans cette ville.' };
+    showToast('Manifestation impossible', motifs[v && v.raison] || 'Le serveur a refusé la manifestation.', false);
+    return;
+  }
+  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: v.pa });
+  document.getElementById('modal-postes')?.classList.remove('open');
+  if (typeof updateUI === 'function') updateUI();
+  const qui = (cible === 'maire' ? 'du maire' : 'du président du club') + (v.cible ? ' ' + String(v.cible).replace(' (PNJ)', '') : '');
+  const effet = !v.cible ? 'Poste vacant : aucun effet.' : !v.cible_pj ? 'Cible non joueuse : aucun effet.'
+    : v.effet_pop > 0 ? 'Popularité : +' + v.effet_pop + '.' : v.effet_pop < 0 ? 'Désaveu : popularité ' + v.effet_pop + '.' : 'Aucun effet sur la popularité.';
+  showToast('Manifestation', v.presents + ' supporter(s) pour ' + v.domicilies + ' domicilié(s), participation ' + v.taux + ' %. ' + effet, true, true);
+  addJournalEntry('Manifestation des supporters en faveur ' + qui + ' : participation ' + v.taux + ' %. ' + effet, 'event-info');
 }
 
 // =====================
@@ -8367,6 +8404,8 @@ async function doOrganiserBoycott(pa, cost) {
   const orga = getClubSupportersLocal();
   const clubLocal = getClubLocal();
   if (!orga || !clubLocal) { showToast('Indisponible', '', false); globalThis.RPI18nPlateau?.markToast(null, '', undefined, 'Indisponible'); return; }
+  // Plus de boycott en Sovarka (lot de Krasnov, Fred, 20/11/2026) : l'ordre y est retiré des stades.
+  if (state.country === 'soviet') { showToast('Indisponible', 'En Sovarka, les supporters ne boycottent pas : ils manifestent en faveur de quelqu’un.', false); return; }
   const estChef = orga.chef === state.char?.name;
   if (!estChef) { showToast('Réservé au président', 'Seul le président du club de supporters peut décider d\'un boycott.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b41892ada", 'Seul le président du club de supporters peut décider d\'un boycott.', undefined, 'Réservé au président'); return; }
 

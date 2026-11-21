@@ -59,7 +59,9 @@ test('boutique du Dynamo isolée des trois villes de Républia, achats du socle 
   ]);
   assert.equal(inOtherCities.every(x=>x===undefined), true);
   assert.ok(context.roomOverrides.buvette.excludeOrders.includes('choisir_accessoire_club'));
-  assert.ok(context.roomOverrides.siege_supporters.excludeOrders.includes('organiser_manifestation'));
+  // Manifestation « en faveur » ouverte à Novomirsk (Fred, 21/11/2026, lot de Krasnov point 6) ; boycott retiré en Sovarka.
+  assert.ok(!context.roomOverrides.siege_supporters.excludeOrders.includes('organiser_manifestation'));
+  assert.ok(context.roomOverrides.siege_supporters.excludeOrders.includes('organiser_boycott'));
   for (const key of ['terrain','vestiaires','buvette','guichet_paris','siege_supporters']) {
     assert.ok(room[key], 'Le gabarit partage doit garder la piece '+key);
   }

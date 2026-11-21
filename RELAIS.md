@@ -514,3 +514,21 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
   - Claude ne l'a pas fait pour ne pas toucher aux traductions.
 - **Pour Codex — nouveau PNJ :** « Brigadier Matveï Doubov », rôle « Brigadier de garde » (`data.js`).
 - **Pour Codex — journal :** nouvelles lignes du vol d'archives (`plateau-sovarka-provinces.js`).
+
+## Lot de Krasnov, point 6 — supporters en Sovarka (Claude, 21/11/2026)
+
+- **Migration :** `20261120360000_supporters_sovarka_manifestation` (appliquée).
+- **Banc :** `outils/bancs/test-krasnov-supporters-20261121.cjs`.
+- **Boycott :** il n'y en a plus en Sovarka (ordre retiré des trois stades, refusé à l'écran).
+- **Manifestation « en faveur » seulement :** cible au choix, le président du club ou le maire. Même mécanisme que la manifestation de soutien du Syndicat national :
+  - 10 membres au moins, une par jour et par ville ;
+  - 2 PA par membre présent ;
+  - participation = présents / domiciliés ;
+  - popularité de la cible selon `syndicat_etat_effet_pop`, y compris la perte sous 50 %.
+- **Novomirsk :** la manifestation « en faveur » y est ouverte aussi (Fred, 21/11). La règle vaut pour toute la Sovarka.
+- **Restent du point 6 :**
+  - l'entraîneur adjoint Pavel Zapasnoï ;
+  - les textes du terrain et de la buvette validés le 19/11 (Fred les cherche).
+  - Avdotia Doubova et la vente de matières à la buvette sont déjà en place.
+- **Pour Codex — nouvelles clés** (secours français dans `plateau-organisations-quetes.js`) : `supportersSovarka.rule`, `supportersSovarka.forClubPresident`, `supportersSovarka.forMayor`. Les toasts et le journal de la manifestation sont aussi à traduire.
+
