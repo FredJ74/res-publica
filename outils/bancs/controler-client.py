@@ -112,6 +112,11 @@ def main():
             bilan('en_cours')
             if code:
                 print(sortie[-5000:])
+                # Annotation GitHub (lisible sans accès aux journaux) : le nom du banc et sa dernière ligne d'erreur.
+                if os.environ.get('GITHUB_ACTIONS') == 'true':
+                    lignes = [l for l in sortie.splitlines() if l.strip()]
+                    derniere = next((l for l in reversed(lignes) if 'Error' in l or 'ECHEC' in l or 'not ok' in l or '✖' in l), lignes[-1] if lignes else '')
+                    print('::error title=' + banc.name + '::' + derniere.strip()[:300].replace('\n', ' '), flush=True)
     finally:
         bilan('terminee' if len(resultats) == len(bancs) else 'interrompue')
     echecs = sum(r['code'] != 0 for r in resultats)
