@@ -1,0 +1,29 @@
+name: "Climat — crue sans entrave, gare jamais inondée, 12 heures, accueil du nouveau personnage"
+on:
+  pull_request:
+    paths: [plateau-climat.js, plateau-rue-centrale.js, plateau.html, 'migrations/2026111*climat*.sql', 'migrations/20261121070000_climat_douze_heures_gare_accueil.sql', 'outils/bancs/*climat*', .github/workflows/climat-crue-accueil-20261121.yml]
+  push:
+    branches: [main]
+    paths: [plateau-climat.js, plateau-rue-centrale.js, plateau.html, 'migrations/2026111*climat*.sql', 'migrations/20261121070000_climat_douze_heures_gare_accueil.sql', 'outils/bancs/*climat*', .github/workflows/climat-crue-accueil-20261121.yml]
+permissions:
+  contents: read
+jobs:
+  climat:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Dépendances verrouillées des bancs
+        run: npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
+      - name: Règles et textes
+        run: |
+          node --check plateau-climat.js
+          node --check plateau-rue-centrale.js
+          node --test outils/bancs/test-climat-socle-20261118.cjs outils/bancs/test-climat-blizzard-grippe-20261119.cjs outils/bancs/test-climat-effets-20261119.cjs outils/bancs/test-climat-corrections-20261119.cjs outils/bancs/test-climat-affichage-20261121.cjs outils/bancs/test-climat-crue-accueil-20261121.cjs
+      - name: Chromium réel
+        env:
+          HG_CHROMIUM: /usr/bin/google-chrome
+        run: node --test outils/bancs/banc-climat-crue-accueil-navigateur-20261121.cjs
