@@ -36,7 +36,7 @@
 // Primitives de citation IMPORTEES du moteur du Journal (jamais recopiees) : le controle des
 // citations directes d'une interview doit appliquer exactement la meme logique guillemets/parole,
 // sous peine d'avoir deux definitions divergentes de ce qu'est une parole rapportee.
-import { extraireCitations, normaliserPourCitation } from './_journal-generation.js';
+import { extraireCitations, normaliserPourCitation, assainirMondeReel } from './_journal-generation.js';
 import { appelDeepSeek, joueurAuthentifie } from './_deepseek.js';
 
 const ALLOWED_ORIGIN = 'https://res-publica.vercel.app';
@@ -160,7 +160,7 @@ const JODIE_STYLE = "enthousiasme journalistique communicatif, questions anodine
 const EMPIRE_TONES = {
   republic: 'bureaucratique français épuisé, cynique poli',
   narco: 'jovial menaçant, corruption assumée, espagnol de bazar',
-  soviet: 'idéologique soviétique, formulaires sacrés, Camarade partout',
+  soviet: 'idéologique sovarkien, formulaires sacrés, Camarade partout',
   khalija: 'protocole royal excessif, Loukoum Divin omniprésent, bénédictions imbriquées'
 };
 
@@ -223,7 +223,8 @@ async function appelIA(prompt, maxTokens, timeoutMs) {
     timeoutMs: timeoutMs
   });
   if (!r.ok) return { ok: false, erreur: r.erreur || 'Fournisseur indisponible' };
-  return { ok: true, texte: r.texte };
+  // Presse (Fred, 21/11/2026) : aucune référence au monde réel, même dans une interview (« sovarkien », jamais « soviétique »).
+  return { ok: true, texte: assainirMondeReel(r.texte) };
 }
 
 function extraireTitreCorps(texteBrut, nom) {
