@@ -23,9 +23,9 @@ test('portique → clairière, sentier → exploration, sous-bois → exploratio
     browser = await chromium.connectOverCDP('http://127.0.0.1:' + nav.port);
     const page = await browser.contexts()[0].newPage(); await page.setViewportSize({ width: 1000, height: 700 });
     const erreurs = []; page.on('pageerror', e => erreurs.push(e.message));
-    await page.goto('http://127.0.0.1:' + serveur.address().port);
-    await page.waitForFunction(() => window.RPForetKrasnov);
-    const salle = async r => { await page.evaluate(r => enterRoom('zone-production', r), r); await page.waitForFunction(() => { const b = document.querySelector('.foret-porte'); return b && b.style.display === 'block' && b.style.width; }); };
+    await page.goto('http://127.0.0.1:' + serveur.address().port, { waitUntil: 'load', timeout: 60000 });
+    await page.waitForFunction(() => window.RPForetKrasnov && typeof WORLD === 'object', null, { timeout: 60000 });
+    const salle = async r => { await page.evaluate(r => enterRoom('zone-production', r), r); await page.waitForFunction(() => { const b = document.querySelector('.foret-porte'); return b && b.style.display === 'block' && b.style.width; }, null, { timeout: 60000 }); };
     // Entrée : le portique, en haut à droite de l'image.
     await salle('zone_recolte');
     const porte = page.locator('.foret-porte');
