@@ -13,6 +13,10 @@ Sources : commentaires [#6924129687](https://github.com/FredJ74/res-publica/pull
 
 La mission du 17/11 impose de conserver le brouillon et le CHECK `active IS FALSE` jusqu'au contrôle final et à l'autorisation explicite du game designer. Aucune migration durable ni fusion ne découle de la seule validation technique.
 
+## Premier feu vert de Fred — 21/11/2026
+
+Fred autorise l’installation en production des tables et RPC du goulag après contrôle en transaction annulée. **L’activation n’est pas autorisée** : conserver `active=false`, le CHECK `active IS FALSE` et le verrou client. La PR documentaire #1161 est autorisée à sortir du brouillon et à être fusionnée une fois sa CI verte. L’activation reste soumise au second feu vert, après recette avec un personnage de test. Le code actuel n’a aucune exception de test par personnage : un parcours interactif complet sans ouvrir la production nécessite un environnement de recette isolé ; ne pas créer implicitement une dérogation au verrou global.
+
 ## Décisions confirmées
 - **Envoi d'un dissident au goulag (décision de Fred, 16/11/2026)** : **seul un juge peut prononcer la condamnation/l'envoi** d'un dissident au goulag via le système judiciaire. Le **ministre de la Justice peut demander au juge de prononcer cette mesure uniquement par RP**, sans bouton, ordre, RPC d'envoi, condamnation automatique ou pouvoir de substitution ministériel. Réutiliser les voies judiciaires et les règles de peine existantes plutôt que créer une procédure de décision ministérielle. Distinguer cette décision judiciaire de l'autorisation ministérielle de *visite* du goulag : cette dernière ne constitue jamais une condamnation.
 - Le goulag est situé **hors des villes**. Le modèle `WORLD.soviet.qhs` existe déjà avec le bâtiment `qhs-prison` ; il n'est pas encore un goulag jouable et ses ordres sont ceux du QHS de Républia, à **ne pas réutiliser tels quels**.
