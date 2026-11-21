@@ -1,0 +1,30 @@
+name: "Première rue — relance si la fiche change pendant la lecture"
+on:
+  pull_request:
+    paths: [plateau-rue-centrale.js, plateau.html, 'outils/bancs/banc-position-initiale-relance-20261121.cjs', 'outils/bancs/banc-initialisation-rue-sovarka-20261120.cjs', 'outils/bancs/banc-premiere-rue-navigateur-20261121.cjs', .github/workflows/position-initiale-relance-20261121.yml]
+  push:
+    branches: [main, 'claude/**']
+    paths: [plateau-rue-centrale.js, plateau.html, 'outils/bancs/banc-position-initiale-relance-20261121.cjs', 'outils/bancs/banc-initialisation-rue-sovarka-20261120.cjs', 'outils/bancs/banc-premiere-rue-navigateur-20261121.cjs', .github/workflows/position-initiale-relance-20261121.yml]
+permissions:
+  contents: read
+jobs:
+  premiere-rue:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: |
+          node --check plateau-rue-centrale.js
+          node outils/bancs/banc-position-initiale-relance-20261121.cjs
+          node outils/bancs/banc-initialisation-rue-sovarka-20261120.cjs
+          node --test outils/bancs/test-position-authoritative-country-20261115.mjs
+          node --test outils/bancs/test-restore-position-api-20261115.mjs
+      - name: Dépendances verrouillées des bancs
+        run: npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
+      - name: Parcours d'arrivée dans un vrai Chromium (Luthécia, Novomirsk, chargement lent)
+        env:
+          HG_CHROMIUM: /usr/bin/google-chrome
+        run: node --test outils/bancs/banc-premiere-rue-navigateur-20261121.cjs
