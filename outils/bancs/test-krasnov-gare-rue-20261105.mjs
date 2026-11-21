@@ -72,7 +72,7 @@ test('Krasnov : continuité de la gare au radar, toutes les flèches validées',
   assert.equal(got.artisanal.liens.toutDroit,'krasnov-rue-stade-commissariat');
   assert.equal(got.artisanal.flechesStyle.gauche,'top:66.6667%; left:10px; transform:translateY(-50%);');
   assert.equal(got.artisanal.flechesStyle.toutDroit,'top:10px; left:50%; transform:translateX(-50%);');
-  assert.equal(got.stade.image,'images/Sovarka/Krasnov/Krasnov rue stade commissariat.webp');
+  assert.equal(got.stade.image,'images/Sovarka/Krasnov/Krasnov rue stade commissariat.webp?v=20261121'); // image MILITSIYA (#1173), version de cache
   assert.deepEqual(Array.from(got.stade.zones, z=>z.buildingId), ['commissariat-local','stade']);
   assert.deepEqual(Array.from(got.stade.zones, z=>z.xPct.join('-')), ['0-42','57-100']);
   assert.ok(got.stade.zones.every(z=>z.type==='batiment'));

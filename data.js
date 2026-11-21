@@ -12219,7 +12219,7 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     'Quatre téléphones, un par pays étranger, et un cinquième, rouge, pour Novomirsk. Le colonel Voronov tend l’oreille ; le caporal Sorokine branche les fiches du standard.');
   // Décor propre au poste d'écoute de Krasnov : ne modifie pas Starovka.
   BUILDINGS['station-radar-krasnov'].rooms.salle_ecoute.imageUrl =
-    'images/Sovarka/Krasnov/Krasnov_centre_ecoute_salle.webp';
+    'images/Sovarka/Krasnov/Krasnov_centre_ecoute_salle.webp?v=20261121';
   // Personnel accordé à l'image de Fred (14/11/2026) : un colonel à son bureau aux quatre téléphones (il remplace la
   // lieutenante Sokolova) et un opérateur casqué au standard, celui qu'on affronte si le vol des archives échoue.
   BUILDINGS['station-radar-krasnov'].rooms.salle_ecoute.persons.push(
