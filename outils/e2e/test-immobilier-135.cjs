@@ -19,6 +19,7 @@ const sources=[fs.readFileSync(path.join(R,'data.js'),'utf8'),fs.readFileSync(pa
  selection('plateau-immobilier.js',['PERMIS_COOLDOWN_REFUS_JOURS','PERMIS_STATUT_INSTRUCTION','PERMIS_STATUT_LEGACY_ATTENTE','permisEnInstruction','cooldownRefusActif','verdictNouvelleDemandePermis']),justice,
  selection('plateau-pnj.js',['ACOMPTE_COMPROMIS','PLAFOND_PRET_COMPROMIS','SURFACE_TERRAINS','terrainOrdreDisponible','doSignerCompromis']),
  fs.readFileSync(path.join(R,'plateau-construction-commandes.js'),'utf8'),
+ fs.readFileSync(path.join(R,'plateau-chantier-vue.js'),'utf8'),
  selection('plateau-politique.js',['CATEGORIES_BUDGET_MAIRIE','getBuildingIdPourCategorieBudget','renderRoomActions','ouvrirMenuOrdresTerrain','expliquerAchatTerrainBloque']),selection('plateau-router.js',['doOrder'])];
 test('cinq terrains : rendu et formulaires réels dans Chromium, contreparties uniquement en fixtures',async t=>{
  const profil=fs.mkdtempSync(path.join(os.tmpdir(),'hg-immobilier135-'));let chrome,browser;const erreurs=[],reseau=[];
@@ -73,8 +74,11 @@ test('cinq terrains : rendu et formulaires réels dans Chromium, contreparties u
     await preparer(numero,{proprietaire:'Recette fixture',constructionAutorisee:true});
     await page.evaluate(()=>ouvrirModalConstruire());assert.equal(await page.locator('#postes-body [onclick*="confirmerConstruction"]').count(),4);
     await preparer(numero,{proprietaire:'Recette fixture',chantier:{type:'construction',palier:'hangar',dureeJours:6,progressionJours:0,totalVerse:10500,coutTotal:30000,prixAchatPJ:{bois:6,minerai:11,metal:17}}});
-    await page.getByRole('button',{name:'Approvisionner le chantier',exact:true}).click();
-    const texte=await page.locator('#postes-body').innerText();for(const tarif of ['bois : 6 FR','minerai : 11 FR','metal : 17 FR'])assert.ok(texte.includes(tarif),texte);
+    // Fenêtre « Le chantier » (Fred, 21/11/2026) : l'approvisionnement est l'onglet « Stock de matériaux ».
+    await page.getByRole('button',{name:'Le chantier',exact:true}).click();
+    await page.locator('#chantier-fenetre [role=tab]',{hasText:'Stock de matériaux'}).click();
+    const lignes=await page.locator('#chantier-fenetre .cj-stock-table tbody tr').allInnerTexts();
+    for(const [i,tarif] of [['Bois','6 FR'],['Minerai','11 FR'],['Métal','17 FR']].entries())assert.ok(lignes[i].includes(tarif[0])&&lignes[i].includes(tarif[1]),lignes.join(' | '));
    });
   }
   await t.test('prêt : renvoi au guichet puis formulaire national sans contrat',async()=>{
