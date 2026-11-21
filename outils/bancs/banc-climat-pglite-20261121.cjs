@@ -49,7 +49,7 @@ const GRAINE = `
 
 async function base() {
   const db = new PGlite();
-  await db.exec(lire('outils/bancs/fixtures/climat-pglite-socle.sql'));
+  await db.exec(lire('outils/bancs/fixtures/climat-pglite-socle.sql.txt'));
   await db.exec(GRAINE);
   await db.exec(lire('migrations/20261121130000_climat_horaire_cadence_catastrophe_sacs.sql'));
   return db;

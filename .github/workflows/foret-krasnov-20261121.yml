@@ -1,10 +1,10 @@
 name: "Forêt de Krasnov — portique, clairière, retour au campement, groupe"
 on:
   pull_request:
-    paths: [plateau-foret-krasnov.js, plateau-sovarka-provinces.js, plateau-router.js, data.js, plateau.html, 'migrations/20261121150000_foret_krasnov_clairiere_retour.sql', 'outils/bancs/*foret*', 'outils/bancs/fixtures/foret-pglite-socle.sql', .github/workflows/foret-krasnov-20261121.yml]
+    paths: [plateau-foret-krasnov.js, plateau-sovarka-provinces.js, plateau-router.js, data.js, plateau.html, 'migrations/20261121150000_foret_krasnov_clairiere_retour.sql', 'outils/bancs/*foret*', 'outils/bancs/fixtures/foret-pglite-socle.sql.txt', .github/workflows/foret-krasnov-20261121.yml]
   push:
     branches: [main, 'claude/**']
-    paths: [plateau-foret-krasnov.js, plateau-sovarka-provinces.js, plateau-router.js, data.js, plateau.html, 'migrations/20261121150000_foret_krasnov_clairiere_retour.sql', 'outils/bancs/*foret*', 'outils/bancs/fixtures/foret-pglite-socle.sql', .github/workflows/foret-krasnov-20261121.yml]
+    paths: [plateau-foret-krasnov.js, plateau-sovarka-provinces.js, plateau-router.js, data.js, plateau.html, 'migrations/20261121150000_foret_krasnov_clairiere_retour.sql', 'outils/bancs/*foret*', 'outils/bancs/fixtures/foret-pglite-socle.sql.txt', .github/workflows/foret-krasnov-20261121.yml]
 permissions:
   contents: read
 jobs:

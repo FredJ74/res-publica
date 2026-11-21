@@ -13,7 +13,7 @@ const UID = { 'Tom Tom': '00000000-0000-0000-0000-000000000001', Arnie: '0000000
 
 async function base({ groupe = false } = {}) {
   const db = new PGlite();
-  await db.exec(lire('outils/bancs/fixtures/foret-pglite-socle.sql'));
+  await db.exec(lire('outils/bancs/fixtures/foret-pglite-socle.sql.txt'));
   await db.exec(lire('migrations/20261121150000_foret_krasnov_clairiere_retour.sql'));
   for (const [n, u] of Object.entries(UID)) {
     await db.query('INSERT INTO personnages VALUES ($1, $2)', [n, u]);

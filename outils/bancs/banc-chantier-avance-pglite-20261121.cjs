@@ -20,7 +20,7 @@ function chantier(o = {}) {
 }
 async function base(ch, migre = true) {
   const db = new PGlite();
-  await db.exec(lire('outils/bancs/fixtures/chantier-pglite-socle.sql'));
+  await db.exec(lire('outils/bancs/fixtures/chantier-pglite-socle.sql.txt'));
   if (migre) await db.exec(lire('migrations/20261121140000_chantier_jour_avance.sql'));
   await db.query("INSERT INTO terrains_etat VALUES ('republic_terrain-a-batir-3', 'republic', $1, now())",
     [JSON.stringify({ proprietaire: 'Arnie', city: 'capitale', chantier: ch })]);

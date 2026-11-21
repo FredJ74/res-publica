@@ -1,10 +1,10 @@
 name: "Chantier « construction » — fenêtre unique, images par étape, accélération"
 on:
   pull_request:
-    paths: [plateau-chantier-vue.js, plateau-chantiers.js, plateau-construction-commandes.js, plateau-politique.js, plateau-navigation.js, plateau.html, 'migrations/20261121140000_chantier_jour_avance.sql', 'outils/bancs/*chantier*', 'outils/bancs/fixtures/chantier-pglite-socle.sql', .github/workflows/chantier-construction-20261121.yml]
+    paths: [plateau-chantier-vue.js, plateau-chantiers.js, plateau-construction-commandes.js, plateau-politique.js, plateau-navigation.js, plateau.html, 'migrations/20261121140000_chantier_jour_avance.sql', 'outils/bancs/*chantier*', 'outils/bancs/fixtures/chantier-pglite-socle.sql.txt', .github/workflows/chantier-construction-20261121.yml]
   push:
     branches: [main, 'claude/**']
-    paths: [plateau-chantier-vue.js, plateau-chantiers.js, plateau-construction-commandes.js, plateau-politique.js, plateau-navigation.js, plateau.html, 'migrations/20261121140000_chantier_jour_avance.sql', 'outils/bancs/*chantier*', 'outils/bancs/fixtures/chantier-pglite-socle.sql', .github/workflows/chantier-construction-20261121.yml]
+    paths: [plateau-chantier-vue.js, plateau-chantiers.js, plateau-construction-commandes.js, plateau-politique.js, plateau-navigation.js, plateau.html, 'migrations/20261121140000_chantier_jour_avance.sql', 'outils/bancs/*chantier*', 'outils/bancs/fixtures/chantier-pglite-socle.sql.txt', .github/workflows/chantier-construction-20261121.yml]
 permissions:
   contents: read
 jobs:

@@ -1,10 +1,10 @@
 name: "Presse — monde fictif, point de vue du pays, anonymat, noms cliquables"
 on:
   pull_request:
-    paths: [api/_journal-generation.js, plateau-presse-noms.js, plateau.html, 'migrations/20261121160000_presse_noms_cites_monde_reel.sql', 'outils/bancs/banc-presse-20261121.cjs', 'outils/bancs/fixtures/presse-pglite-socle.sql', .github/workflows/presse-20261121.yml]
+    paths: [api/_journal-generation.js, plateau-presse-noms.js, plateau.html, 'migrations/20261121160000_presse_noms_cites_monde_reel.sql', 'outils/bancs/banc-presse-20261121.cjs', 'outils/bancs/fixtures/presse-pglite-socle.sql.txt', .github/workflows/presse-20261121.yml]
   push:
     branches: [main, 'claude/**']
-    paths: [api/_journal-generation.js, plateau-presse-noms.js, plateau.html, 'migrations/20261121160000_presse_noms_cites_monde_reel.sql', 'outils/bancs/banc-presse-20261121.cjs', 'outils/bancs/fixtures/presse-pglite-socle.sql', .github/workflows/presse-20261121.yml]
+    paths: [api/_journal-generation.js, plateau-presse-noms.js, plateau.html, 'migrations/20261121160000_presse_noms_cites_monde_reel.sql', 'outils/bancs/banc-presse-20261121.cjs', 'outils/bancs/fixtures/presse-pglite-socle.sql.txt', .github/workflows/presse-20261121.yml]
 permissions:
   contents: read
 jobs:

@@ -33,7 +33,7 @@ test('migration : noms cités (jamais l’auteur anonyme) et numéros corrigés 
   const charger = process.env.PGLITE_DIR ? require('node:module').createRequire(path.join(process.env.PGLITE_DIR, 'index.js')) : require;
   const { PGlite } = charger('@electric-sql/pglite');
   const db = new PGlite();
-  await db.exec(lire('outils/bancs/fixtures/presse-pglite-socle.sql'));
+  await db.exec(lire('outils/bancs/fixtures/presse-pglite-socle.sql.txt'));
   await db.query("INSERT INTO journaux VALUES ('pravdovka', 'Pravdovka', 'soviet', 'pravdovka')");
   const faits = { FACTS: [
     { id: 'f1', acteur: 'Arnie', estPJ: true, victime: { nom: 'Arnie', estPJ: true }, auteur: { identifie: false, designation: 'un individu masqué' } },
