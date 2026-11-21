@@ -1717,6 +1717,27 @@ async function initialiserRueCentrale(pays, noeudDepart, depuisNoeud) {
     if (rueCentraleDeplacementEnCours) continue;
     await initialiserRueCentraleUneFois(state.country, noeudDepart, depuisNoeud);
   }
+  // Filet de sécurité (Fred, 21/11/2026) : jamais de vue vide et muette. Après les relances, si la rue n'est
+  // toujours pas affichée, un message clair et un bouton « Réessayer » (sans recharger la page), et l'incident
+  // est enregistré côté serveur pour en connaître la fréquence.
+  await new Promise(r => setTimeout(r, 1200));
+  const vueRue = document.getElementById('rue-centrale-conteneur');
+  if (!vueRue || document.getElementById('rc-scene') || state.currentBuilding || !nom || state.char?.name !== nom || rueCentraleDeplacementEnCours) return;
+  rueCentraleChargementEnPanne(vueRue, pays, noeudDepart, depuisNoeud);
+}
+
+const RUE_CENTRALE_PANNE = { message: 'La ville se charge encore…', aide: 'L’affichage de la rue prend plus de temps que prévu.', bouton: 'Réessayer' };
+function rueCentraleChargementEnPanne(vueRue, pays, noeudDepart, depuisNoeud) {
+  if (typeof sbRpc === 'function') {
+    sbRpc('incident_client_noter', { p_type: 'rue_vide', p_detail: { pays: state.country || pays || null, ville: state.currentCity || null,
+      noeud: noeudDepart || null, rue: state.currentStreet || null } }).catch(() => null);
+  }
+  vueRue.innerHTML = '<div id="rc-panne" role="status" style="min-height:240px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.8rem;padding:1.5rem;text-align:center;color:#e0d4b0">'
+    + '<div style="font-size:1.05rem">' + RUE_CENTRALE_PANNE.message + '</div>'
+    + '<div style="font-size:.85rem;opacity:.85">' + RUE_CENTRALE_PANNE.aide + '</div>'
+    + '<button type="button" id="rc-panne-reessayer" class="cpj-touche cpj-primaire"><i class="ti ti-refresh"></i> ' + RUE_CENTRALE_PANNE.bouton + '</button></div>';
+  const b = document.getElementById('rc-panne-reessayer');
+  if (b) b.onclick = () => { b.disabled = true; initialiserRueCentrale(state.country || pays, noeudDepart, depuisNoeud); };
 }
 
 async function initialiserRueCentraleUneFois(pays, noeudDepart, depuisNoeud) {

@@ -56,5 +56,38 @@ async function scenario({ remplacerFiche, sceneDejaLa }) {
   r = await scenario({ remplacerFiche: true, sceneDejaLa: true });
   assert.equal(r.appels.length, 0);
   assert.equal(r.lectures, 1);
-  console.log('OK : la première rue s’affiche même si la fiche est rechargée pendant la lecture de position.');
+  // 4. Filet de sécurité (Fred, 21/11) : la rue reste vide malgré les relances → message clair, « Réessayer »
+  //    sans recharger la page, incident journalisé ; « Réessayer » relance l'affichage et la rue apparaît.
+  {
+    const rpc = [], etat = { char: { name: 'Peter' }, country: 'soviet', currentCity: 'capitale', currentBuilding: null, currentRoom: null };
+    let scene = false, panneHtml = '', bouton = null, echouer = true;
+    const conteneur = { set innerHTML(h) { panneHtml = h; bouton = /rc-panne-reessayer/.test(h) ? { disabled: false, onclick: null } : null; }, get innerHTML() { return panneHtml; } };
+    const ctx = {
+      state: etat, rueCentraleLecturePosition: 0, rueCentraleDeplacementEnCours: null, setTimeout, Promise,
+      WORLD: { soviet: { capitale: {} } }, BUILDINGS: {}, rueCentraleServeur: () => true,
+      sbRpc: async (fn, p) => {
+        rpc.push(fn);
+        if (fn === 'incident_client_noter') { rpc.push(JSON.stringify(p)); return { ok: true }; }
+        if (echouer) etat.char = { name: 'Peter' };          // la fiche change à chaque lecture : abandon à chaque fois
+        return { ok: true, country: 'soviet', city: 'capitale', building: null, street: null };
+      },
+      RUE_CENTRALE_DEPART: departs, RUE_CENTRALE_NOEUDS: { soviet: { 'novomirsk-vue-1': {} } },
+      afficherNoeudRue: async () => { scene = true; }, showToast: () => {},
+      document: { getElementById: id => id === 'rue-centrale-conteneur' ? conteneur : id === 'rc-scene' ? (scene ? {} : null) : id === 'rc-panne-reessayer' ? bouton : null }
+    };
+    vm.createContext(ctx);
+    vm.runInContext(code + '\nthis.initialiserRueCentrale = initialiserRueCentrale;', ctx);
+    await ctx.initialiserRueCentrale('soviet', 'novomirsk-vue-1', null);
+    assert.equal(scene, false);
+    assert.match(panneHtml, /La ville se charge encore…/, 'jamais de vue vide et muette');
+    assert.match(panneHtml, /Réessayer/);
+    assert.equal(rpc.filter(f => f === 'incident_client_noter').length, 1, 'incident journalisé une fois');
+    assert.match(rpc[rpc.indexOf('incident_client_noter') + 1], /"p_type":"rue_vide"/);
+    assert.equal(rpc.filter(f => f === 'rue_position_lire').length, 3, 'première lecture + deux relances');
+    echouer = false;
+    bouton.onclick();
+    await new Promise(r => setTimeout(r, 50));
+    assert.equal(scene, true, '« Réessayer » affiche la rue sans recharger la page');
+  }
+  console.log('OK : la première rue s’affiche même si la fiche est rechargée pendant la lecture de position ; sinon message et « Réessayer ».');
 })().catch(e => { console.error(e); process.exitCode = 1; });
