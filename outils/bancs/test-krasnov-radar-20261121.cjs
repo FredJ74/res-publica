@@ -10,10 +10,15 @@ test('Secret du colonel : attaché au personnage, acquis définitivement, carnet
   assert.match(sql, /Phrase de passe : « Demander au colonel des nouvelles de notre ami de Luthécia »/);
 });
 
-test('Sources : habitué selon le palier d’informateur, Kalachnikov toujours', () => {
-  assert.match(sql, /v_chance := CASE WHEN v_niveau >= 3 THEN 100 WHEN v_niveau = 2 THEN 50 WHEN v_niveau = 1 THEN 25 ELSE 10 END;/);
-  assert.match(sql, /IF p_source = 'kalachnikov' THEN v_appris := true;/);
-  assert.match(sql, /\('soviet', 'ville_b', 'cafe-tabac-cheminots-montrouge'\)/);
+test('Sources : habitué payé de 7 à 20 PSK (flou, correct, premier choix), Kalachnikov toujours', () => {
+  const m = lire('migrations/20261121030000_krasnov_radar_sorokine_habitue.sql');
+  assert.match(m, /IF p_montant IS NULL OR p_montant NOT BETWEEN 7 AND 20 THEN/);
+  assert.match(m, /v_palier := CASE WHEN p_montant >= 20 THEN 'premier_choix' WHEN p_montant >= 13 THEN 'correct' ELSE 'flou' END;/);
+  assert.match(m, /v_appris := v_palier = 'premier_choix';/);
+  assert.match(m, /v_palier := 'premier_choix'; v_appris := true;/);
+  const s = lire('plateau-secrets.js');
+  assert.match(s, /À ta santé, camarade ! Au moins ce verre est sûr, pas comme ceux du colonel du centre d’écoute…/);
+  assert.match(s, /Demande-lui des nouvelles de notre ami de Luthécia/);
 });
 
 test('Colonel : 2 PA, 50 %, 150 PSK seulement en cas de succès, dénonciation sur 98-100', () => {
@@ -30,7 +35,7 @@ test('Écran : ordre du colonel caché sans le secret, sources raccordées, carn
   vm.runInContext(lire('data.js') + ';globalThis.__W=WORLD;globalThis.__B=BUILDINGS;', ctx);
   const colonel = ctx.__B['station-radar-krasnov'].rooms.salle_ecoute.orders.find(o => o.fn === 'acheter_polonium_colonel');
   assert.ok(colonel && colonel.secret === 'colonel_polonium' && colonel.pa === 2);
-  assert.ok(ctx.__W.soviet.ville_b.buildingContext['cafe-tabac-cheminots-montrouge'].orders.some(o => o.fn === 'offrir_verre_habitue_krasnov' && o.pa === 1 && o.cost === 5));
+  assert.ok(ctx.__W.soviet.ville_b.buildingContext['cafe-tabac-cheminots-montrouge'].orders.some(o => o.fn === 'offrir_verre_habitue_krasnov' && o.pa === 0 && o.cost === 0));
   assert.ok(ctx.__W.soviet.capitale.buildingContext.armurerie.orders.some(o => o.fn === 'demander_fournisseur_kalachnikov'));
   assert.ok(ctx.__B['port-starovka'].rooms.quai_principal.orders.some(o => o.fn === 'interroger_ganbaatar_polonium'));
   assert.match(lire('plateau-politique.js'), /\.filter\(o => !o\.secret \|\| \(typeof rpSecretConnu === 'function' && rpSecretConnu\(o\.secret\)\)\)/);

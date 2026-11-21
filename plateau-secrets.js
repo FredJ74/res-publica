@@ -49,8 +49,8 @@ async function acte(rpc, params, geste) {
   return v;
 }
 
-const MOTIFS = { pas_sur_place: 'Vous n’êtes pas au bon endroit.', secret_inconnu: 'Le colonel ne voit pas de quoi vous parlez.',
-  fonds_insuffisants: '150 PSK requis.', inventaire_plein: 'Votre inventaire est plein.', pa_insuffisants: 'PA insuffisants.' };
+const MOTIFS = { montant_invalide: 'Entre 7 et 20 PSK.', pas_sur_place: 'Vous n’êtes pas au bon endroit.', secret_inconnu: 'Le colonel ne voit pas de quoi vous parlez.',
+  fonds_insuffisants: 'Fonds insuffisants.', inventaire_plein: 'Votre inventaire est plein.', pa_insuffisants: 'PA insuffisants.' };
 function refus(titre, v) {
   if (!v) return;
   if (MOTIFS[v.raison]) global.showToast(titre, MOTIFS[v.raison], false);
@@ -58,22 +58,49 @@ function refus(titre, v) {
   else global.showToast(titre, 'Le serveur a refusé l’opération.', false);
 }
 
-async function ecouterSource(source) {
-  const titre = source === 'kalachnikov' ? 'Camarade Kalachnikov' : 'L’habitué du Bar Sever';
-  const v = await acte('secret_source_ecouter', { p_source: source }, 'source:' + source);
-  if (!v || v.ok !== true) { refus(titre, v); return; }
+// Habitué du Bar Sever : règle commune des informateurs de Sovarka (Fred, 21/11/2026) — on le paie de 7 à 20 PSK,
+// payer donne toujours un service, la qualité dépend de la somme (flou, correct, premier choix à 20 PSK).
+function ouvrirHabitue() {
+  global.document.getElementById('postes-modal-title').textContent = 'L’habitué du Bar Sever';
+  global.document.getElementById('postes-body').innerHTML = '<div style="padding:1rem">'
+    + '<div style="font-size:.82rem;color:#8a8060;margin-bottom:.7rem" data-i18n="secrets.regularRule">Il parle à qui le paie, de 7 à 20 PSK : plus la somme est belle, meilleure est l’information.</div>'
+    + '<input id="habitue-montant" type="number" min="7" max="20" value="7" class="cpj-champ" style="width:5rem"> PSK '
+    + '<button onclick="payerHabitue()" style="margin-left:.5rem;font-family:Bebas Neue,sans-serif;font-size:.9rem;letter-spacing:.1em;padding:.45rem .9rem;background:#1a1408;border:1px solid #5a4a20;color:#c9a84c;cursor:pointer" data-i18n="secrets.pay">Payer</button>'
+    + '</div>';
+  global.document.getElementById('modal-postes').classList.add('open');
+}
+
+async function payerHabitue() {
+  const montant = Math.floor(Number(global.document.getElementById('habitue-montant')?.value || 0));
+  if (!(montant >= 7 && montant <= 20)) { global.showToast('L’habitué du Bar Sever', 'Entre 7 et 20 PSK.', false); return; }
+  const v = await acte('secret_source_ecouter', { p_source: 'habitue_krasnov', p_montant: montant }, 'source:habitue:' + montant);
+  if (!v || v.ok !== true) { refus('L’habitué du Bar Sever', v); return; }
+  global.document.getElementById('modal-postes')?.classList.remove('open');
   if (typeof global.updateUI === 'function') global.updateUI();
+  const repliques = {
+    flou: '« À ta santé, camarade ! Au moins ce verre est sûr, pas comme ceux du colonel du centre d’écoute… »',
+    correct: '« Le colonel Voronov, à la station radar… il n’écoute pas que les ondes, celui-là. Il vend quelque chose, sous le manteau. »',
+    premier_choix: '« Va voir le colonel Voronov, à la station radar. Demande-lui des nouvelles de notre ami de Luthécia. »'
+  };
+  global.showToast('L’habitué du Bar Sever', repliques[v.palier] || repliques.flou, v.palier === 'premier_choix', v.palier === 'premier_choix');
+  if (typeof global.addJournalEntry === 'function') global.addJournalEntry('L’habitué du Bar Sever (−' + montant + ' PSK) : ' + (repliques[v.palier] || ''), 'event-info');
   if (v.appris) {
-    const phrase = source === 'kalachnikov'
-      ? '« Pour ça, va voir le colonel Voronov, à la station radar de Krasnov. Demande-lui des nouvelles de notre ami de Luthécia. »'
-      : '« Le colonel de la station radar… il ne fait pas qu’écouter, celui-là. Demande-lui des nouvelles de notre ami de Luthécia. »';
-    global.showToast(titre, phrase, true, true);
     if (typeof global.addJournalEntry === 'function') global.addJournalEntry('Nouveau contact au carnet : le colonel Gleb Voronov (station radar de Krasnov).', 'event-info');
     await chargerSecrets();
     if (typeof global.renderRoomActions === 'function') global.renderRoomActions();
-  } else {
-    global.showToast(titre, 'Il trinque avec vous, parle de la neige et du match… mais rien d’utile.', false);
   }
+}
+
+async function ecouterSource(source) {
+  if (source === 'habitue_krasnov') { ouvrirHabitue(); return; }
+  const titre = 'Camarade Kalachnikov';
+  const v = await acte('secret_source_ecouter', { p_source: source }, 'source:' + source);
+  if (!v || v.ok !== true) { refus(titre, v); return; }
+  if (typeof global.updateUI === 'function') global.updateUI();
+  global.showToast(titre, '« Pour ça, va voir le colonel Voronov, à la station radar de Krasnov. Demande-lui des nouvelles de notre ami de Luthécia. »', true, true);
+  if (v.appris && !v.deja && typeof global.addJournalEntry === 'function') global.addJournalEntry('Nouveau contact au carnet : le colonel Gleb Voronov (station radar de Krasnov).', 'event-info');
+  await chargerSecrets();
+  if (typeof global.renderRoomActions === 'function') global.renderRoomActions();
 }
 
 function ganbaatarPolonium() {
@@ -102,6 +129,7 @@ global.rpSecretConnu = secretConnu;
 global.chargerSecrets = chargerSecrets;
 global.rendreCarnetSecrets = rendreCarnet;
 global.ecouterSourceSecret = ecouterSource;
+global.payerHabitue = payerHabitue;
 global.ganbaatarPolonium = ganbaatarPolonium;
 global.acheterPoloniumColonel = acheterPoloniumColonel;
 

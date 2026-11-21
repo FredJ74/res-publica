@@ -13191,7 +13191,7 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
   const bar = sov.ville_b && sov.ville_b.buildingContext && sov.ville_b.buildingContext['cafe-tabac-cheminots-montrouge'];
   if (!bar) throw new Error('Krasnov : Bar Sever absent');
   bar.orders = (bar.orders || []).concat([
-    { fn: 'offrir_verre_habitue_krasnov', label: 'Offrir un verre à l’habitué', pa: 1, cost: 5, type: 'grey', icon: 'ti-glass-full', successRate: 100,
+    { fn: 'offrir_verre_habitue_krasnov', label: 'Offrir un verre à l’habitué', pa: 0, cost: 0, type: 'grey', icon: 'ti-glass-full', successRate: 100,
       desc: 'Un vieil habitué du Bar Sever connaît tout le monde à Krasnov. Il parle plus volontiers à ceux qui ont déjà leurs informateurs.' }
   ]);
   const arsenal = sov.capitale && sov.capitale.buildingContext && sov.capitale.buildingContext.armurerie;

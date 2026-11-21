@@ -534,21 +534,23 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 
 ## Lot de Krasnov, point 8 — radar de Krasnov (Claude, 21/11/2026)
 
-- **Migrations (appliquées) :** `20261121010000_krasnov_radar_vol_archives`, `20261121020000_krasnov_radar_polonium_secrets`.
+- **Migrations (appliquées) :** `20261121010000_krasnov_radar_vol_archives`, `20261121020000_krasnov_radar_polonium_secrets`, `20261121030000_krasnov_radar_sorokine_habitue` (décisions de Fred du 21/11 sur #1169).
 - **Banc :** `outils/bancs/test-krasnov-radar-20261121.cjs`.
-- **Vol des archives d'écoute, règles communes du vol :**
-  - DIS contre le meilleur PER présent (joueur ou groupe, sinon l'opérateur), +15 de carrière criminelle, sans bonus de lieu ;
-  - échec inaperçu une fois sur deux ; sinon repéré, avec 10 % de bagarre ; perdue (une fois sur deux), c'est l'arrestation ;
-  - simplification : contre un PNJ de décor, la bagarre se tranche à pile ou face, sans le moteur de combat.
+- **Vol des archives d'écoute :**
+  - moteur commun du vol (`crim_resoudre_interne`, comme le cambriolage) ;
+  - l'opérateur Ilia Sorokine a désormais une fiche de PNJ (`pnj_membres`, profil de combat par défaut : ENT 10, VOL 12, PER 12, DUP 8) ;
+  - la bagarre passe par le vrai moteur de combat (modificateurs et plafond de la neutralisation) ;
+  - sans personne de présent (opérateur neutralisé), le vol réussit d'office.
 - **Polonium du colonel Voronov :**
   - ordre caché tant que le secret est inconnu ;
-  - sources : l'habitué du Bar Sever (1 PA + 5 PSK, chance selon le palier d'informateur : 10 / 25 / 50 / 100 %), Kalachnikov (toujours) ; Ganbaatar refuse (« je ne suis pas une balance ») ;
-  - achat : 2 PA, 50 % de réussite, 150 PSK payés seulement en cas de succès ; échec critique (98-100) : dénonciation et trace contre l'acheteur ;
-  - valeurs proposées par Claude : 5 PSK, chances par palier.
+  - Kalachnikov donne toujours la phrase ; Ganbaatar refuse (« je ne suis pas une balance ») ;
+  - achat : 2 PA, 50 %, 150 PSK payés seulement en cas de succès ; jet de 98 à 100 : dénonciation et trace contre l'acheteur.
+- **Habitué du Bar Sever :** règle commune des informateurs de Sovarka. On le paie de 7 à 20 PSK ; flou de 7 à 12, correct de 13 à 19, premier choix à 20 PSK, qui donne la phrase de passe et le secret.
+  - Les bornes 12/13 ont été posées par Claude : seule la borne de 20 PSK est fixée par Fred, et le barème « 7 à 20 PSK » n'a pas été retrouvé dans le dépôt.
 - **Carnet « Contacts et secrets » :** dans l'inventaire, visible du seul joueur (`plateau-secrets.js`, `secrets_lire`).
 - **Pour Codex :**
-  - **nouvelles clés :** `secrets.notebook`, `secrets.empty` ;
+  - **nouvelles clés :** `secrets.notebook`, `secrets.empty`, `secrets.regularRule`, `secrets.pay` ;
   - **textes français à traduire :** quatre ordres (habitué, Kalachnikov, Ganbaatar, colonel) et leurs descriptions, déjà dans `ATTENTE_CODEX` de `test-i18n-sovarka-infobulles-20261113.mjs` ; toasts et journal de `plateau-secrets.js` et de `volerArchivesEcoute` ;
   - **nouveau texte de la salle d'écoute de Krasnov (Fred) :** « Cinq téléphones : une ligne pour Luthécia, une pour la Républia, une pour El Estado, une pour Al-Khalija… et la rouge, pour Novomirsk. Personne ne sait vraiment qui décroche à l'autre bout, mais le colonel Voronov prend des notes. Le caporal Sorokine branche les fiches du standard. » Il est à poser dans `data.js` en même temps que son catalogue de descriptions (`i18n/sovarka-descriptions-resources.js`, indexé sur le français exact) ;
   - **description de l'ordre « Voler un rapport dans les archives » :** elle annonce encore « bagarre puis prison » ; à aligner sur les nouvelles règles, avec le catalogue des infobulles.
-- **Image de la salle d'écoute :** les étiquettes « Эль-Эстадо » et « Аль-Халиджа » ne peuvent pas être retouchées proprement. Fred fournira l'image.
+- **Image de la salle d'écoute :** retouchée par Fred (#1171).

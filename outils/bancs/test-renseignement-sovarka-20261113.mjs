@@ -18,7 +18,8 @@ test('ordres : habilitations au bureau de la Sécurité du Peuple, consultation 
   assert.match(data, /fn: 'sovarka_habilitations'[^\n]*requiresPost: 'min_int'/);
   for (const id of ['poste-vigilance-glaciale', 'station-radar-krasnov']) {
     const fns = ctx.BUILDINGS[id].rooms.salle_ecoute.orders.map(o => o.fn + ':' + o.pa).join();
-    assert.equal(fns, 'voler_archives_ecoute:2,consulter_archives_ecoute:1', id);
+    // Krasnov (lot de Krasnov, 21/11/2026) : le colonel Voronov vend aussi le polonium, ordre caché sans le secret.
+    assert.equal(fns, 'voler_archives_ecoute:2,consulter_archives_ecoute:1' + (id === 'station-radar-krasnov' ? ',acheter_polonium_colonel:2' : ''), id);
   }
   assert.ok(sov.length > 0);
   const i = data.indexOf("'siege-renseignement': {", data.indexOf('buildingContext:'));

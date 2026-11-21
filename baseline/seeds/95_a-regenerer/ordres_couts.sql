@@ -342,7 +342,7 @@ INSERT INTO public.ordres_couts (fn,pa,cost) VALUES
   ('officialiser_mariage',2,200),
   ('officialiser_transaction',1,0),
   ('offrir_tournee',1,0),
-  ('offrir_verre_habitue_krasnov',1,5),
+  ('offrir_verre_habitue_krasnov',0,0),
   ('orga_anatheme',2,200),
   ('orga_audit',2,500),
   ('orga_benediction',2,200),

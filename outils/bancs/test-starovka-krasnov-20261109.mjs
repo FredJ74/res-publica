@@ -61,7 +61,8 @@ test('Textes de province : plus de renvoi à Montrouge, Luthécia ou Port-Sainte
         for (const [rid, r] of Object.entries(rooms)) {
           const ov = (ctx.roomOverrides || {})[rid] || {};
           if (re.test((ov.name || r.name) + ' ' + (ov.desc || r.desc || ''))) out.push(ville + '/' + id + '/' + rid);
-          for (const o of ordresDeclaresDeLaPiece(r, ctx, rid)) if (re.test((o.label || '') + ' ' + (o.desc || ''))) out.push(ville + '/' + id + '/' + rid + '/' + o.fn);
+          // Phrase de passe du colonel Voronov (lot de Krasnov, 21/11/2026) : « notre ami de Luthécia », voulu.
+          for (const o of ordresDeclaresDeLaPiece(r, ctx, rid)) if (o.fn !== 'acheter_polonium_colonel' && re.test((o.label || '') + ' ' + (o.desc || ''))) out.push(ville + '/' + id + '/' + rid + '/' + o.fn);
         }
       }
     }
