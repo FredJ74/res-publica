@@ -33,10 +33,11 @@ Règles : voir `AGENTS.md`.
     Peter Kropotkine `post-fcdbe99a-ee9b-4706-95d3-92e3cfb30a87`, texte à ne pas toucher). Il faut un seau de stockage et un point
     d'envoi serveur ; le projet est à **12 fonctions Vercel** (plafond) : greffer l'envoi sur `api/upload-org-avatar.js` (paramètre de
     mode + réécriture `/api/forum-image`), comme `/api/aide` → `chat`. Bouton « Ajouter une image » : aujourd'hui une adresse demandée.
-  - **Étape G** : fait — nom Human Gambit dans les textes français visibles (titre, logo, guide, onglet, bandeau de mise à jour,
+  - **Étape G** : fait — nom Human Gambit dans les textes français visibles (titre, guide, onglet, bandeau de mise à jour,
     carte) ; forum (ordre de lecture, aucun chevauchement, empilement sur petit écran). Reste : fenêtres sans
     chevauchement (nouvelle fenêtre sous la précédente, glisser pour la ramener), nom propre dans les autres langues (catalogues
-    `plateau.gameGuide` et suivants), courrier de bienvenue « Bienvenue dans Res Publica » (`plateau-personnage.js` : texte français
+    `plateau.gameGuide` et suivants), logo du plateau (`plateau.html`, banc `banc-mobile-coque` : comparaison au pixel avec le témoin figé
+    `fixtures/mobile-temoin-728010c8.json.gz`, à renouveler), courrier de bienvenue « Bienvenue dans Res Publica » (`plateau-personnage.js` : texte français
     lié aux traductions relues, banc `banc-i18n-guide-integrite`), invites des IA (« dans le jeu Res Publica »), texte d'aide « Individu masqué n° … »
     (`discretionStatus.maskedTip`) à aligner sur « Personnage masqué ».
   - **Étapes H (interview d'accueil), I (Krasnov 2/3/9), J (terrains : plan des lots, rue en trois états), K (informateurs)** :
