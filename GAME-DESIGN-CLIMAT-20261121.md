@@ -90,3 +90,11 @@ Mets à jour les consignes de l'orage et de la canicule (alertes 48 heures avant
 Une consigne ne doit jamais renvoyer vers un lieu qui n'existe pas dans le pays.
 
 Contrôle : test qui vérifie, pour chaque pays, que chaque parade citée dans une consigne est réellement en vente dans au moins un lieu de ce pays. Confirme quand c'est intégré.
+
+---
+
+## Décisions de Fred du 21/11/2026 sur les questions des parades, recopiées mot pour mot
+
+1. Sels de réhydratation en Sovarka : règle de moitié prix, soit 22 PSK (44 FR en Républia, inchangé).
+2. Port-Sainte-Marie sans quincaillerie : c'est voulu. Aux joueurs de créer les commerces qui manquent ; la consigne continue de renvoyer aux quincailleries de Luthécia et de Montrouge.
+3. Bidons de carburant en Sovarka : vends-les aussi au garage de Novomirsk, au même prix qu'à la station-service de Krasnov, pour qu'on y trouve le groupe électrogène et son carburant au même endroit. Mets à jour la consigne de l'orage en Sovarka en conséquence, et refais passer le contrôle des parades pays par pays.
