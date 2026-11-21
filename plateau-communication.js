@@ -46,7 +46,7 @@ async function verifierNouveauxMails() {
         badge.style.display = 'none';
       }
     }
-    document.title = nonLus > 0 ? '(' + nonLus + ') Res Publica' : 'Res Publica';
+    document.title = nonLus > 0 ? '(' + nonLus + ') Human Gambit' : 'Human Gambit';
   } catch(e) {}
 }
 

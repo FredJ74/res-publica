@@ -2,7 +2,7 @@ name: Cohérence client et transactions locales
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'claude/**']
   pull_request:
     branches: [main]
   # Contrôle nocturne (décision de Fred, 17/11/2026) : 3 h, heure de Paris en hiver.

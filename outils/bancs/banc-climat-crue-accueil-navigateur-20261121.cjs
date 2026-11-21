@@ -11,7 +11,8 @@ const PAGE = '<!doctype html><meta charset="utf-8"><body><div id="rue-image" sty
   + '<div class="rc-zone" id="z-marche" data-building="marche-psm" style="position:absolute;left:100px;top:100px;width:120px;height:120px"></div>'
   + '<div class="rc-zone" id="z-gare" data-building="psm-centre-multimodal" style="position:absolute;left:300px;top:100px;width:120px;height:120px"></div>'
   + '<div class="rc-zone" id="z-port" data-building="port-sainte-marie" style="position:absolute;left:500px;top:100px;width:120px;height:120px"></div>'
-  + '</div></div></div></body>';
+  + '</div></div></div><div id="rue-actions-row"><button class="action-btn legal" id="fouiller">Fouiller ou voler</button></div>'
+  + '<div id="modal-postes"><div id="postes-modal-title"></div><div id="postes-body"></div></div></body>';
 
 const CONSIGNE = 'Pendant 6 heures, les commerces et entrepôts non protégés de la zone inondable sont fermés et perdent 20 % de leurs stocks, et les chantiers sont à l’arrêt.';
 async function avecPage(fn, { maintenant, creationRecente = true, ville = 'ville_a', pays = 'republic', type = 'crue' } = {}) {
@@ -38,7 +39,10 @@ async function avecPage(fn, { maintenant, creationRecente = true, ville = 'ville
         if (fn === 'climat_accueil_lire') return { ok: true, evenement: (${creationRecente} && !window.__vus.includes(77)) ? crue : null };
         if (fn === 'climat_accueil_vu') { window.__vus.push(p.p_evenement); return { ok: true }; }
         if (fn === 'climat_points_eau_lister') return { ok: true, points: [{ id: 'krasnov-fontaine-ours', pays: 'soviet', ville: 'ville_b', noeud: 'krasnov-place-ours', nom: 'la fontaine de la statue de l’Ours, place de l’Ours' }] };
-        if (fn === 'point_eau_remplir') { window.__eau++; return { ok: true, qte: 1, inventory: [{ name: 'Bouteille d’eau', stackKey: 'bouteille_eau', qty: window.__eau }] }; }
+        if (fn === 'point_eau_etat') return { ok: true, point: { id: 'krasnov-fontaine-ours', image: 'images/Sovarka/Krasnov/Krasnov_place_ours_fontaine.webp' },
+          max_tranche: 10, deja: window.__eau, restant: 10 - window.__eau, place: window.__place ?? 100, pa: 5, heure_fin: 12 };
+        if (fn === 'point_eau_puiser') { window.__puisages = (window.__puisages || []).concat(p.p_quantite); const n = Math.min(p.p_quantite, 10 - window.__eau); window.__eau += n;
+          return { ok: true, quantite: n, restant: 10 - window.__eau, pa: 4, inventory: [{ name: 'Bouteille d’eau', stackKey: 'bouteille_eau', qty: window.__eau }] }; }
         return null;
       };
       document.getElementById('z-marche').addEventListener('click', () => window.__entrees++);
@@ -133,20 +137,44 @@ test('le bandeau « Attention crue » s’explique au clic ; tout disparaît à 
   });
 });
 
-test('point d’eau : « Remplir une bouteille d’eau » à la fontaine de la place de l’Ours, gratuit', async () => {
+test('point d’eau : ordre vert « Puiser de l’eau » dans la liste des ordres de la place, fenêtre illustrée et pédagogique', async () => {
   await avecPage(async page => {
     await page.evaluate(() => window.RPClimat.appliquerFiltre());
     await page.waitForFunction(() => window.RPClimat._pointsEau());
     await page.evaluate(() => window.RPClimat.appliquerFiltre());
-    const b = page.locator('#climat-eau');
-    assert.equal(await b.innerText(), 'Remplir une bouteille d’eau');
-    assert.match(await b.getAttribute('title'), /Gratuit, 0 PA/);
+    // Plus rien sur l'image : l'ordre est le premier de la rangée des ordres, en vert (classe « legal »).
+    assert.equal(await page.locator('#rc-scene button').count(), 0);
+    const b = page.locator('#rue-actions-row #rue-ordre-puiser');
+    assert.match(await b.innerText(), /Puiser de l’eau \(1 PA\)/);
+    assert.equal(await b.getAttribute('class'), 'action-btn legal');
+    assert.equal(await page.evaluate(() => document.getElementById('rue-actions-row').firstElementChild.id), 'rue-ordre-puiser');
     await b.click();
-    await page.waitForFunction(() => window.__eau === 1);
-    assert.match((await page.evaluate(() => window.__toasts.at(-1)))[1], /Vous avez rempli une bouteille d’eau à la fontaine de la statue de l’Ours/);
-    // Ailleurs dans la ville : pas de bouton.
+    const corps = page.locator('#postes-body');
+    await corps.locator('img').waitFor();
+    const txt = await corps.innerText();
+    assert.match(txt, /Fontaine de la statue de l’Ours\. L’eau est gratuite\. Puiser coûte 1 PA, quelle que soit la quantité\. Vous pouvez puiser jusqu’à 10 bouteilles toutes les 6 heures\./);
+    assert.match(txt, /Vous pouvez encore puiser 10 bouteilles avant 12 h 00\./);
+    await page.fill('#puiser-qte', '5');
+    await page.click('#puiser-valider');
+    await page.waitForFunction(() => window.__eau === 5);
+    assert.match((await page.evaluate(() => window.__toasts.at(-1)))[1], /^Vous avez puisé 5 bouteilles d’eau \(−1 PA\)\. Elles sont dans votre inventaire\.$/);
+    await page.waitForFunction(() => /encore puiser 5 bouteilles/.test(document.getElementById('postes-body').innerText));
+    // Inventaire limitant : la phrase s'ajoute ; plafond atteint : bouton désactivé et explication.
+    await page.evaluate(() => { window.__place = 3; });
+    await page.evaluate(() => window.RPClimat.ouvrirPuiserEau());
+    await page.waitForFunction(() => /ne peut accueillir que 3 bouteilles de plus/.test(document.getElementById('postes-body').innerText));
+    assert.equal(await page.inputValue('#puiser-qte'), '3');
+    await page.evaluate(() => { window.__place = 100; window.__eau = 10; });
+    await page.evaluate(() => window.RPClimat.ouvrirPuiserEau());
+    await page.waitForFunction(() => /déjà puisé vos 10 bouteilles pour cette période\. La fontaine sera de nouveau à vous à 12 h 00\. Astuce : le marché vend de l’eau déjà puisée, sans dépense de PA\./.test(document.getElementById('postes-body').innerText));
+    assert.equal(await page.locator('#puiser-valider').isDisabled(), true);
+    await page.evaluate(() => { window.__eau = 0; window.__place = 0; });
+    await page.evaluate(() => window.RPClimat.ouvrirPuiserEau());
+    await page.waitForFunction(() => /Votre inventaire est plein : faites de la place pour puiser de l’eau\./.test(document.getElementById('postes-body').innerText));
+    assert.equal(await page.locator('#puiser-valider').isDisabled(), true);
+    // Ailleurs dans la ville : pas d'ordre.
     await page.evaluate(() => { rueCentraleNoeudActuel = 'krasnov-rue-mairie-place'; window.RPClimat.appliquerFiltre(); });
-    assert.equal(await page.locator('#climat-eau').count(), 0);
+    assert.equal(await page.locator('#rue-ordre-puiser').count(), 0);
   }, { ville: 'ville_b', pays: 'soviet' });
 });
 

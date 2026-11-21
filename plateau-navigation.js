@@ -169,6 +169,31 @@ function orientationRueVoisine(pays, noeudId, depuis) {
   return voisins.has(depuis) ? depuis : null;
 }
 
+// MEMBRE DE GROUPE (Fred, 21/11/2026) : un membre garde « Sortir » et les ordres de déplacement ; au clic, une infobulle
+// explique pourquoi il ne bouge pas et comment faire. Le serveur refuse de toute façon (chef_de_groupe_requis).
+const RP_MSG_MEMBRE_GROUPE = 'Impossible de vous déplacer : vous n’êtes pas chef de groupe. Quittez le groupe pour vous déplacer seul.';
+let rpDernierClic = null;
+if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') document.addEventListener('pointerdown', e => { rpDernierClic = { x: e.clientX, y: e.clientY }; }, true);
+function rpInfobulleMembreGroupe() {
+  let b = document.getElementById('rp-infobulle-groupe');
+  if (b) b.remove();
+  b = document.createElement('div');
+  b.id = 'rp-infobulle-groupe'; b.setAttribute('role', 'status');
+  b.textContent = RP_MSG_MEMBRE_GROUPE;
+  const x = rpDernierClic ? rpDernierClic.x : window.innerWidth / 2, y = rpDernierClic ? rpDernierClic.y : window.innerHeight / 2;
+  b.style.cssText = 'position:fixed;z-index:10050;max-width:300px;padding:.55rem .7rem;background:#1a140a;color:#f0e6c8;border:1px solid #C9A84C;'
+    + 'border-radius:4px;box-shadow:0 4px 14px rgba(0,0,0,.5);font-size:.9rem;line-height:1.35;pointer-events:none;'
+    + 'left:' + Math.max(8, Math.min(window.innerWidth - 316, x - 150)) + 'px;top:' + Math.max(8, Math.min(window.innerHeight - 90, y + 14)) + 'px';
+  document.body.appendChild(b);
+  setTimeout(() => { if (b.parentNode) b.remove(); }, 4500);
+}
+function rpMembreGroupeBloque() {
+  const moi = window.RP_PRESENTS_MOI;
+  if (!moi || !moi.chef || moi.est_chef) return false;
+  rpInfobulleMembreGroupe();
+  return true;
+}
+
 function showVueRue(batimentQuitte, positionConfirmee = null) {
   const rpNav = (typeof window!=='undefined' && typeof window.RPNavigationI18n?.label==='function') ? window.RPNavigationI18n.label : (_key,original)=>original;
   const rpNavHtml = (typeof window!=='undefined' && typeof window.RPNavigationI18n?.labelHtml==='function') ? window.RPNavigationI18n.labelHtml : (_key,original)=>original;
@@ -269,7 +294,7 @@ function showVueRue(batimentQuitte, positionConfirmee = null) {
       // Une provenance qui ne mene pas a cette rue (ex. rue d'avant une detention) n'oriente pas la scene.
       const orientation=typeof orientationRueVoisine==='function'?orientationRueVoisine(state.country,positionConfirmee.street,orientationBrute):orientationBrute;
       afficherNoeudRue(state.country,positionConfirmee.street,orientation,true);
-    }else initialiserRueCentrale(state.country,reprise.noeudId,reprise.depuisNoeudId);
+    }else (typeof initialiserRueCentraleSure==='function'?initialiserRueCentraleSure:initialiserRueCentrale)(state.country,reprise.noeudId,reprise.depuisNoeudId);
   } else {
     // Ancien systeme (image statique + mini-carte des batiments) — pour les villes pas encore converties
     if (minimap) minimap.style.display = '';
@@ -345,7 +370,7 @@ async function commanderNavigationInterieure(buildingId,roomId) {
         r={ok:true,building:p.building,room:p.room,positions:[],reconcilie:true};
     }
     if(r?.ok!==true||r.building!==buildingId||r.room!==roomId){
-      const motifs={chef_de_groupe_requis:'Seul le chef du groupe peut le déplacer.',
+      const motifs={chef_de_groupe_requis:(typeof RP_MSG_MEMBRE_GROUPE!=='undefined'?RP_MSG_MEMBRE_GROUPE:'Seul le chef du groupe peut le déplacer.'),
         personnage_indisponible:'Un membre du groupe ne peut pas se déplacer.',
         acteur_incapacite:'Un membre du groupe est incapable de se déplacer.',
         combat_en_cours:'Un membre est engagé dans un combat.',combat_membre_pnj:'Un accompagnant est engagé dans un combat.',
@@ -766,6 +791,7 @@ function renderOngletsPieces(buildingId, roomActifId) {
 }
 
 function enterRoom(buildingId, roomId, tabEl) {
+  if (state.currentBuilding === buildingId && state.currentRoom !== roomId && typeof rpMembreGroupeBloque === 'function' && rpMembreGroupeBloque()) return;
   const rpNav = (typeof window!=='undefined' && typeof window.RPNavigationI18n?.label==='function') ? window.RPNavigationI18n.label : (_key,original)=>original;
   if(state._navigationServeur===true&&(state.currentBuilding!==buildingId||state.currentRoom!==roomId)
       &&!(navigationInterieureRendu?.buildingId===buildingId&&navigationInterieureRendu?.roomId===roomId))
@@ -1736,6 +1762,7 @@ async function realignerVilleSurServeurAvantSortie() {
 }
 
 async function sortirBatiment() {
+  if (typeof rpMembreGroupeBloque === 'function' && rpMembreGroupeBloque()) return;
   if (state._navigationServeur && ['caserne','qhs'].includes(state.currentCity)) {
     return commanderNavigationInterieure(null, null);
   }

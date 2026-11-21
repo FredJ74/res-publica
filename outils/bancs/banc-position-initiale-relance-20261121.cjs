@@ -11,7 +11,7 @@ function tranche(debutTexte, finTexte) {
   return source.slice(d, f);
 }
 const code = tranche('function contexteNavigationRue()', '\nlet rueCentraleNoeudActuel')
-  + '\n' + tranche('async function initialiserRueCentrale(', '\nasync function afficherNoeudRue(');
+  + '\n' + tranche('async function initialiserRueCentraleSure(', '\nasync function afficherNoeudRue(');
 const departs = { republic: { capitale: 'luthecia-palais-presidentiel' }, soviet: { capitale: 'novomirsk-vue-1', ville_b: 'krasnov-rue-gare' } };
 
 async function scenario({ remplacerFiche, sceneDejaLa }) {
@@ -36,8 +36,8 @@ async function scenario({ remplacerFiche, sceneDejaLa }) {
     document: { getElementById: id => id === 'rue-centrale-conteneur' ? {} : (id === 'rc-scene' && scene ? {} : null) }
   };
   vm.createContext(contexte);
-  vm.runInContext(code + '\nthis.initialiserRueCentrale = initialiserRueCentrale;', contexte);
-  await contexte.initialiserRueCentrale('soviet', 'novomirsk-vue-1', null);
+  vm.runInContext(code + '\nthis.initialiserRueCentraleSure = initialiserRueCentraleSure;', contexte);
+  await contexte.initialiserRueCentraleSure('soviet', 'novomirsk-vue-1', null);
   return { appels, toasts, lectures };
 }
 
@@ -78,8 +78,8 @@ async function scenario({ remplacerFiche, sceneDejaLa }) {
       document: { getElementById: id => id === 'rue-centrale-conteneur' ? conteneur : id === 'rc-scene' ? (scene ? {} : null) : id === 'rc-panne-reessayer' ? bouton : null }
     };
     vm.createContext(ctx);
-    vm.runInContext(code + '\nthis.initialiserRueCentrale = initialiserRueCentrale;', ctx);
-    await ctx.initialiserRueCentrale('soviet', 'novomirsk-vue-1', null);
+    vm.runInContext(code + '\nthis.initialiserRueCentraleSure = initialiserRueCentraleSure;', ctx);
+    await ctx.initialiserRueCentraleSure('soviet', 'novomirsk-vue-1', null);
     assert.equal(scene, false);
     assert.match(panneHtml, /La ville se charge encore…/, 'jamais de vue vide et muette');
     assert.match(panneHtml, /Réessayer/);

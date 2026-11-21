@@ -18,6 +18,6 @@ test('alerte « Attention … » : vues de rue seulement, clignotement lent, exp
   assert.match(c, /animation:climatAlerte 4s ease-in-out infinite/);
   assert.match(c, /@keyframes climatAlerte\{0%,100%\{opacity:1\}50%\{opacity:\.55\}\}/);
   // Hôte = scène ou image de la rue : rien dans les pièces.
-  assert.match(c, /afficherPointEau\(hote\);\n  if \(!ev \|\| !hote\) \{ if \(f\) f\.remove\(\); if \(a\) a\.remove\(\); marquerLieuxInondes\(\); return; \}/);
+  assert.match(c, /afficherPointEau\(\);\n  if \(!ev \|\| !hote\) \{ if \(f\) f\.remove\(\); if \(a\) a\.remove\(\); marquerLieuxInondes\(\); return; \}/);
   assert.match(c, /setInterval\(appliquerFiltre, 1500\)/);
 });

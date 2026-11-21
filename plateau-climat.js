@@ -353,8 +353,7 @@ function injecterStyle() {
     // Clignotement lent, sans agressivité : l'alerte ne disparaît jamais tout à fait.
     + '@keyframes climatAlerte{0%,100%{opacity:1}50%{opacity:.55}}'
     // Joueurs qui ont demandé à réduire les animations dans leur système : tout reste visible, rien ne bouge.
-    + '@media (prefers-reduced-motion: reduce){#climat-filtre,#climat-filtre::before,#climat-filtre::after,#climat-alerte{animation:none!important}}'
-    + '#climat-eau{position:absolute;left:50%;bottom:58px;transform:translateX(-50%);z-index:1002;pointer-events:auto}';
+    + '@media (prefers-reduced-motion: reduce){#climat-filtre,#climat-filtre::before,#climat-filtre::after,#climat-alerte{animation:none!important}}';
   doc.head.appendChild(st);
 }
 function appliquerFiltre() {
@@ -367,7 +366,7 @@ function appliquerFiltre() {
   const hote = doc.getElementById('rc-scene') || rue;
   let f = doc.getElementById('climat-filtre');
   let a = doc.getElementById('climat-alerte');
-  afficherPointEau(hote);
+  afficherPointEau();
   if (!ev || !hote) { if (f) f.remove(); if (a) a.remove(); marquerLieuxInondes(); return; }
   injecterStyle();
   if (!f || f.parentNode !== hote) {
@@ -396,8 +395,33 @@ function appliquerFiltre() {
   marquerLieuxInondes();
 }
 
-// ── Points d'eau : « Remplir une bouteille d'eau », gratuit, 0 PA (Fred, 21/11/2026) ─────────────────
+// ── Points d'eau : ordre de rue VERT « Puiser de l'eau » (Fred, 21/11/2026, mission du soir) ────────────────────
 // La liste vient du serveur (climat_points_eau, configuration) : un nouveau point d'eau n'exige aucun développement.
+// L'ordre se range dans la liste des ordres de la vue (#rue-actions-row), jamais sur l'image. Il ouvre une fenêtre illustrée.
+// Eau gratuite, 1 PA par puisage quelle que soit la quantité, 10 bouteilles par tranche de 6 h (heure de Paris).
+const ORDRE_PUISER = { fn: 'puiser_eau', label: 'Puiser de l’eau', pa: 1, cost: 0, type: 'legal', icon: 'ti-bucket-droplet' };
+const EAU_TXT = {
+  tete: 'Fontaine de la statue de l’Ours. L’eau est gratuite. Puiser coûte 1 PA, quelle que soit la quantité. Vous pouvez puiser jusqu’à {max} bouteilles toutes les 6 heures.',
+  reste: 'Vous pouvez encore puiser {n} bouteille{s} avant {h}.',
+  place: 'Votre inventaire ne peut accueillir que {n} bouteille{s} de plus.',
+  plafond: 'Vous avez déjà puisé vos {max} bouteilles pour cette période. La fontaine sera de nouveau à vous à {h}. Astuce : le marché vend de l’eau déjà puisée, sans dépense de PA.',
+  plein: 'Votre inventaire est plein : faites de la place pour puiser de l’eau.',
+  sansPa: 'Il vous faut 1 PA pour puiser : reposez-vous ou revenez quand vos PA seront revenus.',
+  fait: 'Vous avez puisé {n} bouteille{s} d’eau (−1 PA). Elle{s} {sont} dans votre inventaire.',
+  quantite: 'Nombre de bouteilles à puiser',
+  bouton: 'Puiser',
+  fermer: 'Fermer',
+  ailleurs: 'Il n’y a pas de point d’eau ici : la fontaine est sur la place de l’Ours, à Krasnov.',
+  ancien: 'Ce bouton a été remplacé par l’ordre « Puiser de l’eau » de la place.',
+};
+function eauTxt(k, v) {
+  return String(EAU_TXT[k] || '').replace(/\{(\w+)\}/g, (_, x) => {
+    if (x === 's') return (v && v.n > 1) ? 's' : '';
+    if (x === 'sont') return (v && v.n > 1) ? 'sont' : 'est';
+    return v && v[x] != null ? v[x] : '';
+  });
+}
+const heureFinEau = h => (Number(h) % 24) + ' h 00';
 let pointsEau = null, pointsEauLecture = null;
 function lirePointsEau() {
   if (pointsEau || pointsEauLecture || typeof global.sbRpc !== 'function') return;
@@ -410,29 +434,91 @@ function pointEauIci() {
   if (!pointsEau || !noeud || s.currentBuilding) return null;
   return pointsEau.find(p => p.noeud === noeud && p.ville === s.currentCity && (!s.country || p.pays === s.country)) || null;
 }
-function afficherPointEau(hote) {
+// Appelée à chaque passage du filtre (toutes les 1,5 s et à chaque relecture) : l'ordre suit la vue, sans recharger.
+function afficherPointEau() {
   const doc = global.document;
   lirePointsEau();
-  const pe = hote ? pointEauIci() : null;
-  let b = doc.getElementById('climat-eau');
+  const ancien = doc.getElementById('climat-eau'); if (ancien) ancien.remove();   // ancien bouton posé sur l'image
+  const rangee = doc.getElementById('rue-actions-row');
+  const pe = rangee ? pointEauIci() : null;
+  let b = doc.getElementById('rue-ordre-puiser');
   if (!pe) { if (b) b.remove(); return; }
-  injecterStyle();
-  if (b && b.parentNode === hote && b.dataset.point === pe.id) return;
+  if (b && b.parentNode === rangee && b.dataset.point === pe.id) return;
   if (b) b.remove();
   b = doc.createElement('button');
-  b.type = 'button'; b.id = 'climat-eau'; b.className = 'cpj-touche cpj-primaire'; b.dataset.point = pe.id;
-  b.innerHTML = '<i class="ti ti-bottle"></i> ' + esc(explic('eau_bouton'));
-  b.title = explic('eau_infobulle');
-  b.addEventListener('click', e => { e.stopPropagation(); remplirBouteille(pe); });
-  hote.appendChild(b);
+  b.type = 'button'; b.id = 'rue-ordre-puiser'; b.className = 'action-btn legal'; b.dataset.point = pe.id; b.dataset.fn = ORDRE_PUISER.fn;
+  b.innerHTML = '<i class="ti ' + ORDRE_PUISER.icon + '" style="font-size:.82rem"></i> ' + esc(ORDRE_PUISER.label) + ' <span style="opacity:.7">(' + ORDRE_PUISER.pa + ' PA)</span>';
+  b.title = 'Eau gratuite : 1 PA par puisage, jusqu’à 10 bouteilles toutes les 6 heures.';
+  b.addEventListener('click', e => { e.stopPropagation(); ouvrirPuiserEau(); });
+  rangee.insertBefore(b, rangee.firstChild);
 }
-async function remplirBouteille(pe) {
-  const r = un(await global.sbRpc('point_eau_remplir', { p_requete: uuid() }).catch(() => null));
-  if (!r || r.ok !== true) { global.showToast(explic('eau_titre'), r && r.raison === 'pas_de_point_eau' ? explic('eau_refus') : motif(r), false); return; }
-  appliquerInventaire(r);
-  global.showToast(explic('eau_titre'), explic('eau_ok', { nom: pe.nom }), true);
-  if (typeof global.updateUI === 'function') global.updateUI();
+function fermerPuiserEau() { global.document.getElementById('modal-postes')?.classList.remove('open'); }
+let puiserEtat = null, puiserEnCours = false;
+function rendrePuiserEau(e, message) {
+  const doc = global.document;
+  const titre = doc.getElementById('postes-modal-title');
+  if (titre) titre.textContent = ORDRE_PUISER.label;
+  const img = (e.point && e.point.image) || 'images/Sovarka/Krasnov/Krasnov_place_ours.webp';
+  const h = heureFinEau(e.heure_fin);
+  const max = Math.max(0, Math.min(Number(e.restant) || 0, Number(e.place) || 0));
+  let explication = '', raison = '';
+  if (Number(e.restant) <= 0) raison = eauTxt('plafond', { max: e.max_tranche, h });
+  else if (Number(e.place) <= 0) raison = eauTxt('plein');
+  else if (Number(e.pa) < 1) raison = eauTxt('sansPa');
+  if (!raison) {
+    explication = eauTxt('reste', { n: e.restant, h });
+    if (Number(e.place) < Number(e.restant)) explication += ' ' + eauTxt('place', { n: e.place });
+  }
+  const possible = !raison && max > 0;
+  doc.getElementById('postes-body').innerHTML = '<div class="cpj-dialogue" style="padding:1rem;font-size:1rem;line-height:1.45">'
+    + '<img src="' + esc(img) + '" alt="" style="width:100%;max-height:240px;object-fit:cover;border:1px solid #2a2010;border-radius:3px;margin-bottom:.7rem"'
+    + ' onerror="this.onerror=null;this.src=\'images/Sovarka/Krasnov/Krasnov_place_ours.webp\'">'
+    + '<p style="margin:0 0 .6rem">' + esc(eauTxt('tete', { max: e.max_tranche })) + '</p>'
+    + (message ? '<p style="margin:0 0 .6rem;color:#8ab070">' + esc(message) + '</p>' : '')
+    + (explication ? '<p style="margin:0 0 .6rem">' + esc(explication) + '</p>' : '')
+    + (raison ? '<p style="margin:0 0 .6rem;color:#e0a040">' + esc(raison) + '</p>' : '')
+    + (possible ? '<label class="cpj-note" for="puiser-qte">' + esc(eauTxt('quantite')) + ' (1 à ' + max + ')</label>'
+      + '<input id="puiser-qte" class="cpj-champ" type="number" min="1" max="' + max + '" value="' + max + '" style="width:100%;margin:.2rem 0 .8rem">' : '')
+    + '<div style="display:flex;gap:.5rem">'
+    + '<button type="button" class="cpj-touche cpj-primaire" style="flex:1" id="puiser-valider"' + (possible ? '' : ' disabled title="' + esc(raison) + '"') + '>'
+    + '<i class="ti ti-bucket-droplet"></i> ' + esc(eauTxt('bouton')) + ' (−1 PA)</button>'
+    + '<button type="button" class="cpj-touche" style="flex:1" id="puiser-fermer">' + esc(eauTxt('fermer')) + '</button></div></div>';
+  const q = doc.getElementById('puiser-qte');
+  if (q) q.addEventListener('input', () => { const v = Math.floor(Number(q.value)); if (v > max) q.value = max; });
+  doc.getElementById('puiser-fermer').addEventListener('click', fermerPuiserEau);
+  const ok = doc.getElementById('puiser-valider');
+  if (possible) ok.addEventListener('click', () => confirmerPuiserEau(max));
+  doc.getElementById('modal-postes').classList.add('open');
 }
+async function ouvrirPuiserEau(message) {
+  const e = un(await global.sbRpc('point_eau_etat', {}).catch(() => null));
+  if (!e || e.ok !== true) { global.showToast(ORDRE_PUISER.label, e && e.raison === 'pas_de_point_eau' ? eauTxt('ailleurs') : motif(e), false); return; }
+  puiserEtat = e;
+  rendrePuiserEau(e, message);
+}
+async function confirmerPuiserEau(max) {
+  if (puiserEnCours) return;
+  const champ = global.document.getElementById('puiser-qte');
+  const qte = Math.max(1, Math.min(max, Math.floor(Number(champ && champ.value) || 1)));
+  puiserEnCours = true;
+  const b = global.document.getElementById('puiser-valider'); if (b) b.disabled = true;
+  try {
+    const r = un(await global.sbRpc('point_eau_puiser', { p_requete: uuid(), p_quantite: qte }).catch(() => null));
+    if (!r || r.ok !== true) {
+      if (r && ['plafond_atteint', 'inventaire_plein', 'pas_de_point_eau'].includes(r.raison)) { await ouvrirPuiserEau(); return; }
+      global.showToast(ORDRE_PUISER.label, r && r.raison === 'pa_insuffisants' ? eauTxt('sansPa') : motif(r), false);
+      await ouvrirPuiserEau(); return;
+    }
+    appliquerInventaire(r);
+    if (typeof state !== 'undefined' && state && Number.isFinite(Number(r.pa))) { state.pa = Number(r.pa); if (state.char) state.char.pa = state.pa; }
+    const fait = eauTxt('fait', { n: r.quantite });
+    global.showToast(ORDRE_PUISER.label, fait, true);
+    if (typeof global.updateUI === 'function') global.updateUI();
+    await ouvrirPuiserEau(fait);
+  } finally { puiserEnCours = false; }
+}
+// Ancien bouton « Remplir une bouteille d'eau » : gardé pour un écran resté ouvert, il ouvre la nouvelle fenêtre.
+async function remplirBouteille() { return ouvrirPuiserEau(eauTxt('ancien')); }
 
 // ── Graisses (lot 4) : poissonnière de Novomirsk, marché de Krasnov, pharmacies ouvertes par un PJ ─────
 const CLES_GRAISSE = ['graisse_castor', 'graisse_ours', 'kolkhoze_graisse_renne'];
@@ -653,7 +739,7 @@ if (global.document && global.document.readyState !== 'loading') demarrer();
 else if (global.document) global.document.addEventListener('DOMContentLoaded', demarrer);
 
 global.RPClimat = { T, ALERTES, EXPLIC, TYPES, PICTOS, pictogramme, texte, explic, message, rafraichirClimat, appliquerFiltre, nomObjet: nomObjetClimat,
-  pointEauIci, remplirBouteille, _pointsEau: v => { if (Array.isArray(v)) pointsEau = v; return pointsEau; },
+  pointEauIci, remplirBouteille, ouvrirPuiserEau, afficherPointEau, ORDRE_PUISER, _pointsEau: v => { if (Array.isArray(v)) pointsEau = v; return pointsEau; },
   enCours, dureeRestante, messageLieuFerme, fenetreExplication, accueillirNouveau, marquerLieuxInondes,
   _evenements: v => { if (Array.isArray(v)) evenements = v; return evenements; } };
 Object.assign(global, { ouvrirGraisses, confirmerGraisse, climatGraissesBoutiqueHtml, boutonDeposerGraisse, deposerGraisse,

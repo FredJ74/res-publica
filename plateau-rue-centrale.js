@@ -1196,9 +1196,8 @@ const RUE_CENTRALE_NOEUDS = {
       // La place n'est pas un bâtiment : elle figure au plan sous ce nom (14/11/2026, Fred).
       nomLieu: "Place de l'Ours",
       image: 'images/Sovarka/Krasnov/Krasnov_place_ours.webp',
-      zones: [
-        { xPct: [49, 100], yPct: [9, 77], nom: 'Mairie de Krasnov', type: 'batiment', buildingId: 'mairie' }
-      ],
+      // La mairie se voit au fond mais on n'y entre pas d'ici : sa porte est dans la rue krasnov-rue-mairie-place (Fred, 21/11/2026).
+      zones: [],
       liens: { arriere: 'krasnov-rue-mairie-place' },
       flechesStyle: { arriere: 'bottom:10px; left:50%; transform:translateX(-50%);' }
     },
@@ -1706,7 +1705,8 @@ function trouverNoeudRueCentralePourBatiment(pays, buildingId) {
 // abandonnée EN SILENCE, la vue de rue restait vide (sans image, sans flèche ni bâtiment), et la position du
 // personnage ne quittait jamais l'état vierge. Le joueur ne pouvait plus bouger. On relance donc l'initialisation,
 // deux fois au plus, tant qu'aucune scène n'est affichée pour un personnage qui est dans la rue.
-async function initialiserRueCentrale(pays, noeudDepart, depuisNoeud) {
+// initialiserRueCentrale reste l'initialisation d'origine (un seul essai) ; initialiserRueCentraleSure l'enveloppe.
+async function initialiserRueCentraleSure(pays, noeudDepart, depuisNoeud) {
   const nom = state.char?.name;
   const vueVide = () => {
     if (typeof document === 'undefined') return null;
@@ -1721,13 +1721,13 @@ async function initialiserRueCentrale(pays, noeudDepart, depuisNoeud) {
     if (v && !rueCentraleDeplacementEnCours) rueCentraleChargementEnPanne(v, pays, noeudDepart, depuisNoeud);
   }, RUE_CENTRALE_PANNE.delaiMs);
   try {
-    await initialiserRueCentraleUneFois(pays, noeudDepart, depuisNoeud);
+    await initialiserRueCentrale(pays, noeudDepart, depuisNoeud);
     if (typeof document === 'undefined') return;
     for (let essai = 0; essai < 2; essai++) {
       await new Promise(r => setTimeout(r, 500 + essai * 700));
       if (!vueVide()) return;
       if (rueCentraleDeplacementEnCours) continue;
-      await initialiserRueCentraleUneFois(state.country, noeudDepart, depuisNoeud);
+      await initialiserRueCentrale(state.country, noeudDepart, depuisNoeud);
     }
     // Filet de sécurité (Fred, 21/11/2026) : jamais de vue vide et muette. Après les relances, si la rue n'est
     // toujours pas affichée, un message clair et un bouton « Réessayer » (sans recharger la page), et l'incident
@@ -1759,10 +1759,10 @@ function rueCentraleChargementEnPanne(vueRue, pays, noeudDepart, depuisNoeud) {
     + '<div style="font-size:.85rem;opacity:.85">' + RUE_CENTRALE_PANNE.aide + '</div>'
     + '<button type="button" id="rc-panne-reessayer" class="cpj-touche cpj-primaire"><i class="ti ti-refresh"></i> ' + RUE_CENTRALE_PANNE.bouton + '</button></div>';
   const b = document.getElementById('rc-panne-reessayer');
-  if (b) b.onclick = () => { b.disabled = true; initialiserRueCentrale(state.country || pays, noeudDepart, depuisNoeud); };
+  if (b) b.onclick = () => { b.disabled = true; initialiserRueCentraleSure(state.country || pays, noeudDepart, depuisNoeud); };
 }
 
-async function initialiserRueCentraleUneFois(pays, noeudDepart, depuisNoeud) {
+async function initialiserRueCentrale(pays, noeudDepart, depuisNoeud) {
   const contexte=contexteNavigationRue(),lecture=++rueCentraleLecturePosition;
   if ((typeof rueCentraleServeur === 'function' ? rueCentraleServeur(pays, state.currentCity) : pays === 'republic')) {
     // Une reconnexion ne reprend jamais une position provenant du localStorage.
@@ -1885,7 +1885,7 @@ async function afficherNoeudRue(pays, noeudId, depuisNoeudId, positionDejaConfir
     if(!contexteNavigationRueValide(contexte))return;
     ++rueCentraleLecturePosition;
     if(position?.ok!==true){
-      if(typeof showToast==='function')showToast('Déplacement refusé',position?.raison||'Position serveur inaccessible.',false);
+      if(typeof showToast==='function')showToast('Déplacement refusé',position?.raison==='chef_de_groupe_requis'&&typeof RP_MSG_MEMBRE_GROUPE!=='undefined'?RP_MSG_MEMBRE_GROUPE:(position?.raison||'Position serveur inaccessible.'),false);
       if(['combat_en_cours','combat_membre_pnj'].includes(position?.raison)&&typeof reprendreCombatConfirme==='function')await reprendreCombatConfirme().catch(()=>false);
       return;
     }
@@ -1999,7 +1999,7 @@ async function afficherNoeudRue(pays, noeudId, depuisNoeudId, positionDejaConfir
   zonesAffichees.forEach((z, i) => {
     const div = document.createElement('div');
     div.className = 'rc-zone';
-    if (z.buildingId) div.dataset.building = z.buildingId;   // marques du climat (lieux inondés, plateau-climat.js)
+    if (z.buildingId) div.setAttribute('data-building', z.buildingId);   // marques du climat (lieux inondés, plateau-climat.js)
     div.setAttribute('aria-label', z.nom);
     div.setAttribute('role', 'button');
     div.tabIndex = 0;
@@ -2106,6 +2106,7 @@ function masquerTooltipRue() {
 
 // Deplacement d'un noeud de rue a l'autre (fondu, sans zoom — mouvement lateral/longitudinal)
 function deplacerRueCentrale(pays, direction) {
+  if (typeof rpMembreGroupeBloque === 'function' && rpMembreGroupeBloque()) return;
   const contexte=contexteNavigationRue();
   const noeudOrigine = rueCentraleNoeudActuel;
   const noeud = RUE_CENTRALE_NOEUDS[pays]?.[rueCentraleNoeudActuel];
@@ -2151,6 +2152,7 @@ function naviguerVersNoeudRue(pays, noeudId, nom) {
 }
 
 function entrerDansBatimentRue(buildingId, nom) {
+  if (typeof rpMembreGroupeBloque === 'function' && rpMembreGroupeBloque()) return;
   masquerTooltipRue();
   const img = document.getElementById('rc-image');
   const overlay = document.getElementById('rc-overlay');

@@ -100,7 +100,14 @@ function renderComposedPost(layout) {
     return Math.max(max, y + h);
   }, 0);
 
-  const elementsHtml = layout.elements.map(el => {
+  // Ordre de lecture (Fred, 21/11/2026, soir) : du haut vers le bas, puis de gauche à droite. C'est l'ordre dans
+  // lequel les blocs s'empilent sur petit écran ; sur ordinateur, l'agencement libre reste inchangé.
+  const ordonnes = layout.elements.slice().sort((a, b) => {
+    const la = a.layout || {}, lb = b.layout || {};
+    return (rpCanvasNombre(la.y, 0, -4000, 20000) - rpCanvasNombre(lb.y, 0, -4000, 20000))
+        || (rpCanvasNombre(la.x, 0, -4000, 20000) - rpCanvasNombre(lb.x, 0, -4000, 20000));
+  });
+  const elementsHtml = ordonnes.map(el => {
     const lo = el.layout || {};
     const x = rpCanvasNombre(lo.x, 0, -4000, 20000),
           y = rpCanvasNombre(lo.y, 0, -4000, 20000),
@@ -159,8 +166,32 @@ function renderComposedPost(layout) {
 // mesure le DOM réellement rendu et relève min-height en conséquence -- ne redescend jamais
 // sous la valeur enregistrée, ne touche ni à content_layout, ni à l'éditeur, ni au
 // drag&drop : uniquement le style d'un noeud déjà affiché.
+// Chevauchement interdit (Fred, 21/11/2026) : à l'affichage, un bloc qui en recouvre un autre (texte plus long que
+// prévu, image plus haute, ancien message) est descendu juste sous lui. Petit écran : les blocs sont empilés par la
+// feuille de style (ordre de lecture), il n'y a rien à corriger.
+function rpCanvasEcarterBlocs(canvas) {
+  if (!canvas || typeof getComputedStyle !== 'function') return;
+  const enfants = Array.from(canvas.children).filter(c => getComputedStyle(c).position === 'absolute');
+  if (enfants.length < 2) return;
+  enfants.sort((a, b) => (a.offsetTop - b.offsetTop) || (a.offsetLeft - b.offsetLeft));
+  const poses = [];
+  for (const el of enfants) {
+    let top = el.offsetTop;
+    const g = el.offsetLeft, d = g + el.offsetWidth, h = el.offsetHeight;
+    let bouge = true;
+    while (bouge) {
+      bouge = false;
+      for (const p of poses) {
+        if (g < p.d && d > p.g && top < p.b && top + h > p.t) { top = p.b + 8; bouge = true; }
+      }
+    }
+    if (top !== el.offsetTop) el.style.top = top + 'px';
+    poses.push({ g, d, t: top, b: top + h });
+  }
+}
 function rpCanvasMeasureAndFix(canvas) {
   if (!canvas || !canvas.isConnected) return;
+  rpCanvasEcarterBlocs(canvas);
   const recorded = parseFloat(canvas.dataset.rpRecordedHeight || canvas.style.minHeight) || 0;
   if (!canvas.dataset.rpRecordedHeight) canvas.dataset.rpRecordedHeight = String(recorded);
   let measured = 0;
@@ -178,6 +209,16 @@ function rpCanvasMeasureAndFix(canvas) {
 // Rejoue la mesure quand les images du canvas terminent leur chargement (taille réelle
 // inconnue avant onload/onerror) et quand un enfant change effectivement de dimensions
 // (ResizeObserver, léger, un seul par canvas -- ex. police de secours chargée tardivement).
+(function rpCanvasStylePetitEcran() {
+  if (typeof document === 'undefined' || typeof document.createElement !== 'function' || typeof document.getElementById !== 'function' || document.getElementById('rp-composed-petit-ecran')) return;
+  const st = document.createElement('style'); st.id = 'rp-composed-petit-ecran';
+  st.textContent = '@media (max-width:640px){'
+    + '.rp-composed-wrap{overflow-x:visible!important}'
+    + '.rp-composed-canvas{width:auto!important;min-height:0!important;height:auto!important}'
+    + '.rp-composed-canvas>.rp-composed-zone,.rp-composed-canvas>.rp-composed-image{position:static!important;width:auto!important;max-width:100%;min-height:0!important;margin:0 0 .7rem}'
+    + '.rp-composed-canvas>.rp-composed-image img{max-width:100%;height:auto}}';
+  (document.head || document.documentElement).appendChild(st);
+})();
 function rpCanvasFixRenderedHeights(root) {
   const scope = root && root.querySelectorAll ? root : document;
   scope.querySelectorAll('.rp-composed-canvas').forEach(canvas => {
@@ -1300,6 +1341,40 @@ function rpCanvasAttachZoneBgButton(toolbar, el, state) {
 // ^https?:// s'applique déjà à la lecture dans renderComposedPost (Lot B1), qui reste le
 // vrai rempart au moment de la sauvegarde/l'affichage à d'autres joueurs.
 // ===========================================================================
+// Éditeur : chevauchement interdit (Fred, 21/11/2026). Le bloc déplacé garde sa place ; ceux qu'il recouvre descendent.
+function rpCanvasEcarterCompose(prioritaire) {
+  if (!rpComposeController || !Array.isArray(rpComposeElements) || rpComposeElements.length < 2) return;
+  const boite = e => ({ g: e.state.x || 0, d: (e.state.x || 0) + (e.state.width || (e.el && e.el.offsetWidth) || 0),
+                        t: e.state.y || 0, h: (e.el && e.el.offsetHeight) || e.state.height || 0 });
+  const liste = rpComposeElements.filter(e => e && e.el && e.el.isConnected !== false && e.state);
+  liste.sort((a, b) => (a === prioritaire ? -1 : b === prioritaire ? 1 : 0) || ((a.state.y || 0) - (b.state.y || 0)) || ((a.state.x || 0) - (b.state.x || 0)));
+  const poses = [];
+  let change = false;
+  for (const e of liste) {
+    const b = boite(e);
+    let top = b.t, bouge = true;
+    while (bouge) {
+      bouge = false;
+      for (const p of poses) if (b.g < p.d && b.d > p.g && top < p.b && top + b.h > p.t) { top = p.b + 8; bouge = true; }
+    }
+    if (top !== b.t) { e.state.y = top; e.el.style.top = top + 'px'; change = true; }
+    poses.push({ g: b.g, d: b.d, t: top, b: top + b.h });
+  }
+  if (change && typeof rpCanvasRecalcComposeHeight === 'function') rpCanvasRecalcComposeHeight();
+}
+(function rpCanvasSurveillerChevauchements() {
+  if (typeof document === 'undefined' || typeof document.addEventListener !== 'function') return;
+  const apres = ev => {
+    if (!rpComposeController) return;
+    const cible = ev && ev.target && ev.target.closest ? ev.target.closest('.rp-canvas-el') : null;
+    const entree = cible ? rpComposeElements.find(e => e && e.el === cible) : null;
+    setTimeout(() => rpCanvasEcarterCompose(entree), 0);
+  };
+  document.addEventListener('mouseup', apres, true);
+  document.addEventListener('pointerup', apres, true);
+  document.addEventListener('keyup', ev => { if (rpComposeController && ev.target && ev.target.closest && ev.target.closest('#rp-compose-canvas')) setTimeout(() => rpCanvasEcarterCompose(null), 0); }, true);
+})();
+
 function rpCanvasAddImageToCompose() {
   if (!rpComposeController) return;
   const container = document.getElementById('rp-compose-canvas');

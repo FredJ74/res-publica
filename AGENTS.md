@@ -179,6 +179,14 @@ ordre), sans jamais réécrire ni annuler ces cinq migrations. Aucune ne touche 
   (pièce `foret_clairiere`), réglage `aliments_parametres.foret_egarement_pct`. N'utilise pas les nœuds du camp de bûcherons de Codex.
 - `20261121160000_presse_noms_cites_monde_reel` : nouvelle `journal_noms_cites_interne`, raccord dans `journal_edition_lire`
   (marque `presse_noms_cites_v1`), correction de quatre `journal_editions` (« soviétique » → « de Sovarka »).
+- `20261121170000_point_eau_puiser_mairie_krasnov` : nouvelles `point_eau_tranche_interne`, `point_eau_etat`, `point_eau_puiser`, table
+  `climat_points_eau_puisages`, réglage `aliments_parametres.point_eau_bouteilles_tranche`, ordre `puiser_eau` (1 PA) ; `point_eau_remplir`
+  renvoie `remplace_par_puiser` ; raccord dans `climat_consigne_interne` (marque `point_eau_puiser_v1`) ; sortie
+  `rue_sorties_batiments` mairie → `krasnov-place-ours` supprimée. Appelle `payer_ordre_interne` (commune, non modifiée).
+- `20261121180000_groupes_presents_masques_cachette` : nouvelles `presents_ici`, `se_cacher_chances`, `groupe_chef_de_interne`,
+  `groupe_membres_avec_chef_interne`, `groupe_cacher_taux_interne` ; déclencheurs `zz_groupe_cachette_suivre` (sur `caches_pj`) et
+  `zz_groupe_adhesion_signaux` (sur `groupes_pj_adhesions`) ; réglage `crim_parametres.cacher_malus_par_membre` ; **une ligne** ajoutée
+  dans `se_cacher` (marque `groupe_cachette_v1`).
 
 ### Fonctions communes et points de jonction
 - **Traitement de nuit** : `api/cron-minuit.js` (commun : il appelle aussi `sovarka_goulag_controle_minuit`, tâche

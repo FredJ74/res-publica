@@ -1,0 +1,58 @@
+-- Socle minimal (PGlite) pour la migration 20261121170000 : mêmes signatures que la production, corps simplifiés.
+CREATE SCHEMA IF NOT EXISTS auth;
+CREATE ROLE anon; CREATE ROLE authenticated;
+CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$ SELECT nullif(current_setting('test.uid', true), '')::uuid $$;
+CREATE TABLE public.personnages (name text PRIMARY KEY, user_id uuid);
+CREATE TABLE public.personnages_donnees (name text PRIMARY KEY, country text, current_city text, current_building text,
+  current_street text, pa integer, inventory jsonb DEFAULT '[]'::jsonb, updated_at timestamptz);
+CREATE OR REPLACE FUNCTION public.mon_personnage() RETURNS text LANGUAGE sql STABLE AS $$ SELECT name FROM public.personnages WHERE user_id = auth.uid() $$;
+CREATE TABLE public.aliments_parametres (cle text PRIMARY KEY, valeur numeric);
+CREATE OR REPLACE FUNCTION public.aliments_param_interne(p_cle text, p_defaut numeric) RETURNS numeric LANGUAGE sql STABLE AS
+$$ SELECT coalesce((SELECT valeur FROM public.aliments_parametres WHERE cle = p_cle), p_defaut) $$;
+CREATE TABLE public.ordres_couts (fn text, pa integer, cost integer);
+CREATE TABLE public.rue_sorties_batiments (country text, city text, noeud text, building text);
+INSERT INTO public.rue_sorties_batiments VALUES ('soviet','ville_b','krasnov-place-ours','mairie'),('soviet','ville_b','krasnov-rue-mairie-place','mairie'),
+  ('soviet','capitale','novomirsk-vue-4','hotel-republica'),('soviet','capitale','novomirsk-vue-5','hotel-republica');
+CREATE TABLE public.climat_points_eau (id text PRIMARY KEY, pays text NOT NULL, ville text NOT NULL, noeud text NOT NULL, nom text NOT NULL, image text, actif boolean NOT NULL DEFAULT true);
+INSERT INTO public.climat_points_eau (id, pays, ville, noeud, nom) VALUES ('krasnov-fontaine-ours', 'soviet', 'ville_b', 'krasnov-place-ours', 'la fontaine de la statue de l''Ours, place de l''Ours');
+CREATE TABLE public.requetes_test (acteur text, requete uuid, resultat jsonb, PRIMARY KEY (acteur, requete));
+CREATE OR REPLACE FUNCTION public.achat_requete_ouvrir_interne(a text, r uuid, f text, p jsonb) RETURNS jsonb LANGUAGE sql AS
+$$ SELECT resultat || '{"rejeu":true}'::jsonb FROM public.requetes_test WHERE acteur = a AND requete = r $$;
+CREATE OR REPLACE FUNCTION public.achat_requete_clore_interne(a text, r uuid, f text, p jsonb, v jsonb) RETURNS jsonb LANGUAGE sql AS
+$$ INSERT INTO public.requetes_test VALUES (a, r, v) RETURNING resultat $$;
+CREATE OR REPLACE FUNCTION public.payer_ordre_interne(p_acteur text, p_fn text, p_pa integer, p_cost integer) RETURNS jsonb LANGUAGE plpgsql AS $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM public.ordres_couts WHERE fn = p_fn AND pa = p_pa AND cost = p_cost) THEN RETURN '{"ok":false,"raison":"ordre_inconnu"}'; END IF;
+  IF (SELECT pa FROM public.personnages_donnees WHERE name = p_acteur) < p_pa THEN RETURN '{"ok":false,"raison":"pa_insuffisants"}'; END IF;
+  UPDATE public.personnages_donnees SET pa = pa - p_pa WHERE name = p_acteur;
+  RETURN jsonb_build_object('ok', true, 'pa_preleves', p_pa);
+END $$;
+CREATE OR REPLACE FUNCTION public.inventaire_place_restante(p_inv jsonb) RETURNS integer LANGUAGE sql IMMUTABLE AS $$
+ SELECT greatest(0,100-coalesce((SELECT sum(CASE WHEN coalesce(e->>'qty','') ~ '^[0-9]+$' THEN (e->>'qty')::numeric ELSE 1 END)
+   FROM jsonb_array_elements(coalesce(p_inv,'[]'::jsonb)) e),0))::integer $$;
+CREATE OR REPLACE FUNCTION public.inventaire_deposer_interne(p_nom text, p_objet jsonb, p_automatique boolean DEFAULT false) RETURNS jsonb LANGUAGE plpgsql AS $$
+DECLARE v_inv jsonb;
+BEGIN
+  SELECT inventory INTO v_inv FROM public.personnages_donnees WHERE name = p_nom FOR UPDATE;
+  IF public.inventaire_place_restante(v_inv) < (p_objet->>'qty')::integer THEN RETURN '{"ok":false,"raison":"inventaire_plein"}'; END IF;
+  UPDATE public.personnages_donnees SET inventory = coalesce(inventory, '[]'::jsonb) || jsonb_build_array(p_objet) WHERE name = p_nom RETURNING inventory INTO v_inv;
+  RETURN jsonb_build_object('ok', true, 'inventory', v_inv);
+END $$;
+CREATE OR REPLACE FUNCTION public.climat_objet_interne(p_cle text, p_qte integer) RETURNS jsonb LANGUAGE sql IMMUTABLE AS $$
+  SELECT jsonb_build_object('name', 'Bouteille d''eau', 'type', 'bouteille_eau', 'stackable', true, 'stackKey', 'bouteille_eau', 'qty', p_qte) $$;
+CREATE OR REPLACE FUNCTION public.climat_consigne_interne(p_type text, p_pays text, p_ville text)
+RETURNS text LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path TO 'public', 'pg_temp' AS $function$
+DECLARE v_eau text;
+BEGIN
+  IF p_type = 'canicule' THEN
+    SELECT 'Remplissez-la gratuitement à ' || nom || '.' INTO v_eau FROM public.climat_points_eau
+     WHERE actif AND pays = p_pays AND ville = p_ville ORDER BY id LIMIT 1;
+    RETURN 'Gardez une bouteille d''eau sur vous. ' || coalesce(v_eau, '');
+  END IF;
+  RETURN NULL;
+END $function$;
+CREATE OR REPLACE FUNCTION public.point_eau_remplir(p_requete uuid) RETURNS jsonb LANGUAGE sql AS $$ SELECT '{"ok":true}'::jsonb $$;
+INSERT INTO public.personnages VALUES ('Tom', '00000000-0000-0000-0000-000000000001'), ('Arnie', '00000000-0000-0000-0000-000000000002');
+INSERT INTO public.personnages_donnees (name, country, current_city, current_building, current_street, pa, inventory) VALUES
+  ('Tom', 'soviet', 'ville_b', NULL, 'krasnov-place-ours', 10, '[]'),
+  ('Arnie', 'republic', 'capitale', NULL, 'luthecia-palais-presidentiel', 10, '[]');

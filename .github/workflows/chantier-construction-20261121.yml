@@ -21,7 +21,13 @@ jobs:
       - name: Chromium réel
         env:
           HG_CHROMIUM: /usr/bin/google-chrome
-        run: node --test outils/bancs/banc-chantier-vue-navigateur-20261121.cjs
+        run: |
+          set +e
+          node --test outils/bancs/banc-chantier-vue-navigateur-20261121.cjs > "$RUNNER_TEMP/chantier.txt" 2>&1
+          code=$?
+          cat "$RUNNER_TEMP/chantier.txt"
+          grep -E "✖|Error|expected|actual" "$RUNNER_TEMP/chantier.txt" | head -10 | sed 's/^/::error::/'
+          exit $code
       - name: PostgreSQL local (PGlite)
         run: |
           if [ -f migrations/20261121140000_chantier_jour_avance.sql ]; then

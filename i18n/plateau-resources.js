@@ -292,7 +292,7 @@
     "citizen": "Citoyen",
     "streetHint": "Dans la rue — Cliquez sur un bâtiment pour entrer",
     "noItems": "Aucun objet",
-    "gameGuide": "Res Publica — Guide du joueur"
+    "gameGuide": "Human Gambit — Guide du joueur"
   },
   "en": {
     "building": "Building",

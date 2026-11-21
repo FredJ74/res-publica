@@ -499,8 +499,48 @@ function rpLibellePresence(cle, secours) {
   const t = (typeof i18next !== 'undefined' && i18next.t) ? i18next.t('presence.' + cle, { defaultValue: secours }) : null;
   return String((typeof t === 'string' && t && t !== 'presence.' + cle) ? t : secours).replace(/"/g, '&quot;');
 }
+// Ma propre carte (posée par renderPersonsList) : état « Masqué » visible sur ma ligne, libellé de mon groupe si je le mène.
+function maCartePresente(list) {
+  return list ? Array.from(list.querySelectorAll('.person-card')).find(el => /openSelfView\(\)/.test(el.getAttribute('onclick') || '')) : null;
+}
+function marquerMoiPresent(targetId) {
+  const list = document.getElementById(targetId || 'persons-list');
+  const carte = maCartePresente(list);
+  if (!carte) return;
+  const moi = window.RP_PRESENTS_MOI || {};
+  const corps = carte.querySelector('div:last-child') || carte;
+  let m = carte.querySelector('.moi-masque');
+  if (moi.masque && !m) { m = document.createElement('div'); m.className = 'moi-masque'; m.style.cssText = 'font-family:Bebas Neue,sans-serif;font-size:.74rem;letter-spacing:.12em;color:#b080d0'; m.textContent = 'MASQUÉ'; corps.appendChild(m); }
+  else if (!moi.masque && m) m.remove();
+  let g = carte.querySelector('.moi-groupe');
+  const libelle = moi.est_chef && moi.groupe_libelle ? moi.groupe_libelle : '';
+  if (libelle && !g) { g = document.createElement('div'); g.className = 'moi-groupe'; g.style.cssText = 'font-family:Bebas Neue,sans-serif;letter-spacing:.08em;font-size:.8rem;color:#C9A84C'; corps.insertBefore(g, corps.firstChild); }
+  if (g) { if (libelle) g.textContent = libelle; else g.remove(); }
+}
+// Mon groupe en tête : si je suis chef, ma carte d'abord puis mes membres ; si je suis membre, le chef d'abord puis ma carte.
+function placerMonGroupe(list, html, moi) {
+  const carte = maCartePresente(list);
+  const tmp = document.createElement('div'); tmp.innerHTML = html;
+  const bloc = tmp.firstElementChild;
+  if (!bloc) return;
+  if (carte) {
+    carte.parentNode.insertBefore(bloc, carte);
+    if (moi && moi.est_chef) bloc.insertBefore(carte, bloc.firstChild);
+    else {
+      const chef = Array.from(bloc.children).find(el => !el.classList.contains('presence-membre-groupe') && el.classList.contains('vrai-joueur-card'));
+      if (chef && chef.nextSibling) bloc.insertBefore(carte, chef.nextSibling); else bloc.appendChild(carte);
+      carte.style.marginLeft = '14px'; carte.style.fontSize = '.88em';
+    }
+  } else list.insertBefore(bloc, list.firstChild);
+}
+
 async function chargerVraisJoueursPresents(buildingIdParam, roomIdParam, targetId) {
   if (typeof sbGetPresencesInRoom !== 'function') return;
+  // Appel sans argument (signal temps réel, battement de 30 s) alors qu'on est dans la rue : c'est la liste de la rue
+  // qu'il faut relire (Fred, 21/11/2026 : Tom Tom devait recharger sa page pour voir Arnie le rejoindre).
+  if (buildingIdParam === undefined && !state.currentBuilding && typeof rueCentraleNoeudActuel !== 'undefined' && rueCentraleNoeudActuel) {
+    buildingIdParam = 'rue-centrale'; roomIdParam = rueCentraleNoeudActuel; targetId = targetId || 'persons-list-rue';
+  }
   const buildingId = buildingIdParam !== undefined ? buildingIdParam : state.currentBuilding;
   const roomId = roomIdParam !== undefined ? roomIdParam : state.currentRoom;
   targetId = targetId || 'persons-list';
@@ -526,11 +566,17 @@ async function chargerVraisJoueursPresents(buildingIdParam, roomIdParam, targetI
     // Mettre en cache pour getCurrentRoomPersons() (utilisé par assassinat, dons, etc.)
     // Criminalité : un individu masqué n'a ni nom ni portrait ; il est visé par son jeton (crim_presents).
     if (window.RPTempsReel && typeof window.RPTempsReel.abonnerSalle === 'function') window.RPTempsReel.abonnerSalle();
+    // Masqué hors de mon groupe : le serveur ne donne ni nom ni portrait ; on montre l'objet masque (Fred, 21/11/2026).
+    const masqueAnonyme = p => p.masque && p.mon_groupe !== true;
     window._vraisJoueursPresents = autres.map(p => ({
       name: p.name, role: 'Joueur', rel: 'neutral', isPJ: true, job: null, connecte: p.connecte !== false,
-      photoUrl: p.masque ? null : (photosParNom[p.name] || null),
-      ...(p.masque ? { masque: true, jeton: p.jeton || null } : {})
+      photoUrl: masqueAnonyme(p) ? 'images/objet-masque-carnaval.webp' : (photosParNom[p.name] || null),
+      groupe: p.groupe || null, estChef: p.est_chef === true, monGroupe: p.mon_groupe === true, groupeLibelle: p.groupe_libelle || null,
+      // Masqué de mon propre groupe : je le connais (nom, fiche) ; seul le badge « Masqué » le signale.
+      ...(p.masque ? { masqueVisible: true } : {}),
+      ...(masqueAnonyme(p) ? { masque: true, jeton: p.jeton || null } : {})
     }));
+    marquerMoiPresent(targetId);
 
     const empireCol = COUNTRIES[state.country]?.col || '#C9A84C';
     const cartePlayer = (p) => {
@@ -538,9 +584,17 @@ async function chargerVraisJoueursPresents(buildingIdParam, roomIdParam, targetI
       const avatarHtml = p.photoUrl
         ? '<div class="person-avatar" style="overflow:hidden;border-color:' + empireCol + '"><img src="' + p.photoUrl + '" style="width:100%;height:100%;object-fit:cover"/></div>'
         : '<div class="person-avatar" style="border-color:' + empireCol + '"><i class="ti ti-user" style="font-size:.75rem;color:' + empireCol + '"></i></div>';
-      return '<div class="person-card vrai-joueur-card" onclick="openPnjModal(\'' + enc + '\')" style="border-left:2px solid ' + empireCol + '" title="Interagir">' +
+      const anonyme = p.masque && p.jeton;
+      const ech = t => (typeof escapeHtmlText === 'function') ? escapeHtmlText(String(t)) : String(t);
+      // Membre d'un groupe : plus petit, légèrement décalé du bord, comme un sous-paragraphe sous son chef.
+      const membre = p.groupe && !p.estChef;
+      // Masqué : aucun lien vers la fiche réelle ; le clic n'ouvre que l'interaction par jeton (openPnjModal sans nom réel).
+      return '<div class="person-card vrai-joueur-card' + (membre ? ' presence-membre-groupe' : '') + '" onclick="openPnjModal(\'' + enc + '\')" style="border-left:2px solid ' + empireCol
+        + (membre ? ';margin-left:14px;font-size:.88em;opacity:.95' : '') + '" title="Interagir">' +
       avatarHtml +
-      '<div><div class="person-name" style="color:#f0ead6">' + p.name + ' <span style="font-size:.8rem;color:' + empireCol + '">[JOUEUR]</span></div>' +
+      '<div>' + (p.estChef && p.groupeLibelle ? '<div style="font-family:Bebas Neue,sans-serif;letter-spacing:.08em;font-size:.8rem;color:#C9A84C">' + ech(p.groupeLibelle) + '</div>' : '') +
+      '<div class="person-name" style="color:#f0ead6">' + ech(p.name) + ' <span style="font-size:.8rem;color:' + empireCol + '">[JOUEUR]</span></div>' +
+      (anonyme || p.masqueVisible ? '<div style="font-family:Bebas Neue,sans-serif;font-size:.74rem;letter-spacing:.12em;color:#b080d0">MASQUÉ</div>' : '') +
       marqueursJudiciairesHtml(p.name) +
       // Présence permanente : un joueur absent reste dans la pièce ; un indicateur discret le dit, sans le retirer.
       '<div class="person-role">' + (p.connecte === false
@@ -579,17 +633,44 @@ async function chargerVraisJoueursPresents(buildingIdParam, roomIdParam, targetI
     // chef, puis ses accompagnants en retrait sous elle. Les deux sources se rejoignent ici --
     // les PNJ publies dans sa ligne de presence, et les accompagnants deposes a plat par
     // renderPersonsList en attendant que cette carte existe.
-    const html = window._vraisJoueursPresents.map(p => {
+    const blocJoueur = p => {
       const membres = (pnjParPorteur[p.name] || []).map(carteMembreAutre).join('');
       const enAttente = RP_ACCOMPAGNANTS_AUTRES[p.name] || '';
       const bloc = (membres + enAttente)
         ? '<div class="presence-groupe">' + membres + enAttente + '</div>' : '';
-      return '<div class="bloc-joueur-autre">' + cartePlayer(p) + bloc + '</div>';
+      return cartePlayer(p) + bloc;
+    };
+    // GROUPES DE JOUEURS (Fred, 21/11/2026) : un groupe forme toujours un bloc, chef en premier (« Groupe <chef> »), membres
+    // juste en dessous ; PNJ et personnes seules avant ou après, jamais au milieu.
+    const ordreGroupes = [], parGroupe = {};
+    window._vraisJoueursPresents.forEach(p => {
+      const cle = p.groupe || ('seul:' + p.name);
+      if (!parGroupe[cle]) { parGroupe[cle] = []; ordreGroupes.push(cle); }
+      parGroupe[cle].push(p);
+    });
+    const moiInfo = window.RP_PRESENTS_MOI || null;
+    const html = ordreGroupes.filter(cle => !(moiInfo && moiInfo.groupe && cle === moiInfo.groupe)).map(cle => {
+      const g = parGroupe[cle].slice().sort((a, b) => (b.estChef ? 1 : 0) - (a.estChef ? 1 : 0));
+      if (!cle.startsWith('seul:') && !g.some(x => x.estChef) && g[0]) {
+        // Chef absent de la pièce : le libellé du groupe reste en tête du bloc.
+        return '<div class="bloc-joueur-autre bloc-groupe-pj"><div style="font-family:Bebas Neue,sans-serif;letter-spacing:.08em;font-size:.8rem;color:#C9A84C;padding:.2rem .4rem">'
+          + ((typeof escapeHtmlText === 'function') ? escapeHtmlText(String(g[0].groupeLibelle || '')) : '') + '</div>' + g.map(blocJoueur).join('') + '</div>';
+      }
+      return '<div class="bloc-joueur-autre' + (cle.startsWith('seul:') ? '' : ' bloc-groupe-pj') + '">' + g.map(blocJoueur).join('') + '</div>';
     }).join('');
+    // Mon groupe : chef d'abord, puis ma carte et les autres membres, en tête de la liste.
+    let htmlMonGroupe = '';
+    if (moiInfo && moiInfo.groupe) {
+      const g = (parGroupe[moiInfo.groupe] || []).slice().sort((a, b) => (b.estChef ? 1 : 0) - (a.estChef ? 1 : 0));
+      htmlMonGroupe = '<div class="bloc-joueur-autre bloc-groupe-pj bloc-mon-groupe">' + g.map(blocJoueur).join('') + '</div>';
+    }
 
     // Retirer les anciennes cartes joueur avant d'inserer les nouvelles (evite les doublons au rafraichissement)
     const list0 = document.getElementById(targetId);
     if (list0) {
+      // Ma carte a pu être rangée dans le bloc de mon groupe : on la remet en tête avant d'effacer les blocs.
+      const maCarte = maCartePresente(list0);
+      if (maCarte && maCarte.closest('.bloc-joueur-autre')) { list0.insertBefore(maCarte, list0.firstChild); maCarte.style.marginLeft = ''; maCarte.style.fontSize = ''; }
       list0.querySelectorAll('.bloc-joueur-autre').forEach(el => el.remove());
       list0.querySelectorAll('.vrai-joueur-card').forEach(el => el.remove());
       list0.querySelectorAll('.autre-groupe-card').forEach(el => el.remove());
@@ -604,12 +685,14 @@ async function chargerVraisJoueursPresents(buildingIdParam, roomIdParam, targetI
     }
 
     const htmlTotal = html;
-    if (htmlTotal) {
-      const list = document.getElementById(targetId);
+    const list = document.getElementById(targetId);
+    if (list && (htmlTotal || htmlMonGroupe)) {
       const empty = list.querySelector('.person-empty');
       if (empty) empty.remove();
-      list.insertAdjacentHTML('beforeend', htmlTotal);
+      if (htmlTotal) list.insertAdjacentHTML('beforeend', htmlTotal);
+      if (htmlMonGroupe) placerMonGroupe(list, htmlMonGroupe, moiInfo);
     }
+    if (list) marquerMoiPresent(targetId);
   } catch(e) { console.warn('chargerVraisJoueursPresents error', e); }
 }
 

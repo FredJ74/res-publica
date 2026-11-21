@@ -1,0 +1,31 @@
+name: "Groupes, masques et forum — présents en bloc, masqué visible, cachette collective, mise à jour en direct"
+on:
+  pull_request:
+    paths: [plateau-multijoueur.js, supabase.js, plateau-core.js, plateau-navigation.js, plateau-rue-centrale.js, plateau-actions-illegales-rumeurs.js, 'migrations/20261121180000_groupes_presents_masques_cachette.sql', 'outils/bancs/banc-groupes-pglite-20261121.cjs', 'outils/bancs/banc-groupes-presents-navigateur-20261121.cjs', 'outils/bancs/fixtures/groupes-pglite-socle.sql.txt', forum-canvas.js, 'outils/bancs/banc-forum-blocs-navigateur-20261121.cjs', .github/workflows/groupes-masques-20261121.yml]
+  push:
+    branches: [main, 'claude/**']
+    paths: [plateau-multijoueur.js, supabase.js, plateau-core.js, plateau-navigation.js, plateau-rue-centrale.js, plateau-actions-illegales-rumeurs.js, 'migrations/20261121180000_groupes_presents_masques_cachette.sql', 'outils/bancs/banc-groupes-pglite-20261121.cjs', 'outils/bancs/banc-groupes-presents-navigateur-20261121.cjs', 'outils/bancs/fixtures/groupes-pglite-socle.sql.txt', forum-canvas.js, 'outils/bancs/banc-forum-blocs-navigateur-20261121.cjs', .github/workflows/groupes-masques-20261121.yml]
+permissions:
+  contents: read
+jobs:
+  groupes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
+      - run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund --prefix "$RUNNER_TEMP/pglite" @electric-sql/pglite@0.2.17
+      - env:
+          HG_CHROMIUM: /usr/bin/google-chrome
+          PGLITE_DIR: ${{ runner.temp }}/pglite
+        run: |
+          node --check plateau-multijoueur.js
+          set +e
+          node --test outils/bancs/banc-groupes-pglite-20261121.cjs outils/bancs/banc-groupes-presents-navigateur-20261121.cjs outils/bancs/banc-forum-blocs-navigateur-20261121.cjs > "$RUNNER_TEMP/groupes.txt" 2>&1
+          code=$?
+          cat "$RUNNER_TEMP/groupes.txt"
+          grep -E "✖|Error|expected|actual" "$RUNNER_TEMP/groupes.txt" | head -8 | sed 's/^/::error::/'
+          exit $code

@@ -26,7 +26,7 @@ test('Novomirsk, orage en cours : rue affichée, alerte et fenêtre d’accueil 
     browser = await chromium.connectOverCDP('http://127.0.0.1:' + nav.port);
     const page = await browser.contexts()[0].newPage(); await page.setViewportSize({ width: 1100, height: 800 });
     await page.goto('http://127.0.0.1:' + serveur.address().port);
-    await page.waitForFunction(() => typeof initialiserRueCentrale === 'function' && window.RPClimat);
+    await page.waitForFunction(() => typeof initialiserRueCentraleSure === 'function' && window.RPClimat);
     await page.evaluate(() => {
       const t = Date.now();
       const orage = { id: 19, type: 'orage', ville: 'capitale', debut: new Date(t - 3600e3).toISOString(), fin: new Date(t + 5 * 3600e3).toISOString(),
@@ -43,7 +43,7 @@ test('Novomirsk, orage en cours : rue affichée, alerte et fenêtre d’accueil 
         if (fn === 'climat_effets_lire' || fn === 'climat_points_eau_lister') return { ok: true, points: [] };
         return null;
       };
-      initialiserRueCentrale('soviet', 'novomirsk-vue-1', null);
+      initialiserRueCentraleSure('soviet', 'novomirsk-vue-1', null);
     });
     await page.waitForSelector('#rc-scene #rc-image', { timeout: 6000 });
     assert.equal(await page.locator('#rc-panne').count(), 0);
