@@ -12686,6 +12686,14 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     ctx.roomOverrides = Object.assign({}, ctx.roomOverrides);
     ctx.roomOverrides[piece] = Object.assign({}, ro, { persons: copie });
   }
+  // Lot de Krasnov (Fred, 20/11/2026) : le brigadier de garde Matveï Doubov remplace « Brigadier Local » à Krasnov
+  // seulement (surcharge de ville posée ci-dessus avec son portrait ; le gabarit et les autres villes ne changent pas).
+  {
+    const ro = WORLD.soviet.ville_b.buildingContext['commissariat-local'].roomOverrides.accueil_loc;
+    const p = (ro.persons || []).find(x => x.name === 'Brigadier Local (PNJ)');
+    if (!p) throw new Error('Krasnov : brigadier de garde absent');
+    p.name = 'Brigadier Matveï Doubov (PNJ)'; p.role = 'Brigadier de garde'; p.profilId = 'matvei_doubov';
+  }
 })();
 
 // STAROVKA_CHASSE_LOCAL_20261117 (décisions de Fred, 17/11/2026, GAME-DESIGN-NOVOMIRSK.md « Tour de Starovka »)

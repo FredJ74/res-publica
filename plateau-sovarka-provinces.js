@@ -115,6 +115,7 @@ async function demanderRapportEcoute(centre, jour) {
   showToast(provT('tReportAsked'), provT('reportSent', { centre: PROV_CENTRES[centre] }), true);
 }
 
+const PA_VOL_ARCHIVES_ECOUTE = 2;   // ordre voler_archives_ecoute (data.js), payé par le serveur
 async function volerArchivesEcoute() {
   const v = await provActe('sovarka_ecoute_archives_voler', {}, 'vol');
   if (!v) return;
@@ -122,10 +123,13 @@ async function volerArchivesEcoute() {
   if (typeof adopterEtatCrimeServeur === 'function') adopterEtatCrimeServeur(v);
   if (v.reussi) {
     showToast(provT('tStolen'), provT('stolenOk', { centre: PROV_CENTRES[v.centre] }), true, true);
-    if (typeof addJournalEntry === 'function') addJournalEntry('Rapport d’écoute volé (' + PROV_CENTRES[v.centre] + ').', 'event-bad');
+    if (typeof addJournalEntry === 'function') addJournalEntry('Rapport d’écoute volé (' + PROV_CENTRES[v.centre] + ') : −' + PA_VOL_ARCHIVES_ECOUTE + ' PA.', 'event-bad');
   } else {
     showToast(provT('tCaught'), provT('caught') + (v.interrogatoire ? ' ' + provT('caughtInterro') : ''), false);
-    if (typeof addJournalEntry === 'function') addJournalEntry('Surpris en volant les archives d’écoute : arrêté.', 'event-bad');
+    // Lot de Krasnov (Fred, 20/11/2026) : les PA de la tentative et la durée de détention apparaissent au journal.
+    const joursDetention = v.arrestation && typeof v.arrestation.jours === 'number' ? v.arrestation.jours : null;
+    if (typeof addJournalEntry === 'function') addJournalEntry('Surpris en volant les archives d’écoute : arrêté (−' + PA_VOL_ARCHIVES_ECOUTE + ' PA'
+      + (joursDetention != null ? ', ' + joursDetention + ' jour(s) de détention' : '') + ').', 'event-bad');
     if (v.arrestation && typeof adopterArrestationServeur === 'function') await adopterArrestationServeur(v.arrestation);
   }
 }
@@ -382,8 +386,10 @@ async function ouvrirCaisseKolkhoze(cache) {
   }
   const miennes = [...parCle.values()];
   const dons = miennes.length
+    // Lot de Krasnov (Fred, 20/11/2026) : saisie de la quantité de chaque matière (0 par défaut), puis un seul « Donner ».
     ? miennes.map(o => '<div style="margin:.3rem 0"><i class="ti ' + provEchapper(o.icon || 'ti-package') + '"></i> ' + provEchapper(o.name) + ' : ' + Math.floor(Number(o.qty)) + ' ' +
-        champ('kol-d-' + o.stackKey) + vehBouton(provT('kolGive'), provJs('agirCaisseKolkhoze', 'donner:' + o.stackKey), true) + '</div>').join('')
+        '<input id="kol-d-' + provEchapper(o.stackKey) + '" data-kol-don="' + provEchapper(o.stackKey) + '" type="number" min="0" max="' + Math.floor(Number(o.qty)) + '" value="0" class="cpj-champ" style="width:4.2rem"></div>').join('')
+      + '<div style="margin-top:.5rem">' + vehBouton(provT('kolGive'), provJs('donnerLotKolkhoze', ''), true) + '</div>'
     : '<p class="cpj-note">' + provT('kolNothing') + '</p>';
   provModal(provT('tKolkhoze'),
     vehSection(provT('kolBox'), contenu + '<p class="cpj-note">' + provT('kolTakeLeft', { n: Math.max(0, v.pris_restant) }) + '</p>') +
@@ -408,6 +414,26 @@ async function agirCaisseKolkhoze(geste) {
     showToast(provT('tKolTaken'), provT('kolTaken', { n: v.quantite, nom }), true);
     if (typeof addJournalEntry === 'function') addJournalEntry('Pris dans la caisse du kolkhoze : ' + v.quantite + ' ' + (v.nom || cle) + '.', 'event-neutral');
   }
+  provKolkhozeDernier = v;
+  await ouvrirCaisseKolkhoze(true);
+}
+
+// Don groupé (lot de Krasnov, 20/11/2026) : un seul ordre pour toutes les quantités saisies ; tout ou rien côté serveur.
+async function donnerLotKolkhoze() {
+  const lot = {};
+  document.querySelectorAll('[data-kol-don]').forEach(function (champ) {
+    const q = Math.floor(Number(champ.value || 0));
+    if (q > 0) lot[champ.dataset.kolDon] = q;
+  });
+  if (!Object.keys(lot).length) { showToast(provT('tKolkhoze'), provT('m_quantite_invalide'), false); return; }
+  const v = await provActe('kolkhoze_caisse_donner_lot', { p_lot: lot }, 'donner_lot:' + JSON.stringify(lot));
+  if (!v) return;
+  if (v.ok !== true) { showToast(provT('tKolkhoze'), provMotif(v), false); return; }
+  if (v.jauges && typeof v.jauges.pop !== 'undefined' && typeof adopterJaugeServeur === 'function') adopterJaugeServeur('pop', v.jauges.pop);
+  if (typeof updateUI === 'function') updateUI();
+  const noms = (Array.isArray(v.lignes) ? v.lignes : []).map(l => l.quantite + ' ' + (l.nom || l.cle)).join(', ');
+  showToast(provT('tKolGiven'), provT('kolGiven', { n: '', nom: provEchapper(noms) }).replace(/\s{2,}/g, ' ') + (v.gain_pop > 0 ? ' ' + provT('kolPop', { n: v.gain_pop }) : ''), true);
+  if (typeof addJournalEntry === 'function') addJournalEntry('Don au kolkhoze de Krasnov : ' + noms + (v.gain_pop > 0 ? ' (+' + v.gain_pop + ' popularité).' : '.'), 'event-good');
   provKolkhozeDernier = v;
   await ouvrirCaisseKolkhoze(true);
 }
