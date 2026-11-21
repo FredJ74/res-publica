@@ -147,3 +147,37 @@ chaque ajout/modification de catalogue, lancer
 canoniques et le moteur i18next restent inchangés : Vercel sert la compression
 HTTP native via `vercel.json`. Ne pas relever le plafond de payload pour une
 traduction et ne pas modifier d’images pour contourner le contrôle.
+
+## Coordination Claude Code / Codex (Claude, 21/11/2026)
+
+Base de production **gelée** jusqu'à nouvel ordre de Fred : Codex y termine le goulag. Claude n'y écrit plus rien
+(ni migration, ni donnée, ni fichier de stockage) ; il prépare, teste sur un banc PGlite et laisse en attente.
+
+### Cinq migrations appliquées en production le 21/11/2026 par Claude (on ne les réécrit ni ne les annule)
+| Migration | Objet | Tables et fonctions touchées |
+|---|---|---|
+| `20261121070000_climat_douze_heures_gare_accueil` | gare jamais inondée ; accueil du nouveau personnage pendant un événement (durées 12 h, remplacées par 090000) | `climat_zones_inondables` (contrainte `climat_zones_jamais_gare`), `climat_parametres`, `climat_evenements`, `equipements_installes` ; table `climat_accueils` ; `climat_lieu_est_gare_interne`, `climat_accueil_interne`, `climat_accueil_vu_interne`, `climat_accueil_lire`, `climat_accueil_vu` ; raccords dans `climat_creer_interne`, `climat_texte_alerte_interne` |
+| `20261121090000_climat_six_heures_pays_sacs_eau` | 6 heures ; lieu protégé par sacs ouvert ; un seul événement à la fois par pays ; consignes ; eau gratuite | `climat_parametres`, `climat_evenements`, `equipements_installes`, `aliments_parametres`, `evenements_globaux` ; tables `climat_lieux_vente`, `climat_points_eau` ; `climat_lieu_protege_interne`, `climat_batiment_inonde_interne`, `climat_espacer_interne`, `climat_nom_type_interne`, `climat_passe`, `climat_vente_interne`, `climat_points_eau_lister`, `point_eau_remplir`, `climat_consigne_interne`, `climat_texte_alerte_interne`, `climat_evenement_json_interne`, `climat_etat` ; raccords dans `climat_crue_appliquer_interne`, `sacs_sable_poser`, `climat_alertes_publier_interne`, `climat_accueil_interne` |
+| `20261121100000_incidents_client` | journal des vues de rue restées vides (filet « La ville se charge encore… ») | table `incidents_client` ; `incident_client_noter` |
+| `20261121110000_climat_parades_vente` | parades climatiques en vente dans chaque pays | `aliments_parametres`, `climat_boutiques`, `climat_lieux_vente` ; `climat_prix_interne`, `climat_objet_interne`, `climat_consigne_interne`, `climat_parades_verifier_interne` |
+| `20261121120000_climat_parades_sovarka` | sels à moitié prix en Sovarka ; bidons au garage de Novomirsk | `climat_boutiques` ; `pharmacie_prix_pays_interne`, `climat_prix_pays_interne`, `climat_bidons_meme_lieu_interne`, `climat_parades_verifier_interne` ; raccords dans `boutique_climat_acheter`, `boutique_climat_etat`, `pharmacie_acheter_interne`, `pharmacie_etat`, `climat_consigne_interne` |
+
+**Pour Codex** : horodater les migrations du goulag **après `20261121120000`** (ou les appliquer en acceptant cet
+ordre), sans jamais réécrire ni annuler ces cinq migrations. Aucune ne touche une table ou une fonction du goulag.
+
+### Préparé par Claude, en attente du feu vert (non appliqué)
+- `20261121130000_climat_horaire_cadence_catastrophe_sacs` : `climat_*`, `catastrophe_couts_interne`, `catastrophe_etat`,
+  `catastrophe_proposer`, `catastrophe_declarer`, `sacs_sable_poser`, `climat_protections` (colonne `sacs` retirée).
+- Chantier de construction (accélération par les joueurs) : logique dans une fonction séparée, appelée par **un seul
+  ajout** dans `chantier_jour_traiter` (voir ci-dessous).
+
+### Fonctions communes et points de jonction
+- **Traitement de nuit** : `api/cron-minuit.js` (commun : il appelle aussi `sovarka_goulag_controle_minuit`, tâche
+  `controle_goulag_sovarka`). Claude **ne le réécrit pas** : la nuit des chantiers reste l'appel existant
+  `sbRpc('chantier_jour_traiter', { p_terrain_id })` ; la logique nouvelle vit dans une fonction SQL séparée,
+  appelée par une seule ligne dans `chantier_jour_traiter`.
+- **Climat** : tâche planifiée `climat_passe` (17 de chaque heure), propre au climat.
+- **Communs touchés par Codex** (Claude n'y touche pas) : `justice_rendre_sentence` (raccord goulag), lignes de
+  `rue_noeuds_serveur` du camp de bûcherons de Krasnov (`krasnov-rue-ecole-foret`, `krasnov-camp-bucherons`) — à
+  reprendre avec Codex avant le chantier de la forêt de Krasnov.
+- Claude ne modifie **aucun** fichier, table ou fonction propre au goulag (`sovarka_goulag_*`, `goulag_*`, `api/_goulag-*`).

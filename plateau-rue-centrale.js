@@ -1707,31 +1707,53 @@ function trouverNoeudRueCentralePourBatiment(pays, buildingId) {
 // personnage ne quittait jamais l'état vierge. Le joueur ne pouvait plus bouger. On relance donc l'initialisation,
 // deux fois au plus, tant qu'aucune scène n'est affichée pour un personnage qui est dans la rue.
 async function initialiserRueCentrale(pays, noeudDepart, depuisNoeud) {
-  await initialiserRueCentraleUneFois(pays, noeudDepart, depuisNoeud);
-  if (typeof document === 'undefined') return;
   const nom = state.char?.name;
-  for (let essai = 0; essai < 2; essai++) {
-    await new Promise(r => setTimeout(r, 500 + essai * 700));
+  const vueVide = () => {
+    if (typeof document === 'undefined') return null;
     const vueRue = document.getElementById('rue-centrale-conteneur');
-    if (!vueRue || document.getElementById('rc-scene') || state.currentBuilding || !nom || state.char?.name !== nom) return;
-    if (rueCentraleDeplacementEnCours) continue;
-    await initialiserRueCentraleUneFois(state.country, noeudDepart, depuisNoeud);
+    return (!vueRue || document.getElementById('rc-scene') || document.getElementById('rc-panne') || state.currentBuilding
+      || !nom || state.char?.name !== nom) ? null : vueRue;
+  };
+  // Réponse qui n'arrive jamais (réseau bloqué) : au bout de 8 secondes, le message et « Réessayer » s'affichent
+  // quand même ; si la rue finit par arriver, elle remplace le message.
+  const minuteur = typeof document === 'undefined' ? null : setTimeout(() => {
+    const v = vueVide();
+    if (v && !rueCentraleDeplacementEnCours) rueCentraleChargementEnPanne(v, pays, noeudDepart, depuisNoeud);
+  }, RUE_CENTRALE_PANNE.delaiMs);
+  try {
+    await initialiserRueCentraleUneFois(pays, noeudDepart, depuisNoeud);
+    if (typeof document === 'undefined') return;
+    for (let essai = 0; essai < 2; essai++) {
+      await new Promise(r => setTimeout(r, 500 + essai * 700));
+      if (!vueVide()) return;
+      if (rueCentraleDeplacementEnCours) continue;
+      await initialiserRueCentraleUneFois(state.country, noeudDepart, depuisNoeud);
+    }
+    // Filet de sécurité (Fred, 21/11/2026) : jamais de vue vide et muette. Après les relances, si la rue n'est
+    // toujours pas affichée, un message clair et un bouton « Réessayer » (sans recharger la page), et l'incident
+    // est enregistré côté serveur pour en connaître la fréquence.
+    await new Promise(r => setTimeout(r, 1200));
+    const v = vueVide();
+    if (v && !rueCentraleDeplacementEnCours) rueCentraleChargementEnPanne(v, pays, noeudDepart, depuisNoeud);
+  } finally {
+    if (minuteur) clearTimeout(minuteur);
   }
-  // Filet de sécurité (Fred, 21/11/2026) : jamais de vue vide et muette. Après les relances, si la rue n'est
-  // toujours pas affichée, un message clair et un bouton « Réessayer » (sans recharger la page), et l'incident
-  // est enregistré côté serveur pour en connaître la fréquence.
-  await new Promise(r => setTimeout(r, 1200));
-  const vueRue = document.getElementById('rue-centrale-conteneur');
-  if (!vueRue || document.getElementById('rc-scene') || state.currentBuilding || !nom || state.char?.name !== nom || rueCentraleDeplacementEnCours) return;
-  rueCentraleChargementEnPanne(vueRue, pays, noeudDepart, depuisNoeud);
 }
 
-const RUE_CENTRALE_PANNE = { message: 'La ville se charge encore…', aide: 'L’affichage de la rue prend plus de temps que prévu.', bouton: 'Réessayer' };
+const RUE_CENTRALE_PANNE = { delaiMs: 8000, message: 'La ville se charge encore…', aide: 'L’affichage de la rue prend plus de temps que prévu.', bouton: 'Réessayer' };
+// Journal de l'incident (table incidents_client) : un seul envoi, sans nouvelle tentative, et totalement muet en cas
+// d'échec (table absente, réseau, refus) : appel direct, hors de sbRpc, qui afficherait le bouton « Incidents » de la
+// session et relancerait une resynchronisation. L'affichage du message et du bouton « Réessayer » n'en dépend jamais.
+function rueCentraleJournaliserPanne(detail) {
+  try {
+    if (typeof fetch !== 'function' || typeof SUPABASE_URL === 'undefined' || typeof sbEnTetes !== 'function') return;
+    fetch(SUPABASE_URL + '/rest/v1/rpc/incident_client_noter', { method: 'POST', headers: sbEnTetes(),
+      body: JSON.stringify({ p_type: 'rue_vide', p_detail: detail }) }).catch(() => null);
+  } catch (_) { /* jamais visible du joueur */ }
+}
 function rueCentraleChargementEnPanne(vueRue, pays, noeudDepart, depuisNoeud) {
-  if (typeof sbRpc === 'function') {
-    sbRpc('incident_client_noter', { p_type: 'rue_vide', p_detail: { pays: state.country || pays || null, ville: state.currentCity || null,
-      noeud: noeudDepart || null, rue: state.currentStreet || null } }).catch(() => null);
-  }
+  rueCentraleJournaliserPanne({ pays: state.country || pays || null, ville: state.currentCity || null,
+    noeud: noeudDepart || null, rue: state.currentStreet || null });
   vueRue.innerHTML = '<div id="rc-panne" role="status" style="min-height:240px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.8rem;padding:1.5rem;text-align:center;color:#e0d4b0">'
     + '<div style="font-size:1.05rem">' + RUE_CENTRALE_PANNE.message + '</div>'
     + '<div style="font-size:.85rem;opacity:.85">' + RUE_CENTRALE_PANNE.aide + '</div>'

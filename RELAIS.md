@@ -21,7 +21,7 @@ Règles : voir `AGENTS.md`.
 - **Pour Codex** : (1) `EXPLIC` (français seul, repli) — clés à traduire : `nom_crue`, `nom_orage`, `nom_canicule`, `nom_brouillard`, `nom_blizzard`, `restant`, `bientot`, `duree_h`, `duree_m`, `ferme_titre`, `ce_lieu`, `ferme_corps`, `ferme_infobulle`, `lieux_fermes`, `aucun_lieu`, `pourquoi`, `lieux_proteges`, `annonce_crue`, `annonce_orage`, `annonce_canicule`, `annonce_brouillard`, `annonce_blizzard`, `consignes`, `o_bidon_carburant`, `o_sels_rehydratation`, `eau_bouton`, `eau_infobulle`, `eau_ok`, `eau_titre`, `eau_refus`, `accueil_titre`, `accueil_intro`, `accueil_ok` ; (2) `ALERTES` : « Attention : orage » etc. (format avec deux-points) ; (3) `T` : `pose`, `posed`, `r_deja_protege` changés en français (un sac suffit, plus de pourcentage) — les huit autres langues sont à aligner ; les clés `crue`, `canicule`, `orage`, `brouillard`, `blizzard` de `T` ne sont plus affichées (message du gouvernement = annonce + consigne serveur) : à supprimer des neuf langues ; (4) les consignes sont des textes serveur en français, comme toutes les alertes climat existantes.
 
 ### Première rue jamais affichée : nouveau joueur bloqué à Novomirsk (Claude, 21/11/2026)
-- **Branche `claude/position-initiale-20261121`**. Migration APPLIQUÉE (essai annulé d'abord) : `20261121100000_incidents_client` (table `incidents_client`, RPC `incident_client_noter`, type `rue_vide` seul, un enregistrement par personnage et par minute au plus). Incident de la nuit du 20 au 21/11 (Peter Kropotkine, créé à 01:52 à Novomirsk) : position restée vierge (ni rue ni bâtiment), aucune demande de déplacement reçue par le serveur. Cause : à la création, la fiche est rechargée pendant la lecture de position ; `initialiserRueCentrale` voyait le contexte changé (`contexteNavigationRueValide` compare la fiche par identité) et s'arrêtait sans rien afficher. La vue de rue restait vide, recouverte du filtre de l'orage en cours (rayures : la « carte zébrée »). Correctif : relance bornée (deux fois) tant qu'aucune scène n'est affichée pour un personnage dans la rue. Filet de sécurité (Fred, 21/11) : si la rue reste vide après les relances, message « La ville se charge encore… » + bouton « Réessayer » (relance sans recharger la page), incident journalisé (`SELECT count(*), date_trunc('day', cree_le) FROM incidents_client GROUP BY 2` pour la fréquence). Banc `banc-position-initiale-relance-20261121.cjs` (échoue sur l'ancien code), workflow `position-initiale-relance-20261121.yml`. **Pour Codex** : textes français de `RUE_CENTRALE_PANNE` (`message`, `aide`, `bouton`) dans `plateau-rue-centrale.js`, à brancher sur le système de traduction.
+- **Branche `claude/position-initiale-20261121`**. Migration APPLIQUÉE (essai annulé d'abord) : `20261121100000_incidents_client` (table `incidents_client`, RPC `incident_client_noter`, type `rue_vide` seul, un enregistrement par personnage et par minute au plus). Incident de la nuit du 20 au 21/11 (Peter Kropotkine, créé à 01:52 à Novomirsk) : position restée vierge (ni rue ni bâtiment), aucune demande de déplacement reçue par le serveur. Cause : à la création, la fiche est rechargée pendant la lecture de position ; `initialiserRueCentrale` voyait le contexte changé (`contexteNavigationRueValide` compare la fiche par identité) et s'arrêtait sans rien afficher. La vue de rue restait vide, recouverte du filtre de l'orage en cours (rayures : la « carte zébrée »). Correctif : relance bornée (deux fois) tant qu'aucune scène n'est affichée pour un personnage dans la rue. Minuteur de 8 s : si la lecture de position ne répond jamais, le même message s'affiche quand même (la rue le remplace si elle arrive). Journal muet : appel direct, une seule tentative, échec avalé (jamais le bouton « Incidents » de la session). Banc navigateur `banc-premiere-rue-navigateur-20261121.cjs` (Luthécia, Novomirsk : neuf, fiche rechargée, échec, réponse muette). Filet de sécurité (Fred, 21/11) : si la rue reste vide après les relances, message « La ville se charge encore… » + bouton « Réessayer » (relance sans recharger la page), incident journalisé (`SELECT count(*), date_trunc('day', cree_le) FROM incidents_client GROUP BY 2` pour la fréquence). Banc `banc-position-initiale-relance-20261121.cjs` (échoue sur l'ancien code), workflow `position-initiale-relance-20261121.yml`. **Pour Codex** : textes français de `RUE_CENTRALE_PANNE` (`message`, `aide`, `bouton`) dans `plateau-rue-centrale.js`, à brancher sur le système de traduction.
 
 ### Organisations secrètes (Claude, 20/11/2026)
 - **Branche `claude/organisations-secretes-20261120`** (part de la branche de la prescription). **Migration APPLIQUÉE** : `20261120330000_organisations_secretes` (essai annulé d'abord). Règles : `GAME-DESIGN-CRIMINALITE.md` § 3 bis. Banc `test-organisations-secretes-20261120.cjs`.
@@ -577,3 +577,35 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 - **Banc :** `outils/bancs/test-climat-affichage-20261121.cjs`.
 - **Pour Codex :** table `ALERTES` de `plateau-climat.js` (clés `brouillard`, `blizzard`, `orage`, `crue`, `canicule`), français seulement. Ajouter les huit autres langues ; elle pourra ensuite rejoindre la table `T`.
 
+
+## Lot de Krasnov, point 7 — école et énigme de Krasnov (Claude, 21/11/2026)
+
+- **Migration :** `20261121060000_krasnov_ecole_enigme` (appliquée).
+- **Banc :** `outils/bancs/test-krasnov-ecole-enigme-20261121.cjs`.
+- **École :**
+  - ordres copiés de l'université retirés (conférence, recruter des militants, formation) ;
+  - « Stage de survie en forêt » de l'institutrice Alevtina Gramotova : 3 PA + 25 PSK versés à la mairie de Krasnov, +4 VOL pendant 24 h ;
+  - la salle de réunion garde la domiciliation des syndicats étudiants (non citée par Fred).
+- **Guide des baies sauvages :**
+  - lecture une fois par semaine ;
+  - vendu au musée de Krasnov au prix provisoire de 10 PSK, à fixer par Fred ;
+  - retiré du marché.
+- **Feuille volante :**
+  - glissée dans chaque guide : objet échangeable qui ne disparaît jamais, avec l'énigme et la recette incomplète ;
+  - la résolution est attachée au personnage (`enigmes_resolues`) ;
+  - fenêtre générique « Ici commence l'énigme de … : saurez-vous la résoudre… ? » au premier guide.
+- **Résolution :**
+  - on répond au nouveau « Directeur du musée de Krasnov » (PNJ sans nom ni portrait : Fred peut le nommer et fournir l'image) ;
+  - réponse : la graisse d'ours (n'importe quelle tournure contenant « graisse » et « ours ») ;
+  - distinction « Résolveur de l'énigme de Krasnov » et liste « Énigmes résolues » sous les objets de l'inventaire.
+- **Chaîne de dialogues**, dans les fiches de PNJ :
+  - Alevtina oriente vers le musée et le guide, et s'effondre à l'annonce (« … que l'on puisse continuer à manger du miel ») ;
+  - Praskovia raconte son père et le bocal ;
+  - Kouzma, après avoir bu, évoque le marché ;
+  - Nina reconnaît le bocal (un ours = dix pots de graisse) ;
+  - le directeur est consterné ;
+  - les habitués du Bar Sever vantent leur « Miss », une fois par session.
+- **Armoire à souvenirs :** la fonction serveur `souvenir_utilisable_interne` dit que la feuille n'est utilisable que si l'énigme est résolue. Mais il n'existe encore aucun mécanisme pour ranger un objet dans l'armoire : à décider avec Fred.
+- **Pour Codex :**
+  - **nouvelles clés :** `enigmes.solved` ;
+  - **textes à traduire :** les trois descriptions d'ordres (dans `ATTENTE_CODEX` de l'infobulle de Sovarka), les toasts et la fenêtre de `plateau-enigme-krasnov.js`, le refus hebdomadaire du guide (`plateau-sovarka-provinces.js`).
