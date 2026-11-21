@@ -7365,7 +7365,8 @@ export const SCENES_PNJ = {
     "piece": "Accueil du musée de Krasnov",
     "personnes": [
       "Hôtesse du musée de Krasnov",
-      "Guide du musée de Krasnov"
+      "Guide du musée de Krasnov",
+      "Directeur du musée de Krasnov"
     ]
   },
   "[\"soviet\",\"ville_b\",\"musee-novomirsk\",\"faune_sauvage\"]": {
