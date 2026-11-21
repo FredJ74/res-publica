@@ -5,7 +5,7 @@ const c = fs.readFileSync(path.join(__dirname, '..', '..', 'plateau-climat.js'),
 
 test('le filtre se pose dans la scène de rue, sous les flèches de navigation', () => {
   assert.match(c, /const hote = doc\.getElementById\('rc-scene'\) \|\| rue;/);
-  assert.match(c, /#climat-filtre\{position:absolute;inset:0;pointer-events:none;z-index:3\}/);
+  assert.match(c, /#climat-filtre\{position:absolute;inset:0;pointer-events:none;z-index:3;overflow:hidden\}/);
   assert.match(c, /#rc-scene \.rc-fleche,#rue-image \.rc-fleche\{position:absolute;z-index:1001\}/);
 });
 

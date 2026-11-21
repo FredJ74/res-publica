@@ -14,7 +14,7 @@ const PAGE = '<!doctype html><meta charset="utf-8"><body><div id="rue-image" sty
   + '</div></div></div></body>';
 
 const CONSIGNE = 'Pendant 6 heures, les commerces et entrepôts non protégés de la zone inondable sont fermés et perdent 20 % de leurs stocks, et les chantiers sont à l’arrêt.';
-async function avecPage(fn, { maintenant, creationRecente = true, ville = 'ville_a', pays = 'republic' } = {}) {
+async function avecPage(fn, { maintenant, creationRecente = true, ville = 'ville_a', pays = 'republic', type = 'crue' } = {}) {
   const serveur = http.createServer((req, res) => { res.setHeader('Content-Type', 'text/html; charset=utf-8'); res.end(PAGE); });
   const profil = fs.mkdtempSync(path.join(os.tmpdir(), 'hg-climat-crue-')); let nav, browser;
   try {
@@ -29,7 +29,7 @@ async function avecPage(fn, { maintenant, creationRecente = true, ville = 'ville
       var state = { country: '${pays}', currentCity: '${ville}', currentBuilding: null, currentRoom: null, char: { name: 'Banc' } };
       window.__toasts = []; window.__vus = []; window.__entrees = 0;
       window.showToast = (t, c) => window.__toasts.push([t, c]);
-      const crue = { id: 77, type: 'crue', ville: 'ville_a', debut: new Date(${t0} - 3600e3).toISOString(), fin: new Date(${t0} + 5 * 3600e3 + 20 * 60e3).toISOString(), lieux: ['marche-psm'], lieux_proteges: ['port-sainte-marie'], consigne: ${JSON.stringify(CONSIGNE)}, en_cours: true };
+      const crue = { id: 77, type: '${type}', ville: 'ville_a', debut: new Date(${t0} - 3600e3).toISOString(), fin: new Date(${t0} + 5 * 3600e3 + 20 * 60e3).toISOString(), lieux: ['marche-psm'], lieux_proteges: ['port-sainte-marie'], consigne: ${JSON.stringify(CONSIGNE)}, en_cours: true };
       window.__eau = 0;
       window.__crue = crue;
       window.sbRpc = async (fn, p) => {
@@ -148,4 +148,26 @@ test('point d’eau : « Remplir une bouteille d’eau » à la fontaine de la p
     await page.evaluate(() => { rueCentraleNoeudActuel = 'krasnov-rue-mairie-place'; window.RPClimat.appliquerFiltre(); });
     assert.equal(await page.locator('#climat-eau').count(), 0);
   }, { ville: 'ville_b', pays: 'soviet' });
+});
+
+test('orage : pluie animée en continu, légère obliquité, sans redessin ; immobile si l’animation est réduite', async () => {
+  await avecPage(async page => {
+    await page.evaluate(async () => { await window.RPClimat.rafraichirClimat(); document.getElementById('climat-explication')?.remove(); document.getElementById('climat-gouvernement')?.remove(); window.RPClimat.appliquerFiltre(); });
+    const pluie = sel => page.evaluate(s => { const c = getComputedStyle(document.getElementById('climat-filtre'), s); return { nom: c.animationName, duree: c.animationDuration, rotate: c.rotate, transform: c.transform, image: c.backgroundImage.slice(0, 30) }; }, sel);
+    const avant = await pluie('::before'), apres = await pluie('::after');
+    assert.equal(avant.nom, 'climatPluieProche'); assert.equal(apres.nom, 'climatPluieLointaine');
+    assert.equal(avant.duree, '1.1s'); assert.equal(avant.rotate, '12deg');
+    assert.match(avant.image, /^url\("data:image\/svg\+xml/);
+    // La pluie tombe réellement : la position de la nappe change d'un instant à l'autre.
+    const t1 = (await pluie('::before')).transform; await page.waitForTimeout(250); const t2 = (await pluie('::before')).transform;
+    assert.notEqual(t1, t2, 'animation en cours');
+    // Navigation intacte : flèche au-dessus du filtre et cliquable.
+    await page.locator('#fleche').click();
+    assert.equal(await page.evaluate(() => window.__deplace), 1);
+    // Réduction des animations demandée par le système : la pluie reste visible mais ne bouge plus.
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    assert.equal((await pluie('::before')).nom, 'none');
+    assert.equal((await pluie('::after')).nom, 'none');
+    assert.equal(await page.evaluate(() => getComputedStyle(document.getElementById('climat-alerte')).animationName), 'none');
+  }, { type: 'orage' });
 });

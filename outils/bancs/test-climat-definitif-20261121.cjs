@@ -121,3 +121,12 @@ test('client : alerte pictogramme, fenêtre durée puis consigne, accueil, annon
   assert.match(client, /const cleVu = \(id, debut\) =>/);
   assert.match(R.explic('accueil_intro', { evenement: 'crue' }), /Un événement climatique frappe la ville en ce moment \(crue\)/);
 });
+
+test('pluie de l’orage : transform seul, boucle d’une tuile exacte, réduite si demandé', () => {
+  assert.match(client, /@keyframes climatPluieProche\{from\{transform:translate3d\(0,0,0\)\}to\{transform:translate3d\(0,160px,0\)\}\}/);
+  assert.match(client, /background-size:120px 160px/);
+  assert.match(client, /@keyframes climatPluieLointaine\{from\{transform:translate3d\(0,0,0\)\}to\{transform:translate3d\(0,120px,0\)\}\}/);
+  assert.match(client, /background-size:80px 120px/);
+  assert.match(client, /@media \(prefers-reduced-motion: reduce\)\{#climat-filtre,#climat-filtre::before,#climat-filtre::after,#climat-alerte\{animation:none!important\}\}/);
+  assert.ok(!/climatPluie \.4s|background-position:-20px 40px/.test(client), 'ancienne pluie saccadée retirée');
+});

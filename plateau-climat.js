@@ -299,18 +299,33 @@ function afficherSuivante() {
 
 // ── Filtre animé sur la vue de rue de la ville touchée ──────────────────────────────────────────
 let evenements = [];
+// Tuiles de pluie : traits fins, verticaux dans la tuile (l'inclinaison vient de « rotate »), répartis pour ne pas
+// dessiner de colonnes visibles.
+const tuilePluie = (l, h, traits, couleur) => 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="' + l + '" height="' + h + '">'
+  + traits.map(([x, y, n]) => '<line x1="' + x + '" y1="' + y + '" x2="' + x + '" y2="' + (y + n) + '" stroke="' + couleur + '" stroke-width="1.2" stroke-linecap="round"/>').join('') + '</svg>');
+const PLUIE_PROCHE = tuilePluie(120, 160, [[8, 10, 26], [37, 92, 22], [61, 40, 28], [88, 128, 24], [104, 66, 20], [22, 140, 18]], 'rgba(205,220,240,.9)');
+const PLUIE_LOINTAINE = tuilePluie(80, 120, [[6, 30, 14], [29, 84, 12], [47, 8, 15], [66, 58, 13], [74, 104, 10]], 'rgba(190,205,225,.8)');
 function injecterStyle() {
   const doc = global.document;
   if (!doc || doc.getElementById('climat-style')) return;
   const st = doc.createElement('style');
   st.id = 'climat-style';
-  st.textContent = '#climat-filtre{position:absolute;inset:0;pointer-events:none;z-index:3}'
+  st.textContent = '#climat-filtre{position:absolute;inset:0;pointer-events:none;z-index:3;overflow:hidden}'
     + '#climat-filtre.brouillard{background:rgba(235,235,240,.42);backdrop-filter:blur(2px) contrast(.8)}'
     + '#climat-filtre.blizzard{background:rgba(255,255,255,.35);backdrop-filter:brightness(1.15);background-image:radial-gradient(#fff 1px,transparent 1.5px);background-size:18px 18px;animation:climatNeige 2.5s linear infinite}'
-    + '#climat-filtre.orage{background:rgba(10,15,30,.45);background-image:repeating-linear-gradient(105deg,rgba(180,200,230,.35) 0 1px,transparent 1px 9px);animation:climatPluie .4s linear infinite,climatEclair 7s infinite}'
+    + '#climat-filtre.orage{background:rgba(10,15,30,.4);animation:climatEclair 7s infinite}'
+    // Pluie animée (Fred, 21/11/2026) : chute continue, douce et régulière, légère obliquité. Deux nappes de gouttes
+    // (proche, lointaine) en tuiles SVG qui se répètent verticalement ; seul un transform est animé (composité par la
+    // carte graphique, aucun redessin), d'exactement une tuile par boucle : aucun à-coup. L'inclinaison (propriété
+    // « rotate ») se compose avec l'animation. Les flèches restent au-dessus (z-index 1001), le filtre ne capte aucun clic.
+    + '#climat-filtre.orage::before,#climat-filtre.orage::after{content:"";position:absolute;left:-25%;right:-25%;top:-160px;bottom:-40px;'
+    + 'rotate:12deg;will-change:transform;background-repeat:repeat;pointer-events:none}'
+    + '#climat-filtre.orage::before{background-image:url("' + PLUIE_PROCHE + '");background-size:120px 160px;opacity:.55;animation:climatPluieProche 1.1s linear infinite}'
+    + '#climat-filtre.orage::after{background-image:url("' + PLUIE_LOINTAINE + '");background-size:80px 120px;opacity:.35;animation:climatPluieLointaine 1.6s linear infinite}'
     + '#climat-filtre.canicule{background:rgba(255,140,40,.18);backdrop-filter:saturate(1.3) sepia(.25);animation:climatChaleur 3s ease-in-out infinite}'
     + '#climat-filtre.crue{background:linear-gradient(to top,rgba(40,70,90,.65) 0,rgba(40,70,90,.35) 22%,transparent 40%);animation:climatEau 4s ease-in-out infinite}'
-    + '@keyframes climatNeige{to{background-position:30px 180px}}@keyframes climatPluie{to{background-position:-20px 40px}}'
+    + '@keyframes climatNeige{to{background-position:30px 180px}}@keyframes climatPluieProche{from{transform:translate3d(0,0,0)}to{transform:translate3d(0,160px,0)}}'
+    + '@keyframes climatPluieLointaine{from{transform:translate3d(0,0,0)}to{transform:translate3d(0,120px,0)}}'
     + '@keyframes climatEclair{0%,94%,100%{filter:none}95%,97%{filter:brightness(2.4)}}@keyframes climatChaleur{50%{filter:blur(.6px)}}'
     + '@keyframes climatEau{50%{transform:translateY(-6px)}}'
     // Le climat illustre, il ne gêne jamais la navigation (Fred, 21/11/2026) : flèches et zones restent nettes, au-dessus du filtre.
@@ -325,6 +340,8 @@ function injecterStyle() {
     + '#climat-alerte .climat-picto{filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}'
     // Clignotement lent, sans agressivité : l'alerte ne disparaît jamais tout à fait.
     + '@keyframes climatAlerte{0%,100%{opacity:1}50%{opacity:.55}}'
+    // Joueurs qui ont demandé à réduire les animations dans leur système : tout reste visible, rien ne bouge.
+    + '@media (prefers-reduced-motion: reduce){#climat-filtre,#climat-filtre::before,#climat-filtre::after,#climat-alerte{animation:none!important}}'
     + '#climat-eau{position:absolute;left:50%;bottom:58px;transform:translateX(-50%);z-index:1002;pointer-events:auto}';
   doc.head.appendChild(st);
 }
