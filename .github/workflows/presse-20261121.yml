@@ -1,0 +1,24 @@
+name: "Presse — monde fictif, point de vue du pays, anonymat, noms cliquables"
+on:
+  pull_request:
+    paths: [api/_journal-generation.js, plateau-presse-noms.js, plateau.html, 'migrations/20261121160000_presse_noms_cites_monde_reel.sql', 'outils/bancs/banc-presse-20261121.cjs', 'outils/bancs/fixtures/presse-pglite-socle.sql', .github/workflows/presse-20261121.yml]
+  push:
+    branches: [main, 'claude/**']
+    paths: [api/_journal-generation.js, plateau-presse-noms.js, plateau.html, 'migrations/20261121160000_presse_noms_cites_monde_reel.sql', 'outils/bancs/banc-presse-20261121.cjs', 'outils/bancs/fixtures/presse-pglite-socle.sql', .github/workflows/presse-20261121.yml]
+permissions:
+  contents: read
+jobs:
+  presse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
+      - run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund --prefix "$RUNNER_TEMP/pglite" @electric-sql/pglite@0.2.17
+      - env:
+          HG_CHROMIUM: /usr/bin/google-chrome
+          PGLITE_DIR: ${{ runner.temp }}/pglite
+        run: node --check plateau-presse-noms.js && node --test outils/bancs/banc-presse-20261121.cjs

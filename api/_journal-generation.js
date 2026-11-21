@@ -285,6 +285,12 @@ TU PEUX : hiérarchiser l'information, choisir un angle, commenter, ironiser, ad
 
 TU NE PEUX JAMAIS : inventer un événement, une personne, une déclaration, une citation, un chiffre, une causalité certaine non démontrée. Si les données sont pauvres, écris PLUS COURT — une édition honnête et courte vaut toujours mieux qu'une édition remplie artificiellement. Ne produis un article ou une rubrique QUE s'il existe un contenu réel derrière : ne crée jamais de rubrique pour combler un vide.
 
+UN MONDE FICTIF, AUCUNE RÉFÉRENCE AU MONDE RÉEL (règle de Fred, 21/11/2026) : les pays du jeu ne sont pas des pays réels. La Sovarka est SOVARKIENNE, jamais « soviétique » ; ses habitants sont des Sovarkiens. N'emploie JAMAIS « soviétique », « Soviétiques », « URSS », « Union soviétique », « Kremlin », « Moscou », « Russie », « russe », « Staline », « Lénine », ni aucun nom de pays, de ville, de personnage ou d'institution du monde réel, pour aucun pays du jeu. Dis « de Sovarka », « sovarkien(ne) », « de Républia », « républicain(e) ».
+
+CHAQUE JOURNAL DÉFEND LE POINT DE VUE DE SON PAYS (règle de Fred, 21/11/2026) : quand un fait a lieu SUR LE TERRITOIRE de ton pays et implique un étranger (champ "transfrontalier":true, ou une victime, un auteur ou un témoin d'une autre nationalité), tu en parles TOUJOURS, depuis ton propre camp : au moins un article ou un appel de Une. Interroge-toi sur ce que faisait cet étranger sur ton sol, surtout s'il s'agit d'un site militaire, sensible ou d'écoute (station radar, caserne, centre d'écoute, ministère…) : qu'y faisait-il, qui l'avait autorisé, que cherchait-il ? Le journal du pays de l'étranger garde son propre angle (par exemple la sécurité de son ressortissant à l'étranger) : c'est normal, chacun son camp.
+
+ANONYMAT ABSOLU (règle de Fred, 21/11/2026) : un auteur anonyme ("auteur":{"identifie":false}) n'est JAMAIS nommé, ni décrit d'une façon qui permettrait de le reconnaître (nationalité, fonction, groupe, physique, véhicule…), au-delà de sa désignation fournie (« un inconnu », « un individu masqué »). Ne rapproche JAMAIS deux affaires d'une façon qui laisserait deviner l'identité d'un auteur anonyme : par exemple, n'écris jamais qu'une arrestation et une agression anonyme « ont eu lieu au même endroit le même jour », et ne laisse pas entendre que la personne arrêtée pourrait être l'agresseur. Traite chaque affaire anonyme séparément.
+
 TON DE LA TRIBUNE : sérieux et journalistique par défaut. Tu peux être acerbe, mordante, ironique ou drôle lorsque le contexte réel s'y prête — mais JAMAIS en insérant un fait : l'ironie doit venir des faits eux-mêmes, de leur contradiction, de leur contextualisation, ou de leur juxtaposition. Ne force jamais l'humour.
 
 HIÉRARCHIE ÉDITORIALE (guide de priorité pour la Une, pas une grille mécanique — tu restes rédactrice en chef à l'intérieur de ce cadre) :
@@ -918,6 +924,22 @@ function signalerPreferencesUne(une, articles, aiInput, notes) {
   }
 }
 
+// FILET « MONDE RÉEL » (règle de Fred, 21/11/2026) : la Sovarka est sovarkienne, jamais soviétique. Le prompt l'interdit ;
+// ce filet corrige quand même tout texte produit (récursivement, chaînes seulement) : nom pluriel → « Sovarkiens »,
+// adjectif → « de Sovarka » (accord toujours juste), URSS / Union soviétique → « Sovarka ».
+function assainirTexteMondeReel(t) {
+  return String(t)
+    .replace(/\bl['’]Union soviétique\b/g, 'la Sovarka').replace(/\bUnion soviétique\b/gi, 'Sovarka')
+    .replace(/\bl['’]URSS\b/g, 'la Sovarka').replace(/\bURSS\b/g, 'Sovarka')
+    .replace(/\bSoviétiques\b/g, 'Sovarkiens').replace(/\bSoviétique\b/g, 'Sovarkien')
+    .replace(/\bsoviétiques\b/g, 'de Sovarka').replace(/\bsoviétique\b/g, 'de Sovarka');
+}
+function assainirMondeReel(v) {
+  if (typeof v === 'string') return assainirTexteMondeReel(v);
+  if (Array.isArray(v)) return v.map(assainirMondeReel);
+  if (v && typeof v === 'object') { const o = {}; for (const [k, x] of Object.entries(v)) o[k] = assainirMondeReel(x); return o; }
+  return v;
+}
 function validerEtNettoyerEdition(reponseTexte, aiInput) {
   const ecarts = [];   // ce qui a été retiré (diagnostic, non bloquant)
   const notes = [];    // préférences éditoriales non respectées
@@ -928,6 +950,7 @@ function validerEtNettoyerEdition(reponseTexte, aiInput) {
     return { fatal: true, raison: 'JSON invalide : ' + e.message, ecarts, notes };
   }
   if (!json || typeof json !== 'object') return { fatal: true, raison: 'Réponse JSON racine invalide', ecarts, notes };
+  json = assainirMondeReel(json);   // aucune référence au monde réel ne passe, même si le modèle en écrit une
   const une = json.une;
   if (!une || typeof une !== 'object') return { fatal: true, raison: 'une manquante', ecarts, notes };
   if (!Array.isArray(json.articles)) return { fatal: true, raison: 'articles doit être un tableau', ecarts, notes };
@@ -1862,6 +1885,8 @@ async function genererToutesLesEditions() {
 }
 
 export {
+  assainirMondeReel,
+  assainirTexteMondeReel,
   genererToutesLesEditions,
   genererEditionPays,
   PROMPT_VERSION,
