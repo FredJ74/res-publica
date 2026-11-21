@@ -76,54 +76,75 @@ test('images par étape, ville et gabarit, avec repli (jamais d’image cassée)
   assert.ok(!fs.readFileSync(path.join(racine, 'plateau-chantier-vue.js'), 'utf8').includes('fondations.webp'));
 }));
 
-test('surcouche d’avancement et rafraîchissement immédiat, sans recharger', () => avecPage(async page => {
+const sansEsp = t => t.replace(/[  ]/g, ' ');
+test('aucun encadré sur l’image, jamais d’ouverture automatique ; rafraîchissement de la fenêtre ouverte, sans recharger', () => avecPage(async page => {
   await page.evaluate(() => rafraichirVueChantier());
-  let txt = await page.locator('#chantier-surcouche').innerText();
-  assert.match(txt, /Jour 2 \/ 24 · 4 %/); assert.match(txt, /Étape : Démarrage/); assert.match(txt, /Prochaine étape : Gros œuvre/); assert.match(txt, /Fin prévue : /);
+  assert.equal(await page.locator('#chantier-surcouche').count(), 0, 'l’ancien encadré « État du chantier » ne chevauche plus le texte');
   assert.match(await fond(page), /chantier-en-cours\.webp/);
-  // Le serveur fait avancer le chantier (autre joueur, nuit) : la relecture redessine tout.
+  assert.equal(await page.evaluate(() => document.getElementById('modal-postes').classList.contains('open')), false);
+  // Fenêtre ouverte puis fermée : entrer de nouveau sur le terrain ne la rouvre pas.
+  await page.evaluate(() => { ouvrirFenetreChantier(); document.getElementById('modal-postes').classList.remove('open'); rafraichirVueChantier(); });
+  assert.equal(await page.evaluate(() => document.getElementById('modal-postes').classList.contains('open')), false);
+  // Ouverte : le serveur fait avancer le chantier, la fenêtre et l'image suivent.
+  await page.evaluate(() => ouvrirFenetreChantier());
   await page.evaluate(async () => { __terrain.chantier.progressionJours = 9; __terrain.chantier.arrete = 'penurie_materiaux'; await chargerTerrainState('terrain-a-batir-3'); });
   await page.waitForFunction(() => document.getElementById('piece-image').style.background.includes('gros-oeuvre-haut'));
-  txt = await page.locator('#chantier-surcouche').innerText();
-  assert.match(txt, /Étape : Gros œuvre/); assert.match(txt, /À l’arrêt : matériaux manquants/);
-  // Suivi des autres joueurs : relecture périodique quand on regarde le terrain.
+  const txt = sansEsp(await page.locator('#chantier-fenetre').innerText());
+  assert.match(txt, /Jour 10 \/ 24 · 37 %/); assert.match(txt, /À l’arrêt : matériaux manquants/);
   assert.match(fs.readFileSync(path.join(racine, 'plateau-chantier-vue.js'), 'utf8'), /setInterval\(suivre, 20000\)/);
 }));
 
-test('fenêtre « Le chantier » : État et Participer pour tous, Gestion pour le maître d’ouvrage seul', () => avecPage(async page => {
+test('quatre onglets dans l’ordre, État par défaut : jauges chantier (un carré par jour), jour (10 carrés), trois matériaux', () => avecPage(async page => {
   await page.evaluate(() => ouvrirFenetreChantier());
-  const txt = (await page.locator('#chantier-fenetre').innerText()).replace(/[\u202f\u00a0]/g, ' ');
-  for (const r of [/ÉTAT|État/, /Trésorerie : 37 005 FR/, /Fonds versés : 42 000 \/ 120 000 FR/, /Prochain appel de fonds : 42 000 FR avant le jour 9/,
-    /Heures du jour : 0 faites/, /Salaire horaire/, /Prix de rachat des matériaux : bois 6, minerai 11, métal 17 FR/,
-    /Si les joueurs terminent les heures du jour, le jour suivant s’ouvre en avance/, /Travailler sur le chantier/, /Vendre des matériaux au chantier/,
-    /Donner des matériaux au chantier/, /Gestion|GESTION/, /Salaire horaire des ouvriers/, /Apporter des fonds/]) assert.match(txt, r);
-  // Un autre joueur ne voit pas la gestion.
+  const onglets = await page.locator('#chantier-fenetre [role=tab]').allInnerTexts();
+  assert.deepEqual(onglets.map(x => x.trim().toLowerCase()), ['état', 'stock de matériaux', 'main-d’œuvre', 'gestion']);
+  assert.equal((await page.locator('#chantier-fenetre [role=tab][aria-selected=true]').innerText()).trim().toLowerCase(), 'état');
+  const jauges = page.locator('#chantier-fenetre .cj-jauge');
+  assert.equal(await jauges.count(), 5);
+  assert.equal(await jauges.nth(0).locator('.cj-case').count(), 24);
+  assert.equal(await jauges.nth(0).locator('.cj-case.on').count(), 1);
+  assert.equal(await jauges.nth(0).locator('.cj-case.sep').count(), 2);
+  assert.match(await jauges.nth(0).innerText(), /Démarrage/i);
+  const txt = sansEsp(await page.locator('#chantier-fenetre').innerText());
+  assert.match(txt, /Jour 2 \/ 24 · 4 %/); assert.match(txt, /Étape suivante : Gros œuvre/); assert.match(txt, /Fin prévue : /);
+  assert.equal(await jauges.nth(1).locator('.cj-case').count(), 10); assert.match(txt, /0 \/ 50 h/);
+  assert.match(txt, /Il manque encore : 100 bois, 50 minerai, 33 métal/);
+  if (process.env.HG_CAPTURE) { await page.waitForTimeout(900); await page.locator('#modal-postes').screenshot({ path: process.env.HG_CAPTURE }); }
+  const taille = await page.evaluate(() => parseFloat(getComputedStyle(document.getElementById('chantier-fenetre')).fontSize));
+  assert.ok(taille >= 17, 'police ' + taille);
+  // Un autre joueur : pas d'onglet Gestion.
   await page.evaluate(() => { state.char.name = 'Tom Tom'; ouvrirFenetreChantier(); });
-  const autre = await page.locator('#chantier-fenetre').innerText();
-  assert.ok(!/Apporter des fonds|Salaire horaire des ouvriers/.test(autre), 'Gestion réservée au maître d’ouvrage');
-  assert.match(autre, /Travailler sur le chantier/);
+  assert.equal(await page.locator('#chantier-fenetre [role=tab]').count(), 3);
 }));
 
-test('Valider grisé avec explication tant qu’il manque quelque chose ; une seule opération validée', () => avecPage(async page => {
+test('Stock de matériaux : tableau, quantité plafonnée, case « Donner », résumé clair ; Main-d’œuvre et Gestion dans la même fenêtre', () => avecPage(async page => {
   await page.evaluate(() => ouvrirFenetreChantier());
-  const valider = page.locator('#chantier-valider'), env = page.locator('#chantier-valider-enveloppe');
-  assert.equal(await valider.isDisabled(), true); assert.equal(await env.getAttribute('title'), 'Choisissez d’abord une action.');
-  // Vendre plus de bois qu'on n'en porte : grisé, raison claire ; quantité possible : actif, totaux en direct.
-  await page.locator('input[value=vendre]').check();
-  await page.fill('#chantier-v-qte', '9');
-  assert.equal(await valider.isDisabled(), true); assert.equal(await env.getAttribute('title'), 'Vous n’avez pas assez de cette matière.');
-  await page.fill('#chantier-v-qte', '3');
-  assert.equal(await valider.isDisabled(), false);
-  assert.match((await page.locator('#chantier-totaux').innerText()).replace(/[\u202f\u00a0]/g, ' '), /Vous recevez : 18 FR/);
+  await page.locator('[role=tab]', { hasText: /Stock/i }).click();
+  assert.equal(await page.locator('#chantier-fenetre .cj-stock-table tbody tr').count(), 3);
+  const valider = page.locator('#cj-stock-valider');
+  assert.equal(await valider.isDisabled(), true);
+  assert.equal(await page.locator('#cj-stock-env').getAttribute('title'), 'Indiquez une quantité sur au moins une ligne.');
+  // On ne porte que 5 bois : la saisie de 9 est ramenée à 5.
+  await page.fill('#cj-q-bois', '9');
+  assert.equal(await page.inputValue('#cj-q-bois'), '5');
+  assert.equal(sansEsp(await page.locator('#cj-stock-resume').innerText()), 'Vous vendez 5 bois pour 30 FR.');
+  await page.locator('#cj-d-bois').check();
+  assert.equal(await page.locator('#cj-stock-resume').innerText(), 'Vous donnez 5 bois.');
+  await page.locator('#cj-d-bois').uncheck();
   await valider.click();
   await page.waitForFunction(() => __actions.length === 1);
-  assert.deepEqual(await page.evaluate(() => __actions[0]), ['vente', 'bois', '3']);
-  // Travailler : sans matériaux sur le chantier, aucune heure utile → refus expliqué.
+  assert.deepEqual(await page.evaluate(() => __actions[0]), ['vente', 'bois', '5']);
+  // Main-d'œuvre : « 0 / 50 », salaire, « (1 PA/h) », bouton grisé et raison quand aucune heure n'est ouverte.
   await page.evaluate(() => ouvrirFenetreChantier());
-  await page.locator('input[value=travailler]').check();
-  assert.equal(await page.locator('#chantier-valider').isDisabled(), true);
-  assert.match(await page.locator('#chantier-valider-enveloppe').getAttribute('title'), /Plus aucune heure de travail disponible/);
-  // Salaire sous le minimum : refus expliqué.
-  await page.locator('input[value=taux]').check(); await page.fill('#chantier-taux', '20');
-  assert.match(await page.locator('#chantier-valider-enveloppe').getAttribute('title'), /au moins 50 FR/);
+  await page.locator('[role=tab]', { hasText: /Main/i }).click();
+  const main = sansEsp(await page.locator('#chantier-fenetre').innerText());
+  assert.match(main, /Heures restant à faire \/ heures du jour : 0 \/ 50/); assert.match(main, /Salaire horaire : \d+ FR/); assert.match(main, /\(1 PA\/h\)/);
+  assert.equal(await page.locator('#cj-main-valider').isDisabled(), true);
+  assert.match(main, /Aucune heure n’est ouverte pour l’instant/);
+  // Gestion : tableau de bord puis réglages, sans fenêtre par-dessus.
+  await page.locator('[role=tab]', { hasText: /Gestion/i }).click();
+  const g = sansEsp(await page.locator('#chantier-fenetre').innerText());
+  for (const r of [/Trésorerie\s*37 005 FR/, /Fonds versés \/ coût total\s*42 000 \/ 120 000 FR/, /Prochain appel de fonds\s*42 000 FR avant le jour 9/,
+    /Prix de rachat des matériaux/, /Salaire horaire des ouvriers/, /Verser des fonds/, /Commande de matériaux/]) assert.match(g, r);
+  assert.equal(await page.locator('#modal-postes #chantier-fenetre').count(), 1);
 }));
