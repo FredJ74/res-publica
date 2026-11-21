@@ -19,7 +19,7 @@ async function scenario({ remplacerFiche, sceneDejaLa }) {
   let scene = !!sceneDejaLa, lectures = 0;
   const etat = { char: { name: 'Peter' }, country: 'soviet', currentCity: 'capitale', currentBuilding: null, currentRoom: null };
   const contexte = {
-    state: etat, rueCentraleLecturePosition: 0, rueCentraleDeplacementEnCours: null, setTimeout, Promise,
+    state: etat, rueCentraleLecturePosition: 0, rueCentraleDeplacementEnCours: null, setTimeout, clearTimeout, Promise,
     WORLD: { soviet: { capitale: {} } }, BUILDINGS: {},
     rueCentraleServeur: () => true,
     sbRpc: async (fn) => {
@@ -63,11 +63,13 @@ async function scenario({ remplacerFiche, sceneDejaLa }) {
     let scene = false, panneHtml = '', bouton = null, echouer = true;
     const conteneur = { set innerHTML(h) { panneHtml = h; bouton = /rc-panne-reessayer/.test(h) ? { disabled: false, onclick: null } : null; }, get innerHTML() { return panneHtml; } };
     const ctx = {
-      state: etat, rueCentraleLecturePosition: 0, rueCentraleDeplacementEnCours: null, setTimeout, Promise,
+      state: etat, rueCentraleLecturePosition: 0, rueCentraleDeplacementEnCours: null, setTimeout, clearTimeout, Promise,
       WORLD: { soviet: { capitale: {} } }, BUILDINGS: {}, rueCentraleServeur: () => true,
+      SUPABASE_URL: 'https://exemple', sbEnTetes: () => ({}),
+      // Journal : appel direct ; ici il échoue (table absente) — rien ne doit en paraître.
+      fetch: async (url, o) => { rpc.push(url.split('/').pop()); rpc.push(o.body); throw new Error('table absente'); },
       sbRpc: async (fn, p) => {
         rpc.push(fn);
-        if (fn === 'incident_client_noter') { rpc.push(JSON.stringify(p)); return { ok: true }; }
         if (echouer) etat.char = { name: 'Peter' };          // la fiche change à chaque lecture : abandon à chaque fois
         return { ok: true, country: 'soviet', city: 'capitale', building: null, street: null };
       },
