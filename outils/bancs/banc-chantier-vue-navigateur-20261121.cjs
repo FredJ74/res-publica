@@ -72,8 +72,11 @@ test('images par étape, ville et gabarit, avec repli (jamais d’image cassée)
   assert.equal(cas.facadeBas, 'images/chantier-en-cours.webp');
   assert.equal(cas.finalBuilding, 'images/chantiers/luthecia/final-building.webp');
   assert.equal(cas.finalHangar, 'images/hangar-construction-terrain.webp');
-  // La photo des fondations n'est pas branchée (document de design).
-  assert.ok(!fs.readFileSync(path.join(racine, 'plateau-chantier-vue.js'), 'utf8').includes('fondations.webp'));
+  // Luthécia et Montrouge : la photo des fondations n'est pas branchée (document de design). Port-Sainte-Marie a sa série
+  // complète (Fred, 21/11/2026, soir) : PSM_chantier_fondations.webp, avec repli tant que le fichier manque.
+  assert.ok(!/base \+ 'fondations|luthecia\/fondations/.test(fs.readFileSync(path.join(racine, 'plateau-chantier-vue.js'), 'utf8')));
+  const psm = await page.evaluate(() => { state.currentCity = 'ville_a'; const c = window.RPChantierVue.candidatsImage({ chantier: { niveau: 'hangar', dureeJours: 6, progressionJours: 1 } }); state.currentCity = 'capitale'; return c; });
+  assert.deepEqual(psm, ['images/chantiers/psm/PSM_chantier_fondations.webp', 'images/chantiers/psm/PSM_chantier_demarrage_petit.webp', 'images/chantier-en-cours.webp']);
 }));
 
 const sansEsp = t => t.replace(/[  ]/g, ' ');
