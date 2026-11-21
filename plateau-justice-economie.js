@@ -5967,6 +5967,48 @@ async function confirmerVenteDirecteUsine(buildingId, pa, cost) {
 
 
 // =====================
+// SPIRITUEUX DE LA MAISON (Fred, 20/11/2026, GAME-DESIGN-DISTILLERIE-ALCOOLS.md) : bouteilles de collection
+// de la distillerie d'Etat, meme effet qu'un spiritueux ; chacune sort du stock de spiritueux de la vente
+// directe, au meme prix. Le serveur (distillerie_bouteille_acheter) decide du lieu, du nom et du prix.
+// =====================
+const SPIRITUEUX_LOCAUX = { soviet: ['Vodka', 'Slivovitz', 'Samogon'], republic: ['Champagne', 'Cognac', 'Pastis'], narco: ['Tequila'] };
+function doOuvrirSpiritueuxLocaux() {
+  const noms = SPIRITUEUX_LOCAUX[state.country] || [];
+  document.getElementById('postes-modal-title').textContent = 'Spiritueux de la maison';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.82rem;color:#8a8060;margin-bottom:.7rem" data-i18n="distillerie.localSpiritsNote">Bouteille de collection de la distillerie d\'État : même effet qu\'un spiritueux, au prix du spiritueux en vente directe.</div>';
+  noms.forEach(function (nom) {
+    html += '<button onclick="acheterSpiritueuxLocal(' + escapeHtmlText(JSON.stringify(nom)) + ')" style="width:100%;margin-bottom:.4rem;font-family:Bebas Neue,sans-serif;font-size:.9rem;letter-spacing:.1em;padding:.55rem;background:#1a1408;border:1px solid #5a4a20;color:#c9a84c;cursor:pointer">'
+      + '<i class="ti ti-bottle"></i> ' + escapeHtmlText(nom) + '</button>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+async function acheterSpiritueuxLocal(nom) {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  let v = null;
+  v = (await executerReceptionInventaire('distillerie_bouteille_acheter', { p_acteur: state.char?.name, p_nom: nom },
+    { surRefus: (x) => { v = x; return true; } })) || v;
+  if (!v || v.ok !== true) {
+    if (!v) return;
+    const libelles = {
+      rupture: 'La distillerie n\'a plus de spiritueux en vente directe.',
+      fonds_insuffisants: Math.round(v.requis || 0) + ' ' + cur + ' requis.',
+      mineur: 'Réservé aux adultes.',
+      pas_sur_place: 'Vous devez être à la salle des ventes de la distillerie.'
+    };
+    showToast('Achat impossible', libelles[v.raison] || ('Achat refusé (' + (v.raison || 'indisponible') + ').'), false);
+    return;
+  }
+  if (typeof renderInventory === 'function') renderInventory();
+  document.getElementById('modal-postes')?.classList.remove('open');
+  updateUI();
+  showToast('Achat effectué !', nom + ' : -' + Math.round(v.paye || 0) + ' ' + cur + '.', true, true);
+  addJournalEntry('Achat à la distillerie : une bouteille de ' + nom + '.', 'event-good');
+}
+
+// =====================
 // PRODUCTION PJ DES USINES (10 aout 2026) — meme principe que produire_arme a l'Armurerie :
 // travail remunere par PJ, un ordre par chaine (place dans la salle de production dediee de
 // chaque usine, donc pas besoin de liste/choix comme produire_arme — la salle determine deja
@@ -5987,6 +6029,9 @@ const PLAFOND_VENTE_DIRECTE_USINE = 50; // doit rester identique a PLAFOND_VENTE
 const CHAINES_PRODUCTION_USINE = {
   medicaments:  { buildingId: 'usine-pharmaceutique-luthecia', city: 'capitale', matiere: 'plantes',  salairePA: 84 },
   alcool:       { buildingId: 'pole-tabac-alcools-psm',        city: 'ville_a',  matiere: 'cereales', salairePA: 55 },
+  // Distillerie (Fred, 20/11/2026) : spiritueux (alcool à boire) et sucre, mêmes rendements que l'alcool pur.
+  spiritueux:   { buildingId: 'pole-tabac-alcools-psm',        city: 'ville_a',  matiere: 'cereales', salairePA: 55 },
+  sucre:        { buildingId: 'pole-tabac-alcools-psm',        city: 'ville_a',  matiere: 'fruits_legumes', salairePA: 50 },
   tabac:        { buildingId: 'pole-tabac-alcools-psm',        city: 'ville_a',  matiere: 'plantes',  salairePA: 66 },
   carburant:    { buildingId: 'raffinerie-montrouge',          city: 'ville_b',  matiere: 'petrole',  salairePA: 70 },
   derives_petrochimiques: { buildingId: 'raffinerie-montrouge', city: 'ville_b', matiere: 'petrole', salairePA: 70 },
@@ -6006,6 +6051,8 @@ const CHAINES_PRODUCTION_USINE = {
 const CHAINES_PRODUCTION_PAYS = {
   soviet: {
     alcool:                 { buildingId: 'distillerie-krasnov',           city: 'ville_b',  matiere: 'fruits_legumes', salairePA: 15 },
+    spiritueux:             { buildingId: 'distillerie-krasnov',           city: 'ville_b',  matiere: 'fruits_legumes', salairePA: 15 },
+    sucre:                  { buildingId: 'distillerie-krasnov',           city: 'ville_b',  matiere: 'fruits_legumes', salairePA: 15 },
     carburant:              { buildingId: 'usine-principale',              city: 'ville_a',  matiere: 'petrole',        salairePA: 15 },
     derives_petrochimiques: { buildingId: 'usine-principale',              city: 'ville_a',  matiere: 'petrole',        salairePA: 15 },
     medicaments:            { buildingId: 'usine-pharmaceutique-luthecia', city: 'capitale', matiere: 'plantes',        salairePA: 18 },
@@ -6702,7 +6749,7 @@ async function confirmerAchatArmoireSouvenirs() {
 // =====================
 const DIRECTEUR_USINE_INFO = {
   directeur_pharma:        { city: 'capitale', buildingId: 'usine-pharmaceutique-luthecia', produits: ['medicaments', 'desinfectant'] },
-  directeur_tabac_alcools: { city: 'ville_a',   buildingId: 'pole-tabac-alcools-psm',        produits: ['alcool', 'tabac'] },
+  directeur_tabac_alcools: { city: 'ville_a',   buildingId: 'pole-tabac-alcools-psm',        produits: ['alcool', 'spiritueux', 'sucre', 'tabac'] },
   directeur_raffinerie:    { city: 'ville_b',   buildingId: 'raffinerie-montrouge',          produits: ['carburant'] }
 };
 // Par pays (15/11/2026) : miroir de directeurs_usine_pays (serveur). Sovarka : Pharmanov, distillerie de
@@ -6710,7 +6757,7 @@ const DIRECTEUR_USINE_INFO = {
 const DIRECTEUR_USINE_INFO_PAYS = {
   soviet: {
     directeur_pharma:        { city: 'capitale', buildingId: 'usine-pharmaceutique-luthecia', produits: ['medicaments', 'desinfectant'] },
-    directeur_tabac_alcools: { city: 'ville_b',  buildingId: 'distillerie-krasnov',           produits: ['alcool'] },
+    directeur_tabac_alcools: { city: 'ville_b',  buildingId: 'distillerie-krasnov',           produits: ['alcool', 'spiritueux', 'sucre'] },
     directeur_raffinerie:    { city: 'ville_a',  buildingId: 'usine-principale',              produits: ['carburant', 'derives_petrochimiques'] }
   }
 };

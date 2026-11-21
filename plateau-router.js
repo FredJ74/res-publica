@@ -386,6 +386,9 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'produire_medicaments') { doProduireUsine('medicaments'); return; }
   if (fn === 'produire_desinfectant') { doProduireUsine('desinfectant'); return; }
   if (fn === 'produire_alcool') { doProduireUsine('alcool'); return; }
+  if (fn === 'produire_spiritueux') { doProduireUsine('spiritueux'); return; }
+  if (fn === 'produire_sucre') { doProduireUsine('sucre'); return; }
+  if (fn === 'acheter_spiritueux_local') { doOuvrirSpiritueuxLocaux(); return; }
   if (fn === 'produire_tabac') { doProduireUsine('tabac'); return; }
   if (fn === 'consulter_devis_chantier_naval') { ouvrirDevisChantierNaval(); return; }
   if (fn === 'produire_carburant') { doProduireUsine('carburant'); return; }

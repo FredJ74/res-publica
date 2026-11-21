@@ -179,11 +179,12 @@
     "table_empreinte": "ressources_economie_empreinte",
     "fonction_reelle": "ressources_economie_empreinte_reelle",
     "fonction_reelle_en_base": true,
-    "data_js": "1fd7c288182a01ef",
-    "lignes": 19,
+    "data_js": "5c6ce2e2e9a1003e",
+    "lignes": 21,
     "posee": "2c2a88b3833ca978",
-    "reelle": "1fd7c288182a01ef",
-    "verdict": "Projection des 19 ressources egale au generateur et au catalogue Supabase observe apres regroupement petro-chimique ; sentinelle historique perimee conservee et signalee.",
+    "reelle": "5c6ce2e2e9a1003e",
+    "_data_js_precedent_distillerie": "1fd7c288182a01ef",
+      "verdict": "Distillerie (20/11/2026) : spiritueux et sucre ajoutés, mesurés en base apres la migration 20261120340000. Projection des 21 ressources egale au generateur et au catalogue Supabase observe apres regroupement petro-chimique ; sentinelle historique perimee conservee et signalee.",
     "_data_js_precedent_219": "2c2a88b3833ca978"
    },
    "ordres_couts": {

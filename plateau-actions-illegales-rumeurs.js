@@ -2990,7 +2990,7 @@ const RECETTES_ALIMENTAIRES = {
   },
   vin_chaud_sovarka: {
     id:'vin_chaud_sovarka', label:'Vin chaud', categorie:'boisson', image:null,
-    materiaux:{ alcool:1 }, pa:1, portions:10, effets:{ moral:2 },
+    materiaux:{ spiritueux:1 }, pa:1, portions:10, effets:{ moral:2 },
     typesAutorises:['buvette'], paysAutorises:['soviet'], villesAutorisees:['capitale'], buildingsAutorises:['stade'], prixFixe:12
   },
   pirojki_sovarka: {
@@ -3214,7 +3214,7 @@ const RECETTES_ALIMENTAIRES = {
     id: 'sever_vodka',
     label: 'Verre de vodka',
     categorie: 'boisson', image: null,
-    materiaux: { alcool: 1 }, pa: 1, portions: 15,
+    materiaux: { spiritueux: 1 }, pa: 1, portions: 15,
     effets: { moral: 2 },
     typesAutorises: ['cafe'], paysAutorises: ['soviet'], villesAutorisees: ['ville_b'], buildingsAutorises: ['cafe-tabac-cheminots-montrouge']
   },
@@ -3350,7 +3350,7 @@ const RECETTES_ALIMENTAIRES = {
     id: 'voyageurs_vodka',
     label: 'Verre de vodka',
     categorie: 'boisson', image: null,
-    materiaux: { alcool: 1 }, pa: 1, portions: 15,
+    materiaux: { spiritueux: 1 }, pa: 1, portions: 15,
     effets: { moral: 2 },
     typesAutorises: ['cafe'], paysAutorises: ['soviet'], villesAutorisees: ['ville_a'], buildingsAutorises: ['hotel-mineur']
   },
@@ -4236,8 +4236,8 @@ const DOTATIONS_COMMERCE_PILOTE = {
   },
   'stade|buvette': function(data) {
     if (data.country === 'soviet' && data.city === 'capitale') {
-      data.stockMatieres = { produits_exotiques:10, alcool:10, cereales:5 };
-      data.coutMoyenMatieres = { produits_exotiques:5, alcool:5, cereales:2 };
+      data.stockMatieres = { produits_exotiques:10, spiritueux:10, cereales:5 };
+      data.coutMoyenMatieres = { produits_exotiques:5, spiritueux:5, cereales:2 };
       data.carte = ['the_chaud_sovarka','chocolat_chaud_sovarka','vin_chaud_sovarka','pirojki_sovarka'];
       data.parametres.stockMax = { the_chaud_sovarka:20, chocolat_chaud_sovarka:20, vin_chaud_sovarka:20, pirojki_sovarka:20 };
       data.parametres.prixVente = { the_chaud_sovarka:5, chocolat_chaud_sovarka:8, vin_chaud_sovarka:12, pirojki_sovarka:6 };
@@ -4246,8 +4246,8 @@ const DOTATIONS_COMMERCE_PILOTE = {
     // AUCUNE caisse ici (data.caisse reste 0 en permanence) -- ni pour les ventes (deja routees
     // vers la caisse du stade, doctrine du lot precedent), ni pour la main-d'oeuvre de
     // production (routee vers la meme caisse du stade, voir produireRecetteCommerce ci-dessus).
-    data.stockMatieres = { alcool: 10, cereales: 5 };
-    data.coutMoyenMatieres = { alcool: 14, cereales: 3 }; // prix de base courant (releve economique)
+    data.stockMatieres = { spiritueux: 10, cereales: 5 };
+    data.coutMoyenMatieres = { spiritueux: 14, cereales: 3 }; // prix de base courant (releve economique)
     data.carte = ['biere_pression', 'boisson_sans_alcool', 'snack_buvette'];
     data.parametres.stockMax = { biere_pression: 20, boisson_sans_alcool: 20, snack_buvette: 20 }; // plafonne (lot plafonds, 21 aout 2026, etait 30)
     data.parametres.prixVente = {

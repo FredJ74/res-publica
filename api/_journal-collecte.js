@@ -240,6 +240,16 @@ const RESSOURCES_ECONOMIE = {
     "prixBase": 14,
     "prixAchatFournisseur": 7
   },
+  "spiritueux": {
+    "plafond": 100,
+    "prixBase": 14,
+    "prixAchatFournisseur": 7
+  },
+  "sucre": {
+    "plafond": 150,
+    "prixBase": 5,
+    "prixAchatFournisseur": 2.5
+  },
   "tabac": {
     "plafond": 100,
     "prixBase": 18,

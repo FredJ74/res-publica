@@ -41,7 +41,7 @@ END $$;"""
  def test_ressources_ordre_exhaustif_et_copie_alteree(self):
   g=module('gen','outils/generateurs/generer_referentiels_serveur.py');v=module('verif','outils/baseline/verifier-referentiels.py')
   r=next(r for r in json.loads(Path(g.DECLARATION).read_text())['referentiels'] if r['serveur']=='RESSOURCES_ECONOMIE_SERVEUR')
-  valeur,erreur=g.valeur_generee(r,g.jsc());self.assertIsNone(erreur);self.assertEqual(len(json.loads(valeur)),19)
+  valeur,erreur=g.valeur_generee(r,g.jsc());self.assertIsNone(erreur);self.assertEqual(len(json.loads(valeur)),21)
   faux=copy.deepcopy(r);faux['ordre_des_cles'].remove('derives_petrochimiques');_,erreur=g.valeur_generee(faux,g.jsc());self.assertTrue(erreur)
   canon=json.loads(valeur);copie=copy.deepcopy(canon);copie['derives_petrochimiques']['prixBase']+=1
   self.assertTrue(v.comparer(canon,copie,r['champs']))

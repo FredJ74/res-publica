@@ -473,3 +473,26 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 - **#871 — retours fixes du forum/courrier**, PR #877 fusionnée (`e9989c6`), Vercel `dpl_BQV57ujrMBbGZcss1aTqGtHjB7GG` READY et alias public confirmé. Treize fichiers publics identiques ; Chromium forum/répertoire rejoué sur ces fichiers : deux bancs verts (837 rendus, 351 bascules, 162 situations). 344 traductions étrangères nouvelles ; +43 textes/+313 mots source raccordés par langue étrangère. 66 contrôles locaux verts ; CI PR : 40 verts, un contrôle SSM avec trois échecs préexistants reproduits sur main. Aucun effet métier, PA ou serveur ajouté. Compte authentifié, relecture native et appareil physique non vérifiés. Bilan des trois lots : `outils/audits/LIVRAISON-I18N-871.md` (408 traductions étrangères, +50 textes/+352 mots raccordés). Issue #871 ouverte pour la suite.
 
 - **#871 — répertoire/courrier**, PR #876 fusionnée (`c7f197e`), Vercel `dpl_41cY9NbTN6Fvu7Sua2V4tXEi1wsL` READY et alias public confirmé ; dix fichiers servis identiques, banc Chromium rejoué sur ces fichiers vert (162 situations). 64 traductions étrangères, +7 textes/+39 mots raccordés par langue. 26 contrôles ciblés verts ; trois échecs SSM préexistants inchangés. Compte authentifié, relecture native et téléphone physique non vérifiés.
+
+## Économie de la distillerie et des alcools (Claude, 20/11/2026)
+
+- **Migration :** `20261120340000_distilleries_alcools`.
+- **Note de conception :** `GAME-DESIGN-DISTILLERIE-ALCOOLS.md`.
+- **Banc :** `outils/bancs/test-distillerie-alcools-20261120.cjs`.
+- **Contenu :**
+  - alcool pur (clé `alcool`), spiritueux et sucre ;
+  - chaînes à PSM et à Krasnov, de jour et de nuit ;
+  - recettes et stocks migrés vers le spiritueux ;
+  - flux vers Al-Khalija ;
+  - Krasnov jamais à louer ;
+  - spiritueux de la maison ;
+  - outil de pénurie du MJ (`admin-penuries.js`).
+- **Pour Codex — catalogue économique** (`i18n/economic-catalog-resources.js`) :
+  - `material_alcool_label` devient « Alcool pur » ;
+  - nouvelles clés `material_spiritueux_label` (« Spiritueux ») et `material_sucre_label` (« Sucre ») ;
+  - une fois fait, retirer ces trois clés de la liste `ATTENTE_CODEX` de `banc-i18n-catalogue-economique.cjs`.
+- **Pour Codex — nouvelle clé :** `distillerie.localSpiritsNote`.
+- **Pour Codex — infobulles de Sovarka :** trois descriptions de la distillerie de Krasnov sont à traduire. Une fois fait, les retirer de la liste `ATTENTE_CODEX` de `test-i18n-sovarka-infobulles-20261113.mjs`.
+- **Pour Codex — nouveaux textes de jeu en français :**
+  - ordres `produire_spiritueux`, `produire_sucre` et `acheter_spiritueux_local` (`data.js`, PSM et Krasnov) ;
+  - fenêtre « Spiritueux de la maison » et ses messages (`plateau-justice-economie.js`).
