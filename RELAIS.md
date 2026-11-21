@@ -496,3 +496,12 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 - **Pour Codex — nouveaux textes de jeu en français :**
   - ordres `produire_spiritueux`, `produire_sucre` et `acheter_spiritueux_local` (`data.js`, PSM et Krasnov) ;
   - fenêtre « Spiritueux de la maison » et ses messages (`plateau-justice-economie.js`).
+
+## Climat : affichage dans les vues de rue (Claude, 21/11/2026)
+
+- Décisions de Fred après le test du brouillard à Krasnov.
+- **Flèches de navigation :** elles restent nettes, au-dessus de l'effet. Le filtre se pose dans la scène de rue (`#rc-scene`), sous les flèches.
+- **Message d'alerte :** dans les vues de rue uniquement, un message discret qui clignote lentement, selon l'événement en cours : « Attention brouillard / blizzard / orage / crue / canicule ».
+- **Banc :** `outils/bancs/test-climat-affichage-20261121.cjs`.
+- **Pour Codex :** table `ALERTES` de `plateau-climat.js` (clés `brouillard`, `blizzard`, `orage`, `crue`, `canicule`), français seulement. Ajouter les huit autres langues ; elle pourra ensuite rejoindre la table `T`.
+

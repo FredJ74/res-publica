@@ -88,6 +88,9 @@ const T = {
     shop: 'Ausrüstung gegen Unwetter', o_bouteille_eau: 'Flasche Wasser', o_sac_de_sable: 'Sandsack', o_groupe_electrogene: 'Stromaggregat', shopBought: '{qte} × {nom} für {paye} {cur}.', pose: 'Ihre Sandsäcke vor diesem Gebäude auslegen (1 AP)', posed: '{n} Sandsack/-säcke ausgelegt. Vor diesem Gebäude: {total}/{max}; Verlust beim nächsten Hochwasser: {perte} % des Bestands.', fill: 'Auffüllen (Kanister)', filled: 'Tank: {n} Kanister.', heatLost: 'Die Hitzewelle hat Sie {n} AP gekostet.', heatWater: 'Ihre Wasserflasche hat Sie vor der Hitze geschützt.', spoiledHeat: 'Die Hitze hat die Lebensmittel verdorben, die Sie bei sich trugen ({n}).', flooded: 'Dieses Gebäude steht unter Wasser.', cat: 'Naturkatastrophenzustand', catPropose: 'Dem Premierminister vorschlagen', catProposed: 'Vorschlag an den Premierminister gesendet.', catIntro: 'Hochwasserschäden in {ville}: {pertes} {cur}. Entschädigung zu {part} % aus der Regierungskasse.', catSacs: 'Nur Geschädigte, die Sandsäcke ausgelegt hatten: {n}, Kosten {cout} {cur}.', catTous: 'Alle Geschädigten: {n}, Kosten {cout} {cur}.', catReserve: 'Regierungskasse: {reserve} {cur}.', catDeadline: 'Entscheidung möglich bis {date}.', catDeclared: 'Ausrufen', catDone: 'Naturkatastrophenzustand ausgerufen: {cout} {cur} ausgezahlt.', r_pas_a_la_boutique: 'Sie müssen im Geschäft sein.', r_hors_zone_inondable: 'Dieses Gebäude liegt nicht im Überschwemmungsgebiet.', r_pas_proprietaire_ni_exploitant: 'Nur Eigentümer oder Betreiber können Sandsäcke auslegen.', r_deja_protege: 'Vor diesem Gebäude liegen bereits die maximal möglichen Sandsäcke.', r_pas_de_sacs: 'Sie haben keine Sandsäcke.', r_pas_de_groupe: 'Hier ist kein Stromaggregat installiert.', r_bidons_insuffisants: 'Nicht genug Kraftstoffkanister.', r_poste_requis: 'Dem Innenminister oder dem Premierminister vorbehalten.', r_delai_depasse: 'Die 72-Stunden-Frist ist abgelaufen.', r_deja_propose: 'Bereits vorgeschlagen.', r_pas_de_proposition: 'Der Innenminister hat nichts vorgeschlagen.', r_deja_declare: 'Bereits ausgerufen.', r_budget_insuffisant: 'Die Regierungskasse reicht nicht aus.', r_crue_inconnue: 'Unbekanntes Hochwasser.', r_pa_insuffisants: 'Nicht genug AP.' }
 };
 const TYPES = ['crue', 'canicule', 'orage', 'brouillard', 'blizzard'];
+// Alerte discrète des vues de rue (Fred, 21/11/2026). Table à part, en français : Codex y ajoute les huit autres langues
+// (mêmes clés), puis elle peut rejoindre T. Repli sur le français tant qu'une langue manque.
+const ALERTES = { fr: { brouillard: 'Attention brouillard', blizzard: 'Attention blizzard', orage: 'Attention orage', crue: 'Attention crue', canicule: 'Attention canicule' } };
 const VILLES = { republic: { capitale: 'Luthécia', ville_a: 'Port-Sainte-Marie', ville_b: 'Montrouge' },
                  soviet: { capitale: 'Novomirsk', ville_a: 'Starovka', ville_b: 'Krasnov' } };
 const langue = () => { try { return (global.RPPlateauI18n && global.RPPlateauI18n.language && global.RPPlateauI18n.language()) || 'fr'; } catch (_) { return 'fr'; } };
@@ -152,7 +155,13 @@ function injecterStyle() {
     + '#climat-filtre.crue{background:linear-gradient(to top,rgba(40,70,90,.65) 0,rgba(40,70,90,.35) 22%,transparent 40%);animation:climatEau 4s ease-in-out infinite}'
     + '@keyframes climatNeige{to{background-position:30px 180px}}@keyframes climatPluie{to{background-position:-20px 40px}}'
     + '@keyframes climatEclair{0%,94%,100%{filter:none}95%,97%{filter:brightness(2.4)}}@keyframes climatChaleur{50%{filter:blur(.6px)}}'
-    + '@keyframes climatEau{50%{transform:translateY(-6px)}}';
+    + '@keyframes climatEau{50%{transform:translateY(-6px)}}'
+    // Le climat illustre, il ne gêne jamais la navigation (Fred, 21/11/2026) : flèches et zones restent nettes, au-dessus du filtre.
+    + '#rc-scene .rc-fleche,#rue-image .rc-fleche{position:absolute;z-index:1001}'
+    + '#climat-alerte{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:1002;pointer-events:none;'
+    + 'padding:.3rem .8rem;border:1px solid rgba(201,168,76,.55);background:rgba(10,8,6,.55);color:#e5c477;'
+    + 'font-family:Bebas Neue,sans-serif;letter-spacing:.12em;font-size:.95rem;border-radius:3px;animation:climatAlerte 4s ease-in-out infinite}'
+    + '@keyframes climatAlerte{0%,100%{opacity:.9}50%{opacity:.35}}';
   doc.head.appendChild(st);
 }
 function appliquerFiltre() {
@@ -161,16 +170,27 @@ function appliquerFiltre() {
   const s = etat();
   const ev = evenements.find(e => e.en_cours && e.ville === s.currentCity);
   const rue = doc.getElementById('rue-image');
+  // Scène de rue centrale : le filtre se pose DANS la scène, au-dessus de l'image mais sous les flèches de navigation.
+  const hote = doc.getElementById('rc-scene') || rue;
   let f = doc.getElementById('climat-filtre');
-  if (!ev || !rue) { if (f) f.remove(); return; }
+  let a = doc.getElementById('climat-alerte');
+  if (!ev || !hote) { if (f) f.remove(); if (a) a.remove(); return; }
   injecterStyle();
-  if (!f || f.parentNode !== rue) {
+  if (!f || f.parentNode !== hote) {
     if (f) f.remove();
     f = doc.createElement('div'); f.id = 'climat-filtre';
-    if (global.getComputedStyle && global.getComputedStyle(rue).position === 'static') rue.style.position = 'relative';
-    rue.appendChild(f);
+    if (global.getComputedStyle && global.getComputedStyle(hote).position === 'static') hote.style.position = 'relative';
+    hote.appendChild(f);
   }
   f.className = ev.type;
+  // Vues de rue uniquement : message discret qui clignote lentement (jamais dans les pièces).
+  if (!a || a.parentNode !== hote) {
+    if (a) a.remove();
+    a = doc.createElement('div'); a.id = 'climat-alerte'; a.setAttribute('role', 'status');
+    hote.appendChild(a);
+  }
+  const type = TYPES.includes(ev.type) ? ev.type : 'brouillard';
+  a.textContent = (ALERTES[langue()] && ALERTES[langue()][type]) || ALERTES.fr[type];
 }
 
 // ── Graisses (lot 4) : poissonnière de Novomirsk, marché de Krasnov, pharmacies ouvertes par un PJ ─────
@@ -384,12 +404,12 @@ function demarrer() {
   brancherToast();
   setTimeout(rafraichirClimat, 6000);
   setInterval(rafraichirClimat, 600000);
-  setInterval(appliquerFiltre, 5000);   // la vue de rue change à chaque déplacement : le filtre suit, sans lecture serveur
+  setInterval(appliquerFiltre, 1500);   // la vue de rue change à chaque déplacement : le filtre et l'alerte suivent, sans lecture serveur
 }
 if (global.document && global.document.readyState !== 'loading') demarrer();
 else if (global.document) global.document.addEventListener('DOMContentLoaded', demarrer);
 
-global.RPClimat = { T, TYPES, texte, message, rafraichirClimat, appliquerFiltre, nomObjet: nomObjetClimat };
+global.RPClimat = { T, ALERTES, TYPES, texte, message, rafraichirClimat, appliquerFiltre, nomObjet: nomObjetClimat };
 Object.assign(global, { ouvrirGraisses, confirmerGraisse, climatGraissesBoutiqueHtml, boutonDeposerGraisse, deposerGraisse,
   ouvrirBoutiqueClimat, confirmerBoutiqueClimat, boutonPoserSacs, poserSacsSable, boutonGroupeRemplir, groupeRemplir,
   catastropheProposer, catastropheExaminer, catastropheDeclarer });
