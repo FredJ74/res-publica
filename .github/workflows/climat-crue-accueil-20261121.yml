@@ -1,10 +1,10 @@
 name: "Climat (décisions définitives du 21/11) — 6 heures, sacs de sable, un événement par pays, pictogrammes, eau gratuite"
 on:
   pull_request:
-    paths: [plateau-climat.js, plateau-rue-centrale.js, plateau.html, 'migrations/2026111*climat*.sql', 'migrations/20261121070000_climat_douze_heures_gare_accueil.sql', 'migrations/20261121090000_climat_six_heures_pays_sacs_eau.sql', 'migrations/20261121110000_climat_parades_vente.sql', data.js, 'outils/bancs/*climat*', .github/workflows/climat-crue-accueil-20261121.yml]
+    paths: [plateau-climat.js, plateau-rue-centrale.js, plateau.html, 'migrations/2026111*climat*.sql', 'migrations/20261121070000_climat_douze_heures_gare_accueil.sql', 'migrations/20261121090000_climat_six_heures_pays_sacs_eau.sql', 'migrations/20261121110000_climat_parades_vente.sql', 'migrations/20261121120000_climat_parades_sovarka.sql', data.js, 'outils/bancs/*climat*', .github/workflows/climat-crue-accueil-20261121.yml]
   push:
     branches: [main]
-    paths: [plateau-climat.js, plateau-rue-centrale.js, plateau.html, 'migrations/2026111*climat*.sql', 'migrations/20261121070000_climat_douze_heures_gare_accueil.sql', 'migrations/20261121090000_climat_six_heures_pays_sacs_eau.sql', 'migrations/20261121110000_climat_parades_vente.sql', data.js, 'outils/bancs/*climat*', .github/workflows/climat-crue-accueil-20261121.yml]
+    paths: [plateau-climat.js, plateau-rue-centrale.js, plateau.html, 'migrations/2026111*climat*.sql', 'migrations/20261121070000_climat_douze_heures_gare_accueil.sql', 'migrations/20261121090000_climat_six_heures_pays_sacs_eau.sql', 'migrations/20261121110000_climat_parades_vente.sql', 'migrations/20261121120000_climat_parades_sovarka.sql', data.js, 'outils/bancs/*climat*', .github/workflows/climat-crue-accueil-20261121.yml]
 permissions:
   contents: read
 jobs:

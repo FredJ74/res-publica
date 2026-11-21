@@ -149,6 +149,10 @@ test('parades en vente dans chaque pays : chaque lieu cité vend vraiment, chaqu
     for (const m of lire(f).matchAll(/\('[\w-]+', +'(republic|soviet)', +'(\w+)', +'[\w-]+', +'\w+'/g)) ajoute(m[1], m[2], 'sels_rehydratation');
   assert.match(lire('migrations/20261105222000_vehicules_socle.sql'), /'type', 'station-service', 'country', 'soviet', 'city', 'ville_b'/);
   ajoute('soviet', 'ville_b', 'bidon_carburant');
+  // Réponses de Fred du 21/11 : bidons aussi au garage de Novomirsk (groupe et carburant au même endroit).
+  const sovarka = lire('migrations/20261121120000_climat_parades_sovarka.sql');
+  assert.match(sovarka, /UPDATE public\.climat_boutiques SET cles = cles \|\| ARRAY\['bidon_carburant'\]\n WHERE id = 'garage-novomirsk'/);
+  ajoute('soviet', 'capitale', 'bidon_carburant');
   ajoute('soviet', 'ville_b', 'bouteille_eau');
   // Lieux cités : ceux du matin (eau, sacs), groupe et sels remplacés par le complément.
   const cites = [];
@@ -171,4 +175,18 @@ test('parades en vente dans chaque pays : chaque lieu cité vend vraiment, chaqu
   // Objets identiques à ceux des commerces existants.
   assert.match(parades, /WHEN 'bidon_carburant' THEN jsonb_build_object\('name', 'carburant', 'stackKey', 'carburant'/);
   assert.match(parades, /'stackKey', 'medicament_sels_rehydratation'/);
+});
+
+test('réponses de Fred : sels à moitié prix en Sovarka, groupe et bidons au même endroit, contrôle complété', () => {
+  const m = lire('migrations/20261121120000_climat_parades_sovarka.sql');
+  assert.match(m, /WHEN p_cle_maladie = 'coup_de_chaleur' AND p_pays = 'soviet'\n +THEN greatest\(1, round\(public\.pharmacie_prix_interne\(p_cle_maladie\) \/ 2\.0\)\)::integer/);
+  // Partout où les sels se vendent en Sovarka : boutique climat (Pharmanov) et pharmacie d'État.
+  for (const f of ['boutique_climat_acheter', 'boutique_climat_etat', 'pharmacie_acheter_interne', 'pharmacie_etat'])
+    assert.ok(m.includes("pg_temp.rp_raccorder('public." + f), f);
+  assert.match(m, /', en vente au même endroit'/);
+  assert.match(m, /'bidons absents du lieu du groupe électrogène : '/);
+  // Port-Sainte-Marie : toujours renvoyée aux quincailleries de Luthécia et de Montrouge (aucune ligne pour ville_a).
+  const parades = lire('migrations/20261121110000_climat_parades_vente.sql');
+  assert.ok(!/\('groupe_electrogene', 'republic', 'ville_a'/.test(parades + m));
+  assert.match(m, /IF EXISTS \(SELECT 1 FROM public\.climat_parades_verifier_interne\(\)\) THEN/);
 });
