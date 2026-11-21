@@ -38,3 +38,15 @@ Règle générale de Fred : les déplacements à l'intérieur d'une ville ne con
 5. Contrôle
 Tests couvrant : clic sur le portique vers la clairière, bouton « S'enfoncer dans la forêt » absent, sentier de la clairière vers le tirage aléatoire, jamais deux images de bois identiques à la suite, retour en deux clics maximum jusqu'à la clairière avec message « Était-ce le bon chemin… ? » en cas d'égarement, arrivée garantie au second clic, retour direct de la clairière au campement, aucun PA consommé par ces déplacements.
 Rapport attendu : coût en PA supprimé s'il existait, probabilité d'égarement retenue, image de bois supplémentaire attendue, ce qui reste à décider par Fred.
+
+---
+
+## Complément du 21/11/2026 : exploration en groupe, recopié mot pour mot
+
+Complément au chantier forêt de Krasnov (décisions de Fred du 21/11/2026), à intégrer dans la même PR et à ajouter à GAME-DESIGN-FORET-KRASNOV-20261121.md :
+Fred testera l'exploration en groupe (Tom Tom et Arnie, groupés) à la recherche de l'ours, pour éprouver le combat en groupe. Relis d'abord comment les groupes se déplacent et combattent aujourd'hui, puis applique ces règles :
+- Un groupe explore ensemble : un seul tirage par clic pour tout le groupe, et tous les membres voient la même image et vivent la même rencontre (bois, loup(s), ours, Olga).
+- Au retour, l'égarement se tire une seule fois pour tout le groupe : le groupe s'égare ensemble ou arrive ensemble à la clairière.
+- Une rencontre avec l'ours ou les loups déclenche le combat en groupe existant, avec tous les membres présents.
+- Seul le chef du groupe (ou le membre qui clique, si les groupes n'ont pas de chef) déclenche les clics d'exploration et de retour ; les autres suivent automatiquement.
+Tests couvrant : tirage unique pour le groupe, même image pour tous, égarement commun au retour, combat de groupe contre l'ours. Signale dans ton rapport toute limite du système de groupe actuel qui empêcherait ce test.
