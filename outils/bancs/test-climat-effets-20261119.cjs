@@ -25,19 +25,16 @@ test('migration : décisions de Fred (crue 20 %, 50 % au prix de base, sacs par 
   assert.match(lire('migrations/20261119100500_catastrophe_caisse_pm.sql'), /_gouvernement-pm/);
 });
 
-test('sacs de sable proportionnels (décision du 19/11) : 10 % par sac, plafond 9, pose groupée pour 1 PA', () => {
-  const sql = lire('migrations/20261119101000_sacs_sable_proportionnels.sql');
-  assert.match(sql, /DELETE FROM public\.aliments_parametres WHERE cle = 'sacs_protection_pct'/);
-  assert.match(sql, /\('sac_protection_pct', 10\), \('sacs_plafond', 9\)/);
-  assert.match(sql, /ADD COLUMN IF NOT EXISTS sacs integer/);
-  assert.match(sql, /v_n := least\(public\.inventaire_quantite\(v_inv, 'sac_de_sable'\)::integer, v_plafond - v_deja\)/);
-  assert.match(sql, /climat_sacs_proportionnels_v1/);
-  // Perte restante = 20 % × (100 − min(n, 9) × 10) / 100 : 3 sacs → 14 %, 5 → 10 %, 9 ou plus → 2 %.
-  const perte = n => 20 * Math.max(0, 100 - Math.min(Math.max(n, 0), 9) * 10) / 100;
-  assert.deepEqual([0, 3, 5, 9, 12].map(perte), [20, 14, 10, 2, 2]);
+test('sacs de sable : un sac protège entièrement pour une crue (décision définitive du 21/11, règle du 19/11 retirée)', () => {
+  const sql = lire('migrations/20261121130000_climat_horaire_cadence_catastrophe_sacs.sql');
+  assert.match(sql, /DROP FUNCTION IF EXISTS public\.climat_sacs_reste_pct_interne\(numeric\);/);
+  assert.match(sql, /DELETE FROM public\.aliments_parametres WHERE cle IN \('sac_protection_pct', 'sacs_plafond', 'sacs_protection_pct'\);/);
+  assert.match(sql, /ALTER TABLE public\.climat_protections DROP COLUMN IF EXISTS sacs;/);
+  assert.match(sql, /public\.inventaire_retirer\(inventory, 'sac_de_sable', 1\)/);
   const js = lire('plateau-climat.js');
-  assert.match(js, /texte\('posed', \{ n: r\.poses, total: r\.sacs, max: r\.plafond, perte: r\.perte_pct \}\)/);
-  assert.equal((js.match(/posed: '[^']*\{total\}\/\{max\}/g) || []).length, 9);
+  assert.match(js, /global\.showToast\(texte\('o_sac_de_sable'\), texte\('posed'\), true\);/);
+  assert.match(js, /posed: 'Sac de sable posé : à la prochaine crue, ce lieu restera ouvert et gardera tous ses stocks\.'/);
+  assert.ok(!/plafond 9/.test(js));
 });
 
 test('écran : boutique, sacs, groupe, catastrophe (deux options et coûts) dans les neuf langues', () => {

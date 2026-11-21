@@ -1,0 +1,33 @@
+name: "Climat (décisions définitives du 21/11) — 6 heures, sacs de sable, un événement par pays, pictogrammes, eau gratuite"
+on:
+  pull_request:
+    paths: [plateau-climat.js, plateau-rue-centrale.js, plateau.html, 'migrations/2026111*climat*.sql', 'migrations/20261121070000_climat_douze_heures_gare_accueil.sql', 'migrations/20261121090000_climat_six_heures_pays_sacs_eau.sql', 'migrations/20261121110000_climat_parades_vente.sql', 'migrations/20261121120000_climat_parades_sovarka.sql', 'migrations/20261121130000_climat_horaire_cadence_catastrophe_sacs.sql', data.js, 'outils/bancs/*climat*', .github/workflows/climat-crue-accueil-20261121.yml]
+  push:
+    branches: [main, 'claude/**']
+    paths: [plateau-climat.js, plateau-rue-centrale.js, plateau.html, 'migrations/2026111*climat*.sql', 'migrations/20261121070000_climat_douze_heures_gare_accueil.sql', 'migrations/20261121090000_climat_six_heures_pays_sacs_eau.sql', 'migrations/20261121110000_climat_parades_vente.sql', 'migrations/20261121120000_climat_parades_sovarka.sql', 'migrations/20261121130000_climat_horaire_cadence_catastrophe_sacs.sql', data.js, 'outils/bancs/*climat*', .github/workflows/climat-crue-accueil-20261121.yml]
+permissions:
+  contents: read
+jobs:
+  climat:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Dépendances verrouillées des bancs
+        run: npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
+      - name: Règles et textes
+        run: |
+          node --check plateau-climat.js
+          node --check plateau-rue-centrale.js
+          node --test outils/bancs/test-climat-socle-20261118.cjs outils/bancs/test-climat-blizzard-grippe-20261119.cjs outils/bancs/test-climat-effets-20261119.cjs outils/bancs/test-climat-corrections-20261119.cjs outils/bancs/test-climat-affichage-20261121.cjs outils/bancs/test-climat-crue-accueil-20261121.cjs outils/bancs/test-climat-definitif-20261121.cjs
+      - name: PostgreSQL local (PGlite) — migrations non appliquées en production
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund --prefix "$RUNNER_TEMP/pglite" @electric-sql/pglite@0.2.17
+          PGLITE_DIR="$RUNNER_TEMP/pglite" node --test outils/bancs/banc-climat-pglite-20261121.cjs
+      - name: Chromium réel
+        env:
+          HG_CHROMIUM: /usr/bin/google-chrome
+        run: node --test outils/bancs/banc-climat-crue-accueil-navigateur-20261121.cjs outils/bancs/banc-climat-arrivee-navigateur-20261121.cjs

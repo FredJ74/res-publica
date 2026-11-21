@@ -13164,9 +13164,11 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
 // armureries-quincailleries de Luthécia et de Montrouge (pas de garagiste en Républia). Le serveur (climat_boutiques) tranche.
 (function () {
   const ordre = {fn:'boutique_climat', label:'Équipements contre les intempéries', pa:0, cost:0, type:'legal', icon:'ti-umbrella', successRate:100,
-    desc:"Bouteilles d'eau, sacs de sable ou groupe électrogène, selon la boutique."};
+    desc:"Bouteilles d'eau, sacs de sable, groupe électrogène et bidons de carburant, ou sels de réhydratation, selon la boutique."};
   const parContexte = [['republic', 'capitale', 'armurerie', 'magasin'], ['republic', 'ville_b', 'armurerie', 'magasin'],
-                       ['republic', 'capitale', 'marche', 'marche_ext'], ['republic', 'ville_b', 'marche', 'marche_ext']];
+                       ['republic', 'capitale', 'marche', 'marche_ext'], ['republic', 'ville_b', 'marche', 'marche_ext'],
+                       // Complément du 21/11 : sels de réhydratation à l'usine pharmaceutique de Novomirsk (Pharmanov).
+                       ['soviet', 'capitale', 'usine-pharmaceutique-luthecia', 'salle_ventes']];
   for (const [pays, ville, bat, piece] of parContexte) {
     const ctx = WORLD[pays] && WORLD[pays][ville] && WORLD[pays][ville].buildingContext && WORLD[pays][ville].buildingContext[bat];
     if (!ctx) continue;

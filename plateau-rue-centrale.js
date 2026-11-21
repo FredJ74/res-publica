@@ -1999,6 +1999,7 @@ async function afficherNoeudRue(pays, noeudId, depuisNoeudId, positionDejaConfir
   zonesAffichees.forEach((z, i) => {
     const div = document.createElement('div');
     div.className = 'rc-zone';
+    if (z.buildingId) div.dataset.building = z.buildingId;   // marques du climat (lieux inondés, plateau-climat.js)
     div.setAttribute('aria-label', z.nom);
     div.setAttribute('role', 'button');
     div.tabIndex = 0;
