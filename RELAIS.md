@@ -8,6 +8,16 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Soir du 21/11/2026 (Claude) : pause Supabase levée, migrations appliquées
+- **Appliquées** (banc PGlite d'abord ; goulag vérifié `active=false` avant et après ; aucune table ou fonction du goulag touchée) :
+  `20261121130000_climat_horaire_cadence_catastrophe_sacs` (calendrier recalculé : 17 brouillards en trop annulés, crues remises au
+  08/12, 10/12, 12/12 et 09-13/01, aucun événement sans 48 h de préavis) et `20261121140000_chantier_jour_avance` (jour d'avance).
+  `incidents_client` était déjà en place (incident de test id 1, marqué `test`).
+- **En ligne** : première rue (relance, filet « La ville se charge encore… », minuteur 8 s), climat définitif, fenêtre unique « Le chantier »
+  (`plateau-chantier-vue.js` ; image par étape `images/chantiers/<ville>/{gros-oeuvre,facade}-{bas,haut}.webp`, `final-<palier-avec-tirets>.webp`).
+- **Pour Codex** : textes français du chantier dans `TXT` de `plateau-chantier-vue.js` (toutes les clés), à brancher sur la traduction ;
+  `RUE_CENTRALE_PANNE` (`message`, `aide`, `bouton`) dans `plateau-rue-centrale.js`.
+
 ### Climat, décisions définitives du 21/11 : 6 heures, sacs de sable, un événement par pays, pictogrammes, eau gratuite (Claude, 21/11/2026)
 - **Branche `claude/climat-crue-accueil-20261121`** (part de `claude/position-initiale-20261121`). Décisions : `GAME-DESIGN-CLIMAT-20261121.md` (version définitive, remplace celle du matin). **Migrations APPLIQUÉES** (essais annulés d'abord) : `20261121070000_climat_douze_heures_gare_accueil` (gare jamais inondée, accueil du nouveau personnage ; ses 12 h sont remplacées) et `20261121090000_climat_six_heures_pays_sacs_eau`.
 - Diagnostic : aucune crue n'a jamais été active en production ; le nouveau joueur (personnage Peter Kropotkine) a vu l'**orage** de Novomirsk (filtre à rayures) sur une vue de rue restée vide (correctif à part, PR de la position initiale). La crue ne bloquait déjà que l'entrée dans les lieux tirés (raccord `climat_crue_v1`, mode « piece »).

@@ -165,11 +165,14 @@ Base de production **gelée** jusqu'à nouvel ordre de Fred : Codex y termine le
 **Pour Codex** : horodater les migrations du goulag **après `20261121120000`** (ou les appliquer en acceptant cet
 ordre), sans jamais réécrire ni annuler ces cinq migrations. Aucune ne touche une table ou une fonction du goulag.
 
-### Préparé par Claude, en attente du feu vert (non appliqué)
-- `20261121130000_climat_horaire_cadence_catastrophe_sacs` : `climat_*`, `catastrophe_couts_interne`, `catastrophe_etat`,
-  `catastrophe_proposer`, `catastrophe_declarer`, `sacs_sable_poser`, `climat_protections` (colonne `sacs` retirée).
-- Chantier de construction (accélération par les joueurs) : logique dans une fonction séparée, appelée par **un seul
-  ajout** dans `chantier_jour_traiter` (voir ci-dessous).
+### Appliqué par Claude le 21/11 au soir (pause levée par Fred ; goulag vérifié désactivé avant et après)
+- `20261121130000_climat_horaire_cadence_catastrophe_sacs` : `climat_*` (heure au hasard, brouillard 1/mois, préavis de 48 h garanti,
+  `debut_prevu`), `catastrophe_couts_interne`, `catastrophe_etat`, `catastrophe_proposer`, `catastrophe_declarer`, `climat_crue_appliquer_interne`,
+  `sacs_sable_poser` ; suppression de `climat_sacs_reste_pct_interne`, `climat_sacs_poses_interne`, colonne `climat_protections.sacs`.
+- `20261121140000_chantier_jour_avance` : nouvelles `chantier_avance_heures_interne`, `chantier_avance_enregistrer_interne`,
+  `chantier_avance_nuit_interne` ; **jonctions** : deux insertions dans `chantier_travailler` (marques `chantier_jour_avance_v1`,
+  `chantier_jour_avance_enregistrer_v1`) et **un seul appel** dans `chantier_jour_traiter`, juste avant `jourTraite`
+  (marque `chantier_jour_avance_nuit_v1`). `api/cron-minuit.js` n'est pas modifié.
 
 ### Fonctions communes et points de jonction
 - **Traitement de nuit** : `api/cron-minuit.js` (commun : il appelle aussi `sovarka_goulag_controle_minuit`, tâche

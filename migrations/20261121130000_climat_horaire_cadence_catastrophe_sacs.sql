@@ -1,6 +1,6 @@
 -- CLIMAT — décisions de Fred du 21/11/2026 sur les quatre questions (GAME-DESIGN-CLIMAT-20261121.md).
--- ⚠️ NON APPLIQUÉE : pause sur Supabase en production (Codex termine le goulag). Testée en local (PGlite,
---    outils/bancs/banc-climat-pglite-20261121.cjs). À appliquer seulement sur feu vert de Fred.
+-- APPLIQUÉE le 21/11/2026 au soir, sur feu vert de Fred (pause Supabase levée), après le banc PGlite
+--    outils/bancs/banc-climat-pglite-20261121.cjs.
 -- Règle d'application (Fred, 21/11 au soir) : aucun événement ne commence sans annonce 48 h avant. Les épisodes non annoncés
 --    sont placés au plus tôt 48 h après maintenant ; les événements déjà annoncés qui commencent dans moins de 48 h gardent
 --    date, heure et annonce (ils ont eu leur préavis) ; les alertes paraissent entre 49 et 48 h avant le début.
