@@ -1,4 +1,5 @@
 import { appelDeepSeek } from './_deepseek.js';
+import { journalistesPresse } from './_presse-antennes.js';
 // =====================
 // LA TRIBUNE DE RÉPUBLIA — LOT B : GÉNÉRATION IA + VALIDATION DÉTERMINISTE + PUBLICATION
 // =====================
@@ -1123,12 +1124,15 @@ const TITRE_PORTRAIT_JODIE = 'Un jour, un portrait : ';
 async function assemblerAvantDernierePage(pays) {
   if (!SUPABASE_SERVICE_ROLE) return { interviews: [] };
   const borne = MAX_INTERVIEWS_AVANT_DERNIERE_PAGE;
+  // Portraits d'accueil : signés par le journaliste de l'antenne qui a invité (Fred, 21/11/2026),
+  // plus seulement par Jodie Moitout (api/_presse-antennes.js).
+  const auteurs = '(' + journalistesPresse().map(n => encodeURIComponent('"' + n + '"')).join(',') + ')';
   const [classiques, topics] = await Promise.all([
     sbGet('interviews_jodie',
       `country=eq.${encodeURIComponent(pays)}&publie=eq.true&article_texte=not.is.null&order=publie_le.desc.nullslast&limit=${borne}`,
       SB_HEADERS_SERVICE),
     sbGet('forum_topics',
-      `country=eq.${encodeURIComponent(pays)}&forum_id=eq.presse&author=eq.${encodeURIComponent('Jodie Moitout')}&title=like.${encodeURIComponent(TITRE_PORTRAIT_JODIE + '*')}&select=id,title,time,created_at&order=created_at.desc&limit=${borne * 4}`,
+      `country=eq.${encodeURIComponent(pays)}&forum_id=eq.presse&author=in.${auteurs}&title=like.${encodeURIComponent(TITRE_PORTRAIT_JODIE + '*')}&select=id,title,time,created_at&order=created_at.desc&limit=${borne * 4}`,
       SB_HEADERS_SERVICE)
   ]);
   const candidats = (classiques || []).filter(r => r.personnage && r.article_texte).map(r => ({
@@ -1139,7 +1143,7 @@ async function assemblerAvantDernierePage(pays) {
   const topicIds = (topics || []).map(t => t.id).filter(Boolean);
   if (topicIds.length) {
     const posts = await sbGet('forum_posts',
-      `topic_id=in.(${topicIds.map(encodeURIComponent).join(',')})&author=eq.${encodeURIComponent('Jodie Moitout')}&select=topic_id,content,created_at&order=created_at.asc&limit=${borne * 4}`,
+      `topic_id=in.(${topicIds.map(encodeURIComponent).join(',')})&author=in.${auteurs}&select=topic_id,content,created_at&order=created_at.asc&limit=${borne * 4}`,
       SB_HEADERS_SERVICE);
     const parTopic = new Map();
     for (const post of posts || []) {
@@ -1601,6 +1605,11 @@ async function solliciterInterviewsProactives(pays, contenu, index, maintenant) 
     if (source) candidats.add(source.acteur);
   });
   for (const nom of candidats) {
+    // Jodie Moitout est journaliste à l'antenne de Luthécia : elle n'interviewe que les personnages
+    // qui s'y trouvent (Fred, 21/11/2026). Lecture impossible = pas de courrier (jamais un doute).
+    const fiches = await sbGet('personnages', `name=eq.${encodeURIComponent(nom)}&select=country,current_city&limit=1`, SB_HEADERS_SERVICE).catch(() => []);
+    const fiche = fiches && fiches[0];
+    if (!fiche || fiche.country !== 'republic' || fiche.current_city !== 'capitale') continue;
     const derniereRows = await sbGet('interviews_jodie', `personnage=eq.${encodeURIComponent(nom)}&order=created_at.desc&limit=1`, SB_HEADERS_SERVICE).catch(() => []);
     const derniere = derniereRows && derniereRows[0];
     if (derniere && !derniere.publie) continue; // interview deja en cours pour ce PJ

@@ -1823,37 +1823,24 @@ function addMailNotification(from, subject, body) {
 // concept : Jodie, journaliste a L'Autruche Entravee (groupe La Tribune), propose un petit
 // portrait/interview publie dans Presse & Medias -- jamais une auto-presentation joueur.
 //
-// Point d'entree unique jodiePortraitVerifierProposition(), appelee une fois par session au MEME
-// ancrage que l'ancien mecanisme (plateau-core.js, callback post-synchronisation Supabase de
-// loadCharacter()) : jamais le jour meme de la creation du personnage (personnages.created_at,
-// colonne Postgres native jamais reecrite -- meme source que l'ancien mecanisme), et jamais deux
-// fois -- couvre aussi bien un personnage tout juste cree qu'un personnage ancien jamais encore
-// contacte (la verification ne depend que de l'ABSENCE du mail en base, jamais d'une date de
-// deploiement).
-//
-// Idempotence SANS nouvelle table/colonne (revision du 21 aout 2026, apres verification precise
-// du comportement UI reel) : le mail de PROPOSITION n'est PLUS archive a l'envoi -- il doit
-// apparaitre normalement dans Messages Recus, garder son etat non lu standard et declencher le
-// voyant Mail comme n'importe quel autre mail (un archivage immediat le sortait silencieusement
-// de "Messages Recus", visible seulement dans une section "Archives" sans aucun indice de
-// nouveaute -- comportement incorrect, corrige ici). Consequence acceptee explicitement : si ce
-// mail n'est ensuite ni lu/archive ni refuse, purgerVieuxMails() (cron, 14 jours) peut le
-// supprimer, et un PJ qui n'a jamais repondu peut alors recevoir une nouvelle proposition plus
-// tard -- CE N'EST PAS UN REFUS, ce comportement est voulu.
-//
-// Le mail de REFUS, en revanche, reste archive immediatement a l'envoi (sbSetMailArchived,
-// primitive deja existante, forum.js/toggleArchiveMail) : c'est desormais L'AUTORITE PERSISTANTE
-// unique de l'etat "refuse" (section 2 du lot), qui doit survivre indefiniment a la purge des 14
-// jours -- "des qu'un refus explicite existe, aucune relance n'est autorisee" ne tolere aucune
-// fenetre de disparition. Cette autorite est verifiee a DEUX niveaux independants (aucun des deux
-// seul ne suffit) : jodiePortraitADejaRefuse() interroge Supabase directement (jamais un simple
-// cache local potentiellement perime) et est appelee a la fois par le HANDLER
-// jodiePortraitOuvrirInterview() (le vrai point de blocage, imperatif) et par l'affichage de
-// renderMailRead() (masquage des boutons, purement indicatif -- ne remplace jamais le controle du
-// handler). Limite assumee et documentee (pas de SQL pour la fermer) : un joueur qui SUPPRIME
-// explicitement (deleteMail -> sbDeleteMail, une vraie suppression Supabase) le mail de refus
-// perdrait ce marqueur -- action deliberee et rare du joueur sur SON propre mail, pas une
-// decheance automatique du systeme.
+// INTERVIEW D'ACCUEIL (Fred, 21/11/2026, GAME-DESIGN-INTERVIEW-ACCUEIL-20261121.md) :
+// - chaque ville a son antenne de presse ; l'invitation vient du journaliste de l'antenne de la
+//   ville où se trouve le personnage (Jodie Moitout = Luthécia seulement). Une antenne sans
+//   journaliste nommé n'envoie rien. Liste ci-dessous, copie conforme de api/_presse-antennes.js
+//   (banc banc-interview-accueil-antennes-20261122.cjs) ;
+// - l'invitation et le refus sont écrits par le SERVEUR (/api/jodie-portrait, actions 'inviter' et
+//   'refuser') : le navigateur n'écrit plus jamais au nom d'un journaliste. Une invitation reçue
+//   est donc toujours authentique, et toujours publiable, premier jour compris ;
+// - toute condition bloquante (invitation absente, refus, portrait déjà publié) est vérifiée par le
+//   serveur AVANT d'ouvrir le formulaire (action 'etat') : jamais un formulaire impossible à envoyer.
+const PRESSE_ANTENNES_ACCUEIL = Object.freeze([
+  { pays: 'republic', ville: 'capitale', villeNom: 'Luthécia',          paysNom: 'Républia', journaliste: 'Jodie Moitout',   journal: "L'Autruche Entravée" },
+  { pays: 'republic', ville: 'ville_a',  villeNom: 'Port-Sainte-Marie', paysNom: 'Républia', journaliste: 'Annie Houininon', journal: 'La Tribune de Républia' },
+  { pays: 'republic', ville: 'ville_b',  villeNom: 'Montrouge',         paysNom: 'Républia', journaliste: 'Arthur Lutte',    journal: 'La Tribune de Républia' },
+  { pays: 'soviet',   ville: 'capitale', villeNom: 'Novomirsk',         paysNom: 'Sovarka',  journaliste: 'Zoïa Glazounova', journal: 'La Voix de Sovarka' },
+  { pays: 'soviet',   ville: 'ville_a',  villeNom: 'Starovka',          paysNom: 'Sovarka',  journaliste: 'Saran Batbayar',  journal: 'Metel' },
+  { pays: 'soviet',   ville: 'ville_b',  villeNom: 'Krasnov',           paysNom: 'Sovarka',  journaliste: 'Anatoli Kolosov', journal: 'La Voix de Sovarka' }
+].map(a => Object.freeze(a)));
 const JODIE_PORTRAIT_SUJET_PROPOSITION = "Un portrait pour L'Autruche Entravée ?";
 const JODIE_PORTRAIT_SUJET_REFUS = "Un portrait pour L'Autruche Entravée ? (classé)";
 const JODIE_PORTRAIT_TITRE_PREFIXE = 'Un jour, un portrait : ';
@@ -1864,104 +1851,119 @@ const JODIE_QUESTIONS_INTERVIEW = [
   'Quel regard portez-vous sur votre ville ou sur le pays ?',
   'Y a-t-il quelque chose que les habitants devraient savoir sur vous ?'
 ];
+// Textes français de l'interview d'accueil (à traduire par Codex : clés listées dans RELAIS.md).
+const PORTRAIT_TXT = {
+  titre: 'Interview avec {journaliste}',
+  retour: 'Retour au courrier',
+  aide: 'Question {n} sur 5. Écrivez votre réponse dans le cadre ci-dessous. Vos réponses sont gardées quand vous changez de page.',
+  precedent: 'Précédent',
+  suivant: 'Suivant',
+  envoyer: 'Envoyer mes réponses à {journaliste}',
+  redige: '{journaliste} rédige votre portrait…',
+  apercu: 'Aperçu du portrait',
+  accord: "Ce texte ne sera publié qu'avec votre accord.",
+  publier: 'Publier dans Presse & Médias',
+  nePasPublier: 'Ne pas publier',
+  accepter: "Accepter l'interview",
+  refuser: 'Refuser',
+  verification: 'Vérification de l\'invitation…',
+  injoignable: 'Impossible de joindre la rédaction pour le moment.',
+  reessayer: 'Réessayer',
+  dejaRefuse: 'Vous avez décliné cette proposition.',
+  dejaPublie: 'Votre portrait est déjà publié dans Presse & Médias.',
+  pasInvite: "Cette invitation n'est plus valable : il n'y a rien à remplir.",
+  incomplet: 'Il manque la réponse à la question {n}. Écrivez-la, puis renvoyez.',
+  allerQuestion: 'Aller à la question {n}'
+};
+function portraitTexte(cle, valeurs) {
+  let t = PORTRAIT_TXT[cle] || cle;
+  for (const [k, v] of Object.entries(valeurs || {})) t = t.split('{' + k + '}').join(String(v));
+  return t;
+}
+function portraitSujetInvitation(a) { return 'Un portrait pour ' + a.journal + ' ?'; }
+function portraitSujetRefus(a) { return portraitSujetInvitation(a) + ' (classé)'; }
+// Antenne qui a écrit ce courrier, si c'est une invitation au portrait d'accueil (sinon null).
+function portraitAntenneInvitation(mail) {
+  if (!mail) return null;
+  const a = PRESSE_ANTENNES_ACCUEIL.find(x => x.journaliste === mail.from);
+  return a && mail.subject === portraitSujetInvitation(a) ? a : null;
+}
+function portraitJournaliste() { return window._portraitAccueil?.journaliste || 'Jodie Moitout'; }
 
+// Une fois par chargement de session (plateau-core.js) : le serveur décide seul s'il faut inviter
+// (ancienneté, antenne de la ville, jamais deux fois) et écrit le courrier. S'il en a écrit un, la
+// boîte se met à jour tout de suite, sans recharger la page.
 async function jodiePortraitVerifierProposition() {
   if (typeof state === 'undefined' || !state.char?.name) return;
-  if (typeof sbGet !== 'function' || typeof sbGetMailsFor !== 'function' || typeof sbSendMail !== 'function') return;
-
-  const rowsPerso = await sbGet('personnages', 'name=eq.' + encodeURIComponent(state.char.name) + '&select=created_at').catch(() => null);
-  const createdAt = rowsPerso?.[0]?.created_at;
-  if (!createdAt) return;
-  const joursEcoulesReels = (Date.now() - new Date(createdAt).getTime()) / 86400000;
-  if (joursEcoulesReels < 1) return; // Jamais le jour meme de la creation
-
-  const mails = await sbGetMailsFor(state.char.name).catch(() => null);
-  if (!mails) return; // Echec reseau : retente a la prochaine synchronisation, jamais de doublon force
-  const dejaContacte = mails.some(m => m.from_player === 'Jodie Moitout' &&
-    (m.subject === JODIE_PORTRAIT_SUJET_PROPOSITION || m.subject === JODIE_PORTRAIT_SUJET_REFUS));
-  if (dejaContacte) return;
-  // Le mail de proposition est purgé au bout de 14 jours : sans ce contrôle, un PJ déjà interviewé
-  // recevait une nouvelle proposition (signalé par Fred le 14/11/2026). Le portrait publié au forum
-  // Presse n'est jamais purgé : c'est lui qui fait foi. Échec réseau : on n'envoie rien.
-  const dejaPublie = await (async () => {
-    const titre = JODIE_PORTRAIT_TITRE_PREFIXE + state.char.name;
-    const t = await sbGet('forum_topics', `forum_id=eq.presse&author=eq.${encodeURIComponent('Jodie Moitout')}&title=eq.${encodeURIComponent(titre)}`).catch(() => null);
-    return t === null ? null : t.length > 0;
-  })();
-  if (dejaPublie !== false) return;
-
-  const corps = "Bonjour,<br><br>" +
-    "Jodie Moitout, journaliste à <em>L'Autruche Entravée</em> — le petit dernier du groupe La Tribune, celui qui pose les questions que les autres n'osent pas.<br><br>" +
-    "Un nouveau visage en ville, ça ne m'échappe jamais très longtemps. Ça vous dirait de répondre à quelques questions pour un petit portrait ? Rien de formel — juste de quoi donner un visage à votre nom, pour la rubrique Presse &amp; Médias.<br><br>" +
-    "Libre à vous d'accepter ou de décliner, bien sûr.<br><br>" +
-    "Jodie Moitout<br><br>" +
-    "<em>« Tout le monde a une histoire. La mienne, c'est de la trouver. »</em>";
-
-  await sbSendMail('Jodie Moitout', state.char.name, JODIE_PORTRAIT_SUJET_PROPOSITION, corps, formatDateHeureJeu());
+  if (window._portraitInvitationDemandee === state.char.name) return;
+  window._portraitInvitationDemandee = state.char.name;
+  const heure = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : null;
+  const r = await jodiePortraitAppelApi({ action: 'inviter', personnage: state.char.name, heure });
+  if (r && r.ok && r.envoye && typeof verifierNouveauxMails === 'function') await verifierNouveauxMails();
 }
 
-// Interroge Supabase DIRECTEMENT (jamais un simple cache local potentiellement perime -- voir
-// commentaire d'en-tete) : existe-t-il un mail-marqueur de refus pour ce PJ ? Autorite unique de
-// l'etat "refuse", appelee a la fois par le handler jodiePortraitOuvrirInterview() (blocage reel)
-// et par renderMailRead() (masquage indicatif des boutons) -- jamais l'un sans l'autre.
-async function jodiePortraitADejaRefuse(nom) {
-  if (!nom || typeof sbGetMailsFor !== 'function') return false;
-  const mails = await sbGetMailsFor(nom).catch(() => null);
-  if (!mails) return false; // echec reseau : ne bloque jamais artificiellement une action reelle
-  return mails.some(m => m.from_player === 'Jodie Moitout' && m.subject === JODIE_PORTRAIT_SUJET_REFUS);
+// État de l'invitation, lu par le serveur (jamais un cache local) : appelé avant d'ouvrir le
+// formulaire et pour afficher les boutons sous le courrier.
+async function jodiePortraitEtat(nom) {
+  const r = await jodiePortraitAppelApi({ action: 'etat', personnage: nom });
+  if (r && r.ok && r.journaliste) window._portraitAccueil = { journaliste: r.journaliste, journal: r.journal };
+  return r;
+}
+function portraitMessageEtat(r) {
+  if (!r || !r.ok) return null;
+  if (r.peutRepondre) return null;
+  return r.raison === 'deja_publie' ? portraitTexte('dejaPublie') : r.raison === 'refuse' ? portraitTexte('dejaRefuse') : portraitTexte('pasInvite');
+}
+function portraitRendreBoite() {
+  if (typeof renderForumContent !== 'function') return;
+  const main = document.getElementById('forum-main');
+  if (main) main.innerHTML = renderForumContent();
+  if (typeof rafraichirVoyantsEtCompteursForum === 'function') rafraichirVoyantsEtCompteursForum();
 }
 
-// Meme doctrine que ci-dessus, pour l'etat "publie" (marqueur = ligne forum_topics, jamais purgee).
-async function jodiePortraitDejaPublie(nom) {
-  if (!nom || typeof sbGet !== 'function') return false;
-  const titre = JODIE_PORTRAIT_TITRE_PREFIXE + nom;
-  const existant = await sbGet('forum_topics', `forum_id=eq.presse&author=eq.${encodeURIComponent('Jodie Moitout')}&title=eq.${encodeURIComponent(titre)}`).catch(() => null);
-  return !!(existant && existant.length > 0);
-}
-
-// Refus -- appelable aussi bien depuis le mail de proposition (renderMailRead(), forum.js) que
-// depuis l'apercu final du portrait (renderJodiePortraitPreview() ci-dessous) : dans les deux cas
-// le resultat est identique et definitif (section 6/2 du lot) -- envoi du mail-marqueur de refus
-// (archive immediatement, meme raison que ci-dessus), jamais de republication ni de relance.
+// Refus définitif : courrier de refus écrit et archivé par le serveur, puis la boîte est relue
+// (le refus apparaît sans recharger).
 async function jodiePortraitRefuser() {
   const nom = state.char?.name;
-  if (!nom || typeof sbSendMail !== 'function') return;
-  const corps = "Compris, on n'en parle plus. Si jamais vous changez d'avis, vous savez où me trouver.<br><br>Jodie Moitout";
-  const idMail = await sbSendMail('Jodie Moitout', nom, JODIE_PORTRAIT_SUJET_REFUS, corps, formatDateHeureJeu()).catch(() => null);
-  if (idMail && typeof sbSetMailArchived === 'function') await sbSetMailArchived(idMail, true).catch(() => {});
+  if (!nom || window._portraitRefusEnCours) return;
+  window._portraitRefusEnCours = true;
+  let r;
+  try { r = await jodiePortraitAppelApi({ action: 'refuser', personnage: nom, heure: typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : null }); }
+  finally { window._portraitRefusEnCours = false; }
+  if (!r || !r.ok) {
+    showToast('Refus non enregistré', (r && r.error) || portraitTexte('injoignable'), false);
+    return;
+  }
+  const journaliste = portraitJournaliste();
   window._jodieInterviewReponses = null;
   window._jodiePortraitTexte = null;
   window._jodiePortraitJeton = null;
-  showToast('Proposition déclinée', "Vous avez décliné l'interview de Jodie Moitout.", true); globalThis.RPI18nPlateau?.markToast("toastBodies.bd230e4fb", "Vous avez décliné l'interview de Jodie Moitout.", undefined, 'Proposition déclinée');
-  if (typeof renderForumContent === 'function') {
-    mailView = 'inbox';
-    document.getElementById('forum-main').innerHTML = renderForumContent();
-  }
+  showToast('Proposition déclinée', 'Vous avez décliné l\'interview de ' + journaliste + '.', true);
+  mailView = 'inbox';
+  portraitRendreBoite();
+  if (typeof verifierNouveauxMails === 'function') verifierNouveauxMails().then(portraitRendreBoite).catch(() => {});
 }
 
-// Accepter -- HANDLER, le vrai point de blocage (section 2 du lot : "masquer le bouton seul ne
-// suffit pas"). Verifie D'ABORD le marqueur de refus (un refus explicite, quelle que soit son
-// origine -- mail initial ou apercu final -- interdit definitivement toute reprise), PUIS le
-// marqueur de publication (aucun second portrait) -- les deux via Supabase frais, jamais un
-// simple etat client. Reouvrir l'ancien mail de proposition et cliquer "Accepter" APRES un refus
-// ou une publication ne peut donc plus jamais relancer l'interview, meme si l'affichage des
-// boutons (renderMailRead()) etait par extraordinaire reste perime.
+// Accepter : le serveur confirme AVANT l'ouverture que les réponses pourront être envoyées.
+// Rien ne s'ouvre sinon ; un message dit pourquoi, et une panne réseau propose « Réessayer ».
 async function jodiePortraitOuvrirInterview() {
   const nom = state.char?.name;
   if (!nom) return;
-  if (await jodiePortraitADejaRefuse(nom)) {
-    showToast('Proposition déclinée', 'Vous avez déjà décliné cette proposition — Jodie ne relance pas.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bfb3861dc", 'Vous avez déjà décliné cette proposition — Jodie ne relance pas.', undefined, 'Proposition déclinée');
-    return;
-  }
-  if (await jodiePortraitDejaPublie(nom)) {
-    showToast('Déjà publié', 'Jodie a déjà publié votre portrait dans Presse & Médias.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b0a4d8c37", 'Jodie a déjà publié votre portrait dans Presse & Médias.', undefined, 'Déjà publié');
-    return;
-  }
-  // Reprise : les reponses deja saisies et un apercu deja redige (reponse arrivee apres que le
-  // joueur a quitte l'ecran) sont conserves, jamais effaces par une reouverture.
+  // Reprise : les réponses déjà saisies et un aperçu déjà rédigé sont conservés.
   if (window._jodiePortraitTexte && window._jodiePortraitJeton) {
     mailView = 'jodie-preview';
     document.getElementById('forum-main').innerHTML = renderForumContent();
+    return;
+  }
+  const etat = await jodiePortraitEtat(nom);
+  if (!etat || !etat.ok) {
+    showToast('Rédaction injoignable', (etat && etat.error) || portraitTexte('injoignable'), false);
+    return;
+  }
+  const message = portraitMessageEtat(etat);
+  if (message) {
+    showToast('Interview impossible', message, false);
+    jodiePortraitRafraichirEtatMail();
     return;
   }
   if (!Array.isArray(window._jodieInterviewReponses) || window._jodieInterviewReponses.length !== 5) {
@@ -1972,43 +1974,36 @@ async function jodiePortraitOuvrirInterview() {
   document.getElementById('forum-main').innerHTML = renderForumContent();
 }
 
-// Remplit #jodie-portrait-etat (place par renderMailRead(), forum.js) une fois la reponse
-// Supabase arrivee -- boutons Accepter/Refuser si rien n'est encore tranche, message informatif
-// sinon. Purement indicatif (section 2 du lot) : la protection reelle contre une reprise est le
-// controle refait par jodiePortraitOuvrirInterview() elle-meme, jamais ce seul affichage -- si cet
-// element n'existe plus au moment ou la reponse arrive (le joueur a change d'ecran entre-temps),
-// on ne fait simplement rien.
+// Remplit #jodie-portrait-etat sous le courrier d'invitation : les boutons seulement si le serveur
+// confirme qu'on peut répondre ; sinon un message clair ; panne : « Réessayer ».
 async function jodiePortraitRafraichirEtatMail() {
   const nom = state.char?.name;
   if (!nom) return;
-
-  const dejaRefuse = await jodiePortraitADejaRefuse(nom);
+  const el0 = document.getElementById('jodie-portrait-etat');
+  if (el0 && !el0.innerHTML.trim()) el0.innerHTML = '<div class="rp-portrait-note">' + escapeHtmlText(portraitTexte('verification')) + '</div>';
+  const etat = await jodiePortraitEtat(nom);
   const el = document.getElementById('jodie-portrait-etat');
-  if (!el) return; // ecran deja quitte entre-temps
-  if (dejaRefuse) {
-    el.innerHTML = '<div style="font-size:.8rem;color:#8a8060;font-style:italic">Vous avez décliné cette proposition.</div>';
+  if (!el) return; // écran déjà quitté entre-temps
+  if (!etat || !etat.ok) {
+    el.innerHTML = '<div class="rp-portrait-note">' + escapeHtmlText(portraitTexte('injoignable')) + '</div>' +
+      '<button type="button" class="forum-new-btn rp-portrait-btn" onclick="jodiePortraitRafraichirEtatMail()">' + escapeHtmlText(portraitTexte('reessayer')) + '</button>';
     return;
   }
-
-  const dejaPublie = await jodiePortraitDejaPublie(nom);
-  const el2 = document.getElementById('jodie-portrait-etat');
-  if (!el2) return;
-  if (dejaPublie) {
-    el2.innerHTML = '<div style="font-size:.8rem;color:#8a8060;font-style:italic">Vous avez déjà publié votre portrait dans Presse &amp; Médias.</div>';
+  const message = portraitMessageEtat(etat);
+  if (message) {
+    el.innerHTML = '<div class="rp-portrait-note">' + escapeHtmlText(message) + '</div>';
     return;
   }
-
-  el2.innerHTML =
+  el.innerHTML =
     '<div style="display:flex;gap:.5rem;flex-wrap:wrap">' +
-    '<button onclick="jodiePortraitOuvrirInterview()" class="forum-new-btn" style="font-size:.72rem"><i class="ti ti-microphone"></i> Accepter l\'interview</button>' +
-    '<button onclick="jodiePortraitRefuser()" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.5rem 1rem;border:1px solid #6a2a20;background:transparent;color:#cc4444;cursor:pointer">Refuser</button>' +
+    '<button type="button" onclick="jodiePortraitOuvrirInterview()" class="forum-new-btn rp-portrait-btn"><i class="ti ti-microphone"></i> ' + escapeHtmlText(portraitTexte('accepter')) + '</button>' +
+    '<button type="button" onclick="jodiePortraitRefuser()" class="forum-back-btn rp-portrait-btn rp-portrait-refus">' + escapeHtmlText(portraitTexte('refuser')) + '</button>' +
     '</div>';
 }
 
-// Formulaire d'interview -- 5 questions, reponses libres, memes classes CSS forum-field/
-// forum-field-label deja utilisees ailleurs dans ce fichier (renderEnvoyerMailEnTantQue) : aucun
-// nouvel editeur, un simple formulaire dans la vue mail deja existante (meme pattern que
-// mailView 'inbox'/'read'/'compose', voir renderMailView(), forum.js).
+// Formulaire d'interview : cinq pages, une question par page. La question est le texte le plus
+// lisible de la fenêtre (Fred, 21/11/2026, point 3) : clair, grand, casse normale (style.css,
+// .rp-portrait-*).
 function jodieInterviewAllerPage(page) {
   const actuelle = Math.max(0, Math.min(4, Number(window._jodieInterviewPage) || 0));
   const champ = document.getElementById('jodie-reponse-' + actuelle);
@@ -2021,24 +2016,20 @@ function jodieInterviewAllerPage(page) {
 function renderJodieInterviewForm() {
   if (!window._jodieInterviewReponses) window._jodieInterviewReponses = ['', '', '', '', ''];
   const page = Math.max(0, Math.min(4, Number(window._jodieInterviewPage) || 0));
-  let html = `<div class="forum-header-bar"><button class="forum-back-btn" onclick="mailView='inbox';document.getElementById('forum-main').innerHTML=renderForumContent()">Retour au courrier</button><div class="forum-title-main" style="flex:1">Interview avec Jodie Moitout</div></div>`;
-  html += '<div style="padding:.8rem"><p>Question ' + (page + 1) + ' sur 5 — Les réponses sont conservées entre les pages.</p>';
-  html += '<div class="forum-field"><label class="forum-field-label">' + (page + 1) + '. ' + escapeHtmlText(JODIE_QUESTIONS_INTERVIEW[page]) + '</label>';
-  html += '<textarea id="jodie-reponse-' + page + '" rows="5" maxlength="500" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem .6rem;box-sizing:border-box" oninput="window._jodieInterviewReponses[' + page + ']=this.value">' + escapeHtmlText(window._jodieInterviewReponses[page] || '') + '</textarea></div>';
+  const journaliste = portraitJournaliste();
+  let html = `<div class="forum-header-bar"><button class="forum-back-btn rp-portrait-btn" onclick="mailView='inbox';document.getElementById('forum-main').innerHTML=renderForumContent()">${escapeHtmlText(portraitTexte('retour'))}</button><div class="forum-title-main" style="flex:1">${escapeHtmlText(portraitTexte('titre', { journaliste }))}</div></div>`;
+  html += '<div class="rp-portrait"><p class="rp-portrait-aide">' + escapeHtmlText(portraitTexte('aide', { n: page + 1 })) + '</p>';
+  html += '<div class="forum-field"><label class="rp-portrait-question" for="jodie-reponse-' + page + '">' + (page + 1) + '. ' + escapeHtmlText(JODIE_QUESTIONS_INTERVIEW[page]) + '</label>';
+  html += '<textarea id="jodie-reponse-' + page + '" class="rp-portrait-reponse" rows="5" maxlength="500" oninput="window._jodieInterviewReponses[' + page + ']=this.value">' + escapeHtmlText(window._jodieInterviewReponses[page] || '') + '</textarea></div>';
   html += '<div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1rem">';
-  if (page > 0) html += '<button class="forum-back-btn" onclick="jodieInterviewAllerPage(' + (page - 1) + ')">Précédent</button>';
-  if (page < 4) html += '<button class="forum-new-btn" onclick="jodieInterviewAllerPage(' + (page + 1) + ')">Suivant</button>';
-  else html += '<button class="forum-new-btn" onclick="jodieInterviewAllerPage(4);jodiePortraitGenererApercu()">Envoyer mes réponses à Jodie</button>';
+  if (page > 0) html += '<button type="button" class="forum-back-btn rp-portrait-btn" onclick="jodieInterviewAllerPage(' + (page - 1) + ')">' + escapeHtmlText(portraitTexte('precedent')) + '</button>';
+  if (page < 4) html += '<button type="button" class="forum-new-btn rp-portrait-btn" onclick="jodieInterviewAllerPage(' + (page + 1) + ')">' + escapeHtmlText(portraitTexte('suivant')) + '</button>';
+  else html += '<button type="button" class="forum-new-btn rp-portrait-btn" onclick="jodieInterviewAllerPage(4);jodiePortraitGenererApercu()">' + escapeHtmlText(portraitTexte('envoyer', { journaliste })) + '</button>';
   return html + '</div></div>';
 }
 
-// Validation (aucun envoi vide, section 4 du lot) puis generation IA du portrait -- reutilise
-// TEL QUEL le mecanisme deja en production pour Jeremy (queteAccueilGenererReponseMailJeremy(),
-// plateau-quete-accueil.js : meme endpoint /api/chat, meme construction de prompt en texte libre
-// avec echappement des guillemets du joueur, meme lecture data.content[0].text, meme reponse de
-// repli en cas d'echec) -- aucun second moteur IA construit ici. On ne fournit au modele QUE les
-// 5 reponses et le nom du PJ, jamais d'autre donnee de personnage (aucun fait invente en dehors
-// des reponses fournies).
+// Envoi des réponses : la rédaction et la preuve de publication sont faites par le serveur
+// authentifié. Une réponse vide ramène directement à la question concernée (jamais une impasse).
 async function jodiePortraitAppelApi(payload) {
   try {
     if (typeof rpAuthAssurerSession === 'function') await rpAuthAssurerSession();
@@ -2057,34 +2048,39 @@ async function jodiePortraitAppelApi(payload) {
 }
 async function jodiePortraitGenererApercu() {
   const reponses = (window._jodieInterviewReponses || []).map(r => (r || '').trim());
-  if (reponses.length !== 5 || reponses.some(r => !r)) {
-    showToast('Réponses incomplètes', 'Merci de répondre à chacune des 5 questions.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bac82f616", 'Merci de répondre à chacune des 5 questions.', undefined, 'Réponses incomplètes');
+  const vide = reponses.length === 5 ? reponses.findIndex(r => !r) : 0;
+  if (vide >= 0) {
+    window._jodieInterviewPage = vide;
+    mailView = 'jodie-interview';
+    document.getElementById('forum-main').innerHTML = renderForumContent();
+    showToast('Réponses incomplètes', portraitTexte('incomplet', { n: vide + 1 }), false);
     return;
   }
-  // Cloture Luthecia (01/11) : un double clic ne lance qu'une redaction ; une reponse tardive
-  // n'ecrase pas l'ecran si le joueur a quitte l'interview entre-temps (ses reponses restent).
+  // Un double clic ne lance qu'une rédaction ; une réponse tardive n'écrase pas l'écran si le
+  // joueur a quitté l'interview entre-temps (ses réponses restent).
   if (window._jodieApercuEnCours) return;
   window._jodieApercuEnCours = true;
   const nom = state.char?.name || '';
-  document.getElementById('forum-main').innerHTML = '<div style="padding:2rem;text-align:center;color:#8a8060">Jodie rédige...</div>';
+  const journaliste = portraitJournaliste();
+  document.getElementById('forum-main').innerHTML = '<div class="rp-portrait rp-portrait-attente">' + escapeHtmlText(portraitTexte('redige', { journaliste })) + '</div>';
   let resultat;
   try {
-    // L'IA et la preuve de publication sont générées par le serveur authentifié.
     resultat = await jodiePortraitAppelApi({action:'apercu',personnage:nom,reponses});
   } finally {
     window._jodieApercuEnCours = false;
   }
   const toujoursIci = mailView === 'jodie-interview' && (state.char?.name || '') === nom;
   if (!resultat || !resultat.ok || !resultat.texte || !resultat.jeton) {
-    showToast('Indisponible', (resultat && resultat.error) || "Jodie n'arrive pas à rédiger.", false);
+    showToast('Envoi non abouti', (resultat && resultat.error) || (journaliste + " n'arrive pas à rédiger. Vos réponses sont gardées : réessayez."), false);
     if (!toujoursIci) return;
     document.getElementById('forum-main').innerHTML = renderForumContent();
     return;
   }
+  if (resultat.journaliste) window._portraitAccueil = { journaliste: resultat.journaliste, journal: resultat.journal };
   window._jodiePortraitTexte = resultat.texte;
   window._jodiePortraitJeton = resultat.jeton;
   if (!toujoursIci) {
-    showToast('Portrait prêt', "Jodie a rédigé votre portrait : rouvrez sa proposition (« Accepter l'interview ») pour le relire avant publication.", true); globalThis.RPI18nPlateau?.markToast("toastBodies.be548d54d", "Jodie a rédigé votre portrait : rouvrez sa proposition (« Accepter l'interview ») pour le relire avant publication.", undefined, 'Portrait prêt');
+    showToast('Portrait prêt', journaliste + " a rédigé votre portrait : rouvrez son courrier (« Accepter l'interview ») pour le relire avant publication.", true);
     return;
   }
   mailView = 'jodie-preview';
@@ -2092,11 +2088,7 @@ async function jodiePortraitGenererApercu() {
 }
 
 // Filet de securite minimal (pas un moteur Markdown general) : retire uniquement les marqueurs
-// de mise en forme Markdown les plus probables malgre la consigne du prompt ci-dessus (observe en
-// test reel : "il le *sait*, il le *sent*" affiche tel quel, l'interface ne rend aucun Markdown).
-// Ne touche jamais a la ponctuation francaise normale (guillemets « », tirets, apostrophes,
-// points de suspension) -- uniquement *Viande*/**Viande**, les # de titre en debut de ligne, les
-// puces de liste en debut de ligne, et un ultime nettoyage des etoiles/dieses isoles residuels.
+// de mise en forme Markdown les plus probables malgre la consigne du prompt.
 function jodieNettoyerMarkdown(texte) {
   if (!texte) return texte;
   return texte
@@ -2108,24 +2100,25 @@ function jodieNettoyerMarkdown(texte) {
     .trim();
 }
 
-// Apercu obligatoire avant publication (section 6 du lot) -- aucune publication automatique.
+// Aperçu obligatoire avant publication -- aucune publication automatique.
 function renderJodiePortraitPreview() {
   const nom = state.char?.name || '';
   const titre = JODIE_PORTRAIT_TITRE_PREFIXE + nom;
-  let html = '<div class="forum-header-bar"><div class="forum-title-main" style="flex:1">Aperçu du portrait</div></div>';
-  html += '<div style="padding:.8rem">';
-  html += '<div style="font-size:.7rem;color:#6a5a30;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.3rem">Presse &amp; Médias — L\'Autruche Entravée</div>';
-  html += '<div style="font-family:Playfair Display,serif;font-size:1.05rem;color:#E8D880;margin-bottom:.6rem">' + escapeHtmlText(titre) + '</div>';
+  const journal = window._portraitAccueil?.journal || "L'Autruche Entravée";
+  let html = '<div class="forum-header-bar"><div class="forum-title-main" style="flex:1">' + escapeHtmlText(portraitTexte('apercu')) + '</div></div>';
+  html += '<div class="rp-portrait">';
+  html += '<div class="rp-portrait-aide">Presse &amp; Médias — ' + escapeHtmlText(journal) + '</div>';
+  html += '<div class="rp-portrait-question">' + escapeHtmlText(titre) + '</div>';
   html += '<div class="lecture-longue lecture-longue-page" style="color:#f0ead6;margin-bottom:1rem">' + escapeHtmlText(window._jodiePortraitTexte || '').replace(/\n/g, '<br>') + '</div>';
-  html += '<div style="font-size:.75rem;color:#8a8060;font-style:italic;margin-bottom:1rem">Ce texte ne sera publié qu\'avec votre accord.</div>';
+  html += '<div class="rp-portrait-aide">' + escapeHtmlText(portraitTexte('accord')) + '</div>';
   html += '<div style="display:flex;gap:.5rem;flex-wrap:wrap">';
-  html += '<button class="forum-new-btn" onclick="jodiePortraitPublier()"><i class="ti ti-send"></i> Publier dans Presse &amp; Médias</button>';
-  html += '<button onclick="jodiePortraitRefuser()" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.5rem 1rem;border:1px solid #6a2a20;background:transparent;color:#cc4444;cursor:pointer">Ne pas publier</button>';
+  html += '<button type="button" class="forum-new-btn rp-portrait-btn" onclick="jodiePortraitPublier()"><i class="ti ti-send"></i> ' + escapeHtmlText(portraitTexte('publier')) + '</button>';
+  html += '<button type="button" class="forum-back-btn rp-portrait-btn rp-portrait-refus" onclick="jodiePortraitRefuser()">' + escapeHtmlText(portraitTexte('nePasPublier')) + '</button>';
   html += '</div></div>';
   return html;
 }
 
-// Publication via l'API protegee : le navigateur ne peut pas ecrire au nom de Jodie.
+// Publication via l'API protegee : le navigateur ne peut pas ecrire au nom du journaliste.
 // Le serveur verifie le proprietaire, l'invitation, le refus, la signature de
 // l'apercu et l'unicite du portrait avant toute ecriture avec son compte de service.
 async function jodiePortraitPublier() {
@@ -2141,12 +2134,13 @@ async function jodiePortraitPublier() {
       showToast('Échec', r.error || "La publication n'a pas été enregistrée.", false);
       return;
     }
+    const journaliste = r.journaliste || portraitJournaliste();
     window._jodiePortraitTexte = null;
     window._jodiePortraitJeton = null;
     window._jodieInterviewReponses = null;
-    showToast('Portrait publié !', 'Jodie a publié votre portrait dans Presse & Médias.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.bbea10738", 'Jodie a publié votre portrait dans Presse & Médias.', undefined, 'Portrait publié !');
+    showToast('Portrait publié !', journaliste + ' a publié votre portrait dans Presse & Médias.', true, true);
     mailView = 'inbox';
-    document.getElementById('forum-main').innerHTML = renderForumContent();
+    portraitRendreBoite();
   } finally {
     window._jodiePublicationEnCours = false;
   }
