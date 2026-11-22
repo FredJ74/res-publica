@@ -8,9 +8,18 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Mission « Suites de Santé, interface et accueil » — état au 22/11/2026, nuit (Claude)
+- **Sept migrations appliquées en production, une par une, validées à l'écran par Fred et contrôlées en lecture**, dans cet ordre :
+  `20261123100000_sante_suites`, `20261123110000_medicaments_usines_antidote`, `20261123120000_postes_pays`,
+  `20261123130000_ordres_regroupes`, `20261123140000_accueil_interview`, `20261123150000_tabac_presse_crue` (après postes_pays :
+  marque `pp_crue_min`), `20261123160000_medecin_paiement_liquide` (le médecin se paie en liquide seulement ; marques
+  `medecin_liquide_v1`, `medecin_liquide_debit_v1` ; banc `banc-medecin-liquide-pglite-20261123.cjs`). Goulag toujours `active=false`,
+  aucune Santé modifiée, `postes_attribues` intact (6 lignes).
+- Page MJ `admin-accueil.js` (réglages `accueil_parametres`). Clés de traduction nouvelles : voir les sections de chaque chantier ci-dessous.
+
 ### Santé — « Suites » : paliers, repas, robustesse, tracts, antenne, marchés, objectif (Claude, 22/11/2026, soir) — GAME-DESIGN-SANTE-20261122.md, « Suites », points 1, 2, 3, 7, 9, 10, 11, 13
 - **Branche `claude/sante-suites-20261123`** (part de `0bba1e82`, `claude/mission-nuit-20261122`). Aucune fonction Vercel, aucun ordre payant ajouté.
-- **Migration écrite, NON appliquée** : `20261123100000_sante_suites.sql` (après les migrations Santé du 22/11, déjà en production). Écrite à partir des
+- **Migration appliquée en production le 22/11/2026 (contrôlée en lecture)** : `20261123100000_sante_suites.sql` (après les migrations Santé du 22/11, déjà en production). Écrite à partir des
   définitions de production du 22/11 au soir (doublure PGlite à md5 identique). Remplacements contrôlés (marques `sante_suites_*`) :
   `hospitalisation_repas_prendre` (repas de l'hôpital +4 Santé / +2 PA, gratuit, hospitalisés seulement ; clinique +5 / +4, 30 FR ; nuitée de la
   clinique par `sante_repas_appliquer_interne`), `sovarka_repas_presidentiel` (+5 Santé / +3 PA différés pour chacun par le barème commun, courrier
@@ -46,7 +55,7 @@ Règles : voir `AGENTS.md`.
   la buvette d'un stade en Républia (« en-cas ») et en Sovarka (« zakouski ») ; l'invitation d'accueil à Starovka signée « La Voix de Sovarka ».
 ### Médicaments, usines d'État et antidote (Claude, 22/11/2026, soir) — GAME-DESIGN-SANTE-20261122.md, « Suites », point 8 a-d (et point 5 pour ce lot)
 - **Branche `claude/medicaments-usines-20261123`** (part de `0bba1e82`). Aucune fonction Vercel ajoutée, aucun ordre payant ajouté ni retiré.
-- **Migration écrite, NON appliquée** : `20261123110000_medicaments_usines_antidote.sql` (après `20261122230000_sante_socle` et
+- **Migration appliquée en production le 22/11/2026 (contrôlée en lecture)** : `20261123110000_medicaments_usines_antidote.sql` (après `20261122230000_sante_socle` et
   `20261122233000_sante_maladies_medicaments`, déjà en production). Écrite depuis pg_get_functiondef de production (md5 vérifiés par le banc).
   - Paramètres (sante_parametres, groupes « Médicaments » et « Usines d'État » de la page MJ) : trousse_medicaments/textile/desinfectant 1,
     medicament_pnj_stock_max 50, antidote_actif 1, antidote_recette_coef 3, antidote_pnj_boites_nuit 10, antipoison_antidotes_par_soin 1,
@@ -83,7 +92,7 @@ Règles : voir `AGENTS.md`.
   refus, puis soin le lendemain du rachat ; directeur de l'usine : « Virer à la tutelle » ; le lendemain matin, caisse de l'usine ramenée à 5 000.
 ### Pays d'un poste : organigrammes et pouvoirs lus dans le registre (Claude, 23/11/2026) — GAME-DESIGN-INTERFACE-ACCUEIL-20261122.md, partie B, points 15 et 16
 - **Branche `claude/postes-pays-20261123`** (part de `0bba1e82`). Aucune fonction Vercel ajoutée.
-- **Migration `20261123120000_postes_pays.sql` : écrite, NON appliquée.** Trois fonctions nouvelles `poste_detenu`, `poste_pays_de`,
+- **Migration `20261123120000_postes_pays.sql` : appliquée en production le 22/11/2026 (contrôlée en lecture).** Trois fonctions nouvelles `poste_detenu`, `poste_pays_de`,
   `poste_exerce` ; réécrites (même signature, mêmes droits) `acteur_poste_courant` (plus de repli sur la position),
   `mon_poste_est`, `mon_poste_est_dans`, `guerre_acteur_poste`, `crim_force_ordre_interne` ; 66 remplacements contrôlés (marques
   `pp_…`, ancrages comptés en production le 22/11 au soir, contrôle final des marques) dans 58 fonctions. Aucune donnée modifiée
@@ -106,7 +115,7 @@ Règles : voir `AGENTS.md`.
   Luthécia — ses ordres de Défense marchent ; un Soviétique à Luthécia, idem en miroir. Ligne orpheline signalée :
   `republic_directeur_entrepot_ville_a` (Ben, dont la fiche porte Commandant du Port) — non touchée, elle ne donne plus rien.
 ### Accueil des nouveaux joueurs : interview, parcours, bulle des PA (Claude, 23/11/2026) — GAME-DESIGN-INTERFACE-ACCUEIL-20261122.md, partie D, points 23 à 26
-- **Branche `claude/accueil-interview-20261123`** (depuis `0bba1e82`), non fusionnée. **Migration écrite, NON APPLIQUÉE** :
+- **Branche `claude/accueil-interview-20261123`** (depuis `0bba1e82`), fusionnée dans `claude/mission-nuit-20261122`. **Migration appliquée en production le 22/11/2026 (contrôlée en lecture)** :
   `20261123140000_accueil_interview` (à appliquer AVANT le déploiement du code : le navigateur appelle `accueil_etat`
   et l'API lit `accueil_personnages` ; sans la table, rien ne s'ouvre et l'API répond 409, sans casse).
 - **Serveur** : tables `accueil_parametres` (MJ : `admin_accueil_parametres_lire` / `admin_accueil_parametre_fixer`,
@@ -136,7 +145,7 @@ Règles : voir `AGENTS.md`.
   Mes objectifs ; premier ordre payant → bulle à côté des PA, une seule fois.
 ### Tabac-presse de Krasnov et crue sans blocage (Claude, 22/11/2026, soir) — GAME-DESIGN-INTERFACE-ACCUEIL-20261122.md, points 27 à 32
 - **Branche `claude/tabac-crue-20261123`** (part de `0bba1e82`). Aucune fonction Vercel, aucun ordre payant ajouté ni retiré (la ligne `poser_sacs_sable` de `ordres_couts` reste, la fonction refuse).
-- **Migration écrite, NON appliquée** : `20261123150000_tabac_presse_crue.sql` (définitions de production du 22/11 au soir, ancrages comptés).
+- **Migration appliquée en production le 22/11/2026 (contrôlée en lecture)** : `20261123150000_tabac_presse_crue.sql` (définitions de production du 22/11 au soir, ancrages comptés).
   - Partie E : `aliments_parametres` papirossy_moral 2, revue_ent_bonus 1, revue_ent_heures 24, carte_postale_message_max 500 ; `recettes_commerce` (papirossy → famille « tabac », libellé « Cigarettes papirossy « Étoile du Nord » » ; carte « sous la pluie d'automne » ; revue sans bonus d'intégration) ; nouvelles `tabac_fumer_interne`, `revue_bonus_appliquer_interne`, `produit_marche_livrer_interne`, RPC `carte_postale_envoyer` ; réécrite `souvenir_utilisable_interne` ; remplacements contrôlés dans des **fonctions communes** : `commerce_vendre_produit_interne` (`produit_marche_livrer_v1`, deux ancrages en une réécriture), `inventaire_consommer` (`tabac_fumer_v1`, `tabac_fumer_effet_v1`), `inventaire_donner` (`carte_postale_ecrite_serveur_v1`).
   - Partie F : colonne `climat_parametres.catastrophe_active` (faux) ; nouvelles `catastrophe_active_interne`, `chantier_crue_jour_interne` ; **une ligne** dans `chantier_jour_traiter` (`crue_chantier_jour_v1`) ; `catastrophe_proposer/declarer/etat` (`catastrophe_en_sommeil_v1`), `admin_climat_parametre_modifier` (`catastrophe_active_v1`, `catastrophe_active_set_v1`), `climat_consigne_interne` (`crue_consigne_v2`), `climat_parades_verifier_interne` (`crue_sans_sacs_v1`) ; réécrites `climat_batiment_inonde_interne` et `climat_lieu_protege_interne` (toujours faux), `climat_evenement_json_interne`, `climat_crue_appliquer_interne` (sans pertes), `sacs_sable_poser` (refus `sacs_retires`), `climat_objet_interne`, `climat_prix_interne`, `climat_texte_alerte_interne`, `climat_chantiers_bloques_interne` (crue : du début à minuit). Données de configuration : sac retiré de `climat_boutiques` (boutique `chasse-peche-psm` supprimée), 3 lignes de `climat_lieux_vente` supprimées. Aucune donnée de joueur.
 - **Fichiers du navigateur** : `plateau-personnage.js` (carte : écrire et envoyer par le serveur, recto + légende, retourner, bouton dans la fenêtre de l'onglet Inventaire — c'était le bug ; « Fumer »), `plateau-actions-illegales-rumeurs.js` (papirossy en produit de marché « tabac », description de la carte, revue), `plateau-climat.js`, `plateau-chantier-vue.js` (`j_crue`), `forum.js` (boutons de catastrophe retirés), `admin-maladies.js` (case MJ catastrophe), `data.js` (boutique climat sans sacs), `i18n/infobulles-communes-resources.js` (+ paquets), `plateau.html`, `admin.html`.
@@ -147,7 +156,7 @@ Règles : voir `AGENTS.md`.
 
 ### Regroupement des ordres dans les pièces (Claude, 23/11/2026) — GAME-DESIGN-INTERFACE-ACCUEIL-20261122.md, partie C, points 17 à 22
 - **Branche `claude/ordres-regroupes-20261123`** (part de `0bba1e82`). Aucune fonction Vercel, aucun ordre payant ajouté ou retiré, aucun tarif modifié.
-- **Migration écrite, NON appliquée** : `migrations/20261123130000_ordres_regroupes.sql` (point 17, côté serveur), écrite depuis
+- **Migration appliquée en production le 22/11/2026 (contrôlée en lecture)** : `migrations/20261123130000_ordres_regroupes.sql` (point 17, côté serveur), écrite depuis
   pg_get_functiondef de production (md5 de prosrc vérifiés dans le banc), ancrages comptés en production (1 chacun), sans BEGIN/COMMIT :
   - `desinstaller_materiel` : remplacement contrôlé `ordres_regroupes_desinstaller_legal_v1` — le matériel d'autrui hors de chez soi est
     refusé (`pas_a_vous`) ; il ne s'emporte plus que par le vol. Son matériel, ou tout le matériel chez soi : inchangé (2 PA, au sol).

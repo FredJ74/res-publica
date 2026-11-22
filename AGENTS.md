@@ -95,6 +95,15 @@ Le raccordement reste à tester en production, ne pas le présenter comme réali
     organigrammes, `getTitulaireActuel`, `paysMandatPourOrdre` et le panneau du personnage les lisent ;
   - cron (`api/cron-minuit.js`) : `titulairesPostesPaysServeur(pays)`.
 - Bancs : `outils/bancs/banc-postes-pays-pglite-20261123.cjs`, `banc-postes-pays-navigateur-20261123.cjs`.
+- Migration appliquée en production le 22/11/2026 (contrôlée en lecture). La crue (`climat_crue_appliquer_interne`) lit le
+  ministre de l'Intérieur par `poste_detenu` (marque `pp_crue_min`).
+
+## Accueil du nouveau personnage (Fred, 22/11/2026)
+
+- Interview d'accueil (Jodie Moitout en Républia, Vera Pravdina en Sovarka), six chemins par pays, trois étapes chacun,
+  bulle des PA une seule fois : tout est décidé par le serveur (`accueil_*`, migration `20261123140000_accueil_interview`).
+  Une étape « ordre » se valide dans `payer_ordre_interne` (marque `accueil_ordre_paye_v1`) ; n'ajoutez pas de
+  validation côté navigateur. Réglages MJ : table `accueil_parametres` (page `admin-accueil.js`).
 
 ## Le relais entre agents
 
