@@ -6,8 +6,8 @@
 (function(global){
  'use strict';
  const expected=Object.freeze({
-  "tuto": "9354c59c",
-  "intro": "d7411672",
+  "tuto": "d60cf8e9",
+  "intro": "434157c8",
   "personnage": "937d3ff3",
   "plateau": "083b085e",
   "politique": "adc8371c",

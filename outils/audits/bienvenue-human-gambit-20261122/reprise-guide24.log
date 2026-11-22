@@ -1,0 +1,32 @@
+✔ neuf rubriques du guide ont un titre et un contenu dans chacune des huit traductions (11.653735ms)
+✔ religion : chiffres, confidentialité, villes, et propriétés des offices inchangés (0.352592ms)
+✔ les sept scripts du guide sont chargés avant initialisation et ne touchent pas au monde (6.636819ms)
+✔ huit versions de l économie sans conversion des montants (1.450257ms)
+✔ aucune substitution du français et chargement avant le moteur (1.651ms)
+✔ les neuf rubriques françaises correspondent exactement aux traductions relues (7.666822ms)
+✔ changement métier : refus de traduction et maintien de la version française (4.143939ms)
+✔ rendu du guide vérifie son empreinte et n utilise jamais une traduction périmée (0.839226ms)
+✔ guide des interactions renseigné dans toutes les langues supplémentaires (32.709711ms)
+✔ la traduction sociale ne supprime pas les distinctions ville, pays, membre et presse (8.682865ms)
+✔ guide français : suppression du forum régional obsolète sans modifier les ordres (2.509184ms)
+✔ les neuf langues possèdent les titres du guide et les champs mail (0.946788ms)
+✔ les neuf onglets du guide gardent leur section et leur handler historique (2.786943ms)
+✔ inventaire, rue et courriel ajoutent seulement une clé texte (0.872586ms)
+✔ inventaire vide : le rendu dynamique réapplique la traduction sans toucher aux objets (1.398218ms)
+✔ les boutons communs restent cliquables, localisés et conservent leurs icônes (2.049281ms)
+✔ menu mobile : 3 commandes historiques et libellé vocal en neuf langues (0.820027ms)
+✔ huit langues du guide du plateau disposent d un titre et du contenu (1.791542ms)
+✔ le plateau charge l extension après le dictionnaire guide, avant son moteur (0.852365ms)
+✔ ne remplace pas une section plateau déjà fournie par un autre catalogue (1.389966ms)
+✔ huit versions politiques : calendriers et seuils préservés (1.004425ms)
+✔ source française canonique intacte et extension chargée dans le bon ordre (3.391785ms)
+✔ football : huit traductions conservent les durées et phases (1.191847ms)
+✔ chargement sans écraser les règles FR ni les autres rubriques (3.058593ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1769.37074

@@ -1,0 +1,35 @@
+{
+  "date_utc": "2026-11-22T14:13:42.895200+00:00",
+  "alias": "https://human-gambit.com",
+  "commit_attendu": "9566f062924b864eff50cc6844f6f9dcef380a46",
+  "ressources": [
+    {
+      "fichier": "plateau.html",
+      "http": 200,
+      "encodage": null,
+      "sha256": "7673f4c01c89b2de0eda9a058e15db9ca22806f105aa5f06869ae82bfd9b4e39",
+      "identique_au_commit": true
+    },
+    {
+      "fichier": "style.css",
+      "http": 200,
+      "encodage": null,
+      "sha256": "e55119795477aac0d4b53a4c5dc25af9985f13dde0ef7019d6472cd3b94fb3c7",
+      "identique_au_commit": true
+    }
+  ],
+  "supabase": "aucun accès",
+  "personnage_connecte": false,
+  "vercel": {
+    "id": "dpl_9GEbghvfFKmY9FAWWCa5RU84b1Wu",
+    "etat": "READY",
+    "cible": "production",
+    "commit": "9566f062924b864eff50cc6844f6f9dcef380a46",
+    "alias": [
+      "human-gambit.com",
+      "res-publica.vercel.app",
+      "www.human-gambit.com"
+    ],
+    "source": "connecteur Vercel get_deployment, 22/11/2026"
+  }
+}

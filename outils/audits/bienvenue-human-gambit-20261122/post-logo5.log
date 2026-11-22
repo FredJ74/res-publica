@@ -1,0 +1,13 @@
+✔ neuf langues : seul le nom change dans les textes relus, sans perte de récit ni de règle (1.447333ms)
+✔ les empreintes restent strictes et couvrent le nom Human Gambit (1.944664ms)
+✔ bienvenue, langues à chaud et état conservé à 320px (2439.610013ms)
+✔ bienvenue, langues à chaud et état conservé à 390px (1943.67807ms)
+✔ bienvenue, langues à chaud et état conservé à 1440px (1848.670525ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6915.774649
