@@ -345,11 +345,13 @@ function injecterStyle() {
     // Lieux fermés par la crue : hachures bleues sur la zone du bâtiment (Fred, 21/11 : une marque toujours expliquée).
     + '.rc-zone.climat-inonde{background:repeating-linear-gradient(135deg,rgba(60,120,170,.42) 0 6px,rgba(60,120,170,.12) 6px 12px);outline:2px dashed rgba(140,190,230,.8);cursor:not-allowed}'
     // Le bandeau s'explique au clic (pourquoi l'image est rayée, combien de temps, quoi faire).
-    + '#climat-alerte{position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:1002;pointer-events:auto;cursor:pointer;'
-    + 'display:flex;flex-direction:column;align-items:center;gap:2px;animation:climatAlerte 4s ease-in-out infinite}'
-    + '#climat-alerte .climat-alerte-texte{padding:.15rem .55rem;background:rgba(10,8,6,.7);color:#FFD200;border-radius:3px;'
-    + 'font-family:Bebas Neue,sans-serif;letter-spacing:.1em;font-size:.95rem;white-space:nowrap}'
-    + '#climat-alerte .climat-picto{filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}'
+    // Coin supérieur gauche, format compact (Fred, 22/11/2026, point 5) : aucune alerte ne couvre une flèche de déplacement.
+    + '#climat-alerte{position:absolute;top:8px;left:8px;z-index:1002;pointer-events:auto;cursor:pointer;max-width:calc(50% - 16px);'
+    + 'display:flex;flex-direction:row;align-items:center;gap:4px;animation:climatAlerte 4s ease-in-out infinite}'
+    + '#climat-alerte.climat-alerte-bas{top:auto;bottom:8px}'
+    + '#climat-alerte .climat-alerte-texte{padding:.1rem .4rem;background:rgba(10,8,6,.7);color:#FFD200;border-radius:3px;'
+    + 'font-family:Bebas Neue,sans-serif;letter-spacing:.08em;font-size:.8rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}'
+    + '#climat-alerte .climat-picto{width:30px;height:28px;flex:none;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}'
     // Clignotement lent, sans agressivité : l'alerte ne disparaît jamais tout à fait.
     + '@keyframes climatAlerte{0%,100%{opacity:1}50%{opacity:.55}}'
     // Joueurs qui ont demandé à réduire les animations dans leur système : tout reste visible, rien ne bouge.
@@ -392,7 +394,17 @@ function appliquerFiltre() {
   }
   a.setAttribute('aria-label', libelle);
   a.title = explic('pourquoi') + ' ' + ligneRestant(ev);
+  eviterFleches(a, hote);
   marquerLieuxInondes();
+}
+// Règle générale (Fred, 22/11/2026) : une alerte ne couvre jamais une flèche de déplacement. Si une vue place une flèche
+// dans le coin supérieur gauche, l'alerte passe dans le coin inférieur gauche.
+function recouvre(r1, r2) { return r1.left < r2.right && r1.right > r2.left && r1.top < r2.bottom && r1.bottom > r2.top; }
+function eviterFleches(a, hote) {
+  if (!a || !hote || !a.classList || typeof a.getBoundingClientRect !== 'function' || typeof hote.querySelectorAll !== 'function') return;
+  a.classList.remove('climat-alerte-bas');
+  const fleches = Array.from(hote.querySelectorAll('.rc-fleche')).map(f => f.getBoundingClientRect());
+  if (fleches.some(r => recouvre(a.getBoundingClientRect(), r))) a.classList.add('climat-alerte-bas');
 }
 
 // ── Points d'eau : ordre de rue VERT « Puiser de l'eau » (Fred, 21/11/2026, mission du soir) ────────────────────
