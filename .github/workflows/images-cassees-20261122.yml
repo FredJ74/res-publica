@@ -1,0 +1,23 @@
+name: Images du jeu — fichiers, alias et correction SQL isolée
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  images:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci --prefix outils/vercel
+      - name: Références réelles et contre-épreuves de fichier absent
+        run: node --test outils/bancs/banc-images-references-20261122.cjs
+      - name: SQL en attente, PostgreSQL isolé uniquement
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund --prefix "$RUNNER_TEMP/pglite" @electric-sql/pglite@0.5.15
+          PGLITE_DIR="$RUNNER_TEMP/pglite" node --test outils/bancs/banc-images-sql-isole-20261122.cjs

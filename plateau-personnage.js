@@ -7,7 +7,7 @@ const IMAGES_OBJETS_PAR_IDENTITE = {
 };
 function imageUrlObjet(item) {
   if (!item) return '';
-  if (item.imageUrl) return item.imageUrl;
+  if (item.imageUrl) return typeof imagePubliqueUrl === 'function' ? imagePubliqueUrl(item.imageUrl) : item.imageUrl;
   return IMAGES_OBJETS_PAR_IDENTITE[item.recette_id] || IMAGES_OBJETS_PAR_IDENTITE[item.generique_id] || IMAGES_OBJETS_PAR_IDENTITE[item.type] || '';
 }
 // =====================

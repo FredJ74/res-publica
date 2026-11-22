@@ -744,7 +744,7 @@ const RUE_CENTRALE_NOEUDS = {
     'montrouge-vue-11': {
       image: 'images/montrouge/montrouge-rue-centre-artisanal-terrains.jpg',
       // Rue en trois états (étape J) : images attendues de Fred ; tant qu'elles manquent, l'image actuelle reste.
-      imagesEtatsTerrains: { ville: 'ville_b', etat2: 'images/terrains/montrouge/rue-etat-2.webp', etat3: 'images/terrains/montrouge/rue-etat-3.webp' },
+      imagesEtatsTerrains: { ville: 'ville_b' }, // États 2 et 3 non produits : ne pas précharger des URL en 404.
       zones: [
         { xPct: [0, 22],   nom: 'Centre artisanal de Montrouge', type: 'batiment', buildingId: 'centre-artisanal' },
         { xPct: [78, 100], nom: 'Terrains à bâtir de Montrouge', type: 'sous-lieu' }

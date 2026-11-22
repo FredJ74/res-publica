@@ -1,0 +1,130 @@
+[
+  {
+    "table": "escorts_catalogue",
+    "column": "portrait",
+    "old": "images/escort-h-1-costume-beige.png",
+    "new": "images/escort-h-1-costume-beige.webp",
+    "occurrences": 1,
+    "type": "text"
+  },
+  {
+    "table": "escorts_catalogue",
+    "column": "portrait",
+    "old": "images/escort-republic.png",
+    "new": "images/escort-republic.webp",
+    "occurrences": 1,
+    "type": "text"
+  },
+  {
+    "table": "escorts_catalogue",
+    "column": "portrait",
+    "old": "images/escort-f-1-robe-verte.png",
+    "new": "images/escort-f-1-robe-verte.webp",
+    "occurrences": 1,
+    "type": "text"
+  },
+  {
+    "table": "inventaire_actions_recus",
+    "column": "resultat",
+    "old": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-fusil-republic.png",
+    "new": "images/arme-fusil-republic.webp",
+    "occurrences": 1,
+    "type": "jsonb"
+  },
+  {
+    "table": "journal_editions",
+    "column": "faits_sources",
+    "old": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/stade-brise-mariannaise.png",
+    "new": "images/stade-brise-mariannaise.webp",
+    "occurrences": 59,
+    "type": "jsonb"
+  },
+  {
+    "table": "journal_editions",
+    "column": "faits_sources",
+    "old": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/stade-olympique-luthecia.png",
+    "new": "images/stade-olympique-luthecia.webp",
+    "occurrences": 57,
+    "type": "jsonb"
+  },
+  {
+    "table": "journal_editions",
+    "column": "faits_sources",
+    "old": "images/stade-brise-mariannaise.png",
+    "new": "images/stade-brise-mariannaise.webp",
+    "occurrences": 5,
+    "type": "jsonb"
+  },
+  {
+    "table": "journal_editions",
+    "column": "faits_sources",
+    "old": "images/stade-olympique-luthecia.png",
+    "new": "images/stade-olympique-luthecia.webp",
+    "occurrences": 15,
+    "type": "jsonb"
+  },
+  {
+    "table": "objets_modeles",
+    "column": "objet",
+    "old": "images/arme-baionnette-soviet.png",
+    "new": "images/arme-baionnette-soviet.webp",
+    "occurrences": 1,
+    "type": "jsonb"
+  },
+  {
+    "table": "objets_modeles",
+    "column": "objet",
+    "old": "images/arme-makarov-soviet.png",
+    "new": "images/arme-makarov-soviet.webp",
+    "occurrences": 1,
+    "type": "jsonb"
+  },
+  {
+    "table": "objets_modeles",
+    "column": "objet",
+    "old": "images/arme-kalachnikov-soviet.png",
+    "new": "images/arme-kalachnikov-soviet.webp",
+    "occurrences": 1,
+    "type": "jsonb"
+  },
+  {
+    "table": "personnages_donnees",
+    "column": "inventory",
+    "old": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/calepin-enigme-musee.png",
+    "new": "images/calepin-enigme-musee.webp",
+    "occurrences": 1,
+    "type": "jsonb"
+  },
+  {
+    "table": "personnages_donnees",
+    "column": "inventory",
+    "old": "images/calepin-enigme-musee.png",
+    "new": "images/calepin-enigme-musee.webp",
+    "occurrences": 1,
+    "type": "jsonb"
+  },
+  {
+    "table": "personnages_donnees",
+    "column": "inventory",
+    "old": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-fusil-republic.png",
+    "new": "images/arme-fusil-republic.webp",
+    "occurrences": 2,
+    "type": "jsonb"
+  },
+  {
+    "table": "pnj_possessions",
+    "column": "objet",
+    "old": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-mitraillette-militaire.png",
+    "new": "images/arme-mitraillette-militaire.webp",
+    "occurrences": 5,
+    "type": "jsonb"
+  },
+  {
+    "table": "pnj_possessions",
+    "column": "objet",
+    "old": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-pistolet-militaire.png",
+    "new": "images/arme-pistolet-militaire.webp",
+    "occurrences": 1,
+    "type": "jsonb"
+  }
+]

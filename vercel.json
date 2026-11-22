@@ -41,6 +41,18 @@
       "destination": "/admin.html"
     },
     {
+      "source": "/images/arme-kalachnikov-soviet.png",
+      "destination": "/images/arme-kalachnikov-soviet.webp"
+    },
+    {
+      "source": "/images/arme-makarov-soviet.png",
+      "destination": "/images/arme-makarov-soviet.webp"
+    },
+    {
+      "source": "/images/arme-baionnette-soviet.png",
+      "destination": "/images/arme-baionnette-soviet.webp"
+    },
+    {
       "source": "/images/arme-fusil-republic.png",
       "destination": "/images/arme-fusil-republic.webp"
     },

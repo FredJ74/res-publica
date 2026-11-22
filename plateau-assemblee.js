@@ -70,7 +70,7 @@ const ASSEMBLEE_NB_SIEGES = 9;
 // Image de groupe fournie separement. Les avatars individuels n'existent pas encore : on ne
 // reference AUCUN fichier inexistant. photoUrl reste absent, renderPersonsList retombe alors
 // proprement sur l'icone de job (PNJ_AVATAR), comportement deja general du projet.
-const ASSEMBLEE_IMAGE_GROUPE = 'images/republia-pnj-deputes.png';
+// Ancienne constante sans consommateur retirée : la photo de groupe n’a jamais été produite.
 
 function assembleeSiegeParId(siegeId) {
   return ASSEMBLEE_SIEGES.find(s => s.id === siegeId) || null;
