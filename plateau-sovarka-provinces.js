@@ -457,7 +457,11 @@ let foretPerduServeur = false;
 let foretPerduLu = false;
 // Textes de la version définitive (français ; clés pour Codex dans RELAIS).
 const FORET_TXT = { bonChemin: 'Était-ce le bon chemin… ?', clairiere: 'La clairière',
-  clairiereCorps: 'Le sentier s’enfonce entre les arbres. Cliquez-le pour explorer la forêt, ou retournez au campement.' };
+  clairiereCorps: 'Le sentier s’enfonce entre les arbres. Cliquez-le pour explorer la forêt, ou retournez au campement.',
+  // Rencontre à l'arrivée (Fred, 22/11/2026, point 4) : texte pédagogique avant le choix.
+  surprise: 'Vous n’avez même pas sorti la hache : une bête surgit d’entre les arbres. En forêt profonde, la faune rôde : '
+    + 'chaque fois que vous arrivez dans un coin de bois, une rencontre peut survenir (environ une fois sur sept), même sans couper. '
+    + 'Si vous menez un groupe, tout le groupe fait face avec vous.' };
 function foretEstPerdu() {
   const enForet = /^foret_vue_[1-4]$/.test(state.currentRoom || '');
   // Première vue profonde affichée depuis le chargement : l'état est relu une fois au serveur.
@@ -504,6 +508,7 @@ async function foretAller(sens) {
   // Forêt de Krasnov, version définitive (Fred, 21/11/2026) : égaré au retour → « Était-ce le bon chemin… ? » ;
   // la clairière (vue 5) est la première et la dernière image, le campement est l'entrée de l'exploitation.
   if (Number(v.vue) === 0) showToast(provT('tOut'), provT('out'), true);
+  else if (v.rencontre === 'attaque') { foretAfficherRencontre(v.nom, v.pnj, FORET_TXT.surprise); return; }
   else if (v.egare === true) foretFenetrePerdu(FORET_TXT.bonChemin, v.vue);
   else if (Number(v.vue) === 5) showToast(FORET_TXT.clairiere, FORET_TXT.clairiereCorps, true);
   else showToast(provT('tDeep'), provT('deeper'), true);
@@ -557,9 +562,9 @@ async function foretReprendreRencontre() {
   else showToast(provT('tForest'), provMotif({ raison: 'rencontre_en_cours' }), false);
 }
 
-function foretAfficherRencontre(nom, pnj) {
+function foretAfficherRencontre(nom, pnj, intro) {
   const js = s => JSON.stringify(String(s)).replace(/"/g, '&quot;');
-  let html = provForetImage(provCreatureCle(nom)) + '<p>' + provT('enc1') + '</p>' +
+  let html = provForetImage(provCreatureCle(nom)) + '<p>' + (intro ? provEchapper(intro) : provT('enc1')) + '</p>' +
     '<p>' + provT('enc2', { nom: provEchapper(provServeur(PROV_CREATURES, nom)) }) + '</p>';
   const modes = (typeof NEUTRALISER_MODES === 'object' && NEUTRALISER_MODES) ? NEUTRALISER_MODES : { mains: { label: provT('bare') } };
   html += vehSection(provT('fight'), Object.keys(modes).map(m => {
@@ -569,7 +574,7 @@ function foretAfficherRencontre(nom, pnj) {
   html += vehSection(provT('orElse'), vehBouton(provT('flee'), 'foretChoisir(\'fuir\')') +
     vehBouton(provT('noDefend'), 'foretChoisir(\'subir\')') +
     '<p class="cpj-note">' + provT('neverDie') + '</p>');
-  provModal(provT('titleEncounter'), html, () => foretAfficherRencontre(nom, pnj));
+  provModal(provT('titleEncounter'), html, () => foretAfficherRencontre(nom, pnj, intro));
 }
 
 async function foretCombattre(pnj, mode) {

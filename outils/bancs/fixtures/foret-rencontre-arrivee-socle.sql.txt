@@ -1,0 +1,22 @@
+-- Complément du socle forêt pour la migration 20261122110000 (rencontre à l'arrivée) : PNJ de faune, créatures,
+-- et « se laisser faire » réduit à sa partie utile (même ancrage que la fonction en production).
+CREATE TABLE public.pnj_membres (id text PRIMARY KEY, famille text, nom text, pays text, ville text, building_id text, room_id text, classe text, pa integer,
+  proprietaire_institution text, proprietaire_perimetre text, car_int integer, car_cha integer, car_vol integer, car_per integer, car_dup integer, car_ent integer,
+  statut text DEFAULT 'actif', maj_le timestamptz);
+CREATE OR REPLACE FUNCTION public.pnj_pa_max() RETURNS integer LANGUAGE sql IMMUTABLE AS $$ SELECT 20 $$;
+CREATE OR REPLACE FUNCTION public.sovarka_foret_creature_interne(p_type text) RETURNS jsonb LANGUAGE sql IMMUTABLE AS $$
+  SELECT jsonb_build_object('nom', CASE p_type WHEN 'loup' THEN 'Loup gris' WHEN 'meute' THEN 'Meute de loups' ELSE 'Ours brun' END, 'vol', 5, 'per', 5, 'dup', 2) $$;
+CREATE OR REPLACE FUNCTION public.sovarka_foret_rencontre(p_requete uuid, p_choix text) RETURNS jsonb LANGUAGE plpgsql AS $function$
+DECLARE a text := public.mon_personnage(); e record; v_victimes jsonb;
+BEGIN
+  SELECT * INTO e FROM public.sovarka_foret_rencontres WHERE bucheron = a AND statut = 'en_attente' ORDER BY id DESC LIMIT 1;
+  IF NOT FOUND THEN RETURN jsonb_build_object('ok', false, 'raison', 'aucune_rencontre'); END IF;
+  UPDATE public.sovarka_foret_rencontres SET statut = 'devore', clos_le = now() WHERE id = e.id;
+  WITH g AS (
+    SELECT d.name FROM public.personnages_donnees d
+     WHERE (d.name = a OR d.name IN (SELECT membre FROM public.groupes_pj_adhesions WHERE chef = a))
+       AND d.country = 'soviet' AND d.current_city = 'ville_b' AND d.current_building = 'zone-production' AND d.current_room = 'foret_vue_3'
+  ), u AS (UPDATE public.personnages_donnees d SET pa = 0 FROM g WHERE d.name = g.name AND coalesce(d.pa, 0) > 0 RETURNING d.name)
+  SELECT coalesce(jsonb_agg(name ORDER BY name), '[]'::jsonb) INTO v_victimes FROM u;
+  RETURN jsonb_build_object('ok', true, 'choix', 'subir', 'victimes', v_victimes);
+END $function$;
