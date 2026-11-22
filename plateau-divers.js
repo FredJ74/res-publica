@@ -1152,6 +1152,12 @@ async function removeFromInventory(idx, motif, options) {
 // leur formulation -- et surtout pour que le motif reel du serveur soit toujours dit au joueur.
 // Texte de l'inventaire : catalogue inventoryUi (i18n/inventory-ui-resources.js), repli sur le francais canonique.
 // Les valeurs s'ecrivent {{values.x}} comme ailleurs dans ce catalogue.
+// CLES A TRADUIRE (22/11/2026, pas encore au catalogue : le banc i18n exige les neuf langues d'un coup ; repli francais
+// en attendant) : anItem cancel close dropAction dropIntro dropNote dropTitleQty droppedMany droppedOne droppedTitle
+// giveAction giveIntro giveNote giveTitleQty givenMany givenOne givenTitle groundFound impossible pickAction pickChanged
+// pickFull pickIntroMany pickIntroOne pickNote pickTitleQty pickTooBig pickedMany pickedOne pickedTitle qtyAll qtyBetween
+// qtyHowMany qtyNothing refused_destinataire_plein refused_destinataire_plein_zero refused_inventaire_plein
+// refused_pas_sur_place refused_place_insuffisante refused_quantite_detenue thisPlayer.
 function texteInventaire(cle, secours, valeurs) {
   let t = secours;
   try {

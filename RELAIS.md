@@ -8,6 +8,28 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Inventaire en direct, quantité, capacité, don entre joueurs (Claude, 22/11/2026) — GAME-DESIGN-FORET-TEST-20261122.md, points 2, 3, 4
+- **Branche `claude/inventaire-direct-20261122`**. Aucune fonction Vercel.
+- **Migration à appliquer (pas encore appliquée)** : `20261122200000_inventaire_direct_capacite` — colonne
+  `personnages_donnees.capacite_inventaire` (100 par défaut, 1 à 10 000) ; `inventaire_place_restante(jsonb, integer)` ; forme à un
+  argument = capacité du joueur connecté ; `inventaire_deposer_interne` (capacité du personnage servi) ; `inventaire_abandonner(…, p_qte)`
+  (lieu du serveur, une pile par objet au sol) ; `objet_abandonne_ramasser(p_id, p_qte)` (plafond pile + place libre, refus
+  `place_insuffisante` avec `place`) ; `inventaire_donner` (refus `destinataire_plein` avec `place`, dons en route compris) ;
+  `inventaire_reception_etat` (+ `capacite`, `place`) ; `personnages_signaux_trg` (inventaire et capacité préviennent le propriétaire) ;
+  déclencheurs `zz_objets_recus_signaux`, `zz_objets_abandonnes_signaux` ; `admin_inventaire_capacite_fixer/lire`. Banc PGlite
+  `banc-inventaire-direct-pglite-20261122.cjs` (6/6).
+- **Fichiers du navigateur modifiés (pour rebaser)** : `supabase.js` (`sbInventaireAbandonner` + quantité, nouveau `sbObjetAbandonneRamasser`),
+  `plateau-divers.js` (`capaciteInventaire`, `adopterCapaciteInventaire`, `placeInventaireLibre`, `getTotalInventaire` = règle du serveur,
+  `removeFromInventory`, `texteInventaire`, `messageRefusSortieInventaire(raison, details)`, `rafraichirOngletInventaireSiOuvert` appelé par
+  `renderInventory`), `plateau-personnage.js` (`switchSelfTab` mémorise l'onglet ; fenêtre de quantité `ouvrirFenetreQuantite` et suivantes ;
+  `jeterObjetInventaire`, `chargerObjetsAbandonnesDansPiece`, `ramasserObjetAbandonne`, `donnerObjetAJoueur`, nouveaux `donnerObjetQuantite`),
+  `plateau-pnj.js` (`ouvrirDonPnjChoix` : un joueur n'est plus traité comme un PNJ ; nouveau `ouvrirDonObjetJoueurModal`),
+  `plateau-justice-economie.js` (`confirmerDonObjetPj`), `plateau-communication.js` (`verifierObjetsRecus` lit la capacité ;
+  `capaciteImpressionTracts`), `plateau-temps-reel.js` (signal de pièce : sol et groupe ; signal du personnage : inventaire),
+  `admin.html` + `admin-inventaire.js` (nouveau, réglage MJ), `plateau.html` (versions des sept scripts : `-inventaire-direct-20261122`).
+- **Pour Codex (traductions)** : nouvelles clés `inventoryUi.*` non encore dans le catalogue (repli français dans le code) — voir la liste
+  dans le rapport du chantier et en tête de `texteInventaire` (plateau-divers.js).
+- **Bancs** : `banc-inventaire-direct-navigateur-20261122.cjs` (Chromium, deux joueurs), workflow `inventaire-direct-20261122.yml`.
 ### Étape J, terrains à bâtir (Claude, 22/11/2026) — décisions : GAME-DESIGN-CHANTIERS-IMAGES-20261120.md (complément du 21/11, points 1 et 2)
 - **Branche `claude/terrains-plan-20261122`** (part de `main` après la mission de la nuit). Aucune migration, aucune fonction Vercel.
 - **Plan du lotissement en vignettes** (`plateau-terrains-plan.js`, nouveau, chargé après `plateau-chantier-vue.js`) : une carte
