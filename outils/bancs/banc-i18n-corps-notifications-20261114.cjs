@@ -90,6 +90,10 @@ test('provenance des phrases actives et des phrases retirées documentées',()=>
  }
  // Étape K, 22/11 : les contrats d'informateurs sont remplacés par l'achat d'informations.
  // Vérifier chaque ancien texte dans le dernier main précédant cette refonte.
+ // Santé (Fred, 22/11/2026, GAME-DESIGN-SANTE-20261122.md, point 15) : « PV » devient « Santé » dans les messages ; ces trois
+ // corps ne sont plus affichés tels quels (nouvelles phrases françaises à traduire par Codex, RELAIS.md).
+ const SANTE_PV=["Vos PV sont tombes a 0. Hospitalisation d'urgence.",'Vous vous échappez malgré tout. −30 DIS −15 PV.',
+  'Vous avez tenu tete aux gardiens. +6 DIS, mais +1 jour de detention et -10 PV.'];
  const INFORMATEURS_REFONTE=[
   "Vous employez déjà un informateur. Renvoyez-le avant d'en recruter un autre.",
   'Vous ne pouvez avoir que 2 informateurs simultanément.',
@@ -105,7 +109,7 @@ test('provenance des phrases actives et des phrases retirées documentées',()=>
   assert.ok(avantInformateurs.includes(fr)||avantInformateurs.includes(fr.replace(/'/g,"\\'")),'provenance informateurs : '+fr);
   assert.equal(present(fr),false,'ancienne phrase d’informateur non réactivée : '+fr);
  }
- assert.deepEqual(rows.map(r=>r[0]).filter(fr=>!present(fr)),[retire,'Maximum 2 récoltes par jour.','+5 DIS.','Vous ne pouvez pas voter dans cet empire.','Cette prestation ne peut pas être vendue à emporter.',...CRIM_LOT5,...CRIM_LOT6,...CRIM_LOT7,...INTERVIEW_ACCUEIL,...INFORMATEURS_REFONTE].filter(fr=>rows.some(r=>r[0]===fr)).sort((a,b)=>rows.findIndex(r=>r[0]===a)-rows.findIndex(r=>r[0]===b)));
+ assert.deepEqual(rows.map(r=>r[0]).filter(fr=>!present(fr)),[retire,'Maximum 2 récoltes par jour.','+5 DIS.','Vous ne pouvez pas voter dans cet empire.','Cette prestation ne peut pas être vendue à emporter.',...CRIM_LOT5,...CRIM_LOT6,...CRIM_LOT7,...INTERVIEW_ACCUEIL,...INFORMATEURS_REFONTE,...SANTE_PV].filter(fr=>rows.some(r=>r[0]===fr)).sort((a,b)=>rows.findIndex(r=>r[0]===a)-rows.findIndex(r=>r[0]===b)));
 });
 
 test('aucun recouvrement avec les catalogues déjà raccordés (pas de double traduction ni de markToast contrarié)',()=>{

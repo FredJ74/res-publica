@@ -11,7 +11,7 @@
 <title>Human Gambit — Plateau de Jeu</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Bebas+Neue&family=Crimson+Pro:wght@400;600&family=Great+Vibes&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
-<link rel="stylesheet" href="style.css?v=acces-reserve-lisible-20261113-repertoire-i18n-20261113-ordres-info-tactile-20261113-lisibilite-pnj-20261031-caracs-mobile-l7-20261106-formulaires-20261107-reconnexion-20261108-piece-mobile-20261111-guide-lisible-20261111-questions-journal-images-entieres-20261114-krasnov-accueil-cadrage-20261115-krasnov-accueil-sans-vide-20261115-krasnov-accueil-image-unique-20261115-goulag-20261116-terrains-plan-20261122-interview-accueil-20261122-texte-minimum-20261122-foret-combat-20261122">
+<link rel="stylesheet" href="style.css?v=acces-reserve-lisible-20261113-repertoire-i18n-20261113-ordres-info-tactile-20261113-lisibilite-pnj-20261031-caracs-mobile-l7-20261106-formulaires-20261107-reconnexion-20261108-piece-mobile-20261111-guide-lisible-20261111-questions-journal-images-entieres-20261114-krasnov-accueil-cadrage-20261115-krasnov-accueil-sans-vide-20261115-krasnov-accueil-image-unique-20261115-goulag-20261116-terrains-plan-20261122-interview-accueil-20261122-texte-minimum-20261122-foret-combat-20261122-sante-medecin-20261122">
 <style>
 /* Le bandeau de traduction partielle concerne les langues étrangères ; l'interface FR conserve son gabarit initial. */
 html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
@@ -284,6 +284,20 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
           <div id="b-pa" style="height:100%;background:#4a8a4a;border-radius:2px;width:100%"></div>
         </div>
       </div>
+      <!-- Jauges Santé et Moral (Fred, 22/11/2026, GAME-DESIGN-SANTE-20261122.md, point 14) : infobulle au survol et au toucher
+           (plateau-medecin-montrer.js), valeurs recopiées de r-hp et r-moral (état du serveur). -->
+      <div class="hg-jauge" id="hg-jauge-sante" data-jauge="sante" tabindex="0" role="button" aria-describedby="hg-jauge-bulle">
+        <div class="hg-jauge-nom">Santé</div>
+        <div class="hg-jauge-val" id="hg-jauge-sante-val">—</div>
+        <div class="hg-jauge-fond"><div class="hg-jauge-barre" id="hg-jauge-sante-barre"></div></div>
+      </div>
+      <div class="hg-jauge" id="hg-jauge-moral" data-jauge="moral" tabindex="0" role="button" aria-describedby="hg-jauge-bulle">
+        <div class="hg-jauge-nom">Moral</div>
+        <div class="hg-jauge-val" id="hg-jauge-moral-val">—</div>
+        <div class="hg-jauge-fond"><div class="hg-jauge-barre" id="hg-jauge-moral-barre"></div></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:.4rem;margin:0 0 .4rem;padding:0 .2rem">
       <div style="flex:1;background:#0a0a07;border:1px solid #2a1a08;border-radius:3px;padding:.3rem .5rem;text-align:center">
         <div style="font-size:.58rem;color:#C9A84C;font-family:'Bebas Neue',sans-serif;letter-spacing:.08em" data-i18n="plateau.money" data-i18n-uppercase>ARGENT</div>
         <div style="font-size:.75rem;color:#C9A84C;font-family:'Bebas Neue',sans-serif" id="r-arg">4 250 FR</div>
@@ -703,7 +717,7 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
   <div class="toast-sub" id="toast-sub"></div>
 </div>
 
-<script src="data.js?v=stocks-prix-commerces-20261104-psm-pnj-20261104-livraison-terrestre-psm-terrains-onglets-novomirsk-librairie-petrochimie-20261104-novomirsk-v7-naval-20261104-novomirsk-entrepot-renseignement-krasnov-entrepot-caserne-novomirsk-vehicules-fabrication-salon-coiffure-prix-logements-novomirsk-pharmacie-pnj-sovarka-starovka-port-novomirsk-commissaire-seul-20261106-sovarka-droits-20261106-poissonniere-pharmanov-salaires-sovarka-musee-national-sovarka-grand-hotel-accueil-bar-restaurant-galeries-novomirsk-20261106-loyers-galeries-20261106-centre-affaires-novomirsk-20261107-evenements-diner-sovarka-pouvoir-repas-palais-gouvernement-nom-20261107-pnj-sovarka-noms-20261107-partis-sovarka-20261107-mairie-novomirsk-nom-salle-partis-balatov-marche-presse-novomirsk-sans-doublons-20261108-soviet-retire-20261108-sovarka-ministeres-20261108-novomirsk-ambassades-armurerie-webp-20261108-sovarka-tresor-signalements-20261108-surveillance-20261108-presidence-novomirsk-quatre-images-20261108-palais-pres-20261108-tribunal-novomirsk-webp-20261108-greffe-sovarka-entrepot-novomirsk-2-webp-20261108-novomirsk-renseignement-20261108-justice-sovarka-krasnov-starovka-20261109-dynamo-six-images-20261110-sovarka-nuit-20261110-artisanal-novomirsk-20261110-musee-national-sovarka-neuf-salles-20261110-guide-musee-20261111-pharmanov-webp-20261111-pavillon-cinq-images-20261111-pavillon-bar-20261111-guide-fiches-20261111-pavillon-pnj-suite-partis-buste-acces-reserve-20261112-novomirsk-hopital-trois-pieces-webp-20261112-hopital-novomirsk-doublon-corrige-20261112-escorts-sovarka-20261112-i18n-ordres-sovarka-20261112-logements-marche-20261112-quais-20261112-gare-novomirsk-20261112-tresor-tsars-20261112-i18n-fiches-tatiana-v3-volga-ancrage-appartements-20261112-hopitaux-chambre-20261113-heros-boite-20261113-min636-20261114-foret-perdu-20261114-chambres-partout-20261114-distillerie-ecoute-20261114-krasnov-bar-tabac-immeuble-20261114-audit-mairie-krasnov-20261114-krasnov-pnj-starovka-elections-20261114-krasnov-musee-six-salles-20261114-krasnov-station-antonina-affaires-20261115-krasnov-accueil-cadrage-20261115-krasnov-accueil-image-unique-20261115-krasnov-accueil-image-cachefix-20261115-guide-dokladova-20261115-kouzma-portraits-20261115-regulation-20261116-port-starovka-20261116-portraits-20261116-genre-20261116-tribunal-starovka-20261116-artisanal-starovka-20261116-starovka-bureaux-20261116c-starovka-froid-20261117-starovka-chasse-20261117-starovka-route-20261117-hotel-voyageurs-20261117-terrain-starovka-20261117-port-starovka-images-20261117-fret-ventes-vetrov-parcelles-nationalite-20261118-distillerie-20261120-krasnov-rapides-20261120-supporters-sovarka-20261121-krasnov-radar-20261121-parades-climat-20261121-foret-clairiere-20261121-informateurs-20261122"></script>
+<script src="data.js?v=stocks-prix-commerces-20261104-psm-pnj-20261104-livraison-terrestre-psm-terrains-onglets-novomirsk-librairie-petrochimie-20261104-novomirsk-v7-naval-20261104-novomirsk-entrepot-renseignement-krasnov-entrepot-caserne-novomirsk-vehicules-fabrication-salon-coiffure-prix-logements-novomirsk-pharmacie-pnj-sovarka-starovka-port-novomirsk-commissaire-seul-20261106-sovarka-droits-20261106-poissonniere-pharmanov-salaires-sovarka-musee-national-sovarka-grand-hotel-accueil-bar-restaurant-galeries-novomirsk-20261106-loyers-galeries-20261106-centre-affaires-novomirsk-20261107-evenements-diner-sovarka-pouvoir-repas-palais-gouvernement-nom-20261107-pnj-sovarka-noms-20261107-partis-sovarka-20261107-mairie-novomirsk-nom-salle-partis-balatov-marche-presse-novomirsk-sans-doublons-20261108-soviet-retire-20261108-sovarka-ministeres-20261108-novomirsk-ambassades-armurerie-webp-20261108-sovarka-tresor-signalements-20261108-surveillance-20261108-presidence-novomirsk-quatre-images-20261108-palais-pres-20261108-tribunal-novomirsk-webp-20261108-greffe-sovarka-entrepot-novomirsk-2-webp-20261108-novomirsk-renseignement-20261108-justice-sovarka-krasnov-starovka-20261109-dynamo-six-images-20261110-sovarka-nuit-20261110-artisanal-novomirsk-20261110-musee-national-sovarka-neuf-salles-20261110-guide-musee-20261111-pharmanov-webp-20261111-pavillon-cinq-images-20261111-pavillon-bar-20261111-guide-fiches-20261111-pavillon-pnj-suite-partis-buste-acces-reserve-20261112-novomirsk-hopital-trois-pieces-webp-20261112-hopital-novomirsk-doublon-corrige-20261112-escorts-sovarka-20261112-i18n-ordres-sovarka-20261112-logements-marche-20261112-quais-20261112-gare-novomirsk-20261112-tresor-tsars-20261112-i18n-fiches-tatiana-v3-volga-ancrage-appartements-20261112-hopitaux-chambre-20261113-heros-boite-20261113-min636-20261114-foret-perdu-20261114-chambres-partout-20261114-distillerie-ecoute-20261114-krasnov-bar-tabac-immeuble-20261114-audit-mairie-krasnov-20261114-krasnov-pnj-starovka-elections-20261114-krasnov-musee-six-salles-20261114-krasnov-station-antonina-affaires-20261115-krasnov-accueil-cadrage-20261115-krasnov-accueil-image-unique-20261115-krasnov-accueil-image-cachefix-20261115-guide-dokladova-20261115-kouzma-portraits-20261115-regulation-20261116-port-starovka-20261116-portraits-20261116-genre-20261116-tribunal-starovka-20261116-artisanal-starovka-20261116-starovka-bureaux-20261116c-starovka-froid-20261117-starovka-chasse-20261117-starovka-route-20261117-hotel-voyageurs-20261117-terrain-starovka-20261117-port-starovka-images-20261117-fret-ventes-vetrov-parcelles-nationalite-20261118-distillerie-20261120-krasnov-rapides-20261120-supporters-sovarka-20261121-krasnov-radar-20261121-parades-climat-20261121-foret-clairiere-20261121-informateurs-20261122-sante-medecin-20261122"></script>
 <script src="avatars.js?v=126"></script>
 <script src="world-map.js?v=126"></script>
 <!-- auth.js AVANT supabase.js : sbEnTetes() y lit le jeton de session a chaque requete. -->
@@ -847,12 +861,12 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
 <!-- Equipements de bureau : interface d'attente seule, aucune mecanique. AVANT le
      routeur, qui resout ouvrirModalEquipements(). -->
 <script src="plateau-equipements.js?v=informatique-20261111-3-ceder-i18n-equip-20261112-appartements-20261112-heros-boite-20261113-ventes-fermees-20261118"></script>
-<script src="plateau-surveillance.js?v=20261111-3-fouiller-ordre-fouiller-voler-20261111-i18n-equip-20261112-tresor-tsars-20261112"></script>
+<script src="plateau-surveillance.js?v=20261111-3-fouiller-ordre-fouiller-voler-20261111-i18n-equip-20261112-tresor-tsars-20261112-sante-medecin-20261122"></script>
 <script src="plateau-informatique.js?v=20261111-3-ceder-i18n-equip-20261112"></script>
 <script src="plateau-plan-rues.js?v=plan-rues-i18n-20261113-carrefour-declare-20261113-quai-hopital-20261113-reperes-hors-rue-20261114-place-ours-20261114-place-ours-clic-20261114"></script>
 <script src="plateau-navigation.js?v=goulag-arrestation-20261117-building-categories-i18n-20261116-exit-feedback-i18n-20261116-building-header-i18n-20261116-i18n-refresh-fenetres-20261110-sovarka-nuit-20261110-retablir-p2-20261110-fouiller-voler-20261111-acces-reserve-20261112-desc-sovarka-20261112-volga-ancrage-20261112-appartements-20261112-musee-depart-20261113-krasnov-accueil-cadrage-20261115-krasnov-accueil-sans-vide-20261115-krasnov-accueil-image-unique-20261115-musee-valerie-20261116-ventes-fermees-20261118-chantier-unique-20261121-terrains-plan-20261122"></script>
-<script src="plateau-personnage.js?v=onglet-871-mobile-l9-20261106-jets-serveur-20261105-vehicules-fiche-20261109-inventaire-i18n-20261110-retablir-p2-20261110-tresor-tsars-20261112-appartements-20261112-heros-boite-20261113-guide-dokladova-20261115-failles-20261117-hotel-tarif-sovarka-20261117-ventes-fermees-20261118-inventaire-direct-20261122"></script>
-<script src="plateau-pnj.js?v=social-reponse-directe-20261104-psm-terrains-onglets-novomirsk-librairie-v6-jodie-enquete-20261109-passeur-i18n-20261111-roles-sovarka-20261112-i18n-equip-20261112-heros-boite-20261113-krasnov-referents-20261115-inventaire-direct-20261122"></script>
+<script src="plateau-personnage.js?v=onglet-871-mobile-l9-20261106-jets-serveur-20261105-vehicules-fiche-20261109-inventaire-i18n-20261110-retablir-p2-20261110-tresor-tsars-20261112-appartements-20261112-heros-boite-20261113-guide-dokladova-20261115-failles-20261117-hotel-tarif-sovarka-20261117-ventes-fermees-20261118-inventaire-direct-20261122-sante-medecin-20261122"></script>
+<script src="plateau-pnj.js?v=social-reponse-directe-20261104-psm-terrains-onglets-novomirsk-librairie-v6-jodie-enquete-20261109-passeur-i18n-20261111-roles-sovarka-20261112-i18n-equip-20261112-heros-boite-20261113-krasnov-referents-20261115-inventaire-direct-20261122-sante-medecin-20261122"></script>
 <script src="i18n/dealer-resources.js?v=20261112"></script>
 <script src="plateau-ced.js?v=dealer-i18n-20261112"></script>
 <script src="plateau-multijoueur.js?v=mobile-l9-20261106-surveillance-20261111-guide-musee-guide-fiches-20261111-questions-roles-sovarka-20261112-i18n-equip-20261112-presence-permanente-20261120-informateurs-20261122"></script>
@@ -864,7 +878,7 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
 <script src="plateau-presse-noms.js?v=presse-20261121"></script>
 <script src="plateau-gouvernement.js?v=6-min636-20261114"></script>
 <script src="plateau-effort-guerre.js?v=inventaire-213-integration-20261029"></script>
-<script src="plateau-justice-economie.js?v=goulag-20261117-mobile-l10-20261106-jets-serveur-20261105-starovka-port-salaires-sovarka-greffe-sovarka-justice-sovarka-admin-i18n-20261110-port-douanes-i18n-20261110-regulation-20261116-failles-20261117-verrou-20261117-ventes-fermees-20261118-distillerie-20261120-inventaire-direct-20261122"></script>
+<script src="plateau-justice-economie.js?v=goulag-20261117-mobile-l10-20261106-jets-serveur-20261105-starovka-port-salaires-sovarka-greffe-sovarka-justice-sovarka-admin-i18n-20261110-port-douanes-i18n-20261110-regulation-20261116-failles-20261117-verrou-20261117-ventes-fermees-20261118-distillerie-20261120-inventaire-direct-20261122-sante-medecin-20261122"></script>
 <script src="plateau-terrain-banque.js?v=i18n-finance135-20261112"></script>
 <script src="plateau-construction-commandes.js?v=reprise-i18n-20261113-retours-i18n-20261113-2-chantier-unique-20261121"></script>
 <!-- Chantier « construction » : fenêtre unique, image par étape, surcouche, rafraîchissement (21/11/2026). APRÈS
@@ -881,7 +895,7 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
 <script src="plateau-restaurant-luthecia.js?v=2-diner-sovarka-i18n-20261111-hotel-voyageurs-20261117"></script>
 <script src="plateau-football-realisateur-ia.js?v=1"></script>
 <script src="plateau-equipements-collectifs.js?v=1-contrats219-r2"></script>
-<script src="plateau-organisations-quetes.js?v=onglet-871-parametres-871-adhesions-871-membres-871-creation-organisations-871-tableau-organisations-871-mobile-l7-20261106-integration-pays-20261110-supporters-sovarka-20261121"></script>
+<script src="plateau-organisations-quetes.js?v=onglet-871-parametres-871-adhesions-871-membres-871-creation-organisations-871-tableau-organisations-871-mobile-l7-20261106-integration-pays-20261110-supporters-sovarka-20261121-sante-medecin-20261122"></script>
 <script src="plateau-divers.js?v=brume-estadine-20261102-reliquats379-p2-popinf379p-justice-sovarka-inventaire-i18n-20261110-heros-boite-20261113-failles-20261117-inventaire-direct-20261122"></script>
 <!-- Assemblee nationale (chantier du 10 septembre 2026). Charge APRES plateau-politique.js et
      plateau-actions-illegales-rumeurs.js, dont il complete les mecaniques, et AVANT le routeur,
@@ -935,8 +949,10 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
 <script src="plateau-sovarka-syndicat.js?v=syndicat-national-20261118"></script>
 <script src="plateau-maladies.js?v=maladies-lot1-20261118"></script>
 <script src="plateau-climat.js?v=climat-lot3-20261118-affichage-20261121-definitif-20261121-pluie-20261121-parades-20261121-horaire-20261121-meteo-plein-air-20261122"></script>
-<script src="plateau-criminalite.js?v=crim-lot1-20261119-victimes-journal-20261120-informateurs-20261122"></script>
+<script src="plateau-criminalite.js?v=crim-lot1-20261119-victimes-journal-20261120-informateurs-20261122-sante-medecin-20261122"></script>
 <script src="plateau-evenements-personnage.js?v=sante-20261122"></script>
+<!-- Santé : jauges Santé et Moral, médecin de terrain, montrer un objet (22/11/2026, points 12, 14, 22). -->
+<script src="plateau-medecin-montrer.js?v=sante-medecin-20261122"></script>
 <script src="plateau-temps-reel.js?v=1-inventaire-direct-20261122-sante-20261122"></script>
 <script src="plateau-universite.js?v=crim-lot9-20261120"></script>
 <script src="plateau-sovarka-heros-boite.js?v=heros-boite-20261113"></script>

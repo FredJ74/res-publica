@@ -46,6 +46,15 @@ test(process.env.RP_I18N_KRASNOV_BASELINE ? 'descriptions Sovarka : dix absences
     attendues = manquantesAvant.filter(d => !lot.includes(d));
     t.diagnostic(attendues.length + ' descriptions antérieures hors lot encore non traduites ; contrôle global sans cette option inchangé.');
   }
+  // Santé et forêt (Fred, 22/11/2026, point 18) : nouveaux textes des quatre vues de la forêt de Krasnov, en français
+  // seulement ; leurs traductions sont à ajouter au catalogue par Codex (RELAIS.md). Tant qu'elles manquent, ils restent en français.
+  const FORET_SANTE_EN_ATTENTE = [
+    'Des souches fraîches, des grumes empilées au bord d’une piste défoncée. Les bûcherons ne sont pas loin.',
+    'Des souches partout, une odeur de résine. Quelque chose a gratté l’écorce d’un bouleau, bien haut.',
+    'La forêt se referme. Les fougères montent aux genoux, et des empreintes larges comme une assiette marquent l’humus.',
+    'Un sentier à peine tracé sous les feuilles mortes. Au loin, une odeur de feu de bois et de soupe aux choux.'
+  ];
+  attendues = attendues.concat(FORET_SANTE_EN_ATTENTE);
   // « Aucune nouvelle lacune » : une lacune antérieure comblée depuis par un autre lot (15/11) est bienvenue.
   assert.deepEqual(manquantes.filter(d => !attendues.includes(d)), []);
 });

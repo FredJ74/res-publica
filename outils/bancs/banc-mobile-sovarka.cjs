@@ -15,12 +15,12 @@ const fixtures={
  sovarka_soviet_etat:{ok:true,scores:[]},
  vehicules_lire:{ok:true,vehicules:[],ici:{id:'garage',type:'garage',stock:{voiture:2},prix:{voiture:12345},matieres:{},modeles:{}}}
 };
-const {avecJeu:environnement,page}=require('./mobile-navigateur.cjs');
+const {avecJeu:environnement,page,jaugesSanteTemoin}=require('./mobile-navigateur.cjs');
 // Plancher de texte des fenêtres (Fred, 22/11/2026, remontées du test en forêt, point 1) : changement voulu, appliqué aussi au
 // témoin pour que la comparaison au pixel porte sur tout le reste.
 const css=fs.readFileSync(path.join(R,'style.css'),'utf8'),PLANCHER=css.slice(css.indexOf('.cpj-note{font-size:.95rem}'),css.indexOf('/* Rapport de combat par round'));
 assert.ok(PLANCHER.includes('.journal-time'),'bloc du plancher de texte introuvable');
-async function ouvrir(b,o,w,ancien=false){const p=await page(b,o,w,900,false,{fichiers:ancien?temoin.fichiers:undefined});if(ancien)await p.addStyleTag({content:PLANCHER});
+async function ouvrir(b,o,w,ancien=false){const p=await page(b,o,w,900,false,{fichiers:ancien?temoin.fichiers:undefined});if(ancien){await p.addStyleTag({content:PLANCHER});await jaugesSanteTemoin(p);}
 await p.evaluate(f=>{window.state={country:'soviet',city:'capitale',currentCity:'capitale',currentBuilding:'galeries',currentRoom:'local_1',pa:20};window.COUNTRIES={soviet:{cur:'PSK'}};window.VILLES={soviet:{capitale:{nom:'Novomirsk'}}};window.WORLD={soviet:{capitale:{name:'Novomirsk',streetName:'Rue centrale'}}};window.BUILDINGS={galeries:{name:'Galeries du Peuple',rooms:{local_1:{name:'Local commercial',desc:'Local de démonstration'}}},immeuble:{name:'Immeuble collectif'}};window.appels=[];window.sbRpcVerdict=async(n)=>{appels.push(n);if(!f[n])throw Error('Écriture interdite : '+n);return structuredClone(f[n]);};window.showToast=()=>{throw Error('Erreur UI');};},fixtures);
 for(const n of ['i18n/sovarka-droits-resources.js','i18n/sovarka-partis-resources.js','i18n/sovarka-pouvoir-resources.js','plateau-vehicules.js','plateau-sovarka-droits.js','plateau-sovarka-partis.js','plateau-sovarka-pouvoir.js','plateau-salon.js','plateau-logements-sociaux.js','plateau-reunions-evenements.js'])await p.addScriptTag({url:o+'/'+n});return p;}
 const ecrans=['ouvrirSalonCoupe','ouvrirGarageVehicules','ouvrirGarageRevision','ouvrirMesVehicules','ouvrirSovarkaPartis','ouvrirSovietSupreme','ouvrirSovarkaSignerAttribution','ouvrirSovarkaCession','ouvrirSovarkaDemanderLocal','ouvrirSovarkaDemandeLocation','ouvrirSovarkaRetirerDroit','ouvrirSovarkaDossiers','ouvrirSovarkaCommercesLibres','partiFormulaireCreation','ouvrirTableauLogementsSociaux','ouvrirReunionEvenement'];

@@ -12448,16 +12448,17 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
   // portique de l'image (zone cliquable, plateau-foret-krasnov.js), qui mène toujours à la clairière.
   entree.orders = (entree.orders || []).filter(o => o.fn !== 'foret_enfoncer');
   const FORET_ORDRE_CAMPEMENT = { fn: 'foret_campement', label: 'Retour au campement', pa: 0, cost: 0, type: 'legal', icon: 'ti-arrow-back-up', successRate: 100 };
+  // Titres et textes des quatre vues (Fred, 22/11/2026, GAME-DESIGN-SANTE-20261122.md, point 18), mot pour mot.
   const vues = {
-    1: ['Sous les grands pins', 'Des troncs immenses, la neige qui étouffe les bruits. Le chemin a disparu derrière vous.'],
-    2: ['La clairière des bouleaux', 'Une clairière blanche, des bouleaux couchés par le vent. Quelque chose a gratté l’écorce, bien haut.'],
-    3: ['Le ravin noir', 'Un ravin sombre où le jour peine à entrer. Des empreintes larges comme une assiette s’enfoncent dans la neige.'],
-    4: ['Près de la vieille isba', 'Une isba à demi enfouie sous la neige, un filet de fumée. On jurerait sentir la soupe aux choux.']
+    1: ['La piste des débardeurs', 'Des souches fraîches, des grumes empilées au bord d’une piste défoncée. Les bûcherons ne sont pas loin.'],
+    2: ['La coupe abandonnée', 'Des souches partout, une odeur de résine. Quelque chose a gratté l’écorce d’un bouleau, bien haut.'],
+    3: ['Les grands fûts', 'La forêt se referme. Les fougères montent aux genoux, et des empreintes larges comme une assiette marquent l’humus.'],
+    4: ['Le sentier d’Olga', 'Un sentier à peine tracé sous les feuilles mortes. Au loin, une odeur de feu de bois et de soupe aux choux.']
   };
   ctx.roomsExtra = Object.assign({}, ctx.roomsExtra || {});
   Object.keys(vues).forEach(n => {
     ctx.roomsExtra['foret_vue_' + n] = {
-      name: 'Forêt profonde — ' + vues[n][0], imageBg: 'linear-gradient(135deg,#0a120c,#132016)', desc: vues[n][1], persons: [],
+      name: vues[n][0], imageBg: 'linear-gradient(135deg,#0a120c,#132016)', desc: vues[n][1], persons: [],
       imageUrl: 'images/Sovarka/Krasnov/' + (n === '1' || n === '2' ? 'Krasnov_foret_coupe.webp' : 'Krasnov_foret_profonde.webp'),
       orders: [
         { fn: 'foret_couper', label: 'Couper du bois', pa: 1, cost: 0, type: 'legal', icon: 'ti-axe', successRate: 100,

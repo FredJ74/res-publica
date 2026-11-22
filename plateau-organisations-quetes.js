@@ -2529,7 +2529,7 @@ async function notifierCompositionsEtBlessures(club, contrib, butsPour, butsCont
       if (typeof sbAppliquerBlessureSportive === 'function') {
         await sbAppliquerBlessureSportive(t.nom, { jusquauJour: jour + duree, gravite: grave ? 'grave' : 'legere' }, degatsPV).catch(() => {});
       }
-      messageBlessure = '<br><br>⚠️ Vous vous êtes blessé(e) pendant le match (' + (grave ? 'gravement' : 'légèrement') + '). Indisponible ' + duree + ' jour(s), -' + degatsPV + ' PV.';
+      messageBlessure = '<br><br>⚠️ Vous vous êtes blessé(e) pendant le match (' + (grave ? 'gravement' : 'légèrement') + '). Indisponible ' + duree + ' jour(s), -' + degatsPV + ' Santé.';
     }
     if (typeof sbSendMail === 'function') {
       await sbSendMail('Ligue Officielle', t.nom, 'Vous étiez titulaire — ' + club.nom,
@@ -2948,7 +2948,7 @@ async function construireEffetsRestantsMatch(match, clubHome, clubAway) {
       const montant = salaires.titulaire + (victoire ? salaires.primeVictoire : 0);
       const blessureJoueur = (live.blessures || []).find(b => b.joueur === t.nom);
       const msgBlessure = blessureJoueur
-        ? '<br><br>⚠️ Vous vous êtes blessé(e) pendant le match (' + (blessureJoueur.grave ? 'gravement' : 'légèrement') + '). Indisponible ' + blessureJoueur.duree + ' jour(s), -' + blessureJoueur.degatsPV + ' PV.'
+        ? '<br><br>⚠️ Vous vous êtes blessé(e) pendant le match (' + (blessureJoueur.grave ? 'gravement' : 'légèrement') + '). Indisponible ' + blessureJoueur.duree + ' jour(s), -' + blessureJoueur.degatsPV + ' Santé.'
         : '';
       items.push({
         id: 'recomp-' + t.nom + '-' + uid(), type: 'recompense', nom: t.nom, montant, gainPop,
@@ -4000,7 +4000,7 @@ async function confirmerEntrainement(stat, pa, cost) {
     document.getElementById('modal-postes')?.classList.remove('open');
     updateUI();
     showToast('Blessure à l\'entraînement !',
-      (grave ? 'Grave' : 'Légère') + '. Indisponible ' + duree + ' jour(s). -' + degatsPV + ' PV.', false);
+      (grave ? 'Grave' : 'Légère') + '. Indisponible ' + duree + ' jour(s). -' + degatsPV + ' Santé.', false);
     return;
   }
   // Contrat serveur strict : une réponse ancienne sans champ blesse ne signifie

@@ -104,7 +104,7 @@ async function confirmerDonArgent(pa, cost) {
       insulte: ['Insultés !', 'Ils ont jeté vos billets. Minimum 500 ' + cur + '.', false, 'Squatteurs insultés : billets jetés (minimum 500 ' + cur + ').'],
       depart: ['Ils s\'en vont !', '"Ok on se casse." -' + montant + ' ' + cur, true, 'Squatteurs partis pour ' + montant + ' ' + cur + '.' + jet],
       restent: r.occupation === 'squatter_agr'
-        ? ['Volés et tabassés !', '-' + montant + ' ' + cur + ' · -10 PV.', false, 'Squatteurs ont pris ' + montant + ' ' + cur + ' et vous ont frappé. -10 PV.' + jet]
+        ? ['Volés et tabassés !', '-' + montant + ' ' + cur + ' · -10 Santé.', false, 'Squatteurs ont pris ' + montant + ' ' + cur + ' et vous ont frappé. -10 Santé.' + jet]
         : ['Ils prennent l\'argent mais restent...', '-' + montant + ' ' + cur, false, 'Squatteurs ont pris ' + montant + ' ' + cur + ' mais refusent de partir.' + jet]
     };
     const t = textes[r.issue] || ['Don enregistré', '', true, 'Don enregistré.'];
@@ -1067,7 +1067,7 @@ async function choisirFlagrantDelit(choix) {
       showToast('Fuite réussie !', 'Vous échappez aux policiers. −20 Discrétion.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b0efe777c", 'Vous échappez aux policiers. −20 Discrétion.', undefined, 'Fuite réussie !');
       addJournalEntry('Vous avez pris la fuite face aux policiers. Votre discrétion chute.', 'event-bad');
     } else {
-      showToast('Résistance réussie !', 'Vous vous échappez malgré tout. −30 DIS −15 PV.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.b52913d44", 'Vous vous échappez malgré tout. −30 DIS −15 PV.', undefined, 'Résistance réussie !');
+      showToast('Résistance réussie !', 'Vous vous échappez malgré tout. −30 DIS −15 Santé.', true);
       addJournalEntry('Vous avez résisté violemment aux forces de l\'ordre. Fortement recherché(e).', 'event-bad');
     }
     updateUI();
@@ -2130,8 +2130,8 @@ async function doSeRebeller(pa, cost) {
   const degats = Number(r.grilles?.degats || 0);
   if (r.reussi) {
     updateUI();
-    showToast('Rebellion !', 'Vous avez tenu tete aux gardiens. +6 DIS, mais +1 jour de detention et -10 PV.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b1c31fa4a", 'Vous avez tenu tete aux gardiens. +6 DIS, mais +1 jour de detention et -10 PV.', undefined, 'Rebellion !');
-    addJournalEntry('Rebellion en cellule reussie. Grilles endommagees (-' + degats + '). +1 jour de peine, -10 PV.', 'event-info');
+    showToast('Rebellion !', 'Vous avez tenu tete aux gardiens. +6 DIS, mais +1 jour de detention et -10 Santé.', true, true);
+    addJournalEntry('Rebellion en cellule reussie. Grilles endommagees (-' + degats + '). +1 jour de peine, -10 Santé.', 'event-info');
     if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('rebellion_cellule', ville);
   } else {
     // Criminalite lot 6 (§ 14) : rebellion matee = +4 jours d'office (bareme), plus de QHS automatique, aucun degat aux grilles.

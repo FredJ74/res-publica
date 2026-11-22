@@ -214,6 +214,17 @@ const pieceTxt = (k, v) => String(PIECE_TXT[k] || '').replace(/\{(\w+)\}/g, (_, 
 
 function ordresFouillerVoler(buildingId, roomId) {
   if (!buildingId || !roomId) return [];
+  // Vues en plein air (Fred, 22/11/2026, GAME-DESIGN-SANTE-20261122.md, point 17 : PIECES_PLEIN_AIR et fiches pleinAir,
+  // plateau-climat.js) : ni « Inspecter la pièce » ni « Désinstaller du matériel » ; « Se cacher » reste. Le serveur
+  // refuse aussi les deux ordres (raison plein_air, migration 20261122234000).
+  const s = typeof state !== 'undefined' ? state : null;
+  const climat = globalThis.RPClimat;   // plateau-climat.js est chargé après ce fichier : lu au moment de l'appel
+  const pleinAir = !!(climat && typeof climat.piecePleinAir === 'function'
+    && climat.piecePleinAir({ country: s && s.country, currentCity: s && s.currentCity, currentBuilding: buildingId, currentRoom: roomId }));
+  if (pleinAir) {
+    return [{ fn: 'se_cacher', label: pieceTxt('seCacher'), pa: 1, cost: 0, type: 'legal', icon: 'ti-eye-off', successRate: 70, basDeListe: true,
+      desc: pieceTxt('seCacherDesc') }];
+  }
   return [
     { fn: 'inspecter_piece', label: pieceTxt('inspecter'), pa: 1, cost: 0, type: 'legal', icon: 'ti-search', successRate: 100, basDeListe: true,
       desc: pieceTxt('inspecterDesc') },

@@ -2098,19 +2098,19 @@ async function doDormir() {
       state.pa = 0;
       if (typeof relireHospitalisationServeur === 'function') relireHospitalisationServeur(true);
       if (typeof adopterPositionServeurRelue === 'function') adopterPositionServeurRelue();
-      showToast('Empoisonnement fatal', 'Vos PV sont tombes a 0. Hospitalisation d\'urgence.', false, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b7135d043", 'Vos PV sont tombes a 0. Hospitalisation d\'urgence.', undefined, 'Empoisonnement fatal');
+      showToast('Empoisonnement fatal', 'Votre Santé est tombée à 0. Hospitalisation d\'urgence.', false, true);
       addJournalEntry('L\'empoisonnement a eu raison de vous. Hospitalisation d\'urgence.', 'event-bad');
       updateUI();
       return false;
     } else {
-      showToast('Empoisonnement', 'Le poison progresse. PV : ' + state.hp + '.', false, true);
-      addJournalEntry('L\'empoisonnement progresse pendant votre sommeil. PV : ' + state.hp + '.', 'event-bad');
+      showToast('Empoisonnement', 'Le poison progresse. Santé : ' + state.hp + '.', false, true);
+      addJournalEntry('L\'empoisonnement progresse pendant votre sommeil. Santé : ' + state.hp + '.', 'event-bad');
     }
   }
 
   if (state.regenJour && (state.hp || 0) < 100) {
     state.hp = Math.min(100, (state.hp || 0) + 10);
-    addJournalEntry('Regeneration naturelle : +10 PV. PV actuels : ' + state.hp + '.', 'event-info');
+    addJournalEntry('Regeneration naturelle : +10 Santé. Santé actuelle : ' + state.hp + '.', 'event-info');
   }
   if ((state.hp || 0) >= 100) {
     state.regenJour = null;
@@ -3547,12 +3547,20 @@ async function ouvrirDetailObjetInventaire(idx) {
   const protege = typeof colisSecretProtege === 'function' && colisSecretProtege(item);
   if (protege) {
     html += '<div style="font-size:.78rem;color:#6a5a30;font-style:italic"><i class="ti ti-lock"></i> <span data-i18n="inventoryUi.protectedDetails">Indispensable à une mission en cours — ne peut être ni donné à un autre joueur, ni abandonné, ni détruit.</span></div>';
+    // Montrer ne fait rien changer de main (Fred, 22/11/2026, point 22) : permis même pour un objet de mission.
+    if (joueursPresents.length > 0 && typeof hgMontrerDepuisFiche === 'function') {
+      html += '<select id="montrer-objet-cible" class="cpj-champ" style="width:100%">';
+      joueursPresents.forEach(p => { const n = String(p.name || '').replace(/[&<>"']/g, ''); html += '<option value="' + n + '">' + n + '</option>'; });
+      html += '</select><button class="cpj-touche hg-montrer-fiche" onclick="hgMontrerDepuisFiche(' + idx + ')"><i class="ti ti-eye"></i> Montrer à ce joueur</button>';
+    }
   } else {
     if (joueursPresents.length > 0) {
       html += '<select id="donner-objet-cible" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none">';
       joueursPresents.forEach(p => { html += '<option value="' + p.name + '">' + p.name + '</option>'; });
       html += '</select>';
       html += '<button onclick="donnerObjetAJoueur(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #4a6aaa;background:transparent;color:#6a8aca;cursor:pointer"><i class="ti ti-gift"></i> <span data-i18n="inventoryUi.givePlayer">Donner a ce joueur</span></button>';
+      // « Montrer un objet » (Fred, 22/11/2026, point 22) : même joueur choisi ci-dessus ; rien ne change de main.
+      if (typeof hgMontrerDepuisFiche === 'function') html += '<button class="hg-montrer-fiche" onclick="hgMontrerDepuisFiche(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #4a6aaa;background:transparent;color:#6a8aca;cursor:pointer"><i class="ti ti-eye"></i> Montrer à ce joueur</button>';
     }
 
     html += '<button onclick="jeterObjetInventaire(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #8a6a30;background:transparent;color:#a0905a;cursor:pointer"><i class="ti ti-map-pin"></i> <span data-i18n="inventoryUi.dropHere">Abandonner ici (visible par les autres joueurs)</span></button>';
@@ -4357,7 +4365,7 @@ function ouvrirDetailObjet(idx) {
     html += boutonMedicamentMaladie(item, 'flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #2a6a2a;background:transparent;color:#4a8a4a;cursor:pointer');
   }
   if (item.type === 'medicament') {
-    html += '<button onclick="doSesoigner();document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #2a6a2a;background:transparent;color:#4a8a4a;cursor:pointer">Utiliser (+20 PV)</button>';
+    html += '<button onclick="doSesoigner();document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #2a6a2a;background:transparent;color:#4a8a4a;cursor:pointer">Utiliser (+20 Santé)</button>';
   }
   // TROUSSE DE PREMIERS SECOURS (phase 2, 18 septembre 2026). Reutilise le meme motif d'action
   // d'objet que le medicament : un bouton dans le detail, pas un systeme parallele. Le choix de la
