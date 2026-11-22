@@ -25,8 +25,17 @@ Règles : voir `AGENTS.md`.
   - point 5 (climat) : `plateau-climat.js` (alerte compacte en haut à gauche, `eviterFleches`) ; banc `banc-climat-arrivee-navigateur-20261121.cjs`.
   - point 2 (chantier) : `plateau-chantiers.js` (`heuresUtilesRestantes` = capacité entière), `plateau-chantier-vue.js`
     (journal du chantier, jauges rouges, commande automatique dans Gestion, heures du jour d'avance) ; banc `banc-chantier-vue-navigateur-20261121.cjs`.
+  - point 6 (types de bâtiments) : `plateau-chantiers.js` (`DUREES_CONSTRUCTION.logement`), `plateau-justice-economie.js`
+    (`NIVEAUX_CONSTRUCTION.logement`, `palierProposable`, nouveaux `logementsSociauxPour` et `libellePalier`, `PALIER_ORDRE`,
+    `DUREE_INSTRUCTION_PERMIS`), `plateau-immobilier.js` (`verdictAjoutLot` : 6 commerces et 14 appartements au plus dans un building),
+    `plateau-pnj.js` (liste du compromis par `palierProposable`), `plateau-chantier-vue.js` (`GABARIT_HAUT`, `PSM_TYPE`) ; tests
+    `banc-logements-sociaux.cjs`, `outils/e2e/test-immobilier-135.cjs`.
 - **Migrations appliquées (cette nuit)** : `20261122100000_navigation_culs_de_sac_sovarka`, `20261122110000_foret_egarement_rencontre_arrivee`,
-  `20261122120000_chantier_heures_ouvertes_commande_nuit`. Détail dans AGENTS.md.
+  `20261122120000_chantier_heures_ouvertes_commande_nuit`, `20261122130000_types_batiments_cinq`. Détail dans AGENTS.md.
+- **Baseline (réconciliation par Codex)** : `baseline/domaines/economie/20_fonctions-1.sql` et
+  `baseline/domaines/immobilier-et-territoire/20_fonctions-1/2.sql` citent encore les anciens types et les anciennes définitions
+  de `chantier_travailler`, `chantier_jour_traiter`, `sovarka_foret_aller`, `sovarka_foret_rencontre` : à régénérer depuis la
+  production après mon rapport final.
 - **Pour Codex (traductions)** : `FORET_TXT.surprise` ; `TXT4` : `j_journal`, `j_manque`, `j_commande`, `j_commande_avance`, `j_rien_livre`,
   `j_journee`, `m_avance`, `g_commande_txt`, `g_commande_note`, `g_derniere`, `g_aucune`, `g_rien` (supprimé : `j_mat_attente`).
 ### Mission du soir du 21/11/2026, suite (Claude) — décisions : GAME-DESIGN-MISSION-SOIR-20261121.md
