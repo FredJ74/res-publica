@@ -6,8 +6,8 @@ const report=require('../audits/etat-i18n-ordres.cjs');
 test('couverture des 423 identifiants sans faux positifs de source',()=>{
  assert.equal(report.locales.length,9);
  assert.equal(report.catalogueFrenchKeys,423); // −2 corrompre_rdv_notaire, corrompre_chantier (20/11, criminalité lot 7)  ; +1 boutique_climat (19/11, climat lot 5) ; +1 acheter_graisse (19/11, climat lot 4) ; +1 acheter_furet (18/11, maladies lot 2c)
- assert.equal(report.canonicalMatches,422); // acheter_polonium retiré du jeu (20/11), traduction conservée
- assert.deepEqual(report.retiredCanonical,['acheter_polonium']);
+ assert.equal(report.canonicalMatches,417); // acheter_polonium retiré du jeu (20/11) ; −5 anciens ordres d'informateurs (22/11, étape K) ; traductions conservées
+ assert.deepEqual(report.retiredCanonical,['recruter_informateur_pnj','recruter_info_4','recruter_informateur_2','consulter_info_4','gerer_informateurs','acheter_polonium']);
  assert.equal(report.obsoleteCanonical.length,0);
  assert.ok(!report.obsoleteCanonical.some(item => item.fn === 'sovarka_soviet_deputes'));
  assert.ok(report.missingStable.every(item => item.fn !== 'sovarka_soviet_deputes'));

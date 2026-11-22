@@ -72,7 +72,15 @@ test('provenance des phrases actives et de l’unique phrase retirée de navigat
  const CRIM_LOT7=["Vous n'avez pas de rendez-vous en attente ici.",'Le navigateur ne peut pas conserver la référence de cet ordre.','Le service a ete obtenu. -5 DIS.',
   'La tentative de corruption a echoue.','Aucun paiement ne permet d’accélérer une construction dans les empires actuels.','Le fonctionnaire vous dénonce.',
   'Le fonctionnaire a fait remonter votre dossier. Instruction raccourcie.','Réponse incertaine. Relancez le même ordre : il ne sera pas payé deux fois.'];
- assert.deepEqual(rows.map(r=>r[0]).filter(fr=>!present(fr)),[retire,'Maximum 2 récoltes par jour.','+5 DIS.','Vous ne pouvez pas voter dans cet empire.','Cette prestation ne peut pas être vendue à emporter.',...CRIM_LOT5,...CRIM_LOT6,...CRIM_LOT7].filter(fr=>rows.some(r=>r[0]===fr)).sort((a,b)=>rows.findIndex(r=>r[0]===a)-rows.findIndex(r=>r[0]===b)));
+ // 22/11/2026 : étape K (refonte des informateurs : recrutement, salaire, congé retirés) et étape H (l'interview de Jodie
+ // passe par le serveur : ses toasts du navigateur n'existent plus).
+ const LOTS_22_11=["Vous employez déjà un informateur. Renvoyez-le avant d'en recruter un autre.",'Vous ne pouvez avoir que 2 informateurs simultanément.',
+  "Le congé n'a pas pu être enregistré.","Vous avez décliné l'interview de Jodie Moitout.",'Vous avez déjà décliné cette proposition — Jodie ne relance pas.',
+  'Jodie a déjà publié votre portrait dans Presse & Médias.','Merci de répondre à chacune des 5 questions.',
+  "Jodie a rédigé votre portrait : rouvrez sa proposition (« Accepter l'interview ») pour le relire avant publication.",
+  'Jodie a publié votre portrait dans Presse & Médias.','Vous avez déjà un informateur de ce niveau.','Fonds insuffisants pour le premier jour de salaire.',
+  "Ce niveau d'informateur ne se recrute pas ici.","Vous n'avez pas d'informateur de ce niveau.","Jodie n'arrive pas à rédiger.","Personne n'a donné suite."];
+ assert.deepEqual(rows.map(r=>r[0]).filter(fr=>!present(fr)),[retire,'Maximum 2 récoltes par jour.','+5 DIS.','Vous ne pouvez pas voter dans cet empire.','Cette prestation ne peut pas être vendue à emporter.',...CRIM_LOT5,...CRIM_LOT6,...CRIM_LOT7,...LOTS_22_11].filter(fr=>rows.some(r=>r[0]===fr)).sort((a,b)=>rows.findIndex(r=>r[0]===a)-rows.findIndex(r=>r[0]===b)));
 });
 
 test('aucun recouvrement avec les catalogues déjà raccordés (pas de double traduction ni de markToast contrarié)',()=>{

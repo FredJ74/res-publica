@@ -50,13 +50,14 @@ test('actions personnelles : 16 boutons et états visibles en neuf langues, comm
    const origin=win.RP_I18N_RESOURCES.fr.translation.characterSheet[key];
    assert.equal(win.RPCharacterSheetI18n.label(key,origin),texts[key]
     .replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])));
-   assert.ok(personal.includes("rpCharSheetLabel('"+key+"'"),key+': liaison au DOM');
+   // « Se cacher » a quitté la fiche pour les actions de la pièce (lot de Krasnov, point 9, 22/11/2026) : traduction conservée.
+   if(key!=='hide')assert.ok(personal.includes("rpCharSheetLabel('"+key+"'"),key+': liaison au DOM');
   }
  }
  // Les ordres de l'ancien menu restent identiques : coût, cible, échec et réputation ne sont pas traduits.
  for(const invariant of ["onclick=\"doDormir()\"","onclick=\"doSesoigner()\"",
-  "doOrder(\\'se_reposer\\',1,0,\\'Mediter\\'","doOrder(\\'se_cacher\\',1,0,\\'Se cacher\\'",
-  "doOrder(\\'organiser_blocus\\',1,0,\\'Organiser un blocus\\'",">70% · 1 PA</span>",
+  "doOrder(\\'se_reposer\\',1,0,\\'Mediter\\'",
+  "doOrder(\\'organiser_blocus\\',1,0,\\'Organiser un blocus\\'", // « Se cacher » (70 % · 1 PA) parti dans la pièce, 22/11/2026
   "Math.min(90, 25 + (groupSize - 1))","doOrganiserBlocusSyndical()","doRenouvelerBlocusSyndical()"]){
   assert.ok(personal.includes(invariant),invariant);
  }

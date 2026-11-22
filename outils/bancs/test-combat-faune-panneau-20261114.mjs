@@ -8,7 +8,7 @@ import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
 let acorn;
-try { acorn = require('acorn'); } catch { acorn = require('../vercel/node_modules/acorn'); }
+try { acorn = require('acorn'); } catch { try { acorn = require('../e2e/node_modules/acorn'); } catch { acorn = require('../vercel/node_modules/acorn'); } }
 const racine = new URL('../../', import.meta.url);
 const lire = f => fs.readFileSync(new URL(f, racine), 'utf8');
 

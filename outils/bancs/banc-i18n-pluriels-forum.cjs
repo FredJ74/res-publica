@@ -41,7 +41,7 @@ test('absence serveur ne devient jamais zéro, valeurs invalides inchangées',()
  }
  assert.equal(count('unsupported',2,'source'),'source');
  assert.ok(forum.includes("rpForumCompte('subjects',null,'… sujet(s)')"));
- assert.ok(forum.includes("rpForumCompte('unread',unreadCount,unreadCount+' non lu(s)')"));
+ assert.ok(forum.includes("rpForumCompte('unread',nonLus,nonLus+' non lu(s)')")); // compteur de la boîte mail regroupé (étape H, 22/11/2026)
  assert.ok(forum.includes('FORUM_LECTURE_ECHOUEE[id]'));
  assert.ok(forum.includes('Object.prototype.hasOwnProperty.call(forumCompteursServeur, id)'));
 });
