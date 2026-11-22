@@ -68,7 +68,7 @@ test('toute description et mention « Bientôt » propre à Sovarka affichée pa
     // Radar de Krasnov (lot de Krasnov, point 8, 21/11/2026) : sources du secret du colonel et achat du polonium.
     'Demander au camarade Kalachnikov où trouver ce qu’il ne vend pas lui-même.',
     'Demander au chef de quai Ganbaatar Tsybikov qui, à Sovarka, vend du polonium.',
-    'Un vieil habitué du Bar Sever connaît tout le monde à Krasnov. Il parle plus volontiers à ceux qui ont déjà leurs informateurs.',
+    'Un vieil habitué du Bar Sever connaît tout le monde à Krasnov. Il parle à qui le paie, de 7 à 20 PSK : plus la somme est belle, meilleure est l’information.',
     'Phrase de passe pour acheter une fiole de polonium au colonel Voronov : 150 PSK, payés seulement s’il accepte. Une chance sur deux.',
     // École et énigme de Krasnov (lot de Krasnov, point 7, 21/11/2026).
     'Une journée avec l’institutrice Alevtina Gramotova pour apprendre à survivre dans la forêt de Krasnov : +4 VOL pendant 24 h. Les 25 PSK sont versés à la mairie.',

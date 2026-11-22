@@ -1,0 +1,234 @@
+-- Socle minimal pour éprouver la migration 20261122180000_informateurs_refonte dans PGlite (banc local, jamais la production).
+-- Les quatre fonctions raccordées ou appelées (rumeur_ecoute_jauges_interne, crim_enquete_taux_interne, secret_source_interne,
+-- caisse_institution_mouvement) sont recopiées de pg_get_functiondef en PRODUCTION (relevé du 22/11/2026) : mêmes ancrages,
+-- au caractère près ; seules des parties sans ancrage sont abrégées (liste des types de rumeur, branche Kalachnikov).
+SET check_function_bodies = off;
+CREATE ROLE anon; CREATE ROLE authenticated;
+CREATE SCHEMA IF NOT EXISTS auth;
+CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$ SELECT nullif(current_setting('test.uid', true), '')::uuid $$;
+CREATE TABLE public.personnages (name text PRIMARY KEY, user_id uuid);
+CREATE OR REPLACE FUNCTION public.mon_personnage() RETURNS text LANGUAGE sql STABLE AS $$ SELECT name FROM public.personnages WHERE user_id = auth.uid() $$;
+CREATE TABLE public.personnages_donnees (name text PRIMARY KEY, country text, current_city text, current_building text, current_room text,
+  pa integer DEFAULT 10, liquide integer DEFAULT 0, arg integer DEFAULT 0, stats jsonb DEFAULT '{}', origin text, career text, nationalite text,
+  domicile jsonb, informateurs jsonb DEFAULT '[]', resources jsonb DEFAULT '{}', moral integer DEFAULT 50, day integer DEFAULT 1,
+  inventory jsonb DEFAULT '[]', inventory_revision bigint DEFAULT 0);
+CREATE TABLE public.comptes_bancaires (id text PRIMARY KEY, personnage text, banque text, solde numeric, updated_at timestamptz);
+CREATE TABLE public.villes (pays text, ville text, nom text);
+INSERT INTO public.villes VALUES ('republic','capitale','Luthécia'),('republic','ville_a','Port-Sainte-Marie'),('republic','ville_b','Montrouge'),
+  ('soviet','capitale','Novomirsk'),('soviet','ville_a','Starovka'),('soviet','ville_b','Krasnov');
+CREATE TABLE public.historique_deplacements (id bigserial, name text, country text, city text, building_id text, room_id text, created_at timestamptz DEFAULT now());
+CREATE TABLE public.actions_tracables (id text DEFAULT gen_random_uuid()::text, auteur text, cible text, type_action text, country text, city text,
+  jour integer DEFAULT 1, jour_expiration integer, created_at timestamptz DEFAULT now(), decouvert boolean DEFAULT false);
+CREATE TABLE public.caches_pj (personnage text PRIMARY KEY, pays text, ville text, batiment text, piece text, le timestamptz DEFAULT now());
+CREATE TABLE public.masques_test (personnage text PRIMARY KEY);
+CREATE OR REPLACE FUNCTION public.crim_masque_interne(p_nom text) RETURNS boolean LANGUAGE sql STABLE AS $$ SELECT EXISTS (SELECT 1 FROM public.masques_test WHERE personnage = p_nom) $$;
+CREATE OR REPLACE FUNCTION public.jour_de_jeu_pays(p_pays text) RETURNS integer LANGUAGE sql STABLE AS $$ SELECT 1 $$;
+CREATE TABLE public.manifestations_spontanees (id bigserial, pays text, ville text, chef text, debut timestamptz DEFAULT now());
+CREATE TABLE public.inventaire_actions_recus (acteur text, requete uuid, action text, parametres jsonb, resultat jsonb, cree_le timestamptz, PRIMARY KEY (acteur, requete));
+CREATE OR REPLACE FUNCTION public.achat_requete_ouvrir_interne(p_acteur text, p_requete uuid, p_action text, p_parametres jsonb) RETURNS jsonb LANGUAGE sql AS $$
+  SELECT resultat || '{"rejeu":true}'::jsonb FROM public.inventaire_actions_recus WHERE acteur = p_acteur AND requete = p_requete $$;
+CREATE OR REPLACE FUNCTION public.achat_requete_clore_interne(p_acteur text, p_requete uuid, p_action text, p_parametres jsonb, p_resultat jsonb) RETURNS jsonb LANGUAGE plpgsql AS $$
+BEGIN
+  INSERT INTO public.inventaire_actions_recus VALUES (p_acteur, p_requete, p_action, p_parametres, p_resultat, now());
+  RETURN p_resultat || (SELECT jsonb_build_object('paie', jsonb_build_object('pa', pa, 'liquide', liquide, 'arg', arg)) FROM public.personnages_donnees WHERE name = p_acteur);
+END $$;
+CREATE TABLE public.personnages_secrets (personnage text, cle text, source text, acquis_le timestamptz DEFAULT now(), PRIMARY KEY (personnage, cle));
+CREATE OR REPLACE FUNCTION public.secret_fiche_interne(p_cle text) RETURNS jsonb LANGUAGE sql AS $$ SELECT jsonb_build_object('cle', p_cle) $$;
+CREATE OR REPLACE FUNCTION public.payer_ordre(p_acteur text, p_fn text, p_pa integer, p_cost integer) RETURNS jsonb LANGUAGE sql AS $$ SELECT '{"ok":true}'::jsonb $$;
+CREATE TABLE public.ordres_couts (fn text, pa integer, cost numeric);
+INSERT INTO public.ordres_couts VALUES ('recruter_informateur_pnj',1,150),('recruter_informateur_2',1,400),('recruter_info_4',3,0),('consulter_info_4',1,0),
+  ('gerer_informateurs',0,0),('ecouter_rumeurs',0,0),('ecouter_rumeurs',1,0),('interroger_informateur',1,0),('informateur_salaire_1',0,150);
+CREATE TABLE public.pnj_metiers_profils (metier text PRIMARY KEY, recrutable boolean);
+INSERT INTO public.pnj_metiers_profils VALUES ('informateur', true), ('escort', true);
+CREATE TABLE public.crim_parametres (cle text PRIMARY KEY, valeur numeric);
+CREATE OR REPLACE FUNCTION public.crim_param_interne(p_cle text, p_defaut numeric) RETURNS numeric LANGUAGE sql STABLE AS $$
+  SELECT coalesce((SELECT valeur FROM public.crim_parametres WHERE cle = p_cle), p_defaut) $$;
+CREATE OR REPLACE FUNCTION public.escort_scandale_ecoute_interne(p_id text) RETURNS void LANGUAGE sql AS $$ SELECT $$;
+CREATE TABLE public.crim_affaires (id bigint PRIMARY KEY, acte text, auteur text, pays text, ville text, issue text, detecte boolean DEFAULT false,
+  identifie boolean DEFAULT false, trace boolean DEFAULT false, plafond_enquete integer, plainte_id text, details jsonb DEFAULT '{}', maj_le timestamptz);
+CREATE TABLE public.crim_traces_achat (acheteur text, pays text);
+CREATE TABLE public.postes_test (nom text PRIMARY KEY, poste_id text, poste_city text, pays text);
+CREATE OR REPLACE FUNCTION public.acteur_poste_courant() RETURNS TABLE(nom text, poste_id text, poste_city text, pays text) LANGUAGE sql STABLE AS $$
+  SELECT nom, poste_id, poste_city, pays FROM public.postes_test WHERE nom = public.mon_personnage() $$;
+CREATE TABLE public.caisses_batiments (id text PRIMARY KEY, data jsonb, updated_at timestamptz);
+CREATE TABLE public.caisses_mouvements_clients (acteur text, caisse text, delta numeric, motif text, accepte boolean, raison text);
+CREATE OR REPLACE FUNCTION public.est_appel_serveur() RETURNS boolean LANGUAGE sql AS $$ SELECT false $$;
+CREATE OR REPLACE FUNCTION public.caisse_refus_autorite(p_caisse text, p_pays text) RETURNS text LANGUAGE sql AS $$ SELECT 'autorite_insuffisante'::text $$;
+-- Anciennes fonctions des informateurs recrutés (remplacées par la migration).
+CREATE OR REPLACE FUNCTION public.informateur_recruter(p_niveau integer, p_pa integer, p_cost integer) RETURNS jsonb LANGUAGE sql AS $$ SELECT '{"ok":true}'::jsonb $$;
+CREATE OR REPLACE FUNCTION public.informateur_interroger(p_niveau integer, p_pa integer) RETURNS jsonb LANGUAGE sql AS $$ SELECT '{"ok":true}'::jsonb $$;
+CREATE OR REPLACE FUNCTION public.minuit_informateurs() RETURNS jsonb LANGUAGE sql AS $$ SELECT '{"ok":true,"payes":1}'::jsonb $$;
+
+-- informateur_palier_interne : migration 20261121040000 (appliquée).
+CREATE OR REPLACE FUNCTION public.informateur_palier_interne(p_pays text, p_montant numeric)
+RETURNS text LANGUAGE sql IMMUTABLE AS $$
+  SELECT CASE WHEN p_pays = 'soviet' THEN
+           CASE WHEN p_montant BETWEEN 18 AND 20 THEN 'premier_choix' WHEN p_montant BETWEEN 12 AND 17 THEN 'correct'
+                WHEN p_montant BETWEEN 7 AND 11 THEN 'flou' END
+         ELSE
+           CASE WHEN p_montant BETWEEN 45 AND 50 THEN 'premier_choix' WHEN p_montant BETWEEN 30 AND 44 THEN 'correct'
+                WHEN p_montant BETWEEN 20 AND 29 THEN 'flou' END
+         END;
+$$;
+
+-- ── Copies de PRODUCTION (pg_get_functiondef, 22/11/2026) ─────────────────────────────────────────────────────────
+CREATE OR REPLACE FUNCTION public.rumeur_ecoute_jauges_interne(p_acteur text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE a public.personnages_donnees;taux integer;cout_pa integer;source text;trace record;fait jsonb;gain integer:=0;
+ j jsonb:=CASE WHEN session_user='postgres' THEN nullif(current_setting('rp.crim_jets',true),'')::jsonb END; /* crim_bouche_oreille_v1 */
+BEGIN
+ IF p_acteur IS DISTINCT FROM public.mon_personnage()THEN RETURN jsonb_build_object('ok',false,'raison','acteur_non_authentifie');END IF;
+ SELECT * INTO a FROM public.personnages_donnees WHERE name=p_acteur;
+ IF NOT FOUND THEN RETURN jsonb_build_object('ok',false,'raison','personnage_introuvable');END IF;
+ IF NOT EXISTS(SELECT 1 FROM public.villes WHERE pays=a.country AND ville=a.current_city)THEN RETURN jsonb_build_object('ok',false,'raison','pas_sur_place');END IF;
+ -- Déclarations effectives de data.js : hôtels des capitales, Assemblées,
+ -- bar des Pêcheurs et Capitaine Sauvage. Aucun nouveau lieu n'est activé.
+ IF a.current_city='capitale'AND a.current_building='hotel-republica'AND a.current_room='restaurant'THEN taux:=95;cout_pa:=0;
+ ELSIF a.current_city='capitale'AND a.current_building='hotel-republica'AND a.current_room='bar'THEN taux:=90;cout_pa:=0;source:='Marco';
+ ELSIF a.current_city='capitale'AND a.current_building='assemblee'AND a.current_room='couloirs'THEN taux:=70;cout_pa:=1;
+ ELSIF a.country='republic'AND a.current_city='ville_a'AND a.current_building='bar-des-pecheurs'AND a.current_room='salle_bar'THEN taux:=85;cout_pa:=0;source:='Marin Dulac';
+ ELSIF a.country='republic'AND a.current_city='ville_a'AND a.current_building='capitaine-sauvage'AND a.current_room='salle_principale'THEN taux:=95;cout_pa:=0;
+ ELSIF a.country='soviet'AND a.current_city='ville_a'AND a.current_building='hotel-mineur'AND a.current_room='hall_mineur'THEN taux:=90;cout_pa:=0;source:='Aldar Zhamsuev';
+ ELSE RETURN jsonb_build_object('ok',false,'raison','pas_sur_place');END IF;
+ IF coalesce((j->>'bouche')::numeric,random()*100)<public.crim_param_interne('bouche_oreille_part',10)THEN
+  SELECT t.id,t.type_action,t.auteur,t.cible INTO trace FROM public.actions_tracables t
+   WHERE t.country=a.country AND t.city=a.current_city AND t.auteur<>a.name AND t.type_action IN('fausse_rumeur','tract_calomnieux')
+     AND t.jour_expiration>=public.jour_de_jeu_pays(a.country)ORDER BY t.jour DESC,random()LIMIT 1;
+  IF FOUND THEN fait:=jsonb_build_object('type_action',trace.type_action,'auteur',trace.auteur,'cible',trace.cible,'bouche_oreille',true);gain:=1;END IF;
+ END IF;
+ IF fait IS NULL AND coalesce((j->>'ecoute')::numeric,random()*100)<taux THEN
+  SELECT t.id,t.type_action,t.auteur,t.cible INTO trace FROM public.actions_tracables t
+   WHERE t.country=a.country AND t.city=a.current_city AND t.auteur<>a.name AND t.type_action NOT IN('fausse_rumeur','tract_calomnieux')
+     AND t.jour_expiration>=public.jour_de_jeu_pays(a.country)ORDER BY random()LIMIT 1;
+  IF FOUND AND trace.type_action=ANY(ARRAY['vol','assassinat'])THEN
+   fait:=jsonb_build_object('type_action',trace.type_action,'auteur',trace.auteur,'cible',trace.cible);gain:=1;
+  END IF;
+ END IF;
+ source:=coalesce(source,(ARRAY['Le Commissaire','Un député','Un journaliste','Un commerçant','Un inconnu'])[floor(random()*5)::integer+1]);
+ RETURN jsonb_build_object('ok',true,'pa_cout',cout_pa,'gain_inf',gain,'rumeur',fait,'source_rumeur',source);
+END;$function$;
+
+CREATE OR REPLACE FUNCTION public.crim_enquete_taux_interne(p_affaire bigint, p_commissaire text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE f public.crim_affaires%ROWTYPE; v_plafond numeric; v_base numeric; v_trace boolean; v_rum boolean; v_inf boolean; v_ach boolean;
+  v_effr boolean; v_n integer; v_k integer; v_jour integer;
+BEGIN
+  SELECT * INTO f FROM public.crim_affaires WHERE id = p_affaire;
+  IF NOT FOUND THEN RETURN NULL; END IF;
+  v_plafond := coalesce(f.plafond_enquete, public.crim_param_interne('plafond_enquete_echec', 15));
+  v_base := v_plafond / 2;
+  v_trace := f.trace OR f.detecte;
+  SELECT coalesce(day, 1) INTO v_jour FROM public.personnages_donnees WHERE name = f.auteur;
+  v_rum := EXISTS (SELECT 1 FROM public.actions_tracables a WHERE a.auteur = f.auteur AND a.country = f.pays
+                     AND a.city IS NOT DISTINCT FROM coalesce(f.ville, a.city) AND a.decouvert IS NOT TRUE
+                     AND (a.jour_expiration IS NULL OR a.jour_expiration >= coalesce(v_jour, 1)));
+  v_inf := EXISTS (SELECT 1 FROM public.personnages_donnees d WHERE d.name = p_commissaire
+                     AND jsonb_typeof(d.informateurs) = 'array' AND jsonb_array_length(d.informateurs) > 0);
+  v_effr := f.acte IN ('crocheter', 'forcer_porte', 'cambrioler', 'ramasser');
+  v_ach := v_effr AND EXISTS (SELECT 1 FROM public.crim_traces_achat t WHERE t.acheteur = f.auteur AND t.pays = f.pays);
+  v_n := CASE WHEN v_effr THEN 4 ELSE 3 END;
+  v_k := (v_trace)::integer + (v_rum)::integer + (v_inf)::integer + (coalesce(v_ach, false))::integer;
+  RETURN jsonb_build_object('plafond', v_plafond, 'base', v_base,
+    'taux', round(least(v_plafond, v_base + (v_plafond - v_base) * v_k / v_n), 2),
+    'pistes', jsonb_strip_nulls(jsonb_build_object('trace', v_trace, 'rumeurs', v_rum, 'informateur', v_inf,
+                                                   'achats', CASE WHEN v_effr THEN coalesce(v_ach, false) END)));
+END $function$;
+
+CREATE OR REPLACE FUNCTION public.secret_source_interne(p_acteur text, p_source text, p_montant integer)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE p record; v_paie jsonb := '{}'::jsonb; v_palier text; v_appris boolean := false; v_deja boolean;
+  v_liquide numeric; v_arg numeric; v_compte text; v_solde numeric; v_pris numeric;
+BEGIN
+  SELECT country, current_city, current_building INTO p FROM public.personnages_donnees WHERE name = p_acteur FOR UPDATE;
+  IF p_source = 'habitue_krasnov' THEN
+    IF (p.country, p.current_city, p.current_building) IS DISTINCT FROM ('soviet', 'ville_b', 'cafe-tabac-cheminots-montrouge') THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'pas_sur_place'); END IF;
+    IF p_montant IS NULL OR p_montant NOT BETWEEN 7 AND 20 THEN RETURN jsonb_build_object('ok', false, 'raison', 'montant_invalide'); END IF;
+    SELECT coalesce(liquide, 0), coalesce(arg, 0) INTO v_liquide, v_arg FROM public.personnages_donnees WHERE name = p_acteur;
+    SELECT id, coalesce(solde, 0) INTO v_compte, v_solde FROM public.comptes_bancaires WHERE personnage = p_acteur AND banque = 'nationale' FOR UPDATE;
+    IF v_liquide + coalesce(v_solde, 0) < p_montant THEN RETURN jsonb_build_object('ok', false, 'raison', 'fonds_insuffisants', 'requis', p_montant); END IF;
+    v_pris := least(v_liquide, p_montant);
+    UPDATE public.personnages_donnees SET liquide = v_liquide - v_pris, arg = v_arg - p_montant WHERE name = p_acteur;
+    IF p_montant - v_pris > 0 THEN UPDATE public.comptes_bancaires SET solde = solde - (p_montant - v_pris), updated_at = now() WHERE id = v_compte; END IF;
+    v_palier := public.informateur_palier_interne('soviet', p_montant); /* informateurs_bareme_v1 */
+    v_appris := v_palier = 'premier_choix';
+    v_paie := (SELECT jsonb_build_object('liquide', liquide, 'arg', arg) FROM public.personnages_donnees WHERE name = p_acteur);
+  ELSE RETURN jsonb_build_object('ok', false, 'raison', 'source_inconnue'); END IF;
+  v_deja := EXISTS (SELECT 1 FROM public.personnages_secrets WHERE personnage = p_acteur AND cle = 'colonel_polonium');
+  IF v_appris AND NOT v_deja THEN
+    INSERT INTO public.personnages_secrets (personnage, cle, source) VALUES (p_acteur, 'colonel_polonium', p_source) ON CONFLICT DO NOTHING;
+  END IF;
+  RETURN jsonb_build_object('ok', true, 'source', p_source, 'palier', v_palier, 'montant', p_montant, 'appris', v_appris, 'deja', v_deja,
+    'pa', v_paie -> 'pa', 'liquide', v_paie -> 'liquide', 'arg', v_paie -> 'arg',
+    'secret', CASE WHEN v_appris THEN public.secret_fiche_interne('colonel_polonium') END);
+END $function$;
+
+CREATE OR REPLACE FUNCTION public.caisse_institution_mouvement(p_id text, p_delta numeric, p_exiger_existant boolean DEFAULT false)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_data jsonb; v_solde numeric; v_existe boolean;
+  v_moi text; v_pays text; v_client boolean; v_raison text;
+BEGIN
+  IF COALESCE(btrim(p_id), '') = '' OR p_delta IS NULL OR p_delta = 0
+     OR abs(p_delta) > 100000000 THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'parametres_invalides');
+  END IF;
+  v_client := coalesce(current_setting('rp.caisse_interne', true), '') <> 'on'
+              AND NOT public.est_appel_serveur();
+  IF p_delta < 0 AND v_client THEN
+    v_moi := public.mon_personnage();
+    IF v_moi IS NULL THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie');
+    END IF;
+    SELECT country INTO v_pays FROM public.personnages_donnees WHERE name = v_moi;
+    IF v_pays IS NULL OR p_id NOT LIKE v_pays || '\_%' THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'caisse_hors_pays');
+    END IF;
+    v_raison := public.caisse_refus_autorite(p_id, v_pays);
+    IF v_raison IS NOT NULL THEN
+      INSERT INTO public.caisses_mouvements_clients (acteur, caisse, delta, motif, accepte, raison)
+      VALUES (v_moi, p_id, p_delta, 'primitive_heritee', false, v_raison);
+      RETURN jsonb_build_object('ok', false, 'raison', v_raison);
+    END IF;
+  END IF;
+  SELECT data INTO v_data FROM public.caisses_batiments WHERE id = p_id FOR UPDATE;
+  v_existe := FOUND;
+  IF p_exiger_existant AND NOT v_existe THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'caisse_absente');
+  END IF;
+  v_solde := CASE WHEN v_existe AND jsonb_typeof(v_data -> 'solde') = 'number'
+                  THEN (v_data ->> 'solde')::numeric ELSE 0 END;
+  IF v_solde + p_delta < 0 THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'solde_insuffisant');
+  END IF;
+  IF v_existe THEN
+    UPDATE public.caisses_batiments
+       SET data = coalesce(v_data, '{}'::jsonb) || jsonb_build_object('solde', v_solde + p_delta),
+           updated_at = now()
+     WHERE id = p_id;
+  ELSE
+    IF v_client THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'caisse_inexistante');
+    END IF;
+    INSERT INTO public.caisses_batiments (id, data, updated_at)
+    VALUES (p_id, jsonb_build_object('solde', v_solde + p_delta), now());
+  END IF;
+  RETURN jsonb_build_object('ok', true);
+END;
+$function$;

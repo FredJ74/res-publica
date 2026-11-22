@@ -53,6 +53,8 @@ test('les 14 nouveaux libellés sont ancrés dans les ordres réellement déclar
  }
 });
 
+// Ordres d'informateurs retirés du jeu le 22/11/2026 (refonte des informateurs) : traductions gardées au catalogue.
+const RETIRES_INFORMATEURS=new Set(['recruter_informateur_pnj','recruter_informateur_2','recruter_info_4','consulter_info_4','gerer_informateurs']);
 test('tous les libellés pilotes français correspondent exactement aux vrais ordres du socle',()=>{
  const sources=['data.js','plateau-politique.js','plateau-construction-commandes.js']
   .map(name=>fs.readFileSync(path.join(root,name),'utf8'));
@@ -67,7 +69,8 @@ test('tous les libellés pilotes français correspondent exactement aux vrais or
  const canonical=win.RP_I18N_RESOURCES.fr.translation.orders;
  // Ordres retirés du jeu dont la traduction reste au catalogue (traductions confiées à Codex) :
  // acheter_polonium (Fred, 20/11/2026 : plus vendu au port orphelin de Novomirsk ; le marché noir reste).
- const RETIRES=new Set(['acheter_polonium']);
+ // Refonte des informateurs (Fred, 19/11/2026 ; codée le 22/11/2026) : recrutement et taupe retirés.
+ const RETIRES=new Set(['acheter_polonium',...RETIRES_INFORMATEURS]);
  for(const [fn,reference] of Object.entries(canonical)){
   if(RETIRES.has(fn))continue;
   assert.ok(actual.get(fn)?.has(reference),
@@ -170,7 +173,7 @@ test('20 ordres gouvernement, presse et économie : labels source exacts et cont
    const label=originalLabels[fn];
    assert.equal(typeof label,'string',fn);
    // Correspondance littérale avec les déclarations, sans dépendre du coût ou du poste.
-   assert.ok(source.includes("fn:'"+fn+"', label:'"+label+"'") ||
+   if(!RETIRES_INFORMATEURS.has(fn))assert.ok(source.includes("fn:'"+fn+"', label:'"+label+"'") ||
      source.includes("fn:'"+fn+"',        label:'"+label+"'") ||
      new RegExp("fn\\s*:\\s*['\\\"]"+fn+"['\\\"]\\s*,\\s*label\\s*:\\s*['\\\"]"+label.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+"['\\\"]").test(source),
      'libellé français absent de data.js pour '+fn);
@@ -351,7 +354,7 @@ test('20 ordres essentiels de santé et de vie quotidienne : parité et autorit�
  const fr=win.RP_I18N_RESOURCES.fr.translation.orders;
  for(const fn of ids){
   const order=Object.freeze({fn,label:fr[fn],pa:1,cost:120,requiresPost:'aucun'});
-  assert.ok(actual.get(fn)?.has(order.label),fn);
+  if(!RETIRES_INFORMATEURS.has(fn))assert.ok(actual.get(fn)?.has(order.label),fn);
   for(const lng of Object.keys(win.RP_I18N_LANGUAGES)){
    const translated=win.RP_I18N_RESOURCES[lng].translation.orders[fn];
    assert.ok(typeof translated==='string' && translated.trim(),lng+'/'+fn);
@@ -372,7 +375,7 @@ test('20 ordres services publics et justice : noms canoniques et invariants mét
  const fr=win.RP_I18N_RESOURCES.fr.translation.orders;
  for(const fn of ids){
   const order=Object.freeze({fn,label:fr[fn],pa:2,cost:75,requiresPost:'service'});
-  assert.ok(actual.get(fn)?.has(order.label),fn);
+  if(!RETIRES_INFORMATEURS.has(fn))assert.ok(actual.get(fn)?.has(order.label),fn);
   for(const lng of Object.keys(win.RP_I18N_LANGUAGES)){
    const translated=win.RP_I18N_RESOURCES[lng].translation.orders[fn];
    assert.ok(typeof translated==='string'&&translated.trim(),lng+'/'+fn);
@@ -392,7 +395,7 @@ test('18 ordres finances et enquêtes : correspondance aux labels français et d
  const fr=win.RP_I18N_RESOURCES.fr.translation.orders;
  for(const fn of ids){
   const order=Object.freeze({fn,label:fr[fn],pa:3,cost:125,requiresPost:'test'});
-  assert.ok(existing.get(fn)?.has(order.label),fn);
+  if(!RETIRES_INFORMATEURS.has(fn))assert.ok(existing.get(fn)?.has(order.label),fn);
   for(const lng of Object.keys(win.RP_I18N_LANGUAGES)){
    const translated=win.RP_I18N_RESOURCES[lng].translation.orders[fn];
    assert.ok(translated?.trim(),lng+'/'+fn);

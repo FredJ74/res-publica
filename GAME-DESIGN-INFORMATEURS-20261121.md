@@ -19,3 +19,5 @@ Avant de coder, vérifie dans le dépôt ce qui existe déjà de ces règles, et
 ---
 
 Note de Claude (21/11) : l'habitué du Bar Sever de Krasnov (#1169, lot de Krasnov point 8) applique déjà le barème commun (fonction serveur `informateur_palier_interne`). Il devra rejoindre le profil « généraliste » lors de la refonte, en gardant sa piste vers le colonel Voronov au premier choix.
+
+Note de Claude (22/11) : consigne codée (étape K, branche `claude/informateurs-refonte-20261122`, migration `20261122180000_informateurs_refonte`, non appliquée) et fondue dans GAME-DESIGN-CRIMINALITE.md, section « Barème commun des informateurs » → « Refonte des informateurs ».

@@ -16,9 +16,11 @@ test('Sources : habitué payé de 7 à 20 PSK (flou, correct, premier choix), Ka
   assert.match(m, /v_palier := CASE WHEN p_montant >= 20 THEN 'premier_choix' WHEN p_montant >= 13 THEN 'correct' ELSE 'flou' END;/);
   assert.match(m, /v_appris := v_palier = 'premier_choix';/);
   assert.match(m, /v_palier := 'premier_choix'; v_appris := true;/);
+  // Refonte des informateurs (22/11/2026) : l'habitué est un généraliste ; sa fenêtre est celle des informateurs et
+  // la piste du colonel Voronov, au premier choix, est écrite par le serveur (migration 20261122180000).
   const s = lire('plateau-secrets.js');
-  assert.match(s, /À ta santé, camarade ! Au moins ce verre est sûr, pas comme ceux du colonel du centre d’écoute…/);
-  assert.match(s, /Demande-lui des nouvelles de notre ami de Luthécia/);
+  assert.match(s, /ouvrirInformateursIci\('habitue_krasnov'\)/);
+  assert.match(lire('migrations/20261122180000_informateurs_refonte.sql'), /Demande-lui des nouvelles de notre ami de Luthécia/);
 });
 
 test('Colonel : 2 PA, 50 %, 150 PSK seulement en cas de succès, dénonciation sur 98-100', () => {
