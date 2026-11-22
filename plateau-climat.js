@@ -458,7 +458,7 @@ function rendrePuiserEau(e, message) {
   const doc = global.document;
   const titre = doc.getElementById('postes-modal-title');
   if (titre) titre.textContent = ORDRE_PUISER.label;
-  const img = (e.point && e.point.image) || 'images/Sovarka/Krasnov/Krasnov_place_ours.webp';
+  const img = (e.point && e.point.image) || 'images/Sovarka/Krasnov/Krasnov_place_ours_fontaine.webp';
   const h = heureFinEau(e.heure_fin);
   const max = Math.max(0, Math.min(Number(e.restant) || 0, Number(e.place) || 0));
   let explication = '', raison = '';
@@ -472,7 +472,7 @@ function rendrePuiserEau(e, message) {
   const possible = !raison && max > 0;
   doc.getElementById('postes-body').innerHTML = '<div class="cpj-dialogue" style="padding:1rem;font-size:1rem;line-height:1.45">'
     + '<img src="' + esc(img) + '" alt="" style="width:100%;max-height:240px;object-fit:cover;border:1px solid #2a2010;border-radius:3px;margin-bottom:.7rem"'
-    + ' onerror="this.onerror=null;this.src=\'images/Sovarka/Krasnov/Krasnov_place_ours.webp\'">'
+    + '>'
     + '<p style="margin:0 0 .6rem">' + esc(eauTxt('tete', { max: e.max_tranche })) + '</p>'
     + (message ? '<p style="margin:0 0 .6rem;color:#8ab070">' + esc(message) + '</p>' : '')
     + (explication ? '<p style="margin:0 0 .6rem">' + esc(explication) + '</p>' : '')

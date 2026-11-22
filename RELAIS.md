@@ -8,6 +8,16 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Mission de la nuit du 22/11/2026 (Claude) — décisions : GAME-DESIGN-MISSION-NUIT-20261122.md
+- **Partage du travail** : Codex = logo du plateau et son témoin au pixel, courrier de bienvenue et ses traductions, fenêtres sans
+  chevauchement, recette isolée de la PR #1176 (navigateur et tests seulement). Claude = tout le reste, seul à appliquer des migrations.
+- **Fichiers du navigateur modifiés par Claude (pour rebaser)**, au fur et à mesure :
+  - point 1 (images) : `plateau-rue-centrale.js` (rue des terrains de Port-Sainte-Marie en trois états : `imagesEtatsTerrains`,
+    `etatRueTerrains`, `imageRueTerrains`, `appliquerEtatRueTerrains`), `plateau-chantier-vue.js` (`candidatsPsm` sans repli ;
+    fondations par ville après le premier jour), `plateau-climat.js` (image du point d'eau sans repli) ; images
+    `images/chantiers/psm/PSM_*.webp`, `images/terrains/psm/rue-terrains-psm-etat2/3.webp`, `images/rue-terrains-lots-detail-psm.webp`
+    (6 lots, remplace l'ancienne), `images/Sovarka/Krasnov/Krasnov_place_ours_fontaine.webp` ; bancs
+    `banc-chantier-rue-terrains-etats-20261122.cjs`, `banc-chantier-vue-navigateur-20261121.cjs` ; workflow `chantier-construction-20261121.yml`.
 ### Mission du soir du 21/11/2026, suite (Claude) — décisions : GAME-DESIGN-MISSION-SOIR-20261121.md
 - **Appliquées** (PGlite d'abord, contrôle en lecture après, goulag `active=false` vérifié) :
   `20261121170000_point_eau_puiser_mairie_krasnov` (puisage 1 PA, 10 bouteilles par tranche de 6 h ; mairie de Krasnov à une seule

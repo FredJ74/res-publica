@@ -548,6 +548,9 @@ const RUE_CENTRALE_NOEUDS = {
       // (decision de Fred, 04/11/2026 : plus de selection sur l'image, dont les infobulles ne
       // correspondaient pas aux parcelles). Les entrees serveur des terrains sont sur ce noeud.
       image: 'images/rue-terrains-vente-psm.webp',
+      // Rue en trois états (Fred, 20 et 21/11/2026) : état 1 = cette image tant qu'aucun bâtiment n'est
+      // réceptionné ; état 2 dès le premier ; état 3 quand tous le sont. Seule l'image change.
+      imagesEtatsTerrains: { ville: 'ville_a', etat2: 'images/terrains/psm/rue-terrains-psm-etat2.webp', etat3: 'images/terrains/psm/rue-terrains-psm-etat3.webp' },
       zones: [
         { xPct: [55, 95], nom: 'Terrains à bâtir de Port-Sainte-Marie', type: 'sous-lieu' }
       ],
@@ -1947,6 +1950,7 @@ async function afficherNoeudRue(pays, noeudId, depuisNoeudId, positionDejaConfir
   html += '<div class="rc-overlay" id="rc-overlay"><div class="rc-texte" id="rc-texte"></div></div>';
   html += '</div>';
   conteneur.innerHTML = html;
+  if (noeud.imagesEtatsTerrains) appliquerEtatRueTerrains(noeudId, noeud);
 
   // Personnes presentes dans cette scene de rue (meme systeme que dans les batiments,
   // mais cible le conteneur dedie a la rue et utilise un buildingId synthetique 'rue-centrale')
@@ -2198,6 +2202,31 @@ function entrerDansBatimentRue(buildingId, nom) {
 // un terrain sans entree dans SURFACE_TERRAINS afficherait juste "Lot N", sans "m²" invente.
 // Generalise le 04/11/2026 a Port-Sainte-Marie (decision de Fred). Une ville a sous-lieu de
 // terrains se declare ici ; la liste des terrains reste TERRAINS_PAR_VILLE[ville].
+// Rue des terrains en trois états (Fred, 20/11/2026, étape J ; images de Port-Sainte-Marie le 22/11/2026).
+// Un bâtiment est réceptionné quand son terrain porte un niveau_construction. Aucun réceptionné : état 1 ;
+// au moins un : état 2 ; tous : état 3. Si l'image d'un état manque, on garde l'image actuelle.
+function etatRueTerrains(ids, lignes) {
+  const faits = ids.filter(id => (lignes || []).some(l => l && l.id === 'republic_' + id && l.niveau_construction)).length;
+  return faits === 0 ? 1 : (faits >= ids.length ? 3 : 2);
+}
+function imageRueTerrains(noeud, etat) {
+  const c = noeud.imagesEtatsTerrains;
+  if (!c || etat < 2) return noeud.image;
+  return c['etat' + etat] || noeud.image;
+}
+async function appliquerEtatRueTerrains(noeudId, noeud) {
+  const ids = (typeof TERRAINS_PAR_VILLE !== 'undefined') ? (TERRAINS_PAR_VILLE[noeud.imagesEtatsTerrains.ville] || []) : [];
+  if (!ids.length || typeof sbGetTerrainsLibres !== 'function') return;
+  let lignes;
+  try { lignes = await sbGetTerrainsLibres('republic'); } catch (e) { return; }
+  const url = imageRueTerrains(noeud, etatRueTerrains(ids, lignes));
+  const img = document.getElementById('rc-image');
+  if (!img || url === noeud.image || typeof Image === 'undefined') return;
+  const essai = new Image();
+  essai.onload = () => { const i = document.getElementById('rc-image'); if (i && i.getAttribute('src') === noeud.image) i.src = url; };
+  essai.src = url;
+}
+
 const TERRAINS_SOUS_LIEUX = {
   ville_a: { nom: 'Terrains à bâtir de Port-Sainte-Marie', ville: 'Port-Sainte-Marie', image: 'images/rue-terrains-lots-detail-psm.webp' },
   ville_b: { nom: 'Terrains à bâtir de Montrouge', ville: 'Montrouge', image: 'images/montrouge/montrouge-terrains-vue-ensemble.jpg' }
