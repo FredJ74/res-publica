@@ -1,0 +1,17 @@
+[
+  {
+    "path": "/rest/v1/rpc/sovarka_goulag_ouvert",
+    "statut": 401,
+    "code": "42501"
+  },
+  {
+    "path": "/rest/v1/rpc/goulag_toundra_demarrer",
+    "statut": 401,
+    "code": "42501"
+  },
+  {
+    "path": "/rest/v1/sovarka_goulag_configuration?select=active",
+    "statut": 401,
+    "code": "42501"
+  }
+]

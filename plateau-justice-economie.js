@@ -2707,6 +2707,15 @@ async function appliquerSentence(affaireId, type, infraction, joursServeur, amen
   const affaire = (state.plaintesEnCours||[]).find(p => p.id === affaireId);
   if (!affaire) return;
 
+  // Depuis l’installation du moteur, le QHS de Sovarka passe exclusivement par
+  // sovarka_goulag_juger (paiement et sentence atomiques dans prononcerSentence).
+  // Un ancien bouton ou le repli quand le goulag est fermé ne doit jamais
+  // débiter les PA avant le refus de la porte judiciaire du serveur.
+  if (type === 'qhs' && state.country === 'soviet') {
+    showToast('Condamnation refusée', 'Aucune peine n’a été prononcée.', false);
+    return;
+  }
+
   // QHS et torture supposent une personne DEJA physiquement detenue / sous controle (regle de
   // jeu validee, 26 aout 2026) -- jamais un mecanisme execute sur un personnage libre, jamais de
   // statut recherche cree pour ces deux types. Verifie AVANT toute consequence (cout PA, statut

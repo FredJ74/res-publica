@@ -66,6 +66,7 @@ jobs:
           python3 outils/bancs/test-goulag-integration-1085-20261117.py --postgres-bin "$HGPG17_PREFIX/bin"
           python3 outils/bancs/test-goulag-integration-1085-20261117.py --postgres-bin "$HGPG17_PREFIX/bin" --contrats
       - run: npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
+      - run: node --test outils/bancs/test-goulag-jugement-ferme-sans-paiement-20261121.cjs
       - run: npx --prefix outils/e2e playwright install --with-deps chromium webkit
       - run: node outils/bancs/test-goulag-chromium-20261116.cjs
       - run: node outils/bancs/test-goulag-chromium-20261116.cjs

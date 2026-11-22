@@ -1,0 +1,26 @@
+{
+  "captures": "Priv\u00e9es, hors Git ; quatre requ\u00eates canoniques exactes, lecture seule. Capture de sch\u00e9ma, pas de donn\u00e9es PJ.",
+  "exports": [
+    {
+      "nom": "export_structure.json",
+      "octets": 1192822,
+      "sha256": "9e7df01079aa5f1f653f7ffadcdfa18b06ab7501708a2d6738dc88c9bfdc1e16"
+    },
+    {
+      "nom": "export_logique.json",
+      "octets": 287911,
+      "sha256": "2dedaf47da2d56bf98189300dff2b02b610d7cf3473ed083c5c1f9c97c46980e"
+    },
+    {
+      "nom": "export_fonctions.json",
+      "octets": 5106086,
+      "sha256": "ef90af11d43a196ecd46efc603490c4c4661781e638f93fbf110727a31d373aa"
+    },
+    {
+      "nom": "export_droits.json",
+      "octets": 914801,
+      "sha256": "8771afe55f2d23c5330129ab420e28a566658b7bc626cdb2cfc0bafec8029156"
+    }
+  ],
+  "rendu": "Bloqu\u00e9 : 5434 affectations manquantes dans le classement global pr\u00e9existant ; aucun baseline r\u00e9\u00e9crit \u00e0 la main."
+}

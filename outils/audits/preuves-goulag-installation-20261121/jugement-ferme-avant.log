@@ -1,0 +1,34 @@
+✖ ancienne porte QHS Sovarka, ouverture false : zéro paiement, sanction ou RPC (3.09028ms)
+✖ ancienne porte QHS Sovarka, ouverture true : zéro paiement, sanction ou RPC (0.572263ms)
+✔ republic/qhs : la porte historique reste atteignable (0.993759ms)
+✔ soviet/prison : la porte historique reste atteignable (0.647016ms)
+✔ republic/prison : la porte historique reste atteignable (0.701938ms)
+✔ dossier absent : aucun effet (0.619565ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 4
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 291.14259
+
+✖ failing tests:
+
+test at ../goulag-installation/avant-ui/outils/bancs/test-goulag-jugement-ferme-sans-paiement-20261121.cjs:32:3
+✖ ancienne porte QHS Sovarka, ouverture false : zéro paiement, sanction ou RPC (3.09028ms)
+  Error: porte-paiement-atteinte
+      at contexte.deduireCoutOrdre (/workspace/goulag-installation/avant-ui/outils/bancs/test-goulag-jugement-ferme-sans-paiement-20261121.cjs:25:73)
+      at Object.appliquerSentence (evalmachine.<anonymous>:55:19)
+      at async TestContext.<anonymous> (/workspace/goulag-installation/avant-ui/outils/bancs/test-goulag-jugement-ferme-sans-paiement-20261121.cjs:35:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+
+test at ../goulag-installation/avant-ui/outils/bancs/test-goulag-jugement-ferme-sans-paiement-20261121.cjs:32:3
+✖ ancienne porte QHS Sovarka, ouverture true : zéro paiement, sanction ou RPC (0.572263ms)
+  Error: porte-paiement-atteinte
+      at contexte.deduireCoutOrdre (/workspace/goulag-installation/avant-ui/outils/bancs/test-goulag-jugement-ferme-sans-paiement-20261121.cjs:25:73)
+      at Object.appliquerSentence (evalmachine.<anonymous>:55:19)
+      at async TestContext.<anonymous> (/workspace/goulag-installation/avant-ui/outils/bancs/test-goulag-jugement-ferme-sans-paiement-20261121.cjs:35:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
