@@ -1,0 +1,951 @@
+-- Socle PGlite du banc « forêt : groupe, coupe des membres, meute de trois loups, rapport de combat » (22/11/2026).
+-- Tables réduites aux colonnes utiles ; les fonctions marquées « COPIE DE PRODUCTION » sont recopiées telles que
+-- pg_get_functiondef les rendait le 22/11/2026 (projet de production, lecture seule) : la migration
+-- 20261122210000_foret_groupe_combat_meute.sql y applique ses remplacements contrôlés exactement comme en production.
+-- Les autres fonctions sont des bouchons fidèles à leur contrat (navigation, inventaire, PNJ, crimes).
+SET check_function_bodies = off;
+CREATE ROLE anon; CREATE ROLE authenticated;
+CREATE SCHEMA IF NOT EXISTS auth;
+CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$ SELECT nullif(current_setting('test.uid', true), '')::uuid $$;
+CREATE TABLE public.personnages (name text PRIMARY KEY, user_id uuid);
+CREATE OR REPLACE FUNCTION public.mon_personnage() RETURNS text LANGUAGE sql STABLE AS $$ SELECT name FROM public.personnages WHERE user_id = auth.uid() $$;
+CREATE TABLE public.personnages_donnees (name text PRIMARY KEY, country text, current_city text, current_building text, current_room text, current_street text,
+  pa integer DEFAULT 10, hp integer DEFAULT 100, stats jsonb DEFAULT '{}'::jsonb, inventory jsonb DEFAULT '[]'::jsonb, inventory_revision integer DEFAULT 0,
+  competences_militaires jsonb DEFAULT '{}'::jsonb, est_emprisonne jsonb, hospitalisation jsonb, day integer DEFAULT 1, bonus_pa_differe integer DEFAULT 0, updated_at timestamptz);
+CREATE TABLE public.groupes_pj_adhesions (membre text PRIMARY KEY, chef text NOT NULL);
+CREATE TABLE public.aliments_parametres (cle text PRIMARY KEY, valeur numeric);
+INSERT INTO public.aliments_parametres VALUES ('foret_egarement_pct', 50), ('foret_rencontre_arrivee_pct', 15);
+CREATE OR REPLACE FUNCTION public.aliments_param_interne(p_cle text, p_defaut numeric) RETURNS numeric LANGUAGE sql STABLE AS $$
+  SELECT coalesce((SELECT valeur FROM public.aliments_parametres WHERE cle = p_cle), p_defaut) $$;
+CREATE TABLE public.pa_bonus_differes (source text PRIMARY KEY, montant integer);
+INSERT INTO public.pa_bonus_differes VALUES ('repas_olga', 5);
+CREATE TABLE public.sovarka_foret_visites (bucheron text PRIMARY KEY, vue integer NOT NULL CHECK (vue BETWEEN 1 AND 4), coupes integer NOT NULL DEFAULT 0, bois integer NOT NULL DEFAULT 0, arrivee timestamptz NOT NULL DEFAULT now());
+CREATE TABLE public.sovarka_foret_rencontres (id bigserial PRIMARY KEY, bucheron text NOT NULL, vue integer NOT NULL, creature text NOT NULL, pnj_id text, statut text NOT NULL, cree_le timestamptz DEFAULT now(), clos_le timestamptz);
+CREATE TABLE public.sovarka_foret_actes (acteur text NOT NULL, requete uuid NOT NULL, resultat jsonb NOT NULL, cree_le timestamptz DEFAULT now(), PRIMARY KEY (acteur, requete));
+CREATE TABLE public.sovarka_foret_perdus (bucheron text PRIMARY KEY, depuis timestamptz NOT NULL DEFAULT now());
+CREATE TABLE public.pnj_membres (id text PRIMARY KEY, famille text, nom text, pays text, position_pays text, ville text, building_id text, room_id text, rue_noeud_id text, rue_depuis text,
+  classe text, pa integer, proprietaire_institution text, proprietaire_perimetre text, proprietaire_pj text, car_int integer, car_cha integer, car_vol integer, car_per integer,
+  car_dup integer, car_ent integer, statut text DEFAULT 'actif', maj_le timestamptz, leader_pj text, leader_pnj_id text, liquide integer);
+CREATE TABLE public.pnj_possessions (id bigserial PRIMARY KEY, pnj_id text, objet jsonb);
+CREATE TABLE public.pnj_soldats_metier (pnj_id text, matricule text, compagnie_id text, section_id text, formation jsonb, arme text);
+CREATE TABLE public.militaire_armes_bonus (cle text, mode text, bonus integer, note text);
+INSERT INTO public.militaire_armes_bonus VALUES ('Couteau de poche', 'cac', 5, 'republic'), ('Revolver .38', 'feu', 8, 'republic'), ('Makarov', 'feu', 8, 'soviet');
+CREATE TABLE public.objets_recus (id text PRIMARY KEY, destinataire text, expediteur text, data jsonb);
+CREATE TABLE public.navigation_requetes (acteur text, requete uuid, arguments jsonb, verdict jsonb);
+CREATE TABLE public.guerres (statut text, data jsonb);
+CREATE TABLE public.batailles (id bigserial PRIMARY KEY, pays text, ville text, batiment text, piece text, camp_a text, camp_b text, initiative text, leader_a text, leader_b text,
+  contexte jsonb, statut text DEFAULT 'en_cours', round_courant integer DEFAULT 0, debut_ts timestamptz DEFAULT now(), fin_ts timestamptz, issue text, termine_raison text,
+  repli_a jsonb, repli_b jsonb, effectif_initial_a integer, effectif_initial_b integer);
+CREATE TABLE public.batailles_engagements (id bigserial PRIMARY KEY, bataille_id bigint, camp text, personnage text, pnj_id text, compagnie_id text, section_id text, matricule text,
+  groupe_id text, pa_initial integer, sorti_round integer, etat_final text, saute_round integer, grade text, UNIQUE (bataille_id, personnage), UNIQUE (bataille_id, pnj_id));
+CREATE TABLE public.batailles_groupes (bataille_id bigint, groupe_id text, camp text, compagnie_id text, section_id text, leader text, effectif_initial integer, repli jsonb,
+  sorti_round integer, decision text, attente_depuis timestamptz, PRIMARY KEY (bataille_id, groupe_id));
+CREATE TABLE public.batailles_rounds (bataille_id bigint, numero integer, camp text, rapport jsonb, PRIMARY KEY (bataille_id, numero, camp));
+
+-- ---------- Bouchons ----------
+CREATE OR REPLACE FUNCTION public.pnj_pa_max() RETURNS integer LANGUAGE sql IMMUTABLE AS $$ SELECT 20 $$;
+CREATE OR REPLACE FUNCTION public.detention_active(p text) RETURNS TABLE(x integer) LANGUAGE sql AS $$ SELECT 1 WHERE false $$;
+CREATE OR REPLACE FUNCTION public.regulation_production_refus_interne(a text, p text, v text, m text) RETURNS jsonb LANGUAGE sql AS $$ SELECT NULL::jsonb $$;
+CREATE OR REPLACE FUNCTION public.regulation_production_compter_interne(a text, p text, v text, m text) RETURNS void LANGUAGE sql AS $$ SELECT $$;
+CREATE OR REPLACE FUNCTION public.payer_ordre(a text, fn text, p_pa integer, p_cout numeric) RETURNS jsonb LANGUAGE plpgsql AS $$
+DECLARE v integer;
+BEGIN
+  UPDATE public.personnages_donnees SET pa = pa - p_pa WHERE name = a AND pa >= p_pa RETURNING pa INTO v;
+  IF v IS NULL THEN RETURN '{"ok":false,"raison":"pa_insuffisants"}'; END IF;
+  RETURN jsonb_build_object('ok', true, 'pa', v);
+END $$;
+CREATE OR REPLACE FUNCTION public.inventaire_place_restante(inv jsonb) RETURNS integer LANGUAGE sql AS $$
+  SELECT 100 - coalesce((SELECT sum(coalesce((i->>'qty')::integer, 1)) FROM jsonb_array_elements(coalesce(inv, '[]')) i), 0)::integer $$;
+CREATE OR REPLACE FUNCTION public.inventaire_deposer_interne(p_nom text, o jsonb) RETURNS jsonb LANGUAGE plpgsql AS $$
+DECLARE inv jsonb; i integer; n integer;
+BEGIN
+  SELECT coalesce(inventory, '[]') INTO inv FROM public.personnages_donnees WHERE name = p_nom FOR UPDATE;
+  n := jsonb_array_length(inv);
+  FOR i IN 0..n - 1 LOOP
+    IF (o->>'stackable')::boolean AND inv->i->>'stackKey' = o->>'stackKey' THEN
+      inv := jsonb_set(inv, ARRAY[i::text, 'qty'], to_jsonb((inv->i->>'qty')::integer + (o->>'qty')::integer));
+      UPDATE public.personnages_donnees SET inventory = inv, inventory_revision = inventory_revision + 1 WHERE name = p_nom;
+      RETURN '{"ok":true}';
+    END IF;
+  END LOOP;
+  UPDATE public.personnages_donnees SET inventory = inv || jsonb_build_array(o), inventory_revision = inventory_revision + 1 WHERE name = p_nom;
+  RETURN '{"ok":true}';
+END $$;
+CREATE OR REPLACE FUNCTION public.sovarka_matiere_objet_interne(p_cle text, p_q integer, p_desc text) RETURNS jsonb LANGUAGE sql IMMUTABLE AS $$
+  SELECT jsonb_build_object('name', CASE p_cle WHEN 'bois' THEN 'Bois' WHEN 'viande' THEN 'Viande' WHEN 'textile' THEN 'Tissus et peaux' ELSE p_cle END,
+    'stackKey', p_cle, 'stackable', true, 'qty', p_q, 'desc', p_desc) $$;
+CREATE OR REPLACE FUNCTION public.graisse_objet_interne(p_cle text, p_q integer) RETURNS jsonb LANGUAGE sql IMMUTABLE AS $$
+  SELECT jsonb_build_object('name', 'Graisse d''ours', 'stackKey', p_cle, 'stackable', true, 'qty', p_q) $$;
+CREATE OR REPLACE FUNCTION public.sovarka_inventaire_ligne_interne(inv jsonb, cles text[]) RETURNS jsonb LANGUAGE sql AS $$ SELECT '{"qte":0}'::jsonb $$;
+-- Comme la navigation réelle : le chef emmène les membres de son groupe présents avec lui.
+CREATE OR REPLACE FUNCTION public.navigation_commander_personnage_interne(p_nom text, p_mode text, p_bat text, p_piece text)
+RETURNS jsonb LANGUAGE plpgsql AS $$
+DECLARE m jsonb;
+BEGIN
+  IF current_setting('rp.foret_passage', true) IS DISTINCT FROM 'on' THEN RETURN '{"ok":false,"raison":"passage_ferme"}'; END IF;
+  UPDATE public.personnages_donnees SET current_building = p_bat, current_room = p_piece
+   WHERE name = p_nom OR name IN (SELECT membre FROM public.groupes_pj_adhesions WHERE chef = p_nom);
+  SELECT coalesce(jsonb_agg(membre), '[]') INTO m FROM public.groupes_pj_adhesions WHERE chef = p_nom;
+  RETURN jsonb_build_object('ok', true, 'membres', m);
+END $$;
+CREATE OR REPLACE FUNCTION public.groupe_participants_interne(p_nom text)
+RETURNS TABLE(cle text, est_pj boolean, identifiant text, nom text, chef text, pays text, ville text, batiment text, piece text, rue text) LANGUAGE sql STABLE AS $$
+  WITH r AS (SELECT coalesce((SELECT a.chef FROM public.groupes_pj_adhesions a WHERE a.membre = p_nom), p_nom) AS chef WHERE p_nom IS NOT NULL)
+  SELECT 'pj:' || d.name, true, d.name, d.name, r.chef, d.country, d.current_city, d.current_building, d.current_room, d.current_street
+    FROM r JOIN public.personnages_donnees d ON d.name = r.chef OR d.name IN (SELECT a.membre FROM public.groupes_pj_adhesions a WHERE a.chef = r.chef) $$;
+CREATE OR REPLACE FUNCTION public.groupe_combattants_interne(p_nom text, p_rencontre text DEFAULT NULL, p_bataille bigint DEFAULT NULL)
+RETURNS TABLE(cle text, est_pj boolean, identifiant text, nom text, chef text, famille text, pa integer, per numeric, vol numeric) LANGUAGE sql STABLE AS $$
+  SELECT g.cle, true, g.identifiant, g.nom, g.chef, 'pj', d.pa, 8::numeric, 8::numeric FROM public.groupe_participants_interne(p_nom) g
+    JOIN public.personnages_donnees d ON d.name = g.identifiant WHERE d.pa > 0 $$;
+CREATE OR REPLACE FUNCTION public.combat_bataille_completer_groupes_interne(p_bataille_id bigint, p_camp text, p_ville text, p_bat text, p_piece text) RETURNS void LANGUAGE sql AS $$ SELECT $$;
+CREATE OR REPLACE FUNCTION public.crim_resoudre_interne(a text, b text, c text, d jsonb) RETURNS jsonb LANGUAGE sql AS $$ SELECT '{}'::jsonb $$;
+CREATE OR REPLACE FUNCTION public.navigation_disponibilite_interne(p text) RETURNS jsonb LANGUAGE sql AS $$ SELECT '{"ok":true}'::jsonb $$;
+CREATE OR REPLACE FUNCTION public.pnj_confrontation_refus_interne(ids text[]) RETURNS jsonb LANGUAGE sql AS $$ SELECT NULL::jsonb $$;
+CREATE OR REPLACE FUNCTION public.pnj_groupes_verrouiller_projections_interne(ids text[]) RETURNS void LANGUAGE sql AS $$ SELECT $$;
+CREATE OR REPLACE FUNCTION public.pnj_groupes_projeter_interne(ids text[]) RETURNS void LANGUAGE sql AS $$ SELECT $$;
+CREATE OR REPLACE FUNCTION public.combat_agression_preparer_interne(c text, m text, n integer) RETURNS jsonb LANGUAGE sql AS $$ SELECT '{"ok":true}'::jsonb $$;
+CREATE OR REPLACE FUNCTION public.combat_occupant_terrain_interne(t text, a text) RETURNS text LANGUAGE sql AS $$ SELECT NULL::text $$;
+CREATE OR REPLACE FUNCTION public.navigation_destination_fuite_interne(p text) RETURNS jsonb LANGUAGE sql AS $$ SELECT '{"ok":false}'::jsonb $$;
+CREATE OR REPLACE FUNCTION public.navigation_destination_fuite_position_interne(a text, b text, c text, d text, e text) RETURNS jsonb LANGUAGE sql AS $$ SELECT '{"ok":false}'::jsonb $$;
+CREATE OR REPLACE FUNCTION public.mail_systeme_poser_interne(a text, b text, c text, d text, e text) RETURNS void LANGUAGE sql AS $$ SELECT $$;
+CREATE OR REPLACE FUNCTION public.assemblee_stat_base(s jsonb, k text) RETURNS numeric LANGUAGE sql IMMUTABLE AS $$ SELECT coalesce((s->>k)::numeric, 8) $$;
+CREATE OR REPLACE FUNCTION public.maladie_sans_bonus_arme_interne(p text) RETURNS boolean LANGUAGE sql AS $$ SELECT false $$;
+CREATE OR REPLACE FUNCTION public.combat_gilet_pnj_absorber_interne(p text) RETURNS jsonb LANGUAGE sql AS $$ SELECT '{"protege":false}'::jsonb $$;
+CREATE OR REPLACE FUNCTION public.militaire_gilet_absorber(a boolean, b text, c text, d text, e text) RETURNS jsonb LANGUAGE sql AS $$ SELECT '{"protege":false}'::jsonb $$;
+CREATE OR REPLACE FUNCTION public.militaire_soldat_pa_fixer(a text, b text, c text, d integer) RETURNS void LANGUAGE sql AS $$ SELECT $$;
+CREATE OR REPLACE FUNCTION public.militaire_soldat_supprimer(a text, b text, c text) RETURNS void LANGUAGE sql AS $$ SELECT $$;
+CREATE OR REPLACE FUNCTION public.mutinerie_pays_du_camp(c text) RETURNS text LANGUAGE sql AS $$ SELECT NULL::text $$;
+CREATE OR REPLACE FUNCTION public.mutinerie_est_camp(c text) RETURNS boolean LANGUAGE sql AS $$ SELECT false $$;
+CREATE OR REPLACE FUNCTION public.mutinerie_camp_de(c text) RETURNS text LANGUAGE sql AS $$ SELECT NULL::text $$;
+CREATE OR REPLACE FUNCTION public.militaire_degrader(p text, n integer, camp text, v text, b text) RETURNS jsonb LANGUAGE sql AS $$
+  SELECT jsonb_build_object('libelle', '1 à ' || (n + 1) || ' soldats', 'effectif_min', 1, 'effectif_max', n + 1) $$;
+CREATE OR REPLACE FUNCTION public.militaire_degre_rang(d text) RETURNS integer LANGUAGE sql IMMUTABLE AS $$
+  SELECT CASE d WHEN 'echec_critique' THEN 0 WHEN 'echec' THEN 1 WHEN 'partielle_2' THEN 2 WHEN 'partielle_1' THEN 3 ELSE 4 END $$;
+CREATE OR REPLACE FUNCTION public.militaire_degre_par_rang(r integer) RETURNS text LANGUAGE sql IMMUTABLE AS $$
+  SELECT (ARRAY['echec_critique','echec','partielle_2','partielle_1','critique'])[greatest(0, least(4, r)) + 1] $$;
+CREATE OR REPLACE FUNCTION public.crim_designation_interne(p text) RETURNS text LANGUAGE sql AS $$ SELECT NULL::text $$;
+CREATE OR REPLACE FUNCTION public.militaire_bataille_mon_camp(b bigint, n text) RETURNS text LANGUAGE sql STABLE AS $$
+  SELECT camp FROM public.batailles_engagements WHERE bataille_id = b AND personnage = n LIMIT 1 $$;
+CREATE OR REPLACE FUNCTION public.militaire_bataille_commande_interne(p_bataille bigint, p_action text, p_round integer, p_requete uuid) RETURNS jsonb LANGUAGE sql AS $$ SELECT '{}'::jsonb $$;
+-- Arbitrage réduit : avant le 5e round rien ; ensuite les groupes sans chef PJ (les bêtes) décrochent, comme en production.
+CREATE OR REPLACE FUNCTION public.militaire_bataille_arbitrer_groupes(p_bataille_id bigint, p_round integer) RETURNS integer LANGUAGE plpgsql AS $$
+BEGIN
+  IF p_round < 5 THEN RETURN 0; END IF;
+  IF (SELECT count(DISTINCT camp) FROM public.batailles_engagements WHERE bataille_id=p_bataille_id AND sorti_round IS NULL)<=1 THEN RETURN 0; END IF;
+  UPDATE public.batailles_engagements e SET sorti_round = p_round, etat_final = 'replie'
+   WHERE e.bataille_id = p_bataille_id AND e.sorti_round IS NULL AND e.personnage IS NULL;
+  UPDATE public.pnj_membres SET statut = 'actif', room_id = 'zone_recolte'
+   WHERE id IN (SELECT pnj_id FROM public.batailles_engagements WHERE bataille_id = p_bataille_id AND etat_final = 'replie');
+  RETURN 0;
+END $$;
+CREATE OR REPLACE FUNCTION public.pnj_mourir(p_id text, p_cause text DEFAULT 'indetermine') RETURNS jsonb LANGUAGE sql AS $$
+  UPDATE public.pnj_membres SET statut = 'mort', leader_pj = NULL, leader_pnj_id = NULL WHERE id = p_id RETURNING jsonb_build_object('ok', true) $$;
+CREATE OR REPLACE FUNCTION public.acces_issue_combat_interne(a text, b text, c text) RETURNS jsonb LANGUAGE sql AS $$ SELECT '{"ok":true}'::jsonb $$;
+CREATE OR REPLACE FUNCTION public.terrain_squatteurs_issue_bataille_interne(a text, b text, c text, d uuid, e bigint) RETURNS jsonb LANGUAGE sql AS $$ SELECT '{"ok":true}'::jsonb $$;
+CREATE OR REPLACE FUNCTION public.crim_resoudre_suite_interne(a bigint, b text) RETURNS jsonb LANGUAGE sql AS $$ SELECT '{"ok":true}'::jsonb $$;
+CREATE OR REPLACE FUNCTION public.crime_tracer_interne(a text, b text, c text) RETURNS void LANGUAGE sql AS $$ SELECT $$;
+CREATE OR REPLACE FUNCTION public.crime_detecter_interne(a text, b text, c boolean) RETURNS void LANGUAGE sql AS $$ SELECT $$;
+CREATE OR REPLACE FUNCTION public.crime_rechercher_interne(a text, b text, c text) RETURNS void LANGUAGE sql AS $$ SELECT $$;
+
+-- ---------- COPIES DE PRODUCTION (22/11/2026) ----------
+CREATE OR REPLACE FUNCTION public.sovarka_foret_vue_interne(p_nom text)
+ RETURNS integer
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT CASE WHEN d.current_room = 'zone_recolte' THEN 0
+              WHEN d.current_room ~ '^foret_vue_[1-4]$' THEN right(d.current_room, 1)::integer
+              WHEN d.current_room = 'foret_clairiere' THEN 5 END   -- foret_clairiere_v1
+    FROM public.personnages_donnees d
+   WHERE d.name = p_nom AND d.country = 'soviet' AND d.current_city = 'ville_b' AND d.current_building = 'zone-production';
+$function$;
+
+CREATE OR REPLACE FUNCTION public.sovarka_foret_tirer_vue_interne(p_depuis integer)
+ RETURNS integer
+ LANGUAGE sql
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT g FROM generate_series(1, 4) g
+   WHERE g <> coalesce(p_depuis, 0) AND NOT (p_depuis IN (1, 2) AND g IN (1, 2))
+   ORDER BY random() LIMIT 1;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.sovarka_foret_deplacer_interne(p_nom text, p_piece text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v jsonb;
+BEGIN
+  PERFORM set_config('rp.foret_passage', 'on', true);
+  v := public.navigation_commander_personnage_interne(p_nom, 'piece', 'zone-production', p_piece);
+  PERFORM set_config('rp.foret_passage', 'off', true);
+  RETURN v;
+END $function$;
+
+CREATE OR REPLACE FUNCTION public.sovarka_foret_aller(p_requete uuid, p_sens text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE a text := public.mon_personnage(); x record; v_vue integer; v_dest integer; v jsonb; r jsonb; v_piece text;
+        v_perdu boolean; v_egare boolean := false; v_sens text;
+BEGIN
+  IF a IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  IF p_requete IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'requete_absente'); END IF;
+  IF p_sens NOT IN ('clairiere', 'enfoncer', 'campement', 'revenir', 'retrouver') THEN RETURN jsonb_build_object('ok', false, 'raison', 'action_inconnue'); END IF;
+  v_sens := CASE WHEN p_sens IN ('revenir', 'retrouver') THEN 'campement' ELSE p_sens END;   -- foret_clairiere_v1
+  PERFORM pg_advisory_xact_lock(hashtextextended('sovarka:foret:' || a, 0));
+  SELECT * INTO x FROM public.sovarka_foret_actes WHERE acteur = a AND requete = p_requete;
+  IF FOUND THEN RETURN x.resultat || jsonb_build_object('rejeu', true); END IF;
+  IF EXISTS (SELECT 1 FROM public.groupes_pj_adhesions WHERE membre = a) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'chef_de_groupe_requis'); END IF;
+  v_vue := public.sovarka_foret_vue_interne(a);
+  IF v_vue IS NULL THEN
+    DELETE FROM public.sovarka_foret_perdus WHERE bucheron = a;
+    RETURN jsonb_build_object('ok', false, 'raison', 'pas_sur_place');
+  END IF;
+  IF v_vue IN (0, 5) THEN DELETE FROM public.sovarka_foret_perdus WHERE bucheron = a; END IF;
+  v_perdu := EXISTS (SELECT 1 FROM public.sovarka_foret_perdus WHERE bucheron = a);
+  IF v_sens = 'campement' AND v_vue = 0 THEN RETURN jsonb_build_object('ok', false, 'raison', 'deja_a_l_entree'); END IF;
+  IF EXISTS (SELECT 1 FROM public.sovarka_foret_rencontres WHERE bucheron = a AND statut = 'en_attente') THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'rencontre_en_cours'); END IF;
+
+  IF v_sens = 'clairiere' OR (v_sens = 'enfoncer' AND v_vue = 0) THEN
+    v_dest := 5;
+  ELSIF v_sens = 'enfoncer' THEN
+    v_dest := public.sovarka_foret_tirer_vue_interne(v_vue);
+  ELSIF v_vue = 5 THEN
+    v_dest := 0;
+  ELSIF v_perdu THEN
+    v_dest := 5;
+  ELSIF random() * 100 < public.aliments_param_interne('foret_egarement_pct', 80) THEN
+    v_dest := public.sovarka_foret_tirer_vue_interne(v_vue);
+    v_egare := true;
+  ELSE
+    v_dest := 5;
+  END IF;
+
+  v_piece := CASE v_dest WHEN 0 THEN 'zone_recolte' WHEN 5 THEN 'foret_clairiere' ELSE 'foret_vue_' || v_dest END;
+  v := public.sovarka_foret_deplacer_interne(a, v_piece);
+  IF coalesce((v->>'ok')::boolean, false) IS NOT TRUE THEN RETURN v; END IF;
+  DELETE FROM public.sovarka_foret_visites WHERE bucheron = a;
+  IF v_dest BETWEEN 1 AND 4 THEN INSERT INTO public.sovarka_foret_visites (bucheron, vue) VALUES (a, v_dest); END IF;
+  IF v_egare THEN
+    INSERT INTO public.sovarka_foret_perdus (bucheron) VALUES (a) ON CONFLICT (bucheron) DO NOTHING;
+    v_perdu := true;
+  ELSIF v_dest IN (0, 5) THEN
+    DELETE FROM public.sovarka_foret_perdus WHERE bucheron = a;
+    v_perdu := false;
+  END IF;
+
+  r := jsonb_build_object('ok', true, 'sens', v_sens, 'vue', v_dest, 'room', v_piece,
+    'perdu', v_perdu, 'egare', v_egare, 'membres', v->'membres', 'positions', v->'positions');
+  r := r || coalesce(public.sovarka_foret_rencontre_arrivee_interne(a, v_dest), '{}'::jsonb); /* foret_rencontre_arrivee_v1 */
+  INSERT INTO public.sovarka_foret_actes (acteur, requete, resultat) VALUES (a, p_requete, r);
+  RETURN r;
+END $function$;
+
+CREATE OR REPLACE FUNCTION public.sovarka_foret_lire()
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE a text := public.mon_personnage(); v_vue integer; v_chef text; s record; r record;
+BEGIN
+  IF a IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  v_vue := public.sovarka_foret_vue_interne(a);
+  IF v_vue IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'pas_sur_place'); END IF;
+  v_chef := coalesce((SELECT chef FROM public.groupes_pj_adhesions WHERE membre = a), a);
+  SELECT * INTO s FROM public.sovarka_foret_visites WHERE bucheron = v_chef AND vue = v_vue;
+  SELECT * INTO r FROM public.sovarka_foret_rencontres WHERE bucheron = v_chef AND statut = 'en_attente' ORDER BY id DESC LIMIT 1;
+  RETURN jsonb_build_object('ok', true, 'vue', v_vue, 'chef', v_chef, 'membre', v_chef <> a,
+    'coupes', coalesce(s.coupes, 0), 'coupes_bois', CASE WHEN v_vue IN (1, 2) THEN 2 WHEN v_vue IN (3, 4) THEN 1 ELSE 0 END,
+    'perdu', v_vue > 0 AND EXISTS (SELECT 1 FROM public.sovarka_foret_perdus WHERE bucheron = v_chef),
+    'rencontre', CASE WHEN r.id IS NULL THEN NULL ELSE jsonb_build_object('id', r.id, 'creature', r.creature, 'pnj', r.pnj_id,
+      'nom', public.sovarka_foret_creature_interne(r.creature)->>'nom') END);
+END $function$;
+
+CREATE OR REPLACE FUNCTION public.sovarka_foret_rencontre(p_requete uuid, p_choix text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE a text := public.mon_personnage(); x record; e record; s record; l jsonb; v_perdu integer := 0; v jsonb; r jsonb; v_victimes jsonb;
+BEGIN
+  IF a IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  IF p_requete IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'requete_absente'); END IF;
+  IF p_choix NOT IN ('fuir', 'subir') THEN RETURN jsonb_build_object('ok', false, 'raison', 'action_inconnue'); END IF;
+  PERFORM pg_advisory_xact_lock(hashtextextended('sovarka:foret:' || a, 0));
+  SELECT * INTO x FROM public.sovarka_foret_actes WHERE acteur = a AND requete = p_requete;
+  IF FOUND THEN RETURN x.resultat || jsonb_build_object('rejeu', true); END IF;
+  IF EXISTS (SELECT 1 FROM public.groupes_pj_adhesions WHERE membre = a) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'chef_de_groupe_requis'); END IF;
+  SELECT * INTO e FROM public.sovarka_foret_rencontres WHERE bucheron = a AND statut = 'en_attente' ORDER BY id DESC LIMIT 1 FOR UPDATE;
+  IF NOT FOUND THEN RETURN jsonb_build_object('ok', false, 'raison', 'aucune_rencontre'); END IF;
+  IF EXISTS (SELECT 1 FROM public.batailles_engagements be JOIN public.batailles b ON b.id = be.bataille_id
+              WHERE be.pnj_id = e.pnj_id AND b.statut = 'en_cours') THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'combat_en_cours'); END IF;
+
+  IF p_choix = 'fuir' THEN
+    SELECT * INTO s FROM public.sovarka_foret_visites WHERE bucheron = a;
+    PERFORM 1 FROM public.personnages_donnees WHERE name = a FOR UPDATE;
+    l := public.sovarka_inventaire_ligne_interne((SELECT inventory FROM public.personnages_donnees WHERE name = a), ARRAY['bois']);
+    v_perdu := least(coalesce(s.bois, 0), (l->>'qte')::integer);
+    v_perdu := 0;  -- la premiere coupe est acquise (Fred, 10/11) : la fuite ne fait perdre que la seconde, jamais livree
+    UPDATE public.pnj_membres SET statut = 'disparu', maj_le = now() WHERE id = e.pnj_id AND statut = 'actif';
+    UPDATE public.sovarka_foret_rencontres SET statut = 'fuite', clos_le = now() WHERE id = e.id;
+    v := public.sovarka_foret_deplacer_interne(a, 'zone_recolte');
+    IF coalesce((v->>'ok')::boolean, false) IS NOT TRUE THEN RAISE EXCEPTION 'sovarka_foret_fuite: deplacement refuse %', v; END IF;
+    DELETE FROM public.sovarka_foret_visites WHERE bucheron = a;
+    r := jsonb_build_object('ok', true, 'choix', 'fuir', 'bois_perdu', v_perdu, 'room', 'zone_recolte', 'membres', v->'membres', 'positions', v->'positions');
+  ELSE
+    UPDATE public.pnj_membres SET statut = 'disparu', maj_le = now() WHERE id = e.pnj_id AND statut = 'actif';
+    UPDATE public.sovarka_foret_rencontres SET statut = 'devore', clos_le = now() WHERE id = e.id;
+    DELETE FROM public.sovarka_foret_visites WHERE bucheron = a;
+    WITH g AS (
+      SELECT d.name FROM public.personnages_donnees d
+       WHERE (d.name = a OR d.name IN (SELECT membre FROM public.groupes_pj_adhesions WHERE chef = a))
+         AND d.country = 'soviet' AND d.current_city = 'ville_b' AND d.current_building = 'zone-production' AND d.current_room = 'foret_vue_' || e.vue /* foret_rencontre_vue_v1 */
+    ), u AS (
+      UPDATE public.personnages_donnees d SET pa = 0, updated_at = now() FROM g WHERE d.name = g.name AND coalesce(d.pa, 0) > 0 RETURNING d.name)
+    SELECT coalesce(jsonb_agg(name ORDER BY name), '[]'::jsonb) INTO v_victimes FROM u;
+    r := jsonb_build_object('ok', true, 'choix', 'subir', 'victimes', v_victimes, 'pa', 0);
+  END IF;
+  r := r || jsonb_build_object('creature', e.creature, 'nom', public.sovarka_foret_creature_interne(e.creature)->>'nom')
+         || (SELECT jsonb_build_object('inventory', inventory, 'revision', inventory_revision) FROM public.personnages_donnees WHERE name = a);
+  INSERT INTO public.sovarka_foret_actes (acteur, requete, resultat) VALUES (a, p_requete, r - 'inventory');
+  RETURN r;
+END $function$;
+
+CREATE OR REPLACE FUNCTION public.pnj_position_effective(p_id text)
+ RETURNS TABLE(pays text, ville text, building_id text, room_id text, rue_noeud_id text, porte boolean)
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT CASE WHEN m.leader_pj IS NOT NULL THEN d.country
+    WHEN m.leader_pnj_id IS NOT NULL THEN coalesce(l.position_pays,l.pays)
+    ELSE coalesce(m.position_pays,m.pays) END,
+    CASE WHEN m.leader_pj IS NOT NULL THEN d.current_city
+         WHEN m.leader_pnj_id IS NOT NULL THEN l.ville ELSE m.ville END,
+    CASE WHEN m.leader_pj IS NOT NULL THEN d.current_building
+         WHEN m.leader_pnj_id IS NOT NULL THEN l.building_id ELSE m.building_id END,
+    CASE WHEN m.leader_pj IS NOT NULL THEN d.current_room
+         WHEN m.leader_pnj_id IS NOT NULL THEN l.room_id ELSE m.room_id END,
+    CASE WHEN m.leader_pj IS NOT NULL THEN d.current_street
+         WHEN m.leader_pnj_id IS NOT NULL THEN l.rue_noeud_id ELSE m.rue_noeud_id END,
+    (m.leader_pj IS NOT NULL OR m.leader_pnj_id IS NOT NULL)
+  FROM public.pnj_membres m
+  LEFT JOIN public.personnages_donnees d ON d.name = m.leader_pj
+  LEFT JOIN public.pnj_membres         l ON l.id   = m.leader_pnj_id
+  WHERE m.id = p_id;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.crim_designation_bataille_interne(p_bataille bigint, p_nom text)
+ RETURNS text
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT coalesce((SELECT b.contexte -> 'crim_designations' ->> p_nom FROM public.batailles b WHERE b.id = p_bataille),
+                  public.crim_designation_interne(p_nom));
+$function$;
+
+CREATE OR REPLACE FUNCTION public.militaire_defense_pnj(p_cle text)
+ RETURNS numeric
+ LANGUAGE sql
+ IMMUTABLE
+AS $function$
+  SELECT 8::numeric;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.militaire_bonus_arme(p_cle text, p_mode text)
+ RETURNS integer
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT coalesce((SELECT b.bonus FROM public.militaire_armes_bonus b
+                    WHERE b.cle = p_cle AND b.mode = p_mode), 0);
+$function$;
+
+CREATE OR REPLACE FUNCTION public.militaire_degats_pct(p_degre text)
+ RETURNS numeric
+ LANGUAGE sql
+ IMMUTABLE
+AS $function$
+  SELECT CASE p_degre
+    WHEN 'critique'    THEN 1.00
+    WHEN 'partielle_1' THEN 0.75
+    WHEN 'partielle_2' THEN 0.50
+    ELSE                    0.00
+  END;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.militaire_degre_combat(p_taux integer, p_jet integer)
+ RETURNS text
+ LANGUAGE sql
+ IMMUTABLE
+AS $function$
+  SELECT CASE
+    WHEN p_jet = 1 THEN 'echec_critique'
+    ELSE (SELECT CASE
+            WHEN s >= 95 THEN 'critique'
+            WHEN s >= 70 THEN 'partielle_1'
+            WHEN s >= 50 THEN 'partielle_2'
+            WHEN s >= 10 THEN 'echec'
+            ELSE                'echec_critique'
+          END
+          FROM (SELECT least(100, greatest(0,
+                  p_jet + (coalesce(p_taux, 50) - 50) / 2.0)) AS s) x)
+  END;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.militaire_pa_restants(p_pa integer, p_degre text)
+ RETURNS integer
+ LANGUAGE sql
+ IMMUTABLE
+AS $function$
+  SELECT greatest(0, floor(greatest(0, coalesce(p_pa, 0))
+                           * (1 - public.militaire_degats_pct(p_degre)))::integer);
+$function$;
+
+CREATE OR REPLACE FUNCTION public.militaire_taux_combat(p_comp_off numeric, p_comp_cible numeric, p_stat_cible numeric, p_bonus_arme integer DEFAULT 0)
+ RETURNS integer
+ LANGUAGE sql
+ IMMUTABLE
+AS $function$
+  SELECT greatest(10, least(85, round(
+      50 + coalesce(p_comp_off, 0) / 3.0
+         - coalesce(p_comp_cible, 0) / 5.0
+         - (coalesce(p_stat_cible, 8) - 8)
+         + coalesce(p_bonus_arme, 0)
+    )::integer));
+$function$;
+
+CREATE OR REPLACE FUNCTION public.militaire_camps_hostiles(p_bataille_id bigint, p_camp text)
+ RETURNS text[]
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+  SELECT coalesce(array_agg(DISTINCT e.camp), '{}')
+    FROM public.batailles_engagements e
+   WHERE e.bataille_id = p_bataille_id
+     AND e.sorti_round IS NULL
+     AND e.camp IS DISTINCT FROM p_camp
+     AND ( EXISTS (SELECT 1 FROM public.guerres g
+                    WHERE g.statut = 'active'
+                      AND ((g.data->>'attaquant' = p_camp AND g.data->>'attaque'  = e.camp)
+                        OR (g.data->>'attaque'  = p_camp AND g.data->>'attaquant' = e.camp)))
+        OR EXISTS(SELECT 1 FROM public.batailles b WHERE b.id=p_bataille_id AND b.contexte->>'type' IN ('squatteurs','civil','faune','garde_acces') /* combat_faune_hostilite_v1 */ AND ((p_camp,e.camp)=(b.contexte->>'camp_acteur',b.contexte->>'camp_squatteurs') OR (e.camp,p_camp)=(b.contexte->>'camp_acteur',b.contexte->>'camp_squatteurs')))
+ -- bataille_civile_camps_v1
+ OR ( public.mutinerie_pays_du_camp(p_camp) = public.mutinerie_pays_du_camp(e.camp)
+             AND (public.mutinerie_est_camp(p_camp) OR public.mutinerie_est_camp(e.camp)) ) );
+$function$;
+
+CREATE OR REPLACE FUNCTION public.militaire_bataille_combattants(p_bataille_id bigint, p_camp text)
+ RETURNS TABLE(eng_id bigint, est_pj boolean, nom text, compagnie_id text, section_id text, matricule text, pa integer, comp_tir numeric, comp_cac numeric, arme_feu boolean, arme_cle text, bonus_arme integer, def_per numeric, def_dup numeric, saute_round integer, groupe_id text)
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+-- combat_mode_ouverture_v1
+-- combat_faune_hostilite_v1
+-- combat_civil_VOL_v1
+  SELECT e.id, true, e.personnage, e.compagnie_id, e.section_id, NULL::text,
+         greatest(0, coalesce(pd.pa, 0)),
+         coalesce((pd.competences_militaires->>'tir')::numeric, 0),
+         CASE WHEN EXISTS(SELECT 1 FROM public.batailles b WHERE b.id=p_bataille_id AND b.contexte->>'type' IN ('civil','squatteurs','faune','garde_acces')) THEN coalesce((pd.stats->>'VOL')::numeric,8) ELSE coalesce((pd.competences_militaires->>'combat_rapproche')::numeric, 0) END,
+         (af.cle IS NOT NULL),
+         coalesce(af.cle, ac.cle),
+         CASE WHEN public.maladie_sans_bonus_arme_interne(pd.name) THEN 0 ELSE coalesce(af.bonus, ac.bonus, 0) END,
+         public.assemblee_stat_base(pd.stats, 'PER'),
+         public.assemblee_stat_base(pd.stats, 'DUP'),
+         e.saute_round, e.groupe_id
+    FROM public.batailles_engagements e
+    JOIN public.personnages_donnees pd ON pd.name = e.personnage
+    LEFT JOIN LATERAL (
+      SELECT b.cle, b.bonus FROM jsonb_array_elements(
+               CASE WHEN jsonb_typeof(pd.inventory)='array' THEN pd.inventory ELSE '[]'::jsonb END) i
+        JOIN public.militaire_armes_bonus b
+          ON b.cle = coalesce(i->>'produitMilitaire', i->>'name')
+       WHERE i->>'type' = 'arme' AND b.mode = 'feu'
+       ORDER BY b.bonus DESC LIMIT 1) af ON NOT EXISTS(SELECT 1 FROM public.batailles b WHERE b.id=p_bataille_id AND b.contexte->>'acteur'=e.personnage AND b.contexte->>'mode'<>'feu')
+    LEFT JOIN LATERAL (
+      SELECT b.cle, b.bonus FROM jsonb_array_elements(
+               CASE WHEN jsonb_typeof(pd.inventory)='array' THEN pd.inventory ELSE '[]'::jsonb END) i
+        JOIN public.militaire_armes_bonus b
+          ON b.cle = coalesce(i->>'produitMilitaire', i->>'name')
+       WHERE i->>'type' = 'arme' AND b.mode = 'cac'
+       ORDER BY b.bonus DESC LIMIT 1) ac ON NOT EXISTS(SELECT 1 FROM public.batailles b WHERE b.id=p_bataille_id AND b.contexte->>'acteur'=e.personnage AND b.contexte->>'mode'<>'arme')
+   WHERE e.bataille_id = p_bataille_id AND e.camp = p_camp
+     AND e.personnage IS NOT NULL AND e.sorti_round IS NULL
+ -- bataille_disponibilite_round_v1
+ AND pd.pa>0 AND coalesce(pd.hp,100)>0 AND (pd.est_emprisonne IS NULL OR pd.est_emprisonne='null'::jsonb)
+ AND coalesce(pd.hospitalisation->>'dateFinParis','')<=(statement_timestamp() AT TIME ZONE 'Europe/Paris')::date::text
+ AND NOT CASE WHEN coalesce(pd.hospitalisation->>'jourFin','')~'^[0-9]+$' THEN (pd.hospitalisation->>'jourFin')::numeric>coalesce(pd.day,1) ELSE false END
+ AND EXISTS(SELECT 1 FROM public.batailles bb WHERE bb.id=e.bataille_id AND (pd.country,pd.current_city,pd.current_building,pd.current_room) IS NOT DISTINCT FROM (bb.pays,bb.ville,bb.batiment,bb.piece))
+
+  UNION ALL
+
+  SELECT e.id, false,
+         NULL::text,
+         e.compagnie_id, e.section_id, e.matricule,
+         greatest(0, coalesce(m.pa, 0)),
+         coalesce((sm.formation->>'tir')::numeric, 0),
+         coalesce((sm.formation->>'combat_rapproche')::numeric, 0),
+         EXISTS (SELECT 1 FROM public.militaire_armes_bonus b
+                  WHERE b.cle = coalesce(sm.arme,'corps_a_corps') AND b.mode = 'feu'),
+         coalesce(sm.arme,'corps_a_corps'),
+         public.militaire_bonus_arme(coalesce(sm.arme,'corps_a_corps'),
+           CASE WHEN EXISTS (SELECT 1 FROM public.militaire_armes_bonus b
+                              WHERE b.cle = coalesce(sm.arme,'corps_a_corps') AND b.mode = 'feu')
+                THEN 'feu' ELSE 'cac' END),
+         public.militaire_defense_pnj('PER'),
+         public.militaire_defense_pnj('DUP'),
+         e.saute_round, e.groupe_id
+    FROM public.batailles_engagements e
+    JOIN public.pnj_soldats_metier sm ON sm.matricule = e.matricule
+    JOIN public.pnj_membres m ON m.id = sm.pnj_id
+   WHERE e.bataille_id = p_bataille_id AND e.camp = p_camp
+     AND e.matricule IS NOT NULL AND e.sorti_round IS NULL
+     AND m.id LIKE e.compagnie_id || '-%'
+
+     AND sm.section_id = e.section_id AND m.statut='actif' AND m.pa>0 AND EXISTS(SELECT 1 FROM public.pnj_position_effective(m.id) pe JOIN public.batailles bb ON bb.id=e.bataille_id WHERE (pe.pays,pe.ville,pe.building_id,pe.room_id) IS NOT DISTINCT FROM (bb.pays,bb.ville,bb.batiment,bb.piece))
+  -- bataille_identites_socle_v1
+  UNION ALL
+  SELECT e.id,false,m.nom,NULL::text,NULL::text,m.id,m.pa,
+    0::numeric,CASE WHEN EXISTS(SELECT 1 FROM public.batailles b WHERE b.id=p_bataille_id AND b.contexte->>'type' IN ('civil','squatteurs','faune','garde_acces')) THEN m.car_vol::numeric ELSE 0::numeric END,(af.cle IS NOT NULL),coalesce(af.cle,ac.cle,'corps_a_corps'),coalesce(af.bonus,ac.bonus,CASE WHEN m.id LIKE 'faune:%' /* combat_faune_griffes_v1 */ THEN coalesce((public.sovarka_foret_creature_interne((SELECT r.creature FROM public.sovarka_foret_rencontres r WHERE r.pnj_id=m.id LIMIT 1))->>'griffes')::integer,0) ELSE 0 END),
+    m.car_per::numeric,m.car_dup::numeric,e.saute_round,e.groupe_id
+  FROM public.batailles_engagements e JOIN public.pnj_membres m ON m.id=e.pnj_id
+  LEFT JOIN LATERAL (SELECT b.cle,b.bonus FROM public.pnj_possessions p JOIN public.militaire_armes_bonus b ON b.cle=coalesce(p.objet->>'produitMilitaire',p.objet->>'name') WHERE p.pnj_id=m.id AND p.objet->>'type'='arme' AND b.mode='feu' ORDER BY b.bonus DESC,p.id LIMIT 1) af ON true
+  LEFT JOIN LATERAL (SELECT b.cle,b.bonus FROM public.pnj_possessions p JOIN public.militaire_armes_bonus b ON b.cle=coalesce(p.objet->>'produitMilitaire',p.objet->>'name') WHERE p.pnj_id=m.id AND p.objet->>'type'='arme' AND b.mode='cac' ORDER BY b.bonus DESC,p.id LIMIT 1) ac ON true
+  WHERE e.bataille_id=p_bataille_id AND e.camp=p_camp AND e.sorti_round IS NULL
+  AND e.personnage IS NULL AND m.famille<>'soldat' AND m.statut='actif' AND m.pa>0 AND EXISTS(SELECT 1 FROM public.pnj_position_effective(m.id) pe JOIN public.batailles bb ON bb.id=e.bataille_id WHERE (pe.pays,pe.ville,pe.building_id,pe.room_id) IS NOT DISTINCT FROM (bb.pays,bb.ville,bb.batiment,bb.piece));
+
+$function$;
+
+CREATE OR REPLACE FUNCTION public.militaire_bataille_actions(p_bataille_id bigint, p_camp_att text, p_round integer, p_surprise boolean DEFAULT false)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+DECLARE
+  v_res jsonb := '[]'::jsonb;
+  a record; k integer; n integer; v_hostiles text[];
+  d_eng bigint[]; d_pj boolean[]; d_nom text[]; d_cie text[]; d_sec text[]; d_mat text[];
+  d_camp text[]; d_per numeric[]; d_dup numeric[]; d_tir numeric[]; d_cac numeric[];
+  d_feu boolean[]; u_tir integer[]; u_cac integer[]; v_urne integer[];
+  v_mode text; v_taux integer; v_jet integer; v_degre text;
+BEGIN
+  v_hostiles := public.militaire_camps_hostiles(p_bataille_id, p_camp_att);
+  IF coalesce(array_length(v_hostiles, 1), 0) = 0 THEN RETURN v_res; END IF;
+
+  SELECT array_agg(c.eng_id ORDER BY c.eng_id), array_agg(c.est_pj ORDER BY c.eng_id),
+         array_agg(c.nom ORDER BY c.eng_id), array_agg(c.compagnie_id ORDER BY c.eng_id),
+         array_agg(c.section_id ORDER BY c.eng_id), array_agg(c.matricule ORDER BY c.eng_id),
+         array_agg(c.camp ORDER BY c.eng_id), array_agg(c.def_per ORDER BY c.eng_id),
+         array_agg(c.def_dup ORDER BY c.eng_id), array_agg(c.comp_tir ORDER BY c.eng_id),
+         array_agg(c.comp_cac ORDER BY c.eng_id), array_agg(c.arme_feu ORDER BY c.eng_id)
+    INTO d_eng, d_pj, d_nom, d_cie, d_sec, d_mat, d_camp, d_per, d_dup, d_tir, d_cac, d_feu
+    FROM (SELECT x.*, h.camp
+            FROM unnest(v_hostiles) AS h(camp)
+            CROSS JOIN LATERAL public.militaire_bataille_combattants(p_bataille_id, h.camp) x) c;
+  n := coalesce(array_length(d_eng, 1), 0);
+  IF n = 0 THEN RETURN v_res; END IF;
+
+  -- Urne de base : un jeton par ennemi.
+  SELECT coalesce(array_agg(i ORDER BY i), '{}') INTO u_cac FROM generate_series(1, n) AS g(i);
+  -- Urne des tireurs : un second jeton pour chaque ennemi au corps-a-corps.
+  SELECT u_cac || coalesce(array_agg(i ORDER BY i), '{}') INTO u_tir
+    FROM generate_series(1, n) AS g(i) WHERE NOT coalesce(d_feu[g.i], false);
+
+  FOR a IN
+    SELECT * FROM public.militaire_bataille_combattants(p_bataille_id, p_camp_att)
+     WHERE saute_round IS DISTINCT FROM p_round
+  LOOP
+    v_mode := CASE WHEN a.arme_feu THEN 'feu' ELSE 'cac' END;
+    v_urne := CASE WHEN a.arme_feu THEN u_tir ELSE u_cac END;
+    k := v_urne[1 + floor(random() * array_length(v_urne, 1))::integer];
+
+    -- La competence qui DEFEND est celle du meme domaine que l'attaque subie.
+    v_taux := public.militaire_taux_combat(
+      CASE WHEN a.arme_feu THEN a.comp_tir ELSE a.comp_cac END,
+      CASE WHEN a.arme_feu THEN d_tir[k]   ELSE d_cac[k]   END,
+      CASE WHEN a.arme_feu THEN d_per[k]   ELSE d_dup[k]   END,
+      a.bonus_arme);
+    v_jet   := floor(random() * 100)::integer + 1;
+    v_degre := public.militaire_degre_combat(v_taux, v_jet);
+
+    IF coalesce(p_surprise, false) AND v_jet <> 1 THEN
+      v_degre := public.militaire_degre_par_rang(public.militaire_degre_rang(v_degre) + 1);
+    END IF;
+
+    v_res := v_res || jsonb_build_array(jsonb_build_object(
+      'camp_attaquant', p_camp_att,
+      'att_eng', a.eng_id, 'att_pj', a.est_pj, 'att_nom', a.nom, 'att_mat', a.matricule,
+      'att_arme', a.arme_cle, 'att_bonus', a.bonus_arme, 'att_groupe', a.groupe_id,
+      'cib_eng', d_eng[k], 'cib_pj', d_pj[k], 'cib_nom', d_nom[k], 'cib_mat', d_mat[k],
+      'cib_cie', d_cie[k], 'cib_sec', d_sec[k], 'cib_camp', d_camp[k],
+      'mode', v_mode, 'taux', v_taux, 'jet', v_jet, 'degre', v_degre,
+      'surprise', coalesce(p_surprise, false)));
+  END LOOP;
+  RETURN v_res;
+END;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.militaire_bataille_appliquer(p_bataille_id bigint, p_actions jsonb, p_round integer)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_pnj text; v_statut text; -- bataille_effets_socle_v1
+  act jsonb; v_pa integer; v_new integer; v_gilet jsonb; v_degre text; v_abaisse text;
+  v_out jsonb := '[]'::jsonb; v_protege boolean;
+  v_camp_mutin text; v_b record; v_ville_prison text; v_det jsonb;
+BEGIN
+  SELECT pays, ville INTO v_b FROM public.batailles WHERE id = p_bataille_id;
+
+  FOR act IN SELECT value FROM jsonb_array_elements(coalesce(p_actions, '[]'::jsonb))
+  LOOP
+    v_degre := act->>'degre'; v_protege := false;
+    SELECT pnj_id INTO v_pnj FROM public.batailles_engagements WHERE id=(act->>'cib_eng')::bigint AND bataille_id=p_bataille_id;
+
+    IF v_degre = 'echec_critique' THEN
+      UPDATE public.batailles_engagements SET saute_round = p_round + 1
+       WHERE id = (act->>'att_eng')::bigint AND sorti_round IS NULL;
+      v_out := v_out || jsonb_build_array(act || jsonb_build_object('perte', 0, 'saute_suivant', true));
+      CONTINUE;
+    END IF;
+
+    IF public.militaire_degats_pct(v_degre) = 0
+       OR NOT EXISTS (SELECT 1 FROM public.batailles_engagements
+                       WHERE id = (act->>'cib_eng')::bigint AND sorti_round IS NULL) THEN
+      v_out := v_out || jsonb_build_array(act || jsonb_build_object('perte', 0));
+      CONTINUE;
+    END IF;
+
+    SELECT pa INTO v_pa FROM public.militaire_bataille_combattants(
+      p_bataille_id, act->>'cib_camp') WHERE eng_id = (act->>'cib_eng')::bigint;
+    IF v_pa IS NULL THEN
+      v_out := v_out || jsonb_build_array(act || jsonb_build_object('perte', 0));
+      CONTINUE;
+    END IF;
+
+    v_new := public.militaire_pa_restants(v_pa, v_degre);
+
+    IF v_new = 0 AND act->>'mode' = 'feu' THEN
+      IF v_pnj IS NOT NULL THEN v_gilet:=public.combat_gilet_pnj_absorber_interne(v_pnj); ELSE
+      v_gilet := public.militaire_gilet_absorber(
+        (act->>'cib_pj')::boolean, act->>'cib_nom',
+        act->>'cib_cie', act->>'cib_sec', act->>'cib_mat'); END IF;
+      IF coalesce((v_gilet->>'protege')::boolean, false) THEN
+        v_protege := true;
+        v_abaisse := public.militaire_degre_par_rang(public.militaire_degre_rang(v_degre) - 1);
+        v_new := greatest(1, public.militaire_pa_restants(v_pa, v_abaisse));
+      END IF;
+    END IF;
+
+    IF (act->>'cib_pj')::boolean THEN
+      UPDATE public.personnages_donnees SET pa = v_new WHERE name = act->>'cib_nom';
+    ELSE
+      IF v_pnj IS NOT NULL THEN UPDATE public.pnj_membres SET pa=v_new WHERE id=v_pnj; PERFORM public.pnj_groupes_projeter_interne(ARRAY[v_pnj]); ELSE
+      PERFORM public.militaire_soldat_pa_fixer(act->>'cib_cie', act->>'cib_sec', act->>'cib_mat', v_new); END IF;
+    END IF;
+
+    v_out := v_out || jsonb_build_array(act || jsonb_build_object(
+      'pa_avant', v_pa, 'pa_apres', v_new, 'perte', v_pa - v_new,
+      'gilet', v_protege, 'degre_applique', coalesce(v_abaisse, v_degre)));
+
+
+    CONTINUE WHEN v_new > 0;
+    -- Le chef garde sa position et son groupe tant que d'autres combattants du
+    -- groupe sont engagés. Pas de départ à l'infirmerie emportant ses suiveurs.
+    IF (act->>'cib_pj')::boolean AND EXISTS(
+      SELECT 1 FROM public.batailles_groupes g JOIN public.batailles_engagements e
+      ON e.bataille_id=g.bataille_id AND e.groupe_id=g.groupe_id
+      WHERE g.bataille_id=p_bataille_id AND g.leader=act->>'cib_nom'
+      AND e.id<>(act->>'cib_eng')::bigint AND e.sorti_round IS NULL) THEN
+     UPDATE public.batailles_engagements SET sorti_round=p_round,etat_final='neutralise' WHERE id=(act->>'cib_eng')::bigint;
+     UPDATE public.batailles SET contexte=jsonb_set(contexte,'{neutralisations_differees}',
+       coalesce(contexte->'neutralisations_differees','[]'::jsonb)||jsonb_build_array(act||jsonb_build_object('round_terminal',p_round))) WHERE id=p_bataille_id;
+     CONTINUE;
+    END IF;
+
+
+    IF (act->>'cib_pj')::boolean THEN
+      PERFORM public.militaire_bataille_neutralisation_terminale_interne(p_bataille_id,act,p_round);    ELSE
+      IF v_pnj IS NOT NULL THEN PERFORM public.pnj_mourir(v_pnj,'degats'); PERFORM public.pnj_groupes_projeter_interne(ARRAY[v_pnj]); END IF;
+      IF act->>'cib_cie' IS NOT NULL THEN
+      PERFORM public.militaire_soldat_supprimer(act->>'cib_cie', act->>'cib_sec', act->>'cib_mat'); END IF;
+      UPDATE public.batailles_engagements
+         SET sorti_round = p_round, etat_final = 'mort'
+       WHERE id = (act->>'cib_eng')::bigint;
+    END IF;
+  END LOOP;
+  RETURN v_out;
+END;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.militaire_bataille_rapport(p_bataille_id bigint, p_camp text, p_camp_adverse text, p_round integer, p_actions jsonb, p_reste_moi integer, p_reste_adverse integer)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+DECLARE
+  b record; v_pa_perdus integer; v_touches integer; v_morts integer; v_neutralises integer;
+  v_tombes_adverse integer;
+BEGIN
+  SELECT * INTO b FROM public.batailles WHERE id = p_bataille_id;
+
+  SELECT coalesce(sum(coalesce((a->>'perte')::integer, 0)), 0),
+         count(*) FILTER (WHERE coalesce((a->>'perte')::integer, 0) > 0)
+    INTO v_pa_perdus, v_touches
+    FROM jsonb_array_elements(coalesce(p_actions, '[]'::jsonb)) a
+   WHERE a->>'cib_camp' = p_camp;
+
+  SELECT count(*) FILTER (WHERE etat_final = 'mort'),
+         count(*) FILTER (WHERE etat_final = 'neutralise')
+    INTO v_morts, v_neutralises
+    FROM public.batailles_engagements
+   WHERE bataille_id = p_bataille_id AND camp = p_camp AND sorti_round = p_round;
+
+  SELECT count(*) INTO v_tombes_adverse FROM public.batailles_engagements
+   WHERE bataille_id = p_bataille_id AND camp <> p_camp AND sorti_round = p_round;
+
+  RETURN jsonb_build_object(
+    'round', p_round,
+    'lieu', jsonb_build_object('ville', b.ville, 'batiment', b.batiment, 'piece', b.piece),
+    'mon_camp', p_camp,
+    'mes_combattants_restants', p_reste_moi,
+    'mes_pa_perdus', v_pa_perdus,
+    'mes_combattants_touches', v_touches,
+    'mes_morts_pnj', v_morts,
+    'mes_pj_neutralises', v_neutralises,
+    'adversaires_tombes', v_tombes_adverse,
+    'adversaire_estime', CASE WHEN p_reste_adverse > 0
+      THEN public.militaire_degrader('proche', p_reste_adverse, p_camp_adverse, b.ville, b.batiment)
+      ELSE jsonb_build_object('libelle', 'plus aucun adversaire debout') END,
+    'termine', (p_reste_moi = 0 OR p_reste_adverse = 0));
+END;
+$function$;
+
+-- Copie réduite : la position de repli (militaire_position_repli, caserne) est hors sujet ici.
+CREATE OR REPLACE FUNCTION public.militaire_bataille_groupes_constituer(p_bataille_id bigint)
+ RETURNS integer
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+DECLARE v_n integer;
+BEGIN
+  INSERT INTO public.batailles_groupes
+    (bataille_id, groupe_id, camp, compagnie_id, section_id, leader, effectif_initial, repli)
+  SELECT e.bataille_id, e.groupe_id, min(e.camp), min(e.compagnie_id), min(e.section_id),
+         (SELECT p.personnage FROM public.batailles_engagements p
+           WHERE p.bataille_id = e.bataille_id AND p.groupe_id = e.groupe_id
+             AND p.personnage IS NOT NULL
+           ORDER BY CASE p.grade WHEN 'commandant' THEN 1 WHEN 'capitaine' THEN 2
+                                 WHEN 'lieutenant' THEN 3 ELSE 4 END, p.id LIMIT 1),
+         count(*),
+         NULL::jsonb
+    FROM public.batailles_engagements e
+   WHERE e.bataille_id = p_bataille_id
+   GROUP BY e.bataille_id, e.groupe_id
+  ON CONFLICT (bataille_id, groupe_id) DO NOTHING;
+  GET DIAGNOSTICS v_n = ROW_COUNT;
+ -- bataille_chef_universel_v1
+ UPDATE public.batailles_groupes g SET leader=(SELECT e.personnage FROM public.batailles_engagements e WHERE e.bataille_id=g.bataille_id AND e.groupe_id=g.groupe_id AND g.groupe_id=g.camp||'|pj:'||e.personnage LIMIT 1) WHERE g.bataille_id=p_bataille_id AND g.groupe_id LIKE g.camp||'|pj:%';
+  RETURN v_n;
+END;
+$function$;
+
+-- Copie réduite : seule la branche des combats civils et de faune (PA à 0, santé à 0) est conservée.
+CREATE OR REPLACE FUNCTION public.militaire_bataille_neutralisation_terminale_interne(p_bataille_id bigint, act jsonb, p_round integer)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$DECLARE v_camp_mutin text;v_b record;v_ville_prison text;v_det jsonb;BEGIN -- combat_civil_terminal_v1
+ IF EXISTS(SELECT 1 FROM public.batailles WHERE id=p_bataille_id AND contexte->>'type' IN ('civil','squatteurs','faune','garde_acces') /* combat_faune_hostilite_v1 */) THEN UPDATE public.personnages_donnees SET hp=least(coalesce(hp,100),0) WHERE name=act->>'cib_nom';RETURN;END IF;
+ UPDATE public.batailles_engagements SET sorti_round = p_round, etat_final = 'neutralise' WHERE id = (act->>'cib_eng')::bigint;
+END;$function$;
+
+CREATE OR REPLACE FUNCTION public.militaire_bataille_finaliser_neutralisations_interne(p_bataille bigint)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE b public.batailles%ROWTYPE;x jsonb;reste jsonb:='[]'::jsonb;
+BEGIN
+ SELECT * INTO b FROM public.batailles WHERE id=p_bataille FOR UPDATE;
+ FOR x IN SELECT value FROM jsonb_array_elements(coalesce(b.contexte->'neutralisations_differees','[]'::jsonb)) LOOP
+  IF b.statut='terminee' OR NOT EXISTS(SELECT 1 FROM public.batailles_engagements e JOIN public.batailles_engagements chef
+    ON chef.bataille_id=e.bataille_id AND chef.groupe_id=e.groupe_id
+    WHERE chef.id=(x->>'cib_eng')::bigint AND e.sorti_round IS NULL) THEN
+   PERFORM public.militaire_bataille_neutralisation_terminale_interne(p_bataille,x,(x->>'round_terminal')::integer);
+  ELSE reste:=reste||jsonb_build_array(x);END IF;
+ END LOOP;
+ IF b.contexte ? 'neutralisations_differees' THEN
+ UPDATE public.batailles SET contexte=jsonb_set(contexte,'{neutralisations_differees}',reste) WHERE id=p_bataille;END IF;
+END $function$;
+
+CREATE OR REPLACE FUNCTION public.combat_finaliser_interne(p_bataille bigint)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE b public.batailles%ROWTYPE;issue text;v jsonb;
+BEGIN
+ SELECT * INTO b FROM public.batailles WHERE id=p_bataille FOR UPDATE;
+ IF b.statut<>'terminee' OR b.contexte->>'type' NOT IN ('civil','squatteurs','faune','garde_acces') THEN RETURN '{}'::jsonb;END IF;
+ IF b.contexte ? 'resultat_civil' THEN RETURN b.contexte->'resultat_civil';END IF;
+ IF EXISTS(SELECT 1 FROM public.batailles_engagements WHERE bataille_id=p_bataille AND camp=b.camp_b AND etat_final='mort') THEN issue:='tues';
+ ELSIF NOT EXISTS(SELECT 1 FROM public.batailles_engagements WHERE bataille_id=p_bataille AND camp=b.camp_b AND sorti_round IS NULL) THEN issue:='neutralises';
+ ELSE issue:='defaite';END IF;
+ -- combat_faune_hostilite_v1 : une bête qui décroche ou devient indisponible s'enfuit, elle n'est pas vaincue.
+ IF b.contexte->>'type'='faune' AND issue='neutralises' AND NOT EXISTS(SELECT 1 FROM public.batailles_engagements WHERE bataille_id=p_bataille AND camp=b.camp_b AND etat_final IS DISTINCT FROM 'replie' AND etat_final IS DISTINCT FROM 'indisponible') THEN issue:='fuite';END IF;
+ -- sovarka_foret_faune_v1 : creature de la foret de Krasnov, butin au leader.
+ -- acces_reserve_garde_v1 : garde du Pavillon ou de la Résidence, la voie est libre s'il est vaincu.
+ IF b.contexte->>'type'='garde_acces' THEN
+  v:=public.acces_issue_combat_interne(b.contexte->>'cible',b.contexte->>'acteur',issue);
+ ELSIF b.contexte->>'type'='faune' THEN
+  v:=public.sovarka_foret_issue_combat_interne(b.contexte->>'cible',b.contexte->>'acteur',issue);
+ ELSIF b.contexte->>'type'='squatteurs' THEN
+  v:=public.terrain_squatteurs_issue_bataille_interne(b.batiment,b.contexte->>'acteur',issue,(b.contexte->>'requete')::uuid,p_bataille);
+  IF NOT coalesce((v->>'ok')::boolean,false) THEN RAISE EXCEPTION 'terrain_issue_non_confirmee:%',v;END IF;
+ ELSIF b.contexte ? 'crim_affaire' THEN /* crim_combat_issue_v1 */
+  v:=public.crim_resoudre_suite_interne((b.contexte->>'crim_affaire')::bigint,CASE WHEN issue='defaite' THEN 'vaincu' ELSE 'vainqueur' END)||jsonb_build_object('issue',issue);
+ ELSE
+  IF issue<>'defaite' THEN
+   PERFORM public.crime_tracer_interne(b.contexte->>'acteur',CASE WHEN issue='tues' THEN 'meurtre' ELSE 'agression' END,b.contexte->>'cible');
+   PERFORM public.crime_detecter_interne(b.contexte->>'acteur',CASE WHEN issue='tues' THEN 'meurtre' ELSE 'agression' END,true);
+  ELSE
+   -- Conserver le motif d'échec du corps vivant de crime_neutraliser, sans
+   -- rejouer son jet ni prélever une amende dans ce résolveur.
+   PERFORM public.crime_rechercher_interne(b.contexte->>'acteur','tentative_assassinat','crime');
+  END IF;
+  v:=jsonb_build_object('ok',true,'issue',issue);
+ END IF;
+ UPDATE public.batailles SET contexte=jsonb_set(contexte,'{resultat_civil}',v) WHERE id=p_bataille;
+ RETURN v;
+END $function$;
+
+CREATE OR REPLACE FUNCTION public.militaire_bataille_round(p_bataille_id bigint)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+DECLARE
+  b record; v_round integer; v_camps text[]; v_camp text; v_surprise text;
+  v_actions jsonb := '[]'::jsonb; v_autres jsonb := '[]'::jsonb;
+  v_reste integer; v_debout integer; v_issue text; v_attente integer;
+-- bataille_issue_reelle_v1
+BEGIN
+ -- bataille_graphe_avant_lignes_v1
+ PERFORM pg_advisory_xact_lock(hashtextextended('groupe_pj:graphe',0));
+ -- bataille_installation_v1
+ IF NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid='public.militaire_bataille_round(bigint)'::regprocedure AND position('-- bataille_'||'sorties_indisponibles_v1' IN prosrc)>0) OR to_regprocedure('public.militaire_bataille_commande_interne(bigint,text,integer,uuid)') IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','installation_incomplete');END IF;
+  SELECT * INTO b FROM public.batailles WHERE id = p_bataille_id FOR UPDATE;
+  IF NOT FOUND THEN RETURN jsonb_build_object('ok', false, 'raison', 'bataille_introuvable'); END IF;
+  IF b.statut <> 'en_cours' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'bataille_terminee', 'issue', b.issue);
+  END IF;
+
+ -- combat_phase_engagee_v1
+ UPDATE public.batailles SET contexte=jsonb_set(contexte,'{phase}','"combat"'::jsonb) WHERE id=p_bataille_id AND contexte->>'type' IN ('civil','squatteurs','faune','garde_acces'); -- combat_faune_hostilite_v1
+  v_round := b.round_courant + 1;
+  IF v_round > 200 THEN
+    UPDATE public.batailles SET statut = 'terminee', fin_ts = now(),
+           termine_raison = 'borne_technique_atteinte', issue = NULL WHERE id = p_bataille_id;
+    RETURN jsonb_build_object('ok', false, 'raison', 'borne_technique_atteinte', 'round', v_round);
+  END IF;
+
+ -- bataille_sorties_indisponibles_v1
+ PERFORM public.pnj_groupes_verrouiller_projections_interne(ARRAY(SELECT pnj_id FROM public.batailles_engagements WHERE bataille_id=p_bataille_id AND sorti_round IS NULL AND pnj_id IS NOT NULL ORDER BY pnj_id));
+ PERFORM d.name FROM public.personnages_donnees d WHERE d.name IN (SELECT personnage FROM public.batailles_engagements WHERE bataille_id=p_bataille_id AND sorti_round IS NULL) ORDER BY d.name FOR UPDATE;
+ PERFORM m.id FROM public.pnj_membres m WHERE m.id IN (SELECT pnj_id FROM public.batailles_engagements WHERE bataille_id=p_bataille_id AND sorti_round IS NULL) ORDER BY m.id FOR UPDATE;
+ UPDATE public.batailles_engagements e SET sorti_round=v_round,etat_final='indisponible' WHERE e.bataille_id=p_bataille_id AND e.sorti_round IS NULL AND NOT EXISTS(SELECT 1 FROM public.militaire_bataille_combattants(p_bataille_id,e.camp) c WHERE c.eng_id=e.id);
+  SELECT coalesce(array_agg(DISTINCT camp), '{}') INTO v_camps
+    FROM public.batailles_engagements
+   WHERE bataille_id = p_bataille_id AND sorti_round IS NULL;
+
+  -- SURPRISE : premier round, et seulement si l'engageant avait l'initiative.
+  v_surprise := CASE WHEN v_round = 1 AND b.initiative = 'a' THEN b.camp_a ELSE NULL END;
+
+  IF v_surprise IS NOT NULL THEN
+    -- La passe du camp surprenant est calculee ET appliquee avant que les
+    -- autres ne soient photographies : c'est cela, l'initiative.
+    v_actions := public.militaire_bataille_actions(p_bataille_id, v_surprise, v_round, true);
+    v_actions := public.militaire_bataille_appliquer(p_bataille_id, v_actions, v_round);
+    FOREACH v_camp IN ARRAY v_camps LOOP
+      CONTINUE WHEN v_camp = v_surprise;
+      v_autres := v_autres || public.militaire_bataille_actions(p_bataille_id, v_camp, v_round, false);
+    END LOOP;
+    v_autres  := public.militaire_bataille_appliquer(p_bataille_id, v_autres, v_round);
+    v_actions := v_actions || v_autres;
+  ELSE
+    -- Hors surprise, toutes les passes sont calculees AVANT toute
+    -- application : c'est cela, la simultaneite.
+    FOREACH v_camp IN ARRAY v_camps LOOP
+      v_actions := v_actions || public.militaire_bataille_actions(p_bataille_id, v_camp, v_round, false);
+    END LOOP;
+    v_actions := public.militaire_bataille_appliquer(p_bataille_id, v_actions, v_round);
+  END IF;
+
+  -- Un rapport par camp encore present.
+  FOREACH v_camp IN ARRAY v_camps LOOP
+    SELECT count(*) INTO v_reste FROM public.batailles_engagements
+     WHERE bataille_id = p_bataille_id AND camp = v_camp AND sorti_round IS NULL;
+    INSERT INTO public.batailles_rounds (bataille_id, numero, camp, rapport)
+    VALUES (p_bataille_id, v_round, v_camp,
+            public.militaire_bataille_rapport(p_bataille_id, v_camp,
+              coalesce((public.militaire_camps_hostiles(p_bataille_id, v_camp))[1], v_camp),
+              v_round, v_actions, v_reste,
+              (SELECT count(*)::integer FROM public.batailles_engagements
+                WHERE bataille_id = p_bataille_id AND camp <> v_camp AND sorti_round IS NULL)))
+    ON CONFLICT (bataille_id, numero, camp) DO NOTHING;
+  END LOOP;
+
+  UPDATE public.batailles SET round_courant = v_round WHERE id = p_bataille_id;
+
+  -- Seuil de 50 %, fenetre de 90 s, replis automatiques.
+ -- combat_decision_consommee_v1
+ UPDATE public.batailles_groupes SET decision=NULL WHERE bataille_id=p_bataille_id AND sorti_round IS NULL;
+  v_attente := public.militaire_bataille_arbitrer_groupes(p_bataille_id, v_round);
+
+  -- Fin : il ne reste qu'un camp debout, ou aucun.
+  SELECT count(DISTINCT camp) INTO v_debout FROM public.batailles_engagements
+   WHERE bataille_id = p_bataille_id AND sorti_round IS NULL;
+  IF v_debout <= 1 THEN
+    SELECT CASE WHEN v_debout = 0 THEN CASE WHEN EXISTS(SELECT 1 FROM public.batailles_engagements WHERE bataille_id=p_bataille_id AND etat_final IS DISTINCT FROM 'mort') THEN NULL ELSE 'aneantissement_mutuel' END
+                ELSE 'victoire_' || (SELECT DISTINCT camp FROM public.batailles_engagements
+                                      WHERE bataille_id = p_bataille_id AND sorti_round IS NULL) END
+      INTO v_issue;
+    UPDATE public.batailles SET statut = 'terminee', fin_ts = now(), issue = v_issue,
+           termine_raison = 'camp_hors_combat' WHERE id = p_bataille_id;
+  END IF;
+
+ -- combat_fin_neutralisations_v1
+ PERFORM public.militaire_bataille_finaliser_neutralisations_interne(p_bataille_id);
+ -- combat_fin_civile_v1
+ PERFORM public.combat_finaliser_interne(p_bataille_id);
+  RETURN jsonb_build_object('ok', true, 'round', v_round, 'surprise', v_surprise,
+    'camps', v_camps, 'camps_debout', v_debout, 'groupes_en_attente', v_attente,
+    'issue', v_issue, 'terminee', (v_debout <= 1));
+END;
+$function$;

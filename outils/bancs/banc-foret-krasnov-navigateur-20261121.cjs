@@ -1,5 +1,6 @@
 // Chromium réel : forêt de Krasnov (version définitive du 21/11/2026) — portique cliquable vers la clairière, sentier de la
-// clairière et sous-bois des vues vers l'exploration, infobulle « Explorer la forêt », halo très léger, vraies images.
+// clairière et sous-bois des vues vers l'exploration, infobulle « Explorer la forêt », vraies images.
+// 22/11/2026 (point 8) : plus de halo ; l'infobulle reprend celle des entrées de bâtiment (.rc-tooltip).
 const test = require('node:test'), assert = require('node:assert/strict'), fs = require('node:fs'), path = require('node:path'), os = require('node:os'), http = require('node:http');
 const { chromium } = require('../e2e/node_modules/playwright');
 const { lancerChromium } = require('./fixtures/chromium-cdp.cjs');
@@ -29,10 +30,17 @@ test('portique → clairière, sentier → exploration, sous-bois → exploratio
     // Entrée : le portique, en haut à droite de l'image.
     await salle('zone_recolte');
     const porte = page.locator('.foret-porte');
-    assert.equal(await porte.getAttribute('title'), 'Explorer la forêt');
+    assert.equal(await porte.getAttribute('aria-label'), 'Explorer la forêt');
+    assert.equal(await porte.getAttribute('title'), null, 'pas de seconde bulle du navigateur');
     assert.equal(await porte.evaluate(e => getComputedStyle(e).cursor), 'pointer');
-    assert.match(await porte.evaluate(e => getComputedStyle(e).animationName), /foretHalo/);
+    assert.equal(await porte.evaluate(e => getComputedStyle(e).animationName), 'none', 'plus de halo');
+    assert.equal(await porte.evaluate(e => getComputedStyle(e).boxShadow), 'none', 'plus de halo');
     const bb = await porte.boundingBox();
+    await page.mouse.move(bb.x + bb.width / 2, bb.y + bb.height / 2);
+    await page.mouse.move(bb.x + bb.width / 2 + 3, bb.y + bb.height / 2 + 3);
+    const bulle = page.locator('#foret-tooltip');
+    assert.equal(await bulle.getAttribute('class'), 'rc-tooltip visible', 'même infobulle que les entrées de bâtiment');
+    assert.equal(await bulle.textContent(), 'Explorer la forêt');
     assert.ok(bb.x > 600 && bb.y < 300, 'au fond à droite, au-dessus du chemin');
     await porte.click();
     assert.deepEqual(await page.evaluate(() => __aller), ['clairiere']);
@@ -46,10 +54,7 @@ test('portique → clairière, sentier → exploration, sous-bois → exploratio
     // Ailleurs : aucune zone.
     await page.evaluate(() => { state.currentCity = 'ville_a'; enterRoom('zone-production', 'zone_recolte'); });
     assert.equal(await page.locator('.foret-porte').count(), 0);
-    // Moins d'animations demandé : le halo ne pulse plus.
-    await page.emulateMedia({ reducedMotion: 'reduce' });
-    await page.evaluate(() => { state.currentCity = 'ville_b'; enterRoom('zone-production', 'zone_recolte'); });
-    assert.equal(await page.locator('.foret-porte').evaluate(e => getComputedStyle(e).animationName), 'none');
+    assert.equal(await page.locator('#foret-tooltip').count(), 0, 'la bulle disparaît avec la zone');
     assert.deepEqual(erreurs, []);
   } finally {
     if (browser) await browser.close(); if (nav) await nav.arreter();

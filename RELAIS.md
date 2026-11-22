@@ -51,6 +51,30 @@ Règles : voir `AGENTS.md`.
 - **Pour Codex (traductions)** : nouvelles clés `inventoryUi.*` non encore dans le catalogue (repli français dans le code) — voir la liste
   dans le rapport du chantier et en tête de `texteInventaire` (plateau-divers.js).
 - **Bancs** : `banc-inventaire-direct-navigateur-20261122.cjs` (Chromium, deux joueurs), workflow `inventaire-direct-20261122.yml`.
+### Forêt de Krasnov : groupe, meute de trois loups, rapport de combat (Claude, 22/11/2026, fin de nuit) — décisions : GAME-DESIGN-FORET-TEST-20261122.md (points 5, 6, 7 et le bouton « Explorer la forêt » du point 8)
+- **Branche `claude/foret-combat-20261122`**. Aucune fonction Vercel. **Migration à appliquer (non appliquée)** :
+  `20261122210000_foret_groupe_combat_meute` — table `sovarka_foret_journal` ; nouvelles `sovarka_foret_journal_groupe_interne`,
+  `sovarka_foret_journal_lire` (RPC), `sovarka_foret_pnj_racine_interne`, `sovarka_foret_faune_creer_interne`, `sovarka_foret_faune_retirer_interne`,
+  `sovarka_foret_morsure_interne`, `sovarka_foret_combat_meute_interne`, `combat_rapport_lignes_interne` ; réécrites (texte de production) :
+  `sovarka_foret_couper`, `sovarka_foret_creature_interne`, `sovarka_foret_rencontre_arrivee_interne`, `sovarka_foret_issue_combat_interne` ;
+  **remplacements contrôlés dans les fonctions communes** (marques) : `militaire_bataille_rapport` (`combat_rapport_lignes_v1`),
+  `militaire_bataille_appliquer` (`foret_morsure_v1`), `militaire_bataille_combattants` (`foret_meute_griffes_v1`), `combat_ouvrir_interne`
+  (`foret_meute_engagements_v1`), `combat_finaliser_interne` (`foret_meute_issue_v1`), `militaire_bataille_etat` (`foret_meute_nom_v1`),
+  `sovarka_foret_aller` et `sovarka_foret_lire` (`foret_groupe_membres_v1`), `sovarka_foret_rencontre` (`foret_meute_retrait_v1`, `foret_journal_groupe_v1`).
+- **Fichiers du navigateur modifiés (pour rebaser)** : `plateau-sovarka-provinces.js` (`FORET_TXT` complété, `foretSuspense`, `foretAfficherRencontre(nom, pnj,
+  intro, options)`, Olga en deux fenêtres, coupe du membre, journal du groupe `foretJournalLire/Afficher` relu toutes les 8 s à l'exploitation
+  forestière, `provCreatureCle` connaît « Meute de 3 loups ») ; `plateau-politique.js` (`rpConclusionFaune`, `dernierRoundDetaille`,
+  `libelleIssueCombat`, `ouvrirPanneauCombat` : rapport par round, `htmlRoundsCombat`, `ETATS_COMBATTANT`) ; `plateau-foret-krasnov.js` (plus de halo,
+  infobulle `.rc-tooltip`) ; `style.css` (classes `.hg-round*`, `.hg-combat-*`, `.foret-porte` à la fin) ; `plateau.html` (versions des quatre fichiers).
+- **Bancs** : `banc-foret-groupe-combat-pglite-20261122.cjs` (+ fixtures `foret-combat-socle.sql.txt`, `foret-combat-ouverture.sql.txt`, copies de
+  production) ; `banc-foret-combat-navigateur-20261122.cjs` (Chromium, 1280 et 390 px) ; `banc-foret-krasnov-navigateur-20261121.cjs` et
+  `test-combat-faune-panneau-20261114.mjs` mis à jour ; tous ajoutés à `foret-krasnov-20261121.yml`.
+- **Pour Codex (traductions)** : `FORET_TXT` de `plateau-sovarka-provinces.js` : `approcher`, `meute`, `membreTitre`, `membreNote`, `compris`, `membreCoupe`,
+  `j_rencontre`, `j_rencontre_arrivee`, `j_olga`, `j_olga_moi`, `j_fausse`, `j_fuite`, `j_subir`, `j_combat`, `j_butin`, `j_lire`, `t_combat_fin` ;
+  `plateau-politique.js` : phrases de `rpConclusionFaune`, « Contre : », « Round », `ETATS_COMBATTANT`, « Butin, remis au chef du groupe : » ;
+  noms donnés par le serveur : « Meute de 3 loups », « Loup 1/2/3 » (le catalogue `cf_meute` garde « Meute de loups » pour les anciens courriers).
+- **À tester par Fred** (après la migration) : Tom Tom chef, Arnie membre, en forêt profonde : chacun coupe ; seconde coupe du chef au ravin → rencontre
+  (deux fenêtres chez les deux) ; combat contre la meute lancé par Tom Tom ; rapport par round ; butin chez Tom Tom ; journal d'Arnie.
 ### Étape J, terrains à bâtir (Claude, 22/11/2026) — décisions : GAME-DESIGN-CHANTIERS-IMAGES-20261120.md (complément du 21/11, points 1 et 2)
 - **Branche `claude/terrains-plan-20261122`** (part de `main` après la mission de la nuit). Aucune migration, aucune fonction Vercel.
 - **Plan du lotissement en vignettes** (`plateau-terrains-plan.js`, nouveau, chargé après `plateau-chantier-vue.js`) : une carte

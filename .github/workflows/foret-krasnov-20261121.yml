@@ -1,10 +1,10 @@
 name: "Forêt de Krasnov — portique, clairière, retour au campement, groupe"
 on:
   pull_request:
-    paths: [plateau-foret-krasnov.js, plateau-sovarka-provinces.js, plateau-router.js, data.js, plateau.html, 'migrations/20261121150000_foret_krasnov_clairiere_retour.sql', 'outils/bancs/*foret*', 'migrations/20261122110000_foret_egarement_rencontre_arrivee.sql', 'outils/bancs/fixtures/foret-*', .github/workflows/foret-krasnov-20261121.yml]
+    paths: [plateau-foret-krasnov.js, plateau-sovarka-provinces.js, plateau-router.js, data.js, plateau.html, 'migrations/20261121150000_foret_krasnov_clairiere_retour.sql', 'outils/bancs/*foret*', 'migrations/20261122110000_foret_egarement_rencontre_arrivee.sql', 'migrations/20261122210000_foret_groupe_combat_meute.sql', plateau-politique.js, style.css, 'outils/bancs/test-combat-faune-panneau-20261114.mjs', 'outils/bancs/fixtures/foret-*', .github/workflows/foret-krasnov-20261121.yml]
   push:
     branches: [main, 'claude/**']
-    paths: [plateau-foret-krasnov.js, plateau-sovarka-provinces.js, plateau-router.js, data.js, plateau.html, 'migrations/20261121150000_foret_krasnov_clairiere_retour.sql', 'outils/bancs/*foret*', 'migrations/20261122110000_foret_egarement_rencontre_arrivee.sql', 'outils/bancs/fixtures/foret-*', .github/workflows/foret-krasnov-20261121.yml]
+    paths: [plateau-foret-krasnov.js, plateau-sovarka-provinces.js, plateau-router.js, data.js, plateau.html, 'migrations/20261121150000_foret_krasnov_clairiere_retour.sql', 'outils/bancs/*foret*', 'migrations/20261122110000_foret_egarement_rencontre_arrivee.sql', 'migrations/20261122210000_foret_groupe_combat_meute.sql', plateau-politique.js, style.css, 'outils/bancs/test-combat-faune-panneau-20261114.mjs', 'outils/bancs/fixtures/foret-*', .github/workflows/foret-krasnov-20261121.yml]
 permissions:
   contents: read
 jobs:
@@ -17,12 +17,12 @@ jobs:
         with:
           node-version: '24'
       - run: npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
-      - run: node --check plateau-foret-krasnov.js && node --test outils/bancs/test-foret-perdu-20261114.mjs outils/bancs/test-sovarka-provinces-20261110.mjs outils/bancs/test-sovarka-provinces-partie2-20261110.mjs
+      - run: node --check plateau-foret-krasnov.js && node --test outils/bancs/test-foret-perdu-20261114.mjs outils/bancs/test-combat-faune-panneau-20261114.mjs outils/bancs/test-sovarka-provinces-20261110.mjs outils/bancs/test-sovarka-provinces-partie2-20261110.mjs
       - name: Chromium réel
         env:
           HG_CHROMIUM: /usr/bin/google-chrome
-        run: node --test outils/bancs/banc-foret-krasnov-navigateur-20261121.cjs
+        run: node --test outils/bancs/banc-foret-krasnov-navigateur-20261121.cjs outils/bancs/banc-foret-combat-navigateur-20261122.cjs
       - name: PostgreSQL local (PGlite)
         run: |
           npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund --prefix "$RUNNER_TEMP/pglite" @electric-sql/pglite@0.2.17
-          PGLITE_DIR="$RUNNER_TEMP/pglite" node --test outils/bancs/banc-foret-krasnov-pglite-20261121.cjs outils/bancs/banc-foret-rencontre-arrivee-pglite-20261122.cjs
+          PGLITE_DIR="$RUNNER_TEMP/pglite" node --test outils/bancs/banc-foret-krasnov-pglite-20261121.cjs outils/bancs/banc-foret-rencontre-arrivee-pglite-20261122.cjs outils/bancs/banc-foret-groupe-combat-pglite-20261122.cjs
