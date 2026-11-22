@@ -46,7 +46,7 @@ test('compteur PA plus recent pendant la requete : le retour du repos ne l ecras
  assert.equal(c.state.pa,3);
 });
 test('historique : borne de 30 entrees, separation par personnage, aucune persistance',()=>{
- const acorn=require('../vercel/node_modules/acorn'),src=fs.readFileSync(path.join(root,'plateau-core.js'),'utf8');
+ const acorn=(()=>{try{return require('acorn');}catch(_){try{return require('../e2e/node_modules/acorn');}catch(__){return require('../vercel/node_modules/acorn');}}})(),src=fs.readFileSync(path.join(root,'plateau-core.js'),'utf8');
  const noms=['incidentsSessionCourante','noterIncidentSession'];
  const code=acorn.parse(src,{ecmaVersion:'latest'}).body.filter(n=>n.type==='FunctionDeclaration'&&noms.includes(n.id.name)).map(n=>src.slice(n.start,n.end)).join('\n');
  const bouton={hidden:true};const c=vm.createContext({state:{char:{name:'Alice'}},rpAuthUid:()=> 'u',document:{getElementById:()=>bouton},localStorage:{setItem:()=>assert.fail('pas de stockage permanent')}});
@@ -86,7 +86,7 @@ test('nouvelle connexion meme compte : ancienne reponse toujours ignoree',async(
 });
 
 test('reconnexion : le bandeau ne se ferme qu apres une restauration confirmee',()=>{
- const acorn=require('../vercel/node_modules/acorn');
+ const acorn=(()=>{try{return require('acorn');}catch(_){try{return require('../e2e/node_modules/acorn');}catch(__){return require('../vercel/node_modules/acorn');}}})();
  const src=fs.readFileSync(path.join(root,'plateau-core.js'),'utf8');
  const ast=acorn.parse(src,{ecmaVersion:'latest'});
  const recuperation=ast.body.find(n=>n.type==='FunctionDeclaration'&&n.id.name==='recupererPersonnageDuCompte');

@@ -7275,28 +7275,28 @@ export const SCENES_PNJ = {
     "pays": "Sovarka",
     "ville": "Krasnov",
     "batiment": "Exploitation forestière de Krasnov",
-    "piece": "Forêt profonde — Sous les grands pins",
+    "piece": "La piste des débardeurs",
     "personnes": []
   },
   "[\"soviet\",\"ville_b\",\"zone-production\",\"foret_vue_2\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
     "batiment": "Exploitation forestière de Krasnov",
-    "piece": "Forêt profonde — La clairière des bouleaux",
+    "piece": "La coupe abandonnée",
     "personnes": []
   },
   "[\"soviet\",\"ville_b\",\"zone-production\",\"foret_vue_3\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
     "batiment": "Exploitation forestière de Krasnov",
-    "piece": "Forêt profonde — Le ravin noir",
+    "piece": "Les grands fûts",
     "personnes": []
   },
   "[\"soviet\",\"ville_b\",\"zone-production\",\"foret_vue_4\"]": {
     "pays": "Sovarka",
     "ville": "Krasnov",
     "batiment": "Exploitation forestière de Krasnov",
-    "piece": "Forêt profonde — Près de la vieille isba",
+    "piece": "Le sentier d’Olga",
     "personnes": []
   },
   "[\"soviet\",\"ville_b\",\"zone-production\",\"foret_clairiere\"]": {
