@@ -109,7 +109,16 @@ test('provenance des phrases actives et des phrases retirées documentées',()=>
   assert.ok(avantInformateurs.includes(fr)||avantInformateurs.includes(fr.replace(/'/g,"\\'")),'provenance informateurs : '+fr);
   assert.equal(present(fr),false,'ancienne phrase d’informateur non réactivée : '+fr);
  }
- assert.deepEqual(rows.map(r=>r[0]).filter(fr=>!present(fr)),[retire,'Maximum 2 récoltes par jour.','+5 DIS.','Vous ne pouvez pas voter dans cet empire.','Cette prestation ne peut pas être vendue à emporter.',...CRIM_LOT5,...CRIM_LOT6,...CRIM_LOT7,...INTERVIEW_ACCUEIL,...INFORMATEURS_REFONTE,...SANTE_PV].filter(fr=>rows.some(r=>r[0]===fr)).sort((a,b)=>rows.findIndex(r=>r[0]===a)-rows.findIndex(r=>r[0]===b)));
+ // Tabac-presse (Fred, 22/11/2026, point 28) : la carte postale s'écrit et s'envoie par le serveur (carte_postale_envoyer) ; ces
+ // quatre anciens contrôles du navigateur n'existent plus (motifs serveur). Provenance : plateau-personnage.js avant 825d6f89.
+ const CARTE_POSTALE_SERVEUR=['Choisissez un joueur destinataire.','Vous ne pouvez pas vous envoyer une carte à vous-même.',
+  "Écrivez un message avant d'envoyer.",'Le service de courrier est indisponible pour le moment.'];
+ const avantCarte=require('node:child_process').execFileSync('git',['show','825d6f89^:plateau-personnage.js'],{cwd:root,encoding:'utf8',maxBuffer:8e6});
+ for(const fr of CARTE_POSTALE_SERVEUR){
+  assert.ok(avantCarte.includes(fr)||avantCarte.includes(fr.replace(/'/g,"\\'")),'provenance carte postale : '+fr);
+  assert.equal(present(fr),false,'ancienne phrase de carte postale non réactivée : '+fr);
+ }
+ assert.deepEqual(rows.map(r=>r[0]).filter(fr=>!present(fr)),[retire,'Maximum 2 récoltes par jour.','+5 DIS.','Vous ne pouvez pas voter dans cet empire.','Cette prestation ne peut pas être vendue à emporter.',...CRIM_LOT5,...CRIM_LOT6,...CRIM_LOT7,...INTERVIEW_ACCUEIL,...INFORMATEURS_REFONTE,...SANTE_PV,...CARTE_POSTALE_SERVEUR].filter(fr=>rows.some(r=>r[0]===fr)).sort((a,b)=>rows.findIndex(r=>r[0]===a)-rows.findIndex(r=>r[0]===b)));
 });
 
 test('aucun recouvrement avec les catalogues déjà raccordés (pas de double traduction ni de markToast contrarié)',()=>{
