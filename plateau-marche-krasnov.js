@@ -37,9 +37,9 @@
     journal: 'Marché de Krasnov : {resume}.',
     ligneA: '{n} × {label} acheté(s)', ligneV: '{n} × {label} vendu(s)', ligneP: '{n} × {label} produit(s)',
     manger: 'Manger', mangeTitre: 'Repas',
-    m_pain_noir: 'Pain noir mangé : +1 PA au prochain Dormir.',
-    m_fruits_legumes: 'Fruits et légumes mangés : +1 PA au prochain Dormir.',
-    m_goulash: 'Goulash mangé : +2 PA tout de suite.',
+    m_pain_noir: 'Pain noir mangé : +{sante} Santé, +{pa} PA au prochain Dormir.',
+    m_fruits_legumes: 'Fruits et légumes mangés : +{sante} Santé, +{pa} PA au prochain Dormir.',
+    m_goulash: 'Goulash mangé : +{sante} Santé, +{pa} PA au prochain Dormir.',
     r_repas_brut_deja_pris: 'Vous avez déjà pris un repas brut depuis votre dernier Dormir : celui-ci attendra.',
     r_pas_dans_l_inventaire: 'Vous n’en avez plus dans votre inventaire.',
   };
@@ -200,8 +200,15 @@
     if (typeof global.sbAdopterInventaireServeur === 'function') { try { global.sbAdopterInventaireServeur(r); } catch (_) {} }
     if (r.paie && typeof global.appliquerPaiementServeur === 'function') { try { global.appliquerPaiementServeur(r.paie); } catch (_) {} }
     global.document.getElementById('modal-postes')?.classList.remove('open');
-    global.showToast(txt('mangeTitre'), txt('m_' + cle), true);
-    if (typeof global.addJournalEntry === 'function') global.addJournalEntry(txt('m_' + cle), 'event-good');
+    // Barème des repas (22/11/2026) : Santé et PA différés arrêtés par le serveur.
+    const repas = r.sante || {};
+    if (typeof repas.apres === 'number' && typeof state !== 'undefined' && state) {
+      state.hp = repas.apres;
+      if (typeof global.sbFicheBaseAdopter === 'function') global.sbFicheBaseAdopter({ hp: repas.apres });
+    }
+    const effet = { sante: Number(repas.gain) || 0, pa: Number(repas.pa_differe) || 0 };
+    global.showToast(txt('mangeTitre'), txt('m_' + cle, effet), true);
+    if (typeof global.addJournalEntry === 'function') global.addJournalEntry(txt('m_' + cle, effet), 'event-good');
     if (typeof global.updateUI === 'function') global.updateUI();
   }
   // Bouton « Manger » de la fiche d'un objet (vide si l'objet ne se mange pas par cette voie).

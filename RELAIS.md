@@ -8,6 +8,44 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Santé — consommation : alcool, sommeil, repas, soins (Claude, 22/11/2026, après-midi) — décisions : GAME-DESIGN-SANTE-20261122.md, points 7 à 11
+- **Branche `claude/sante-consommation-20261122`** (part de `5b2bef8d`, socle Santé). Aucune fonction Vercel. Le point 6 (escort) est
+  traité par la branche des maladies.
+- **Migration écrite, NON appliquée** : `20261122232000_sante_consommation` (requiert `20261122230000_sante_socle`). Tous les gains passent par
+  `sante_gagner_interne` (Moral, point 11), valeurs dans `sante_parametres` (+ `repas_joueur_p5_prix_min`, `repas_joueur_p10_prix_min`,
+  `repas_pa_differe_plafond`). Nouvelles tables : `sante_repas_categories` (classement des plats), `sante_sommeil_lieux` (lieux du sommeil,
+  motifs bâtiment/pièce), `sante_sommeils` (un crédit de sommeil par jour de Paris). Nouvelle RPC `sante_se_nourrir(p_pa, p_cost)`.
+  15 fonctions de production modifiées par remplacement contrôlé (marques `sante_conso_*`, ancrages comptés ; les 21 définitions recopiées
+  dans la doublure PGlite sont identiques à la production, md5 vérifié par le banc) : `maladie_verre_interne` (+1 / 0 / −2 au 1er, 2e,
+  3e verre du compteur `verres_du_jour`), `tournee_cloturer_boire` (fin du +5), `commerce_vendre_produit` (comptoir PNJ : repas, Moral de la
+  recette et verre d'alcool comptés par le serveur ; repas gastronomique), `consommer_sur_place_commerce` et `inventaire_consommer`
+  (barème ; produit de joueur au palier de prix ; fin du +1 PA immédiat), `restaurant_diner_servir`, `diner_commerce_servir_interne`,
+  `service_etage_commander`, `hotel_service_etage_commander`, `marche_krasnov_manger` (goulash = plat, pain noir = sandwich, fruits et
+  légumes = snack ; fin du +2 PA immédiat), `pa_repos_nocturne` (Santé du sommeil selon la position en base + `sante_reveil_interne`,
+  renvoyés dans `sante_sommeil` et `evenements_reveil`), `clinique_nuitee_consommer` et `clinique_nuitee_marquer_repos` (+7, crédit unique),
+  `recevoir_soin` (+8 / +15), `ordre_generique_executer` (urgence +25, sans trace +15, sans majoration critique).
+- **Fichiers du navigateur modifiés (pour rebaser)** : `plateau-personnage.js` (`doDormir` : fin du +12, du +10 et du bonus Santé du logement,
+  nouvelle `sommeilSanteServeur` + `SOMMEIL_LIEUX` ; `doServiceEtage` ; affichage d'un aliment mangé), `plateau-divers.js`
+  (`removeFromInventory` rend `sante`), `plateau-actions-illegales-rumeurs.js` (`commanderProduitCommerce` adopte Santé/Moral du serveur,
+  `doRepasGastronomiqueGenerique`), `plateau-justice-economie.js` (`doSeReposer` → nouvelle `doSeNourrir`), `plateau-router.js` (route
+  se_nourrir avec pa/cost), `plateau-marche-krasnov.js` (textes `m_*` avec `{sante}` et `{pa}`), `plateau-clinique-nuitee.js`,
+  `plateau-pnj.js` (hp retiré de la configuration morte des invitations), `plateau-restaurant-luthecia.js`, `data.js` (ORDER_EFFECTS et
+  descriptions de soins, service d'étage, Se nourrir).
+- **Pour Codex (traductions, français seul modifié)** : descriptions de `data.js` « +25 Santé immédiatement (modulée par le Moral). »,
+  « +15 Santé (modulée par le Moral). Aucune trace médicale. », « Déjeuner servi en chambre : l’effet d’un plat du jour (Santé et PA au
+  prochain Dormir), +1 Moral. » (catalogue commun) et « Repas économique : l’effet d’un sandwich (Santé et PA au prochain Dormir). »
+  (catalogue de Sovarka) — anciennes lignes gardées en historique dans les tests figés ; `plateau-clinique-nuitee.js` clés `reserveDesc`,
+  `sleepDesc`, `bonus` ; `plateau-restaurant-luthecia.js` clé `dinnerOrderDesc` ; `plateau-marche-krasnov.js` `m_pain_noir`,
+  `m_fruits_legumes`, `m_goulash` (placeholders `{sante}`, `{pa}`) ; nouveaux textes sans clé : journal du sommeil (« Nuit dans une chambre :
+  +5 Santé (Santé 55). »), toasts « Repas pris », « Repas gastronomique », « Casse-croûte » avec Santé et PA différés.
+- **Bancs** : `banc-sante-consommation-pglite-20261122.cjs` (nouveau, 14 tests : 1, 2, 3 verres ; sommeil en chambre, bâtiment, dehors, forêt,
+  hôpital, clinique, logement, nuitée ; menu à Moral 80 et 20 ; barème ; produits de joueur ; dîner ; services d'étage ; marché ; Se nourrir ;
+  soins), doublure `fixtures/sante-consommation-pglite-socle.sql.txt` ; `banc-hospitalisation-client.cjs` mis à jour (Santé du sommeil lue du
+  serveur, plus aucun +12) ; tests figés `test-i18n-infobulles-communes-20261113.mjs` et `test-i18n-sovarka-infobulles-20261113.mjs` mis à jour
+  (nouvelles descriptions en attente de Codex). Workflow `sante-consommation-20261122.yml`.
+- **À tester par Fred** (après application du socle puis de cette migration) : boire 1, 2 puis 3 verres au bar (Santé +1, 0, −2) ; Dormir dans
+  une chambre d'hôtel, dans un hall, dans la rue (+5, +3, +2, journal « Nuit … ») ; un menu avec un Moral de 80 puis de 20 (+8 puis +3 Santé,
+  +3 PA au prochain Dormir) ; soin au dispensaire (+8 Santé, +1 PA).
 ### Remontées du test en forêt, points 1 et 8 : texte minimum et météo des vues en plein air (Claude, 22/11/2026) — décisions : GAME-DESIGN-FORET-TEST-20261122.md
 - **Branche `claude/texte-meteo-20261122`** (part de `main`). Aucune migration, aucune fonction Vercel. Le bouton « Explorer la forêt » (point 8) est
   traité par un autre agent ; la logique forêt, les groupes, le combat et l'inventaire aussi (branches séparées).

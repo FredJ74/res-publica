@@ -54,7 +54,8 @@ test('inventaire : 237 descriptions communes affichées après isolation du goul
   t.diagnostic('Descriptions communes manquantes : ' + JSON.stringify(manquantes));
   // +1 le 15/11 : « +6 INF +5 DIS +1 POP. » (location d'un des quatre bureaux de Krasnov, texte du catalogue de Républia, à passer au catalogue commun par le lot i18n).
   // +1 le 20/11 : « Suivre une formation » ouvert (criminalité lot 9), nouvelle description française à traduire par Codex.
-  assert.ok(manquantes.length <= 5, 'nouvelles communes absentes du catalogue');
+  // +3 le 22/11 (Santé, consommation) : service d'étage (plat du jour), soins accélérés (+25) et soins sans trace (+15), à traduire par Codex.
+  assert.ok(manquantes.length <= 8, 'nouvelles communes absentes du catalogue');
   // Français strictement identique : chaque texte du catalogue est une description exacte de data.js,
   // affichée dans au moins un pays (avec la fusion réelle, quelques-unes ne sont plus visibles qu'en Républia,
   // l'exclusion de Sovarka étant désormais prise en compte ; leur traduction y reste utile).
@@ -67,7 +68,9 @@ test('inventaire : 237 descriptions communes affichées après isolation du goul
     'Le barman entend tout. Revele une rumeur vraie ou generee selon le contexte.',
     "1 PA, 150 FR puis 150 FR/jour. Un PNJ (PER 12-18) rejoint votre groupe en permanence tant que vous le payez : sa PER s'ajoute a celle du groupe pour les recherches, enquetes et localisations.",
     '400 FR/jour. Localisation précise, intentions vote, voyages récents.', '1500 FR/jour. Confessions, transactions, ordres passés 24h.',
-    'Obtenir une information de votre taupe niveau 4.', 'Voir et gérer vos informateurs actifs.'];
+    'Obtenir une information de votre taupe niveau 4.', 'Voir et gérer vos informateurs actifs.',
+    // Santé (consommation, 22/11/2026) : anciennes valeurs en dur, lignes livrées gardées au catalogue.
+    '+40 Sante immediatement.', '+30 Sante. Aucune trace medicale.', 'Dejeuner servi en chambre. +10 Sante, +1 Moral immediats. +1 PA au prochain Dormir.'];
   assert.deepEqual(cat.filter(d => !sov.has(d) && !rep.has(d) && !HISTORIQUES.includes(d)), [], 'textes du catalogue introuvables tels quels');
   assert.equal(new Set(cat).size, cat.length);
 });

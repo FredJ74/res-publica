@@ -2703,8 +2703,9 @@ async function validerLobbyingPresse() {
 // des 3 fonctions, aucune n'applique quoi que ce soit a un seul des deux convives. INF suit donc
 // deja la meme portee (aux deux), sans aucun changement necessaire.
 const CONFIG_INVITATIONS_SOCIALES = {
-  diner_affaires: { verbe: 'dîner', hp: 10, moral: 2, inf: 5, ent: 0, paDiffere: 3, emoji: '🍽️' },
-  boire_verre:    { verbe: 'boire un verre', hp: 5, inf: 2, ent: 2, paDiffere: 0, emoji: '🍷' }
+  // hp retiré (Fred, 22/11/2026, points 7 et 9) : la Santé d'un dîner ou d'un verre est décidée par le serveur.
+  diner_affaires: { verbe: 'dîner', moral: 2, inf: 5, ent: 0, paDiffere: 3, emoji: '🍽️' },
+  boire_verre:    { verbe: 'boire un verre', inf: 2, ent: 2, paDiffere: 0, emoji: '🍷' }
 };
 
 // verifierStockDinerAffaires / consommerStockDinerAffaires retirees (#379, 03/11/2026) : le stock et

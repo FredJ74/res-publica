@@ -1,0 +1,28 @@
+name: "Santé — consommation : alcool, sommeil, repas, soins (serveur)"
+on:
+  pull_request:
+    paths: ['migrations/20261122230000_sante_socle.sql', 'migrations/20261122232000_sante_consommation.sql', 'outils/bancs/*sante-consommation*', 'outils/bancs/fixtures/sante-consommation-*', 'outils/bancs/fixtures/inventaire-direct-pglite-socle.sql.txt', outils/bancs/banc-hospitalisation-client.cjs, outils/bancs/banc-stabilisation-session.cjs, outils/bancs/banc-retours-acteur.cjs, plateau-personnage.js, plateau-divers.js, plateau-actions-illegales-rumeurs.js, plateau-justice-economie.js, plateau-marche-krasnov.js, plateau-clinique-nuitee.js, plateau-router.js, .github/workflows/sante-consommation-20261122.yml]
+  push:
+    branches: [main, 'claude/**']
+    paths: ['migrations/20261122230000_sante_socle.sql', 'migrations/20261122232000_sante_consommation.sql', 'outils/bancs/*sante-consommation*', 'outils/bancs/fixtures/sante-consommation-*', 'outils/bancs/fixtures/inventaire-direct-pglite-socle.sql.txt', outils/bancs/banc-hospitalisation-client.cjs, outils/bancs/banc-stabilisation-session.cjs, outils/bancs/banc-retours-acteur.cjs, plateau-personnage.js, plateau-divers.js, plateau-actions-illegales-rumeurs.js, plateau-justice-economie.js, plateau-marche-krasnov.js, plateau-clinique-nuitee.js, plateau-router.js, .github/workflows/sante-consommation-20261122.yml]
+permissions:
+  contents: read
+jobs:
+  sante-consommation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Navigateur (Dormir, repas, marché de Krasnov) — syntaxe et bancs client
+        run: |
+          for f in plateau-personnage.js plateau-divers.js plateau-actions-illegales-rumeurs.js plateau-justice-economie.js plateau-marche-krasnov.js plateau-clinique-nuitee.js plateau-router.js plateau-pnj.js plateau-restaurant-luthecia.js data.js; do node --check "$f"; done
+          npm install --no-save --prefix /tmp/hg-test-deps acorn@8.15.0
+          export NODE_PATH=/tmp/hg-test-deps/node_modules
+          node --test outils/bancs/banc-hospitalisation-client.cjs outils/bancs/banc-stabilisation-session.cjs outils/bancs/banc-retours-acteur.cjs outils/bancs/banc-clinique-nuitee-client.cjs
+      - name: PostgreSQL local (PGlite)
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund --prefix "$RUNNER_TEMP/pglite" @electric-sql/pglite@0.2.17
+          PGLITE_DIR="$RUNNER_TEMP/pglite" node --experimental-vm-modules --test outils/bancs/banc-sante-socle-pglite-20261122.cjs outils/bancs/banc-sante-consommation-pglite-20261122.cjs
