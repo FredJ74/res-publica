@@ -6,7 +6,7 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const zlib = require('node:zlib');
 const acorn = require('../vercel/node_modules/acorn');
-const { R, avecJeu, page, preuve } = require('./mobile-navigateur.cjs');
+const { R, avecJeu, page, preuve, jaugesSanteTemoin } = require('./mobile-navigateur.cjs');
 const archive = fs.readFileSync(path.join(__dirname, 'fixtures/mobile-certification-temoin-520630bd.json.gz'));
 assert.equal(crypto.createHash('sha256').update(archive).digest('hex'), '6e0a56feaba4d50f731551e2440f9f2962b50559ec6eabdb63960e3c70289f9c');
 const temoin = JSON.parse(zlib.gunzipSync(archive));
@@ -131,6 +131,7 @@ test('Bureau 1440 : rendu strictement identique au main de certification', () =>
   // Servir le témoin dès le premier rendu conserve l’ordre réel des feuilles CSS.
   const avant = await page(b, o, 1440, 900, false, { mobileSource: temoin.fichiers['plateau-mobile.js'], fichiers: temoin.fichiers });
   const apres = await page(b, o, 1440, 900);
+  await jaugesSanteTemoin(avant);   // jauges Santé et Moral, changement voulu du 22/11 (mobile-navigateur.cjs)
   // Fixer les décorations animées au même état dans les deux contextes.
   // La comparaison reste intégrale, sans masque ni tolérance de pixels.
   for (const p of [avant, apres]) {

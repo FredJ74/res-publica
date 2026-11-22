@@ -314,6 +314,8 @@ INSERT INTO public.ordres_couts (fn,pa,cost) VALUES
   ('marchandises_non_reclamees',0,0),
   ('marche_krasnov',0,0),
   ('marche_noir',1,0),
+  ('medecin_diagnostiquer',1,0),
+  ('medecin_soigner',2,0),
   ('mener_enquete',2,250),
   ('mes_vehicules',0,0),
   ('mobilisation_nationale',0,0),

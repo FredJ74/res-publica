@@ -161,7 +161,8 @@ function traiterMessage(m) {
   if (!m || m.event !== 'postgres_changes') return;
   const rec = (m.payload && m.payload.data && (m.payload.data.record || m.payload.data.old_record)) || {};
   if (m.topic === SUJET_SALLE) { versions.salle = rec.version || versions.salle; rafraichirPresents(); }
-  else if (m.topic === SUJET_PERSO) { versions.perso = rec.version || versions.perso; rpResynchroniserEtat('signal'); rafraichirMonInventaire(); }
+  else if (m.topic === SUJET_PERSO) { versions.perso = rec.version || versions.perso; rpResynchroniserEtat('signal'); rafraichirMonInventaire();
+    if (typeof global.lireEvenementsPersonnage === 'function') global.lireEvenementsPersonnage(); }   // journal serveur (22/11)
   else if (m.topic === SUJET_CHAT) signalChat();
 }
 

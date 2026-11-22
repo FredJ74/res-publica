@@ -102,7 +102,7 @@ async function restaurantLutheciaSuivre(force=false) {
 function ordresRestaurantLuthecia(buildingId,roomId) {
   if(state.country!=='republic'||state.currentCity!=='capitale'||buildingId!=='hotel-republica'||roomId!=='restaurant')return [];
   const ordre=BUILDINGS[buildingId]?.rooms?.[roomId]?.orders?.find(o=>o.fn==='diner_affaires');
-  return ordre?[{...ordre,desc:restaurantTexte('dinnerOrderDesc','Après acceptation : deux repas gastronomiques et deux verres de champagne pour 300 FR. 2 PA. +10 Santé, +2 Moral, +5 INF et +3 PA au prochain Dormir pour chaque convive. Aucun paiement si refus ou service impossible.'),masque:['produire_commerce']}]:[];
+  return ordre?[{...ordre,desc:restaurantTexte('dinnerOrderDesc','Après acceptation : deux repas gastronomiques et deux verres de champagne pour 300 FR. 2 PA. Pour chaque convive : l’effet d’un menu gastronomique (Santé et PA au prochain Dormir), +2 Moral et +5 INF. Aucun paiement si refus ou service impossible.'),masque:['produire_commerce']}]:[];
 }
 if(typeof window!=='undefined'){
   window.RP_ORDRES_DYNAMIQUES=window.RP_ORDRES_DYNAMIQUES||[];

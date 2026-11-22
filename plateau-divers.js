@@ -1137,6 +1137,8 @@ async function removeFromInventory(idx, motif, options) {
   return { ok: true, objet: r.objet || item, inventory: state.inventory, objetId: r.objet_id || null,
            pa: (typeof r.pa === 'number') ? r.pa : undefined,
            aliment_frais: (typeof r.aliment_frais === 'boolean') ? r.aliment_frais : undefined,
+           // Repas (22/11/2026) : Santé et PA différés du barème, appliqués par le serveur.
+           sante: (r.sante && typeof r.sante === 'object') ? r.sante : undefined,
            // Confiture d'airelles du kolkhoze (18/11/2026) : bonus différé crédité par le serveur.
            bonus_differe: (typeof r.bonus_differe === 'number') ? r.bonus_differe : undefined,
            // Drogues Brume et Estadine (2 novembre 2026) : moral, sante et effets temporaires poses par le serveur.

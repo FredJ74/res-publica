@@ -731,7 +731,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   // plateau-criminalite.js). « Falsifier un procès-verbal », la route corrompre_police et les trois
   // accélérations par corruption sont supprimés (le serveur répond « ordre_supprime »).
   if (fn === 'corrompre_fonct' || fn === 'corrompre_gardien') { crimOuvrirCorruptionQhs(fn === 'corrompre_fonct' ? 'directeur' : 'gardien'); return; }
-  if (fn === 'se_reposer' || fn === 'se_nourrir') { doSeReposer(fn); return; }
+  if (fn === 'se_reposer' || fn === 'se_nourrir') { doSeReposer(fn, pa, cost); return; }
   // Route 'requete_avocat' SUPPRIMEE le 13 octobre 2026 (arbitrage valide). La requete
   // reduisait la peine sur un TIRAGE -- `Math.min(85, 40 + DUP*1.5)` contre un d100 -- donc un
   // de decidait si une plaidoirie etait bonne. Human Gambit ne code pas les reactions

@@ -878,6 +878,9 @@ function openPnjModal(encodedPnj, options = null) {
   // n'apparaissait qu'avec un inventaire non vide -- ce qui revelait au passage l'etat de son
   // propre inventaire dans la liste d'actions.
   actionBtns += '<button class="pnj-action-btn" onclick="ouvrirDonPnjChoix(\'' + enc + '\')"><i class="ti ti-gift" style="font-size:.85rem"></i> Donner</button>';
+  // Santé (Fred, 22/11/2026, points 12 et 22) : « Montrer un objet » à un autre joueur, et pour un médecin « Diagnostiquer »
+  // et « Soigner » (plateau-medecin-montrer.js ; présence, coûts et accord du patient vérifiés par le serveur).
+  if (isPJ && typeof hgMedecinMontrerBoutonsCarte === 'function') actionBtns += hgMedecinMontrerBoutonsCarte(pnj);
 
   // Services religieux en contact (lot "refonte religion Republia", 26 aout 2026 ; job 'pretre'
   // ajoute au lot "carriere religieuse Republia", 26 aout 2026 pour les titulaires locaux Pere
@@ -2703,8 +2706,9 @@ async function validerLobbyingPresse() {
 // des 3 fonctions, aucune n'applique quoi que ce soit a un seul des deux convives. INF suit donc
 // deja la meme portee (aux deux), sans aucun changement necessaire.
 const CONFIG_INVITATIONS_SOCIALES = {
-  diner_affaires: { verbe: 'dîner', hp: 10, moral: 2, inf: 5, ent: 0, paDiffere: 3, emoji: '🍽️' },
-  boire_verre:    { verbe: 'boire un verre', hp: 5, inf: 2, ent: 2, paDiffere: 0, emoji: '🍷' }
+  // hp retiré (Fred, 22/11/2026, points 7 et 9) : la Santé d'un dîner ou d'un verre est décidée par le serveur.
+  diner_affaires: { verbe: 'dîner', moral: 2, inf: 5, ent: 0, paDiffere: 3, emoji: '🍽️' },
+  boire_verre:    { verbe: 'boire un verre', inf: 2, ent: 2, paDiffere: 0, emoji: '🍷' }
 };
 
 // verifierStockDinerAffaires / consommerStockDinerAffaires retirees (#379, 03/11/2026) : le stock et
@@ -3084,7 +3088,8 @@ async function escortIntimiteServeur(nomEscort, palierVise) {
   document.getElementById('modal-postes').classList.add('open');
 
   if (v.rejeu) return;
-  addJournalEntry('Moment privé avec ' + nomEscort + '. +' + v.gain_moral + ' Moral, +' + v.gain_hp + ' Santé' +
+  // Santé (Fred, 22/11/2026, point 6) : une nuit avec une escort ne rend plus aucune Santé (serveur : gain_hp = 0).
+  addJournalEntry('Moment privé avec ' + nomEscort + '. +' + v.gain_moral + ' Moral' +
     (v.gain_ent > 0 ? ', +' + v.gain_ent + ' ENT' : '') + '. -' + v.cout_prestation + ' ' + cur + '.', 'event-good');
 
   if (typeof tracerActionPourRumeur === 'function') {

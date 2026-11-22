@@ -15,7 +15,8 @@ function extraire(file,names){const s=lire(file);const t=acorn.parse(s,{ecmaVers
 const AUJ='2026-11-01',HIER='2026-10-31';
 const PERSO=['declencherHospitalisation','hospitalisationJourPa0','hospitalisationEcritureInterdite','HOSPITALISATION_REFUS',
  'relectureHospitalisationEnCours','derniereRelectureHospitalisation','relireHospitalisationServeur','surveillerHospitalisationServeur',
- 'doRepasHopital','doSortieHopital','hospitalisationRejoindreServeur','verifierProgressionHospitalisation','doDormir','signalerRefusSalaire','MOTIFS_REFUS_SALAIRE'];
+ 'doRepasHopital','doSortieHopital','hospitalisationRejoindreServeur','verifierProgressionHospitalisation','doDormir','signalerRefusSalaire','MOTIFS_REFUS_SALAIRE',
+ 'SOMMEIL_LIEUX','sommeilSanteServeur'];
 function jeu(serveur={}){
  const c={console,JSON,Promise,Array,Object,Math,Date,Number,toasts:[],journal:[],rpc:[],sauvegardes:0,positions:[],
   state:{char:{name:'A',country:'republic'},country:'republic',pa:3,hp:100,moral:50,arg:0,liquide:0,currentCity:'capitale',
@@ -65,11 +66,16 @@ test('J0 : Dormir refusé et nommé, aucun salaire ni effet du sommeil',async()=
  assert.equal(c.toasts[0][0],'Repos impossible');});
 
 test('J2 : le sommeil à l’hôpital est relaté avec les montants du serveur et la sortie annoncée',async()=>{
- const c=jeu({pa_repos_nocturne:()=>({ok:true,pa:22,hospitalisation:true,jour_hospitalisation:2,gain:18,repas:2,sortie_possible:true,bonus_consomme:0}),
+ const c=jeu({pa_repos_nocturne:()=>({ok:true,pa:22,hospitalisation:true,jour_hospitalisation:2,gain:18,repas:2,sortie_possible:true,bonus_consomme:0,
+   sante_sommeil:{ok:true,lieu:'clinique',avant:60,apres:67,gain:7},evenements_reveil:[{cle:'test',texte:'Un événement du réveil.'}]}),
   salaire_civil_percevoir:()=>({ok:false,raison:'bareme_absent'})});
- c.state.pa=2;c.state.hospitalisation=PA0(2,{lieu:'clinique'});
+ c.state.pa=2;c.state.hp=60;c.state.hospitalisation=PA0(2,{lieu:'clinique'});
  await c.doDormir();
  assert.equal(c.state.pa,22);
+ // Santé du sommeil (22/11/2026) : celle du serveur, jamais le +12 ni le +10 de l'écran.
+ assert.equal(c.state.hp,67);
+ assert.ok(c.journal.some(t=>t==='Nuit à la clinique : +7 Santé (Santé 67).'),JSON.stringify(c.journal));
+ assert.ok(c.journal.includes('Un événement du réveil.'));
  assert.ok(c.journal.some(t=>t.includes('Nuit à l\'hôpital (jour 2) : +18 PA, +2 PA du repas')),JSON.stringify(c.journal));
  assert.ok(c.toasts.some(t=>t[0]==='Sortie autorisée'));
  assert.equal(c.state.hospitalisation.regime,'pa0','la progression ne lève pas une hospitalisation pa0');});
@@ -132,3 +138,10 @@ test('repas de la clinique : coût et bonus arrêtés par le serveur, adoptés t
  await c.doRepasHopital();
  assert.equal(c.state.pa,5);assert.equal(c.state.liquide,1970);assert.equal(c.state.hospitalisation.repasBonus,4);
  assert.match(c.toasts[0][1],/-30 FR.*\+4 PA/);});
+
+test('Dormir sans réponse Santé du serveur : l’écran n’ajoute plus aucune Santé (fin du +12 et de la régénération)',async()=>{
+ const c=jeu({pa_repos_nocturne:()=>({ok:true,pa:20,gain:12,bonus_consomme:0}),salaire_civil_percevoir:()=>({ok:false,raison:'bareme_absent'})});
+ c.state.hp=40;c.state.regenJour=true;
+ await c.doDormir();
+ assert.equal(c.state.hp,40);
+ assert.ok(!c.journal.some(t=>/Regeneration|PV actuels/.test(t)),JSON.stringify(c.journal));});

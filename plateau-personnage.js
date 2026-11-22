@@ -2030,6 +2030,23 @@ function signalerRefusSalaire(r) {
   console.warn('[salaire] refus serveur :', r.raison, r);
 }
 
+// Santé du sommeil et événements du réveil, tels que le serveur les renvoie (pa_repos_nocturne → sante_sommeil_interne).
+const SOMMEIL_LIEUX = { chambre: 'dans une chambre', batiment: 'dans un bâtiment', dehors: 'dehors', hopital: 'à l\'hôpital', clinique: 'à la clinique' };
+function sommeilSanteServeur(v) {
+  const s = v && v.sante_sommeil;
+  if (s && typeof s.apres === 'number') {
+    state.hp = s.apres;
+    if (typeof sbFicheBaseAdopter === 'function') sbFicheBaseAdopter({ hp: s.apres });
+    const gain = Number(s.gain) || 0;
+    addJournalEntry('Nuit ' + (SOMMEIL_LIEUX[s.lieu] || '') + ' : ' + (gain >= 0 ? '+' : '') + gain + ' Santé (Santé ' + s.apres + ').',
+      gain > 0 ? 'event-good' : 'event-info');
+  }
+  for (const e of (Array.isArray(v && v.evenements_reveil) ? v.evenements_reveil : [])) {
+    const texte = typeof e === 'string' ? e : (e && e.texte);
+    if (texte) addJournalEntry(texte, 'event-info');
+  }
+}
+
 async function doDormir() {
   const personnageInitial = state.char, paysInitial = state.country;
   const paInitialRepos = state.pa;
@@ -2084,9 +2101,11 @@ async function doDormir() {
   // Appartements populaires (12/11/2026) : c'est le SERVEUR qui dit si l'on dort dans son
   // appartement (titulaire, conjoint, colocataire ; une chambre en premium) -- +1 PA deja compte dans
   // vRepos.pa, moral et sante du logement rendus avec lui. Plus aucun calcul local.
-  const bonusLogement = vRepos?.logement
-    ? { moral: Number(vRepos.logement.moral) || 0, sante: Number(vRepos.logement.sante) || 0 } : { moral: 0, sante: 0 };
+  // Santé du sommeil (Fred, 22/11/2026, point 8) : le SERVEUR la crédite selon le lieu en base (chambre, bâtiment,
+  // dehors, hôpital, clinique) dans pa_repos_nocturne ; le bonus Santé du logement n'existe plus (la chambre suffit).
+  const bonusLogement = vRepos?.logement ? { moral: Number(vRepos.logement.moral) || 0 } : { moral: 0 };
   if (vRepos?.logement) addJournalEntry('Nuit dans votre appartement : +' + (Number(vRepos.logement.pa) || 0) + ' PA.', 'event-good');
+  sommeilSanteServeur(vRepos);
 
   // Empoisonnement (Fred, 20/11/2026 : une seule réalité, celle du serveur) : pa_repos_nocturne a déjà divisé les PV
   // par deux et, sous 20, hospitalisé d'urgence (crim_poison_nuit_interne). L'écran ne fait que relire et annoncer.
@@ -2098,34 +2117,18 @@ async function doDormir() {
       state.pa = 0;
       if (typeof relireHospitalisationServeur === 'function') relireHospitalisationServeur(true);
       if (typeof adopterPositionServeurRelue === 'function') adopterPositionServeurRelue();
-      showToast('Empoisonnement fatal', 'Vos PV sont tombes a 0. Hospitalisation d\'urgence.', false, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b7135d043", 'Vos PV sont tombes a 0. Hospitalisation d\'urgence.', undefined, 'Empoisonnement fatal');
+      showToast('Empoisonnement fatal', 'Votre Santé est tombée à 0. Hospitalisation d\'urgence.', false, true);
       addJournalEntry('L\'empoisonnement a eu raison de vous. Hospitalisation d\'urgence.', 'event-bad');
       updateUI();
       return false;
     } else {
-      showToast('Empoisonnement', 'Le poison progresse. PV : ' + state.hp + '.', false, true);
-      addJournalEntry('L\'empoisonnement progresse pendant votre sommeil. PV : ' + state.hp + '.', 'event-bad');
+      showToast('Empoisonnement', 'Le poison progresse. Santé : ' + state.hp + '.', false, true);
+      addJournalEntry('L\'empoisonnement progresse pendant votre sommeil. Santé : ' + state.hp + '.', 'event-bad');
     }
   }
 
-  if (state.regenJour && (state.hp || 0) < 100) {
-    state.hp = Math.min(100, (state.hp || 0) + 10);
-    addJournalEntry('Regeneration naturelle : +10 PV. PV actuels : ' + state.hp + '.', 'event-info');
-  }
-  if ((state.hp || 0) >= 100) {
-    state.regenJour = null;
-    if (state.statsAffaiblies) state.statsAffaiblies = null;
-  }
-
-  if (!state.empoisonnement?.actif) {
-    state.hp = Math.min(100, (state.hp || 0) + 12);
-  }
-
-  // Bonus SANTE du logement social : s'ajoute a la recuperation normale ci-dessus, ne la
-  // remplace jamais (meme applique pendant un empoisonnement, comme les autres etapes ci-dessus).
-  if (bonusLogement.sante > 0) {
-    state.hp = Math.min(100, (state.hp || 0) + bonusLogement.sante);
-  }
+  // La régénération (+10) et la récupération (+12) calculées ici jusqu'au 22/11/2026 sont supprimées : le serveur
+  // a déjà crédité la Santé du sommeil (sommeilSanteServeur ci-dessus) ; l'écran n'ajoute rien.
 
   // Correctif du 23 aout 2026 (audit dedie "moteur hotel Republia") : l'ancien prelevement
   // automatique d'une "nuitee" ET le bonus Moral/PA ambiant accordes uniquement parce que
@@ -2294,8 +2297,8 @@ async function doDormir() {
   updateUI();
   const cur = COUNTRIES[state.char?.country || 'republic']?.cur || 'FR';
   const moralAffiche = 1 + (bonusLogement.moral || 0);
-  const suffixeLogement = (bonusLogement.moral || bonusLogement.sante)
-    ? ' (dont logement social : +' + (bonusLogement.moral || 0) + ' Moral / +' + (bonusLogement.sante || 0) + ' Santé)' : '';
+  const suffixeLogement = bonusLogement.moral
+    ? ' (dont logement : +' + bonusLogement.moral + ' Moral)' : '';
   showToast('Bonne nuit !', 'Salaire verse : +' + salaire.toLocaleString('fr-FR') + ' ' + cur + ' · +' + moralAffiche + ' Moral' + suffixeLogement, true, true);
   addJournalEntry('Vous dormez. Salaire verse : +' + salaire.toLocaleString('fr-FR') + ' ' + cur, 'event-good');
 
@@ -2911,7 +2914,7 @@ async function doSoinPublic(pa, cost) {
   // quotidienne, le stock medical et les fonds, puis decrementait le stock de la structure et
   // s'accordait ses gains. recevoir_soin refait tout au serveur, sous verrou : marqueur du jour
   // relu sur la fiche, stock reel, cout revalide contre le miroir des couts, gains appliques par
-  // la base -- +10 Sante, +1 PA, valeurs inchangees.
+  // la base -- Santé et PA du soin public lus dans sante_parametres (22/11/2026 : +8 Santé modulée par le Moral, +1 PA).
   if (!state.char) return;
   const buildingId = state.currentBuilding;
   const cfg = STRUCTURES_MEDICALES[buildingId];
@@ -3284,7 +3287,8 @@ async function doReserverChambreHotel(pa) {
 }
 
 // Service d'étage des hôtels de Républia : UNE fonction serveur vérifie la réservation, paie,
-// applique +10 Santé, +1 Moral et le bonus différé (13/11/2026). L'écran recopie la réponse.
+// applique +1 Moral et l'effet d'un plat du jour (Santé et PA différés du barème des repas, 22/11/2026).
+// L'écran recopie la réponse.
 const SERVICE_ETAGE_REFUS = {
   chambre_non_reservee: 'Vous devez d\'abord réserver une chambre à l\'accueil pour bénéficier du service d\'étage.',
   service_indisponible: 'Cet hôtel ne propose pas de service d\'étage.',
@@ -3295,11 +3299,12 @@ async function doServiceEtage(pa) {
   if (!v || v.transport) { showToast('Service d’étage non confirmé', 'Le serveur ne répond pas. Vérifiez votre argent avant de recommencer.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b85b560bf", 'Le serveur ne répond pas. Vérifiez votre argent avant de recommencer.', undefined, 'Service d’étage non confirmé'); return; }
   if (v.ok !== true) { showToast('Service d’étage refusé', SERVICE_ETAGE_REFUS[v.raison] || ('Refus du serveur : ' + (v.raison || 'indisponible') + '.'), false); return; }
   if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: v.pa, liquide: v.liquide, arg: v.arg });
-  if (typeof v.hp === 'number') state.hp = v.hp;
+  if (typeof v.hp === 'number') { state.hp = v.hp; if (typeof sbFicheBaseAdopter === 'function') sbFicheBaseAdopter({ hp: v.hp }); }
   if (typeof v.moral === 'number') state.moral = v.moral;
   updateUI();
-  showToast('Service d\'étage', 'Déjeuner servi en chambre (' + v.prix + ' FR). +10 Santé, +1 Moral. +' + (v.bonus_pa || 0) + ' PA au prochain Dormir.', true, true);
-  addJournalEntry('Service d\'étage en chambre : +10 Santé, +1 Moral, +' + (v.bonus_pa || 0) + ' PA au prochain Dormir.', 'event-good');
+  const santeServie = Number(v.sante && v.sante.gain) || 0;
+  showToast('Service d\'étage', 'Déjeuner servi en chambre (' + v.prix + ' FR). +' + santeServie + ' Santé, +1 Moral. +' + (v.bonus_pa || 0) + ' PA au prochain Dormir.', true, true);
+  addJournalEntry('Service d\'étage en chambre : +' + santeServie + ' Santé, +1 Moral, +' + (v.bonus_pa || 0) + ' PA au prochain Dormir.', 'event-good');
 }
 
 async function doDormirChambre(chezHabitant) {
@@ -3547,12 +3552,20 @@ async function ouvrirDetailObjetInventaire(idx) {
   const protege = typeof colisSecretProtege === 'function' && colisSecretProtege(item);
   if (protege) {
     html += '<div style="font-size:.78rem;color:#6a5a30;font-style:italic"><i class="ti ti-lock"></i> <span data-i18n="inventoryUi.protectedDetails">Indispensable à une mission en cours — ne peut être ni donné à un autre joueur, ni abandonné, ni détruit.</span></div>';
+    // Montrer ne fait rien changer de main (Fred, 22/11/2026, point 22) : permis même pour un objet de mission.
+    if (joueursPresents.length > 0 && typeof hgMontrerDepuisFiche === 'function') {
+      html += '<select id="montrer-objet-cible" class="cpj-champ" style="width:100%">';
+      joueursPresents.forEach(p => { const n = String(p.name || '').replace(/[&<>"']/g, ''); html += '<option value="' + n + '">' + n + '</option>'; });
+      html += '</select><button class="cpj-touche hg-montrer-fiche" onclick="hgMontrerDepuisFiche(' + idx + ')"><i class="ti ti-eye"></i> Montrer à ce joueur</button>';
+    }
   } else {
     if (joueursPresents.length > 0) {
       html += '<select id="donner-objet-cible" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none">';
       joueursPresents.forEach(p => { html += '<option value="' + p.name + '">' + p.name + '</option>'; });
       html += '</select>';
       html += '<button onclick="donnerObjetAJoueur(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #4a6aaa;background:transparent;color:#6a8aca;cursor:pointer"><i class="ti ti-gift"></i> <span data-i18n="inventoryUi.givePlayer">Donner a ce joueur</span></button>';
+      // « Montrer un objet » (Fred, 22/11/2026, point 22) : même joueur choisi ci-dessus ; rien ne change de main.
+      if (typeof hgMontrerDepuisFiche === 'function') html += '<button class="hg-montrer-fiche" onclick="hgMontrerDepuisFiche(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #4a6aaa;background:transparent;color:#6a8aca;cursor:pointer"><i class="ti ti-eye"></i> Montrer à ce joueur</button>';
     }
 
     html += '<button onclick="jeterObjetInventaire(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #8a6a30;background:transparent;color:#a0905a;cursor:pointer"><i class="ti ti-map-pin"></i> <span data-i18n="inventoryUi.dropHere">Abandonner ici (visible par les autres joueurs)</span></button>';
@@ -3619,16 +3632,23 @@ async function consommerAliment(idx) {
   const fraicheurConnue = typeof r.aliment_frais === 'boolean';
   const perime = fraicheurConnue && !r.aliment_frais;
   if (typeof r.pa === 'number') state.pa = r.pa;
+  // Repas (Fred, 22/11/2026, point 9) : Santé et PA au prochain Dormir arrêtés par le serveur (barème des repas).
+  const repas = r.sante || null;
+  if (repas && typeof repas.apres === 'number') {
+    state.hp = repas.apres;
+    if (typeof sbFicheBaseAdopter === 'function') sbFicheBaseAdopter({ hp: repas.apres });
+  }
+  const effetRepas = repas ? '+' + (Number(repas.gain) || 0) + ' Santé, +' + (Number(repas.pa_differe) || 0) + ' PA au prochain Dormir' : '';
 
   if (!fraicheurConnue) {
     showToast('Aliment consommé', 'Consommation enregistrée. Effet sur les PA non confirmé par le serveur.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.b85f25390", 'Consommation enregistrée. Effet sur les PA non confirmé par le serveur.', undefined, 'Aliment consommé');
     addJournalEntry('Vous avez consommé "' + item.name + '". Effet sur les PA non confirmé.', 'event-info');
   } else if (perime) {
-    showToast('Intoxication alimentaire', 'Votre ' + item.name + ' avait plus de 7 jours : il était périmé et vous rend malade. -1 PA.', false);
-    addJournalEntry('Vous avez consommé "' + item.name + '" — périmé, -1 PA.', 'event-bad');
+    showToast('Intoxication alimentaire', 'Votre ' + item.name + ' avait plus de 7 jours : il était périmé et peut vous rendre malade.' + (effetRepas ? ' ' + effetRepas + '.' : ''), false);
+    addJournalEntry('Vous avez consommé "' + item.name + '" — périmé.' + (effetRepas ? ' ' + effetRepas + '.' : ''), 'event-bad');
   } else {
-    showToast('Casse-croûte', 'Vous avez mangé votre ' + item.name + '. +1 PA.', true, true);
-    addJournalEntry('Vous avez consommé "' + item.name + '". +1 PA.', 'event-good');
+    showToast('Casse-croûte', 'Vous avez mangé votre ' + item.name + '.' + (effetRepas ? ' ' + effetRepas + '.' : ''), true, true);
+    addJournalEntry('Vous avez consommé "' + item.name + '".' + (effetRepas ? ' ' + effetRepas + '.' : ''), 'event-good');
   }
 
   // La transaction RPC a deja persiste l'inventaire et les PA. Ne pas renvoyer
@@ -4357,7 +4377,7 @@ function ouvrirDetailObjet(idx) {
     html += boutonMedicamentMaladie(item, 'flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #2a6a2a;background:transparent;color:#4a8a4a;cursor:pointer');
   }
   if (item.type === 'medicament') {
-    html += '<button onclick="doSesoigner();document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #2a6a2a;background:transparent;color:#4a8a4a;cursor:pointer">Utiliser (+20 PV)</button>';
+    html += '<button onclick="doSesoigner();document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #2a6a2a;background:transparent;color:#4a8a4a;cursor:pointer">Utiliser (+20 Santé)</button>';
   }
   // TROUSSE DE PREMIERS SECOURS (phase 2, 18 septembre 2026). Reutilise le meme motif d'action
   // d'objet que le medicament : un bouton dans le detail, pas un systeme parallele. Le choix de la

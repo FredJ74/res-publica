@@ -1,6 +1,6 @@
 // HTML/CSS et présentation réels ; aucun serveur de jeu, identité ou ordre.
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
-const {R,temoin,lecture,preuve,avecJeu,page}=require('./mobile-navigateur.cjs');
+const {R,temoin,lecture,preuve,avecJeu,page,jaugesSanteTemoin}=require('./mobile-navigateur.cjs');
 // Le libellé « Règles » est devenu « Aide » (aide HRP, PR #720) : texte voulu, sans rapport avec le CSS mobile
 // que ces comparaisons surveillent. On l'aligne sur les deux pages avant la capture.
 // De même, le bouton « Se déconnecter » du menu (PR #1067, voulu, absent du témoin 728010c) est retiré avant capture.
@@ -15,7 +15,7 @@ const ACCES={personnage:'#hg-mobile-brand',menu:'[data-hg-panneau=menu]'};
 test('L1 : bureau 1440 strictement identique au témoin avant mobile',async()=>avecJeu(async(b,o)=>{
  const a=await page(b,o,1440,900,true),n=await page(b,o,1440,900);
  // Le témoin doit remplacer, pas compléter, la feuille courante.
- await a.locator('link[rel=stylesheet]').evaluateAll(es=>es.forEach(e=>e.remove()));await a.addStyleTag({content:lecture('style.css',true).toString()});await a.addStyleTag({content:lecture('rue-centrale.css',true).toString()});await a.waitForTimeout(400);await memeLibelleAide(a);await memeLibelleAide(n);
+ await a.locator('link[rel=stylesheet]').evaluateAll(es=>es.forEach(e=>e.remove()));await a.addStyleTag({content:lecture('style.css',true).toString()});await a.addStyleTag({content:lecture('rue-centrale.css',true).toString()});await jaugesSanteTemoin(a);await a.waitForTimeout(400);await memeLibelleAide(a);await memeLibelleAide(n);
  const avant=await a.screenshot(),apres=await n.screenshot();preuve('plateau-1440-avant.png',avant);preuve('plateau-1440-apres.png',apres);assert.ok(apres.equals(avant),'pixels du plateau bureau inchangés');
 }));
 for(const [w,h] of [[375,667],[393,852],[412,915],[852,393],[768,1024]])test(`L1 : coque ${w}×${h}, panneaux uniques et navigation UI sans RPC`,async()=>avecJeu(async(b,o)=>{

@@ -2529,7 +2529,7 @@ async function notifierCompositionsEtBlessures(club, contrib, butsPour, butsCont
       if (typeof sbAppliquerBlessureSportive === 'function') {
         await sbAppliquerBlessureSportive(t.nom, { jusquauJour: jour + duree, gravite: grave ? 'grave' : 'legere' }, degatsPV).catch(() => {});
       }
-      messageBlessure = '<br><br>⚠️ Vous vous êtes blessé(e) pendant le match (' + (grave ? 'gravement' : 'légèrement') + '). Indisponible ' + duree + ' jour(s), -' + degatsPV + ' PV.';
+      messageBlessure = '<br><br>⚠️ Vous vous êtes blessé(e) pendant le match (' + (grave ? 'gravement' : 'légèrement') + '). Indisponible ' + duree + ' jour(s), -' + degatsPV + ' Santé.';
     }
     if (typeof sbSendMail === 'function') {
       await sbSendMail('Ligue Officielle', t.nom, 'Vous étiez titulaire — ' + club.nom,
@@ -2948,7 +2948,7 @@ async function construireEffetsRestantsMatch(match, clubHome, clubAway) {
       const montant = salaires.titulaire + (victoire ? salaires.primeVictoire : 0);
       const blessureJoueur = (live.blessures || []).find(b => b.joueur === t.nom);
       const msgBlessure = blessureJoueur
-        ? '<br><br>⚠️ Vous vous êtes blessé(e) pendant le match (' + (blessureJoueur.grave ? 'gravement' : 'légèrement') + '). Indisponible ' + blessureJoueur.duree + ' jour(s), -' + blessureJoueur.degatsPV + ' PV.'
+        ? '<br><br>⚠️ Vous vous êtes blessé(e) pendant le match (' + (blessureJoueur.grave ? 'gravement' : 'légèrement') + '). Indisponible ' + blessureJoueur.duree + ' jour(s), -' + blessureJoueur.degatsPV + ' Santé.'
         : '';
       items.push({
         id: 'recomp-' + t.nom + '-' + uid(), type: 'recompense', nom: t.nom, montant, gainPop,
@@ -3357,10 +3357,8 @@ function getStatEffective(stat) {
   // Effets temporaires poses par le serveur (Brume : ENT +2 jusqu a minuit ; Estadine : CHA +2 et INT -0,1, 2 novembre 2026).
   const bonusTemp = (typeof bonusTemporaire === 'function') ? bonusTemporaire(state.effetsActifs, stat, Date.now()) : 0;
   const valeurNormale = base + bonusLocal + malusExcommunication + bonusTemp;
-  if (state.statsAffaiblies && state.statsAffaiblies[stat] !== undefined) {
-    const fraction = Math.max(0, Math.min(1, (state.hp || 0) / 100));
-    return Math.max(1, Math.round(valeurNormale * fraction));
-  }
+  // Caractéristiques affaiblies par la Santé : supprimées (Fred, 22/11/2026, point 15). state.statsAffaiblies est encore
+  // relu du serveur (colonne conservée) mais n'a plus aucun effet ; le serveur ne l'écrit plus.
   return Math.round(valeurNormale);
 }
 
@@ -4000,7 +3998,7 @@ async function confirmerEntrainement(stat, pa, cost) {
     document.getElementById('modal-postes')?.classList.remove('open');
     updateUI();
     showToast('Blessure à l\'entraînement !',
-      (grave ? 'Grave' : 'Légère') + '. Indisponible ' + duree + ' jour(s). -' + degatsPV + ' PV.', false);
+      (grave ? 'Grave' : 'Légère') + '. Indisponible ' + duree + ' jour(s). -' + degatsPV + ' Santé.', false);
     return;
   }
   // Contrat serveur strict : une réponse ancienne sans champ blesse ne signifie

@@ -1,0 +1,155 @@
+-- Socle PGlite de la migration 20261122234000_medecin_montrer (Santé, 22/11/2026).
+-- Recopiés de la PRODUCTION (pg_get_functiondef du 22/11/2026) : salle_cle_interne, argent_crediter_interne,
+-- argent_debiter_interne. inspecter_piece, desinstaller_lire et desinstaller_materiel sont SIMPLIFIÉES mais gardent,
+-- caractère pour caractère, la ligne d'ancrage du remplacement contrôlé (comptée à 1 en production le 22/11/2026).
+-- Les dépendances périphériques (criminalité, groupes, maladies) sont simplifiées, mêmes signatures.
+CREATE SCHEMA IF NOT EXISTS auth;
+CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role;
+CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$ SELECT nullif(current_setting('test.uid', true), '')::uuid $$;
+CREATE TABLE public.personnages (name text PRIMARY KEY, user_id uuid);
+CREATE TABLE public.personnages_donnees (id bigserial, name text PRIMARY KEY, user_id uuid, career text, country text DEFAULT 'republic',
+  current_city text DEFAULT 'capitale', current_building text, current_room text, current_street text, pa integer DEFAULT 30,
+  hp integer DEFAULT 100, moral integer DEFAULT 50, liquide integer DEFAULT 0, arg integer DEFAULT 0, est_emprisonne jsonb,
+  inventory jsonb DEFAULT '[]'::jsonb, stats jsonb DEFAULT '{}'::jsonb, updated_at timestamptz DEFAULT now());
+CREATE OR REPLACE FUNCTION public.mon_personnage() RETURNS text LANGUAGE sql STABLE AS $$ SELECT name FROM public.personnages WHERE user_id = auth.uid() LIMIT 1 $$;
+CREATE TABLE public.administrateurs (user_id uuid PRIMARY KEY, actif boolean DEFAULT true);
+CREATE OR REPLACE FUNCTION public.est_administrateur() RETURNS boolean LANGUAGE sql STABLE AS
+$$ SELECT auth.uid() IS NOT NULL AND EXISTS (SELECT 1 FROM public.administrateurs a WHERE a.user_id = auth.uid() AND a.actif) $$;
+CREATE OR REPLACE FUNCTION public.admin_exiger() RETURNS uuid LANGUAGE plpgsql STABLE AS $$
+BEGIN IF NOT public.est_administrateur() THEN RAISE EXCEPTION 'autorite_administrateur_requise' USING ERRCODE = '42501'; END IF; RETURN auth.uid(); END $$;
+CREATE TABLE public.admin_journal (rang bigserial, admin_user_id uuid, admin_libelle text, action text, parametres jsonb, resultat jsonb, ok boolean, fait_le timestamptz DEFAULT now());
+CREATE TABLE public.personnages_signaux (personnage text PRIMARY KEY, version bigint DEFAULT 1, maj timestamptz);
+CREATE OR REPLACE FUNCTION public.personnage_signaler_interne(p_nom text) RETURNS void LANGUAGE sql SECURITY DEFINER SET search_path TO 'public', 'pg_temp' AS $$
+  INSERT INTO public.personnages_signaux (personnage) VALUES (p_nom)
+  ON CONFLICT (personnage) DO UPDATE SET version = public.personnages_signaux.version + 1, maj = now();
+$$;
+CREATE TABLE public.comptes_bancaires (id text PRIMARY KEY, personnage text, banque text, solde numeric DEFAULT 0, updated_at timestamptz);
+CREATE TABLE public.ordres_couts (fn text, pa integer, cost integer);
+CREATE TABLE public.maladies_parametres (cle text PRIMARY KEY, actif boolean DEFAULT true, medicament text, nom_mj text);
+INSERT INTO public.maladies_parametres (cle, medicament) VALUES ('intoxication', 'antinauseeux'), ('gueule_de_bois', 'aspirine'),
+  ('grippe', 'antigrippal'), ('coup_de_chaleur', 'sels_rehydratation');
+CREATE TABLE public.personnages_maladies (id bigserial PRIMARY KEY, nom text NOT NULL, cle text NOT NULL, source text NOT NULL DEFAULT 'test',
+  debut timestamptz NOT NULL DEFAULT now(), fin timestamptz NOT NULL DEFAULT now() + interval '1 day', traitee_le timestamptz, guerie_le timestamptz,
+  motif_fin text, vue_le timestamptz);
+CREATE OR REPLACE FUNCTION public.maladies_echeances_interne(p_nom text) RETURNS integer LANGUAGE sql AS $$ SELECT 0 $$;
+-- Criminalité et groupes (simplifiés) : cachés, masqués, chef de groupe.
+CREATE TABLE public.caches_pj (personnage text PRIMARY KEY);
+CREATE TABLE public.masques_pj (personnage text PRIMARY KEY);
+CREATE TABLE public.groupes_pj_adhesions (membre text PRIMARY KEY, chef text);
+CREATE OR REPLACE FUNCTION public.crim_cache_interne(p text) RETURNS boolean LANGUAGE sql STABLE AS $$ SELECT EXISTS (SELECT 1 FROM public.caches_pj WHERE personnage = p) $$;
+CREATE OR REPLACE FUNCTION public.crim_masque_interne(p text) RETURNS boolean LANGUAGE sql STABLE AS $$ SELECT EXISTS (SELECT 1 FROM public.masques_pj WHERE personnage = p) $$;
+CREATE OR REPLACE FUNCTION public.groupe_chef_de_interne(p text) RETURNS text LANGUAGE sql STABLE AS
+$$ SELECT coalesce((SELECT chef FROM public.groupes_pj_adhesions WHERE membre = p), (SELECT p WHERE EXISTS (SELECT 1 FROM public.groupes_pj_adhesions WHERE chef = p))) $$;
+
+-- PRODUCTION
+CREATE OR REPLACE FUNCTION public.salle_cle_interne(p_pays text, p_ville text, p_batiment text, p_piece text, p_rue text)
+ RETURNS text
+ LANGUAGE sql
+ IMMUTABLE
+AS $function$
+  SELECT coalesce(p_pays, '') || '|' || coalesce(p_ville, '') || '|'
+      || CASE WHEN coalesce(p_batiment, '') <> '' THEN p_batiment || '|' || coalesce(p_piece, '') ELSE 'rue|' || coalesce(p_rue, '') END;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.argent_crediter_interne(p_nom text, p_montant numeric, p_poche text DEFAULT 'nationale'::text)
+ RETURNS numeric
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_m numeric := round(coalesce(p_montant, 0)); v_id text;
+BEGIN
+  IF p_poche IS NULL OR p_poche NOT IN ('liquide', 'nationale') THEN RAISE EXCEPTION 'poche_invalide'; END IF;
+  IF p_nom IS NULL OR v_m <= 0 THEN RETURN 0; END IF;
+  PERFORM 1 FROM public.personnages_donnees WHERE name = p_nom FOR UPDATE;
+  IF NOT FOUND THEN RETURN 0; END IF;
+  IF p_poche = 'nationale' THEN
+    SELECT id INTO v_id FROM public.comptes_bancaires
+     WHERE personnage = p_nom AND banque = 'nationale' ORDER BY id LIMIT 1 FOR UPDATE;
+    IF v_id IS NOT NULL THEN
+      UPDATE public.comptes_bancaires SET solde = coalesce(solde, 0) + v_m, updated_at = now() WHERE id = v_id;
+      RETURN v_m;
+    END IF;
+  END IF;
+  UPDATE public.personnages_donnees SET liquide = coalesce(liquide, 0) + v_m, updated_at = now() WHERE name = p_nom;
+  RETURN v_m;
+END;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.argent_debiter_interne(p_nom text, p_montant numeric, p_poches text DEFAULT 'liquide_puis_nationale'::text)
+ RETURNS numeric
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_m numeric := round(coalesce(p_montant, 0)); v_liq numeric; v_id text; v_solde numeric;
+        v_pris_l numeric := 0; v_pris_n numeric := 0;
+BEGIN
+  IF p_poches IS NULL OR p_poches NOT IN ('liquide', 'liquide_puis_nationale') THEN RAISE EXCEPTION 'poches_invalides'; END IF;
+  IF p_nom IS NULL OR v_m <= 0 THEN RETURN 0; END IF;
+  SELECT coalesce(liquide, 0) INTO v_liq FROM public.personnages_donnees WHERE name = p_nom FOR UPDATE;
+  IF NOT FOUND THEN RETURN 0; END IF;
+  v_pris_l := least(greatest(v_liq, 0), v_m);
+  IF p_poches = 'liquide_puis_nationale' AND v_pris_l < v_m THEN
+    SELECT id, coalesce(solde, 0) INTO v_id, v_solde FROM public.comptes_bancaires
+     WHERE personnage = p_nom AND banque = 'nationale' ORDER BY id LIMIT 1 FOR UPDATE;
+    IF v_id IS NOT NULL THEN v_pris_n := least(greatest(v_solde, 0), v_m - v_pris_l); END IF;
+  END IF;
+  IF v_pris_l > 0 THEN
+    UPDATE public.personnages_donnees SET liquide = v_liq - v_pris_l, updated_at = now() WHERE name = p_nom;
+  END IF;
+  IF v_pris_n > 0 THEN
+    UPDATE public.comptes_bancaires SET solde = solde - v_pris_n, updated_at = now() WHERE id = v_id;
+  END IF;
+  RETURN v_pris_l + v_pris_n;
+END;
+$function$;
+
+-- SIMPLIFIÉES (ancrage de production conservé à l'identique)
+CREATE OR REPLACE FUNCTION public.surveillance_lieu_interne(p_nom text, OUT pays text, OUT ville text, OUT batiment text, OUT piece text)
+ LANGUAGE sql STABLE AS $$ SELECT country, current_city, coalesce(current_building, 'rue'), coalesce(current_room, current_street) FROM public.personnages_donnees WHERE name = p_nom $$;
+CREATE OR REPLACE FUNCTION public.inspecter_piece()
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE a text := public.mon_personnage(); l record; d record;
+BEGIN
+  IF a IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  SELECT name, pa, country, current_city, current_building, current_room INTO d FROM public.personnages_donnees WHERE name = a FOR UPDATE;
+  SELECT * INTO l FROM public.surveillance_lieu_interne(a);
+  IF l.batiment IS NULL OR l.piece IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'lieu_invalide'); END IF;
+  IF coalesce(d.pa, 0) < 1 THEN RETURN jsonb_build_object('ok', false, 'raison', 'pa_insuffisants'); END IF;
+  UPDATE public.personnages_donnees SET pa = pa - 1 WHERE name = a;
+  RETURN jsonb_build_object('ok', true, 'pa', d.pa - 1);
+END $function$;
+
+CREATE OR REPLACE FUNCTION public.desinstaller_lire()
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE a text := public.mon_personnage(); d record;
+BEGIN
+  IF a IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  SELECT country, current_city, current_building, current_room, pa INTO d FROM public.personnages_donnees WHERE name = a;
+  IF d.current_building IS NULL OR d.current_room IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'hors_batiment'); END IF;
+  RETURN jsonb_build_object('ok', true, 'materiel', '[]'::jsonb);
+END $function$;
+
+CREATE OR REPLACE FUNCTION public.desinstaller_materiel(p_requete uuid, p_id uuid)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE a text := public.mon_personnage(); m record;
+BEGIN
+  IF a IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  IF p_id IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'equipement_introuvable'); END IF;
+  SELECT name, country, current_city, current_building, current_room, pa INTO m FROM public.personnages_donnees WHERE name = a FOR UPDATE;
+  IF m.current_building IS NULL OR m.current_room IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'hors_batiment'); END IF;
+  RETURN jsonb_build_object('ok', false, 'raison', 'equipement_introuvable');
+END $function$;

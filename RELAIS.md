@@ -8,6 +8,139 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Santé, lot combat : robustesse, blessures, coma à 0 PA, meute (Claude, 22/11/2026) — GAME-DESIGN-SANTE-20261122.md, points 1, 2, 3, 15 (serveur), 19
+- **Branche `claude/sante-combat-20261122`** (part de `5b2bef8d`, branche `claude/mission-nuit-20261122`). Aucune fonction Vercel.
+- **Migration écrite, NON appliquée** : `20261122231000_sante_combat.sql`, à appliquer **après** `20261122230000_sante_socle.sql`. Écrite à partir de
+  pg_get_functiondef de production (22/11), chaque ancrage compté en production (1, et 2 pour `militaire_bataille_commande_interne`).
+  - Points 1 et 3 : `sante_combat_coup_pj_interne` (nouvelle) — perte = `sante_perte_combat_interne(Santé au coup, perte brute)`, bornée aux PA ;
+    Santé perdue = PA perdus × `blessure_sante_par_pa`. Branchée dans `militaire_bataille_appliquer` (tous les rounds : batailles, PJ contre PJ,
+    faune, squatteurs, gardes ; ordre degré → morsure des loups → gilet → robustesse, le gilet garde 1 PA ; marques `sante_combat_*_v1`) et
+    `police_combat_personnage_interne` (marques `sante_police_*robustesse_v1`). PNJ : perte brute.
+  - Point 2 : 21 gardes « hp <= 0 » retirées (`sante_zero_libre_*`) dans acces_forcer_passage, chantier_commande, groupe_combattants_interne,
+    jardins_ouvriers_acteur_interne, local_louer, militaire_bataille_arbitrer_groupes (×2), militaire_bataille_combattants,
+    militaire_bataille_commande_interne (×2), militaire_bataille_etat, militaire_bataille_recruter_metier_interne, navigation_disponibilite_interne,
+    poissonniere_acteur_interne, police_combat_personnage_interne, pret_national_contracter_versionne, sovarka_reunion_evenement,
+    terrain_acquisition_commande, terrain_lot_loyer_fixer, terrain_lots_acte, terrain_occupation_action_preparer, vendre_materiaux_chantier ;
+    `combat_rapport_lignes_interne` réécrite (coma = PA 0) ; `militaire_bataille_neutralisation_terminale_interne` ne met plus la Santé à 0 (`sante_coma_pa_v1`).
+  - Point 15 : `impact_marquer_traite` n'écrit plus regen_jour ni stats_affaiblies ; lecteurs neutralisés (jauges_ordre_executer,
+    militaire_subtiliser_tenter, terrain_negociation_preparer, terrain_occupation_action_preparer ×2, terrain_squatteurs_don). Aucun texte serveur
+    « PV » pour la Santé (seulement commentaires, clé JSON degatsPV, « PV d'audition »).
+  - Point 19 : `sovarka_foret_meute_derniere_fuite_interne` (deux loups morts → les loups debout s'enfuient dans le même round ; paramètre
+    `aliments_parametres.foret_meute_fuite_apres_morts` = 2) et `combat_rapport_etats_rafraichir_interne` (état « fuite » repris dans la ligne du
+    round après arbitrage et fin), branchées dans `militaire_bataille_round` ; `sovarka_foret_issue_combat_interne` réécrite (butin de chaque loup tué
+    quelle que soit l'issue, `foret_meute_butin_v2` ; reste d'une pile non rangée au sas `objets_recus`, `foret_butin_sas_v1`).
+- **Fichiers du navigateur modifiés (pour rebaser)** : `plateau-organisations-quetes.js` (`getStatEffective` : statsAffaiblies sans effet). Aucun autre
+  blocage « Santé 0 » trouvé dans `plateau-*.js`. Régénération +10 de `doDormir` (`plateau-personnage.js`) laissée au lot sommeil (point 8).
+- **Pour Codex (traductions)** : aucune clé nouvelle.
+- **Bancs** : `banc-sante-combat-pglite-20261122.cjs` (nouveau, 9 tests) avec la fixture `fixtures/sante-combat-ancrages.sql.txt` ; workflow
+  `sante-combat-20261122.yml`. `banc-foret-groupe-combat-pglite-20261122.cjs` inchangé (passe).
+- **À tester par Fred** (après application) : combat contre la meute à Santé 100 puis à Santé 10 (PA et Santé perdus égaux, 8 contre 12 PA pour un
+  coup de 10) ; deux loups abattus → le troisième s'enfuit, « (en fuite) » au dernier round, butin des deux loups au chef ; un personnage à Santé 0
+  peut se déplacer, combattre, acheter un terrain.
+### Santé : maladies, MST, escort, médicaments, fontaines (Claude, 22/11/2026) — GAME-DESIGN-SANTE-20261122.md, points 4, 5, 6, 13, 20
+- **Branche `claude/sante-maladies-20261122`** (part de `5b2bef8d`, `claude/mission-nuit-20261122`). Aucune fonction Vercel, aucun ordre payant ajouté.
+- **Migration écrite, NON appliquée** : `20261122233000_sante_maladies_medicaments.sql` (suppose le socle `20261122230000_sante_socle.sql`
+  appliqué avant). `maladies_parametres.perte_sante` (intoxication 10, grippe 10, coup de chaleur 5, gueule de bois 3, MST 10 ; posées une seule
+  fois) et `guerison_spontanee` ; maladie `mst` (−2 CHA, non contagieuse, jamais guérie seule, antibiotique, stock 20) ; tables `escort_relations`,
+  `mst_en_attente`, `medicaments_stocks` ; paramètres `medicament_matiere_par_pa` 5, `medicament_produits_par_pa` 10, `medicament_stock_max` 50.
+  Remplacements contrôlés (marques `sante_maladies_v1_*`) : `maladie_contracter_interne` (perte de Santé à la contraction, durée de 100 ans sans
+  guérison spontanée), `admin_maladie_modifier` (deux réglages en plus), `escort_intimite` (plus de Santé, tirage MST à l'acte). Réécrites :
+  `pharmacie_etat`, `pharmacie_acheter_interne` (stock produit vendu d'abord, recette à l'usine ; « Antibiotique »), `sante_reveil_interne`
+  (révèle la MST : maladie, perte, journal d'événements avec le texte exact de Fred). Nouvelles : `mst_relation_interne`, `produire_medicament`,
+  `usine_medicaments_etat`, `medicament_stock_pays_interne`, `usine_medicaments_chaine_interne`, `usine_medicaments_crediter_interne`.
+  Fontaines (point 20) : vérifiées sans tirage, contrôle en fin de migration, rien à neutraliser.
+- **Dépendance** : l'agent du sommeil doit appeler `sante_reveil_interne(nom)` au Dormir (accroche du socle) : sans lui, la MST tirée n'est jamais révélée.
+- **Fichiers du navigateur modifiés (pour rebaser)** : `plateau-maladies.js` (`CLES` + `mst`, `MEDICAMENTS` + `antibiotique`, quatre clés fr),
+  `plateau-justice-economie.js` (`doProduireUsine(produitId, medicamentChoisi)` : liste des médicaments ; `confirmerProductionUsine` →
+  `produire_medicament` ; ligne « Stock local » masquée pour les médicaments), `plateau-pnj.js` (journal de « Faire l'amour » sans Santé),
+  `admin-maladies.js` (deux champs, affichés seulement si le serveur les connaît), `plateau.html` et `admin.html` (versions des scripts).
+- **Pour Codex (traductions)** : `plateau-maladies.js` `T.fr` : `n_mst` « MST », `s_mst`, `o_mst` « Démangeaisons très gênantes. »,
+  `m_antibiotique` « Antibiotique » (liste `EN_ATTENTE_CODEX` de `test-maladies-lot1-20261118.cjs` à vider une fois traduites) ;
+  `plateau-justice-economie.js` : « Médicament à fabriquer », « stock national », « Choisissez un médicament. », « Ce médicament ne se fabrique pas
+  ici. » ; journal d'événements : clé `mst_revelee`, paramètres `partenaires`, `jours`, `perte` (texte serveur en français).
+- **Bancs** : `banc-sante-maladies-pglite-20261122.cjs` (nouveau, 8 essais, fixture `fixtures/sante-maladies-pglite.sql.txt`), workflow
+  `sante-maladies-20261122.yml` ; `test-maladies-lot1-20261118.cjs` mis à jour (clés fr en attente de Codex).
+- **À tester par Fred** : avec trois escorts différentes, « Faire l'amour » avec chacune (même escort revue : aucun risque), puis Dormir : message
+  du journal et −10 Santé si la MST est tombée ; démangeaisons visibles des autres ; antibiotique acheté à la pharmacie, pris, Dormir : guéri ;
+  à l'usine pharmaceutique, « Produire des médicaments » : choisir l'antibiotique, puis le voir en vente au comptoir.
+### Santé : médecin de terrain, montrer un objet, jauges, « PV » → « Santé », forêt en plein air (Claude, 22/11/2026, après-midi) — GAME-DESIGN-SANTE-20261122.md, points 12, 14, 15 (navigateur), 17, 18, 22
+- **Branche `claude/sante-medecin-20261122`** (part de `5b2bef8d`, avec le commit du coordinateur « lecture du journal d'événements » repris).
+  Aucune fonction Vercel. Ne pas pousser ni fusionner avant la validation de Fred.
+- **Migration écrite, NON appliquée** : `20261122234000_medecin_montrer` (suppose le socle `20261122230000`, non appliqué lui non plus).
+  Nouvelles : table `medecin_propositions` ; `medecin_etat`, `medecin_proposer`, `medecin_repondre`, `medecin_propositions_lire`,
+  `objet_montrer`, `sante_paliers_lire` (RPC) ; `personnages_meme_lieu_interne`, `medecin_trousse_position_interne`,
+  `medecin_trousses_compter_interne`, `medecin_diagnostic_interne`, `medecin_diagnostic_texte_interne`, `medecin_maladie_nom_interne`,
+  `medecin_medicament_nom_interne`, `medecin_monnaie_interne`, `medecin_nom_vu_interne`, `piece_plein_air_interne` ; paramètres
+  `sante_parametres.medecin_proposition_minutes` (30) et `medecin_tarif_max` (100 000) ; tarifs `ordres_couts` medecin_diagnostiquer (1 PA),
+  medecin_soigner (2 PA). **Remplacements contrôlés** (ancrage compté à 1 en production le 22/11) : `inspecter_piece`
+  (`plein_air_inspecter_v1`), `desinstaller_lire` (`plein_air_desinstaller_lire_v1`), `desinstaller_materiel` (`plein_air_desinstaller_v1`).
+  Communes appelées sans modification : `salle_cle_interne`, `argent_debiter_interne`, `argent_crediter_interne`, `maladies_echeances_interne`,
+  `crim_cache_interne`, `crim_masque_interne`, `groupe_chef_de_interne`.
+- **Fichiers du navigateur modifiés (pour rebaser)** : `plateau-medecin-montrer.js` (nouveau), `plateau.html` (jauges Santé/Moral dans le panneau
+  « Mon personnage », Argent sur sa propre ligne ; script ajouté après `plateau-evenements-personnage.js` ; versions de style.css, data.js,
+  plateau-surveillance.js, plateau-personnage.js, plateau-pnj.js, plateau-justice-economie.js, plateau-organisations-quetes.js,
+  plateau-criminalite.js), `style.css` (bloc « SANTÉ ET MORAL, MÉDECIN, MONTRER UN OBJET » à la fin), `plateau-pnj.js` (une ligne après
+  « Donner »), `plateau-personnage.js` (« Montrer à ce joueur » dans la fiche d'un objet ; textes PV → Santé dans l'empoisonnement, la
+  régénération de doDormir — **texte seulement, calcul inchangé** — et « Utiliser (+20 Santé) »), `plateau-surveillance.js`
+  (`ordresFouillerVoler` : vue en plein air → seulement « Se cacher »), `data.js` (titres et textes des quatre vues de la forêt),
+  `plateau-justice-economie.js`, `plateau-organisations-quetes.js`, `plateau-criminalite.js` (PV → Santé, français).
+- **Pour Codex (traductions)** : clés nouvelles `medecinMontrer.*` (tout le dictionnaire `FR` en tête de `plateau-medecin-montrer.js`) ;
+  « Montrer à ce joueur » (plateau-personnage.js) ; libellés « Santé » et « Moral » des jauges (plateau.html) ; `toast-bodies-resources.js`
+  lignes « Vos PV sont tombes a 0… », « Vous vous échappez malgré tout. −30 DIS −15 PV. », « Vous avez tenu tete aux gardiens… -10 PV. »
+  à remplacer par les nouvelles phrases (« Votre Santé est tombée à 0. Hospitalisation d'urgence. », « … −15 Santé. », « … -10 Santé. ») et à
+  rebrancher par `markToast` ; `plateau-criminalite.js` `bMateeText` des autres langues (PV → Santé) ; `sovarka-pieces-resources.js`
+  (4 anciens titres « Forêt profonde — … » → « La piste des débardeurs », « La coupe abandonnée », « Les grands fûts », « Le sentier d’Olga »)
+  et `sovarka-descriptions-resources.js` (4 anciennes descriptions → nouveaux textes du point 18). Les textes des événements serveur
+  (`medecin_*`, `objet_montre*`) sont en français.
+- **Tests figés mis à jour** : `banc-i18n-corps-notifications-20261114.cjs` (3 phrases PV retirées), `test-i18n-sovarka-pieces-20261112.mjs`
+  (4 anciens titres retirés), `test-i18n-sovarka-descriptions-20261112.mjs` (4 nouveaux textes en attente de Codex), `test-plan-recette97-219.py`
+  (596 tarifs) ; comparaisons au pixel du bureau 1440 (`banc-mobile-certification`, `banc-mobile-coque` L1, `banc-mobile-sovarka`) : le témoin
+  reçoit le même bloc de jauges (`jaugesSanteTemoin`, `mobile-navigateur.cjs`), changement voulu ; listes en dur des tarifs (preparer-recette97, preparer-livraison-complete, banc-couts-reconciliation) et seed `ordres_couts` régénéré.
+- **Bancs** : `banc-medecin-montrer-pglite-20261122.cjs` (7/7 : diagnostic, soin avec trousse et accord, Moral ×1,5/×0,5, refus, fonds
+  insuffisants, départ du médecin, présence rue/forêt/cachette, montrer, plein air), `banc-medecin-montrer-navigateur-20261122.cjs`
+  (Chromium, 6/6 à 1280 et 390 px : jauges, forêt, montrer, médecin) ; workflow `sante-medecin-20261122.yml`.
+- **À tester par Fred (après application)** : survoler ou toucher les jauges Santé et Moral ; en médecin (carrière Médecin / Universitaire),
+  ouvrir la carte d'un joueur présent → « Diagnostiquer » (tarif libre) : le patient voit le prix, accepte ou refuse ; « Soigner » avec une
+  trousse de premiers secours ; « Montrer un objet » depuis la carte d'un joueur ou la fiche d'un objet ; en forêt de Krasnov : seulement
+  « Couper du bois », « Retour au campement », « Se cacher », et les nouveaux titres.
+### Santé — consommation : alcool, sommeil, repas, soins (Claude, 22/11/2026, après-midi) — décisions : GAME-DESIGN-SANTE-20261122.md, points 7 à 11
+- **Branche `claude/sante-consommation-20261122`** (part de `5b2bef8d`, socle Santé). Aucune fonction Vercel. Le point 6 (escort) est
+  traité par la branche des maladies.
+- **Migration écrite, NON appliquée** : `20261122232000_sante_consommation` (requiert `20261122230000_sante_socle`). Tous les gains passent par
+  `sante_gagner_interne` (Moral, point 11), valeurs dans `sante_parametres` (+ `repas_joueur_p5_prix_min`, `repas_joueur_p10_prix_min`,
+  `repas_pa_differe_plafond`). Nouvelles tables : `sante_repas_categories` (classement des plats), `sante_sommeil_lieux` (lieux du sommeil,
+  motifs bâtiment/pièce), `sante_sommeils` (un crédit de sommeil par jour de Paris). Nouvelle RPC `sante_se_nourrir(p_pa, p_cost)`.
+  15 fonctions de production modifiées par remplacement contrôlé (marques `sante_conso_*`, ancrages comptés ; les 21 définitions recopiées
+  dans la doublure PGlite sont identiques à la production, md5 vérifié par le banc) : `maladie_verre_interne` (+1 / 0 / −2 au 1er, 2e,
+  3e verre du compteur `verres_du_jour`), `tournee_cloturer_boire` (fin du +5), `commerce_vendre_produit` (comptoir PNJ : repas, Moral de la
+  recette et verre d'alcool comptés par le serveur ; repas gastronomique), `consommer_sur_place_commerce` et `inventaire_consommer`
+  (barème ; produit de joueur au palier de prix ; fin du +1 PA immédiat), `restaurant_diner_servir`, `diner_commerce_servir_interne`,
+  `service_etage_commander`, `hotel_service_etage_commander`, `marche_krasnov_manger` (goulash = plat, pain noir = sandwich, fruits et
+  légumes = snack ; fin du +2 PA immédiat), `pa_repos_nocturne` (Santé du sommeil selon la position en base + `sante_reveil_interne`,
+  renvoyés dans `sante_sommeil` et `evenements_reveil`), `clinique_nuitee_consommer` et `clinique_nuitee_marquer_repos` (+7, crédit unique),
+  `recevoir_soin` (+8 / +15), `ordre_generique_executer` (urgence +25, sans trace +15, sans majoration critique).
+- **Fichiers du navigateur modifiés (pour rebaser)** : `plateau-personnage.js` (`doDormir` : fin du +12, du +10 et du bonus Santé du logement,
+  nouvelle `sommeilSanteServeur` + `SOMMEIL_LIEUX` ; `doServiceEtage` ; affichage d'un aliment mangé), `plateau-divers.js`
+  (`removeFromInventory` rend `sante`), `plateau-actions-illegales-rumeurs.js` (`commanderProduitCommerce` adopte Santé/Moral du serveur,
+  `doRepasGastronomiqueGenerique`), `plateau-justice-economie.js` (`doSeReposer` → nouvelle `doSeNourrir`), `plateau-router.js` (route
+  se_nourrir avec pa/cost), `plateau-marche-krasnov.js` (textes `m_*` avec `{sante}` et `{pa}`), `plateau-clinique-nuitee.js`,
+  `plateau-pnj.js` (hp retiré de la configuration morte des invitations), `plateau-restaurant-luthecia.js`, `data.js` (ORDER_EFFECTS et
+  descriptions de soins, service d'étage, Se nourrir).
+- **Pour Codex (traductions, français seul modifié)** : descriptions de `data.js` « +25 Santé immédiatement (modulée par le Moral). »,
+  « +15 Santé (modulée par le Moral). Aucune trace médicale. », « Déjeuner servi en chambre : l’effet d’un plat du jour (Santé et PA au
+  prochain Dormir), +1 Moral. » (catalogue commun) et « Repas économique : l’effet d’un sandwich (Santé et PA au prochain Dormir). »
+  (catalogue de Sovarka) — anciennes lignes gardées en historique dans les tests figés ; `plateau-clinique-nuitee.js` clés `reserveDesc`,
+  `sleepDesc`, `bonus` ; `plateau-restaurant-luthecia.js` clé `dinnerOrderDesc` ; `plateau-marche-krasnov.js` `m_pain_noir`,
+  `m_fruits_legumes`, `m_goulash` (placeholders `{sante}`, `{pa}`) ; nouveaux textes sans clé : journal du sommeil (« Nuit dans une chambre :
+  +5 Santé (Santé 55). »), toasts « Repas pris », « Repas gastronomique », « Casse-croûte » avec Santé et PA différés.
+- **Bancs** : `banc-sante-consommation-pglite-20261122.cjs` (nouveau, 14 tests : 1, 2, 3 verres ; sommeil en chambre, bâtiment, dehors, forêt,
+  hôpital, clinique, logement, nuitée ; menu à Moral 80 et 20 ; barème ; produits de joueur ; dîner ; services d'étage ; marché ; Se nourrir ;
+  soins), doublure `fixtures/sante-consommation-pglite-socle.sql.txt` ; `banc-hospitalisation-client.cjs` mis à jour (Santé du sommeil lue du
+  serveur, plus aucun +12) ; tests figés `test-i18n-infobulles-communes-20261113.mjs` et `test-i18n-sovarka-infobulles-20261113.mjs` mis à jour
+  (nouvelles descriptions en attente de Codex). Workflow `sante-consommation-20261122.yml`.
+- **À tester par Fred** (après application du socle puis de cette migration) : boire 1, 2 puis 3 verres au bar (Santé +1, 0, −2) ; Dormir dans
+  une chambre d'hôtel, dans un hall, dans la rue (+5, +3, +2, journal « Nuit … ») ; un menu avec un Moral de 80 puis de 20 (+8 puis +3 Santé,
+  +3 PA au prochain Dormir) ; soin au dispensaire (+8 Santé, +1 PA).
 ### Remontées du test en forêt, points 1 et 8 : texte minimum et météo des vues en plein air (Claude, 22/11/2026) — décisions : GAME-DESIGN-FORET-TEST-20261122.md
 - **Branche `claude/texte-meteo-20261122`** (part de `main`). Aucune migration, aucune fonction Vercel. Le bouton « Explorer la forêt » (point 8) est
   traité par un autre agent ; la logique forêt, les groupes, le combat et l'inventaire aussi (branches séparées).

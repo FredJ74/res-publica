@@ -3370,7 +3370,7 @@ const BUILDINGS = {
         persons: [],
         orders: [
           {fn:'dormir_chambre', label:'Dormir',                  pa:0, cost:0,   type:'legal', icon:'ti-moon',     successRate:100, desc:'Reservez une chambre a l\'accueil au prealable pour beneficier du bonus. Sans reservation, passez l\'ordre Dormir depuis votre fiche personnage.'},
-          {fn:'service_etage',  label:'Faire appel au service d\'etage', pa:0, cost:150, type:'legal', icon:'ti-soup', successRate:100, desc:'Dejeuner servi en chambre. +10 Sante, +1 Moral immediats. +1 PA au prochain Dormir.'}
+          {fn:'service_etage',  label:'Faire appel au service d\'etage', pa:0, cost:150, type:'legal', icon:'ti-soup', successRate:100, desc:'Déjeuner servi en chambre : l’effet d’un plat du jour (Santé et PA au prochain Dormir), +1 Moral.'}
         ]
       },
       suite_privee: {
@@ -4386,8 +4386,8 @@ const BUILDINGS = {
       chambre_1:  { name: "Chambre 1",  image: "🛏️", imageBg: "linear-gradient(135deg,#080f10,#0c1618)", desc: "Une chambre privée, calme et confortable.", imageUrl: "images/luthecia-clinique-chambre.jpg", persons: [], orders: [
         {fn:'gerer_visites_chambre', label:'Autoriser / Interdire les visites', pa:0, cost:0, type:'legal', icon:'ti-door', successRate:100, desc:'Choisir si les autres joueurs peuvent vous rendre visite dans cette chambre.'},
         {fn:'soins',          label:'Soin standard',              pa:0, cost:100, type:'legal', icon:'ti-stethoscope', successRate:100, desc:'+30 Sante, +2 PA immediats. 1 fois par jour. Consomme 1 desinfectant + 1 medicament du stock de la clinique.'},
-        {fn:'soins_urgence',  label:'Soins acceleres (urgence)',   pa:0, cost:500, type:'legal', icon:'ti-urgent',      successRate:100, desc:'+40 Sante immediatement.'},
-        {fn:'soins_discrets', label:'Soins sans trace',            pa:1, cost:800, type:'grey',  icon:'ti-eye-off',     successRate:95,  desc:'+30 Sante. Aucune trace medicale.'},
+        {fn:'soins_urgence',  label:'Soins acceleres (urgence)',   pa:0, cost:500, type:'legal', icon:'ti-urgent',      successRate:100, desc:'+25 Santé immédiatement (modulée par le Moral).'},
+        {fn:'soins_discrets', label:'Soins sans trace',            pa:1, cost:800, type:'grey',  icon:'ti-eye-off',     successRate:95,  desc:'+15 Santé (modulée par le Moral). Aucune trace médicale.'},
         {fn:'centre_anti_poison', label:'Centre anti-poison', pa:1, cost:150, type:'legal', icon:'ti-vaccine', successRate:85, desc:'Guerit un empoisonnement en cours. Limite a 2 tentatives par jour.'},
         {fn:'repas_clinique', label:'Prendre le repas de la clinique', pa:1, cost:30, type:'legal', icon:'ti-soup', successRate:100, desc:'Une fois par jour, servi au chevet. +4 PA à votre prochain sommeil.'},
         {fn:'sortie_hopital', label:'Sortir de l\'hôpital', pa:0, cost:0, type:'legal', icon:'ti-door-exit', successRate:100, desc:'Réservé aux patients hospitalisés : possible à partir du deuxième jour, avec au moins 20 PA.'}
@@ -4395,8 +4395,8 @@ const BUILDINGS = {
       chambre_2:  { name: "Chambre 2",  image: "🛏️", imageBg: "linear-gradient(135deg,#080f10,#0c1618)", desc: "Une chambre privée, calme et confortable.", imageUrl: "images/luthecia-clinique-chambre.jpg", persons: [], orders: [
         {fn:'gerer_visites_chambre', label:'Autoriser / Interdire les visites', pa:0, cost:0, type:'legal', icon:'ti-door', successRate:100, desc:'Choisir si les autres joueurs peuvent vous rendre visite dans cette chambre.'},
         {fn:'soins',          label:'Soin standard',              pa:0, cost:100, type:'legal', icon:'ti-stethoscope', successRate:100, desc:'+30 Sante, +2 PA immediats. 1 fois par jour. Consomme 1 desinfectant + 1 medicament du stock de la clinique.'},
-        {fn:'soins_urgence',  label:'Soins acceleres (urgence)',   pa:0, cost:500, type:'legal', icon:'ti-urgent',      successRate:100, desc:'+40 Sante immediatement.'},
-        {fn:'soins_discrets', label:'Soins sans trace',            pa:1, cost:800, type:'grey',  icon:'ti-eye-off',     successRate:95,  desc:'+30 Sante. Aucune trace medicale.'},
+        {fn:'soins_urgence',  label:'Soins acceleres (urgence)',   pa:0, cost:500, type:'legal', icon:'ti-urgent',      successRate:100, desc:'+25 Santé immédiatement (modulée par le Moral).'},
+        {fn:'soins_discrets', label:'Soins sans trace',            pa:1, cost:800, type:'grey',  icon:'ti-eye-off',     successRate:95,  desc:'+15 Santé (modulée par le Moral). Aucune trace médicale.'},
         {fn:'centre_anti_poison', label:'Centre anti-poison', pa:1, cost:150, type:'legal', icon:'ti-vaccine', successRate:85, desc:'Guerit un empoisonnement en cours. Limite a 2 tentatives par jour.'},
         {fn:'repas_clinique', label:'Prendre le repas de la clinique', pa:1, cost:30, type:'legal', icon:'ti-soup', successRate:100, desc:'Une fois par jour, servi au chevet. +4 PA à votre prochain sommeil.'},
         {fn:'sortie_hopital', label:'Sortir de l\'hôpital', pa:0, cost:0, type:'legal', icon:'ti-door-exit', successRate:100, desc:'Réservé aux patients hospitalisés : possible à partir du deuxième jour, avec au moins 20 PA.'}
@@ -4404,8 +4404,8 @@ const BUILDINGS = {
       chambre_3:  { name: "Chambre 3",  image: "🛏️", imageBg: "linear-gradient(135deg,#080f10,#0c1618)", desc: "Une chambre privée, calme et confortable.", imageUrl: "images/luthecia-clinique-chambre.jpg", persons: [], orders: [
         {fn:'gerer_visites_chambre', label:'Autoriser / Interdire les visites', pa:0, cost:0, type:'legal', icon:'ti-door', successRate:100, desc:'Choisir si les autres joueurs peuvent vous rendre visite dans cette chambre.'},
         {fn:'soins',          label:'Soin standard',              pa:0, cost:100, type:'legal', icon:'ti-stethoscope', successRate:100, desc:'+30 Sante, +2 PA immediats. 1 fois par jour. Consomme 1 desinfectant + 1 medicament du stock de la clinique.'},
-        {fn:'soins_urgence',  label:'Soins acceleres (urgence)',   pa:0, cost:500, type:'legal', icon:'ti-urgent',      successRate:100, desc:'+40 Sante immediatement.'},
-        {fn:'soins_discrets', label:'Soins sans trace',            pa:1, cost:800, type:'grey',  icon:'ti-eye-off',     successRate:95,  desc:'+30 Sante. Aucune trace medicale.'},
+        {fn:'soins_urgence',  label:'Soins acceleres (urgence)',   pa:0, cost:500, type:'legal', icon:'ti-urgent',      successRate:100, desc:'+25 Santé immédiatement (modulée par le Moral).'},
+        {fn:'soins_discrets', label:'Soins sans trace',            pa:1, cost:800, type:'grey',  icon:'ti-eye-off',     successRate:95,  desc:'+15 Santé (modulée par le Moral). Aucune trace médicale.'},
         {fn:'centre_anti_poison', label:'Centre anti-poison', pa:1, cost:150, type:'legal', icon:'ti-vaccine', successRate:85, desc:'Guerit un empoisonnement en cours. Limite a 2 tentatives par jour.'},
         {fn:'repas_clinique', label:'Prendre le repas de la clinique', pa:1, cost:30, type:'legal', icon:'ti-soup', successRate:100, desc:'Une fois par jour, servi au chevet. +4 PA à votre prochain sommeil.'},
         {fn:'sortie_hopital', label:'Sortir de l\'hôpital', pa:0, cost:0, type:'legal', icon:'ti-door-exit', successRate:100, desc:'Réservé aux patients hospitalisés : possible à partir du deuxième jour, avec au moins 20 PA.'}
@@ -4413,8 +4413,8 @@ const BUILDINGS = {
       chambre_4:  { name: "Chambre 4",  image: "🛏️", imageBg: "linear-gradient(135deg,#080f10,#0c1618)", desc: "Une chambre privée, calme et confortable.", imageUrl: "images/luthecia-clinique-chambre.jpg", persons: [], orders: [
         {fn:'gerer_visites_chambre', label:'Autoriser / Interdire les visites', pa:0, cost:0, type:'legal', icon:'ti-door', successRate:100, desc:'Choisir si les autres joueurs peuvent vous rendre visite dans cette chambre.'},
         {fn:'soins',          label:'Soin standard',              pa:0, cost:100, type:'legal', icon:'ti-stethoscope', successRate:100, desc:'+30 Sante, +2 PA immediats. 1 fois par jour. Consomme 1 desinfectant + 1 medicament du stock de la clinique.'},
-        {fn:'soins_urgence',  label:'Soins acceleres (urgence)',   pa:0, cost:500, type:'legal', icon:'ti-urgent',      successRate:100, desc:'+40 Sante immediatement.'},
-        {fn:'soins_discrets', label:'Soins sans trace',            pa:1, cost:800, type:'grey',  icon:'ti-eye-off',     successRate:95,  desc:'+30 Sante. Aucune trace medicale.'},
+        {fn:'soins_urgence',  label:'Soins acceleres (urgence)',   pa:0, cost:500, type:'legal', icon:'ti-urgent',      successRate:100, desc:'+25 Santé immédiatement (modulée par le Moral).'},
+        {fn:'soins_discrets', label:'Soins sans trace',            pa:1, cost:800, type:'grey',  icon:'ti-eye-off',     successRate:95,  desc:'+15 Santé (modulée par le Moral). Aucune trace médicale.'},
         {fn:'centre_anti_poison', label:'Centre anti-poison', pa:1, cost:150, type:'legal', icon:'ti-vaccine', successRate:85, desc:'Guerit un empoisonnement en cours. Limite a 2 tentatives par jour.'},
         {fn:'repas_clinique', label:'Prendre le repas de la clinique', pa:1, cost:30, type:'legal', icon:'ti-soup', successRate:100, desc:'Une fois par jour, servi au chevet. +4 PA à votre prochain sommeil.'},
         {fn:'sortie_hopital', label:'Sortir de l\'hôpital', pa:0, cost:0, type:'legal', icon:'ti-door-exit', successRate:100, desc:'Réservé aux patients hospitalisés : possible à partir du deuxième jour, avec au moins 20 PA.'}
@@ -4422,8 +4422,8 @@ const BUILDINGS = {
       chambre_5:  { name: "Chambre 5",  image: "🛏️", imageBg: "linear-gradient(135deg,#080f10,#0c1618)", desc: "Une chambre privée, calme et confortable.", imageUrl: "images/luthecia-clinique-chambre.jpg", persons: [], orders: [
         {fn:'gerer_visites_chambre', label:'Autoriser / Interdire les visites', pa:0, cost:0, type:'legal', icon:'ti-door', successRate:100, desc:'Choisir si les autres joueurs peuvent vous rendre visite dans cette chambre.'},
         {fn:'soins',          label:'Soin standard',              pa:0, cost:100, type:'legal', icon:'ti-stethoscope', successRate:100, desc:'+30 Sante, +2 PA immediats. 1 fois par jour. Consomme 1 desinfectant + 1 medicament du stock de la clinique.'},
-        {fn:'soins_urgence',  label:'Soins acceleres (urgence)',   pa:0, cost:500, type:'legal', icon:'ti-urgent',      successRate:100, desc:'+40 Sante immediatement.'},
-        {fn:'soins_discrets', label:'Soins sans trace',            pa:1, cost:800, type:'grey',  icon:'ti-eye-off',     successRate:95,  desc:'+30 Sante. Aucune trace medicale.'},
+        {fn:'soins_urgence',  label:'Soins acceleres (urgence)',   pa:0, cost:500, type:'legal', icon:'ti-urgent',      successRate:100, desc:'+25 Santé immédiatement (modulée par le Moral).'},
+        {fn:'soins_discrets', label:'Soins sans trace',            pa:1, cost:800, type:'grey',  icon:'ti-eye-off',     successRate:95,  desc:'+15 Santé (modulée par le Moral). Aucune trace médicale.'},
         {fn:'centre_anti_poison', label:'Centre anti-poison', pa:1, cost:150, type:'legal', icon:'ti-vaccine', successRate:85, desc:'Guerit un empoisonnement en cours. Limite a 2 tentatives par jour.'},
         {fn:'repas_clinique', label:'Prendre le repas de la clinique', pa:1, cost:30, type:'legal', icon:'ti-soup', successRate:100, desc:'Une fois par jour, servi au chevet. +4 PA à votre prochain sommeil.'},
         {fn:'sortie_hopital', label:'Sortir de l\'hôpital', pa:0, cost:0, type:'legal', icon:'ti-door-exit', successRate:100, desc:'Réservé aux patients hospitalisés : possible à partir du deuxième jour, avec au moins 20 PA.'}
@@ -4431,8 +4431,8 @@ const BUILDINGS = {
       chambre_6:  { name: "Chambre 6",  image: "🛏️", imageBg: "linear-gradient(135deg,#080f10,#0c1618)", desc: "Une chambre privée, calme et confortable.", imageUrl: "images/luthecia-clinique-chambre.jpg", persons: [], orders: [
         {fn:'gerer_visites_chambre', label:'Autoriser / Interdire les visites', pa:0, cost:0, type:'legal', icon:'ti-door', successRate:100, desc:'Choisir si les autres joueurs peuvent vous rendre visite dans cette chambre.'},
         {fn:'soins',          label:'Soin standard',              pa:0, cost:100, type:'legal', icon:'ti-stethoscope', successRate:100, desc:'+30 Sante, +2 PA immediats. 1 fois par jour. Consomme 1 desinfectant + 1 medicament du stock de la clinique.'},
-        {fn:'soins_urgence',  label:'Soins acceleres (urgence)',   pa:0, cost:500, type:'legal', icon:'ti-urgent',      successRate:100, desc:'+40 Sante immediatement.'},
-        {fn:'soins_discrets', label:'Soins sans trace',            pa:1, cost:800, type:'grey',  icon:'ti-eye-off',     successRate:95,  desc:'+30 Sante. Aucune trace medicale.'},
+        {fn:'soins_urgence',  label:'Soins acceleres (urgence)',   pa:0, cost:500, type:'legal', icon:'ti-urgent',      successRate:100, desc:'+25 Santé immédiatement (modulée par le Moral).'},
+        {fn:'soins_discrets', label:'Soins sans trace',            pa:1, cost:800, type:'grey',  icon:'ti-eye-off',     successRate:95,  desc:'+15 Santé (modulée par le Moral). Aucune trace médicale.'},
         {fn:'centre_anti_poison', label:'Centre anti-poison', pa:1, cost:150, type:'legal', icon:'ti-vaccine', successRate:85, desc:'Guerit un empoisonnement en cours. Limite a 2 tentatives par jour.'},
         {fn:'repas_clinique', label:'Prendre le repas de la clinique', pa:1, cost:30, type:'legal', icon:'ti-soup', successRate:100, desc:'Une fois par jour, servi au chevet. +4 PA à votre prochain sommeil.'},
         {fn:'sortie_hopital', label:'Sortir de l\'hôpital', pa:0, cost:0, type:'legal', icon:'ti-door-exit', successRate:100, desc:'Réservé aux patients hospitalisés : possible à partir du deuxième jour, avec au moins 20 PA.'}
@@ -4440,8 +4440,8 @@ const BUILDINGS = {
       chambre_7:  { name: "Chambre 7",  image: "🛏️", imageBg: "linear-gradient(135deg,#080f10,#0c1618)", desc: "Une chambre privée, calme et confortable.", imageUrl: "images/luthecia-clinique-chambre.jpg", persons: [], orders: [
         {fn:'gerer_visites_chambre', label:'Autoriser / Interdire les visites', pa:0, cost:0, type:'legal', icon:'ti-door', successRate:100, desc:'Choisir si les autres joueurs peuvent vous rendre visite dans cette chambre.'},
         {fn:'soins',          label:'Soin standard',              pa:0, cost:100, type:'legal', icon:'ti-stethoscope', successRate:100, desc:'+30 Sante, +2 PA immediats. 1 fois par jour. Consomme 1 desinfectant + 1 medicament du stock de la clinique.'},
-        {fn:'soins_urgence',  label:'Soins acceleres (urgence)',   pa:0, cost:500, type:'legal', icon:'ti-urgent',      successRate:100, desc:'+40 Sante immediatement.'},
-        {fn:'soins_discrets', label:'Soins sans trace',            pa:1, cost:800, type:'grey',  icon:'ti-eye-off',     successRate:95,  desc:'+30 Sante. Aucune trace medicale.'},
+        {fn:'soins_urgence',  label:'Soins acceleres (urgence)',   pa:0, cost:500, type:'legal', icon:'ti-urgent',      successRate:100, desc:'+25 Santé immédiatement (modulée par le Moral).'},
+        {fn:'soins_discrets', label:'Soins sans trace',            pa:1, cost:800, type:'grey',  icon:'ti-eye-off',     successRate:95,  desc:'+15 Santé (modulée par le Moral). Aucune trace médicale.'},
         {fn:'centre_anti_poison', label:'Centre anti-poison', pa:1, cost:150, type:'legal', icon:'ti-vaccine', successRate:85, desc:'Guerit un empoisonnement en cours. Limite a 2 tentatives par jour.'},
         {fn:'repas_clinique', label:'Prendre le repas de la clinique', pa:1, cost:30, type:'legal', icon:'ti-soup', successRate:100, desc:'Une fois par jour, servi au chevet. +4 PA à votre prochain sommeil.'},
         {fn:'sortie_hopital', label:'Sortir de l\'hôpital', pa:0, cost:0, type:'legal', icon:'ti-door-exit', successRate:100, desc:'Réservé aux patients hospitalisés : possible à partir du deuxième jour, avec au moins 20 PA.'}
@@ -4449,8 +4449,8 @@ const BUILDINGS = {
       chambre_8:  { name: "Chambre 8",  image: "🛏️", imageBg: "linear-gradient(135deg,#080f10,#0c1618)", desc: "Une chambre privée, calme et confortable.", imageUrl: "images/luthecia-clinique-chambre.jpg", persons: [], orders: [
         {fn:'gerer_visites_chambre', label:'Autoriser / Interdire les visites', pa:0, cost:0, type:'legal', icon:'ti-door', successRate:100, desc:'Choisir si les autres joueurs peuvent vous rendre visite dans cette chambre.'},
         {fn:'soins',          label:'Soin standard',              pa:0, cost:100, type:'legal', icon:'ti-stethoscope', successRate:100, desc:'+30 Sante, +2 PA immediats. 1 fois par jour. Consomme 1 desinfectant + 1 medicament du stock de la clinique.'},
-        {fn:'soins_urgence',  label:'Soins acceleres (urgence)',   pa:0, cost:500, type:'legal', icon:'ti-urgent',      successRate:100, desc:'+40 Sante immediatement.'},
-        {fn:'soins_discrets', label:'Soins sans trace',            pa:1, cost:800, type:'grey',  icon:'ti-eye-off',     successRate:95,  desc:'+30 Sante. Aucune trace medicale.'},
+        {fn:'soins_urgence',  label:'Soins acceleres (urgence)',   pa:0, cost:500, type:'legal', icon:'ti-urgent',      successRate:100, desc:'+25 Santé immédiatement (modulée par le Moral).'},
+        {fn:'soins_discrets', label:'Soins sans trace',            pa:1, cost:800, type:'grey',  icon:'ti-eye-off',     successRate:95,  desc:'+15 Santé (modulée par le Moral). Aucune trace médicale.'},
         {fn:'centre_anti_poison', label:'Centre anti-poison', pa:1, cost:150, type:'legal', icon:'ti-vaccine', successRate:85, desc:'Guerit un empoisonnement en cours. Limite a 2 tentatives par jour.'},
         {fn:'repas_clinique', label:'Prendre le repas de la clinique', pa:1, cost:30, type:'legal', icon:'ti-soup', successRate:100, desc:'Une fois par jour, servi au chevet. +4 PA à votre prochain sommeil.'},
         {fn:'sortie_hopital', label:'Sortir de l\'hôpital', pa:0, cost:0, type:'legal', icon:'ti-door-exit', successRate:100, desc:'Réservé aux patients hospitalisés : possible à partir du deuxième jour, avec au moins 20 PA.'}
@@ -4458,8 +4458,8 @@ const BUILDINGS = {
       chambre_9:  { name: "Chambre 9",  image: "🛏️", imageBg: "linear-gradient(135deg,#080f10,#0c1618)", desc: "Une chambre privée, calme et confortable.", imageUrl: "images/luthecia-clinique-chambre.jpg", persons: [], orders: [
         {fn:'gerer_visites_chambre', label:'Autoriser / Interdire les visites', pa:0, cost:0, type:'legal', icon:'ti-door', successRate:100, desc:'Choisir si les autres joueurs peuvent vous rendre visite dans cette chambre.'},
         {fn:'soins',          label:'Soin standard',              pa:0, cost:100, type:'legal', icon:'ti-stethoscope', successRate:100, desc:'+30 Sante, +2 PA immediats. 1 fois par jour. Consomme 1 desinfectant + 1 medicament du stock de la clinique.'},
-        {fn:'soins_urgence',  label:'Soins acceleres (urgence)',   pa:0, cost:500, type:'legal', icon:'ti-urgent',      successRate:100, desc:'+40 Sante immediatement.'},
-        {fn:'soins_discrets', label:'Soins sans trace',            pa:1, cost:800, type:'grey',  icon:'ti-eye-off',     successRate:95,  desc:'+30 Sante. Aucune trace medicale.'},
+        {fn:'soins_urgence',  label:'Soins acceleres (urgence)',   pa:0, cost:500, type:'legal', icon:'ti-urgent',      successRate:100, desc:'+25 Santé immédiatement (modulée par le Moral).'},
+        {fn:'soins_discrets', label:'Soins sans trace',            pa:1, cost:800, type:'grey',  icon:'ti-eye-off',     successRate:95,  desc:'+15 Santé (modulée par le Moral). Aucune trace médicale.'},
         {fn:'centre_anti_poison', label:'Centre anti-poison', pa:1, cost:150, type:'legal', icon:'ti-vaccine', successRate:85, desc:'Guerit un empoisonnement en cours. Limite a 2 tentatives par jour.'},
         {fn:'repas_clinique', label:'Prendre le repas de la clinique', pa:1, cost:30, type:'legal', icon:'ti-soup', successRate:100, desc:'Une fois par jour, servi au chevet. +4 PA à votre prochain sommeil.'},
         {fn:'sortie_hopital', label:'Sortir de l\'hôpital', pa:0, cost:0, type:'legal', icon:'ti-door-exit', successRate:100, desc:'Réservé aux patients hospitalisés : possible à partir du deuxième jour, avec au moins 20 PA.'}
@@ -4467,8 +4467,8 @@ const BUILDINGS = {
       chambre_10: { name: "Chambre 10", image: "🛏️", imageBg: "linear-gradient(135deg,#080f10,#0c1618)", desc: "Une chambre privée, calme et confortable.", imageUrl: "images/luthecia-clinique-chambre.jpg", persons: [], orders: [
         {fn:'gerer_visites_chambre', label:'Autoriser / Interdire les visites', pa:0, cost:0, type:'legal', icon:'ti-door', successRate:100, desc:'Choisir si les autres joueurs peuvent vous rendre visite dans cette chambre.'},
         {fn:'soins',          label:'Soin standard',              pa:0, cost:100, type:'legal', icon:'ti-stethoscope', successRate:100, desc:'+30 Sante, +2 PA immediats. 1 fois par jour. Consomme 1 desinfectant + 1 medicament du stock de la clinique.'},
-        {fn:'soins_urgence',  label:'Soins acceleres (urgence)',   pa:0, cost:500, type:'legal', icon:'ti-urgent',      successRate:100, desc:'+40 Sante immediatement.'},
-        {fn:'soins_discrets', label:'Soins sans trace',            pa:1, cost:800, type:'grey',  icon:'ti-eye-off',     successRate:95,  desc:'+30 Sante. Aucune trace medicale.'},
+        {fn:'soins_urgence',  label:'Soins acceleres (urgence)',   pa:0, cost:500, type:'legal', icon:'ti-urgent',      successRate:100, desc:'+25 Santé immédiatement (modulée par le Moral).'},
+        {fn:'soins_discrets', label:'Soins sans trace',            pa:1, cost:800, type:'grey',  icon:'ti-eye-off',     successRate:95,  desc:'+15 Santé (modulée par le Moral). Aucune trace médicale.'},
         {fn:'centre_anti_poison', label:'Centre anti-poison', pa:1, cost:150, type:'legal', icon:'ti-vaccine', successRate:85, desc:'Guerit un empoisonnement en cours. Limite a 2 tentatives par jour.'},
         {fn:'repas_clinique', label:'Prendre le repas de la clinique', pa:1, cost:30, type:'legal', icon:'ti-soup', successRate:100, desc:'Une fois par jour, servi au chevet. +4 PA à votre prochain sommeil.'},
         {fn:'sortie_hopital', label:'Sortir de l\'hôpital', pa:0, cost:0, type:'legal', icon:'ti-door-exit', successRate:100, desc:'Réservé aux patients hospitalisés : possible à partir du deuxième jour, avec au moins 20 PA.'}
@@ -4853,7 +4853,7 @@ const BUILDINGS = {
           {name:'Yvonne',               role:'PNJ - Retraitee', rel:'neutral', job:'citoyen'}
         ],
         orders: [
-          {fn:'se_nourrir',          label:'Acheter a manger',          pa:0, cost:8,  type:'legal',   icon:'ti-shopping-cart', successRate:100, desc:'Repas economique. +5 Sante.'},
+          {fn:'se_nourrir',          label:'Acheter a manger',          pa:0, cost:8,  type:'legal',   icon:'ti-shopping-cart', successRate:100, desc:'Repas économique : l’effet d’un sandwich (Santé et PA au prochain Dormir).'},
           {fn:'pouls_populaire',     label:'Prendre le pouls',          pa:0, cost:0,  type:'legal',   icon:'ti-ear',           successRate:100, desc:'Sondage sur l\'election locale en cours dans cette ville (maire/depute), a partir des votes reellement enregistres.'},
           // distribuer_tract retire (11 septembre 2026) : les tracts ordinaires ne changent plus la POP et
           // ne votent qu'aupres d'un PNJ electeur identifie (dialogue PNJ, distribuerTractElectoralPNJ).
@@ -5707,7 +5707,7 @@ const BUILDINGS = {
         orders: [
           {fn:'dormir_chambre', label:'Dormir',       pa:0, cost:0,  type:'legal', icon:'ti-moon',  successRate:100, desc:'Necessite une chambre reservee a l\'accueil pour beneficier du bonus.'},
           // Decision de Fred (01/11/2026) : seul luxe de province, 50 FR (150 FR a La Republia).
-          {fn:'service_etage',  label:'Faire appel au service d\'etage', pa:0, cost:50, type:'legal', icon:'ti-soup', successRate:100, desc:'Dejeuner servi en chambre. +10 Sante, +1 Moral immediats. +1 PA au prochain Dormir.'}
+          {fn:'service_etage',  label:'Faire appel au service d\'etage', pa:0, cost:50, type:'legal', icon:'ti-soup', successRate:100, desc:'Déjeuner servi en chambre : l’effet d’un plat du jour (Santé et PA au prochain Dormir), +1 Moral.'}
         ]
       }
     }
@@ -5909,7 +5909,7 @@ const BUILDINGS = {
         orders: [
           {fn:'dormir_chambre', label:'Dormir', pa:0, cost:0, type:'legal', icon:'ti-moon', successRate:100, desc:'Necessite une chambre reservee a l\'accueil pour beneficier du bonus.'},
           // Decision de Fred (01/11/2026) : seul luxe de province, 50 FR (150 FR a La Republia).
-          {fn:'service_etage',  label:'Faire appel au service d\'etage', pa:0, cost:50, type:'legal', icon:'ti-soup', successRate:100, desc:'Dejeuner servi en chambre. +10 Sante, +1 Moral immediats. +1 PA au prochain Dormir.'}
+          {fn:'service_etage',  label:'Faire appel au service d\'etage', pa:0, cost:50, type:'legal', icon:'ti-soup', successRate:100, desc:'Déjeuner servi en chambre : l’effet d’un plat du jour (Santé et PA au prochain Dormir), +1 Moral.'}
         ]
       }
     }
@@ -10547,9 +10547,10 @@ function getPlafondTotalEntrepot() {
 // ORDER EFFECTS
 // =====================
 const ORDER_EFFECTS = {
-  se_nourrir:         {hp:5,   moral:1,  successRate:100},
-  repas_gastronomique: {hp:10,  moral:1,  successRate:100},
-  service_etage:       {hp:10,  moral:1,  successRate:100},
+  // Repas (Fred, 22/11/2026) : la Santé vient du plat servi, au barème du serveur (sante_parametres) -- jamais d'ici.
+  se_nourrir:         {successRate:100},
+  repas_gastronomique: {moral:1,  successRate:100},
+  service_etage:       {moral:1,  successRate:100},
   dormir:             {moral:5,          successRate:100, paBonus:0},
   se_reposer:         {moral:3,          successRate:100},
   // soins (clinique-privee) / soin_public (les 3 dispensaires publics de Republia) -- 20 aout
@@ -10559,8 +10560,9 @@ const ORDER_EFFECTS = {
   // crit. Aucune entree ici pour "soins"/"soin_public"/"soins_basiques" : plus aucun batiment ne
   // reference ces 3 fn via le chemin generique (soins_basiques etait le dernier, utilise par
   // dispensaire-public-v -- desormais branche sur soin_public comme les 2 autres dispensaires).
-  soins_urgence:      {hp:40,            successRate:100},
-  soins_discrets:     {hp:30,  dis:-2,   successRate:95},
+  // Soins (22/11/2026) : Santé au barème du serveur (soin_urgence_sante, soin_sans_trace_sante), modulée par le Moral.
+  soins_urgence:      {successRate:100},
+  soins_discrets:     {dis:-2,   successRate:95},
   rencontrer:         {inf:2,            successRate:100},
   diner_affaires:     {inf:5,  moral:2,  successRate:100},
   ecouter:            {},
@@ -12448,16 +12450,17 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
   // portique de l'image (zone cliquable, plateau-foret-krasnov.js), qui mène toujours à la clairière.
   entree.orders = (entree.orders || []).filter(o => o.fn !== 'foret_enfoncer');
   const FORET_ORDRE_CAMPEMENT = { fn: 'foret_campement', label: 'Retour au campement', pa: 0, cost: 0, type: 'legal', icon: 'ti-arrow-back-up', successRate: 100 };
+  // Titres et textes des quatre vues (Fred, 22/11/2026, GAME-DESIGN-SANTE-20261122.md, point 18), mot pour mot.
   const vues = {
-    1: ['Sous les grands pins', 'Des troncs immenses, la neige qui étouffe les bruits. Le chemin a disparu derrière vous.'],
-    2: ['La clairière des bouleaux', 'Une clairière blanche, des bouleaux couchés par le vent. Quelque chose a gratté l’écorce, bien haut.'],
-    3: ['Le ravin noir', 'Un ravin sombre où le jour peine à entrer. Des empreintes larges comme une assiette s’enfoncent dans la neige.'],
-    4: ['Près de la vieille isba', 'Une isba à demi enfouie sous la neige, un filet de fumée. On jurerait sentir la soupe aux choux.']
+    1: ['La piste des débardeurs', 'Des souches fraîches, des grumes empilées au bord d’une piste défoncée. Les bûcherons ne sont pas loin.'],
+    2: ['La coupe abandonnée', 'Des souches partout, une odeur de résine. Quelque chose a gratté l’écorce d’un bouleau, bien haut.'],
+    3: ['Les grands fûts', 'La forêt se referme. Les fougères montent aux genoux, et des empreintes larges comme une assiette marquent l’humus.'],
+    4: ['Le sentier d’Olga', 'Un sentier à peine tracé sous les feuilles mortes. Au loin, une odeur de feu de bois et de soupe aux choux.']
   };
   ctx.roomsExtra = Object.assign({}, ctx.roomsExtra || {});
   Object.keys(vues).forEach(n => {
     ctx.roomsExtra['foret_vue_' + n] = {
-      name: 'Forêt profonde — ' + vues[n][0], imageBg: 'linear-gradient(135deg,#0a120c,#132016)', desc: vues[n][1], persons: [],
+      name: vues[n][0], imageBg: 'linear-gradient(135deg,#0a120c,#132016)', desc: vues[n][1], persons: [],
       imageUrl: 'images/Sovarka/Krasnov/' + (n === '1' || n === '2' ? 'Krasnov_foret_coupe.webp' : 'Krasnov_foret_profonde.webp'),
       orders: [
         { fn: 'foret_couper', label: 'Couper du bois', pa: 1, cost: 0, type: 'legal', icon: 'ti-axe', successRate: 100,
