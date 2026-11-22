@@ -3723,9 +3723,11 @@ async function confirmerDonObjetPj(encodedPnj, idx) {
   // Retrait et remise au destinataire dans la MEME transaction (chantier C, 14 septembre 2026).
   // L'ordre precedent -- splice local, puis INSERT avale par un .catch(() => {}) -- detruisait
   // l'objet chez l'expediteur si le reseau lachait entre les deux.
+  // Quantite (22/11/2026) : fenetre commune « Donner » (plateau-personnage.js), plafonnee a ce que l'on possede.
+  if (typeof donnerObjetQuantite === 'function') { donnerObjetQuantite(idx, cible); return; }
   const r = await removeFromInventory(idx, 'donner', { destinataire: cible });
   if (!r.ok) {
-    showToast('Impossible', messageRefusSortieInventaire(r.raison), false);
+    showToast('Impossible', messageRefusSortieInventaire(r.raison, r), false);
     return;
   }
   document.getElementById('modal-postes')?.classList.remove('open');

@@ -847,7 +847,20 @@ async function interrogerAccueilSurObjets(cibleNom) {
 // Plafond total transportable par un joueur, TOUT compris (ressources empilables et objets
 // uniques comptent chacun pour leur quantite/1 vers le meme plafond) — a chacun de se
 // debarrasser des objets qui ne servent plus a rien. Decision prise avec Fred le 7 aout 2026.
+// CAPACITE PROPRE A CHAQUE PERSONNAGE (Fred, 22/11/2026) : 100 par defaut, reglable par un MJ. Le serveur la tient
+// (personnages_donnees.capacite_inventaire) et la rend avec l'inventaire (inventaire_reception_etat, ramasser, deposer) ;
+// l'ecran ne fait que la relire -- jamais de capacite devinee. La constante ne reste que comme valeur par defaut.
 const PLAFOND_INVENTAIRE_EMPILABLE = 100;
+function capaciteInventaire() {
+  const c = Number(typeof state !== 'undefined' && state ? state.capaciteInventaire : NaN);
+  return Number.isInteger(c) && c > 0 ? c : PLAFOND_INVENTAIRE_EMPILABLE;
+}
+// Adopte la capacite annoncee par une reponse serveur (champ « capacite »), si elle est valide.
+function adopterCapaciteInventaire(reponse) {
+  const c = Number(reponse && reponse.capacite);
+  if (Number.isInteger(c) && c > 0 && typeof state !== 'undefined' && state) state.capaciteInventaire = c;
+}
+function placeInventaireLibre() { return Math.max(0, capaciteInventaire() - getTotalInventaire()); }
 
 // item.encombrement (lot Armoire a souvenirs, 25 aout 2026) : un objet NON empilable peut
 // occuper plus d'un emplacement d'un coup (ex. Armoire a souvenirs = 3). i.qty garde la
@@ -859,10 +872,13 @@ function getTotalInventaire() {
   // Les tracts utilisaient "quantite" (pile POUR/CONTRE un PJ), et ne pesaient jusqu'ici
   // qu'une unite quelle que soit la taille du lot. Chaque tract occupe une place sur 100.
   // Pour les autres objets, conserver strictement qty / encombrement / 1.
+  // MEME REGLE QUE LE SERVEUR (inventaire_unites_interne, 22/11/2026) : quantite, sinon qty, sinon encombrement,
+  // sinon 1 -- un nombre entier seulement, comme la base. Les deux ecrans comptent donc exactement pareil.
+  const entier = v => (typeof v === 'number' && Number.isInteger(v) && v >= 0) || (typeof v === 'string' && /^[0-9]+$/.test(v));
   return (state.inventory || []).reduce((total, objet) => {
-    const tracts = objet?.type === 'tract' || objet?.type === 'tract_calomnieux';
-    const unites = tracts ? (Number(objet.quantite) || 1) : (objet?.qty || objet?.encombrement || 1);
-    return total + Math.max(0, Number(unites) || 1);
+    const o = objet || {};
+    const unites = entier(o.quantite) ? Number(o.quantite) : entier(o.qty) ? Number(o.qty) : entier(o.encombrement) ? Number(o.encombrement) : 1;
+    return total + unites;
   }, 0);
 }
 
@@ -982,9 +998,9 @@ function addToInventory(item, options) {
   const qteVoulue = item.stackable ? (item.qty || 1) : (item.encombrement || 1);
   // En reception automatique la place est reputee suffisante : c'est le seul point ou le plafond
   // ne s'applique pas, et il n'existe pas de second chemin d'ajout ailleurs dans le jeu.
-  const placeDisponible = automatique ? qteVoulue : Math.max(0, PLAFOND_INVENTAIRE_EMPILABLE - dejaEnStock);
+  const placeDisponible = automatique ? qteVoulue : Math.max(0, capaciteInventaire() - dejaEnStock);
   if (placeDisponible <= 0) {
-    if (typeof showToast === 'function') showToast('Inventaire plein', 'Plafond de ' + PLAFOND_INVENTAIRE_EMPILABLE + ' objets atteint.', false);
+    if (typeof showToast === 'function') showToast('Inventaire plein', 'Plafond de ' + capaciteInventaire() + ' objets atteint.', false);
     return 0;
   }
 
@@ -1001,7 +1017,7 @@ function addToInventory(item, options) {
   }
 
   if (placeDisponible < qteVoulue) {
-    if (typeof showToast === 'function') showToast('Inventaire plein', 'Il faut ' + qteVoulue + ' emplacement(s) libres (plafond ' + PLAFOND_INVENTAIRE_EMPILABLE + ').', false);
+    if (typeof showToast === 'function') showToast('Inventaire plein', 'Il faut ' + qteVoulue + ' emplacement(s) libres (plafond ' + capaciteInventaire() + ').', false);
     return 0;
   }
   state.inventory.push(item);
@@ -1080,7 +1096,7 @@ async function removeFromInventory(idx, motif, options) {
       r = await sbInventaireDetruire(acteur, idx, signature, qte);
     } else if (motif === 'abandonner') {
       r = await sbInventaireAbandonner(acteur, idx, signature,
-        state.country, state.currentCity, state.currentBuilding, state.currentRoom);
+        state.country, state.currentCity, state.currentBuilding, state.currentRoom, qte);
     } else if (motif === 'donner') {
       r = await sbInventaireDonner(acteur, opts.destinataire, idx, signature, qte, opts.mutations || null);
     } else if (motif === 'remettre') {
@@ -1104,11 +1120,15 @@ async function removeFromInventory(idx, motif, options) {
   // L'action est alors refusee et l'inventaire reste exactement ce qu'il etait -- jamais un
   // repli local qui retirerait l'objet "quand meme".
   if (!r || r.ok !== true) {
-    return { ok: false, raison: (r && r.raison) || 'refus_serveur', objet: item };
+    // Les precisions du refus (place restante, destinataire) suivent le motif : le message les cite.
+    return { ok: false, raison: (r && r.raison) || 'refus_serveur', objet: item,
+             place: (r && Number.isFinite(r.place)) ? r.place : undefined, destinataire: r && r.destinataire,
+             detenu: (r && Number.isFinite(Number(r.detenu))) ? Number(r.detenu) : undefined };
   }
 
   // L'inventaire du serveur fait foi, y compris sur ce que le client croyait retirer.
   { if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(r); else state.inventory = r.inventory || []; }
+  if (typeof adopterCapaciteInventaire === 'function') adopterCapaciteInventaire(r);
   if (typeof renderInventory === 'function') renderInventory();
   if (typeof updateUI === 'function') updateUI();
   // `pa` et `aliment_frais` : effets que le SERVEUR a appliques dans la meme transaction que le
@@ -1130,7 +1150,47 @@ async function removeFromInventory(idx, motif, options) {
 
 // Message unique des refus de sortie, pour que les 32 anciens sites ne reinventent pas chacun
 // leur formulation -- et surtout pour que le motif reel du serveur soit toujours dit au joueur.
-function messageRefusSortieInventaire(raison) {
+// Texte de l'inventaire : catalogue inventoryUi (i18n/inventory-ui-resources.js), repli sur le francais canonique.
+// Les valeurs s'ecrivent {{values.x}} comme ailleurs dans ce catalogue.
+// CLES A TRADUIRE (22/11/2026, pas encore au catalogue : le banc i18n exige les neuf langues d'un coup ; repli francais
+// en attendant) : anItem cancel close dropAction dropIntro dropNote dropTitleQty droppedMany droppedOne droppedTitle
+// giveAction giveIntro giveNote giveTitleQty givenMany givenOne givenTitle groundFound impossible pickAction pickChanged
+// pickFull pickIntroMany pickIntroOne pickNote pickTitleQty pickTooBig pickedMany pickedOne pickedTitle qtyAll qtyBetween
+// qtyHowMany qtyNothing refused_destinataire_plein refused_destinataire_plein_zero refused_inventaire_plein
+// refused_pas_sur_place refused_place_insuffisante refused_quantite_detenue thisPlayer.
+function texteInventaire(cle, secours, valeurs) {
+  let t = secours;
+  try {
+    const k = 'inventoryUi.' + cle;
+    const v = (typeof window !== 'undefined' && typeof window.RPPlateauI18n?.translate === 'function')
+      ? window.RPPlateauI18n.translate(k, valeurs ? { values: valeurs } : {}) : null;
+    if (typeof v === 'string' && v.trim() && v !== k) t = v;
+  } catch (_) {}
+  return valeurs ? String(t).replace(/\{\{\s*values\.(\w+)\s*\}\}/g, (m, x) => (valeurs[x] !== undefined ? valeurs[x] : m)) : t;
+}
+
+// details (facultatif) : { place, destinataire } rendus par le serveur avec le refus.
+function messageRefusSortieInventaire(raison, details) {
+  const d = details || {};
+  // Capacite (Fred, 22/11/2026) : toujours dire combien d'unites tiennent encore.
+  if (raison === 'destinataire_plein') {
+    const place = Number.isFinite(d.place) ? d.place : 0, nom = d.destinataire || texteInventaire('thisPlayer', 'Ce joueur');
+    return place > 0
+      ? texteInventaire('refused_destinataire_plein', '{{values.nom}} ne peut recevoir que {{values.place}} unité(s) de plus : son inventaire est presque plein.', { nom, place })
+      : texteInventaire('refused_destinataire_plein_zero', 'L’inventaire de {{values.nom}} est plein : il ne peut rien recevoir de plus pour l’instant.', { nom });
+  }
+  if (raison === 'place_insuffisante' && Number.isFinite(d.place)) {
+    return texteInventaire('refused_place_insuffisante', 'Votre inventaire ne peut accueillir que {{values.place}} unité(s) de plus.', { place: d.place });
+  }
+  if (raison === 'inventaire_plein') {
+    return texteInventaire('refused_inventaire_plein', 'Votre inventaire est plein. Déposez ou donnez quelque chose pour faire de la place.');
+  }
+  if (raison === 'quantite_insuffisante' && Number.isFinite(d.detenu)) {
+    return texteInventaire('refused_quantite_detenue', 'Vous n’en possédez que {{values.n}}.', { n: d.detenu });
+  }
+  if (raison === 'pas_sur_place') {
+    return texteInventaire('refused_pas_sur_place', 'Votre écran n’était plus à jour : il vient d’être recalé sur votre position. Réessayez.');
+  }
   // Même motif serveur et même texte français canonique ; traduction d'affichage seulement.
   const original = (() => {
   if (raison === 'contexte_modifie') return 'Le personnage a changé. Vérifiez l’inventaire du personnage précédent.';
@@ -1164,21 +1224,21 @@ function messageRefusSortieInventaire(raison) {
 }
 
 function enSurcharge() {
-  return getTotalInventaire() > PLAFOND_INVENTAIRE_EMPILABLE;
+  return getTotalInventaire() > capaciteInventaire();
 }
 
 // Verdict unique du blocage de deplacement, meme doctrine que verdictRoleOrdre (Lot 1.2) et
 // verdictAjoutLot (Lot 1.5.1) : une seule autorite, consultee par tous les points d'entree, pour
 // qu'il n'existe jamais deux regles de surcharge divergentes.
 function verdictDeplacementSurcharge() {
-  const total = getTotalInventaire();
-  if (total <= PLAFOND_INVENTAIRE_EMPILABLE) {
-    return { bloque: false, total: total, plafond: PLAFOND_INVENTAIRE_EMPILABLE, excedent: 0, message: '' };
+  const total = getTotalInventaire(), plafond = capaciteInventaire();
+  if (total <= plafond) {
+    return { bloque: false, total: total, plafond: plafond, excedent: 0, message: '' };
   }
-  const excedent = total - PLAFOND_INVENTAIRE_EMPILABLE;
+  const excedent = total - plafond;
   return {
-    bloque: true, total: total, plafond: PLAFOND_INVENTAIRE_EMPILABLE, excedent: excedent,
-    message: 'Vous portez ' + total + ' objets pour une capacité de ' + PLAFOND_INVENTAIRE_EMPILABLE
+    bloque: true, total: total, plafond: plafond, excedent: excedent,
+    message: 'Vous portez ' + total + ' objets pour une capacité de ' + plafond
              + '. Débarrassez-vous de ' + excedent + ' objet' + (excedent > 1 ? 's' : '')
              + ' avant de vous déplacer.'
   };
@@ -1200,7 +1260,16 @@ function refuserSiSurcharge(libelleAction) {
   return true;
 }
 
+// L'onglet « Inventaire » de la fiche personnage suit l'inventaire en direct (Fred, 22/11/2026 : Tom Tom deposait du
+// bois depuis sa fiche et voyait toujours l'ancien stock). Tout rendu d'inventaire le redessine s'il est ouvert.
+function rafraichirOngletInventaireSiOuvert() {
+  if (typeof document === 'undefined' || typeof switchSelfTab !== 'function') return;
+  if (typeof window === 'undefined' || window._ongletSelfActif !== 'inventaire') return;
+  if (!document.getElementById('vue-self')?.classList.contains('active')) return;
+  try { switchSelfTab('inventaire', null); } catch (_) {}
+}
 function renderInventory() {
+  if (typeof rafraichirOngletInventaireSiOuvert === 'function') rafraichirOngletInventaireSiOuvert();
   const el = document.getElementById('inv-items');
   if (!el) return;
   if (state.inventory.length === 0) {
