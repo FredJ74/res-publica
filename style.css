@@ -2604,3 +2604,13 @@ body.plateau-body .top-right {
 .piece-image[data-plan-lots="1"]{flex-direction:column;align-items:stretch;justify-content:flex-start;background:#16202b}
 .piece-image[data-plan-lots="1"] .tplan{padding-bottom:8px}
 @media (prefers-reduced-motion:reduce){.tplan-carte{transition:none}.tplan-carte:hover{transform:none}}
+
+/* TEXTE MINIMUM DANS LES FENÊTRES (Fred, 22/11/2026, GAME-DESIGN-FORET-TEST-20261122.md, point 1) : aucune fenêtre, aucun
+   rapport, aucune note sous le texte courant des pages du plateau (0,95 rem, celui des descriptions de pièce et des ordres).
+   Classes communes remontées ici ; les tailles écrites dans le HTML des fenêtres sont remontées par plateau-texte-minimum.js
+   (plancher : un texte plus petit monte à 0,95 rem, un titre plus grand n'est jamais touché). */
+.cpj-note{font-size:.95rem}
+.toast-result{font-size:1rem}
+.toast-sub{font-size:.95rem}
+.journal-entry{font-size:.95rem}
+.journal-time{font-size:.95rem}

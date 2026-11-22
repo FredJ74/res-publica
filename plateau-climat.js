@@ -127,7 +127,8 @@ const EXPLIC = { fr: {
   eau_ok: 'Vous avez rempli une bouteille d’eau à {nom}.', eau_titre: 'Point d’eau', eau_refus: 'Il n’y a pas de point d’eau ici.',
   accueil_titre: 'Bienvenue à {ville}',
   accueil_intro: 'Bienvenue parmi nous ! Un événement climatique frappe la ville en ce moment ({evenement}). Rien de grave : il est passager, et voici comment vous en protéger.',
-  accueil_ok: 'J’ai compris, allons-y'
+  accueil_ok: 'J’ai compris, allons-y',
+  alerte_aide: 'Durée et consignes'
 } };
 // Nom d'un article de la boutique climat : table T (neuf langues), sinon EXPLIC (articles du complément du 21/11).
 function nomArticle(cle) { const k = 'o_' + cle; return (T.fr[k] ? texte(k) : explic(k)); }
@@ -345,27 +346,73 @@ function injecterStyle() {
     // Lieux fermés par la crue : hachures bleues sur la zone du bâtiment (Fred, 21/11 : une marque toujours expliquée).
     + '.rc-zone.climat-inonde{background:repeating-linear-gradient(135deg,rgba(60,120,170,.42) 0 6px,rgba(60,120,170,.12) 6px 12px);outline:2px dashed rgba(140,190,230,.8);cursor:not-allowed}'
     // Le bandeau s'explique au clic (pourquoi l'image est rayée, combien de temps, quoi faire).
-    // Coin supérieur gauche, format compact (Fred, 22/11/2026, point 5) : aucune alerte ne couvre une flèche de déplacement.
-    + '#climat-alerte{position:absolute;top:8px;left:8px;z-index:1002;pointer-events:auto;cursor:pointer;max-width:calc(50% - 16px);'
-    + 'display:flex;flex-direction:row;align-items:center;gap:4px;animation:climatAlerte 4s ease-in-out infinite}'
-    + '#climat-alerte.climat-alerte-bas{top:auto;bottom:8px}'
-    + '#climat-alerte .climat-alerte-texte{padding:.1rem .4rem;background:rgba(10,8,6,.7);color:#FFD200;border-radius:3px;'
-    + 'font-family:Bebas Neue,sans-serif;letter-spacing:.08em;font-size:.8rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}'
-    + '#climat-alerte .climat-picto{width:30px;height:28px;flex:none;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}'
+    // Bandeau AU-DESSUS de l'image, centré, en taille normale (Fred, 22/11/2026, remontées du test en forêt, point 8 ; annule
+    // le coin supérieur gauche compact du point 5 de la nuit) : il ne couvre jamais la photo ni une flèche de déplacement.
+    + '#climat-alerte{position:relative;z-index:5;flex:none;box-sizing:border-box;width:100%;margin:0;padding:.45rem .8rem;'
+    + 'display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.25rem .6rem;text-align:center;line-height:1.3;'
+    + 'background:#1b2531;border-bottom:2px solid #FFD200;color:#FFD200;pointer-events:auto;cursor:pointer;font-family:inherit}'
+    + '#climat-alerte:hover,#climat-alerte:focus-visible{background:#243242}'
+    + '#climat-alerte:focus-visible{outline:2px solid #FFD200;outline-offset:-4px}'
+    + '#climat-alerte .climat-alerte-texte{font-size:1.1rem;font-weight:600;letter-spacing:.02em;color:#FFD200}'
+    + '#climat-alerte .climat-alerte-aide{font-size:1rem;color:#e2e9f1;text-decoration:underline;text-underline-offset:3px}'
+    + '#climat-alerte .climat-picto{width:34px;height:31px;flex:none;animation:climatAlerte 4s ease-in-out infinite}'
+    // Pièce en plein air sur téléphone (image en haut, nom dessous) : la pluie ne couvre que l'image.
+    + '#piece-image[data-hg-split="1"]>#climat-filtre{bottom:auto;height:0;padding-top:var(--hg-ratio-image,56.25%)}'
+    // Téléphone : la vue de rue range ses blocs par « order » (en-tête 0, date 1, photo 2) ; le bandeau se place juste au-dessus de la photo.
+    + '@media(max-width:1023px){#vue-rue>#climat-alerte{order:1}}'
+    // Dans une pièce, le filtre reste sous le nom de la pièce et sous les zones cliquables (portique, sentier) : texte net.
+    + '#piece-image>#climat-filtre{z-index:0}'
     // Clignotement lent, sans agressivité : l'alerte ne disparaît jamais tout à fait.
     + '@keyframes climatAlerte{0%,100%{opacity:1}50%{opacity:.55}}'
     // Joueurs qui ont demandé à réduire les animations dans leur système : tout reste visible, rien ne bouge.
-    + '@media (prefers-reduced-motion: reduce){#climat-filtre,#climat-filtre::before,#climat-filtre::after,#climat-alerte{animation:none!important}}';
+    + '@media (prefers-reduced-motion: reduce){#climat-filtre,#climat-filtre::before,#climat-filtre::after,#climat-alerte,#climat-alerte .climat-picto{animation:none!important}}';
   doc.head.appendChild(st);
+}
+// VUES EN PLEIN AIR À L'INTÉRIEUR D'UN LIEU (Fred, 22/11/2026, remontées du test en forêt, point 8) : la pluie et tout
+// effet climatique s'affichent dans toutes les vues en plein air de la ville touchée, pas seulement dans les rues.
+// Une pièce est en plein air si elle figure ci-dessous, ou si sa fiche (data.js) porte « pleinAir: true ».
+//  - forêt de Krasnov : camp de bûcherons (cour de l'exploitation), clairière et les quatre vues de la forêt ;
+//  - Starovka : champ de pétrole de la Compagnie et champ de pétrole de la route ;
+//  - fermes et kolkhozes : la cour (parc à rennes de Starovka, cour du kolkhoze de Krasnov) ;
+//  - terrains à bâtir (lots nus et chantiers), pelouse du stade, Parc botanique, quais des ports.
+const PIECES_PLEIN_AIR = [
+  { pays: 'soviet', ville: 'ville_b', batiment: /^zone-production$/, piece: /^(zone_recolte|foret_clairiere|foret_vue_[1-4])$/ },
+  { pays: 'soviet', ville: 'ville_a', batiment: /^zone-production$/, piece: /^zone_recolte$/ },
+  { batiment: /^champ-petrole-starovka$/, piece: /^zone_recolte$/ },
+  { batiment: /^ferme-/, piece: /^cour_ferme$/ },
+  { batiment: /^terrain-a-batir/, piece: /^terrain/ },
+  { batiment: /^stade$/, piece: /^terrain$/ },
+  { batiment: /^parc-botanique-national$/, piece: /./ },
+  { batiment: /^port-/, piece: /^quai_/ }
+];
+function piecePleinAir(s) {
+  const b = s && s.currentBuilding, r = s && s.currentRoom;
+  if (!b || !r) return false;
+  if (PIECES_PLEIN_AIR.some(p => (!p.pays || p.pays === s.country) && (!p.ville || p.ville === s.currentCity) && p.batiment.test(b) && p.piece.test(r))) return true;
+  try {
+    const fiche = typeof BUILDINGS !== 'undefined' && BUILDINGS[b] && BUILDINGS[b].rooms && BUILDINGS[b].rooms[r];
+    const ctx = typeof getBuildingContext === 'function' ? getBuildingContext(b) : null;
+    return !!((fiche && fiche.pleinAir) || (ctx && ctx.roomOverrides && ctx.roomOverrides[r] && ctx.roomOverrides[r].pleinAir)
+      || (ctx && ctx.roomsExtra && ctx.roomsExtra[r] && ctx.roomsExtra[r].pleinAir));
+  } catch (_) { return false; }
+}
+// Où poser l'effet : la scène de rue (ou l'image de rue des villes à l'ancienne), ou l'image de la pièce en plein air.
+function hoteClimat(doc, s) {
+  if (piecePleinAir(s)) { const piece = doc.getElementById('piece-image'); if (piece) return piece; }
+  return doc.getElementById('rc-scene') || doc.getElementById('rue-image');
+}
+// Le bandeau se place juste AU-DESSUS du cadre de l'image (rangée image + personnes présentes), jamais dessus.
+function cadreImage(hote) {
+  return (hote.closest && hote.closest('.rue-container, .piece-container'))
+    || (hote.closest && hote.closest('#rue-image, #piece-image')) || hote;
 }
 function appliquerFiltre() {
   const doc = global.document;
   if (!doc) return;
   const s = etat();
   const ev = evenementIci();
-  const rue = doc.getElementById('rue-image');
   // Scène de rue centrale : le filtre se pose DANS la scène, au-dessus de l'image mais sous les flèches de navigation.
-  const hote = doc.getElementById('rc-scene') || rue;
+  const hote = hoteClimat(doc, s);
   let f = doc.getElementById('climat-filtre');
   let a = doc.getElementById('climat-alerte');
   afficherPointEau();
@@ -378,33 +425,35 @@ function appliquerFiltre() {
     hote.appendChild(f);
   }
   f.className = ev.type;
-  // Vues de rue uniquement : message discret qui clignote lentement (jamais dans les pièces).
-  if (!a || a.parentNode !== hote) {
+  // Bandeau d'alerte au-dessus de l'image de la vue en plein air (rue ou pièce), centré, lisible, cliquable.
+  const cadre = cadreImage(hote);
+  if (!a || a.nextElementSibling !== cadre) {
     if (a) a.remove();
     a = doc.createElement('div'); a.id = 'climat-alerte'; a.setAttribute('role', 'button'); a.tabIndex = 0;
     a.addEventListener('click', e => { e.stopPropagation(); const ici = evenementIci(); if (ici) fenetreExplication(ici); });
     a.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); const ici = evenementIci(); if (ici) fenetreExplication(ici); } });
-    hote.appendChild(a);
+    cadre.parentNode.insertBefore(a, cadre);
   }
   const type = TYPES.includes(ev.type) ? ev.type : 'brouillard';
   const libelle = (ALERTES[langue()] && ALERTES[langue()][type]) || ALERTES.fr[type];
-  if (a.dataset.type !== type || a.dataset.libelle !== libelle) {
-    a.dataset.type = type; a.dataset.libelle = libelle;
-    a.innerHTML = pictogramme(type) + '<span class="climat-alerte-texte">' + esc(libelle) + '</span>';
+  const aide = explic('alerte_aide');
+  if (a.dataset.type !== type || a.dataset.libelle !== libelle || a.dataset.aide !== aide) {
+    a.dataset.type = type; a.dataset.libelle = libelle; a.dataset.aide = aide;
+    a.innerHTML = pictogramme(type) + '<span class="climat-alerte-texte">' + esc(libelle) + '</span>'
+      + '<span class="climat-alerte-aide">' + esc(aide) + '</span>';
   }
-  a.setAttribute('aria-label', libelle);
+  a.setAttribute('aria-label', libelle + ' — ' + aide);
   a.title = explic('pourquoi') + ' ' + ligneRestant(ev);
-  eviterFleches(a, hote);
   marquerLieuxInondes();
 }
-// Règle générale (Fred, 22/11/2026) : une alerte ne couvre jamais une flèche de déplacement. Si une vue place une flèche
-// dans le coin supérieur gauche, l'alerte passe dans le coin inférieur gauche.
-function recouvre(r1, r2) { return r1.left < r2.right && r1.right > r2.left && r1.top < r2.bottom && r1.bottom > r2.top; }
-function eviterFleches(a, hote) {
-  if (!a || !hote || !a.classList || typeof a.getBoundingClientRect !== 'function' || typeof hote.querySelectorAll !== 'function') return;
-  a.classList.remove('climat-alerte-bas');
-  const fleches = Array.from(hote.querySelectorAll('.rc-fleche')).map(f => f.getBoundingClientRect());
-  if (fleches.some(r => recouvre(a.getBoundingClientRect(), r))) a.classList.add('climat-alerte-bas');
+// Changement de pièce (forêt de Krasnov, camp de bûcherons, toute pièce en plein air) : l'effet suit aussitôt, sans
+// attendre le prochain passage de la minuterie.
+function brancherPieces() {
+  if (typeof global.enterRoom !== 'function' || global.enterRoom.__climat) return;
+  const orig = global.enterRoom;
+  const env = function () { const r = orig.apply(this, arguments); try { appliquerFiltre(); } catch (_) {} return r; };
+  env.__climat = true; Object.keys(orig).forEach(k => { env[k] = orig[k]; });
+  global.enterRoom = env;
 }
 
 // ── Points d'eau : ordre de rue VERT « Puiser de l'eau » (Fred, 21/11/2026, mission du soir) ────────────────────
@@ -750,6 +799,7 @@ function brancherToast() {
 }
 function demarrer() {
   brancherToast();
+  brancherPieces();
   setTimeout(rafraichirClimat, 6000);
   setInterval(rafraichirClimat, 600000);
   setInterval(appliquerFiltre, 1500);   // la vue de rue change à chaque déplacement : le filtre et l'alerte suivent, sans lecture serveur
@@ -759,7 +809,7 @@ else if (global.document) global.document.addEventListener('DOMContentLoaded', d
 
 global.RPClimat = { T, ALERTES, EXPLIC, TYPES, PICTOS, pictogramme, texte, explic, message, rafraichirClimat, appliquerFiltre, nomObjet: nomObjetClimat,
   pointEauIci, remplirBouteille, ouvrirPuiserEau, afficherPointEau, ORDRE_PUISER, _pointsEau: v => { if (Array.isArray(v)) pointsEau = v; return pointsEau; },
-  enCours, dureeRestante, messageLieuFerme, fenetreExplication, accueillirNouveau, marquerLieuxInondes,
+  enCours, dureeRestante, messageLieuFerme, piecePleinAir, PIECES_PLEIN_AIR, fenetreExplication, accueillirNouveau, marquerLieuxInondes,
   _evenements: v => { if (Array.isArray(v)) evenements = v; return evenements; } };
 Object.assign(global, { ouvrirGraisses, confirmerGraisse, climatGraissesBoutiqueHtml, boutonDeposerGraisse, deposerGraisse,
   ouvrirBoutiqueClimat, confirmerBoutiqueClimat, boutonPoserSacs, poserSacsSable, boutonGroupeRemplir, groupeRemplir,

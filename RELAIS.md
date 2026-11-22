@@ -8,6 +8,27 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Remontées du test en forêt, points 1 et 8 : texte minimum et météo des vues en plein air (Claude, 22/11/2026) — décisions : GAME-DESIGN-FORET-TEST-20261122.md
+- **Branche `claude/texte-meteo-20261122`** (part de `main`). Aucune migration, aucune fonction Vercel. Le bouton « Explorer la forêt » (point 8) est
+  traité par un autre agent ; la logique forêt, les groupes, le combat et l'inventaire aussi (branches séparées).
+- **Point 1, texte minimum** : plancher **0,95 rem (15,2 px)** = texte courant du plateau (descriptions de pièce, personnes, ordres). Nouveau
+  `plateau-texte-minimum.js` (chargé après `plateau-core.js`) : dans toute fenêtre (`.modal-overlay`, `role=dialog`, fenêtres en position fixe créées
+  par le code, journal, notification, infobulles, `#climat-explication`, `.cpj-note`), un texte plus petit monte à 0,95 rem ; un texte plus grand
+  (titres) n'est jamais touché ; pictogrammes, SVG et canevas exclus ; forum (`#modal-forum`, témoin au pixel) et plan de la ville exclus ;
+  `data-texte-libre` pour exclure un élément. Les rapports de combat et rencontres (écrits dans `#modal-postes`) sont couverts sans toucher leur code.
+- **Point 8, météo** : `plateau-climat.js` pose l'effet dans les pièces en plein air (`PIECES_PLEIN_AIR` ou `pleinAir: true`) sur `#piece-image`,
+  aussitôt l'entrée dans la pièce (enveloppe de `enterRoom`, donc aussi `provForetRendre`, sans modifier `plateau-sovarka-provinces.js`). Alerte dans
+  un bandeau au-dessus de l'image (avant `.rue-container` ou `.piece-container`), centré, lisible ; `eviterFleches` supprimée.
+- **Fichiers du navigateur modifiés (pour rebaser)** : `plateau-texte-minimum.js` (nouveau), `plateau-climat.js` (`PIECES_PLEIN_AIR`, `piecePleinAir`,
+  `hoteClimat`, `cadreImage`, `appliquerFiltre`, `brancherPieces`, CSS `#climat-alerte`), `style.css` (bloc « TEXTE MINIMUM » à la fin),
+  `rue-centrale.css` (`.rc-tooltip` 0,95 rem), `plateau.html` (script ajouté ; versions de `style.css`, `rue-centrale.css`, `plateau-climat.js`).
+- **Pour Codex (traductions)** : une clé nouvelle, `EXPLIC.fr.alerte_aide` = « Durée et consignes » (`plateau-climat.js`).
+- **Bancs** : `banc-texte-meteo-navigateur-20261122.cjs` (nouveau, Chromium, vrai `plateau.html` à 1280 et 390 px : tailles mesurées par
+  getComputedStyle dans huit fenêtres types ; effet dans la rue de Krasnov, au camp de bûcherons et dans les six vues de la forêt ; bandeau au-dessus
+  de l'image, centré, ≥ 16 px, sans flèche couverte) ; `banc-climat-arrivee-navigateur-20261121.cjs`, `banc-climat-crue-accueil-navigateur-20261121.cjs`,
+  `test-climat-affichage-20261121.cjs`, `test-climat-definitif-20261121.cjs` mis à jour ; workflow `climat-crue-accueil-20261121.yml`.
+- **À tester par Fred** : pendant un événement climatique à Krasnov, aller au camp de bûcherons puis en forêt (pluie sur chaque vue, bandeau jaune
+  au-dessus de la photo, clic = durée et consignes) ; ouvrir des fenêtres (rencontre, rapport de combat, journal) : plus aucune petite mention grise.
 ### Étape J, terrains à bâtir (Claude, 22/11/2026) — décisions : GAME-DESIGN-CHANTIERS-IMAGES-20261120.md (complément du 21/11, points 1 et 2)
 - **Branche `claude/terrains-plan-20261122`** (part de `main` après la mission de la nuit). Aucune migration, aucune fonction Vercel.
 - **Plan du lotissement en vignettes** (`plateau-terrains-plan.js`, nouveau, chargé après `plateau-chantier-vue.js`) : une carte
