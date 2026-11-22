@@ -2547,7 +2547,7 @@ const WORLD = {
               orders: [
                 {fn:'fixer_prix_vente_directe', label:'Fixer les prix de vente', pa:1, cost:0, type:'legal', icon:'ti-tag', successRate:100, requiresPost:'directeur_raffinerie', desc:'Fixer le prix de chaque produit vendu en vente directe, dans la fourchette autorisée (±40% du prix de base).'},
                 {fn:'fixer_repartition_production', label:'Répartir la production', pa:1, cost:0, type:'legal', icon:'ti-adjustments', successRate:100, requiresPost:'directeur_raffinerie', desc:'Choisir la part de la production quotidienne envoyée aux entrepôts publics (le reste part en vente directe sur place).'},
-                {fn:'virement_usine_ministere', label:'Virement vers le Ministère', pa:1, cost:0, type:'legal', icon:'ti-transfer', successRate:100, requiresPost:'directeur_raffinerie', desc:'Verser un montant depuis la caisse de l\'usine vers la caisse du Ministère des Finances.'}
+                {fn:'virement_usine_ministere', label:'Virer à la tutelle', pa:1, cost:0, type:'legal', icon:'ti-transfer', successRate:100, requiresPost:'directeur_raffinerie', desc:'Verser un montant depuis la caisse de l\'usine vers la caisse du Ministère des Finances.'}
               ]
             }
           },
@@ -8510,7 +8510,7 @@ const BUILDINGS = {
         orders: [
           {fn:'fixer_prix_vente_directe', label:'Fixer les prix de vente', pa:1, cost:0, type:'legal', icon:'ti-tag', successRate:100, requiresPost:'directeur_raffinerie', desc:'Fixer le prix de chaque produit vendu en vente directe, dans la fourchette autorisée (±40% du prix de base).'},
           {fn:'fixer_repartition_production', label:'Répartir la production', pa:1, cost:0, type:'legal', icon:'ti-adjustments', successRate:100, requiresPost:'directeur_raffinerie', desc:'Choisir la part de la production quotidienne envoyée aux entrepôts publics (le reste part en vente directe sur place).'},
-          {fn:'virement_usine_ministere', label:'Virement vers le Ministère', pa:1, cost:0, type:'legal', icon:'ti-transfer', successRate:100, requiresPost:'directeur_raffinerie', desc:'Verser un montant depuis la caisse de la raffinerie vers la caisse du Ministère des Finances.'}
+          {fn:'virement_usine_ministere', label:'Virer à la tutelle', pa:1, cost:0, type:'legal', icon:'ti-transfer', successRate:100, requiresPost:'directeur_raffinerie', desc:'Verser un montant depuis la caisse de la raffinerie vers la caisse du Ministère des Finances.'}
         ]
       },
       salle_production: {
@@ -8583,7 +8583,7 @@ const BUILDINGS = {
         orders: [
           {fn:'fixer_prix_vente_directe', label:'Fixer les prix de vente', pa:1, cost:0, type:'legal', icon:'ti-tag', successRate:100, requiresPost:'directeur_tabac_alcools', desc:'Fixer le prix de chaque produit vendu en vente directe, dans la fourchette autorisée (±40% du prix de base).'},
           {fn:'fixer_repartition_production', label:'Répartir la production', pa:1, cost:0, type:'legal', icon:'ti-adjustments', successRate:100, requiresPost:'directeur_tabac_alcools', desc:'Choisir la part de la production quotidienne envoyée aux entrepôts publics (le reste part en vente directe sur place).'},
-          {fn:'virement_usine_ministere', label:'Virement vers le Ministère', pa:1, cost:0, type:'legal', icon:'ti-transfer', successRate:100, requiresPost:'directeur_tabac_alcools', desc:'Verser un montant depuis la caisse du pôle vers la caisse du Ministère des Finances.'}
+          {fn:'virement_usine_ministere', label:'Virer à la tutelle', pa:1, cost:0, type:'legal', icon:'ti-transfer', successRate:100, requiresPost:'directeur_tabac_alcools', desc:'Verser un montant depuis la caisse du pôle vers la caisse du Ministère des Finances.'}
         ]
       },
       distillerie: {
@@ -8712,7 +8712,7 @@ const BUILDINGS = {
         orders: [
           {fn:'fixer_prix_vente_directe', label:'Fixer les prix de vente', pa:1, cost:0, type:'legal', icon:'ti-tag', successRate:100, requiresPost:'directeur_pharma', desc:'Fixer le prix de chaque produit vendu en vente directe, dans la fourchette autorisée (±40% du prix de base).'},
           {fn:'fixer_repartition_production', label:'Répartir la production', pa:1, cost:0, type:'legal', icon:'ti-adjustments', successRate:100, requiresPost:'directeur_pharma', desc:'Choisir la part de la production quotidienne envoyée aux entrepôts publics (le reste part en vente directe sur place).'},
-          {fn:'virement_usine_ministere', label:'Virement vers le Ministère', pa:1, cost:0, type:'legal', icon:'ti-transfer', successRate:100, requiresPost:'directeur_pharma', desc:"Verser un montant depuis la caisse de l'usine vers la caisse du Ministère des Finances."}
+          {fn:'virement_usine_ministere', label:'Virer à la tutelle', pa:1, cost:0, type:'legal', icon:'ti-transfer', successRate:100, requiresPost:'directeur_pharma', desc:"Verser un montant depuis la caisse de l'usine vers la caisse du Ministère des Finances."}
         ]
       },
       salle_production: {
@@ -12396,7 +12396,7 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
         orders: [
           { fn: 'fixer_prix_vente_directe', label: 'Fixer les prix de vente', pa: 1, cost: 0, type: 'legal', icon: 'ti-tag', successRate: 100, requiresPost: 'directeur_tabac_alcools', desc: 'Fixer le prix de chaque produit vendu en vente directe, dans la fourchette autorisée (±40% du prix de base).' },
           { fn: 'fixer_repartition_production', label: 'Répartir la production', pa: 1, cost: 0, type: 'legal', icon: 'ti-adjustments', successRate: 100, requiresPost: 'directeur_tabac_alcools', desc: 'Choisir la part de la production quotidienne envoyée aux entrepôts publics (le reste part en vente directe sur place).' },
-          { fn: 'virement_usine_ministere', label: 'Virement vers le Ministère', pa: 1, cost: 0, type: 'legal', icon: 'ti-transfer', successRate: 100, requiresPost: 'directeur_tabac_alcools', desc: 'Verser un montant depuis la caisse de l\'usine vers la caisse du Ministère des Finances.' }
+          { fn: 'virement_usine_ministere', label: 'Virer à la tutelle', pa: 1, cost: 0, type: 'legal', icon: 'ti-transfer', successRate: 100, requiresPost: 'directeur_tabac_alcools', desc: 'Verser un montant depuis la caisse de l\'usine vers la caisse du Ministère des Finances.' }
         ]
       },
       atelier_distillerie: {

@@ -26,7 +26,8 @@ test('neuf langues, mêmes clés et mêmes variables que le français', () => {
   const vars = s => (String(s).match(/\{\w+\}/g) || []).sort().join(',');
   // Santé (22/11/2026, MST et antibiotique) : clés écrites en français seulement, en attente de traduction par Codex ;
   // les autres langues retombent sur le français. Retirer de cette liste une fois traduites.
-  const EN_ATTENTE_CODEX = ['n_mst', 's_mst', 'o_mst', 'm_antibiotique'];
+  const EN_ATTENTE_CODEX = ['n_mst', 's_mst', 'o_mst', 'm_antibiotique',
+    'm_antidote', 'n_empoisonnement', 'takenAntidote', 'r_pas_empoisonne', 'r_antidote_deja_pris', 'r_fonds_liquide'];
   for (const l of langues) {
     const attendues = Object.keys(T.fr).filter(k => l === 'fr' || !EN_ATTENTE_CODEX.includes(k) || k in T[l]).sort();
     assert.deepEqual(Object.keys(T[l]).sort(), attendues, l);

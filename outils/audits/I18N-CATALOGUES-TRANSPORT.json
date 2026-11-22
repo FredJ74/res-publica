@@ -342,10 +342,10 @@
     {
       "source": "i18n/orders-resources.js",
       "packed": "i18n/packed/orders-resources.js.br",
-      "sourceBytes": 252105,
-      "packedBytes": 49389,
-      "sourceSha256": "98ed656c96383f461f4346c779648bf6da25ee9586be79e7e81ceb461f7c9794",
-      "packedSha256": "e2a7acb64e9073481cabc84428380ba78e242912b6bea7469ef14d32d1d75dac"
+      "sourceBytes": 252097,
+      "packedBytes": 49201,
+      "sourceSha256": "3136b94b8a1031e26716a89d08e6040633d632c2e22af7fbe8a910baf396ab68",
+      "packedSha256": "ca402ccee10c8cc168399405f2e5a951a8af283fc6d452c65ea92c7428aff639"
     },
     {
       "source": "i18n/organization-admissions-resources.js",
