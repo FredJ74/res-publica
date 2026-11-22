@@ -187,6 +187,17 @@ ordre), sans jamais réécrire ni annuler ces cinq migrations. Aucune ne touche 
   `groupe_membres_avec_chef_interne`, `groupe_cacher_taux_interne` ; déclencheurs `zz_groupe_cachette_suivre` (sur `caches_pj`) et
   `zz_groupe_adhesion_signaux` (sur `groupes_pj_adhesions`) ; réglage `crim_parametres.cacher_malus_par_membre` ; **une ligne** ajoutée
   dans `se_cacher` (marque `groupe_cachette_v1`).
+- `20261122100000_navigation_culs_de_sac_sovarka` : `rue_noeuds_serveur.directions` de `krasnov-place-ours` (retour à droite) et
+  `krasnov-rue-hopital` (retour à gauche). Le camp des bûcherons (ouverture du goulag) n'est pas touché.
+- `20261122110000_foret_egarement_rencontre_arrivee` : `aliments_parametres.foret_egarement_pct` = 50, nouveau
+  `foret_rencontre_arrivee_pct` = 15 ; nouvelle `sovarka_foret_rencontre_arrivee_interne` ; raccords dans `sovarka_foret_aller`
+  (`foret_rencontre_arrivee_v1`) et `sovarka_foret_rencontre` (« se laisser faire » dans la vue de la rencontre, `foret_rencontre_vue_v1`).
+- `20261122120000_chantier_heures_ouvertes_commande_nuit` : nouvelles `chantier_commande_materiaux_interne`,
+  `chantier_commande_nuit_interne`, `chantier_commande_avance_interne` ; raccords : `chantier_travailler` (heures toujours
+  ouvertes `chantier_heures_ouvertes_v1`, commande du jour d'avance `chantier_commande_avance_v1`), `chantier_avance_heures_interne`
+  (`chantier_heures_ouvertes_v1`), `chantier_jour_traiter` (plus de courrier de pénurie `chantier_sans_courrier_v1`, commande de
+  nuit `chantier_commande_nuit_v1`). Le chantier garde `derniereCommande` et des entrées `commande_materiaux` / `manque_materiaux`
+  dans `evenements`.
 
 ### Fonctions communes et points de jonction
 - **Traitement de nuit** : `api/cron-minuit.js` (commun : il appelle aussi `sovarka_goulag_controle_minuit`, tâche

@@ -1,10 +1,10 @@
 name: "Chantier « construction » — fenêtre unique, images par étape, accélération"
 on:
   pull_request:
-    paths: [plateau-chantier-vue.js, plateau-chantiers.js, plateau-construction-commandes.js, plateau-politique.js, plateau-navigation.js, plateau.html, 'migrations/20261121140000_chantier_jour_avance.sql', plateau-rue-centrale.js, 'images/chantiers/psm/**', 'images/terrains/**', 'outils/bancs/*chantier*', 'outils/bancs/fixtures/chantier-pglite-socle.sql.txt', .github/workflows/chantier-construction-20261121.yml]
+    paths: [plateau-chantier-vue.js, plateau-chantiers.js, plateau-construction-commandes.js, plateau-politique.js, plateau-navigation.js, plateau.html, 'migrations/20261121140000_chantier_jour_avance.sql', 'migrations/20261122120000_chantier_heures_ouvertes_commande_nuit.sql', 'outils/bancs/fixtures/chantier-commande-entrepot.sql.txt', plateau-rue-centrale.js, 'images/chantiers/psm/**', 'images/terrains/**', 'outils/bancs/*chantier*', 'outils/bancs/fixtures/chantier-pglite-socle.sql.txt', .github/workflows/chantier-construction-20261121.yml]
   push:
     branches: [main, 'claude/**']
-    paths: [plateau-chantier-vue.js, plateau-chantiers.js, plateau-construction-commandes.js, plateau-politique.js, plateau-navigation.js, plateau.html, 'migrations/20261121140000_chantier_jour_avance.sql', plateau-rue-centrale.js, 'images/chantiers/psm/**', 'images/terrains/**', 'outils/bancs/*chantier*', 'outils/bancs/fixtures/chantier-pglite-socle.sql.txt', .github/workflows/chantier-construction-20261121.yml]
+    paths: [plateau-chantier-vue.js, plateau-chantiers.js, plateau-construction-commandes.js, plateau-politique.js, plateau-navigation.js, plateau.html, 'migrations/20261121140000_chantier_jour_avance.sql', 'migrations/20261122120000_chantier_heures_ouvertes_commande_nuit.sql', 'outils/bancs/fixtures/chantier-commande-entrepot.sql.txt', plateau-rue-centrale.js, 'images/chantiers/psm/**', 'images/terrains/**', 'outils/bancs/*chantier*', 'outils/bancs/fixtures/chantier-pglite-socle.sql.txt', .github/workflows/chantier-construction-20261121.yml]
 permissions:
   contents: read
 jobs:
@@ -32,5 +32,5 @@ jobs:
         run: |
           if [ -f migrations/20261121140000_chantier_jour_avance.sql ]; then
             npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund --prefix "$RUNNER_TEMP/pglite" @electric-sql/pglite@0.2.17
-            PGLITE_DIR="$RUNNER_TEMP/pglite" node --test outils/bancs/banc-chantier-avance-pglite-20261121.cjs
+            PGLITE_DIR="$RUNNER_TEMP/pglite" node --test outils/bancs/banc-chantier-avance-pglite-20261121.cjs outils/bancs/banc-chantier-commande-nuit-pglite-20261122.cjs
           fi

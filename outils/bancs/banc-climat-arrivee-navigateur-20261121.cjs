@@ -61,6 +61,16 @@ test('Novomirsk, orage en cours : rue affichée, alerte et fenêtre d’accueil 
     assert.equal(await page.locator('#climat-filtre.orage').count(), 1);
     assert.match(await page.locator('#climat-alerte .climat-alerte-texte').textContent(), /^Attention : orage$/);
     assert.equal(await page.locator('#climat-alerte svg.climat-picto').count(), 1);
+    // Coin supérieur gauche, compact, sans jamais couvrir une flèche (Fred, 22/11/2026, point 5).
+    const place = await page.evaluate(() => {
+      const a = document.getElementById('climat-alerte').getBoundingClientRect(), s = document.getElementById('rc-scene').getBoundingClientRect();
+      const couvre = Array.from(document.querySelectorAll('.rc-fleche')).map(f => f.getBoundingClientRect())
+        .some(r => a.left < r.right && a.right > r.left && a.top < r.bottom && a.bottom > r.top);
+      return { gauche: a.left - s.left, haut: a.top - s.top, largeur: a.width, hauteur: a.height, scene: s.width, couvre };
+    });
+    assert.ok(place.gauche <= 12 && place.haut <= 12, 'coin supérieur gauche ' + JSON.stringify(place));
+    assert.ok(place.hauteur <= 36 && place.largeur <= place.scene / 2, 'compact ' + JSON.stringify(place));
+    assert.equal(place.couvre, false, 'aucune flèche couverte');
     const fleche = page.locator('.rc-fleche').first();
     const z = await page.evaluate(() => [getComputedStyle(document.querySelector('.rc-fleche')).zIndex, getComputedStyle(document.getElementById('climat-filtre')).zIndex].map(Number));
     assert.ok(z[0] > z[1], 'flèches au-dessus du filtre');

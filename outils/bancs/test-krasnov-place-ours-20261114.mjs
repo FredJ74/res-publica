@@ -17,7 +17,7 @@ assert.match(scene,/xPct: \[54, 71\]/);
 assert.match(scene,/'krasnov-place-ours':/);
 assert.match(scene,/image: 'images\/Sovarka\/Krasnov\/Krasnov_place_ours.webp'/);
 assert.match(scene,/nom: 'Mairie de Krasnov', type: 'batiment', buildingId: 'mairie'/);
-assert.match(scene,/liens: \{ arriere: 'krasnov-rue-mairie-place' \}/);
+assert.match(scene,/liens: \{ droite: 'krasnov-rue-mairie-place' \}/);
 const b=fs.readFileSync(new URL('images/Sovarka/Krasnov/Krasnov_place_ours.webp',root));
 assert.equal(b.toString('ascii',0,4),'RIFF');
 assert.equal(b.toString('ascii',8,12),'WEBP');

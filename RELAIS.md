@@ -18,6 +18,17 @@ Règles : voir `AGENTS.md`.
     `images/chantiers/psm/PSM_*.webp`, `images/terrains/psm/rue-terrains-psm-etat2/3.webp`, `images/rue-terrains-lots-detail-psm.webp`
     (6 lots, remplace l'ancienne), `images/Sovarka/Krasnov/Krasnov_place_ours_fontaine.webp` ; bancs
     `banc-chantier-rue-terrains-etats-20261122.cjs`, `banc-chantier-vue-navigateur-20261121.cjs` ; workflow `chantier-construction-20261121.yml`.
+  - point 9 (navigation) : `plateau-rue-centrale.js` (place de l'Ours : `liens: { droite }` ; rue de l'hôpital de Krasnov :
+    `liens: { gauche }`) ; tests `test-krasnov-place-ours-20261114.mjs`, `test-krasnov-hopital-acces-rue-20261114.mjs`.
+  - point 4 (forêt) : `plateau-sovarka-provinces.js` (`FORET_TXT.surprise`, `foretAller` affiche la rencontre à l'arrivée,
+    `foretAfficherRencontre(nom, pnj, intro)`).
+  - point 5 (climat) : `plateau-climat.js` (alerte compacte en haut à gauche, `eviterFleches`) ; banc `banc-climat-arrivee-navigateur-20261121.cjs`.
+  - point 2 (chantier) : `plateau-chantiers.js` (`heuresUtilesRestantes` = capacité entière), `plateau-chantier-vue.js`
+    (journal du chantier, jauges rouges, commande automatique dans Gestion, heures du jour d'avance) ; banc `banc-chantier-vue-navigateur-20261121.cjs`.
+- **Migrations appliquées (cette nuit)** : `20261122100000_navigation_culs_de_sac_sovarka`, `20261122110000_foret_egarement_rencontre_arrivee`,
+  `20261122120000_chantier_heures_ouvertes_commande_nuit`. Détail dans AGENTS.md.
+- **Pour Codex (traductions)** : `FORET_TXT.surprise` ; `TXT4` : `j_journal`, `j_manque`, `j_commande`, `j_commande_avance`, `j_rien_livre`,
+  `j_journee`, `m_avance`, `g_commande_txt`, `g_commande_note`, `g_derniere`, `g_aucune`, `g_rien` (supprimé : `j_mat_attente`).
 ### Mission du soir du 21/11/2026, suite (Claude) — décisions : GAME-DESIGN-MISSION-SOIR-20261121.md
 - **Appliquées** (PGlite d'abord, contrôle en lecture après, goulag `active=false` vérifié) :
   `20261121170000_point_eau_puiser_mairie_krasnov` (puisage 1 PA, 10 bouteilles par tranche de 6 h ; mairie de Krasnov à une seule

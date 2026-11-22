@@ -1,0 +1,21 @@
+-- Entrepôt simulé pour la migration 20261122120000 : stock limité, prix 1 par unité, trésorerie bornée ; courriers relevés.
+CREATE TABLE public.entrepot_test (m text PRIMARY KEY, q numeric);
+INSERT INTO public.entrepot_test VALUES ('bois', 100000), ('minerai', 100000), ('metal', 100000);
+INSERT INTO public.entrepots_par_ville VALUES ('republic', 'capitale', 'entrepot-logistique-luthecia');
+CREATE TABLE public.courriers_test (sujet text);
+CREATE OR REPLACE FUNCTION public.mail_systeme_poser_interne(a text, b text, c text, d text, e text DEFAULT NULL) RETURNS jsonb LANGUAGE sql AS $$
+  INSERT INTO public.courriers_test VALUES (c) RETURNING '{"ok":true}'::jsonb $$;
+CREATE OR REPLACE FUNCTION public.approvisionner_chantier(a text, p text, v text, e text, b jsonb, s jsonb, t numeric) RETURNS jsonb LANGUAGE plpgsql AS $$
+DECLARE mm text; manque numeric; qte numeric; dep numeric := 0; achats jsonb := '{}'; st jsonb := '{}';
+BEGIN
+  FOREACH mm IN ARRAY ARRAY['bois','minerai','metal'] LOOP
+    st := st || jsonb_build_object(mm, greatest(0, coalesce((s->>mm)::numeric, 0)));
+    manque := greatest(0, coalesce((b->>mm)::numeric, 0) - (st->>mm)::numeric);
+    qte := least(manque, (SELECT q FROM public.entrepot_test WHERE entrepot_test.m = mm), floor(greatest(0, t - dep)));
+    CONTINUE WHEN qte <= 0;
+    UPDATE public.entrepot_test SET q = q - qte WHERE entrepot_test.m = mm;
+    achats := achats || jsonb_build_object(mm, qte); dep := dep + qte;
+    st := st || jsonb_build_object(mm, (st->>mm)::numeric + qte);
+  END LOOP;
+  RETURN jsonb_build_object('ok', true, 'achats', achats, 'depense', dep, 'stockChantier', st);
+END $$;
