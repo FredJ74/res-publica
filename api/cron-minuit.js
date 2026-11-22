@@ -13,6 +13,7 @@ import { genererToutesLesEditions } from './_journal-generation.js';
 // indisponible » et personne ne previent Fred. La sonde ci-dessous rend cette
 // mort visible la ou Fred regarde deja -- voir la section 0 quater.
 import { appelDeepSeek, cleConfiguree, classerEchecFournisseur } from './_deepseek.js';
+import { recopierImagesForumExterieures } from './_forum-images-externes.js';   // Forum : images extérieures (22/11/2026)
 
 // REFERENTIELS DU JEU -- IMPORTES, PLUS RECOPIES (chantier 4B, 6 octobre 2026).
 //
@@ -6502,6 +6503,8 @@ export default async function handler(req, res) {
 
     // 8. Progression quotidienne des chantiers (versements, alea, livraison)
     const chantiers = await avancerChantiersQuotidien();
+    // 8a. Forum : recopie des images extérieures dans le stockage (Fred, 22/11/2026, point 7).
+    const imagesForum = await recopierImagesForumExterieures().catch(e => ({ ok: false, raison: String(e && e.message || e) }));
 
     // 9. Mensualites des prets bancaires (a heure fixe, que le joueur dorme ou non)
     const prets = await preleverPretsBancairesServeur();

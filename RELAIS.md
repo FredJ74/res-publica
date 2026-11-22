@@ -30,14 +30,20 @@ Règles : voir `AGENTS.md`.
     `DUREE_INSTRUCTION_PERMIS`), `plateau-immobilier.js` (`verdictAjoutLot` : 6 commerces et 14 appartements au plus dans un building),
     `plateau-pnj.js` (liste du compromis par `palierProposable`), `plateau-chantier-vue.js` (`GABARIT_HAUT`, `PSM_TYPE`) ; tests
     `banc-logements-sociaux.cjs`, `outils/e2e/test-immobilier-135.cjs`.
+  - point 7 (forum, images) : `forum-canvas.js` (`RP_FORUM_IMAGES`, `rpForumEnvoyerImage`, `rpForumPoserFichiers`, coller et glisser,
+    « Ajouter une image » ouvre le choix d'un fichier) ; nouveau module serveur `api/_forum-images-externes.js` et **un appel
+    ajouté** dans `api/cron-minuit.js` (recopie nocturne des images extérieures, 20 s au plus) ; banc `banc-forum-images-externes-20261122.mjs`.
 - **Migrations appliquées (cette nuit)** : `20261122100000_navigation_culs_de_sac_sovarka`, `20261122110000_foret_egarement_rencontre_arrivee`,
-  `20261122120000_chantier_heures_ouvertes_commande_nuit`, `20261122130000_types_batiments_cinq`. Détail dans AGENTS.md.
+  `20261122120000_chantier_heures_ouvertes_commande_nuit`, `20261122130000_types_batiments_cinq`, `20261122140000_forum_images_stockage`.
+  Détail dans AGENTS.md.
 - **Baseline (réconciliation par Codex)** : `baseline/domaines/economie/20_fonctions-1.sql` et
   `baseline/domaines/immobilier-et-territoire/20_fonctions-1/2.sql` citent encore les anciens types et les anciennes définitions
   de `chantier_travailler`, `chantier_jour_traiter`, `sovarka_foret_aller`, `sovarka_foret_rencontre` : à régénérer depuis la
   production après mon rapport final.
 - **Pour Codex (traductions)** : `FORET_TXT.surprise` ; `TXT4` : `j_journal`, `j_manque`, `j_commande`, `j_commande_avance`, `j_rien_livre`,
-  `j_journee`, `m_avance`, `g_commande_txt`, `g_commande_note`, `g_derniere`, `g_aucune`, `g_rien` (supprimé : `j_mat_attente`).
+  `j_journee`, `m_avance`, `g_commande_txt`, `g_commande_note`, `g_derniere`, `g_aucune`, `g_rien` (supprimé : `j_mat_attente`) ;
+  `libellePalier` (« Logement — logements sociaux / classiques ») ; messages d'images du forum dans `forum-canvas.js` (`rpForumRefusImage`,
+  `rpForumEnvoyerImage`, dépôt refusé).
 ### Mission du soir du 21/11/2026, suite (Claude) — décisions : GAME-DESIGN-MISSION-SOIR-20261121.md
 - **Appliquées** (PGlite d'abord, contrôle en lecture après, goulag `active=false` vérifié) :
   `20261121170000_point_eau_puiser_mairie_krasnov` (puisage 1 PA, 10 bouteilles par tranche de 6 h ; mairie de Krasnov à une seule

@@ -204,6 +204,9 @@ ordre), sans jamais réécrire ni annuler ces cinq migrations. Aucune ne touche 
   ≤ 14 appartements, catégorie sociale si terrain communal) ; remplacements contrôlés dans `terrain_permis_deposer`
   (durée, surface ≥ 2 000 m², libellé), `terrain_permis_decider` (libellé), `terrain_acquisition_commande` (liste),
   `traiter_prets_helvetia_quotidien` (valeur du Logement 70 000, 4 grilles). Marques `types_batiments_cinq_*`.
+- `20261122140000_forum_images_stockage` : seau `forum-images` (public, 5 Mo, PNG/JPEG/WebP/GIF) ; politiques
+  `forum_images_lecture` (lecture publique) et `forum_images_ecriture_joueur` (écriture du joueur connecté dans le dossier
+  `<auth.uid()>/`). Le dossier `externes/` est écrit par le traitement de nuit (clé de service).
 
 ### Fonctions communes et points de jonction
 - **Traitement de nuit** : `api/cron-minuit.js` (commun : il appelle aussi `sovarka_goulag_controle_minuit`, tâche

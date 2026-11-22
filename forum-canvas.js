@@ -1375,14 +1375,89 @@ function rpCanvasEcarterCompose(prioritaire) {
   document.addEventListener('keyup', ev => { if (rpComposeController && ev.target && ev.target.closest && ev.target.closest('#rp-compose-canvas')) setTimeout(() => rpCanvasEcarterCompose(null), 0); }, true);
 })();
 
+// Images du forum (Fred, 22/11/2026, point 7) : « Ajouter une image » ouvre le choix d'un fichier ; on peut aussi
+// COLLER une image (presse-papiers) ou GLISSER un fichier dans l'éditeur. Envoi direct au stockage Supabase
+// (seau forum-images, dossier du joueur connecté), sans fonction serveur : images seulement, 5 Mo au plus.
+const RP_FORUM_IMAGES = { seau: 'forum-images', max: 5 * 1024 * 1024,
+  types: { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp', 'image/gif': 'gif' } };
+function rpForumToast(titre, texte, ok) { if (typeof showToast === 'function') showToast(titre, texte, ok); }
+function rpForumJeton() { try { return typeof rpAuthJeton === 'function' ? rpAuthJeton() : null; } catch (_) { return null; } }
+function rpForumUid(jeton) {
+  try { return JSON.parse(atob(String(jeton).split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))).sub || null; } catch (_) { return null; }
+}
+function rpForumRefusImage(f) {
+  if (!f) return 'Aucun fichier choisi.';
+  if (!RP_FORUM_IMAGES.types[f.type]) return 'Ce fichier n’est pas une image acceptée. Formats possibles : PNG, JPEG, WebP ou GIF.';
+  if (f.size > RP_FORUM_IMAGES.max) return 'Image trop lourde : ' + (f.size / 1048576).toFixed(1).replace('.', ',') + ' Mo. Le maximum est de 5 Mo : réduisez-la avant de l’ajouter.';
+  return null;
+}
+async function rpForumEnvoyerImage(f) {
+  const refus = rpForumRefusImage(f);
+  if (refus) { rpForumToast('Image refusée', refus, false); return null; }
+  const jeton = rpForumJeton(), uid = rpForumUid(jeton);
+  if (!jeton || !uid || typeof SUPABASE_URL === 'undefined') { rpForumToast('Image refusée', 'Connectez-vous à votre personnage pour ajouter une image.', false); return null; }
+  const chemin = uid + '/' + Date.now() + '-' + Math.random().toString(36).slice(2, 8) + '.' + RP_FORUM_IMAGES.types[f.type];
+  rpForumToast('Envoi de l’image', 'Patientez un instant…', true);
+  try {
+    const r = await fetch(SUPABASE_URL + '/storage/v1/object/' + RP_FORUM_IMAGES.seau + '/' + chemin, {
+      method: 'POST', body: f,
+      headers: { apikey: SUPABASE_ANON, Authorization: 'Bearer ' + jeton, 'Content-Type': f.type, 'x-upsert': 'false' } });
+    if (!r.ok) {
+      const msg = r.status === 413 ? 'Image trop lourde (5 Mo au plus).' : r.status === 415 ? 'Ce format d’image n’est pas accepté.' : 'Le stockage a refusé l’image (erreur ' + r.status + '). Réessayez dans un instant.';
+      rpForumToast('Image refusée', msg, false); return null;
+    }
+  } catch (_) { rpForumToast('Image non envoyée', 'La connexion a échoué. Vérifiez votre réseau et réessayez.', false); return null; }
+  return SUPABASE_URL + '/storage/v1/object/public/' + RP_FORUM_IMAGES.seau + '/' + chemin;
+}
+async function rpForumPoserFichiers(fichiers, x, y) {
+  const container = document.getElementById('rp-compose-canvas');
+  if (!rpComposeController || !container) return;
+  let i = 0;
+  for (const f of fichiers) {
+    const url = await rpForumEnvoyerImage(f);
+    if (url) rpCanvasCreateImage(rpComposeController, container, Math.max(0, x + 20 * i), Math.max(0, y + 20 * i), 220, url);
+    i++;
+  }
+}
 function rpCanvasAddImageToCompose() {
   if (!rpComposeController) return;
   const container = document.getElementById('rp-compose-canvas');
   if (!container) return;
-  const url = window.prompt("URL de l'image à ajouter (https://...) :");
-  if (!url || !url.trim()) return;
-  rpCanvasCreateImage(rpComposeController, container, 60, 60, 220, url.trim());
+  const choix = document.createElement('input');
+  choix.type = 'file'; choix.accept = Object.keys(RP_FORUM_IMAGES.types).join(','); choix.multiple = true;
+  choix.addEventListener('change', () => { if (choix.files && choix.files.length) rpForumPoserFichiers(Array.from(choix.files), 60, 60); });
+  choix.click();
 }
+(function rpForumCollerGlisser() {
+  if (typeof document === 'undefined' || typeof document.addEventListener !== 'function') return;
+  const dansEditeur = ev => !!(rpComposeController && ev.target && ev.target.closest && ev.target.closest('#rp-compose-canvas, #rp-compose-zone, .rp-compose'));
+  const images = liste => Array.from(liste || []).filter(f => f && /^image\//.test(f.type));
+  const position = ev => {
+    const c = document.getElementById('rp-compose-canvas'), r = c ? c.getBoundingClientRect() : { left: 0, top: 0 };
+    return { x: Math.round((ev.clientX || r.left + 60) - r.left), y: Math.round((ev.clientY || r.top + 60) - r.top) };
+  };
+  document.addEventListener('paste', ev => {
+    if (!dansEditeur(ev)) return;
+    const f = images(ev.clipboardData && ev.clipboardData.files);
+    if (!f.length) return;   // texte collé : comportement habituel
+    ev.preventDefault();
+    rpForumPoserFichiers(f, 60, 60);
+  }, true);
+  document.addEventListener('dragover', ev => {
+    if (!dansEditeur(ev) || !ev.dataTransfer || !Array.from(ev.dataTransfer.types || []).includes('Files')) return;
+    ev.preventDefault(); ev.dataTransfer.dropEffect = 'copy';
+  }, true);
+  document.addEventListener('drop', ev => {
+    if (!dansEditeur(ev) || !ev.dataTransfer) return;
+    const tous = Array.from(ev.dataTransfer.files || []);
+    if (!tous.length) return;
+    ev.preventDefault();
+    const f = images(tous);
+    if (!f.length) { rpForumToast('Image refusée', 'Seules les images peuvent être déposées dans un message (PNG, JPEG, WebP ou GIF).', false); return; }
+    const p = position(ev);
+    rpForumPoserFichiers(f, p.x, p.y);
+  }, true);
+})();
 
 function rpCanvasCreateImage(ctrl, container, x, y, width, src) {
   const state = { x, y, width, height: width * 0.75 };
