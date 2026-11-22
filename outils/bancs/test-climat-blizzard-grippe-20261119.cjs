@@ -35,7 +35,8 @@ test('écran : graisses et effets du blizzard dans les neuf langues, ordres, bou
   assert.match(ctx.climatGraissesBoutiqueHtml({ typesAutorises: ['pharmacie'] }), /ouvrirGraisses\(\)/);
   assert.equal(ctx.climatGraissesBoutiqueHtml({ typesAutorises: ['vetements'] }), '');
   const data = lire('data.js');
-  assert.equal((data.match(/\{fn:'acheter_graisse'/g) || []).length, 2);
+  // Lot de Krasnov, point 2 (22/11/2026) : la graisse d'ours de Krasnov passe dans la fenêtre unique du marché.
+  assert.equal((data.match(/\{fn:'acheter_graisse'/g) || []).length, 1);
   assert.match(lire('plateau-router.js'), /fn === 'acheter_graisse'.*ouvrirGraisses\(\)/);
   assert.match(lire('plateau-commerce-pj.js'), /climatGraissesBoutiqueHtml\(f\)/);
   assert.match(lire('plateau-maladies.js'), /images\/objet-furet-renifleur\.webp/);
