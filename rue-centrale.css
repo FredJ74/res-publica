@@ -100,7 +100,7 @@
   padding: .5rem .9rem;
   font-family: 'Bebas Neue', sans-serif;
   letter-spacing: .06em;
-  font-size: .85rem;
+  font-size: .95rem; /* texte minimum des infobulles (Fred, 22/11/2026, point 1) */
   border-radius: 3px;
   pointer-events: none;
   opacity: 0;

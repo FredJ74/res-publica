@@ -61,16 +61,24 @@ test('Novomirsk, orage en cours : rue affichée, alerte et fenêtre d’accueil 
     assert.equal(await page.locator('#climat-filtre.orage').count(), 1);
     assert.match(await page.locator('#climat-alerte .climat-alerte-texte').textContent(), /^Attention : orage$/);
     assert.equal(await page.locator('#climat-alerte svg.climat-picto').count(), 1);
-    // Coin supérieur gauche, compact, sans jamais couvrir une flèche (Fred, 22/11/2026, point 5).
+    // Bandeau AU-DESSUS de l'image, centré, en taille normale (Fred, 22/11/2026, remontées du test en forêt, point 8 ;
+    // annule le coin supérieur gauche compact) : il ne recouvre ni la photo ni aucune flèche.
     const place = await page.evaluate(() => {
-      const a = document.getElementById('climat-alerte').getBoundingClientRect(), s = document.getElementById('rc-scene').getBoundingClientRect();
+      const el = document.getElementById('climat-alerte'), a = el.getBoundingClientRect(), s = document.getElementById('rc-scene').getBoundingClientRect();
+      const t = el.querySelector('.climat-alerte-texte').getBoundingClientRect();
       const couvre = Array.from(document.querySelectorAll('.rc-fleche')).map(f => f.getBoundingClientRect())
         .some(r => a.left < r.right && a.right > r.left && a.top < r.bottom && a.bottom > r.top);
-      return { gauche: a.left - s.left, haut: a.top - s.top, largeur: a.width, hauteur: a.height, scene: s.width, couvre };
+      const auPoint = document.elementFromPoint(t.left + t.width / 2, t.top + t.height / 2);
+      return { bas: a.bottom, hautScene: s.top, centreTexte: t.left + t.width / 2, centreBandeau: a.left + a.width / 2,
+        taille: parseFloat(getComputedStyle(el.querySelector('.climat-alerte-texte')).fontSize), couvre,
+        dessus: !!(auPoint && auPoint.closest('#climat-alerte')), aide: el.querySelector('.climat-alerte-aide').textContent };
     });
-    assert.ok(place.gauche <= 12 && place.haut <= 12, 'coin supérieur gauche ' + JSON.stringify(place));
-    assert.ok(place.hauteur <= 36 && place.largeur <= place.scene / 2, 'compact ' + JSON.stringify(place));
+    assert.ok(place.bas <= place.hautScene + 0.5, 'bandeau au-dessus de l’image, sans la recouvrir ' + JSON.stringify(place));
+    assert.ok(Math.abs(place.centreTexte - place.centreBandeau) < 80, 'texte centré ' + JSON.stringify(place));
+    assert.ok(place.taille >= 16, 'taille normale et lisible ' + JSON.stringify(place));
     assert.equal(place.couvre, false, 'aucune flèche couverte');
+    assert.equal(place.dessus, true, 'rien ne recouvre le bandeau');
+    assert.equal(place.aide, 'Durée et consignes');
     const fleche = page.locator('.rc-fleche').first();
     const z = await page.evaluate(() => [getComputedStyle(document.querySelector('.rc-fleche')).zIndex, getComputedStyle(document.getElementById('climat-filtre')).zIndex].map(Number));
     assert.ok(z[0] > z[1], 'flèches au-dessus du filtre');

@@ -123,7 +123,9 @@ test('le bandeau « Attention crue » s’explique au clic ; tout disparaît à 
     const alerte = page.locator('#climat-alerte');
     assert.equal(await alerte.locator('svg.climat-picto path[fill="#FFD200"]').count(), 1);
     assert.match(await alerte.locator('.climat-alerte-texte').textContent(), /^Attention : crue$/);
-    assert.match(await alerte.evaluate(el => getComputedStyle(el).animationName), /climatAlerte/);
+    // Le pictogramme clignote lentement ; le texte du bandeau reste toujours pleinement lisible (22/11/2026).
+    assert.match(await alerte.locator('svg.climat-picto').evaluate(el => getComputedStyle(el).animationName), /climatAlerte/);
+    assert.equal(await alerte.evaluate(el => getComputedStyle(el).animationName), 'none');
     assert.ok(Number(await page.locator('#fleche').evaluate(el => getComputedStyle(el).zIndex)) > Number(await page.locator('#climat-filtre').evaluate(el => getComputedStyle(el).zIndex)));
     await alerte.click();
     const txt = await page.locator('#climat-explication').innerText();
@@ -196,6 +198,6 @@ test('orage : pluie animée en continu, légère obliquité, sans redessin ; imm
     await page.emulateMedia({ reducedMotion: 'reduce' });
     assert.equal((await pluie('::before')).nom, 'none');
     assert.equal((await pluie('::after')).nom, 'none');
-    assert.equal(await page.evaluate(() => getComputedStyle(document.getElementById('climat-alerte')).animationName), 'none');
+    assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('#climat-alerte .climat-picto')).animationName), 'none');
   }, { type: 'orage' });
 });
