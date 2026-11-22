@@ -3034,6 +3034,8 @@ async function afficherObjectifsSecrets() {
       '</div>';
     document.getElementById('modal-postes').classList.add('open');
     globalThis.RPPlayerMissionsI18n?.apply();
+    // Accueil (Fred, 22/11/2026, points 24 et 25) : interview en attente et parcours du chemin choisi, en tête.
+    await globalThis.RPAccueil?.insererObjectifs?.(document.getElementById('postes-body'));
     return;
   }
 
@@ -3070,6 +3072,7 @@ async function afficherObjectifsSecrets() {
     '</div>';
   document.getElementById('modal-postes').classList.add('open');
   globalThis.RPPlayerMissionsI18n?.apply();
+  await globalThis.RPAccueil?.insererObjectifs?.(document.getElementById('postes-body'));
 }
 
 // Vérifier objectifs à chaque updateUI

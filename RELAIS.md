@@ -8,6 +8,35 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Accueil des nouveaux joueurs : interview, parcours, bulle des PA (Claude, 23/11/2026) — GAME-DESIGN-INTERFACE-ACCUEIL-20261122.md, partie D, points 23 à 26
+- **Branche `claude/accueil-interview-20261123`** (depuis `0bba1e82`), non fusionnée. **Migration écrite, NON APPLIQUÉE** :
+  `20261123140000_accueil_interview` (à appliquer AVANT le déploiement du code : le navigateur appelle `accueil_etat`
+  et l'API lit `accueil_personnages` ; sans la table, rien ne s'ouvre et l'API répond 409, sans casse).
+- **Serveur** : tables `accueil_parametres` (MJ : `admin_accueil_parametres_lire` / `admin_accueil_parametre_fixer`,
+  journalisé), `accueil_journalistes` (Jodie Moitout en Républia, Vera Pravdina en Sovarka), `accueil_chemins`,
+  `accueil_etapes` (12 parcours × 3 étapes), `accueil_personnages` (état par personnage, créé à la première lecture,
+  jamais par la migration ; interview ou portrait déjà publié = `deja_interviewe`) ; colonnes `interviews_jodie.accueil`
+  et `.journaliste`. RPC : `accueil_etat`, `accueil_interview_vue`, `accueil_choisir_chemin`, `accueil_ignorer`,
+  `accueil_etape_valider`, `accueil_bulle_pa_signaler`. Remplacement contrôlé de `payer_ordre_interne` (5 arguments),
+  marque `accueil_ordre_paye_v1` : `accueil_ordre_paye_interne` coche l'étape de l'ordre payé et, au premier ordre qui
+  coûte des PA, mémorise la bulle et écrit l'événement `accueil_bulle_pa` (jamais d'erreur vers le paiement).
+- **API (aucune nouvelle fonction Vercel, toujours 12)** : `/api/journal-interview`, action `accueil_publier` (relit chemin
+  et mot en base, entretien d'une question dans `interviews_jodie`, même publication et même contrôle du verbatim ;
+  consigne « à la gloire du Parti » pour Vera) ; l'interview d'accueil n'arme plus le délai de 10 jours de l'interview
+  volontaire. `/api/jodie-portrait` : pas d'invitation au portrait par courrier si l'interview d'accueil est donnée.
+- **Navigateur** : nouveau `plateau-accueil-interview.js` (fenêtre, envol vers Mes objectifs, parcours, bulle des PA),
+  `plateau-politique.js` (`afficherObjectifsSecrets` : accueil en tête), `plateau.html` (script), `data.js` et
+  `api/_pnj-personnalites.js` (PNJ Vera Pravdina, accueil de La Voix de Sovarka, Novomirsk), `api/_pnj-scenes-generes.js`
+  régénéré. Portrait de Vera à fournir : `images/Sovarka/Novomirsk/Novo_vera_pravdina_portrait.webp` (puis `photoUrl`
+  dans data.js et `PORTRAITS` dans plateau-accueil-interview.js).
+- **Pour Codex (traductions, français seul pour l'instant)** : objet `TXT` de plateau-accueil-interview.js (toutes les clés) ;
+  textes serveur de la migration (questions des journalistes, libellés des chemins, 36 étapes et lieux, « Objectif
+  accompli : … ») ; prompts de `api/journal-interview.js` (français, non traduits).
+- **Bancs** : `banc-accueil-interview-pglite-20261123.cjs` (8/8), `banc-accueil-interview-api-20261123.mjs` (5/5),
+  `banc-accueil-interview-navigateur-20261123.cjs` (Chromium, 1280 et 390 px, 4/4) ; workflow `accueil-interview-20261123.yml`.
+- **À tester par Fred** : nouveau personnage (Républia puis Sovarka) : l'interview s'ouvre seule ; « Plus tard » → la
+  fenêtre file vers Mes objectifs ; Mes objectifs → « Reprendre » → choisir un chemin + un mot → article ; parcours dans
+  Mes objectifs ; premier ordre payant → bulle à côté des PA, une seule fois.
 ### Mission « Santé et forêt » (Claude, 22/11/2026, après-midi) — décisions : GAME-DESIGN-SANTE-20261122.md
 - **Appliquées en production le 22/11 (dans l'ordre, chacune validée par Fred à l'écran, contrôle en lecture après chacune, goulag
   `active=false` vérifié, aucune Santé de personnage modifiée)** : `20261122230000_sante_socle`, `20261122231000_sante_combat`,

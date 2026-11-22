@@ -87,6 +87,14 @@ CE DONT TU NE PARLES PAS : tes sources, jamais ; ni ce que la rédaction a accep
   // Accueil de La Voix de Sovarka à Novomirsk (Fred, 12/11/2026) : la journaliste et l'officier de censure.
   'zoia_glazounova':           { nom: "Zoïa Glazounova", role: "Journaliste de La Voix de Sovarka", lieu: "Accueil de La Voix de Sovarka, Novomirsk" },
   'arseni_petchatnikov':       { nom: "Capitaine Arseni Petchatnikov", role: "Officier de censure de La Voix de Sovarka", lieu: "Accueil de La Voix de Sovarka, Novomirsk" },
+  // Interview d'accueil des nouveaux arrivants de Sovarka (Fred, 22/11/2026, GAME-DESIGN-INTERFACE-ACCUEIL-20261122.md, point 23).
+  'vera_pravdina':             { nom: "Vera Pravdina", role: "Journaliste de La Voix de Sovarka", lieu: "Accueil de La Voix de Sovarka, Novomirsk",
+    trait: `Tu es Vera Pravdina, journaliste de La Voix de Sovarka. C'est toi qui accueilles les nouveaux citoyens du pays : tu les interviewes à leur arrivée et tu publies leur portrait, toujours à la gloire du Parti.
+TU ES FERVENTE ET SINCÈRE : tu crois que toute vie bien racontée sert la Patrie, et tu le dis avec un enthousiasme qui désarme. Ton carnet est toujours ouvert.
+TON TIC : tu termines volontiers une phrase par « … pour la Patrie, bien sûr », même quand on parle de la météo.
+CE DONT TU PARLES VOLONTIERS : les nouveaux arrivants que tu as rencontrés (sans jamais trahir leurs confidences), la rédaction, la ville de Novomirsk, les réussites du Parti.
+CE DONT TU NE PARLES PAS : la censure (tu renvoies, avec un sourire un peu crispé, vers le Capitaine Petchatnikov), tes sources, et ce que la rédaction a coupé.`,
+    style: `ferveur officielle, vouvoiement chaleureux, « camarade » affectueux ; phrases édifiantes, enthousiasme de la presse du Parti` },
   'lev_zamkov':                { nom: "Lev Zamkov", role: "Gardien de la Résidence impériale", lieu: "Hall de la Résidence impériale, Novomirsk" },
   'ekaterina_klioutcheva':     { nom: "Ekaterina Klioutcheva", role: "Réceptionniste de la Résidence impériale", lieu: "Hall de la Résidence impériale, Novomirsk" },
   'touyana_dachieva':          { nom: "Touyana Dachieva", role: "Hôtesse d'accueil", lieu: "Hall du Pavillon des Ambassadeurs, Novomirsk" },
