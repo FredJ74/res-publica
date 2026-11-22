@@ -84,3 +84,24 @@ navigateur. Toutes les valeurs chiffrées vont dans une table de paramètres ré
   juste avant leur lancement (validation à l'écran). Une validation expirée : ne rien relancer, une ligne « migration X en
   attente », arrêt.
 - Rien du goulag (sovarka_goulag_*, configuration active=false conservée).
+
+## Suites — décisions de Fred (22/11/2026, soir), réponses au rapport « Santé et forêt »
+
+1. Fruits et légumes du marché de Krasnov : catégorie en-cas (+1 Santé, 0 PA), comme tu l'as fait. Le mot « snack » ne doit jamais être lu par un joueur : la catégorie s'affiche « En-cas » en Républia et « Zakouski » en Sovarka.
+2. Plats créés par un joueur : nouveau palier 15 et plus = +5 Santé / +3 PA (comme un menu).
+3. Repas du président : +5 Santé / +3 PA. Repas de l'hôpital public : +4 Santé / +2 PA, gratuit, toujours réservé aux patients hospitalisés (contrôle existant conservé). Repas de la clinique : +5 Santé, ses +4 PA, 30 FR.
+4. Défaite contre la meute : le chef reçoit bien le butin des loups tués avant la déroute. Inchangé.
+5. Médecin payé en liquide. Règle générale du jeu : tous les paiements se font en liquide ; la banque est un dépôt volontaire du joueur.
+6. « Montrer un objet » reste à 0 PA.
+7. Robustesse (et 1 Santé par PA perdu) appliquée aussi à « se laisser faire » face à une bête, à la répression et à la rébellion. Pas à la neutralisation criminelle ni au poison.
+8. Médicaments :
+   a. La ressource générique « Médicaments » devient la matière première des trousses de premiers secours (recette dans la règle commune).
+   b. La dotation de 20 boîtes par jour et par médicament devient une production des PNJ de l'usine qui consomme de la matière première comme celle des joueurs : sans matière première, pas de boîtes. Les boîtes des joueurs restent vendues en premier.
+   c. L'argent des ventes va à la caisse de l'usine. Ajoute aux usines d'État le mécanisme des entrepôts municipaux : fonds de roulement de 5 000 (dans la monnaie du pays, réglable par le MJ), excédent reversé chaque nuit à la caisse du ministère de tutelle, et un bouton de virement volontaire pour le directeur.
+   d. Ajoute l'antidote, sixième médicament : produit à l'usine avec de la matière première, vendu en pharmacie, nettement plus cher que les autres par une recette plus riche dans la règle commune, il annule l'empoisonnement au réveil suivant. Le centre antipoison de l'hôpital consomme des antidotes de son propre stock, achetés comme les autres ; sans stock, il ne soigne plus jusqu'au réapprovisionnement.
+9. Dons de tracts soumis au même plafond que les autres dons. Rien n'échappe à la règle commune. Le sas reste sans limite pour le reste.
+10. L'antenne de Starovka signe « La Voix de Sovarka » ; « Metel » reste le nom de la boutique.
+11. Prix : le kolkhoze vend la confiture 10 PSK. Règle de rachat de TOUS les marchés : 30 % sous le prix de vente, arrondi à l'unité, au moins 1 d'écart ; aligne tous les produits de tous les marchés et liste les prix changés dans le rapport. Caisse du marché de Krasnov : 1 000 PSK. Chemise de bûcheron : le prix que donne la règle commune.
+12. Commissaire et informateurs : inchangé.
+13. Objectif obj_informateur remplacé par « Acheter 5 informations à des informateurs différents ».
+14. Inchangés : « (en fuite) » en minuscules, gilet qui laisse au moins 1 PA, patient reconduit en cellule compté « bâtiment ».
