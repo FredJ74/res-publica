@@ -27,7 +27,12 @@ test('chaque nom français existe tel quel dans les données', () => {
   const data = lire('data.js').replace(/\\'/g, "'");
   // Noms parfois assemblés (« Forêt profonde — » + lieu, « EHPAD de » + ville, « Local n° » + numéro) :
   // chaque morceau fixe doit exister tel quel dans data.js.
+  // Santé et forêt (Fred, 22/11/2026, point 18) : anciens titres des quatre vues de la forêt de Krasnov, remplacés dans
+  // data.js ; leurs lignes restent au catalogue jusqu'à ce que Codex les remplace par les nouveaux titres (RELAIS.md).
+  const FORET_ANCIENS_TITRES = ['Forêt profonde — Sous les grands pins', 'Forêt profonde — La clairière des bouleaux',
+    'Forêt profonde — Le ravin noir', 'Forêt profonde — Près de la vieille isba'];
   for (const nom of charger('soviet', 'fr').noms) {
+    if (FORET_ANCIENS_TITRES.includes(nom)) { assert.equal(data.includes(nom.split(' — ')[1]), false, 'titre retiré : ' + nom); continue; }
     for (const morceau of nom.split(' — ')) {
       const fixe = morceau.split(/(?:Starovka|Krasnov|Novomirsk|\d)/)[0].trim();
       assert.ok(data.includes(morceau) || (fixe.length >= 6 && data.includes(fixe)), nom + ' / ' + morceau);

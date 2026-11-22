@@ -31,4 +31,17 @@ async function page(b,o,w,h,ancien=false,options={}) {
  await p.waitForTimeout(500);return p;
 }
 
-module.exports={R,temoin,lecture,preuve,avecJeu,page};
+// Jauges Santé et Moral à côté des PA (Fred, 22/11/2026, GAME-DESIGN-SANTE-20261122.md, point 14) : changement voulu du
+// panneau « Mon personnage », appliqué aussi au témoin (même bloc HTML que plateau.html, même bloc CSS que style.css) pour
+// que la comparaison au pixel continue de porter sur tout le reste.
+const htmlCourant=fs.readFileSync(path.join(R,'plateau.html'),'utf8'),cssCourant=fs.readFileSync(path.join(R,'style.css'),'utf8');
+const BLOC_JAUGES=htmlCourant.slice(htmlCourant.indexOf("<!-- PA et Argent sous l'avatar -->"),htmlCourant.indexOf('<!-- BOUTON STATS -->'));
+const CSS_JAUGES=cssCourant.slice(cssCourant.indexOf('/* SANTÉ ET MORAL, MÉDECIN, MONTRER UN OBJET'));
+assert.ok(BLOC_JAUGES.includes('hg-jauge-sante')&&CSS_JAUGES.includes('.hg-jauge{'),'bloc des jauges introuvable');
+async function jaugesSanteTemoin(p){
+ await p.evaluate(html=>{const rang=document.getElementById('r-pa').parentElement.parentElement;if(document.getElementById('hg-jauge-sante'))return;
+  const t=document.createElement('template');t.innerHTML=html;rang.replaceWith(t.content);},BLOC_JAUGES);
+ await p.addStyleTag({content:CSS_JAUGES});
+}
+
+module.exports={R,temoin,lecture,preuve,avecJeu,page,jaugesSanteTemoin};

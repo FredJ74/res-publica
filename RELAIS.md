@@ -63,6 +63,46 @@ Règles : voir `AGENTS.md`.
 - **À tester par Fred** : avec trois escorts différentes, « Faire l'amour » avec chacune (même escort revue : aucun risque), puis Dormir : message
   du journal et −10 Santé si la MST est tombée ; démangeaisons visibles des autres ; antibiotique acheté à la pharmacie, pris, Dormir : guéri ;
   à l'usine pharmaceutique, « Produire des médicaments » : choisir l'antibiotique, puis le voir en vente au comptoir.
+### Santé : médecin de terrain, montrer un objet, jauges, « PV » → « Santé », forêt en plein air (Claude, 22/11/2026, après-midi) — GAME-DESIGN-SANTE-20261122.md, points 12, 14, 15 (navigateur), 17, 18, 22
+- **Branche `claude/sante-medecin-20261122`** (part de `5b2bef8d`, avec le commit du coordinateur « lecture du journal d'événements » repris).
+  Aucune fonction Vercel. Ne pas pousser ni fusionner avant la validation de Fred.
+- **Migration écrite, NON appliquée** : `20261122234000_medecin_montrer` (suppose le socle `20261122230000`, non appliqué lui non plus).
+  Nouvelles : table `medecin_propositions` ; `medecin_etat`, `medecin_proposer`, `medecin_repondre`, `medecin_propositions_lire`,
+  `objet_montrer`, `sante_paliers_lire` (RPC) ; `personnages_meme_lieu_interne`, `medecin_trousse_position_interne`,
+  `medecin_trousses_compter_interne`, `medecin_diagnostic_interne`, `medecin_diagnostic_texte_interne`, `medecin_maladie_nom_interne`,
+  `medecin_medicament_nom_interne`, `medecin_monnaie_interne`, `medecin_nom_vu_interne`, `piece_plein_air_interne` ; paramètres
+  `sante_parametres.medecin_proposition_minutes` (30) et `medecin_tarif_max` (100 000) ; tarifs `ordres_couts` medecin_diagnostiquer (1 PA),
+  medecin_soigner (2 PA). **Remplacements contrôlés** (ancrage compté à 1 en production le 22/11) : `inspecter_piece`
+  (`plein_air_inspecter_v1`), `desinstaller_lire` (`plein_air_desinstaller_lire_v1`), `desinstaller_materiel` (`plein_air_desinstaller_v1`).
+  Communes appelées sans modification : `salle_cle_interne`, `argent_debiter_interne`, `argent_crediter_interne`, `maladies_echeances_interne`,
+  `crim_cache_interne`, `crim_masque_interne`, `groupe_chef_de_interne`.
+- **Fichiers du navigateur modifiés (pour rebaser)** : `plateau-medecin-montrer.js` (nouveau), `plateau.html` (jauges Santé/Moral dans le panneau
+  « Mon personnage », Argent sur sa propre ligne ; script ajouté après `plateau-evenements-personnage.js` ; versions de style.css, data.js,
+  plateau-surveillance.js, plateau-personnage.js, plateau-pnj.js, plateau-justice-economie.js, plateau-organisations-quetes.js,
+  plateau-criminalite.js), `style.css` (bloc « SANTÉ ET MORAL, MÉDECIN, MONTRER UN OBJET » à la fin), `plateau-pnj.js` (une ligne après
+  « Donner »), `plateau-personnage.js` (« Montrer à ce joueur » dans la fiche d'un objet ; textes PV → Santé dans l'empoisonnement, la
+  régénération de doDormir — **texte seulement, calcul inchangé** — et « Utiliser (+20 Santé) »), `plateau-surveillance.js`
+  (`ordresFouillerVoler` : vue en plein air → seulement « Se cacher »), `data.js` (titres et textes des quatre vues de la forêt),
+  `plateau-justice-economie.js`, `plateau-organisations-quetes.js`, `plateau-criminalite.js` (PV → Santé, français).
+- **Pour Codex (traductions)** : clés nouvelles `medecinMontrer.*` (tout le dictionnaire `FR` en tête de `plateau-medecin-montrer.js`) ;
+  « Montrer à ce joueur » (plateau-personnage.js) ; libellés « Santé » et « Moral » des jauges (plateau.html) ; `toast-bodies-resources.js`
+  lignes « Vos PV sont tombes a 0… », « Vous vous échappez malgré tout. −30 DIS −15 PV. », « Vous avez tenu tete aux gardiens… -10 PV. »
+  à remplacer par les nouvelles phrases (« Votre Santé est tombée à 0. Hospitalisation d'urgence. », « … −15 Santé. », « … -10 Santé. ») et à
+  rebrancher par `markToast` ; `plateau-criminalite.js` `bMateeText` des autres langues (PV → Santé) ; `sovarka-pieces-resources.js`
+  (4 anciens titres « Forêt profonde — … » → « La piste des débardeurs », « La coupe abandonnée », « Les grands fûts », « Le sentier d’Olga »)
+  et `sovarka-descriptions-resources.js` (4 anciennes descriptions → nouveaux textes du point 18). Les textes des événements serveur
+  (`medecin_*`, `objet_montre*`) sont en français.
+- **Tests figés mis à jour** : `banc-i18n-corps-notifications-20261114.cjs` (3 phrases PV retirées), `test-i18n-sovarka-pieces-20261112.mjs`
+  (4 anciens titres retirés), `test-i18n-sovarka-descriptions-20261112.mjs` (4 nouveaux textes en attente de Codex), `test-plan-recette97-219.py`
+  (596 tarifs) ; comparaisons au pixel du bureau 1440 (`banc-mobile-certification`, `banc-mobile-coque` L1, `banc-mobile-sovarka`) : le témoin
+  reçoit le même bloc de jauges (`jaugesSanteTemoin`, `mobile-navigateur.cjs`), changement voulu ; listes en dur des tarifs (preparer-recette97, preparer-livraison-complete, banc-couts-reconciliation) et seed `ordres_couts` régénéré.
+- **Bancs** : `banc-medecin-montrer-pglite-20261122.cjs` (7/7 : diagnostic, soin avec trousse et accord, Moral ×1,5/×0,5, refus, fonds
+  insuffisants, départ du médecin, présence rue/forêt/cachette, montrer, plein air), `banc-medecin-montrer-navigateur-20261122.cjs`
+  (Chromium, 6/6 à 1280 et 390 px : jauges, forêt, montrer, médecin) ; workflow `sante-medecin-20261122.yml`.
+- **À tester par Fred (après application)** : survoler ou toucher les jauges Santé et Moral ; en médecin (carrière Médecin / Universitaire),
+  ouvrir la carte d'un joueur présent → « Diagnostiquer » (tarif libre) : le patient voit le prix, accepte ou refuse ; « Soigner » avec une
+  trousse de premiers secours ; « Montrer un objet » depuis la carte d'un joueur ou la fiche d'un objet ; en forêt de Krasnov : seulement
+  « Couper du bois », « Retour au campement », « Se cacher », et les nouveaux titres.
 ### Remontées du test en forêt, points 1 et 8 : texte minimum et météo des vues en plein air (Claude, 22/11/2026) — décisions : GAME-DESIGN-FORET-TEST-20261122.md
 - **Branche `claude/texte-meteo-20261122`** (part de `main`). Aucune migration, aucune fonction Vercel. Le bouton « Explorer la forêt » (point 8) est
   traité par un autre agent ; la logique forêt, les groupes, le combat et l'inventaire aussi (branches séparées).

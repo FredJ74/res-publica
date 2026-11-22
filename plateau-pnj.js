@@ -878,6 +878,9 @@ function openPnjModal(encodedPnj, options = null) {
   // n'apparaissait qu'avec un inventaire non vide -- ce qui revelait au passage l'etat de son
   // propre inventaire dans la liste d'actions.
   actionBtns += '<button class="pnj-action-btn" onclick="ouvrirDonPnjChoix(\'' + enc + '\')"><i class="ti ti-gift" style="font-size:.85rem"></i> Donner</button>';
+  // Santé (Fred, 22/11/2026, points 12 et 22) : « Montrer un objet » à un autre joueur, et pour un médecin « Diagnostiquer »
+  // et « Soigner » (plateau-medecin-montrer.js ; présence, coûts et accord du patient vérifiés par le serveur).
+  if (isPJ && typeof hgMedecinMontrerBoutonsCarte === 'function') actionBtns += hgMedecinMontrerBoutonsCarte(pnj);
 
   // Services religieux en contact (lot "refonte religion Republia", 26 aout 2026 ; job 'pretre'
   // ajoute au lot "carriere religieuse Republia", 26 aout 2026 pour les titulaires locaux Pere
