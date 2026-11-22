@@ -1,0 +1,40 @@
+✖ le catalogue réel des trois villes est examiné sans chemin cassé (307.377071ms)
+✔ chemins URL : espaces encodés admis, casse et références manquantes refusées (0.338911ms)
+✔ PSM : quatre images locales libres, sans mutation des variantes Luthécia ou des loyers (26.318597ms)
+✔ les avocats de PSM et Montrouge ont une fiche de dialogue (raccordés le 02/11, demande de Fred) (0.308756ms)
+✔ raccordements : profils de dialogue, routes et liens déclaratifs (1473.910721ms)
+✔ directions d’usine #351 : les actes conservent leur ordre de paiement hors du menu (216.509671ms)
+✔ #352 : la salle des ventes de la raffinerie conserve son image locale (125.094333ms)
+✔ les journalistes communs parlent depuis une rédaction, sans ancien hôtel ni fausse enseigne (0.984434ms)
+✔ étape B #350 : aucune ancienne exemption de copie pour la sauvegarde organisations (1.688325ms)
+✔ inventaire des producteurs : le chargeur réutilisé couvre les quatre empires sans mélanger les images (226.770823ms)
+✔ audit : seules les exclusions inconditionnelles du rendu sont reconnues (64.36683ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 10
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2620.634793
+
+✖ failing tests:
+
+test at outils/bancs/test-audit-global-republia.mjs:10:1
+✖ le catalogue réel des trois villes est examiné sans chemin cassé (307.377071ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  5 !== 7
+  
+      at TestContext.<anonymous> (file:///workspace/hg-main-controle/outils/bancs/test-audit-global-republia.mjs:13:9)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 5,
+    expected: 7,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

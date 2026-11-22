@@ -1,0 +1,35 @@
+✔ catalogue : neuf colonnes remplies, différentes du français, nombres et sigles conservés (44.47221ms)
+✔ provenance des phrases actives et des phrases retirées documentées (3559.590468ms)
+✔ aucun recouvrement avec les catalogues déjà raccordés (pas de double traduction ni de markToast contrarié) (400.846966ms)
+✔ showToast : français intact, neuf langues traduites, phrase inconnue ou dynamique laissée telle quelle (1037.596152ms)
+✔ bêta fermée (RP_I18N_GAME_ENABLED absent) : tout reste en français (117.362253ms)
+✔ repli : traduction absente du moteur → français, jamais la clé technique (290.44799ms)
+✔ changement de langue pendant l’affichage : corps repeint, balisage markToast respecté (278.726761ms)
+✔ plateau.html : catalogue chargé après les titres et avant l’initialisation (0.697663ms)
+✔ navigateur : neuf langues, 320/390/1280, aucun débordement, saisie conservée au changement de langue (9818.65915ms)
+✔ contenu joueur : texte libre intact même identique à une phrase fixe, ordre/journal/PA inchangés (958.613946ms)
+✔ direction : arabe RTL, jauges LTR et balisage spécialisé conservé (192.598671ms)
+✔ neuf locales, langue française strictement compatible (0.849281ms)
+✔ formes simples et langue sans pluriel grammatical (1.355405ms)
+✔ formes russes et arabes : 0, 1, 2, 3, 5, 11 et 21 (0.542568ms)
+✔ absence serveur ne devient jamais zéro, valeurs invalides inchangées (2.186879ms)
+✔ le catalogue réel des trois villes est examiné, avec images affichables et replis vérifiés (502.625241ms)
+✔ chemins URL : espaces encodés admis, casse et références manquantes refusées (0.320013ms)
+✔ audit : les variantes préchargées absentes restent signalées avec un repli réellement présent (394.247449ms)
+✔ PSM : quatre images locales libres, sans mutation des variantes Luthécia ou des loyers (26.226231ms)
+✔ les avocats de PSM et Montrouge ont une fiche de dialogue (raccordés le 02/11, demande de Fred) (0.415146ms)
+✔ raccordements : profils de dialogue, routes et liens déclaratifs (3182.086379ms)
+✔ directions d’usine #351 : les actes conservent leur ordre de paiement hors du menu (625.903004ms)
+✔ #352 : la salle des ventes de la raffinerie conserve son image locale (511.511525ms)
+✔ les journalistes communs parlent depuis une rédaction, sans ancien hôtel ni fausse enseigne (3.928926ms)
+✔ étape B #350 : aucune ancienne exemption de copie pour la sauvegarde organisations (2.71827ms)
+✔ inventaire des producteurs : le chargeur réutilisé couvre les quatre empires sans mélanger les images (456.388513ms)
+✔ audit : seules les exclusions inconditionnelles du rendu sont reconnues (195.129505ms)
+ℹ tests 27
+ℹ suites 0
+ℹ pass 27
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 23423.830729

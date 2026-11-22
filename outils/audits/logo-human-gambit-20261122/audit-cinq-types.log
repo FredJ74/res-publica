@@ -1,0 +1,19 @@
+✔ le catalogue réel des trois villes est examiné sans chemin cassé (295.660562ms)
+✔ chemins URL : espaces encodés admis, casse et références manquantes refusées (0.539644ms)
+✔ PSM : quatre images locales libres, sans mutation des variantes Luthécia ou des loyers (26.802496ms)
+✔ les avocats de PSM et Montrouge ont une fiche de dialogue (raccordés le 02/11, demande de Fred) (0.61686ms)
+✔ raccordements : profils de dialogue, routes et liens déclaratifs (1436.541725ms)
+✔ directions d’usine #351 : les actes conservent leur ordre de paiement hors du menu (207.939353ms)
+✔ #352 : la salle des ventes de la raffinerie conserve son image locale (118.225783ms)
+✔ les journalistes communs parlent depuis une rédaction, sans ancien hôtel ni fausse enseigne (1.152688ms)
+✔ étape B #350 : aucune ancienne exemption de copie pour la sauvegarde organisations (6.525628ms)
+✔ inventaire des producteurs : le chargeur réutilisé couvre les quatre empires sans mélanger les images (220.591607ms)
+✔ audit : seules les exclusions inconditionnelles du rendu sont reconnues (71.430287ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2550.430768

@@ -1,0 +1,12 @@
+✔ le témoin renouvelé ne change que le texte du logo historique (3.848917ms)
+✔ logo Human Gambit et nom conservé après rendu à 320px (1759.743433ms)
+✔ logo Human Gambit et nom conservé après rendu à 390px (1595.024098ms)
+✔ logo Human Gambit et nom conservé après rendu à 1440px (1433.751988ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5677.840496

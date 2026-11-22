@@ -1,0 +1,37 @@
+{
+  "bancs": 422,
+  "reussis_initialement": 417,
+  "echecs_initiaux": [
+    {
+      "banc": "banc-climat-crue-accueil-navigateur-20261121.cjs",
+      "code": 1,
+      "moteur": "Node natif",
+      "secondes": 39.444
+    },
+    {
+      "banc": "banc-i18n-etat-ordres.cjs",
+      "code": 1,
+      "moteur": "Node natif",
+      "secondes": 0.164
+    },
+    {
+      "banc": "banc-i18n-fiche-personnage.cjs",
+      "code": 1,
+      "moteur": "Node natif",
+      "secondes": 0.166
+    },
+    {
+      "banc": "banc-mobile-sovarka.cjs",
+      "code": 1,
+      "moteur": "Node natif",
+      "secondes": 36.793
+    },
+    {
+      "banc": "banc-universite-et-pnj-client.js",
+      "code": 1,
+      "moteur": "lanceur historique",
+      "secondes": 0.215
+    }
+  ],
+  "remarque": "Les cinq bancs ont ensuite été corrigés et rejoués ; preuves individuelles jointes. CI finale requise."
+}

@@ -5,12 +5,14 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import { createRequire } from 'node:module';
 import { profilExiste, construirePromptSysteme } from '../../api/_pnj-profils.js';
-const require=createRequire(import.meta.url),{analyser,charger,verifierImage}=require('../audits/auditer-republia-complet.cjs');
+const require=createRequire(import.meta.url),{analyser,charger,verifierImage,verifierImageAvecRepli}=require('../audits/auditer-republia-complet.cjs');
 const root=new URL('../../',import.meta.url),lire=f=>fs.readFileSync(new URL(f,root),'utf8');
-test('le catalogue réel des trois villes est examiné sans chemin cassé',()=>{
+test('le catalogue réel des trois villes est examiné, avec images affichables et replis vérifiés',()=>{
  const a=analyser();assert.equal(a.compteurs.villes,3);assert.ok(a.compteurs.batiments>=102);assert.ok(a.compteurs.pieces>=305);
  assert.deepEqual(a.anomalies.filter(x=>x.code==='image_introuvable'),[]);
- assert.equal(a.images.filter(i=>i.type==='etat_construction').length,7);
+ // Fred, point 6 du GAME-DESIGN-MISSION-NUIT-20261122 : cinq types précis, aucun ancien logements_*.
+ assert.deepEqual(a.images.filter(i=>i.type==='etat_construction').map(i=>i.modele).sort(),
+  ['hangar','commerce_standard','commerce_premium','logement','building'].sort());
  assert.equal(a.images.filter(i=>i.type==='etat_enigme'||i.type==='gros_plan_enigme').length,8);
 });
 test('chemins URL : espaces encodés admis, casse et références manquantes refusées',()=>{
@@ -19,6 +21,18 @@ test('chemins URL : espaces encodés admis, casse et références manquantes ref
  assert.equal(verifierImage('images/salle%20presse.png',fichiers).statut,'casse_incorrecte');
  assert.equal(verifierImage('images/absente.webp',fichiers).statut,'fichier_absent');
  assert.equal(verifierImage('images/%xx.png',fichiers).statut,'url_invalide');
+});
+test('audit : les variantes préchargées absentes restent signalées avec un repli réellement présent',()=>{
+ const set=new Set(['images/base.webp']);
+ const v=verifierImageAvecRepli('images/attendue.webp',set,'images/base.webp');
+ assert.equal(v.statut,'fichier_absent');assert.equal(v.affichage,'repli_local_present');
+ assert.equal(v.repli,'images/base.webp');
+ for(const [url,repli]of [['images/attendue.webp',undefined],['images/attendue.webp','images/absente.webp'],['images/attendue.webp','images/BASE.webp'],['images/BASE.webp','images/base.webp'],['images/%xx.png','images/base.webp']])
+  assert.equal(verifierImageAvecRepli(url,set,repli).affichage,undefined,'aucune exemption d’une image obligatoire, d’une casse incorrecte ou d’un repli cassé');
+ const a=analyser(),attendues=a.anomalies.filter(x=>x.code==='variante_absente_repli_present');
+ const manquantes=[2,3].filter(n=>!fs.existsSync(new URL('images/terrains/montrouge/rue-etat-'+n+'.webp',root))).map(n=>'republic.montrouge-vue-11.imagesEtatsTerrains.etat'+n);
+ assert.deepEqual(attendues.map(x=>x.scene).sort(),manquantes);
+ assert.ok(attendues.every(x=>x.statut==='fichier_absent'&&x.repli==='images/montrouge/montrouge-rue-centre-artisanal-terrains.jpg'));
 });
 test('PSM : quatre images locales libres, sans mutation des variantes Luthécia ou des loyers',()=>{
  const c=vm.createContext({state:{country:'republic',currentCity:'ville_a'}});

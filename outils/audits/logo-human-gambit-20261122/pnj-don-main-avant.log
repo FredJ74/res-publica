@@ -1,0 +1,82 @@
+
+1. L ANCIEN SYSTEME UNIVERSITAIRE N EXISTE PLUS
+  ok  l ordre se_former a quitte data.js
+  ok  son effet declare a quitte ORDER_EFFECTS
+  ok  sa route a quitte le routeur
+  ok  il a quitte la liste alwaysSuccess
+  ok  doSeFormer n existe plus
+  ok  appliquerFormation n existe plus
+  ok  et la suppression est expliquee dans le fichier
+
+2. LE BONUS DE FORMATION N A PLUS AUCUN EFFET
+  ok  getStatEffective ne lit plus bonusFormation
+  ok  et la somme des termes ne le contient plus
+  ok  plus aucun PRODUCTEUR de bonusFormation dans tout le depot
+  ok  plus aucun LECTEUR de bonusFormation dans tout le depot
+  ok  le verrou journalier dernierFormationJour n a plus ni producteur ni lecteur
+  ok  la remise a zero au sommeil a disparu, et le fichier dit pourquoi
+  ok  la defense judiciaire ne depend plus du bonus de formation
+  ok  et la formule a quitte doDefense, elle n y est pas revenue autrement
+
+3. LES AUTRES FONCTIONS DE L UNIVERSITE SONT INTACTES
+  ok  Donner une conference existe toujours
+  ok  Recruter des militants existe toujours
+  ok  leurs deux handlers existent toujours
+  ok  et le stage a la caserne, voisin immediat du code retire, est intact
+
+4. PNJ : AJOUTER AU REPERTOIRE, ET L EXCEPTION D ACCUEIL
+  ok  il ne reste qu UN seul bouton Ajouter au repertoire dans la fiche PNJ
+  ok  et il est garde par l exception d accueil
+  ok  la liste de l exception est declaree dans data.js
+  ok  elle contient Jeremy -- dont l ajout FAIT AVANCER la quete d accueil
+  ok  et le hook de la quete sur addContact est intact
+  ok  pnjOnboardingRepertoire compare le nom NU, suffixe (PNJ) retire
+
+5. PNJ : SALUER A DISPARU, ET SON GAIN AVEC
+  ok  le bouton Saluer n existe plus
+  ok  doSaluerPersonne n existe plus
+  ok  et aucun appelant ne subsiste
+  ok  le +2 INF du salut a disparu avec elle
+  ok  et le fichier dit la verite sur la colonne persistee
+
+6. PNJ : UN SEUL BOUTON DONNER, PUIS LE CHOIX
+  ok  il n y a plus de bouton Donner un objet
+  ok  il ne reste qu UN bouton Donner
+  ok  il ouvre le choix, pas directement le don d argent
+  *** le choix propose les deux branches
+  ok  et il avertit que le don a un non-employe est sans retour
+  ok  l avertissement se fonde sur state.employes, l etat qui paie les employes
+
+7. PNJ : VOLER ANNONCE SON GENRE, SANS REVELER L INVENTAIRE
+  ok  la fiche PNJ ouvre desormais le choix de butin
+  ok  la fiche delegue au module criminalite
+  ok  trois butins proposes : argent, objet au hasard, objet precis
+  ok  le tirage 60/40 a disparu
+  ok  le vol passe par le serveur (nouvelle route)
+  ok  l ecran ne lit plus la fiche de la victime ni ne calcule de jet
+  ok  l issue « rien a voler » est annoncee
+
+8. PNJ : LA ZONE DE QUESTION EST UN VRAI TEXTAREA
+  ok  ce n est plus un input d une ligne
+  ok  c est un textarea de plusieurs lignes
+  ok  avec retour a la ligne automatique
+  ok  Entree envoie, et le saut de ligne parasite est empeche
+  ok  Maj/Ctrl/Alt + Entree passent a la ligne
+  ok  le moteur conversationnel n est pas touche
+
+9. PNJ : NEUTRALISER EST RESERVE AUX CLASSES ALPHA ET BETA
+  ok  l ordre generique est garde par la classe de la cible
+  ok  pnjEstGamma reconnait les deux familles gamma, et elles seules
+  ok  la liste des titulaires de poste est declaree dans data.js
+  ok  elle porte dix-huit noms -- la copie du registre en base
+  ok  et les deux titulaires oublies y figurent desormais
+  ok  Honore et Saad y sont, Fontaine n y est plus
+  ok  un depute PNJ garde une entree distincte, nommee Assemblee
+  ok  elle mene a la meme fonction qu avant -- rien de l Assemblee n est reecrit
+  ok  le bouton Assemblee est garde par LE MEME predicat que le routage du gestionnaire
+  ok  un depute ne traverse JAMAIS l ordre generique : la branche retourne avant
+  ok  la porte serveur de l Assemblee est intacte
+  ok  son bareme PA/PNJ propre est intact
+  ok  et les protections garde/police du vol et de la neutralisation sont intactes
+
+ECHEC : 1 epreuve(s) sur 62 en defaut.

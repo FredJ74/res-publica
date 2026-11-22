@@ -1,0 +1,15 @@
+✔ couverture des 423 identifiants sans faux positifs de source (78.475406ms)
+✔ les ordres non traduits restent visibles dans un inventaire reproductible (1.155039ms)
+✔ fiche personnage : 22 titres traduits dans neuf langues (2.674479ms)
+✔ actions personnelles : 15 boutons et états actifs, libellé historique conservé, commandes inchangées (10.074354ms)
+✔ la fiche garde ses onglets, calculs, droits et erreurs de lecture distincts (0.273132ms)
+✔ nom PJ non traduit et tout HTML injecté dans un libellé est échappé (0.147842ms)
+✔ rendu complet de la fiche PJ en neuf langues sur des valeurs identiques et sans Supabase (25.952428ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 552.003202

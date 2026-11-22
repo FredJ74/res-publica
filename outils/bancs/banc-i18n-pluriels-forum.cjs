@@ -41,7 +41,18 @@ test('absence serveur ne devient jamais zéro, valeurs invalides inchangées',()
  }
  assert.equal(count('unsupported',2,'source'),'source');
  assert.ok(forum.includes("rpForumCompte('subjects',null,'… sujet(s)')"));
- assert.ok(forum.includes("rpForumCompte('unread',unreadCount,unreadCount+' non lu(s)')"));
+ // Étape H du 22/11 : le compteur est extrait ; vérifier les valeurs réellement transmises.
+ assert.ok(forum.includes('htmlCompteurBoiteMail(recus.length, unreadCount)'));
+ const debut=forum.indexOf('function htmlCompteurBoiteMail('),fin=forum.indexOf('\n}',debut);
+ assert.ok(debut>=0&&fin>debut,'helper réel du compteur');
+ const appels=[];
+ const c=vm.createContext({rpForumCompte:(kind,n,source)=>{appels.push([kind,n,source]);return count(kind,n,source);},rpForumLibelle:(k,source)=>source,rpForumUiOuvert:(k,source)=>source});
+ vm.runInContext(forum.slice(debut,fin+2),c);
+ lng='fr';assert.equal(c.htmlCompteurBoiteMail(0,0),'Aucun message');assert.deepEqual(appels,[]);
+ assert.equal(c.htmlCompteurBoiteMail(5,0),'5 messages','boîte non vide même quand tout est lu');
+ appels.length=0;assert.match(c.htmlCompteurBoiteMail(5,2),/^5 messages .*2 non lu\(s\)/);
+ assert.deepEqual(appels,[['messages',5,'5 messages'],['unread',2,'2 non lu(s)']]);
+ lng='en';assert.match(c.htmlCompteurBoiteMail(5,2),/2 unread/,'le nombre de non lus passe au moteur existant');
  assert.ok(forum.includes('FORUM_LECTURE_ECHOUEE[id]'));
  assert.ok(forum.includes('Object.prototype.hasOwnProperty.call(forumCompteursServeur, id)'));
 });

@@ -48,7 +48,7 @@ test('catalogue : neuf colonnes remplies, différentes du français, nombres et 
  }
 });
 
-test('provenance des phrases actives et de l’unique phrase retirée de navigation',()=>{
+test('provenance des phrases actives et des phrases retirées documentées',()=>{
  // Corps passés directement à showToast, ou via ternaire / || / table de motifs indexée (extraction AST du lot 6).
  const sources=corpsSources();
  const texte=fs.readdirSync(root).filter(f=>/^(plateau|forum).*\.js$/.test(f)).map(read).join('\n');
@@ -72,7 +72,40 @@ test('provenance des phrases actives et de l’unique phrase retirée de navigat
  const CRIM_LOT7=["Vous n'avez pas de rendez-vous en attente ici.",'Le navigateur ne peut pas conserver la référence de cet ordre.','Le service a ete obtenu. -5 DIS.',
   'La tentative de corruption a echoue.','Aucun paiement ne permet d’accélérer une construction dans les empires actuels.','Le fonctionnaire vous dénonce.',
   'Le fonctionnaire a fait remonter votre dossier. Instruction raccourcie.','Réponse incertaine. Relancez le même ordre : il ne sera pas payé deux fois.'];
- assert.deepEqual(rows.map(r=>r[0]).filter(fr=>!present(fr)),[retire,'Maximum 2 récoltes par jour.','+5 DIS.','Vous ne pouvez pas voter dans cet empire.','Cette prestation ne peut pas être vendue à emporter.',...CRIM_LOT5,...CRIM_LOT6,...CRIM_LOT7].filter(fr=>rows.some(r=>r[0]===fr)).sort((a,b)=>rows.findIndex(r=>r[0]===a)-rows.findIndex(r=>r[0]===b)));
+ // 22/11/2026, étape H : le journaliste dépend désormais de la ville. Conserver les
+ // traductions historiques sans prétendre que ces sept anciennes phrases sont actives.
+ const INTERVIEW_ACCUEIL=[
+  "Vous avez décliné l'interview de Jodie Moitout.",
+  'Vous avez déjà décliné cette proposition — Jodie ne relance pas.',
+  'Jodie a déjà publié votre portrait dans Presse & Médias.',
+  'Merci de répondre à chacune des 5 questions.',
+  "Jodie a rédigé votre portrait : rouvrez sa proposition (« Accepter l'interview ») pour le relire avant publication.",
+  'Jodie a publié votre portrait dans Presse & Médias.',
+  "Jodie n'arrive pas à rédiger."
+ ];
+ const avantInterview=require('node:child_process').execFileSync('git',['show','18aeb8e1:plateau-communication.js'],{cwd:root,encoding:'utf8',maxBuffer:4e6});
+ for(const fr of INTERVIEW_ACCUEIL){
+  assert.ok(avantInterview.includes(fr)||avantInterview.includes(fr.replace(/'/g,"\\'")),'provenance antérieure : '+fr);
+  assert.equal(present(fr),false,'phrase retirée, non réactivée : '+fr);
+ }
+ // Étape K, 22/11 : les contrats d'informateurs sont remplacés par l'achat d'informations.
+ // Vérifier chaque ancien texte dans le dernier main précédant cette refonte.
+ const INFORMATEURS_REFONTE=[
+  "Vous employez déjà un informateur. Renvoyez-le avant d'en recruter un autre.",
+  'Vous ne pouvez avoir que 2 informateurs simultanément.',
+  "Le congé n'a pas pu être enregistré.",
+  'Vous avez déjà un informateur de ce niveau.',
+  'Fonds insuffisants pour le premier jour de salaire.',
+  "Ce niveau d'informateur ne se recrute pas ici.",
+  "Vous n'avez pas d'informateur de ce niveau.",
+  "Personne n'a donné suite."
+ ];
+ const avantInformateurs=['plateau-multijoueur.js','plateau-actions-illegales-rumeurs.js'].map(f=>require('node:child_process').execFileSync('git',['show','5a1c24e1:'+f],{cwd:root,encoding:'utf8',maxBuffer:4e6})).join('\n');
+ for(const fr of INFORMATEURS_REFONTE){
+  assert.ok(avantInformateurs.includes(fr)||avantInformateurs.includes(fr.replace(/'/g,"\\'")),'provenance informateurs : '+fr);
+  assert.equal(present(fr),false,'ancienne phrase d’informateur non réactivée : '+fr);
+ }
+ assert.deepEqual(rows.map(r=>r[0]).filter(fr=>!present(fr)),[retire,'Maximum 2 récoltes par jour.','+5 DIS.','Vous ne pouvez pas voter dans cet empire.','Cette prestation ne peut pas être vendue à emporter.',...CRIM_LOT5,...CRIM_LOT6,...CRIM_LOT7,...INTERVIEW_ACCUEIL,...INFORMATEURS_REFONTE].filter(fr=>rows.some(r=>r[0]===fr)).sort((a,b)=>rows.findIndex(r=>r[0]===a)-rows.findIndex(r=>r[0]===b)));
 });
 
 test('aucun recouvrement avec les catalogues déjà raccordés (pas de double traduction ni de markToast contrarié)',()=>{

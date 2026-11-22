@@ -38,7 +38,7 @@ test('fiche personnage : 22 titres traduits dans neuf langues',()=>{
   }
  }
 });
-test('actions personnelles : 16 boutons et états visibles en neuf langues, commandes inchangées',()=>{
+test('actions personnelles : 15 boutons et états actifs, libellé historique conservé, commandes inchangées',()=>{
  assert.equal(actionKeys.length,16);
  const personal=source.slice(source.indexOf('function switchSelfTab('),
   source.indexOf('// =====================\n// ',source.indexOf('function switchSelfTab(')+100));
@@ -50,13 +50,23 @@ test('actions personnelles : 16 boutons et états visibles en neuf langues, comm
    const origin=win.RP_I18N_RESOURCES.fr.translation.characterSheet[key];
    assert.equal(win.RPCharacterSheetI18n.label(key,origin),texts[key]
     .replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])));
-   assert.ok(personal.includes("rpCharSheetLabel('"+key+"'"),key+': liaison au DOM');
+   if(key==='hide')assert.ok(!personal.includes("rpCharSheetLabel('hide'"),'Se cacher retiré de la fiche (étape I)');
+   else assert.ok(personal.includes("rpCharSheetLabel('"+key+"'"),key+': liaison au DOM');
   }
  }
+ // La commande Se cacher reste dans la pièce, avec le coût et les chances validés.
+ const surveillance=fs.readFileSync(path.join(root,'plateau-surveillance.js'),'utf8');
+ const a=surveillance.indexOf('function ordresFouillerVoler('),b=surveillance.indexOf('\n}',a);
+ assert.ok(a>=0&&b>a);
+ const room=vm.createContext({pieceTxt:k=>k});vm.runInContext(surveillance.slice(a,b+2),room);
+ const hide=room.ordresFouillerVoler('fixture','salle').find(x=>x.fn==='se_cacher');
+ assert.deepEqual({fn:hide.fn,pa:hide.pa,cost:hide.cost,successRate:hide.successRate},{fn:'se_cacher',pa:1,cost:0,successRate:70});
+ const avant=require('node:child_process').execFileSync('git',['show','457b13b2:plateau-personnage.js'],{cwd:root,encoding:'utf8',maxBuffer:4e6});
+ assert.ok(avant.includes("rpCharSheetLabel('hide'"),'bouton présent avant déplacement');
  // Les ordres de l'ancien menu restent identiques : coût, cible, échec et réputation ne sont pas traduits.
  for(const invariant of ["onclick=\"doDormir()\"","onclick=\"doSesoigner()\"",
-  "doOrder(\\'se_reposer\\',1,0,\\'Mediter\\'","doOrder(\\'se_cacher\\',1,0,\\'Se cacher\\'",
-  "doOrder(\\'organiser_blocus\\',1,0,\\'Organiser un blocus\\'",">70% · 1 PA</span>",
+  "doOrder(\\'se_reposer\\',1,0,\\'Mediter\\'",
+  "doOrder(\\'organiser_blocus\\',1,0,\\'Organiser un blocus\\'",
   "Math.min(90, 25 + (groupSize - 1))","doOrganiserBlocusSyndical()","doRenouvelerBlocusSyndical()"]){
   assert.ok(personal.includes(invariant),invariant);
  }

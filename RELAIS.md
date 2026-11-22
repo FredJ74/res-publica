@@ -75,6 +75,17 @@ Règles : voir `AGENTS.md`.
   noms donnés par le serveur : « Meute de 3 loups », « Loup 1/2/3 » (le catalogue `cf_meute` garde « Meute de loups » pour les anciens courriers).
 - **À tester par Fred** (après la migration) : Tom Tom chef, Arnie membre, en forêt profonde : chacun coupe ; seconde coupe du chef au ravin → rencontre
   (deux fenêtres chez les deux) ; combat contre la meute lancé par Tom Tom ; rapport par round ; butin chez Tom Tom ; journal d'Arnie.
+
+### Codex — logo Human Gambit (22/11/2026)
+- Branche `codex/logo-human-gambit-20261122`, rebasée sur main `a9a424e7` : toutes les livraisons de Claude conservées, dont informateurs, inventaire, forêt et texte minimum. Seul le texte du logo est modifié ; classes, style, lien et comportement conservés. Le témoin pixel est dérivé par cette unique substitution ; original intact, différence bornée par un banc dédié.
+- Consigne actuelle : Claude seul à migrer. Aucun accès à la base par Codex, aucune migration exécutée, aucun verrou du goulag modifié.
+- 4/4 tests dédiés (320/390/1440) et 21/21 coque ; captures bureau strictement identiques au témoin renouvelé. Preuves `outils/audits/logo-human-gambit-20261122/`.
+- **CI, défauts reproduits sur main** : le contrôle de Républia attendait sept types alors que Fred en a validé cinq (point 6). Il exige maintenant la liste exacte des cinq identifiants. Après l’étape J, deux variantes de rue de Montrouge sont attendues de Fred ; `appliquerEtatRueTerrains` ne les affiche qu’après préchargement réussi et conserve l’image actuelle sinon (banc navigateur des terrains vérifié). L’audit conserve les deux fichiers comme absents et les signale avec leur repli local présent ; une image obligatoire, une mauvaise casse ou un repli cassé restent refusés. Aucun fichier image ni code de jeu changé pour ces corrections du contrôle. Preuves de main avant/après, contre-épreuves et test navigateur jointes.
+- Après l’étape H : deux bancs i18n, rouges aussi sur main `457b13b2`, actualisés sans toucher aux catalogues. Sept anciennes phrases de Jodie restent traduites et leur provenance avant remplacement par le journaliste de la ville est vérifiée ; toute autre phrase absente reste refusée. Le compteur de courriers est exécuté en test (nombres réels transmis, boîte non vide même si tout est lu), plutôt que recherché via un ancien nom de variable. 15/15 contrôles i18n/Chromium, zéro saut. Les nouveaux textes d’interview restent le lot de traduction distinct signalé par Claude.
+- Après l’étape K : huit anciens toasts d’informateurs restent au catalogue avec provenance vérifiée dans main `5a1c24e1` ; les cinq identifiants de contrats sont classés retirés (417 correspondances actives, six retraits avec le polonium), sans perdre les 423 clés traduites. Le libellé historique « Se cacher » reste traduit mais n’est plus exigé dans la fiche ; sa commande réelle dans la pièce est vérifiée (1 PA, 70 %). Aucun tarif ou ordre de jeu modifié.
+- Fixture climat : le serveur du banc servait du HTML à l’adresse de la photo, désormais masquée en cas d’erreur par le renderer. Il sert maintenant le vrai fichier WebP du dépôt et le test exige un décodage réussi (`naturalWidth > 0`). Échec reproduit sur main ; 6/6 après correction, assertions métier conservées. 7/7 contrôles de fiche et d’état des ordres après les adaptations ci-dessus.
+- Reprise sur le dernier main : 422/422 tests `test-*.mjs`, 25/25 logo/coque et 27/27 contrôles ciblés audit/i18n ; zéro saut. PR #1177 publiée, CI intégrale à vérifier avant fusion. Lots suivants : bienvenue #1178, fenêtres #1179, puis client #1176. Baseline : plan seulement, après le rapport final de Claude.
+
 ### Étape J, terrains à bâtir (Claude, 22/11/2026) — décisions : GAME-DESIGN-CHANTIERS-IMAGES-20261120.md (complément du 21/11, points 1 et 2)
 - **Branche `claude/terrains-plan-20261122`** (part de `main` après la mission de la nuit). Aucune migration, aucune fonction Vercel.
 - **Plan du lotissement en vignettes** (`plateau-terrains-plan.js`, nouveau, chargé après `plateau-chantier-vue.js`) : une carte
@@ -878,3 +889,9 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 - **Pour Codex :**
   - **nouvelles clés :** `enigmes.solved` ;
   - **textes à traduire :** les trois descriptions d'ordres (dans `ATTENTE_CODEX` de l'infobulle de Sovarka), les toasts et la fenêtre de `plateau-enigme-krasnov.js`, le refus hebdomadaire du guide (`plateau-sovarka-provinces.js`).
+
+### Complément CI Codex — 22 novembre 2026
+
+Les bancs de provenance des anciens libellés exigent l’historique Git : checkout complet dans les deux workflows i18n concernés. Le workflow forêt installe désormais aussi les dépendances verrouillées de `outils/vercel` requises par son banc de combat. Aucun changement de fonction métier, SQL ou catalogue. Fusion toujours conditionnée à la CI entièrement verte.
+
+- Suite locale intégrale des 422 bancs : 417 réussis au premier passage ; cinq échecs identifiés (climat, ordres retirés, fiche, pixels Sovarka, ancien appel don PNJ), tous corrigés puis rejoués individuellement avec succès. Le témoin Sovarka d’origine est inchangé : seule la règle `.cpj-note{font-size:.95rem}` décidée par Fred est ajoutée lors de la comparaison, toujours exacte pour les 16 fenêtres. Le banc don vérifie maintenant la distinction joueur/PNJ introduite par Claude (63 assertions). Aucun défaut masqué par une tolérance pixel. Attendre la nouvelle CI complète avant fusion.

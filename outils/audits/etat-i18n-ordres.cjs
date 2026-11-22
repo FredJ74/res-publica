@@ -21,7 +21,8 @@ const existing=new Map(source.entries.map(entry=>[entry.fn,entry]));
 const covered=[],partiallyCovered=[],missingStable=[],ambiguousWithoutCoverage=[],obsolete=[],retired=[];
 // Ordres retirés du jeu dont la traduction reste au catalogue (traductions confiées à Codex) :
 // acheter_polonium (Fred, 20/11/2026 : plus vendu au port orphelin de Novomirsk).
-const RETIRES=new Set(['acheter_polonium']);
+// 22/11, étape K : les cinq ordres de contrat sont remplacés par l'achat d'informations.
+const RETIRES=new Set(['acheter_polonium','recruter_informateur_pnj','recruter_info_4','recruter_informateur_2','consulter_info_4','gerer_informateurs']);
 for(const [fn,label] of Object.entries(french)){
  if(RETIRES.has(fn)&&!existing.has(fn)){retired.push(fn);continue;}
  const record=existing.get(fn);

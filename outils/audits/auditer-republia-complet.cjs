@@ -23,9 +23,19 @@ function fichiers(d){return fs.readdirSync(d,{withFileTypes:true}).flatMap(e=>e.
 function verifierImage(url,ensemble){if(!url)return {statut:'sans_image'};if(/^https?:/.test(url))return {statut:/unsplash|placeholder|picsum/i.test(url)?'provisoire':'distante',url};
  let p;try{p=decodeURIComponent(url.split(/[?#]/)[0]).replace(/^\//,'');}catch(_){return {statut:'url_invalide',url};}if(ensemble.has(p))return {statut:'locale_presente',url:p};
  const variantes=[...ensemble].filter(x=>x.toLowerCase()===p.toLowerCase());return {statut:variantes.length?'casse_incorrecte':'fichier_absent',url:p,candidats:variantes};}
+// Les états de rue sont préchargés : la scène ne bascule qu'après onload.
+// Conserver le défaut du fichier dans le rapport, avec son repli vérifié.
+function verifierImageAvecRepli(url,ensemble,repli){
+ const v=verifierImage(url,ensemble);
+ if(v.statut==='fichier_absent'&&repli){
+  const secours=verifierImage(repli,ensemble);
+  if(secours.statut==='locale_presente')return {...v,repli:secours.url,affichage:'repli_local_present'};
+ }
+ return v;
+}
 function analyser(){const data=charger(),images=fichiers(path.join(ROOT,'images')),set=new Set(images),anomalies=[],imagesReferences=[],npcs=[],ordres=[];
  const router=lire('plateau-router.js');
- function image(url,lieu,type){const v=verifierImage(url,set);imagesReferences.push({...lieu,type,...v});if(['fichier_absent','casse_incorrecte','url_invalide'].includes(v.statut))anomalies.push({gravite:'P2',code:'image_introuvable',...lieu,type,...v});return v;}
+ function image(url,lieu,type,repli){const v=verifierImageAvecRepli(url,set,repli);imagesReferences.push({...lieu,type,...v});if(['fichier_absent','casse_incorrecte','url_invalide'].includes(v.statut))anomalies.push({gravite:v.affichage?'P3':'P2',code:v.affichage?'variante_absente_repli_present':'image_introuvable',...lieu,type,...v});return v;}
  for(const v of data.villes){image(v.image,{ville:v.id},'ville');for(const b of v.batiments){if(b.absent){anomalies.push({gravite:'P1',code:'batiment_absent',ville:v.id,batiment:b.id});continue;}
  for(const r of b.pieces){const lieu={ville:v.id,batiment:b.id,piece:r.id};image(r.image,lieu,'piece');for(const [etat,u]of Object.entries(r.variantes))image(u,{...lieu,etat},'variante');
  for(const [source,u]of Object.entries(r.imagesDeclarees))if(u&&u!==r.image)image(u,{...lieu,source},'repli_masque');
@@ -33,7 +43,7 @@ function analyser(){const data=charger(),images=fichiers(path.join(ROOT,'images'
  const noms=new Set();for(const p of r.personnes){npcs.push({...lieu,...p});if(p.photoUrl)image(p.photoUrl,{...lieu,pnj:p.name},'portrait');if(noms.has(p.name))anomalies.push({gravite:'P2',code:'pnj_duplique_meme_piece',...lieu,pnj:p.name});noms.add(p.name);}
  }} }
  // Les quatre arrivées du carrefour PSM sont conservées et contrôlées séparément.
- const balayer=(x,loc)=>{if(!x||typeof x!=='object')return;for(const[k,v]of Object.entries(x)){if(typeof v==='string'&&(v.startsWith('images/')||/^https?:/.test(v)))image(v,{scene:loc+'.'+k},'rue');else if(v&&typeof v==='object')balayer(v,loc+'.'+k);}};balayer(data.rues,'republic');
+ const balayer=(x,loc,secours)=>{if(!x||typeof x!=='object')return;for(const[k,v]of Object.entries(x)){if(typeof v==='string'&&(v.startsWith('images/')||/^https?:/.test(v)))image(v,{scene:loc+'.'+k},'rue',secours&&/^etat[23]$/.test(k)?secours:undefined);else if(v&&typeof v==='object')balayer(v,loc+'.'+k,k==='imagesEtatsTerrains'?x.image:undefined);}};balayer(data.rues,'republic');
  // Les variantes historiques précédant PIECE_VARIANTES sont inventoriées aussi,
  // sans évaluer coutTotalConstruction ni exécuter une action de quête.
  image('images/chantier-en-cours.webp',{modele:'chantier_en_cours'},'etat_chantier');
@@ -55,4 +65,4 @@ function analyser(){const data=charger(),images=fichiers(path.join(ROOT,'images'
  compteurs:{villes:data.villes.length,batiments:data.villes.reduce((n,v)=>n+v.batiments.length,0),pieces:data.villes.reduce((n,v)=>n+v.batiments.reduce((n,b)=>n+b.pieces.length,0),0),pnjOccurrences:npcs.length,pnjNoms:new Set(npcs.map(p=>p.name)).size,ordresOccurrences:ordres.length,ordresUniques:new Set(ordres.map(o=>o.fn)).size,imagesOccurrences:imagesReferences.length,imagesDistinctes:new Set(imagesReferences.map(i=>i.url).filter(Boolean)).size,fichiersImages:images.length}};
 }
 if(require.main===module){const v=analyser();if(process.argv[2])fs.writeFileSync(process.argv[2],JSON.stringify(v,null,2)+'\n');console.log(JSON.stringify({compteurs:v.compteurs,anomalies:v.anomalies,provisoires:v.images.filter(i=>i.statut==='provisoire'&&i.type!=='repli_masque'),sansImage:v.images.filter(i=>i.statut==='sans_image')},null,2));}
-module.exports={analyser,charger,verifierImage};
+module.exports={analyser,charger,verifierImage,verifierImageAvecRepli};

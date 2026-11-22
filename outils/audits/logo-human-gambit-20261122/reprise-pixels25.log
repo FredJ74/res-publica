@@ -1,0 +1,33 @@
+✔ le témoin renouvelé ne change que le texte du logo historique (36.691997ms)
+✔ logo Human Gambit et nom conservé après rendu à 320px (2403.216741ms)
+✔ logo Human Gambit et nom conservé après rendu à 390px (2299.566574ms)
+✔ logo Human Gambit et nom conservé après rendu à 1440px (3406.224902ms)
+✔ L1 : bureau 1440 strictement identique au témoin avant mobile (6798.399948ms)
+✔ L1 : coque 375×667, panneaux uniques et navigation UI sans RPC (4122.331743ms)
+✔ L1 : coque 393×852, panneaux uniques et navigation UI sans RPC (3121.502412ms)
+✔ L1 : coque 412×915, panneaux uniques et navigation UI sans RPC (2767.989083ms)
+✔ L1 : coque 852×393, panneaux uniques et navigation UI sans RPC (2635.587477ms)
+✔ L1 : coque 768×1024, panneaux uniques et navigation UI sans RPC (3927.780525ms)
+✔ L2 : pas de panneau Lieux visibles, zones et clavier actifs (2638.87171ms)
+✔ L2 : pièces et actions accessibles en paysage (3185.598423ms)
+✔ L3 : longue modale, focus, fermeture existante et retour sans action métier (2869.443613ms)
+✔ L3 : chat paysage contenu dans l’écran, fenêtres au-dessus des flèches (2471.320625ms)
+✔ L6 contre-épreuve : ancien contrôleur immobile au toucher, contrôleur corrigé mobile et souris (4278.334265ms)
+✔ L6 : resize, pointeur étranger, annulation et perte de focus ne laissent aucun geste actif (2342.68343ms)
+✔ L6 : rubriques, liste et lecture sans débordement mobile ; bureau forum 1440 identique (13775.585501ms)
+✔ L6 : boutons historiques et champs dans une poignée ne déclenchent pas de déplacement (2558.66433ms)
+✔ L5 : inventaire long et tableau financier restent consultables sans mutation (3015.512869ms)
+✔ L8 : retour, panne et autre onglet bloquent le premier ordre sans le rejouer (2582.291421ms)
+✔ L4 : création réelle dans les six langues, explications et caractéristiques conservées (12235.696397ms)
+✔ L7 : rapport et décisions réels respectent les droits fournis par le serveur (2393.238056ms)
+✔ L9 : portraits réels différés dans le panneau fermé puis demandés à son ouverture (2772.718901ms)
+✔ L10 : téléphone masqué ne lit rien, retour visible attend la confirmation (1914.726695ms)
+✔ L8 : session refusée et authentification hors délai ne déclenchent aucun ordre ni chargement tardif (1912.756203ms)
+ℹ tests 25
+ℹ suites 0
+ℹ pass 25
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 94275.630006
