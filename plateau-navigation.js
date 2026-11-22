@@ -1070,6 +1070,8 @@ function enterRoom(buildingId, roomId, tabEl) {
     : null;
 
   const pieceImg = document.getElementById('piece-image');
+  // Plan du lotissement (étape J, plateau-terrains-plan.js) : jamais conservé dans une vraie pièce.
+  if (typeof retirerPlanLots === 'function') retirerPlanLots();
 
   // Affichage integral des images de musee (Option C, audit du 23 aout 2026) : critere
   // structurel buildingId.startsWith('musee-') -- jamais cat==='Culture', qui matche les 4
