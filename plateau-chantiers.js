@@ -684,9 +684,10 @@ function heuresTravaillablesPar(chantier, heuresVoulues, paDisponibles) {
   return Math.max(0, Math.min(voulues, heuresUtilesRestantes(chantier), pa, payables));
 }
 
-// Heures encore utiles aujourd'hui : capacite bornee par les materiaux, moins ce qui est deja fait.
+// Heures encore ouvertes aujourd'hui : TOUJOURS la capacite entiere, quel que soit le stock de materiaux
+// (Fred, 22/11/2026, point 2 ; serveur : chantier_heures_ouvertes_v1), moins ce qui est deja fait.
 function heuresUtilesRestantes(chantier) {
-  const utiles = Math.floor(heuresUtilesJour(chantier, fractionMateriauxChantier(chantier)));
+  const utiles = Math.floor(capaciteHeuresJourChantier(chantier));
   const faites = Math.max(0, nombreFini(chantier && chantier.heuresFaites, 0));
   return Math.max(0, utiles - faites);
 }

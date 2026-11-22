@@ -114,7 +114,10 @@ test('quatre onglets dans l’ordre, État par défaut : jauges chantier (un car
   const txt = sansEsp(await page.locator('#chantier-fenetre').innerText());
   assert.match(txt, /Jour 2 \/ 24 · 4 %/); assert.match(txt, /Étape suivante : Gros œuvre/); assert.match(txt, /Fin prévue : /);
   assert.equal(await jauges.nth(1).locator('.cj-case').count(), 10); assert.match(txt, /0 \/ 50 h/);
-  assert.match(txt, /Il manque encore : 100 bois, 50 minerai, 33 métal/);
+  // Heures toujours ouvertes ; ce que l'entrepôt n'a pas fourni est expliqué et proposé aux passants ; jauges rouges.
+  assert.match(txt, /L’entrepôt de Luthécia n’a pas pu tout fournir : il manque 100 bois, 50 minerai et 33 métal pour aujourd’hui/);
+  assert.match(txt, /vendez ou donnez ces matériaux/);
+  assert.equal(await page.evaluate(() => /hsl\(0,/.test(window.RPChantierVue.jauge('', 10, 3, '', { rouge: true }))), true, 'petite jauge rouge');
   if (process.env.HG_CAPTURE) { await page.waitForTimeout(900); await page.locator('#modal-postes').screenshot({ path: process.env.HG_CAPTURE }); }
   const taille = await page.evaluate(() => parseFloat(getComputedStyle(document.getElementById('chantier-fenetre')).fontSize));
   assert.ok(taille >= 17, 'police ' + taille);
@@ -144,13 +147,18 @@ test('Stock de matériaux : tableau, quantité plafonnée, case « Donner », r�
   await page.evaluate(() => ouvrirFenetreChantier());
   await page.locator('[role=tab]', { hasText: /Main/i }).click();
   const main = sansEsp(await page.locator('#chantier-fenetre').innerText());
-  assert.match(main, /Heures restant à faire \/ heures du jour : 0 \/ 50/); assert.match(main, /Salaire horaire : \d+ FR/); assert.match(main, /\(1 PA\/h\)/);
-  assert.equal(await page.locator('#cj-main-valider').isDisabled(), true);
-  assert.match(main, /Aucune heure n’est ouverte pour l’instant/);
+  // Heures toujours ouvertes en totalité (Fred, 22/11/2026, point 2), même sans matériaux.
+  assert.match(main, /Heures restant à faire \/ heures du jour : 50 \/ 50/); assert.match(main, /Salaire horaire : \d+ FR/); assert.match(main, /\(1 PA\/h\)/);
+  assert.match(main, /Ensuite, 50 heure\(s\) du jour d’avance/);
+  assert.equal(await page.locator('#cj-main-valider').isDisabled(), false);
   // Gestion : tableau de bord puis réglages, sans fenêtre par-dessus.
   await page.locator('[role=tab]', { hasText: /Gestion/i }).click();
   const g = sansEsp(await page.locator('#chantier-fenetre').innerText());
   for (const r of [/Trésorerie\s*37 005 FR/, /Fonds versés \/ coût total\s*42 000 \/ 120 000 FR/, /Prochain appel de fonds\s*42 000 FR avant le jour 9/,
-    /Prix de rachat des matériaux/, /Salaire horaire des ouvriers/, /Verser des fonds/, /Commande de matériaux/]) assert.match(g, r);
+    /Prix de rachat des matériaux/, /Salaire horaire des ouvriers/, /Verser des fonds/, /Commande de matériaux/,
+    /Commande automatique chaque nuit à l’entrepôt de Luthécia/, /Aucune commande pour l’instant/]) assert.match(g, r);
+  assert.equal(await page.locator('#chantier-fenetre button', { hasText: /Commander/i }).count(), 0, 'pas de commande manuelle');
+  await page.evaluate(() => { __terrain.chantier.derniereCommande = { motif: 'nuit', date: '2026-11-23', pourJour: 4, livre: { bois: 100, minerai: 50 }, manque: { metal: 33 }, cout: 1300 }; ouvrirFenetreChantier(false, 'gestion'); });
+  assert.match(sansEsp(await page.locator('#cj-derniere-commande').innerText()), /Dernière commande \(2026-11-23, pour le jour 4\) : livré 100 bois et 50 minerai ; manquant 33 métal ; coût 1 300 FR\./);
   assert.equal(await page.locator('#modal-postes #chantier-fenetre').count(), 1);
 }));

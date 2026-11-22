@@ -210,16 +210,21 @@ function suivre() {
 const TXT4 = {
   o_etat: 'État', o_stock: 'Stock de matériaux', o_main: 'Main-d’œuvre', o_gestion: 'Gestion',
   j_chantier: 'Jour {x} / {n} · {p} %', j_jour: '{f} / {c} h', j_heures: 'Heures du jour', j_suivante: 'Étape suivante : {e}', j_fin: 'Fin prévue : {date}',
-  j_mat_attente: 'Les heures de travail s’ouvrent au fur et à mesure que les matériaux du jour arrivent. Il manque encore : {liste}. Vendez ou donnez des matériaux (onglet « Stock de matériaux ») ; ce qui manque sera acheté cette nuit.',
+  j_journal: 'Journal du chantier', j_manque: 'L’entrepôt de {ville} n’a pas pu tout fournir : il manque {liste} pour aujourd’hui. Passants, vendez ou donnez ces matériaux au chantier (onglet « Stock de matériaux ») : il vous les rachète.',
+  j_commande: 'Commande de la nuit à l’entrepôt de {ville} : {livre}.', j_commande_avance: 'Jour d’avance ouvert : commande immédiate à l’entrepôt de {ville} : {livre}.', j_rien_livre: 'rien n’a pu être livré',
+  j_journee: 'Nuit du {date} : le chantier a avancé de {a} jour(s).',
   s_materiau: 'Matériau', s_prix: 'Prix de rachat', s_stock: 'Stock / besoin du jour', s_quantite: 'Quantité', s_donner: 'Donner au lieu de vendre', s_rien: 'Indiquez une quantité sur au moins une ligne.',
 s_complet: 'Le besoin du jour est couvert : le chantier n’achète plus de {m} aujourd’hui.',
   s_valider: 'Valider', s_plafond: 'au plus {n} (ce qui manque et ce que vous avez)',
   m_main: 'Heures restant à faire / heures du jour : {r} / {c}', m_salaire: 'Salaire horaire : {v} {cur}', m_pa: '(1 PA/h)', m_travailler: 'Travailler', m_nb: 'Nombre d’heures',
   m_aucune: 'Aucune heure n’est ouverte pour l’instant.', m_sans_pa: 'Il vous faut au moins 1 PA par heure.', m_sans_treso: 'La trésorerie du chantier ne peut plus payer d’heures.',
   m_gain: 'Vous recevrez {v} {cur} pour {h} heure(s) (−{h} PA).',
+  m_avance: 'Ensuite, {h} heure(s) du jour d’avance : si elles sont toutes faites, le chantier gagne une journée cette nuit.',
   g_treso: 'Trésorerie', g_verse: 'Fonds versés / coût total', g_appel: 'Prochain appel de fonds', g_appel_ok: 'Tout est versé',
   g_appel_txt: '{m} {cur} avant le jour {j} ({date})', g_prix: 'Prix de rachat des matériaux', g_salaire: 'Salaire horaire des ouvriers', g_fonds: 'Verser des fonds',
-  g_commande: 'Commande de matériaux', g_commande_txt: 'Chaque nuit, le chantier achète automatiquement ce qui manque pour le besoin du jour, payé par sa trésorerie. Gardez de la trésorerie pour que le chantier ne s’arrête pas.',
+  g_commande: 'Commande de matériaux', g_commande_txt: 'Commande automatique chaque nuit à l’entrepôt de {ville}',
+  g_commande_note: 'Payée par la trésorerie du chantier, dans la limite du stock de l’entrepôt. Ce qui manque reste à acheter aux joueurs.',
+  g_derniere: 'Dernière commande ({date}, pour le jour {j}) : livré {livre} ; manquant {manque} ; coût {cout} {cur}.', g_aucune: 'Aucune commande pour l’instant : la première partira cette nuit.', g_rien: 'rien',
   g_enregistrer: 'Enregistrer', g_verser: 'Verser', g_lots: 'Définir les lots', g_reception: 'Réceptionner le bâtiment', g_reserve: 'Réservé au maître d’ouvrage.'
 };
 const t4 = (k, v) => String(TXT4[k] || k).replace(/\{(\w+)\}/g, (m, c) => (v && v[c] != null) ? String(v[c]) : m);
@@ -271,7 +276,7 @@ function jauge(titre, n, on, texte, opts) {
   const seps = new Set((opts && opts.seps) || []);
   let cases = '';
   for (let i = 0; i < n; i++) {
-    const h = n === 1 ? 120 : Math.round(120 * i / (n - 1));
+    const h = opts && opts.rouge ? 0 : (n === 1 ? 120 : Math.round(120 * i / (n - 1)));   // rouge : matériau manquant
     const allume = i < on;
     cases += '<i class="cj-case' + (allume ? ' on' : '') + (seps.has(i) ? ' sep' : '') + '" style="' + (allume ? 'background:linear-gradient(hsl(' + h + ',85%,60%),hsl(' + h + ',80%,40%));animation-delay:' + (i * 28) + 'ms' : '') + '"></i>';
   }
@@ -292,13 +297,39 @@ function prochainAppel(ch) {
   s.m = Math.max(s.m, manqueFinancement(ch));
   return s;
 }
+// Commande automatique et journal du chantier (Fred, 22/11/2026, point 2 ; serveur : migration 20261122120000).
+function nomVilleChantier() {
+  const s = etat();
+  try { if (typeof villeNom === 'function') return villeNom(s.country, s.currentCity) || ''; } catch (_) {}
+  return ({ capitale: 'Luthécia', ville_a: 'Port-Sainte-Marie', ville_b: 'Montrouge' })[s.currentCity] || '';
+}
+function listeQuantites(o) {
+  const p = MATS.filter(m => (Number((o || {})[m]) || 0) > 0).map(m => fr(Number(o[m])) + ' ' + t('m_' + m).toLowerCase());
+  return p.length > 1 ? p.slice(0, -1).join(', ') + ' et ' + p[p.length - 1] : (p[0] || '');
+}
+function derniereCommandeTexte(ch) {
+  const c = ch && ch.derniereCommande;
+  if (!c) return t4('g_aucune');
+  return t4('g_derniere', { date: c.date || '', j: c.pourJour || '', livre: listeQuantites(c.livre) || t4('g_rien'),
+    manque: listeQuantites(c.manque) || t4('g_rien'), cout: fr(Number(c.cout) || 0), cur: cur() });
+}
+function journalChantier(ch) {
+  const ville = nomVilleChantier();
+  const lignes = (ch.evenements || []).slice(-6).reverse().map(e => {
+    if (e.cle === 'commande_materiaux') return t4(e.motif === 'avance' ? 'j_commande_avance' : 'j_commande', { ville, livre: listeQuantites(e.livre) || t4('j_rien_livre') });
+    if (e.cle === 'manque_materiaux') return t4('j_manque', { ville, liste: listeQuantites(e.manque) });
+    if (e.cle === 'journee' || e.cle === 'journee_avance') return t4('j_journee', { date: e.date || '', a: (Math.round((Number(e.avance) || 0) * 100) / 100).toString().replace('.', ',') });
+    return null;
+  }).filter(Boolean);
+  if (!lignes.length) return '';
+  return '<div class="cj-carte"><b>' + esc(t4('j_journal')) + '</b><ul style="margin:.3rem 0 0 1rem;padding:0">' + lignes.map(l => '<li>' + esc(l) + '</li>').join('') + '</ul></div>';
+}
 function ongletEtat(ch, t0) {
   const d = Math.max(1, Number(ch.dureeJours) || 1), prog = Math.floor(Number(ch.progressionJours) || 0), e = etapeDe(ch);
   const pct = Math.floor(fraction(ch) * 100), cap = capacite(ch), faites = Math.floor(Number(ch.heuresFaites) || 0);
   const besoin = besoinJour(ch), st = ch.stockMateriaux || {};
   const img = imageImmediate(t0);
   const manques = MATS.filter(m => (Number(besoin[m]) || 0) > (Number(st[m]) || 0)).map(m => fr((Number(besoin[m]) || 0) - (Number(st[m]) || 0)) + ' ' + t('m_' + m).toLowerCase());
-  const restantes = typeof heuresUtilesRestantes === 'function' ? heuresUtilesRestantes(ch) : 0;
   let h = (img ? '<img src="' + esc(img) + '" alt="" style="width:100%;max-height:220px;object-fit:cover;border-radius:6px;border:1px solid #5a4220">' : '')
     + jauge(t('etape_' + e), d, prog, t4('j_chantier', { x: Math.min(d, prog + 1), n: d, p: pct }), { seps: [Math.floor(d / 3), Math.floor(2 * d / 3)] })
     + '<p style="margin:.2rem 0">' + (ch.attenteReception ? esc(t('attente_reception'))
@@ -307,11 +338,12 @@ function ongletEtat(ch, t0) {
     + (ch.arrete === 'penurie_materiaux' ? '<p class="cj-raison">' + esc(t('arret_mat')) + '</p>' : '')
     + jauge(t4('j_heures'), 10, cap > 0 ? Math.round(10 * faites / cap) : 0, t4('j_jour', { f: faites, c: cap }))
     + (avanceHeures(ch) > 0 ? '<p style="margin:.2rem 0">' + esc(t('avance_ouverte', { h: avanceHeures(ch), c: cap })) + '</p>' : '')
-    + (restantes <= 0 && faites < cap && manques.length ? '<p class="cj-raison">' + esc(t4('j_mat_attente', { liste: manques.join(', ') })) + '</p>' : '')
+    + (manques.length ? '<p class="cj-raison">' + esc(t4('j_manque', { ville: nomVilleChantier(), liste: listeQuantites(Object.fromEntries(MATS.map(m => [m, Math.max(0, (Number(besoin[m]) || 0) - (Number(st[m]) || 0))]))) })) + '</p>' : '')
     + '<div class="cj-trois">' + MATS.map(m => {
         const b = Number(besoin[m]) || 0, s0 = Number(st[m]) || 0;
-        return jauge(t('m_' + m), 10, b > 0 ? Math.round(10 * Math.min(s0, b) / b) : 10, fr(s0) + ' / ' + fr(b), { petite: true });
+        return jauge(t('m_' + m), 10, b > 0 ? Math.round(10 * Math.min(s0, b) / b) : 10, fr(s0) + ' / ' + fr(b), { petite: true, rouge: s0 < b });
       }).join('') + '</div>'
+    + journalChantier(ch)
     + '<p style="margin:.6rem 0 0;font-style:italic;color:#b8a888">' + esc(t('explication')) + '</p>';
   return h;
 }
@@ -322,7 +354,7 @@ function ligneStock(m, ch) {
     + '<td><input type="number" id="cj-q-' + m + '" min="0" max="' + max + '" step="1" value="0"' + (max <= 0 ? ' disabled' : '') + ' oninput="chantierStockTotaux()" aria-label="' + esc(t4('s_quantite')) + '">'
     + '<div style="font-size:.8rem;color:#9a8a68">' + esc(manque <= 0 ? t4('s_complet', { m: t('m_' + m).toLowerCase() }) : t4('s_plafond', { n: max })) + '</div></td>'
     + '<td><label style="white-space:nowrap"><input type="checkbox" id="cj-d-' + m + '" onchange="chantierStockTotaux()"> ' + esc(t4('s_donner')) + '</label></td>'
-    + '<td style="min-width:110px">' + jauge('', 10, besoin > 0 ? Math.round(10 * Math.min(s0, besoin) / besoin) : 10, '', { petite: true }) + '</td></tr>';
+    + '<td style="min-width:110px">' + jauge('', 10, besoin > 0 ? Math.round(10 * Math.min(s0, besoin) / besoin) : 10, '', { petite: true, rouge: s0 < besoin }) + '</td></tr>';
 }
 function ongletStock(ch) {
   return '<table class="cj-stock-table"><thead><tr><th>' + esc(t4('s_materiau')) + '</th><th>' + esc(t4('s_prix')) + '</th><th>' + esc(t4('s_stock')) + '</th><th>' + esc(t4('s_quantite')) + '</th><th></th><th></th></tr></thead><tbody>'
@@ -366,11 +398,13 @@ function chantierStockTotaux() {
 }
 function ongletMain(ch) {
   const c = cur(), cap = capacite(ch), rest = heuresPossibles(ch), taux = typeof tauxHoraireChantier === 'function' ? tauxHoraireChantier(ch) : 0;
+  const duJour = Math.min(rest, typeof heuresUtilesRestantes === 'function' ? heuresUtilesRestantes(ch) : rest), avance = Math.max(0, rest - duJour);
   const payables = taux > 0 ? Math.floor((Number(ch.tresorerie) || 0) / taux) : 0;
   const max = Math.max(0, Math.min(rest, paPJ(), payables));
   const raison = rest <= 0 ? t4('m_aucune') : paPJ() < 1 ? t4('m_sans_pa') : payables < 1 ? t4('m_sans_treso') : '';
-  return '<div class="cj-carte"><p style="margin:0 0 .3rem;font-size:1.15rem">' + esc(t4('m_main', { r: rest, c: cap })) + '</p>'
-    + jauge(t4('j_heures'), 10, cap > 0 ? Math.round(10 * (cap - Math.min(cap, rest)) / cap) : 0, t4('j_jour', { f: Math.max(0, cap - rest), c: cap }))
+  return '<div class="cj-carte"><p style="margin:0 0 .3rem;font-size:1.15rem">' + esc(t4('m_main', { r: duJour, c: cap })) + '</p>'
+    + jauge(t4('j_heures'), 10, cap > 0 ? Math.round(10 * (cap - Math.min(cap, duJour)) / cap) : 0, t4('j_jour', { f: Math.max(0, cap - duJour), c: cap }))
+    + (avance > 0 ? '<p style="margin:.2rem 0">' + esc(t4('m_avance', { h: avance })) + '</p>' : '')
     + '<p style="margin:.3rem 0">' + esc(t4('m_salaire', { v: fr(taux), cur: c })) + '</p></div>'
     + '<div style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin:.6rem 0">'
     + '<label>' + esc(t4('m_nb')) + ' <input type="number" id="chantier-heures" min="1" max="' + max + '" step="1" value="' + Math.min(max, Math.max(1, max)) + '"' + (max <= 0 ? ' disabled' : '') + ' oninput="chantierMainTotaux()"></label>'
@@ -407,7 +441,9 @@ function ongletGestion(ch, t0) {
     + '<div class="cj-carte"><b>' + esc(t4('g_fonds')) + '</b><div style="font-size:.95rem;color:#b8a888">' + esc(t('fonds_note')) + '</div>'
     + '<input type="number" min="1" step="1" id="chantier-fonds" value="' + esc(ap ? ap.m : Math.max(0, (Number(ch.coutTotal) || 0) - (Number(ch.totalVerse) || 0))) + '"> ' + c
     + ' <button type="button" class="cpj-touche cpj-primaire" onclick="chantierGestion(\'fonds\')">' + esc(t4('g_verser')) + '</button></div>'
-    + '<div class="cj-carte"><b>' + esc(t4('g_commande')) + '</b><div>' + esc(t4('g_commande_txt')) + '</div></div>';
+    + '<div class="cj-carte"><b>' + esc(t4('g_commande')) + '</b><div><b>' + esc(t4('g_commande_txt', { ville: nomVilleChantier() })) + '</b></div>'
+    + '<div style="font-size:.95rem;color:#b8a888">' + esc(t4('g_commande_note')) + '</div>'
+    + '<div id="cj-derniere-commande">' + esc(derniereCommandeTexte(ch)) + '</div></div>';
   if (typeof verdictModificationPlan === 'function' && verdictModificationPlan(ch).ok)
     h += '<div class="cj-carte"><button type="button" class="cpj-touche" onclick="chantierGestion(\'lots\')">' + esc(t4('g_lots')) + '</button></div>';
   return h;
