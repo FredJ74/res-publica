@@ -1,10 +1,10 @@
 name: "Santé — médecin de terrain, montrer un objet, jauges, forêt en plein air"
 on:
   pull_request:
-    paths: [plateau-medecin-montrer.js, plateau-personnage.js, plateau-pnj.js, plateau-surveillance.js, plateau-climat.js, plateau.html, style.css, data.js, 'migrations/20261122230000_sante_socle.sql', 'migrations/20261122234000_medecin_montrer.sql', 'outils/bancs/banc-medecin-montrer-*', 'outils/bancs/fixtures/medecin-montrer-*', .github/workflows/sante-medecin-20261122.yml]
+    paths: [plateau-medecin-montrer.js, plateau-personnage.js, plateau-pnj.js, plateau-surveillance.js, plateau-climat.js, plateau.html, style.css, data.js, 'migrations/20261122230000_sante_socle.sql', 'migrations/20261122234000_medecin_montrer.sql', 'migrations/20261123160000_medecin_paiement_liquide.sql', 'outils/bancs/banc-medecin-montrer-*', 'outils/bancs/banc-medecin-liquide-*', 'outils/bancs/fixtures/medecin-montrer-*', .github/workflows/sante-medecin-20261122.yml]
   push:
     branches: [main, 'claude/**']
-    paths: [plateau-medecin-montrer.js, plateau-personnage.js, plateau-pnj.js, plateau-surveillance.js, plateau-climat.js, plateau.html, style.css, data.js, 'migrations/20261122230000_sante_socle.sql', 'migrations/20261122234000_medecin_montrer.sql', 'outils/bancs/banc-medecin-montrer-*', 'outils/bancs/fixtures/medecin-montrer-*', .github/workflows/sante-medecin-20261122.yml]
+    paths: [plateau-medecin-montrer.js, plateau-personnage.js, plateau-pnj.js, plateau-surveillance.js, plateau-climat.js, plateau.html, style.css, data.js, 'migrations/20261122230000_sante_socle.sql', 'migrations/20261122234000_medecin_montrer.sql', 'migrations/20261123160000_medecin_paiement_liquide.sql', 'outils/bancs/banc-medecin-montrer-*', 'outils/bancs/banc-medecin-liquide-*', 'outils/bancs/fixtures/medecin-montrer-*', .github/workflows/sante-medecin-20261122.yml]
 permissions:
   contents: read
 jobs:
@@ -25,4 +25,4 @@ jobs:
       - name: PostgreSQL local (PGlite)
         run: |
           npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund --prefix "$RUNNER_TEMP/pglite" @electric-sql/pglite@0.2.17
-          PGLITE_DIR="$RUNNER_TEMP/pglite" node --test outils/bancs/banc-medecin-montrer-pglite-20261122.cjs
+          PGLITE_DIR="$RUNNER_TEMP/pglite" node --test outils/bancs/banc-medecin-montrer-pglite-20261122.cjs outils/bancs/banc-medecin-liquide-pglite-20261123.cjs

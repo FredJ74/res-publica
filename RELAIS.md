@@ -12,6 +12,189 @@ Règles : voir `AGENTS.md`.
 - **Baseline : plan seulement, ne pas exécuter dans cette mission.** Les rapports de Claude sont consignés dans main aadfc332, notamment le rapport Santé/forêt 0abd7d01 et les cinq migrations Santé 20261122230000 à 20261122234000 (596 tarifs dans le seed courant). Les exports du 21/11 précèdent ces changements et ne représentent pas le schéma actuel ; Une coupe de référence sera choisie après toutes les livraisons de Claude lors de la mission séparée de réconciliation. Recueillir alors les quatre exports canoniques complets (schéma, routines, politiques, configuration), vérifier les empreintes et le registre des migrations avec Claude, sans données personnelles. Comparer les sources au schéma réellement installé, distinguer les migrations déjà archivées des changements manquants et ne jamais réappliquer l’archive atomique du goulag. Régénérer le baseline sur une branche séparée, reconstruire une base PostgreSQL 17 jetable et comparer objets, droits, RLS, fonctions, séquences et paramètres ; jouer les non-régressions Républia/Sovarka et les refus du goulag fermé. Documenter tout écart non résolu, conserver les exports privés et les preuves sans identités. Rebaser sur le main final de Claude, obtenir toute la CI verte avant PR/fusion ; aucun changement de production inclus dans cette réconciliation. Les 5434 attributions manquantes de l’ancien diagnostic ne justifient pas une modification immédiate : elles doivent être reclassées sur la nouvelle coupe.
 - Aucune collecte, requête, migration ou réconciliation exécutée par Codex pendant cette livraison client. Claude reste seul à intervenir sur la base ; aucune activation du goulag.
 
+### Mission « Suites de Santé, interface et accueil » — état au 22/11/2026, nuit (Claude)
+- **Sept migrations appliquées en production, une par une, validées à l'écran par Fred et contrôlées en lecture**, dans cet ordre :
+  `20261123100000_sante_suites`, `20261123110000_medicaments_usines_antidote`, `20261123120000_postes_pays`,
+  `20261123130000_ordres_regroupes`, `20261123140000_accueil_interview`, `20261123150000_tabac_presse_crue` (après postes_pays :
+  marque `pp_crue_min`), `20261123160000_medecin_paiement_liquide` (le médecin se paie en liquide seulement ; marques
+  `medecin_liquide_v1`, `medecin_liquide_debit_v1` ; banc `banc-medecin-liquide-pglite-20261123.cjs`). Goulag toujours `active=false`,
+  aucune Santé modifiée, `postes_attribues` intact (6 lignes).
+- Page MJ `admin-accueil.js` (réglages `accueil_parametres`). Clés de traduction nouvelles : voir les sections de chaque chantier ci-dessous.
+
+### Santé — « Suites » : paliers, repas, robustesse, tracts, antenne, marchés, objectif (Claude, 22/11/2026, soir) — GAME-DESIGN-SANTE-20261122.md, « Suites », points 1, 2, 3, 7, 9, 10, 11, 13
+- **Branche `claude/sante-suites-20261123`** (part de `0bba1e82`, `claude/mission-nuit-20261122`). Aucune fonction Vercel, aucun ordre payant ajouté.
+- **Migration appliquée en production le 22/11/2026 (contrôlée en lecture)** : `20261123100000_sante_suites.sql` (après les migrations Santé du 22/11, déjà en production). Écrite à partir des
+  définitions de production du 22/11 au soir (doublure PGlite à md5 identique). Remplacements contrôlés (marques `sante_suites_*`) :
+  `hospitalisation_repas_prendre` (repas de l'hôpital +4 Santé / +2 PA, gratuit, hospitalisés seulement ; clinique +5 / +4, 30 FR ; nuitée de la
+  clinique par `sante_repas_appliquer_interne`), `sovarka_repas_presidentiel` (+5 Santé / +3 PA différés pour chacun par le barème commun, courrier
+  chiffré par les réglages), `sovarka_foret_rencontre` (« subir » : `sante_combat_coup_pj_interne` pour chaque membre, `pertes` rendues),
+  `manifestation_reprimer` et `detention_se_rebeller` (perte de Santé × robustesse, plancher 1 ; `sante_perdue` rendue), `tracts_donner_joueur` (plafond
+  commun, refus `destinataire_plein` avec `place`), `admin_aliment_modifier` (taux, écart, dotation du marché réglables), `objectifs_secrets_eligibles_interne`
+  (obj_informateur = 5 informateurs différents dans `informateurs_achats`). Réécrite : `sante_repas_joueur_categorie_interne` (palier `joueur_p15`, contrainte
+  CHECK élargie). Nouvelles : `marches_prix_rachat_interne`, déclencheurs `marche_krasnov_produits_rachat` et `marches_rachat_realigner`. Réglages :
+  `sante_parametres` repas_joueur_p15_*, repas_president_*, repas_hopital_*, repas_clinique_*, repression_perte_sante, rebellion_*_perte_sante ;
+  `aliments_parametres` marches_rachat_taux 0,7, marches_rachat_ecart_min 1 (marche_krasnov_decote_rachat_pct supprimé) ; `crim_parametres`
+  objectif_informateurs_distincts 5. **Données modifiées** (catalogue, pas de joueur) : rachats du marché de Krasnov (graisse 12→11, tenue ninja 24→22, masque 15→14,
+  chemise 18/13→17/12), effet des fruits et légumes (« un zakouski »), confiture du kolkhoze de Starovka 5→10 PSK (prix fixe), libellés MJ « En-cas ».
+- **Fichiers du navigateur modifiés (pour rebaser)** : `data.js` (« boissons et en-cas » ; bloc final : « zakouski » dans les pièces de Sovarka ; descriptions des
+  repas de l'hôpital, de la clinique et du Président ; marché de Krasnov « moins 30 % »), `plateau-personnage.js` (`doRepasHopital` : Santé du serveur),
+  `plateau-sovarka-provinces.js` (`FORET_TXT.j_subir`, nouveau `subirDebout`, `foretChoisir`), `plateau-communication.js` (antenne de Starovka « La Voix de Sovarka »,
+  `confirmerDonTracts` : refus destinataire plein), `plateau-justice-economie.js` (`doSeRebeller` : Santé perdue du serveur), `plateau-criminalite.js` (`bMateeText` :
+  `{sante}`), `plateau-politique.js` (obj_informateur, toast de répression), `plateau-actions-illegales-rumeurs.js` (confiture du kolkhoze `prixFixe: 10`),
+  `admin-maladies.js` (trois réglages des marchés), `api/_presse-antennes.js`, `api/_pnj-personnalites.js` (Saran Batbayar), `i18n/player-missions-resources.js`,
+  `i18n/sovarka-pouvoir-resources.js` (catalogues recompressés), `plateau.html`, `admin.html` (versions `-sante-suites-20261123`).
+- **Pour Codex (traductions, français seul modifié)** : `playerMissions.obj_informateur` « Acheter 5 informations à des informateurs différents » (liste
+  `EN_ATTENTE_CODEX` de `banc-i18n-player-missions-20261113.cjs` à vider) ; `sovarkaPouvoir.mealIntro` (+5 Santé modulée par le Moral) ; descriptions de `data.js` :
+  « Préparer boissons et en-cas pour le service (…) », « Préparer bières, boissons et en-cas pour le service (…) », leurs variantes « zakouski » (Sovarka), repas de
+  la clinique et de l'hôpital (avec Santé), repas du Président, marché de Krasnov (« moins 30 %, arrondi ») — listes `ATTENTE_CODEX` / `HISTORIQUES` des tests
+  d'infobulles ; `FORET_TXT.j_subir` et `FORET_TXT.subirDebout` (plateau-sovarka-provinces.js) ; `bMateeText` (variable `{sante}`) ; toasts sans clé : « Don refusé »,
+  « +N Santé » du repas de l'hôpital, Santé de la rébellion, toast de la répression.
+- **Bancs** : `banc-sante-suites-pglite-20261123.cjs` (9/9, doublure `fixtures/sante-suites-pglite.sql.txt`), `test-sante-suites-navigateur-20261123.cjs` (5/5) ;
+  workflow `sante-suites-20261123.yml`. Tests figés mis à jour (jamais désactivés) : `banc-interview-accueil-antennes-20261122.cjs`, `banc-i18n-player-missions-20261113.cjs`
+  (+ fixture fr), `banc-i18n-player-missions-mobile-20261113.cjs` (changement voulu appliqué au témoin de main), `test-i18n-infobulles-communes-20261113.mjs`,
+  `test-i18n-sovarka-infobulles-20261113.mjs`, `test-i18n-republia-infobulles-politiques-20261113.cjs`. `node --test outils/bancs/test-*.mjs` : 422/422.
+- **À tester par Fred (après application)** : un plat de joueur vendu 15 FR et plus (+5 Santé, +3 PA au prochain Dormir) ; le repas du Président avec un invité ;
+  le repas de l'hôpital en patient (gratuit, +4 Santé) et de la clinique (30 FR, +5 Santé) ; en forêt, « se laisser faire » à Santé 100 (on reste debout) puis à Santé 10 ;
+  donner 10 tracts à un joueur presque plein (refus avec la place) ; au marché de Krasnov, rachats (graisse 11, chemise 17/12) ; la confiture du kolkhoze à 10 PSK ;
+  la buvette d'un stade en Républia (« en-cas ») et en Sovarka (« zakouski ») ; l'invitation d'accueil à Starovka signée « La Voix de Sovarka ».
+### Médicaments, usines d'État et antidote (Claude, 22/11/2026, soir) — GAME-DESIGN-SANTE-20261122.md, « Suites », point 8 a-d (et point 5 pour ce lot)
+- **Branche `claude/medicaments-usines-20261123`** (part de `0bba1e82`). Aucune fonction Vercel ajoutée, aucun ordre payant ajouté ni retiré.
+- **Migration appliquée en production le 22/11/2026 (contrôlée en lecture)** : `20261123110000_medicaments_usines_antidote.sql` (après `20261122230000_sante_socle` et
+  `20261122233000_sante_maladies_medicaments`, déjà en production). Écrite depuis pg_get_functiondef de production (md5 vérifiés par le banc).
+  - Paramètres (sante_parametres, groupes « Médicaments » et « Usines d'État » de la page MJ) : trousse_medicaments/textile/desinfectant 1,
+    medicament_pnj_stock_max 50, antidote_actif 1, antidote_recette_coef 3, antidote_pnj_boites_nuit 10, antipoison_antidotes_par_soin 1,
+    antipoison_stock_cible 5, usine_fonds_roulement 5000.
+  - 8a : la trousse (caserne, seul lieu de fabrication) consommait déjà 1 Médicaments + 1 textile + 1 désinfectant en dur ; recette réglable
+    (remplacements contrôlés de militaire_trousse_retirer, marques `medicaments_usines_v1_trousse_*`).
+  - 8b : dotation gratuite remplacée par la production des PNJ chaque nuit (`medicaments_pnj_produire_interne`, appelée par `usines_etat_nuit`,
+    une ligne dans `api/cron-minuit.js`, tâche « usines_etat_nuit », avant la production des transformateurs) : plantes de usine.stockMatieres,
+    même ratio que produire_medicament, plafond, prorata si la matière manque, aucun salaire PNJ. Stock PNJ distinct (`medicaments_stocks.quantite_pnj`),
+    boîtes des joueurs vendues d'abord. pharmacie_stock_point_interne / pharmacies_ventes ne servent plus.
+  - 8c : toute la recette au comptoir et des rachats d'antidotes → caisse de l'usine. Usines d'État (six) : fonds de roulement, excédent reversé
+    chaque nuit à la caisse du ministère qui nomme le directeur (min_fin dans les deux pays), journal `usines_reversements` ; virement volontaire =
+    ordre existant virement_usine_ministere (1 PA) réécrit sur le même mécanisme, libellé « Virer à la tutelle » ; lecture `usine_tutelle_etat()`.
+  - 8d : antidote (catalogue `medicaments_catalogue_interne`), 15 plantes / 10 boîtes, 132 FR (2 × 22 × 3) ; pris (medicament_prendre, marque
+    `medicaments_usines_v1_antidote`), poison annulé au réveil suivant par sante_reveil_interne réécrite (MST intégralement conservée, bloc
+    antidote avant). Centre antipoison : antidote du stock du centre (sante.antidotes) par tentative, refus `plus_d_antidote` sans stock ;
+    rachat nocturne jusqu'à 5 par la caisse de la structure (clinique : sante.caisse ; dispensaire : <pays>_dispensaire_<ville>) ; le prix du soin
+    (60/150) va à cette caisse.
+  - Point 5 : pharmacie et centre antipoison en liquide seulement.
+- **Fichiers du navigateur modifiés (pour rebaser)** : `plateau-maladies.js` (antidote, nom « Empoisonnement », refus liquide, monnaie du comptoir
+  qui manquait : COUNTRIES lu hors de window), `plateau-justice-economie.js` (recette de l'antidote dans la fenêtre de production ; fenêtre « Virer à
+  la tutelle » avec caisse et fonds de roulement), `plateau-personnage.js` (refus du centre antipoison ; poison effacé au réveil), `admin-sante.js`
+  (libellés des deux groupes), `data.js` et `i18n/orders-resources.js` (libellé fr « Virer à la tutelle », catalogue recompressé), `plateau.html`,
+  `admin.html` (versions), `api/cron-minuit.js` (une ligne).
+- **Pour Codex (traductions)** : `plateau-maladies.js` `T.fr` : `m_antidote`, `n_empoisonnement`, `takenAntidote`, `r_pas_empoisonne`,
+  `r_antidote_deja_pris`, `r_fonds_liquide` (ajoutées à `EN_ATTENTE_CODEX` de `test-maladies-lot1-20261118.cjs`) ; `orders-resources.js` :
+  `virement_usine_ministere` (fr changé en « Virer à la tutelle », autres langues à réaligner) ; textes en dur fr de `plateau-justice-economie.js`
+  (fenêtre « Virer à la tutelle ») et `plateau-personnage.js` (« Plus d'antidote, réapprovisionnement en attente. », « Argent liquide insuffisant ») ;
+  journal d'événements : clé `antidote_poison_neutralise` (texte serveur fr).
+- **Bancs** : `banc-medicaments-usines-pglite-20261123.cjs` (7 essais, fixture `fixtures/medicaments-usines-pglite.sql.txt`),
+  `banc-medicaments-usines-navigateur-20261123.cjs` (6 essais, 1280 et 390 px) ; workflow `medicaments-usines-20261123.yml`.
+- **À tester par Fred (après application)** : les comptoirs sont vides tant que l'usine n'a pas de plantes (0 aujourd'hui dans les deux pays) ;
+  produire un antidote à l'usine, l'acheter (132 FR, en liquide), le prendre empoisonné, dormir : poison levé ; centre antipoison sans antidote :
+  refus, puis soin le lendemain du rachat ; directeur de l'usine : « Virer à la tutelle » ; le lendemain matin, caisse de l'usine ramenée à 5 000.
+### Pays d'un poste : organigrammes et pouvoirs lus dans le registre (Claude, 23/11/2026) — GAME-DESIGN-INTERFACE-ACCUEIL-20261122.md, partie B, points 15 et 16
+- **Branche `claude/postes-pays-20261123`** (part de `0bba1e82`). Aucune fonction Vercel ajoutée.
+- **Migration `20261123120000_postes_pays.sql` : appliquée en production le 22/11/2026 (contrôlée en lecture).** Trois fonctions nouvelles `poste_detenu`, `poste_pays_de`,
+  `poste_exerce` ; réécrites (même signature, mêmes droits) `acteur_poste_courant` (plus de repli sur la position),
+  `mon_poste_est`, `mon_poste_est_dans`, `guerre_acteur_poste`, `crim_force_ordre_interne` ; 66 remplacements contrôlés (marques
+  `pp_…`, ancrages comptés en production le 22/11 au soir, contrôle final des marques) dans 58 fonctions. Aucune donnée modifiée
+  (ni `postes_attribues`, ni `personnages_donnees.poste`). Règle documentée dans `AGENTS.md` (« Pays d'un poste »).
+- **Navigateur** : `plateau-organisations-quetes.js` (règle unique `posteDetenu` / `paysDuPoste` / `posteExerceIci` /
+  `titulairesRegistre`, cache `chargerRegistrePostes`, `getTitulaireActuel` sur le registre, libellés `libellePosteJoueur` /
+  `libellePostePJ`), `plateau-politique.js` (écran des postes du Palais, organigramme de l'Assemblée, `paysMandatPourOrdre` sur le
+  registre), `plateau-router.js`, `plateau-core.js` (lecture du registre au chargement), `plateau-personnage.js` (panneau),
+  `plateau-multijoueur.js` (PNJ de poste masqués par pays), `plateau-communication.js` (liste des PJ), `plateau-pnj.js`,
+  `continuite-municipale.js` ; **cron** `api/cron-minuit.js` (`titulairesPostesPaysServeur`).
+- **Clés pour Codex** : aucune nouvelle clé. Textes composés en français : « <poste> — <pays> » (panneau), « <poste> (<pays>) »
+  (liste des PJ).
+- **Bancs** : `banc-postes-pays-pglite-20261123.cjs` (7/7, chaque épreuve montre aussi le défaut avant migration),
+  `banc-postes-pays-navigateur-20261123.cjs` (6/6, Chrome réel) ; mis à jour sans les désactiver : `banc-continuite-municipale.mjs`,
+  `banc-candidatures-nocturnes.js` (décor du registre), `banc-dotation-cloisonnement-sovarka`, `banc-mandats-nationaux-caserne`,
+  `banc-caserne-parite-menus`, `banc-saisines-ministre-juge-sovarka` (signature `paysMandatPourOrdre(posteRequis)`). Workflow
+  `.github/workflows/postes-pays-20261123.yml`.
+- **À tester par Fred (après application)** : Arnie à Krasnov — organigramme national de Sovarka sans lui, celui de Républia avec lui,
+  aucun ordre de ministre de la Défense dans les ministères soviétiques, panneau « Ministre de la Defense — Republia » ; Arnie à
+  Luthécia — ses ordres de Défense marchent ; un Soviétique à Luthécia, idem en miroir. Ligne orpheline signalée :
+  `republic_directeur_entrepot_ville_a` (Ben, dont la fiche porte Commandant du Port) — non touchée, elle ne donne plus rien.
+### Accueil des nouveaux joueurs : interview, parcours, bulle des PA (Claude, 23/11/2026) — GAME-DESIGN-INTERFACE-ACCUEIL-20261122.md, partie D, points 23 à 26
+- **Branche `claude/accueil-interview-20261123`** (depuis `0bba1e82`), fusionnée dans `claude/mission-nuit-20261122`. **Migration appliquée en production le 22/11/2026 (contrôlée en lecture)** :
+  `20261123140000_accueil_interview` (à appliquer AVANT le déploiement du code : le navigateur appelle `accueil_etat`
+  et l'API lit `accueil_personnages` ; sans la table, rien ne s'ouvre et l'API répond 409, sans casse).
+- **Serveur** : tables `accueil_parametres` (MJ : `admin_accueil_parametres_lire` / `admin_accueil_parametre_fixer`,
+  journalisé), `accueil_journalistes` (Jodie Moitout en Républia, Vera Pravdina en Sovarka), `accueil_chemins`,
+  `accueil_etapes` (12 parcours × 3 étapes), `accueil_personnages` (état par personnage, créé à la première lecture,
+  jamais par la migration ; interview ou portrait déjà publié = `deja_interviewe`) ; colonnes `interviews_jodie.accueil`
+  et `.journaliste`. RPC : `accueil_etat`, `accueil_interview_vue`, `accueil_choisir_chemin`, `accueil_ignorer`,
+  `accueil_etape_valider`, `accueil_bulle_pa_signaler`. Remplacement contrôlé de `payer_ordre_interne` (5 arguments),
+  marque `accueil_ordre_paye_v1` : `accueil_ordre_paye_interne` coche l'étape de l'ordre payé et, au premier ordre qui
+  coûte des PA, mémorise la bulle et écrit l'événement `accueil_bulle_pa` (jamais d'erreur vers le paiement).
+- **API (aucune nouvelle fonction Vercel, toujours 12)** : `/api/journal-interview`, action `accueil_publier` (relit chemin
+  et mot en base, entretien d'une question dans `interviews_jodie`, même publication et même contrôle du verbatim ;
+  consigne « à la gloire du Parti » pour Vera) ; l'interview d'accueil n'arme plus le délai de 10 jours de l'interview
+  volontaire. `/api/jodie-portrait` : pas d'invitation au portrait par courrier si l'interview d'accueil est donnée.
+- **Navigateur** : nouveau `plateau-accueil-interview.js` (fenêtre, envol vers Mes objectifs, parcours, bulle des PA),
+  `plateau-politique.js` (`afficherObjectifsSecrets` : accueil en tête), `plateau.html` (script), `data.js` et
+  `api/_pnj-personnalites.js` (PNJ Vera Pravdina, accueil de La Voix de Sovarka, Novomirsk), `api/_pnj-scenes-generes.js`
+  régénéré. Portrait de Vera à fournir : `images/Sovarka/Novomirsk/Novo_vera_pravdina_portrait.webp` (puis `photoUrl`
+  dans data.js et `PORTRAITS` dans plateau-accueil-interview.js).
+- **Pour Codex (traductions, français seul pour l'instant)** : objet `TXT` de plateau-accueil-interview.js (toutes les clés) ;
+  textes serveur de la migration (questions des journalistes, libellés des chemins, 36 étapes et lieux, « Objectif
+  accompli : … ») ; prompts de `api/journal-interview.js` (français, non traduits).
+- **Bancs** : `banc-accueil-interview-pglite-20261123.cjs` (8/8), `banc-accueil-interview-api-20261123.mjs` (5/5),
+  `banc-accueil-interview-navigateur-20261123.cjs` (Chromium, 1280 et 390 px, 4/4) ; workflow `accueil-interview-20261123.yml`.
+- **À tester par Fred** : nouveau personnage (Républia puis Sovarka) : l'interview s'ouvre seule ; « Plus tard » → la
+  fenêtre file vers Mes objectifs ; Mes objectifs → « Reprendre » → choisir un chemin + un mot → article ; parcours dans
+  Mes objectifs ; premier ordre payant → bulle à côté des PA, une seule fois.
+### Tabac-presse de Krasnov et crue sans blocage (Claude, 22/11/2026, soir) — GAME-DESIGN-INTERFACE-ACCUEIL-20261122.md, points 27 à 32
+- **Branche `claude/tabac-crue-20261123`** (part de `0bba1e82`). Aucune fonction Vercel, aucun ordre payant ajouté ni retiré (la ligne `poser_sacs_sable` de `ordres_couts` reste, la fonction refuse).
+- **Migration appliquée en production le 22/11/2026 (contrôlée en lecture)** : `20261123150000_tabac_presse_crue.sql` (définitions de production du 22/11 au soir, ancrages comptés).
+  - Partie E : `aliments_parametres` papirossy_moral 2, revue_ent_bonus 1, revue_ent_heures 24, carte_postale_message_max 500 ; `recettes_commerce` (papirossy → famille « tabac », libellé « Cigarettes papirossy « Étoile du Nord » » ; carte « sous la pluie d'automne » ; revue sans bonus d'intégration) ; nouvelles `tabac_fumer_interne`, `revue_bonus_appliquer_interne`, `produit_marche_livrer_interne`, RPC `carte_postale_envoyer` ; réécrite `souvenir_utilisable_interne` ; remplacements contrôlés dans des **fonctions communes** : `commerce_vendre_produit_interne` (`produit_marche_livrer_v1`, deux ancrages en une réécriture), `inventaire_consommer` (`tabac_fumer_v1`, `tabac_fumer_effet_v1`), `inventaire_donner` (`carte_postale_ecrite_serveur_v1`).
+  - Partie F : colonne `climat_parametres.catastrophe_active` (faux) ; nouvelles `catastrophe_active_interne`, `chantier_crue_jour_interne` ; **une ligne** dans `chantier_jour_traiter` (`crue_chantier_jour_v1`) ; `catastrophe_proposer/declarer/etat` (`catastrophe_en_sommeil_v1`), `admin_climat_parametre_modifier` (`catastrophe_active_v1`, `catastrophe_active_set_v1`), `climat_consigne_interne` (`crue_consigne_v2`), `climat_parades_verifier_interne` (`crue_sans_sacs_v1`) ; réécrites `climat_batiment_inonde_interne` et `climat_lieu_protege_interne` (toujours faux), `climat_evenement_json_interne`, `climat_crue_appliquer_interne` (sans pertes), `sacs_sable_poser` (refus `sacs_retires`), `climat_objet_interne`, `climat_prix_interne`, `climat_texte_alerte_interne`, `climat_chantiers_bloques_interne` (crue : du début à minuit). Données de configuration : sac retiré de `climat_boutiques` (boutique `chasse-peche-psm` supprimée), 3 lignes de `climat_lieux_vente` supprimées. Aucune donnée de joueur.
+- **Fichiers du navigateur** : `plateau-personnage.js` (carte : écrire et envoyer par le serveur, recto + légende, retourner, bouton dans la fenêtre de l'onglet Inventaire — c'était le bug ; « Fumer »), `plateau-actions-illegales-rumeurs.js` (papirossy en produit de marché « tabac », description de la carte, revue), `plateau-climat.js`, `plateau-chantier-vue.js` (`j_crue`), `forum.js` (boutons de catastrophe retirés), `admin-maladies.js` (case MJ catastrophe), `data.js` (boutique climat sans sacs), `i18n/infobulles-communes-resources.js` (+ paquets), `plateau.html`, `admin.html`.
+- **Pour Codex (traductions)** : `plateau-personnage.js` `TEXTES_CARTE_POSTALE.fr` (toutes les clés : légendes `legende_<carte>`, `ecrire_titre`, `recto`, `destinataire`, `choisir`, `placeholder`, `envoyer`, `visuel_a_venir`, `retourner`, `retourner_aide`, `de`, `a`, `signature`, `lecture`, `envoyee*`, `echec_titre`, `manque_*`, `r_*`, `fumer`, `fume*`) ; `plateau-climat.js` `T.*.crue`, `chantiers_crue`, `r_sacs_retires`, `r_catastrophe_en_sommeil` (clés `ferme_*`, `lieux_fermes`, `aucun_lieu`, `lieux_proteges`, `ce_lieu` supprimées) ; `plateau-chantier-vue.js` `j_crue` ; `infobulles-communes-resources.js` ligne de la boutique climat (8 langues citent encore les sacs) ; `i18n/forum-ui.js` : `catastrophe_proposer`, `catastrophe_examiner` devenus inutiles.
+- **Bancs** : `banc-tabac-presse-pglite-20261123.cjs` (fixture `tabac-presse-pglite-socle.sql.txt`), `banc-tabac-presse-navigateur-20261123.cjs`, `banc-crue-chantier-pglite-20261123.cjs` (fixture `crue-chantier-pglite-socle.sql.txt`) ; mis à jour sans désactivation : `banc-climat-crue-accueil-navigateur-20261121.cjs`, `test-climat-definitif/effets/socle`, `banc-krasnov-tabac-presse-20261114.sql` ; workflow `tabac-crue-20261123.yml`.
+- **À tester par Fred (après application)** : au tabac-presse de Krasnov, acheter des cigarettes, les voir dans l'inventaire, « Fumer » (+2 Moral) ; acheter une carte, onglet Inventaire → « Écrire et envoyer » à un personnage, le destinataire la reçoit, « Lire » : recto avec « Krasnov, capitale de l'ours », un clic la retourne ; acheter deux revues dans les 24 h : +1 ENT une seule fois, 24 h ; crue annoncée : alerte et pluie, aucun lieu fermé, aucun sac en vente, le chantier de la ville perd un jour.
+- **En attente de Fred** : légendes des neuf autres cartes ; dépôt dans l'armoire à souvenirs toujours non codé (seul le critère serveur est prêt) ; arrêts de chantier d'orage/canicule/blizzard et coupure informatique de l'orage à juger (point 32).
+
+### Regroupement des ordres dans les pièces (Claude, 23/11/2026) — GAME-DESIGN-INTERFACE-ACCUEIL-20261122.md, partie C, points 17 à 22
+- **Branche `claude/ordres-regroupes-20261123`** (part de `0bba1e82`). Aucune fonction Vercel, aucun ordre payant ajouté ou retiré, aucun tarif modifié.
+- **Migration appliquée en production le 22/11/2026 (contrôlée en lecture)** : `migrations/20261123130000_ordres_regroupes.sql` (point 17, côté serveur), écrite depuis
+  pg_get_functiondef de production (md5 de prosrc vérifiés dans le banc), ancrages comptés en production (1 chacun), sans BEGIN/COMMIT :
+  - `desinstaller_materiel` : remplacement contrôlé `ordres_regroupes_desinstaller_legal_v1` — le matériel d'autrui hors de chez soi est
+    refusé (`pas_a_vous`) ; il ne s'emporte plus que par le vol. Son matériel, ou tout le matériel chez soi : inchangé (2 PA, au sol).
+    La branche « vol » devient inatteignable (laissée en place). Plein air : toujours refusé.
+  - `desinstaller_lire` : `ordres_regroupes_lire_volable_v1` — drapeau `volable` (ni à moi, ni armoire à souvenirs). Aucune donnée modifiée.
+- **Point 17** : « Inspecter la pièce » = une fenêtre à trois volets (`plateau-surveillance.js`) : « Ce qui est installé ici » (0 PA,
+  `desinstaller_lire` ; « Voler » en face du matériel d'autrui → `crim_cambrioler('materiel')`, le moteur de `voler_materiel`),
+  « Fouiller les lieux » (1 PA, `inspecter_piece` inchangé), « Désinstaller » (seulement le matériel légal). Le bouton « Désinstaller du
+  matériel » disparaît des pièces ; le fn `desinstaller_materiel` ouvre le volet du même nom (écran resté ouvert). L'ordre garde `pa: 1`
+  (tarif `ordres_couts` de la fouille). Avant application de la migration, l'écran ne propose déjà plus la désinstallation illégale.
+- **Points 18 à 21** : nouveau `plateau-ordres-regroupes.js`, branché dans `renderRoomActions` (plateau-politique.js) après La Tribune :
+  les boutons d'origine (gardes, grisage, doOrder) sont remontés dans la fenêtre du groupe, avec une phrase chacun. Mairies (tous pays) :
+  « Élections », « Guichet » (« Héros du Travail » à part) ; salle des partis : « Les partis » (volets selon l'appartenance,
+  `partiCharger`), « Dénonciations » ; syndicat national et dockers : « Le syndicat » (selon l'adhésion), « Fonctions du chef du syndicat » ;
+  bureaux des fonctions : un bouton « Fonctions de [poste] » par poste, thèmes, lecture seule « Réservé au [poste] » pour les autres,
+  « Dossiers commerciaux » rangé chez le maire (reste actif pour tous). Le menu à deux familles du commissaire (Républia) est remplacé par
+  « Fonctions du commissaire » (repli inchangé si le module manque). Jamais regroupés : goulag, caserne, greffe, Tribune, terrains.
+- **Habilitation (pour la fusion avec le lot postes-pays)** : un seul point, `estTitulaireFonction(poste)` (plateau-ordres-regroupes.js),
+  qui ne recalcule rien : il lit le verdict de la règle existante du plateau (grisage `needsPost` / `paysMandatPourOrdre` de
+  renderRoomActions, chef du syndicat). La correction du lot postes-pays s'y applique d'elle-même ; s'il expose une fonction, seule cette
+  fonction est à changer. Le bloc needsPost de renderRoomActions n'est PAS modifié.
+- **Fichiers du navigateur modifiés** : `plateau-surveillance.js`, `plateau-router.js` (entrée `inspecter_piece`), `plateau-politique.js`
+  (branchement + garde `!ordresRegroupes` sur commissaire, greffe, caserne), `plateau-ordres-regroupes.js` (nouveau), `plateau.html`.
+- **Pour Codex (traductions)** : aucun catalogue modifié ; nouveaux textes français en dur à mettre en clés : `PIECE_TXT` de
+  plateau-surveillance.js (voletInstalle, voletFouiller, voletDesinstaller, installeIntro, installeVide, installeVolNote, aVous, aAutrui,
+  volerBouton, fouillerBouton, desinstallerChezSoi, desinstallerAilleurs, desinstallerRien, desinstallerApres, inspecterDesc, refus
+  pas_a_vous / plein_air) et `TXT` + `PHRASES` + `THEMES` + `POSTES` de plateau-ordres-regroupes.js.
+- **Bancs** : `banc-ordres-regroupes-pglite-20261123.cjs` (7 tests, fixture `fixtures/ordres-regroupes-desinstaller.sql.txt`),
+  `banc-ordres-regroupes-navigateur-20261123.cjs` (Chromium 1280 et 390 px, 10 tests) ; tests mis à jour (jamais désactivés) :
+  `test-fouiller-voler-ordre-20261111.mjs`, `banc-medecin-montrer-navigateur-20261122.cjs` (plus de « Désinstaller du matériel »).
+  Workflow `ordres-regroupes-20261123.yml`.
+- **À tester par Fred (après application)** : inspecter une pièce avec son matériel et celui d'un autre (Voler, Désinstaller le sien,
+  refus pour l'autre), chez soi (tout se désinstalle) ; mairie (Guichet, Élections) en Républia et en Sovarka ; salle des partis avec et
+  sans parti ; syndicat membre / non-membre / chef ; bureau d'un ministre en titulaire puis en visiteur.
 ### Mission « Santé et forêt » (Claude, 22/11/2026, après-midi) — décisions : GAME-DESIGN-SANTE-20261122.md
 - **Appliquées en production le 22/11 (dans l'ordre, chacune validée par Fred à l'écran, contrôle en lecture après chacune, goulag
   `active=false` vérifié, aucune Santé de personnage modifiée)** : `20261122230000_sante_socle`, `20261122231000_sante_combat`,

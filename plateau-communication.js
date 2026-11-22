@@ -76,6 +76,8 @@ async function ouvrirRepertoirePJ() {
   let joueurs = [];
   if (typeof sbListPersonnages === 'function') {
     try { joueurs = await sbListPersonnages() || []; } catch(e) {}
+    // Registre des postes (23/11/2026, B.16) : le poste affiche est celui du registre, dans le pays de ce poste.
+    if (typeof chargerRegistrePostes === 'function') await chargerRegistrePostes().catch(() => null);
   }
 
   // Ajouter soi-même si pas dans la liste
@@ -108,7 +110,7 @@ async function ouvrirRepertoirePJ() {
       </div>
       ${pjs.map(j => {
         const isMe = j.name === myName;
-        const posteLabel = j.poste?.name || '';
+        const posteLabel = typeof libellePostePJ === 'function' ? libellePostePJ(j, j.nationalite || j.country) : (j.poste?.name || '');
         const villeDomicileId = j.domicile?.city;
         // La ville du domicile se lit dans le pays du DOMICILE (les identifiants de ville sont partagés entre pays).
         const villeDomicileNom = villeDomicileId ? (WORLD[j.domicile?.country || j.nationalite || j.country]?.[villeDomicileId]?.name || villeDomicileId) : null;
@@ -809,8 +811,13 @@ async function confirmerDonTracts(tractIdx, pjName) {
   const index = state.inventory.indexOf(tract);
   const quantite = Number(document.getElementById('don-tract-' + tractIdx)?.value || 1);
   if (!Number.isInteger(quantite) || quantite < 1) { showToast('Quantité invalide', '', false); globalThis.RPI18nPlateau?.markToast(null, '', undefined, 'Quantité invalide'); return; }
+  // Plafond commun des dons (Fred, 22/11/2026 au soir) : le serveur refuse au-delà de la place du destinataire et dit combien tient encore.
   const v = await executerReceptionInventaire('tracts_donner_joueur', { p_index: index, p_revision: state._inventaireRevision ?? null,
-    p_destinataire: pjName, p_quantite: quantite });
+    p_destinataire: pjName, p_quantite: quantite }, { surRefus: r => {
+      if (r.raison !== 'destinataire_plein' || typeof messageRefusSortieInventaire !== 'function') return false;
+      showToast('Don refusé', messageRefusSortieInventaire(r.raison, r), false);
+      return true;
+    } });
   if (!v) return;
   document.getElementById('modal-postes').classList.remove('open'); updateUI();
   showToast('Tracts donnés', v.quantite + ' tracts remis à ' + v.destinataire + '.', true);
@@ -1840,7 +1847,7 @@ const PRESSE_ANTENNES_ACCUEIL = Object.freeze([
   { pays: 'republic', ville: 'ville_a',  villeNom: 'Port-Sainte-Marie', paysNom: 'Républia', journaliste: 'Annie Houininon', journal: 'La Tribune de Républia' },
   { pays: 'republic', ville: 'ville_b',  villeNom: 'Montrouge',         paysNom: 'Républia', journaliste: 'Arthur Lutte',    journal: 'La Tribune de Républia' },
   { pays: 'soviet',   ville: 'capitale', villeNom: 'Novomirsk',         paysNom: 'Sovarka',  journaliste: 'Zoïa Glazounova', journal: 'La Voix de Sovarka' },
-  { pays: 'soviet',   ville: 'ville_a',  villeNom: 'Starovka',          paysNom: 'Sovarka',  journaliste: 'Saran Batbayar',  journal: 'Metel' },
+  { pays: 'soviet',   ville: 'ville_a',  villeNom: 'Starovka',          paysNom: 'Sovarka',  journaliste: 'Saran Batbayar',  journal: 'La Voix de Sovarka' },
   { pays: 'soviet',   ville: 'ville_b',  villeNom: 'Krasnov',           paysNom: 'Sovarka',  journaliste: 'Anatoli Kolosov', journal: 'La Voix de Sovarka' }
 ].map(a => Object.freeze(a)));
 const JODIE_PORTRAIT_SUJET_PROPOSITION = "Un portrait pour L'Autruche Entravée ?";

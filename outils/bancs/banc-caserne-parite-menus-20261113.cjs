@@ -63,7 +63,7 @@ test('Les sous-menus reprennent les boutons existants et les contrôles de pays/
  assert.match(plateau,/state\.currentRoom !== groupe\.piece/);
  assert.match(plateau,/state\.country !== groupe\.pays/);
  assert.match(plateau,/state\.currentCity !== groupe\.ville/);
- assert.match(plateau,/if \(o\.requiresPost && !needsPost && paysMandatPourOrdre\(\) !== state\.country\)/);
+ assert.match(plateau,/if \(o\.requiresPost && !needsPost && paysMandatPourOrdre\(o\.requiresPost\) !== state\.country\)/);
 });
 test('Six titres de menus traduits dans les neuf langues sans modifier les ordres',()=>{
  const locales=['fr','en','es','zh-TW','ru','ko','ar','pt-BR','de'];

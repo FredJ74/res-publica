@@ -1,0 +1,29 @@
+name: "Médicaments, usines d'État et antidote"
+on:
+  pull_request:
+    paths: [plateau-maladies.js, plateau-justice-economie.js, plateau-personnage.js, admin-sante.js, api/cron-minuit.js, 'migrations/20261122230000_sante_socle.sql', 'migrations/20261122233000_sante_maladies_medicaments.sql', 'migrations/20261123110000_medicaments_usines_antidote.sql', 'outils/bancs/banc-medicaments-usines-*', data.js, plateau.html, outils/bancs/mobile-navigateur.cjs, 'outils/bancs/fixtures/medicaments-usines-*', 'outils/bancs/fixtures/sante-maladies-*', 'outils/bancs/fixtures/inventaire-direct-pglite-socle.sql.txt', .github/workflows/medicaments-usines-20261123.yml]
+  push:
+    branches: [main, 'claude/**']
+    paths: [plateau-maladies.js, plateau-justice-economie.js, plateau-personnage.js, admin-sante.js, api/cron-minuit.js, 'migrations/20261122230000_sante_socle.sql', 'migrations/20261122233000_sante_maladies_medicaments.sql', 'migrations/20261123110000_medicaments_usines_antidote.sql', 'outils/bancs/banc-medicaments-usines-*', data.js, plateau.html, outils/bancs/mobile-navigateur.cjs, 'outils/bancs/fixtures/medicaments-usines-*', 'outils/bancs/fixtures/sante-maladies-*', 'outils/bancs/fixtures/inventaire-direct-pglite-socle.sql.txt', .github/workflows/medicaments-usines-20261123.yml]
+permissions:
+  contents: read
+jobs:
+  medicaments-usines:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
+      - run: for f in plateau-maladies.js plateau-justice-economie.js plateau-personnage.js admin-sante.js api/cron-minuit.js; do node --check "$f"; done
+      - run: node --test outils/bancs/test-maladies-lot1-20261118.cjs
+      - name: Chromium réel, 1280 et 390 px
+        env:
+          HG_CHROMIUM: /usr/bin/google-chrome
+        run: node --test outils/bancs/banc-medicaments-usines-navigateur-20261123.cjs
+      - name: PostgreSQL local (PGlite)
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund --prefix "$RUNNER_TEMP/pglite" @electric-sql/pglite@0.2.17
+          PGLITE_DIR="$RUNNER_TEMP/pglite" node --test outils/bancs/banc-medicaments-usines-pglite-20261123.cjs

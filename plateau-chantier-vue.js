@@ -212,6 +212,7 @@ const TXT4 = {
   j_journal: 'Journal du chantier', j_manque: 'L’entrepôt de {ville} n’a pas pu tout fournir : il manque {liste} pour aujourd’hui. Passants, vendez ou donnez ces matériaux au chantier (onglet « Stock de matériaux ») : il vous les rachète.',
   j_commande: 'Commande de la nuit à l’entrepôt de {ville} : {livre}.', j_commande_avance: 'Jour d’avance ouvert : commande immédiate à l’entrepôt de {ville} : {livre}.', j_rien_livre: 'rien n’a pu être livré',
   j_journee: 'Nuit du {date} : le chantier a avancé de {a} jour(s).',
+  j_crue: 'Nuit du {date} : crue dans la ville, le chantier n’a pas avancé (un jour de retard).',
   s_materiau: 'Matériau', s_prix: 'Prix de rachat', s_stock: 'Stock / besoin du jour', s_quantite: 'Quantité', s_donner: 'Donner au lieu de vendre', s_rien: 'Indiquez une quantité sur au moins une ligne.',
 s_complet: 'Le besoin du jour est couvert : le chantier n’achète plus de {m} aujourd’hui.',
   s_valider: 'Valider', s_plafond: 'au plus {n} (ce qui manque et ce que vous avez)',
@@ -318,6 +319,7 @@ function journalChantier(ch) {
     if (e.cle === 'commande_materiaux') return t4(e.motif === 'avance' ? 'j_commande_avance' : 'j_commande', { ville, livre: listeQuantites(e.livre) || t4('j_rien_livre') });
     if (e.cle === 'manque_materiaux') return t4('j_manque', { ville, liste: listeQuantites(e.manque) });
     if (e.cle === 'journee' || e.cle === 'journee_avance') return t4('j_journee', { date: e.date || '', a: (Math.round((Number(e.avance) || 0) * 100) / 100).toString().replace('.', ',') });
+    if (e.cle === 'crue') return t4('j_crue', { date: e.date || '' });   // crue (Fred, 22/11/2026) : un jour de retard
     return null;
   }).filter(Boolean);
   if (!lignes.length) return '';

@@ -57,7 +57,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   // donne aucune autorite dans les ministeres de Sovarka, et reciproquement.
   if (typeof definitionOrdreDansPiece === 'function' && typeof paysMandatPourOrdre === 'function') {
     const definitionMinisterielle = definitionOrdreDansPiece(state.currentBuilding, state.currentRoom, fn);
-    if (definitionMinisterielle?.requiresPost && paysMandatPourOrdre() !== state.country) {
+    if (definitionMinisterielle?.requiresPost && paysMandatPourOrdre(definitionMinisterielle.requiresPost) !== state.country) {
       showToast('Accès refusé', 'Ce mandat ne vous donne aucun pouvoir dans cet empire.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b2276fa14", 'Ce mandat ne vous donne aucun pouvoir dans cet empire.', undefined, 'Accès refusé');
       return;
     }
@@ -525,9 +525,10 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   // mecanique. Sortie immediate, AVANT tout debit -- l'ordre est a 0 PA / 0 FR
   // et n'a rien a faire savoir au serveur. Voir plateau-equipements.js.
   if (fn === 'installer_equipements')    { ouvrirModalEquipements(); return; }
-  // ACTIONS DE PIÈCE (lot de Krasnov, point 9, 22/11/2026) : Inspecter (1 PA) et Désinstaller (2 PA par matériel),
-  // débités par le serveur ; sortie avant tout débit générique.
-  if (fn === 'inspecter_piece' && typeof ouvrirFenetreInspecter === 'function') { ouvrirFenetreInspecter(); return; }
+  // ACTIONS DE PIÈCE (lot de Krasnov, point 9, 22/11/2026 ; regroupées le 22/11 au soir, point 17) : « Inspecter la pièce »
+  // ouvre la fenêtre à trois volets (installé, fouiller 1 PA, désinstaller 2 PA), PA débités par le serveur ; sortie avant
+  // tout débit générique. desinstaller_materiel n'est plus un bouton de pièce : il ouvre le volet « Désinstaller ».
+  if (fn === 'inspecter_piece' && typeof ouvrirFenetreInspecter === 'function') { ouvrirFenetreInspecter('installe'); return; }
   if (fn === 'desinstaller_materiel' && typeof ouvrirDesinstaller === 'function') { ouvrirDesinstaller(); return; }
   // FOUILLER OU VOLER (11/11/2026) : ordre de piece qui ouvre un menu (fouille ou vol) ; les PA sont
   // debites par le serveur dans chaque action, donc sortie avant tout debit generique.

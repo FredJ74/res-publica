@@ -4,6 +4,137 @@
 // =====================
 
 // =====================
+// PAYS D'UN POSTE — REGLE UNIQUE DU NAVIGATEUR (23/11/2026, GAME-DESIGN-INTERFACE-ACCUEIL-20261122.md, B.15-16)
+// Le pays (et la ville) d'un poste se lit dans son REGISTRE, jamais dans personnages.country (la position du
+// voyageur) ni dans la nationalite :
+//   - poste nomme : postes_attribues (country, city) ; une ligne ne vaut que si la fiche du titulaire porte ce meme
+//     poste (une seule fonction nommee a la fois) -- une ligne orpheline ne donne rien ;
+//   - poste elu (president, maire, chef_syndicat, depute) : cycles_electoraux (country, city, eluId / elus) ;
+//   - grade militaire : la compagnie (compagnie-<pays>-...).
+// Un personnage en voyage garde son poste dans SON pays et n'obtient aucun pouvoir du pays ou il se trouve.
+// Equivalent serveur, seul juge : poste_detenu / poste_pays_de / poste_exerce (migration 20261123120000_postes_pays).
+//   posteDetenu(nom, posteId, pays, ville)  « ce personnage detient-il ce poste dans ce pays (cette ville) » ;
+//   paysDuPoste(nom)                        pays du poste porte par la fiche de ce personnage (null si non atteste) ;
+//   posteExerceIci(posteId)                 le joueur peut-il exercer ce poste ici (il est dans le pays de son poste) ;
+//   titulairesRegistre(pays, posteId, ville) noms des titulaires d'un poste dans un pays (organigrammes).
+// Ces fonctions lisent un cache rempli par chargerRegistrePostes() (30 s) ; sans cache, elles repondent « non ».
+// =====================
+const POSTES_ELUS_REGISTRE = ['president', 'maire', 'chef_syndicat', 'depute'];
+let _registrePostes = null, _registrePostesEnVol = null;
+
+function posteDeFiche(j) {
+  let poste = j && j.poste;
+  if (typeof poste === 'string') { try { poste = JSON.parse(poste); } catch (e) { poste = null; } }
+  return poste && typeof poste === 'object' && poste.id ? poste : null;
+}
+
+async function chargerRegistrePostes(forcer) {
+  if (!forcer && _registrePostes && Date.now() - _registrePostes.lu < 30000) return _registrePostes;
+  if (_registrePostesEnVol) return _registrePostesEnVol;
+  if (typeof sbGet !== 'function') return _registrePostes;
+  _registrePostesEnVol = (async () => {
+    const [lignes, cycles, joueurs] = await Promise.all([
+      sbGet('postes_attribues', 'select=id,country,poste_id,city,titulaire,depuis'),
+      sbGet('cycles_electoraux', 'poste_id=in.(' + POSTES_ELUS_REGISTRE.join(',') + ')&select=id,country,poste_id,city,data'),
+      typeof sbListPersonnages === 'function' ? sbListPersonnages() : Promise.resolve([])
+    ]);
+    if (!Array.isArray(lignes)) throw new Error('Registre des postes illisible');
+    const fiches = new Map();
+    (Array.isArray(joueurs) ? joueurs : []).forEach(j => fiches.set(j.name, posteDeFiche(j)));
+    const elus = (Array.isArray(cycles) ? cycles : []).map(c => {
+      let data = c.data;
+      if (typeof data === 'string') { try { data = JSON.parse(data); } catch (e) { data = null; } }
+      return { country: c.country, poste_id: c.poste_id, city: c.city || null,
+        eluId: data && typeof data.eluId === 'string' ? data.eluId : null,
+        elus: data && Array.isArray(data.elus) ? data.elus.filter(n => typeof n === 'string') : [] };
+    });
+    // Le joueur courant est toujours connu, meme hors annuaire.
+    if (typeof state !== 'undefined' && state.char?.name && !fiches.has(state.char.name)) fiches.set(state.char.name, state.poste || null);
+    _registrePostes = { lu: Date.now(), lignes, elus, fiches };
+    if (typeof state !== 'undefined' && state.char?.name) state.paysPoste = paysDuPoste(state.char.name);
+    return _registrePostes;
+  })().finally(() => { _registrePostesEnVol = null; });
+  return _registrePostesEnVol;
+}
+
+// Ligne du registre valable : la fiche du titulaire (s'il est PJ) porte ce poste. La presidence de l'Assemblee
+// n'est portee par aucune fiche : son registre suffit.
+function ligneRegistreValable(l) {
+  const fiches = _registrePostes?.fiches;
+  if (!fiches || !fiches.has(l.titulaire) || l.poste_id === 'president_assemblee') return true;
+  return fiches.get(l.titulaire)?.id === l.poste_id;
+}
+
+function posteDetenu(nom, posteId, pays, ville) {
+  const reg = _registrePostes;
+  if (!reg || !nom || !posteId || !pays) return false;
+  const villeOk = c => !ville || (c || null) === ville;
+  if (POSTES_ELUS_REGISTRE.includes(posteId)) {
+    return reg.elus.some(c => c.country === pays && c.poste_id === posteId && villeOk(c.city)
+      && (posteId === 'depute' ? c.elus.includes(nom) : c.eluId === nom));
+  }
+  if (posteId === 'capitaine' || posteId === 'lieutenant') {
+    const poste = reg.fiches.get(nom);
+    return poste?.id === posteId && String(poste.compagnieId || '').split('-')[1] === pays;
+  }
+  return reg.lignes.some(l => l.titulaire === nom && l.poste_id === posteId && l.country === pays
+    && villeOk(l.city) && ligneRegistreValable(l));
+}
+
+function paysDuPoste(nom) {
+  const reg = _registrePostes;
+  if (!reg || !nom) return null;
+  const poste = reg.fiches.get(nom);
+  if (!poste) return null;
+  if (POSTES_ELUS_REGISTRE.includes(poste.id)) {
+    const c = reg.elus.find(e => e.poste_id === poste.id && (!poste.city || e.city === poste.city)
+      && (poste.id === 'depute' ? e.elus.includes(nom) : e.eluId === nom));
+    return c ? c.country : null;
+  }
+  if (['capitaine', 'lieutenant', 'soldat'].includes(poste.id)) return String(poste.compagnieId || '').split('-')[1] || null;
+  const l = reg.lignes.find(x => x.titulaire === nom && x.poste_id === poste.id
+    && (!poste.city || !x.city || x.city === poste.city));
+  return l ? l.country : null;
+}
+
+// Le joueur courant peut-il exercer ce poste ICI : il le detient, et il se trouve dans le pays de ce poste.
+function posteExerceIci(posteId) {
+  const nom = (typeof state !== 'undefined' && state.char?.name) || '';
+  if (!nom || !posteId || state.poste?.id !== posteId) return false;
+  return paysDuPoste(nom) === state.country && posteDetenu(nom, posteId, state.country, null);
+}
+
+// Panneau du personnage : l'intitule du poste du joueur dans le pays DE SON POSTE (« Ministre de la Defense », pas
+// « Ministre de la Defense de la Patrie » pour un republicain a Krasnov), et le pays nomme quand il voyage.
+function libellePosteJoueur() {
+  if (typeof state === 'undefined' || !state.poste?.id) return '';
+  const pays = state.paysPoste || (_registrePostes ? paysDuPoste(state.char?.name) : null);
+  const base = typeof intitulePoste === 'function' ? intitulePoste(state.poste.id, pays || state.country, state.poste.name) : (state.poste.name || state.poste.id);
+  const nomPays = pays && pays !== state.country && typeof COUNTRIES !== 'undefined' ? COUNTRIES[pays]?.n : '';
+  return nomPays ? base + ' — ' + nomPays : base;
+}
+
+// Liste des PJ : le poste d'un joueur tel que son registre l'atteste, intitule dans le pays du poste, pays nomme
+// s'il differe de celui sous lequel le joueur est range. Registre lu et poste non atteste : rien n'est affiche.
+function libellePostePJ(j, paysRange) {
+  const poste = posteDeFiche(j);
+  if (!poste) return '';
+  if (!_registrePostes) return poste.name || '';
+  const pays = paysDuPoste(j.name);
+  if (!pays || !posteDetenu(j.name, poste.id, pays, poste.city || null)) return '';
+  const base = typeof intitulePoste === 'function' ? intitulePoste(poste.id, pays, poste.name) : (poste.name || poste.id);
+  const nomPays = pays !== paysRange && typeof COUNTRIES !== 'undefined' ? COUNTRIES[pays]?.n : '';
+  return nomPays ? base + ' (' + nomPays + ')' : base;
+}
+
+function titulairesRegistre(pays, posteId, ville) {
+  const reg = _registrePostes;
+  if (!reg) return [];
+  return reg.lignes.filter(l => l.country === pays && l.poste_id === posteId && (!ville || (l.city || null) === ville)
+    && ligneRegistreValable(l)).map(l => ({ nom: l.titulaire, estPJ: reg.fiches.has(l.titulaire), depuis: l.depuis, city: l.city || null }));
+}
+
+// =====================
 // LOOKUP UNIQUE — qui detient reellement un poste, quel que soit son type
 // Refonte du 9 aout 2026 : remplace getTitulairePoste (aveugle aux PNJ, ne trouvait que les
 // vrais joueurs), getTitulaireMaire (idem, variante maire) et getTitulairePosteNomme (deja
@@ -22,26 +153,17 @@ async function getTitulaireActuel(posteId, city, pays, options) {
   const country = pays || state.country;
 
   if (POSTES_NOMMES_EXCLUSIFS[posteId]) {
-    // Poste nomme : vrai joueur d'abord (state.poste sur sa fiche), PNJ (titulaires_pnj) en repli.
-    if (typeof sbListPersonnages === 'function') {
-      try {
-        const joueurs = await sbListPersonnages() || [];
-        let posteMatch = null;
-        const match = joueurs.find(j => {
-          let poste = j.poste;
-          if (typeof poste === 'string') { try { poste = JSON.parse(poste); } catch(e) { poste = null; } }
-          if (j.country !== country || !poste || poste.id !== posteId) return false;
-          if (city && poste.city !== city) return false;
-          posteMatch = poste;
-          return true;
-        });
-        // posteComplet (25 aout 2026, lot priorite PJ) : ajout additif -- porte l'objet poste
-        // integral (id/name/city/nommeLe) pour permettre a l'appelant de verifier une eventuelle
-        // protection (estPosteProtege, plateau-politique.js) sans requete supplementaire. Ne
-        // change rien pour les appelants existants, qui ne lisaient que .nom/.estPJ.
-        if (match) return { nom: match.name, estPJ: true, posteComplet: posteMatch };
-      } catch(e) {}
-    }
+    // Poste nomme : le REGISTRE postes_attribues filtre sur le pays affiche (et la ville), PNJ (titulaires_pnj)
+    // en repli. Plus jamais la fiche des joueurs filtree sur personnages.country : c'est leur position, et un
+    // ministre de Republia en voyage a Krasnov apparaissait ministre de Sovarka (23/11/2026, B.15).
+    try {
+      await chargerRegistrePostes();
+      const ligne = titulairesRegistre(country, posteId, city || null)[0];
+      // posteComplet (25 aout 2026, lot priorite PJ) : porte l'objet poste integral pour estPosteProtege.
+      if (ligne && ligne.estPJ) return { nom: ligne.nom, estPJ: true, posteComplet: _registrePostes.fiches.get(ligne.nom) || {
+        id: posteId, city: ligne.city, nommeLe: Date.parse(ligne.depuis) } };
+      if (ligne) return { nom: ligne.nom, estPJ: false };
+    } catch(e) {}
     if (typeof sbGetTitulairePnj === 'function') {
       const nomPnj = await sbGetTitulairePnj(country, posteId, city).catch(() => null);
       if (nomPnj) return { nom: nomPnj, estPJ: false };
@@ -73,7 +195,8 @@ async function getTitulaireActuel(posteId, city, pays, options) {
   if (typeof sbListPersonnages === 'function') {
     try {
       const joueurs = await sbListPersonnages() || [];
-      const estPJ = joueurs.some(j => j.country === country && j.name === eluId);
+      // Un PJ est un nom de la table personnages, ou qu'il se trouve (sa position ne dit rien de son mandat).
+      const estPJ = joueurs.some(j => j.name === eluId);
       return { nom: eluId, estPJ };
     } catch(e) {}
   }

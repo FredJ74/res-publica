@@ -31,13 +31,13 @@ export async function lireTitulaireMunicipal(poste, pays, ville, lire) {
     const nom = data.eluId;
     if (nom === undefined || nom === null || nom === '') return null;
     if (typeof nom !== 'string') throw new Error('Titulaire municipal invalide');
-    const joueur = await unique('personnages', 'country=eq.' + q(pays) + '&name=eq.' + q(nom) + '&select=name');
+    const joueur = await unique('personnages', 'name=eq.' + q(nom) + '&select=name'); // PJ ou qu'il se trouve (23/11/2026, B.16)
     return { nom, estPJ: !!joueur };
   }
   const attribue = await unique('postes_attribues', territoire + '&poste_id=eq.maire_adjoint&select=titulaire,depuis');
   if (attribue) {
     if (typeof attribue.titulaire !== 'string' || !attribue.titulaire) throw new Error('Attribution municipale invalide');
-    const joueur = await unique('personnages', 'country=eq.' + q(pays) + '&name=eq.' + q(attribue.titulaire) + '&select=name');
+    const joueur = await unique('personnages', 'name=eq.' + q(attribue.titulaire) + '&select=name');
     if (!joueur) throw new Error('Attribution municipale orpheline');
     return { nom: attribue.titulaire, estPJ: true, posteComplet: {
       id: poste, city: ville, nommeLe: Date.parse(attribue.depuis)

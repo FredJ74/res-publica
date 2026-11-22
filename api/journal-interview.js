@@ -21,11 +21,22 @@
 //      jamais modifiable par le client). La publication (action 'publier') ne lit plus JAMAIS de
 //      Q/R fournies par le client : uniquement le transcript accumulé par ce serveur lui-même.
 //
-// 4 actions (même doctrine de dispatch que api/renseignements.js) :
+// 5 actions (même doctrine de dispatch que api/renseignements.js) :
 //   - 'cooldown' { personnage } -> { ok, joursRestants }
 //   - 'lancer'   { personnage } -> { ok, interviewId } | { error:'cooldown', joursRestants }
 //   - 'question' { personnage, interviewId, reponse? } -> { ok, termine, question|clotureTexte }
 //   - 'publier'  { personnage, interviewId } -> { ok, statut:'publiee'|'en_attente', titre, texte }
+//   - 'accueil_publier' { personnage } -> même réponse que 'publier' (mode « interview d'accueil »)
+//
+// MODE ACCUEIL (Fred, 22/11/2026, GAME-DESIGN-INTERFACE-ACCUEIL-20261122.md, point 23 ; aucune nouvelle
+// fonction Vercel). À la première connexion, Jodie Moitout (Républia) ou Vera Pravdina (Sovarka, « La Voix de
+// Sovarka ») demande au joueur quel chemin il veut prendre. Le chemin et le mot du joueur sont enregistrés par
+// la base (RPC accueil_choisir_chemin, table accueil_personnages) ; cette action ne reçoit QUE le nom du
+// personnage : elle relit le chemin et le mot en base, construit un entretien d'une question dans
+// interviews_jodie (accueil = true, journaliste), et publie l'article exactement comme 'publier' (même
+// contrôle du verbatim, même persistance, même journal du pays). En Sovarka, l'article est retouché à la
+// gloire du Parti (consigne de rédaction CONSIGNE_PARTI ci-dessous). Les interviews d'accueil n'arment pas le
+// délai de 10 jours de l'interview volontaire.
 //
 // Ce que le client fournit désormais, au total : son nom déclaré, l'identifiant d'interview
 // (jamais devinable depuis l'extérieur, RLS verrouillée), et le texte brut de CHACUNE de ses
@@ -38,6 +49,7 @@
 // sous peine d'avoir deux definitions divergentes de ce qu'est une parole rapportee.
 import { extraireCitations, normaliserPourCitation, assainirMondeReel } from './_journal-generation.js';
 import { appelDeepSeek, joueurAuthentifie } from './_deepseek.js';
+import { createHash } from 'node:crypto';
 
 const ALLOWED_ORIGIN = 'https://res-publica.vercel.app';
 
@@ -103,6 +115,11 @@ function calculerCooldownRestant(derniereInterview) {
   const ecouleMs = Date.now() - new Date(derniereInterview.created_at).getTime();
   if (ecouleMs >= requisMs) return 0;
   return Math.ceil((requisMs - ecouleMs) / (24 * 60 * 60 * 1000));
+}
+
+// L'interview d'accueil (accueil = true) n'arme jamais le délai de l'interview volontaire.
+function derniereInterviewVolontaire(rows) {
+  return (Array.isArray(rows) ? rows : []).find(r => r && r.accueil !== true) || null;
 }
 
 function validerChamp(v, max) {
@@ -192,7 +209,8 @@ function construirePromptQuestion(nom, pays, dossierTexte, transcript, dejaPosee
   return p;
 }
 
-function construirePromptArticle(nom, pays, dossierTexte, questions, reponses) {
+function construirePromptArticle(nom, pays, dossierTexte, questions, reponses, accueil) {
+  if (accueil) return construirePromptArticleAccueil(nom, pays, dossierTexte, questions, reponses, accueil);
   let p = construirePreambule(nom, pays, dossierTexte);
   p += "Voici l'intégralité de l'entretien que tu viens de mener :\n";
   questions.forEach((q, i) => {
@@ -200,6 +218,47 @@ function construirePromptArticle(nom, pays, dossierTexte, questions, reponses) {
   });
   p += "\nRédige maintenant un ARTICLE JOURNALISTIQUE complet pour La Tribune de Républia à partir de cet entretien -- JAMAIS un simple enchaînement Question/Réponse. Tu peux synthétiser, reformuler, contextualiser et structurer, mais tu ne dois JAMAIS inventer une déclaration ou une citation qui ne correspond pas fidèlement à ce que " + nom + " a réellement répondu ci-dessus. " +
     "Format de réponse EXACT : la toute première ligne est le TITRE de l'article (court, accrocheur, sans guillemets), puis une ligne vide, puis le corps de l'article (200 à 350 mots, ton journalistique, troisième personne). Rien d'autre : pas d'introduction, pas de commentaire, texte brut sans markdown.";
+  return p;
+}
+
+// =====================
+// INTERVIEW D'ACCUEIL — Jodie Moitout (Républia) ou Vera Pravdina (Sovarka)
+// =====================
+// Voix de Vera : duplication minimale de son entrée PNJ (api/_pnj-personnalites.js, 'vera_pravdina').
+const VERA_TRAIT = "Journaliste de La Voix de Sovarka, organe du Parti. Accueille chaque nouveau citoyen avec une ferveur sincère et un carnet toujours ouvert. Croit que toute vie bien racontée sert la Patrie.";
+const VERA_STYLE = "ferveur officielle, phrases édifiantes, « camarade » affectueux, enthousiasme de la presse du Parti";
+// Consigne de rédaction de Sovarka (Fred, 22/11/2026, point 23) : l'article est retouché à la gloire du Parti.
+export const CONSIGNE_PARTI = "CONSIGNE DE RÉDACTION DE LA VOIX DE SOVARKA (obligatoire) : l'article est retouché à la gloire du Parti. " +
+  "Présente le chemin choisi par le nouveau citoyen comme un service rendu à la Patrie et au Parti, sur le ton édifiant et enthousiaste de la presse officielle sovarkienne ; " +
+  "conclus sur la confiance du Parti envers ce nouveau camarade. Jamais une critique du Parti, du Président ou de l'État. " +
+  "Les paroles du citoyen citées entre guillemets restent mot pour mot ce qu'il a répondu (tu peux les encadrer de commentaires élogieux, jamais les modifier). ";
+
+function construirePreambuleAccueil(nom, pays, dossierTexte, accueil) {
+  let p;
+  if (accueil.journaliste === 'Vera Pravdina') {
+    p = "Tu es Vera Pravdina, journaliste de La Voix de Sovarka, dans le pays de Sovarka, dans le jeu Res Publica (jamais « soviétique » : on dit « sovarkien »). ";
+    p += "Ta personnalite : " + VERA_TRAIT + " Ton style : " + VERA_STYLE + ". ";
+  } else {
+    p = "Tu es Jodie Moitout, journaliste micro-trottoir pour le journal L'Autruche Entravee (groupe La Tribune de Republia), dans le jeu Res Publica. Le pays s'appelle Républia, avec un accent aigu sur le e. ";
+    p += "Ta personnalite : " + JODIE_TRAIT + " Ton style : " + JODIE_STYLE + ". ";
+  }
+  if (EMPIRE_TONES[pays]) p += "Ambiance generale du pays : " + EMPIRE_TONES[pays] + ". ";
+  p += "C'est TOI qui as accueilli " + nom + ", nouvel arrivant, pour un court entretien de bienvenue (jamais l'inverse). ";
+  p += "Voici ce que tu sais PUBLIQUEMENT sur cette personne -- n'utilise QUE ces informations, n'invente jamais un fait supplementaire qui n'y figure pas :\n" + dossierTexte + "\n\n";
+  return p;
+}
+
+export function construirePromptArticleAccueil(nom, pays, dossierTexte, questions, reponses, accueil) {
+  let p = construirePreambuleAccueil(nom, pays, dossierTexte, accueil);
+  p += "Voici l'entretien de bienvenue :\n";
+  questions.forEach((q, i) => {
+    p += (i + 1) + ". Toi : " + q + "\n   Réponse : \"" + String(reponses[i]).replace(/"/g, "'") + "\"\n";
+  });
+  p += "\nLe chemin choisi par " + nom + " est : " + accueil.cheminLibelle + ". ";
+  if (accueil.journaliste === 'Vera Pravdina') p += CONSIGNE_PARTI;
+  p += "Rédige maintenant un court ARTICLE DE BIENVENUE pour le journal du pays, à partir de cet entretien -- jamais un enchaînement Question/Réponse. " +
+    "Tu ne dois JAMAIS inventer une déclaration ou une citation qui ne correspond pas fidèlement à ce que " + nom + " a réellement répondu. " +
+    "Format de réponse EXACT : la toute première ligne est le TITRE de l'article (court, accrocheur, sans guillemets), puis une ligne vide, puis le corps de l'article (120 à 220 mots, troisième personne). Rien d'autre : pas d'introduction, pas de commentaire, texte brut sans markdown.";
   return p;
 }
 
@@ -307,8 +366,8 @@ async function handleCooldown(body) {
   if (Object.keys(body).some(k => !clesAutorisees.includes(k))) return { status: 400, json: { error: 'Champ non autorisé.' } };
   if (!validerChamp(body.personnage, MAX_LONGUEUR_NOM)) return { status: 400, json: { error: 'Personnage invalide.' } };
 
-  const rows = await sbGet('interviews_jodie', `personnage=eq.${encodeURIComponent(body.personnage)}&order=created_at.desc&limit=1`, SB_HEADERS_SERVICE);
-  const joursRestants = calculerCooldownRestant(rows && rows[0]);
+  const rows = await sbGet('interviews_jodie', `personnage=eq.${encodeURIComponent(body.personnage)}&order=created_at.desc&limit=5`, SB_HEADERS_SERVICE);
+  const joursRestants = calculerCooldownRestant(derniereInterviewVolontaire(rows));
   return { status: 200, json: { ok: true, joursRestants } };
 }
 
@@ -321,8 +380,8 @@ async function handleLancer(body) {
   // Défense en profondeur : la vérification "officielle" a lieu via l'action 'cooldown' juste
   // avant côté client (aucun PA consommé si elle bloque) -- ceci empêche seulement qu'un appel
   // direct à 'lancer' sans passer par là ne contourne la règle.
-  const rows = await sbGet('interviews_jodie', `personnage=eq.${encodeURIComponent(personnage)}&order=created_at.desc&limit=1`, SB_HEADERS_SERVICE);
-  const joursRestants = calculerCooldownRestant(rows && rows[0]);
+  const rows = await sbGet('interviews_jodie', `personnage=eq.${encodeURIComponent(personnage)}&order=created_at.desc&limit=5`, SB_HEADERS_SERVICE);
+  const joursRestants = calculerCooldownRestant(derniereInterviewVolontaire(rows));
   if (joursRestants > 0) return { status: 409, json: { error: 'cooldown', joursRestants } };
 
   const persos = await sbGet('personnages', `name=eq.${encodeURIComponent(personnage)}&select=country`, SB_HEADERS_LECTURE);
@@ -386,7 +445,7 @@ async function handleQuestion(body) {
   return { status: 200, json: { ok: true, termine: false, question: nettoye } };
 }
 
-async function handlePublier(body) {
+async function handlePublier(body, accueil) {
   const clesAutorisees = ['action', 'personnage', 'interviewId'];
   if (Object.keys(body).some(k => !clesAutorisees.includes(k))) return { status: 400, json: { error: 'Champ non autorisé.' } };
   if (!validerChamp(body.personnage, MAX_LONGUEUR_NOM)) return { status: 400, json: { error: 'Personnage invalide.' } };
@@ -423,7 +482,7 @@ async function handlePublier(body) {
   // client dans ce même appel (voir en-tête de fichier).
   const transcript = Array.isArray(row.transcript) ? row.transcript : [];
   const complet = transcript.filter(t => t && typeof t.question === 'string' && typeof t.reponse === 'string' && t.reponse.length > 0);
-  if (complet.length < MIN_QUESTIONS || complet.length !== transcript.length) {
+  if (complet.length < (accueil ? 1 : MIN_QUESTIONS) || complet.length !== transcript.length) {
     return relacherEtEchouer(409, "L'entretien n'est pas complet.");
   }
 
@@ -435,7 +494,7 @@ async function handlePublier(body) {
   const dossierTexte = await construireDossierPublicPJ(personnage).catch(() => "Aucune information publique notable n'est disponible sur cette personne pour l'instant.");
   const questions = complet.map(t => t.question);
   const reponses = complet.map(t => t.reponse);
-  const prompt = construirePromptArticle(personnage, pays, dossierTexte, questions, reponses);
+  const prompt = construirePromptArticle(personnage, pays, dossierTexte, questions, reponses, accueil);
 
   const appel = await appelIA(prompt, 700, 30000);
   if (!appel.ok) return relacherEtEchouer(502, appel.erreur);
@@ -503,6 +562,60 @@ async function handlePublier(body) {
   return { status: 200, json: { ok: true, statut: immediat.ok ? 'publiee' : 'en_attente', titre, texte: corps } };
 }
 
+// Lecture de l'état d'accueil en base (jamais fourni par le navigateur).
+async function lireAccueil(personnage) {
+  const lignes = await sbGet('accueil_personnages', `personnage=eq.${encodeURIComponent(personnage)}&limit=1`, SB_HEADERS_SERVICE);
+  return (lignes && lignes[0]) || null;
+}
+async function marquerAccueilFait(personnage, interviewId) {
+  const maintenant = new Date().toISOString();
+  await sbUpdate('accueil_personnages', `personnage=eq.${encodeURIComponent(personnage)}&etat_interview=eq.article_a_publier`,
+    { etat_interview: 'faite', interview_id: interviewId, publiee_le: maintenant, maj_le: maintenant }, SB_HEADERS_SERVICE).catch(() => null);
+}
+
+async function handleAccueilPublier(body) {
+  const clesAutorisees = ['action', 'personnage'];
+  if (Object.keys(body).some(k => !clesAutorisees.includes(k))) return { status: 400, json: { error: 'Champ non autorisé.' } };
+  const personnage = body.personnage;
+  const ligne = await lireAccueil(personnage);
+  if (!ligne || !ligne.chemin || !['article_a_publier', 'faite'].includes(ligne.etat_interview)) {
+    return { status: 409, json: { error: "Aucune interview d'accueil à publier." } };
+  }
+  const interviewId = 'interview_accueil_' + createHash('sha256').update('accueil:' + personnage).digest('hex').slice(0, 24);
+  if (ligne.etat_interview === 'faite') {
+    const faites = await sbGet('interviews_jodie', `id=eq.${encodeURIComponent(ligne.interview_id || interviewId)}&select=article_titre,article_texte`, SB_HEADERS_SERVICE);
+    const f = faites && faites[0];
+    return { status: 200, json: { ok: true, dejaPubliee: true, statut: 'en_attente', titre: f?.article_titre || null, texte: f?.article_texte || null } };
+  }
+  const [journalistes, chemins] = await Promise.all([
+    sbGet('accueil_journalistes', `pays=eq.${encodeURIComponent(ligne.pays)}&limit=1`, SB_HEADERS_SERVICE),
+    sbGet('accueil_chemins', `pays=eq.${encodeURIComponent(ligne.pays)}&chemin=eq.${encodeURIComponent(ligne.chemin)}&limit=1`, SB_HEADERS_SERVICE)
+  ]);
+  const j = journalistes && journalistes[0];
+  const c = chemins && chemins[0];
+  if (!j || !c) return { status: 503, json: { error: 'La rédaction est injoignable. Réessayez dans un instant.' } };
+  const reponse = c.libelle + (ligne.mot ? ' — ' + ligne.mot : '');
+  const existantes = await sbGet('interviews_jodie', `id=eq.${encodeURIComponent(interviewId)}`, SB_HEADERS_SERVICE);
+  if (!existantes || !existantes.length) {
+    const ins = await sbInsert('interviews_jodie', {
+      id: interviewId, personnage, country: ligne.pays, accueil: true, journaliste: j.journaliste,
+      transcript: [{ question: j.question, reponse }]
+    }, SB_HEADERS_SERVICE);
+    if (!ins.ok) {
+      const relues = await sbGet('interviews_jodie', `id=eq.${encodeURIComponent(interviewId)}`, SB_HEADERS_SERVICE);
+      if (!relues || !relues.length) return { status: 502, json: { error: "Impossible d'enregistrer l'interview. Réessayez dans un instant." } };
+    }
+  }
+  const resultat = await handlePublier({ action: 'publier', personnage, interviewId },
+    { journaliste: j.journaliste, journal: j.journal, cheminLibelle: c.libelle });
+  if (resultat.status === 200 && resultat.json?.ok) {
+    await marquerAccueilFait(personnage, interviewId);
+    resultat.json.journaliste = j.journaliste;
+    resultat.json.journal = j.journal;
+  }
+  return resultat;
+}
+
 export default async function handler(req, res) {
   const origin = req.headers.origin;
   if (origin === ALLOWED_ORIGIN) res.setHeader('Access-Control-Allow-Origin', ALLOWED_ORIGIN);
@@ -531,6 +644,7 @@ export default async function handler(req, res) {
     else if (body.action === 'lancer') resultat = await handleLancer(body);
     else if (body.action === 'question') resultat = await handleQuestion(body);
     else if (body.action === 'publier') resultat = await handlePublier(body);
+    else if (body.action === 'accueil_publier') resultat = await handleAccueilPublier(body);
     else return res.status(400).json({ error: 'Action inconnue.' });
   } catch (e) {
     return res.status(500).json({ error: 'Erreur inattendue.' });

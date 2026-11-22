@@ -113,7 +113,8 @@ for (const [largeur, hauteur] of [[1280, 860], [390, 844]]) {
       assert.ok(!v.ordres.includes('Inspecter la pièce') && !v.ordres.includes('Désinstaller du matériel'), piece + ' ' + v.ordres);
     }
     const hopital = await p.evaluate(() => ordresFouillerVoler('hopital-krasnov', 'accueil').map(x => x.label));
-    assert.deepEqual(hopital, ['Inspecter la pièce', 'Se cacher', 'Désinstaller du matériel'], 'pièce couverte inchangée');
+    // Point 17 (22/11/2026, soir) : « Désinstaller du matériel » n'est plus un bouton de pièce (volet de « Inspecter la pièce »).
+    assert.deepEqual(hopital, ['Inspecter la pièce', 'Se cacher'], 'pièce couverte : Inspecter et Se cacher');
     const port = await p.evaluate(() => ordresFouillerVoler('port-sainte-marie', 'quai_nord').map(x => x.label));
     assert.deepEqual(port, ['Se cacher'], 'quai : vue en plein air');
     assert.deepEqual(erreurs, []);

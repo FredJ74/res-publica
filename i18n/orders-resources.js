@@ -1972,7 +1972,7 @@
       "vente_directe_usine": "Vente directe",
       "fixer_prix_vente_directe": "Fixer les prix de vente",
       "fixer_repartition_production": "Répartir la production",
-      "virement_usine_ministere": "Virement vers le Ministère",
+      "virement_usine_ministere": "Virer à la tutelle",
       "produire_carburant": "Produire du carburant",
       "produire_derives_petrochimiques": "Produire des dérivés pétrochimiques",
       "produire_tabac": "Produire du tabac",

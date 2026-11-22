@@ -238,10 +238,10 @@
     {
       "source": "i18n/infobulles-communes-resources.js",
       "packed": "i18n/packed/infobulles-communes-resources.js.br",
-      "sourceBytes": 259213,
-      "packedBytes": 87212,
-      "sourceSha256": "ffe48fa65cd974bbd55af3498ef715eff5d55a9b6b71da08c1aca091083f4fdb",
-      "packedSha256": "ea5a980b011907377a5b525c35f3949a65b04fc0796186174c37c881242fac21"
+      "sourceBytes": 259198,
+      "packedBytes": 87258,
+      "sourceSha256": "66954182870983bf5d79aeeae099e3aefac4161f3dcd42211b2f2a07fac28fdd",
+      "packedSha256": "00b0b17bf7c8c74975192745565c85419ec9c1337b90a55756d41dc44afde916"
     },
     {
       "source": "i18n/inventory-ui-resources.js",
@@ -342,10 +342,10 @@
     {
       "source": "i18n/orders-resources.js",
       "packed": "i18n/packed/orders-resources.js.br",
-      "sourceBytes": 252105,
-      "packedBytes": 49389,
-      "sourceSha256": "98ed656c96383f461f4346c779648bf6da25ee9586be79e7e81ceb461f7c9794",
-      "packedSha256": "e2a7acb64e9073481cabc84428380ba78e242912b6bea7469ef14d32d1d75dac"
+      "sourceBytes": 252097,
+      "packedBytes": 49201,
+      "sourceSha256": "3136b94b8a1031e26716a89d08e6040633d632c2e22af7fbe8a910baf396ab68",
+      "packedSha256": "ca402ccee10c8cc168399405f2e5a951a8af283fc6d452c65ea92c7428aff639"
     },
     {
       "source": "i18n/organization-admissions-resources.js",
@@ -422,10 +422,10 @@
     {
       "source": "i18n/player-missions-resources.js",
       "packed": "i18n/packed/player-missions-resources.js.br",
-      "sourceBytes": 43193,
-      "packedBytes": 10801,
-      "sourceSha256": "fdbe6f9aec03586eaad74df9c50c2f2f52670f433fdf98d5e88362f0abdaaeff",
-      "packedSha256": "ef8f0965e0087faa75644eb4ae6ffc809de44c7d3502ef84e5e4a26ce7072967"
+      "sourceBytes": 43209,
+      "packedBytes": 10859,
+      "sourceSha256": "995db2f730e688c07f278ad731c0b6daaec3d6cb72455070bf25775f4d65b9dd",
+      "packedSha256": "6206ade11d8362587c4651357ed6f53b60c9a2ce088d130d7ed2835a981ebe3b"
     },
     {
       "source": "i18n/pnj-status-resources.js",
@@ -614,10 +614,10 @@
     {
       "source": "i18n/sovarka-pouvoir-resources.js",
       "packed": "i18n/packed/sovarka-pouvoir-resources.js.br",
-      "sourceBytes": 142016,
-      "packedBytes": 33992,
-      "sourceSha256": "0816118d5e7d96906946dec0519e6fb3b39fd5bd6a37e3dbbf98ce509607a789",
-      "packedSha256": "714d0e8f44481f3ea156a9deedba0d00a8cf652cc2d1cb21174f5ddba5310a34"
+      "sourceBytes": 142039,
+      "packedBytes": 33978,
+      "sourceSha256": "36554a569b7319a9818bbeb476b9626f83e565e82cc51a75acc27549bed32101",
+      "packedSha256": "a2117bdea635462c606dc23752d94d451078b6fa93fd00273cd94cd9362c0dff"
     },
     {
       "source": "i18n/sovarka-provinces-resources.js",

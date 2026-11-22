@@ -177,6 +177,37 @@ async function sbGet(table, filters = '') {
   return res.json();
 }
 
+// PAYS D'UN POSTE (23/11/2026, GAME-DESIGN-INTERFACE-ACCUEIL-20261122.md, B.16) -- equivalent cron de la regle unique
+// (poste_detenu / poste_pays_de en base, posteDetenu / paysDuPoste au navigateur) : les titulaires PJ d'un pays se
+// lisent dans postes_attribues (country, city), valables si la fiche porte ce poste, et dans les cycles pour les postes
+// elus. Jamais personnages.country, qui est la position du voyageur.
+async function titulairesPostesPaysServeur(pays) {
+  const q = encodeURIComponent(pays);
+  const [lignes, cycles, joueurs] = await Promise.all([
+    sbGet('postes_attribues', `country=eq.${q}&select=poste_id,city,titulaire`),
+    sbGet('cycles_electoraux', `country=eq.${q}&poste_id=in.(president,maire,chef_syndicat)&select=poste_id,city,data`),
+    sbGet('personnages', 'select=name,poste')
+  ]);
+  const fiches = new Map();
+  (joueurs || []).forEach(j => {
+    let poste = j.poste;
+    if (typeof poste === 'string') { try { poste = JSON.parse(poste); } catch (e) { poste = null; } }
+    fiches.set(j.name, poste && poste.id ? poste : null);
+  });
+  const out = [];
+  (lignes || []).forEach(l => {
+    if (!fiches.has(l.titulaire) || fiches.get(l.titulaire)?.id !== l.poste_id) return; // PJ, ligne non orpheline
+    out.push({ nom: l.titulaire, posteId: l.poste_id, city: l.city || null, poste: fiches.get(l.titulaire) });
+  });
+  (cycles || []).forEach(c => {
+    let data = c.data;
+    if (typeof data === 'string') { try { data = JSON.parse(data); } catch (e) { data = null; } }
+    const elu = data && data.eluId;
+    if (elu && fiches.has(elu)) out.push({ nom: elu, posteId: c.poste_id, city: c.city || null, poste: fiches.get(elu) });
+  });
+  return out;
+}
+
 async function sbInsert(table, data) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
     method: 'POST',
@@ -2269,16 +2300,14 @@ async function ajusterPopJoueurServeur(nom, delta) {
 // requete par pays, jamais de double comptage (un titulaire du gouvernement ne peut jamais
 // apparaitre aussi dans "autres elus", voir la branche if/else ci-dessous).
 async function resoudrePostesPaysServeur(pays) {
-  const joueurs = await sbGet('personnages', `country=eq.${encodeURIComponent(pays)}&select=name,poste`) || [];
+  // Registre du pays (23/11/2026, B.16) : un ministre en voyage reste au gouvernement de SON pays.
+  const titulaires = await titulairesPostesPaysServeur(pays);
   const gouvernement = [], autresElus = [];
-  for (const j of joueurs) {
-    let poste = j.poste;
-    if (typeof poste === 'string') { try { poste = JSON.parse(poste); } catch(e) { poste = null; } }
-    if (!poste || !poste.id) continue;
-    if (GREVE_POSTES_GOUVERNEMENT_SERVEUR.includes(poste.id)) gouvernement.push(j.name);
-    else autresElus.push(j.name);
+  for (const t of titulaires) {
+    if (GREVE_POSTES_GOUVERNEMENT_SERVEUR.includes(t.posteId)) { if (!gouvernement.includes(t.nom)) gouvernement.push(t.nom); }
+    else if (!autresElus.includes(t.nom)) autresElus.push(t.nom);
   }
-  return { gouvernement, autresElus };
+  return { gouvernement, autresElus: autresElus.filter(n => !gouvernement.includes(n)) };
 }
 
 // Republia : vraies valeurs persistees par ville (indices_villes, meme table que le reste du
@@ -3115,8 +3144,9 @@ async function livrerEntrepotsQuotidien() {
     const directeursEnPoste = {};
     try {
       // Le pays compte : un directeur d'entrepot de Novomirsk (soviet, capitale) n'est pas celui de Luthecia.
-      const dirs = await sbGet('personnages', 'select=name,poste,country&poste->>id=eq.directeur_entrepot&country=eq.' + PAYS_ENTREPOTS_VILLES);
-      (dirs || []).forEach(d => { if (d.poste && d.poste.city && d.country === PAYS_ENTREPOTS_VILLES) directeursEnPoste[d.poste.city] = d.name; });
+      // Registre du pays, pas la position (23/11/2026, B.16) : un directeur en voyage reste le directeur.
+      const dirs = await titulairesPostesPaysServeur(PAYS_ENTREPOTS_VILLES);
+      (dirs || []).forEach(d => { if (d.posteId === 'directeur_entrepot' && d.city) directeursEnPoste[d.city] = d.nom; });
     } catch (e) { /* aucun directeur PJ lisible : les valeurs PNJ s'appliqueront */ }
 
     // LA LECTURE DES CAISSES MUNICIPALES A DISPARU (8 octobre 2026). Elle ne servait qu'au
@@ -5011,14 +5041,10 @@ const CASCADE_NATIONALE = [
 // PNJ en repli via titulaires_pnj) -- equivalent serveur de getTitulaireActuel (plateau-
 // organisations-quetes.js), qui n'est pas accessible dans ce contexte isole.
 async function resoudreTitulaireActuelPosteServeur(posteId, city) {
-  const joueurs = await sbGet('personnages', `select=name,country,poste&country=eq.${PAYS_CASCADE}`) || [];
-  for (const j of joueurs) {
-    let poste = j.poste;
-    if (typeof poste === 'string') { try { poste = JSON.parse(poste); } catch(e) { poste = null; } }
-    if (!poste || poste.id !== posteId) continue;
-    if (city && poste.city !== city) continue;
-    return { nom: j.name, estPJ: true, posteComplet: poste };
-  }
+  // Registre du pays (23/11/2026, B.16), jamais la position du titulaire.
+  const titulaires = await titulairesPostesPaysServeur(PAYS_CASCADE);
+  const t = titulaires.find(x => x.posteId === posteId && (!city || x.city === city));
+  if (t) return { nom: t.nom, estPJ: true, posteComplet: t.poste };
   const id = PAYS_CASCADE + '_' + posteId + '_' + (city || 'national');
   const rows = await sbGet('titulaires_pnj', `id=eq.${encodeURIComponent(id)}`);
   const row = rows && rows[0];
@@ -5078,9 +5104,10 @@ async function traiterCandidaturesPostesExpirees() {
       const candidatsEligibles = [];
       for (const c of (dossier.candidats || [])) {
         if (c.retiree) continue;
-        const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(c.nom)}&select=name,country,poste`);
+        const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(c.nom)}&select=name,country,nationalite,poste`);
         const perso = rows && rows[0];
-        if (!perso || perso.country !== 'republic') continue;
+        // Meme pays = meme NATIONALITE (23/11/2026, B.16) : la colonne country est la position du candidat.
+        if (!perso || (perso.nationalite || perso.country) !== 'republic') continue;
         let posteActuelCandidat = perso.poste;
         if (typeof posteActuelCandidat === 'string') { try { posteActuelCandidat = JSON.parse(posteActuelCandidat); } catch(e) { posteActuelCandidat = null; } }
         if (posteActuelCandidat?.id && posteActuelCandidat.id !== dossier.posteId && !(regle.compatibles || []).includes(posteActuelCandidat.id)) continue;
@@ -5182,7 +5209,13 @@ async function verifierPostesVacantsEtAutoPourvoir() {
     // Etat initial en memoire : qui occupe deja quoi (PJ), et quels PNJ sont deja enregistres.
     // Resolution en un seul passage (choix explicite du 8 aout 2026) : la map est mise a jour
     // au fur et a mesure des ecritures, pas relue en base entre chaque etape de la cascade.
-    const joueurs = await sbGet('personnages', `select=name,country,poste,poste_depute&country=eq.${PAYS_CASCADE}`) || [];
+    // Qui occupe quoi DANS CE PAYS : le registre (postes nommes) et les cycles (postes elus), jamais la position des
+    // titulaires -- un ministre en voyage voyait son poste juge vacant et pourvu par un PNJ (23/11/2026, B.16).
+    // Les deputes sont lus a part (poste_depute), filtres sur la nationalite faute de mieux pour ce seul repere.
+    const titulairesPays = await titulairesPostesPaysServeur(PAYS_CASCADE);
+    const joueurs = titulairesPays.map(t => ({ name: t.nom, poste: { id: t.posteId, city: t.city } }))
+      .concat(((await sbGet('personnages', 'select=name,country,nationalite,poste_depute&poste_depute=not.is.null')) || [])
+        .filter(j => (j.nationalite || j.country) === PAYS_CASCADE).map(j => ({ name: j.name, poste: null, poste_depute: j.poste_depute })));
     const titulairesPnjRows = await sbGet('titulaires_pnj', `country=eq.${PAYS_CASCADE}`) || [];
 
     const cle = (posteId, ville) => posteId + '|' + (ville || 'national');
@@ -5647,11 +5680,9 @@ async function appliquerConsequencesCensureEchues(nowMs) {
         const cibles = [vote.pm_nom];
         // Ministres + president du meme pays (postes nommes exclusifs, deja lus ailleurs dans ce
         // fichier -- POSTES_NOMMES_EXCLUSIFS_SERVEUR -- + president via cycles_electoraux).
-        const ministresRows = await sbGet('personnages', `country=eq.${encodeURIComponent(vote.country)}&select=name,poste`) || [];
-        ministresRows.forEach(j => {
-          let poste = j.poste;
-          if (typeof poste === 'string') { try { poste = JSON.parse(poste); } catch(e) { poste = null; } }
-          if (poste?.id && (poste.id === 'pm' || poste.id.startsWith('min_'))) cibles.push(j.name);
+        // Ministres du pays du vote, lus dans le registre (23/11/2026, B.16), ou qu'ils se trouvent.
+        (await titulairesPostesPaysServeur(vote.country)).forEach(t => {
+          if (t.posteId === 'pm' || t.posteId.startsWith('min_')) cibles.push(t.nom);
         });
         const presCycle = (await sbGet('cycles_electoraux', `country=eq.${encodeURIComponent(vote.country)}&poste_id=eq.president`) || [])[0];
         if (presCycle) {
@@ -6719,6 +6750,8 @@ export default async function handler(req, res) {
     // 12c. Arrivage quotidien de poisson propre a la Criee de PSM (arbitrage du 25 aout 2026) :
     // independant de livrerEntrepotsQuotidien ci-dessus, ne touche aucun entrepot.
     const arrivagePoissonCriee = await tacheQuotidienne('arrivage_criee', genererArrivagePoissonCriee);
+    // 12d. Usines d'Etat (Fred, 22/11/2026, Sante point 8) : boites des PNJ, antidotes des centres, excedent a la tutelle.
+    const usinesEtatNuit = await tacheQuotidienne('usines_etat_nuit', async () => (await sbRpc('usines_etat_nuit', {}, HEADERS_SERVICE)) || { ok: false, raison: 'rpc_indisponible' });
 
     // 13. Production quotidienne des transformateurs (mode PNJ), redistribution 60/40
     const production = await tacheQuotidienne('production_transformateurs', produireTransformateursQuotidien);

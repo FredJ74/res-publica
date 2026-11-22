@@ -48,14 +48,15 @@ test('inventaire : 237 descriptions communes affichées après isolation du goul
   // catalogue (trou antérieur, chantier de traduction à venir, consigné dans RELAIS.md). Le plafond
   // autorise la seule description de gestion de caserne rétablie à Sovarka ;
   // elle doit rejoindre le catalogue partagé dans le prochain lot i18n.
-  assert.equal(communesJeu.length, 233, // -6 le 22/11 : refonte des informateurs (« Écouter le barman / la serveuse », « Recruter un informateur », ordres d'informateurs de la loge retirés) ; -1 le 21/11 : boycott des supporters retiré en Sovarka (lot de Krasnov, point 6), sa description n'est plus affichée qu'en Républia ; +1 le 19/11 : boutique climat (lot 5) ; +1 le 18/11 : furet renifleur (maladies lot 2c) ; +1 le 18/11 : pharmacie de Républia (maladies lot 1).  Le 16/11 : 245 -> 237 ; les ordres hérités du QHS de Républia disparaissent du goulag de Sovarka (entrée, cellules et salles républicaines), sans retirer leurs traductions encore nécessaires en Républia.
+  assert.equal(communesJeu.length, 231, // -2 le 22/11 au soir (Santé, Suites, point 1) : « boissons et snacks » du bar du Grand Hôtel et des buvettes de stade devient « en-cas » en Républia et « zakouski » en Sovarka, ces deux descriptions ne sont plus communes ; -6 le 22/11 : refonte des informateurs (« Écouter le barman / la serveuse », « Recruter un informateur », ordres d'informateurs de la loge retirés) ; -1 le 21/11 : boycott des supporters retiré en Sovarka (lot de Krasnov, point 6), sa description n'est plus affichée qu'en Républia ; +1 le 19/11 : boutique climat (lot 5) ; +1 le 18/11 : furet renifleur (maladies lot 2c) ; +1 le 18/11 : pharmacie de Républia (maladies lot 1).  Le 16/11 : 245 -> 237 ; les ordres hérités du QHS de Républia disparaissent du goulag de Sovarka (entrée, cellules et salles républicaines), sans retirer leurs traductions encore nécessaires en Républia.
     'nombre de descriptions communes affichées après exclusions ministérielles spécifiques à Sovarka');
   const manquantes = communesJeu.filter(d => !cat.includes(d));
   t.diagnostic('Descriptions communes manquantes : ' + JSON.stringify(manquantes));
   // +1 le 15/11 : « +6 INF +5 DIS +1 POP. » (location d'un des quatre bureaux de Krasnov, texte du catalogue de Républia, à passer au catalogue commun par le lot i18n).
   // +1 le 20/11 : « Suivre une formation » ouvert (criminalité lot 9), nouvelle description française à traduire par Codex.
   // +3 le 22/11 (Santé, consommation) : service d'étage (plat du jour), soins accélérés (+25) et soins sans trace (+15), à traduire par Codex.
-  assert.ok(manquantes.length <= 8, 'nouvelles communes absentes du catalogue');
+  // +2 le 22/11 au soir (Santé, Suites, point 3) : repas de l'hôpital (+4 Santé) et de la clinique (+5 Santé), à traduire par Codex.
+  assert.ok(manquantes.length <= 10, 'nouvelles communes absentes du catalogue');
   // Français strictement identique : chaque texte du catalogue est une description exacte de data.js,
   // affichée dans au moins un pays (avec la fusion réelle, quelques-unes ne sont plus visibles qu'en Républia,
   // l'exclusion de Sovarka étant désormais prise en compte ; leur traduction y reste utile).
@@ -70,7 +71,12 @@ test('inventaire : 237 descriptions communes affichées après isolation du goul
     '400 FR/jour. Localisation précise, intentions vote, voyages récents.', '1500 FR/jour. Confessions, transactions, ordres passés 24h.',
     'Obtenir une information de votre taupe niveau 4.', 'Voir et gérer vos informateurs actifs.',
     // Santé (consommation, 22/11/2026) : anciennes valeurs en dur, lignes livrées gardées au catalogue.
-    '+40 Sante immediatement.', '+30 Sante. Aucune trace medicale.', 'Dejeuner servi en chambre. +10 Sante, +1 Moral immediats. +1 PA au prochain Dormir.'];
+    '+40 Sante immediatement.', '+30 Sante. Aucune trace medicale.', 'Dejeuner servi en chambre. +10 Sante, +1 Moral immediats. +1 PA au prochain Dormir.',
+    // Santé, Suites (22/11/2026 au soir) : « snacks » retiré, repas de l'hôpital et de la clinique avec leur Santé ; lignes livrées gardées.
+    'Préparer boissons et snacks pour le service (consomme les matières en stock, rémunéré en FR).',
+    'Preparer bieres, boissons et snacks pour le service (consomme le stock, remunere en FR).',
+    'Une fois par jour, servi au chevet. +4 PA à votre prochain sommeil.',
+    'Réservé aux patients hospitalisés, une fois par jour. +2 PA à votre prochain sommeil.'];
   assert.deepEqual(cat.filter(d => !sov.has(d) && !rep.has(d) && !HISTORIQUES.includes(d)), [], 'textes du catalogue introuvables tels quels');
   assert.equal(new Set(cat).size, cat.length);
 });

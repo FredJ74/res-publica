@@ -21,6 +21,10 @@ const T = {
     o_mst: 'Démangeaisons très gênantes.',
     m_antinauseeux: 'Anti-nauséeux', m_aspirine: 'Aspirine', m_antigrippal: 'Antigrippal', m_sels_rehydratation: 'Sels de réhydratation',
     m_antibiotique: 'Antibiotique',
+    m_antidote: 'Antidote', n_empoisonnement: 'Empoisonnement',
+    takenAntidote: 'Antidote pris : le poison sera neutralisé à votre réveil.',
+    r_pas_empoisonne: 'Vous n’êtes pas empoisonné(e).', r_antidote_deja_pris: 'Antidote déjà pris : le poison sera neutralisé à votre réveil.',
+    r_fonds_liquide: 'Pas assez d’argent liquide : la pharmacie se paie en liquide.',
     health: 'État de santé', treated: 'traitement pris', paCap: 'PA plafonnés à {n}', noWeapon: 'bonus d’arme perdu',
     sick: 'Vous êtes malade', cured: 'Vous êtes guéri(e) : {noms}.', symptoms: 'Symptômes : {s}',
     pharmacy: 'Pharmacie', pharmacyIntro: 'Le médicament adapté guérit au prochain Dormir.',
@@ -256,8 +260,11 @@ const T = {
 };
 // Santé (Fred, 22/11/2026, points 5 et 13) : MST et antibiotique. Textes français seulement ; les autres langues retombent sur
 // le français en attendant Codex (n_mst, s_mst, o_mst, m_antibiotique).
+// Antidote (Fred, 22/11/2026, soir, point 8d) : sixième médicament, il ne soigne aucune maladie (« empoisonnement » n'est
+// pas dans CLES) ; clés fr en attente de Codex : m_antidote, n_empoisonnement, takenAntidote, r_pas_empoisonne,
+// r_antidote_deja_pris, r_fonds_liquide.
 const CLES = ['intoxication', 'gueule_de_bois', 'grippe', 'coup_de_chaleur', 'mst'];
-const MEDICAMENTS = ['antinauseeux', 'aspirine', 'antigrippal', 'sels_rehydratation', 'antibiotique'];
+const MEDICAMENTS = ['antinauseeux', 'aspirine', 'antigrippal', 'sels_rehydratation', 'antibiotique', 'antidote'];
 
 function langue() {
   const l = (global.RPPlateauI18n && typeof global.RPPlateauI18n.language === 'function' && global.RPPlateauI18n.language())
@@ -270,15 +277,18 @@ function texteMaladie(cle, vars) {
 }
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 // Nom et symptômes : le texte libre du MJ prime ; sinon le catalogue (clé inconnue = clé brute, jamais d'erreur).
-const nomMaladie = m => (m && m.nom_mj) || (CLES.includes(m && m.cle) ? texteMaladie('n_' + m.cle) : String((m && m.cle) || ''));
+const nomMaladie = m => (m && m.nom_mj) || ((CLES.includes(m && m.cle) || (m && m.cle) === 'empoisonnement') ? texteMaladie('n_' + m.cle) : String((m && m.cle) || ''));
 const symptomeSoi = m => (m && m.symptome_mj) || (CLES.includes(m && m.cle) ? texteMaladie('s_' + m.cle) : '');
 const symptomeAutre = s => (s && s.symptome_mj) || (CLES.includes(s && s.symptome) ? texteMaladie('o_' + s.symptome) : '');
 const nomMedicament = k => MEDICAMENTS.includes(k) ? texteMaladie('m_' + k) : String(k || '');
 const motif = v => {
-  const r = v && v.raison;
+  // Point 5 (Fred, 22/11/2026) : le serveur précise quand seul le liquide compte.
+  const r = v && (v.raison === 'fonds_insuffisants' && v.paiement === 'liquide' ? 'fonds_liquide' : v.raison);
   return (r && T.fr['r_' + r]) ? texteMaladie('r_' + r, v) : texteMaladie('refused');
 };
-const devise = () => (global.COUNTRIES && typeof state !== 'undefined' && state && global.COUNTRIES[state.country]?.cur) || '';
+// COUNTRIES est une constante de data.js, hors de window : la lire telle quelle (la monnaie manquait au comptoir).
+const pays = () => (typeof COUNTRIES !== 'undefined' ? COUNTRIES : global.COUNTRIES);
+const devise = () => (pays() && typeof state !== 'undefined' && state && pays()[state.country]?.cur) || '';
 const uuid = () => (global.crypto && typeof global.crypto.randomUUID === 'function') ? global.crypto.randomUUID()
   : 'xxxxxxxx-xxxx-4xxx-8xxx-xxxxxxxxxxxx'.replace(/x/g, () => Math.floor(Math.random() * 16).toString(16));
 const un = r => Array.isArray(r) ? r[0] : r;
@@ -392,7 +402,7 @@ async function prendreMedicament(medicament) {
   if (!r || r.ok !== true) { global.showToast(nomMedicament(medicament), motif(r), false); return; }
   appliquerInventaire(r);
   global.document.getElementById('modal-postes')?.classList.remove('open');
-  global.showToast(nomMedicament(medicament), texteMaladie('taken'), true);
+  global.showToast(nomMedicament(medicament), texteMaladie(medicament === 'antidote' ? 'takenAntidote' : 'taken'), true);
   await rafraichirMaladies();
   if (typeof global.switchSelfTab === 'function') { try { global.switchSelfTab('inventaire', null); } catch (_) {} }
 }

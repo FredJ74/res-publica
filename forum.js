@@ -2992,10 +2992,10 @@ const ACTIONS_MAIL = {
   qhs_decider:      { fn:'crimOuvrirEnvoisQhs', n:1, label:'⚖ Examiner la demande' },
   qhs_oui:          { fn:'crimVoterReferendumQhs', n:1, apres:['oui'], label:'✓ Oui, au QHS' },
   qhs_non:          { fn:'crimVoterReferendumQhs', n:1, apres:['non'], label:'✗ Non', refus:true },
-  // ÉTAT DE CATASTROPHE NATURELLE (19/11/2026) : marqueurs posés par le SERVEUR après une crue (climat_crue_appliquer_interne,
-  // catastrophe_proposer). L'argument est l'identifiant de la crue ; le serveur vérifie le poste et le délai de 72 h.
-  catastrophe_proposer: { fn:'catastropheProposer', n:1, label:'Proposer l’état de catastrophe naturelle' },
-  catastrophe_examiner: { fn:'catastropheExaminer', n:1, label:'Examiner les deux options' }
+  // ÉTAT DE CATASTROPHE NATURELLE : EN SOMMEIL (Fred, 22/11/2026, point 31), retiré de l'interface. Les marqueurs
+  // catastrophe_proposer / catastrophe_examiner des anciens courriers sont donc ignorés (clé inconnue : retirée, rien
+  // d'exécuté). Pour le réveiller : réglage MJ climat_parametres.catastrophe_active, puis remettre ici
+  // catastrophe_proposer: { fn:'catastropheProposer', n:1 } et catastrophe_examiner: { fn:'catastropheExaminer', n:1 }.
 };
 
 // Pose un marqueur dans un corps de mail. Les arguments sont nettoyes des separateurs pour qu'un

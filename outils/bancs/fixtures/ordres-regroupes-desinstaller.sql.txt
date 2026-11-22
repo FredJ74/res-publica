@@ -1,0 +1,133 @@
+-- Définitions de PRODUCTION (pg_get_functiondef, lecture seule, 22/11/2026, soir) de desinstaller_lire() et
+-- desinstaller_materiel(uuid, uuid), à charger après le socle krasnov-lot-suite-pglite-socle.sql.txt et la migration
+-- 20261122162000_pieces_inspecter_desinstaller.sql (tables, desinstaller_au_sol_interne). Corps recopiés mot pour mot :
+-- les remplacements contrôlés de 20261123130000_ordres_regroupes.sql y comptent leurs ancrages comme en production.
+-- piece_plein_air_interne : signature de production, corps simplifié (table de test).
+CREATE TABLE IF NOT EXISTS public.plein_air_test (pays text, ville text, batiment text, piece text);
+CREATE OR REPLACE FUNCTION public.piece_plein_air_interne(p_pays text, p_ville text, p_batiment text, p_piece text)
+ RETURNS boolean LANGUAGE sql STABLE AS $$
+  SELECT EXISTS (SELECT 1 FROM public.plein_air_test t WHERE (t.pays, t.ville, t.batiment, t.piece) = (p_pays, p_ville, p_batiment, p_piece)) $$;
+
+CREATE OR REPLACE FUNCTION public.desinstaller_lire()
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE a text := public.mon_personnage(); d record; v_chez_soi boolean;
+BEGIN
+  IF a IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  SELECT country, current_city, current_building, current_room, pa INTO d FROM public.personnages_donnees WHERE name = a;
+  IF d.current_building IS NULL OR d.current_room IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'hors_batiment'); END IF;
+  IF public.piece_plein_air_interne(d.country, d.current_city, d.current_building, d.current_room) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'plein_air'); END IF; /* plein_air_desinstaller_lire_v1 */
+  v_chez_soi := public.local_jouissance_interne(a, d.country, d.current_city, d.current_building, d.current_room);
+  RETURN jsonb_build_object('ok', true, 'chez_soi', v_chez_soi, 'pa', coalesce(d.pa, 0), 'cout_pa', 2,
+    'materiel', coalesce((SELECT jsonb_agg(jsonb_build_object('id', e.id, 'generique', e.generique_id,
+        'nom', coalesce(e.objet ->> 'name', e.generique_id),
+        'a_moi', public.equipement_a_moi_interne(e.proprietaire, a),
+        'legal', v_chez_soi OR public.equipement_a_moi_interne(e.proprietaire, a),
+        'ferme_a_cle', EXISTS (SELECT 1 FROM public.serrures x WHERE x.statut = 'posee' AND x.cible = 'armoire' AND x.fermee
+                                 AND x.armoire_objet = e.objet ->> 'id')) ORDER BY e.installe_le)
+      FROM public.equipements_installes e
+     WHERE (e.pays, e.ville, e.batiment, e.piece) = (d.country, d.current_city, d.current_building, d.current_room)
+       AND (e.generique_id <> 'armoire_souvenirs' OR v_chez_soi OR public.equipement_a_moi_interne(e.proprietaire, a))), '[]'::jsonb));
+END $function$;
+
+CREATE OR REPLACE FUNCTION public.desinstaller_materiel(p_requete uuid, p_id uuid)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE a text := public.mon_personnage(); prm jsonb := jsonb_build_object('id', p_id); v jsonb; m record; e public.equipements_installes;
+        v_legal boolean; v_sol text; v_ent text; v_plan jsonb; v_paie jsonb; t jsonb; r jsonb; v_nom text; v_dis numeric; v_per numeric;
+        v_proprio text; v_jets jsonb; v_out jsonb; f public.crim_affaires%ROWTYPE;
+BEGIN
+  IF a IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  IF p_id IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'equipement_introuvable'); END IF;
+  v := public.achat_requete_ouvrir_interne(a, p_requete, 'desinstaller_materiel', prm);
+  IF v IS NOT NULL THEN RETURN v; END IF;
+  SELECT name, public.crim_carriere_interne(name) AS career, country, current_city, current_building, current_room, est_emprisonne, pa INTO m
+    FROM public.personnages_donnees WHERE name = a FOR UPDATE;
+  IF coalesce(jsonb_typeof(m.est_emprisonne), 'null') <> 'null' AND m.est_emprisonne <> 'false'::jsonb THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'emprisonne'); END IF;
+  IF m.current_building IS NULL OR m.current_room IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'hors_batiment'); END IF;
+  IF public.piece_plein_air_interne(m.country, m.current_city, m.current_building, m.current_room) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'plein_air'); END IF; /* plein_air_desinstaller_v1 */
+  SELECT * INTO e FROM public.equipements_installes WHERE id = p_id FOR UPDATE;
+  IF e.id IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'equipement_introuvable'); END IF;
+  IF (e.pays, e.ville, e.batiment, e.piece) IS DISTINCT FROM (m.country, m.current_city, m.current_building, m.current_room) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pas_sur_place'); END IF;
+  IF EXISTS (SELECT 1 FROM public.serrures x WHERE x.statut = 'posee' AND x.cible = 'armoire' AND x.fermee AND x.armoire_objet = e.objet ->> 'id') THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'armoire_fermee_a_cle'); END IF;
+  v_legal := public.local_jouissance_interne(a, m.country, m.current_city, m.current_building, m.current_room)
+             OR public.equipement_a_moi_interne(e.proprietaire, a);
+  IF e.generique_id = 'armoire_souvenirs' AND NOT v_legal THEN RETURN jsonb_build_object('ok', false, 'raison', 'equipement_introuvable'); END IF;
+  IF coalesce(m.pa, 0) < 2 THEN RETURN jsonb_build_object('ok', false, 'raison', 'pa_insuffisants', 'requis', 2, 'pa', coalesce(m.pa, 0)); END IF;
+  v_nom := coalesce(e.objet ->> 'name', e.generique_id, 'du matériel');
+  IF v_legal THEN
+    UPDATE public.personnages_donnees SET pa = pa - 2 WHERE name = a;
+    v_sol := public.desinstaller_au_sol_interne(e.id);
+    RETURN public.achat_requete_clore_interne(a, p_requete, 'desinstaller_materiel', prm,
+      jsonb_build_object('ok', true, 'legal', true, 'issue', 'reussite', 'au_sol', true, 'objet_sol', v_sol, 'nom', v_nom,
+        'pa', (SELECT pa FROM public.personnages_donnees WHERE name = a)));
+  END IF;
+  v_jets := CASE WHEN session_user = 'postgres' THEN nullif(current_setting('rp.crim_jets', true), '')::jsonb END;
+  v_ent := public.commerce_de_la_piece_interne(a);
+  v_plan := jsonb_build_object('genre', 'materiel', 'equipement', e.id, 'nom', v_nom, 'generique', e.generique_id,
+                               'proprietaire', e.proprietaire, 'au_sol', true);
+  v_paie := public.payer_ordre(a, 'cambrioler', 2, 0);
+  IF coalesce((v_paie ->> 'ok')::boolean, false) IS NOT TRUE THEN RETURN v_paie; END IF;
+  t := public.crim_temoin_interne(a, v_ent);
+  IF t IS NULL THEN
+    r := public.crim_resoudre_interne('cambrioler', a, NULL, jsonb_build_object(
+      'reussite_auto', true, 'detection_base', public.crim_param_interne('cambriolage_detection', 30),
+      'detection_min', public.crim_param_interne('detection_min', 5),
+      'acte_peine_reussite', 'vol', 'acte_peine_echec', 'vol', 'type_recherche', 'delit_mineur',
+      'indices', jsonb_build_object('butin', 'materiel'), 'butin', 'materiel', 'butin_plan', v_plan, 'lieu_vide', true, 'jets', v_jets));
+    v_proprio := public.crim_proprietaire_pj_interne(e.proprietaire);
+    UPDATE public.crim_affaires SET cible = coalesce(v_proprio, e.proprietaire), maj_le = now() WHERE id = (r ->> 'affaire')::bigint;
+  ELSE
+    v_dis := public.crim_stat_interne(a, 'dis', 50);
+    v_per := public.crim_per_groupe_interne(t);
+    r := public.crim_resoudre_interne('cambrioler', a, CASE WHEN (t ->> 'pj')::boolean THEN t ->> 'nom' ELSE t ->> 'pnj_id' END, jsonb_build_object(
+      'taux', public.crim_voler_taux_interne('hasard', v_dis, v_per, m.career),
+      'min', public.crim_param_interne('vol_min', 5), 'max', public.crim_param_interne('vol_max', 85),
+      'critique_reussite_part', public.crim_param_interne('vol_critique_reussite_part', 5), 'critique_sans_detection', true,
+      'combat', true, 'per_victime', (t ->> 'per')::numeric, 'remarque_echec', public.crim_voler_remarque_interne(v_per, v_dis),
+      'detection_base', public.crim_param_interne('cambriolage_detection', 30), 'detection_min', public.crim_param_interne('detection_min', 5),
+      'acte_peine_reussite', 'vol', 'acte_peine_echec', 'vol', 'type_recherche', 'delit_mineur', 'cible_info', t,
+      'titre_reussite', 'Vol', 'titre_echec', 'Tentative de vol',
+      'msg_reussite', '{Auteur} a démonté ' || v_nom || ' sous vos yeux.',
+      'msg_echec', '{Auteur} a tenté de démonter ' || v_nom || ' sous vos yeux.',
+      'msg_employeur_reussite', '{Auteur} a démonté ' || v_nom || ' sous les yeux de votre employé(e) {cible}. Une plainte a été déposée.',
+      'msg_employeur_echec', '{Auteur} a tenté de démonter ' || v_nom || ' sous les yeux de votre employé(e) {cible}. Une plainte a été déposée.',
+      'motif_plainte', 'Vol de matériel dans votre local',
+      'indices', jsonb_build_object('butin', 'materiel'), 'butin', 'materiel', 'butin_plan', v_plan,
+      'temoin_comptoir', coalesce((t ->> 'comptoir')::boolean, false), 'jets', v_jets));
+  END IF;
+  IF r ->> 'issue' = 'reussite' THEN
+    v_sol := public.desinstaller_au_sol_interne(e.id);
+    SELECT * INTO f FROM public.crim_affaires WHERE id = (r ->> 'affaire')::bigint FOR UPDATE;
+    IF f.id IS NOT NULL THEN
+      UPDATE public.crim_affaires SET details = details || jsonb_build_object('livre', v_sol IS NOT NULL, 'butin_livre', v_nom || ' (au sol)'),
+             maj_le = now() WHERE id = f.id;
+      v_proprio := public.crim_proprietaire_pj_interne(e.proprietaire);
+      IF v_sol IS NOT NULL AND v_proprio IS NOT NULL AND v_proprio <> a AND NOT (f.cible IS NOT DISTINCT FROM v_proprio AND f.remarque) THEN
+        INSERT INTO public.crim_constats (destinataire, pays, ville, batiment, piece, entreprise, titre, corps, affaire)
+        VALUES (v_proprio, f.pays, f.ville, f.batiment, f.piece, v_ent, 'Vol constaté',
+          'En revenant, vous constatez que votre matériel a été démonté : ' || v_nom || ' (' || coalesce(f.piece, f.batiment) || '). Vous pouvez porter plainte pour vol.',
+          f.id);
+      END IF;
+    END IF;
+    IF v_sol IS NOT NULL THEN PERFORM public.crime_trace_rumeur_interne(a, 'vol', coalesce(public.crim_proprietaire_pj_interne(e.proprietaire), e.proprietaire)); END IF;
+  ELSIF r ->> 'issue' = 'combat' THEN
+    r := public.crim_combat_ouvrir_interne(a, r, t, 'mains', p_requete);
+  END IF;
+  v_out := jsonb_build_object('ok', true, 'legal', false, 'nom', v_nom, 'paie', v_paie, 'lieu_vide', t IS NULL,
+             'au_sol', v_sol IS NOT NULL, 'objet_sol', v_sol)
+    || (r - 'notifie' - 'affaire' - 'garde')
+    || (SELECT jsonb_build_object('pa', pa, 'moral', moral, 'recherche', recherche) FROM public.personnages_donnees WHERE name = a);
+  RETURN public.achat_requete_clore_interne(a, p_requete, 'desinstaller_materiel', prm, v_out);
+END $function$;

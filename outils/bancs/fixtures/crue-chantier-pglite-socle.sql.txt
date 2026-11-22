@@ -1,0 +1,393 @@
+-- Socle du banc de la crue (partie F, 22/11/2026), à charger APRÈS chantier-pglite-socle.sql.txt,
+-- chantier-commande-entrepot.sql.txt et les migrations 20261121140000 / 20261122120000 (état de production de
+-- chantier_jour_traiter et chantier_travailler). Banc local seulement, jamais la production.
+-- Définitions de PRODUCTION du 22/11/2026 (pg_get_functiondef, corps vérifiés par md5(prosrc)) : climat_consigne_interne,
+-- climat_parades_verifier_interne, catastrophe_proposer, catastrophe_declarer, catastrophe_etat, catastrophe_couts_interne,
+-- admin_climat_parametre_modifier, climat_batiment_inonde_interne, climat_lieu_protege_interne, climat_evenement_json_interne,
+-- climat_chantiers_bloques_interne, climat_vente_interne, climat_bidons_meme_lieu_interne, climat_minuit_interne,
+-- climat_nom_type_interne, climat_nom_ville_interne, climat_quand_interne, aliments_param_interne. Le reste : bouchons explicites.
+DROP FUNCTION IF EXISTS public.climat_chantiers_bloques_interne(text, text);   -- bouchon du socle chantier, remplacé par la vraie
+CREATE SCHEMA IF NOT EXISTS auth;
+CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql AS $$ SELECT NULL::uuid $$;
+ALTER TABLE public.personnages_donnees ADD COLUMN IF NOT EXISTS country text, ADD COLUMN IF NOT EXISTS poste jsonb;
+CREATE TABLE public.aliments_parametres (cle text PRIMARY KEY, valeur numeric);
+INSERT INTO public.aliments_parametres VALUES ('crue_perte_pct', 20), ('prix_sac_sable', 60), ('catastrophe_part_pct', 50), ('catastrophe_delai_h', 72);
+CREATE TABLE public.climat_parametres (type text, pays text, actif boolean DEFAULT true, frequence text, par_periode integer DEFAULT 1,
+  delai_min integer DEFAULT 0, delai_max integer DEFAULT 0, duree_heures integer DEFAULT 24, preavis_heures integer DEFAULT 48,
+  bloque_chantiers boolean DEFAULT false, PRIMARY KEY (type, pays));
+INSERT INTO public.climat_parametres VALUES
+  ('blizzard','soviet',true,'mandat',1,0,0,24,48,true), ('crue','republic',true,'trimestre_propage',1,1,3,6,48,true),
+  ('canicule','republic',true,'trimestre_propage',1,2,4,6,48,true), ('orage','republic',true,'trimestre_propage',1,1,2,6,48,true),
+  ('orage','soviet',true,'trimestre_propage',1,1,2,6,48,true), ('brouillard','republic',true,'mois',1,0,0,6,48,false),
+  ('brouillard','soviet',true,'mois',1,0,0,6,48,false);
+CREATE TABLE public.climat_evenements (id bigserial PRIMARY KEY, type text, pays text, ville text, debut timestamptz, fin timestamptz, periode text,
+  lieux jsonb DEFAULT '[]'::jsonb, alerte_le timestamptz, origine text DEFAULT 'calendrier', annule boolean DEFAULT false, cree_le timestamptz DEFAULT now(),
+  effets_le timestamptz, fin_traitee_le timestamptz, debut_prevu timestamptz);
+CREATE TABLE public.climat_protections (id bigserial PRIMARY KEY, pays text, ville text, batiment text, pose_par text, pose_le timestamptz DEFAULT now(), evenement bigint);
+CREATE TABLE public.climat_boutiques (id text PRIMARY KEY, pays text, ville text, batiment text, piece text, cles text[]);
+INSERT INTO public.climat_boutiques VALUES
+  ('chasse-peche-psm','republic','ville_a','chasse-peche-psm','boutique','{sac_de_sable}'),
+  ('marche-luthecia','republic','capitale','marche','marche_ext','{bouteille_eau}'),
+  ('armurerie-luthecia','republic','capitale','armurerie','magasin','{sac_de_sable,groupe_electrogene,bidon_carburant}'),
+  ('armurerie-montrouge','republic','ville_b','armurerie','magasin','{sac_de_sable,groupe_electrogene,bidon_carburant}'),
+  ('garage-novomirsk','soviet','capitale','garage-novomirsk','atelier_garage','{groupe_electrogene,bidon_carburant}');
+CREATE TABLE public.climat_lieux_vente (cle text, pays text, ville text, chez text);
+INSERT INTO public.climat_lieux_vente VALUES
+  ('sac_de_sable','republic','capitale','à l''Armurerie Martinon, à Luthécia'), ('sac_de_sable','republic','ville_b','à l''Armurerie-Quincaillerie de Montrouge'),
+  ('sac_de_sable','republic','ville_a','à la Maison Le Gall (Chasse et Pêche), à Port-Sainte-Marie'),
+  ('groupe_electrogene','republic','capitale','à l''Armurerie Martinon, à Luthécia'), ('bouteille_eau','republic','capitale','au marché de Luthécia');
+CREATE TABLE public.climat_points_eau (id serial PRIMARY KEY, pays text, ville text, nom text, actif boolean DEFAULT true);
+CREATE TABLE public.pnj_employeurs (employeur_id text, nom text, pays text, vivier text, actif boolean DEFAULT true, cree_le timestamptz DEFAULT now());
+CREATE TABLE public.pharmacies_points_vente (pays text, ville text);
+CREATE TABLE public.entreprises (id text PRIMARY KEY, data jsonb, updated_at timestamptz);
+CREATE TABLE public.climat_catastrophes (evenement bigint PRIMARY KEY, pays text, propose_par text, propose_le timestamptz, declare_par text,
+  declare_le timestamptz, option text, cout numeric);
+CREATE TABLE public.climat_crue_pertes (evenement bigint, cible text, pays text, ville text, batiment text, proprietaire text, protege boolean,
+  valeur numeric DEFAULT 0, detail jsonb DEFAULT '{}'::jsonb, indemnite numeric DEFAULT 0, PRIMARY KEY (evenement, cible));
+CREATE TABLE public.caisses_batiments (id text PRIMARY KEY, data jsonb);
+CREATE TABLE public.admin_journal (admin_user_id uuid, admin_libelle text, action text, parametres jsonb, ok boolean);
+CREATE TABLE public.evenements_globaux (country text, city text, texte text, jour integer);
+CREATE TABLE public.courriers_crue_test (expediteur text, destinataire text, sujet text, corps text);
+CREATE OR REPLACE FUNCTION public.mon_personnage() RETURNS text LANGUAGE sql AS $$ SELECT nullif(current_setting('test.acteur', true), '') $$;
+CREATE OR REPLACE FUNCTION public.admin_exiger() RETURNS void LANGUAGE sql AS $$ SELECT $$;
+CREATE OR REPLACE FUNCTION public.pharmacie_prix_interne(p text) RETURNS integer LANGUAGE sql AS $$ SELECT 12 $$;
+CREATE OR REPLACE FUNCTION public.entrepot_caisse_id(p text) RETURNS text LANGUAGE sql AS $$ SELECT 'caisse:' || p $$;
+-- Le courrier du système est consigné (le bouchon du socle chantier ne garde rien).
+CREATE OR REPLACE FUNCTION public.mail_systeme_poser_interne(a text, b text, c text, d text, e text DEFAULT NULL) RETURNS jsonb LANGUAGE sql AS $$
+  INSERT INTO public.courriers_crue_test VALUES (a, b, c, d); SELECT '{"ok":true}'::jsonb $$;
+
+CREATE OR REPLACE FUNCTION public.aliments_param_interne(p_cle text, p_defaut numeric)
+ RETURNS numeric
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT coalesce((SELECT valeur FROM public.aliments_parametres WHERE cle = p_cle), p_defaut);
+$function$;
+
+CREATE OR REPLACE FUNCTION public.climat_minuit_interne(p_jour date)
+ RETURNS timestamp with time zone
+ LANGUAGE sql
+ IMMUTABLE
+AS $function$ SELECT (p_jour::timestamp) AT TIME ZONE 'Europe/Paris'; $function$;
+
+CREATE OR REPLACE FUNCTION public.climat_nom_type_interne(p_type text)
+ RETURNS text
+ LANGUAGE sql
+ IMMUTABLE
+AS $function$
+  SELECT CASE p_type WHEN 'crue' THEN 'Crue' WHEN 'orage' THEN 'Orage' WHEN 'canicule' THEN 'Canicule'
+                     WHEN 'brouillard' THEN 'Brouillard' WHEN 'blizzard' THEN 'Blizzard' ELSE 'Événement climatique' END;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.climat_nom_ville_interne(p_pays text, p_ville text)
+ RETURNS text
+ LANGUAGE sql
+ IMMUTABLE
+AS $function$
+  SELECT CASE p_pays WHEN 'republic' THEN CASE p_ville WHEN 'capitale' THEN 'Luthécia' WHEN 'ville_a' THEN 'Port-Sainte-Marie' WHEN 'ville_b' THEN 'Montrouge' END
+                     ELSE CASE p_ville WHEN 'capitale' THEN 'Novomirsk' WHEN 'ville_a' THEN 'Starovka' WHEN 'ville_b' THEN 'Krasnov' END END;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.climat_quand_interne(p_debut timestamp with time zone)
+ RETURNS text
+ LANGUAGE sql
+ STABLE
+AS $function$
+  SELECT 'le ' || to_char(p_debut AT TIME ZONE 'Europe/Paris', 'DD/MM') || ' à ' || to_char(p_debut AT TIME ZONE 'Europe/Paris', 'HH24" h "MI') || ' (heure du jeu)';
+$function$;
+
+CREATE OR REPLACE FUNCTION public.climat_vente_interne(p_cle text, p_pays text, p_ville text)
+ RETURNS text
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT coalesce(
+    (SELECT string_agg(chez, ' ou ' ORDER BY chez) FROM public.climat_lieux_vente WHERE cle = p_cle AND pays = p_pays AND ville = p_ville),
+    (SELECT string_agg(chez, ' ou ' ORDER BY ville, chez) FROM public.climat_lieux_vente WHERE cle = p_cle AND pays = p_pays));
+$function$;
+
+CREATE OR REPLACE FUNCTION public.climat_bidons_meme_lieu_interne(p_pays text, p_ville text)
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  WITH cites AS (SELECT lv.pays, lv.ville FROM public.climat_lieux_vente lv
+                  WHERE lv.cle = 'groupe_electrogene' AND lv.pays = p_pays
+                    AND (lv.ville = p_ville OR NOT EXISTS (SELECT 1 FROM public.climat_lieux_vente x
+                          WHERE x.cle = 'groupe_electrogene' AND x.pays = p_pays AND x.ville = p_ville)))
+  SELECT EXISTS (SELECT 1 FROM cites)
+     AND NOT EXISTS (SELECT 1 FROM cites c WHERE NOT EXISTS (SELECT 1 FROM public.climat_boutiques b
+           WHERE b.pays = c.pays AND b.ville = c.ville AND 'groupe_electrogene' = ANY (b.cles) AND 'bidon_carburant' = ANY (b.cles)));
+$function$;
+
+CREATE OR REPLACE FUNCTION public.climat_consigne_interne(p_type text, p_pays text, p_ville text)
+ RETURNS text
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_eau text; v_vente text; v_agences text;
+BEGIN
+  IF p_type = 'orage' THEN
+    RETURN 'Pendant 6 heures, ordinateurs, box et caméras sont hors service : plus de surveillance, de trading à distance ni de piratage, '
+      || 'et les chantiers sont à l''arrêt. Débranchez vos appareils électroniques. Pour garder le courant, équipez-vous d''un groupe électrogène'
+      || coalesce(', en vente ' || public.climat_vente_interne('groupe_electrogene', p_pays, p_ville), '')
+      || ', avec ' || public.aliments_param_interne('groupe_bidons', 5)::integer || ' bidons de carburant'
+      || CASE WHEN public.climat_bidons_meme_lieu_interne(p_pays, p_ville) THEN ', en vente au même endroit' ELSE '' END || '.' /* climat_bidons_meme_lieu_v1 */;
+  ELSIF p_type = 'crue' THEN
+    RETURN 'Pendant 6 heures, les commerces et entrepôts non protégés de la zone inondable sont fermés et perdent '
+      || public.aliments_param_interne('crue_perte_pct', 20)::integer || ' % de leurs stocks, et les chantiers sont à l''arrêt. '
+      || 'Sécurisez vos propriétés : posez des sacs de sable'
+      || coalesce(', en vente ' || public.climat_vente_interne('sac_de_sable', p_pays, p_ville), '')
+      || ' (1 PA, valables pour une crue). Les lieux protégés restent ouverts. La gare et tous les déplacements restent libres.';
+  ELSIF p_type = 'canicule' THEN
+    SELECT 'L''eau est gratuite à ' || nom || ' : puiser coûte 1 PA, jusqu''à 10 bouteilles toutes les 6 heures.' /* point_eau_puiser_v1 */ INTO v_eau FROM public.climat_points_eau
+     WHERE actif AND pays = p_pays AND ville = p_ville ORDER BY id LIMIT 1;
+    IF v_eau IS NULL THEN
+      v_vente := public.climat_vente_interne('bouteille_eau', p_pays, p_ville);
+      v_eau := CASE WHEN v_vente IS NOT NULL THEN 'En vente ' || v_vente || '.' END;
+    END IF;
+    RETURN 'Toute personne présente en ville perd 3 PA, et la nourriture portée sur soi devient insalubre. '
+      || 'Gardez une bouteille d''eau sur vous et ne transportez pas de nourriture. ' || coalesce(v_eau || ' ', '')
+      || 'En cas de coup de chaleur, achetez des sels de réhydratation '
+      || coalesce(public.climat_vente_interne('sels_rehydratation', p_pays, p_ville) || ' ou ', '') || 'dans une pharmacie.' /* climat_parades_v1 */;
+  ELSIF p_type = 'brouillard' THEN
+    SELECT string_agg('l''agence ' || regexp_replace(nom, '\s+Sécurité$', ''), ' ou ' ORDER BY cree_le) INTO v_agences
+      FROM public.pnj_employeurs
+     WHERE actif AND pays = p_pays
+       AND ((employeur_id = 'grobras-securite' AND p_pays = 'republic' AND p_ville = 'capitale') OR vivier = 'vivier-securite-' || p_ville);
+    RETURN 'Pendant 6 heures, les malfaiteurs agissent plus facilement et échappent plus souvent à la police, à la sécurité et aux caméras. '
+      || 'Sécurisez vos propriétés : ne laissez rien de précieux sans surveillance, et pensez à engager un agent de sécurité dans une agence de sécurité'
+      || coalesce(' : ' || v_agences, '') || '.';
+  ELSIF p_type = 'blizzard' THEN
+    RETURN 'Le blizzard fait perdre 3 PA à chacun, et la grippe menace ceux qui n''ont plus de forces. Reposez-vous pour garder vos PA : '
+      || 'c''est la meilleure protection. Achetez de la graisse animale : de renne à Starovka, d''ours au marché de Krasnov, '
+      || 'de castor chez la poissonnière de Novomirsk, ou dans une pharmacie tenue par un joueur.';
+  END IF;
+  RETURN NULL;
+END $function$;
+
+CREATE OR REPLACE FUNCTION public.climat_parades_verifier_interne()
+ RETURNS TABLE(pays text, cle text, probleme text)
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  WITH vendeurs AS (
+    SELECT b.pays, b.ville, k AS cle FROM public.climat_boutiques b, unnest(b.cles) k
+    UNION SELECT pv.pays, pv.ville, 'sels_rehydratation' FROM public.pharmacies_points_vente pv
+    UNION SELECT pe.pays, pe.ville, 'bouteille_eau' FROM public.climat_points_eau pe WHERE pe.actif
+    UNION SELECT e.data->>'country', e.data->>'city', 'bidon_carburant' FROM public.entreprises e WHERE e.data->>'type' = 'station-service'),
+  parades AS (SELECT * FROM (VALUES ('orage', 'groupe_electrogene'), ('orage', 'bidon_carburant'), ('crue', 'sac_de_sable'),
+                                    ('canicule', 'bouteille_eau'), ('canicule', 'sels_rehydratation')) x(type, cle)),
+  citees AS (SELECT DISTINCT c.pays, p.cle FROM public.climat_parametres c JOIN parades p ON p.type = c.type WHERE c.actif)
+  SELECT lv.pays, lv.cle, 'lieu cité sans vente réelle : ' || lv.ville || ' (' || lv.chez || ')'
+    FROM public.climat_lieux_vente lv
+   WHERE NOT EXISTS (SELECT 1 FROM vendeurs v WHERE v.pays = lv.pays AND v.ville = lv.ville AND v.cle = lv.cle)
+  UNION ALL
+  SELECT ci.pays, ci.cle, 'parade citée en consigne, introuvable dans le pays'
+    FROM citees ci WHERE NOT EXISTS (SELECT 1 FROM vendeurs v WHERE v.pays = ci.pays AND v.cle = ci.cle)
+  UNION ALL
+  SELECT lv.pays, 'bidon_carburant', 'bidons absents du lieu du groupe électrogène : ' || lv.ville || ' (' || lv.chez || ')'
+    FROM public.climat_lieux_vente lv
+   WHERE lv.cle = 'groupe_electrogene'
+     AND NOT EXISTS (SELECT 1 FROM vendeurs v WHERE v.pays = lv.pays AND v.ville = lv.ville AND v.cle = 'bidon_carburant');
+$function$;
+
+CREATE OR REPLACE FUNCTION public.climat_lieu_protege_interne(e climat_evenements, p_batiment text)
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT EXISTS (SELECT 1 FROM public.climat_protections zp
+                  WHERE zp.pays = e.pays AND zp.ville = e.ville AND zp.batiment = p_batiment
+                    AND (zp.evenement = e.id OR (zp.evenement IS NULL AND e.effets_le IS NULL)));
+$function$;
+
+CREATE OR REPLACE FUNCTION public.climat_batiment_inonde_interne(p_pays text, p_ville text, p_batiment text)
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT EXISTS (SELECT 1 FROM public.climat_evenements e WHERE e.type = 'crue' AND e.pays = p_pays AND e.ville = p_ville AND NOT e.annule
+                   AND e.alerte_le IS NOT NULL AND now() >= e.debut AND now() < e.fin
+                   AND EXISTS (SELECT 1 FROM jsonb_array_elements(e.lieux) l WHERE l->>'batiment' = p_batiment)
+                   AND NOT public.climat_lieu_protege_interne(e, p_batiment) /* climat_sacs_protegent_v1 */);
+$function$;
+
+CREATE OR REPLACE FUNCTION public.climat_evenement_json_interne(e climat_evenements)
+ RETURNS jsonb
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT jsonb_build_object('id', e.id, 'type', e.type, 'ville', e.ville, 'debut', e.debut, 'fin', e.fin,
+    'en_cours', now() >= e.debut AND now() < e.fin,
+    'lieux', (SELECT coalesce(jsonb_agg(l->>'batiment'), '[]'::jsonb) FROM jsonb_array_elements(e.lieux) l
+               WHERE NOT public.climat_lieu_protege_interne(e, l->>'batiment')),
+    'lieux_proteges', (SELECT coalesce(jsonb_agg(l->>'batiment'), '[]'::jsonb) FROM jsonb_array_elements(e.lieux) l
+               WHERE public.climat_lieu_protege_interne(e, l->>'batiment')),
+    'consigne', public.climat_consigne_interne(e.type, e.pays, e.ville));
+$function$;
+
+CREATE OR REPLACE FUNCTION public.climat_chantiers_bloques_interne(p_pays text, p_ville text)
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT EXISTS (SELECT 1 FROM public.climat_evenements e JOIN public.climat_parametres c ON c.type = e.type AND c.pays = e.pays
+                  WHERE e.pays = p_pays AND e.ville = p_ville AND NOT e.annule AND e.alerte_le IS NOT NULL
+                    AND now() >= e.debut AND now() < e.fin AND c.bloque_chantiers);
+$function$;
+
+CREATE OR REPLACE FUNCTION public.admin_climat_parametre_modifier(p_type text, p_pays text, p_parametres jsonb)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE c public.climat_parametres; k text;
+BEGIN
+  PERFORM public.admin_exiger();
+  SELECT * INTO c FROM public.climat_parametres WHERE type = p_type AND pays = p_pays FOR UPDATE;
+  IF NOT FOUND THEN RETURN jsonb_build_object('ok', false, 'raison', 'parametre_inconnu'); END IF;
+  FOR k IN SELECT jsonb_object_keys(coalesce(p_parametres, '{}'::jsonb)) LOOP
+    IF k NOT IN ('actif', 'par_periode', 'delai_min', 'delai_max', 'duree_heures', 'preavis_heures', 'bloque_chantiers') THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'champ_inconnu', 'champ', k); END IF;
+  END LOOP;
+  UPDATE public.climat_parametres SET
+    actif = coalesce((p_parametres->>'actif')::boolean, actif),
+    par_periode = coalesce((p_parametres->>'par_periode')::integer, par_periode),
+    delai_min = coalesce((p_parametres->>'delai_min')::integer, delai_min),
+    delai_max = greatest(coalesce((p_parametres->>'delai_min')::integer, delai_min), coalesce((p_parametres->>'delai_max')::integer, delai_max)),
+    duree_heures = coalesce((p_parametres->>'duree_heures')::integer, duree_heures),
+    preavis_heures = coalesce((p_parametres->>'preavis_heures')::integer, preavis_heures),
+    bloque_chantiers = coalesce((p_parametres->>'bloque_chantiers')::boolean, bloque_chantiers)
+  WHERE type = p_type AND pays = p_pays;
+  INSERT INTO public.admin_journal (admin_user_id, admin_libelle, action, parametres, ok)
+  VALUES (auth.uid(), 'MJ', 'climat_parametre_modifier', jsonb_build_object('type', p_type, 'pays', p_pays) || coalesce(p_parametres, '{}'::jsonb), true);
+  RETURN jsonb_build_object('ok', true);
+END $function$;
+
+CREATE OR REPLACE FUNCTION public.catastrophe_couts_interne(p_evenement bigint)
+ RETURNS jsonb
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT jsonb_build_object('part', public.aliments_param_interne('catastrophe_part_pct', 50),
+    'cout', coalesce(round(sum(valeur) * public.aliments_param_interne('catastrophe_part_pct', 50) / 100, 2), 0),
+    'sinistres', count(*), 'pertes', coalesce(round(sum(valeur), 2), 0))
+  FROM public.climat_crue_pertes WHERE evenement = p_evenement AND NOT protege AND valeur > 0 /* catastrophe_option_unique_v1 */;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.catastrophe_proposer(p_evenement bigint)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE a text := public.mon_personnage(); e public.climat_evenements; v_pm text; v_c jsonb;
+BEGIN
+  IF a IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  SELECT * INTO e FROM public.climat_evenements WHERE id = p_evenement AND type = 'crue' AND effets_le IS NOT NULL;
+  IF e.id IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'crue_inconnue'); END IF;
+  IF NOT EXISTS (SELECT 1 FROM public.personnages_donnees WHERE name = a AND country = e.pays AND poste->>'id' = 'min_int') THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'poste_requis'); END IF;
+  IF now() > e.fin + make_interval(hours => public.aliments_param_interne('catastrophe_delai_h', 72)::integer) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'delai_depasse'); END IF;
+  INSERT INTO public.climat_catastrophes (evenement, pays, propose_par, propose_le) VALUES (e.id, e.pays, a, now()) ON CONFLICT (evenement) DO NOTHING;
+  IF NOT FOUND THEN RETURN jsonb_build_object('ok', false, 'raison', 'deja_propose'); END IF;
+  v_c := public.catastrophe_couts_interne(e.id);
+  SELECT name INTO v_pm FROM public.personnages_donnees WHERE country = e.pays AND poste->>'id' = 'pm' LIMIT 1;
+  IF v_pm IS NOT NULL THEN
+    PERFORM public.mail_systeme_poser_interne('Ministère de l''Intérieur', v_pm, 'Proposition : état de catastrophe naturelle',
+      'Le ministre de l''Intérieur vous propose de déclarer l''état de catastrophe naturelle après la crue de ' || public.climat_nom_ville_interne(e.pays, e.ville)
+      || ' : ' || (v_c->>'sinistres') || ' sinistré(s) (lieux non protégés qui ont perdu des stocks), indemnisés à ' || (v_c->>'part')
+      || ' % de leurs pertes, soit ' || (v_c->>'cout') || '. Vous restez libre de ne pas la déclarer. [[act:catastrophe_examiner|' || e.id || ']]', NULL);
+  END IF;
+  RETURN jsonb_build_object('ok', true, 'premier_ministre', v_pm IS NOT NULL) || v_c;
+END $function$;
+
+CREATE OR REPLACE FUNCTION public.catastrophe_etat(p_evenement bigint)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE a text := public.mon_personnage(); e public.climat_evenements; c public.climat_catastrophes; v_poste text; v_pays text;
+BEGIN
+  IF a IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  SELECT * INTO e FROM public.climat_evenements WHERE id = p_evenement AND type = 'crue';
+  IF e.id IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'crue_inconnue'); END IF;
+  SELECT poste->>'id', country INTO v_poste, v_pays FROM public.personnages_donnees WHERE name = a;
+  IF v_pays IS DISTINCT FROM e.pays OR v_poste NOT IN ('min_int', 'pm') THEN RETURN jsonb_build_object('ok', false, 'raison', 'poste_requis'); END IF;
+  SELECT * INTO c FROM public.climat_catastrophes WHERE evenement = e.id;
+  RETURN jsonb_build_object('ok', true, 'evenement', e.id, 'ville', e.ville, 'poste', v_poste,
+    'limite', e.fin + make_interval(hours => public.aliments_param_interne('catastrophe_delai_h', 72)::integer),
+    'propose', c.propose_le IS NOT NULL, 'declare', c.declare_le IS NOT NULL, 'cout_verse', c.cout,
+    'reserve', (SELECT coalesce((data->>'solde')::numeric, 0) FROM public.caisses_batiments WHERE id = e.pays || '_gouvernement-pm')) /* catastrophe_caisse_pm_v1 */
+    || public.catastrophe_couts_interne(e.id);
+END $function$;
+
+CREATE OR REPLACE FUNCTION public.catastrophe_declarer(p_evenement bigint, p_etendre boolean DEFAULT true)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE a text := public.mon_personnage(); e public.climat_evenements; c public.climat_catastrophes; v_part numeric; v_total numeric := 0;
+        r record; v_ind numeric; v_rep jsonb; v_flag text;
+BEGIN
+  IF a IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  SELECT * INTO e FROM public.climat_evenements WHERE id = p_evenement AND type = 'crue';
+  IF e.id IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'crue_inconnue'); END IF;
+  IF NOT EXISTS (SELECT 1 FROM public.personnages_donnees WHERE name = a AND country = e.pays AND poste->>'id' = 'pm') THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'poste_requis'); END IF;
+  SELECT * INTO c FROM public.climat_catastrophes WHERE evenement = e.id FOR UPDATE;
+  IF c.propose_le IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'pas_de_proposition'); END IF;
+  IF c.declare_le IS NOT NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'deja_declare'); END IF;
+  IF now() > e.fin + make_interval(hours => public.aliments_param_interne('catastrophe_delai_h', 72)::integer) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'delai_depasse'); END IF;
+  v_part := public.aliments_param_interne('catastrophe_part_pct', 50);
+  SELECT coalesce(round(sum(valeur) * v_part / 100, 2), 0) INTO v_total FROM public.climat_crue_pertes
+   WHERE evenement = e.id AND NOT protege AND valeur > 0 /* catastrophe_option_unique_v1 */;
+  IF v_total > 0 THEN
+    v_flag := current_setting('rp.caisse_interne', true);
+    PERFORM set_config('rp.caisse_interne', 'on', true);
+    v_rep := public.caisse_institution_mouvement(e.pays || '_gouvernement-pm', -v_total, false);
+    PERFORM set_config('rp.caisse_interne', coalesce(v_flag, ''), true);
+    IF (v_rep->>'ok')::boolean IS NOT TRUE THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'budget_insuffisant', 'cout', v_total,
+        'reserve', (SELECT coalesce((data->>'solde')::numeric, 0) FROM public.caisses_batiments WHERE id = e.pays || '_gouvernement-pm')); END IF;
+  END IF;
+  FOR r IN SELECT * FROM public.climat_crue_pertes WHERE evenement = e.id AND NOT protege AND valeur > 0 FOR UPDATE LOOP
+    v_ind := round(r.valeur * v_part / 100, 2);
+    IF r.cible LIKE 'entrepot:%' THEN
+      v_flag := current_setting('rp.caisse_interne', true);
+      PERFORM set_config('rp.caisse_interne', 'on', true);
+      v_rep := public.caisse_institution_mouvement(public.entrepot_caisse_id(substr(r.cible, 10)), v_ind, true);
+      PERFORM set_config('rp.caisse_interne', coalesce(v_flag, ''), true);
+      IF (v_rep->>'ok')::boolean IS NOT TRUE THEN RAISE EXCEPTION 'catastrophe : caisse entrepot refusee %', v_rep; END IF;
+    ELSE
+      UPDATE public.entreprises SET data = jsonb_set(data, '{caisse}', to_jsonb(coalesce((data->>'caisse')::numeric, 0) + v_ind)), updated_at = now() WHERE id = r.cible;
+    END IF;
+    UPDATE public.climat_crue_pertes SET indemnite = v_ind WHERE evenement = r.evenement AND cible = r.cible;
+  END LOOP;
+  UPDATE public.climat_catastrophes SET declare_par = a, declare_le = now(), option = 'tous', cout = v_total WHERE evenement = e.id;
+  INSERT INTO public.evenements_globaux (country, city, texte, jour)
+  VALUES (e.pays, e.ville, '🏛️ État de catastrophe naturelle déclaré à ' || public.climat_nom_ville_interne(e.pays, e.ville)
+    || ' : les sinistrés de la crue sont indemnisés à ' || v_part || ' % des stocks perdus.', NULL);
+  RETURN jsonb_build_object('ok', true, 'cout', v_total);
+END $function$;
+
+-- poste_detenu (migration 20261123120000_postes_pays, appliquée avant la crue en production) : doublure minimale
+-- (le titulaire du banc est dans son pays ; la vraie fonction lit postes_attribues).
+CREATE OR REPLACE FUNCTION public.poste_detenu(p_nom text, p_poste text, p_pays text, p_ville text DEFAULT NULL)
+ RETURNS boolean LANGUAGE sql STABLE AS $$ SELECT EXISTS (SELECT 1 FROM public.personnages_donnees WHERE name = p_nom AND poste->>'id' = p_poste AND country = p_pays) $$;

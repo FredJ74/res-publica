@@ -35,7 +35,8 @@ test('écran : message du gouvernement dans les neuf langues, filtre sur la vue 
   assert.deepEqual(Object.keys(T).sort(), ['ar', 'de', 'en', 'es', 'fr', 'ko', 'pt-BR', 'ru', 'zh-TW']);
   for (const l of Object.keys(T)) {
     assert.deepEqual(Object.keys(T[l]).sort(), Object.keys(T.fr).sort(), l);
-    assert.match(T[l].crue, /\{lieux\}/, l);
+    // Crue (Fred, 22/11/2026, point 30) : plus de lieux sous les eaux ; le français dit l'arrêt des chantiers (autres langues : Codex).
+    if (l === 'fr') assert.ok(!/\{lieux\}/.test(T[l].crue) && /chantiers/.test(T[l].crue), l); else assert.ok(T[l].crue.length > 0, l);
   }
   const m = ctx.RPClimat.message({ type: 'crue', ville: 'ville_a', debut: '2026-12-12T00:00:00+01:00', lieux: ['port-sainte-marie'] });
   assert.match(m, /Port-Sainte-Marie/);

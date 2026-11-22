@@ -2,7 +2,7 @@
 // Toutes les valeurs chiffrées de la Santé (robustesse, Moral, alcool, sommeil, repas, soins, médecin, MST) sont dans
 // sante_parametres. Le serveur exige un administrateur (admin_exiger) et journalise chaque changement (admin_journal).
 const ADM_SANTE_GROUPES = { general: 'Général', combat: 'Combat', moral: 'Moral', alcool: 'Alcool', sommeil: 'Sommeil',
-  repas: 'Repas', soins: 'Soins', medecin: 'Médecin de terrain', maladies: 'Maladies' };
+  repas: 'Repas', soins: 'Soins', medecin: 'Médecin de terrain', maladies: 'Maladies', medicaments: 'Médicaments', usines: 'Usines d’État' };
 async function admSanteCharger() {
  const el = document.getElementById('adm-sante'); if (!el) return;
  el.textContent = 'Chargement…';

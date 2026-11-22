@@ -79,24 +79,18 @@ async function ouvrirEcranPostes() {
   // getTitulaireActuel et n'est pas touchee : joueur d'abord (meme pays, meme poste, meme ville
   // si le poste est local), PNJ en repli, null si vraiment vacant. getTitulaireActuel reste en
   // place pour ses autres appelants, qui n'en demandent qu'un a la fois.
-  const [joueursTous, pnjTous, compagnies] = await Promise.all([
-    (typeof sbListPersonnages === 'function' ? sbListPersonnages().catch(() => []) : Promise.resolve([])),
+  // Le titulaire PJ vient du REGISTRE postes_attribues filtre sur le pays affiche (23/11/2026, B.15) -- jamais
+  // de personnages.country, qui est la position : un ministre en voyage restait affiche dans l'autre empire.
+  const [, pnjTous, compagnies] = await Promise.all([
+    (typeof chargerRegistrePostes === 'function' ? chargerRegistrePostes().catch(() => null) : Promise.resolve(null)),
     (typeof sbGet === 'function' ? sbGet('titulaires_pnj', 'select=id,nom_pnj').catch(() => []) : Promise.resolve([])),
     (typeof sbGetCompagnies === 'function' ? sbGetCompagnies(country).catch(() => []) : Promise.resolve([]))
   ]);
   const pnjParId = {};
   (pnjTous || []).forEach(r => { if (r && r.id) pnjParId[r.id] = r.nom_pnj; });
   const resoudreTitulaire = (posteId, ville) => {
-    let posteMatch = null;
-    const match = (joueursTous || []).find(j => {
-      let poste = j.poste;
-      if (typeof poste === 'string') { try { poste = JSON.parse(poste); } catch (e) { poste = null; } }
-      if (j.country !== country || !poste || poste.id !== posteId) return false;
-      if (ville && poste.city !== ville) return false;
-      posteMatch = poste;
-      return true;
-    });
-    if (match) return { nom: match.name, estPJ: true, posteComplet: posteMatch };
+    const ligne = typeof titulairesRegistre === 'function' ? titulairesRegistre(country, posteId, ville || null)[0] : null;
+    if (ligne) return { nom: ligne.nom, estPJ: ligne.estPJ };
     const nomPnj = pnjParId[country + '_' + posteId + '_' + (ville || 'national')];
     return nomPnj ? { nom: nomPnj, estPJ: false } : null;
   };
@@ -2971,7 +2965,8 @@ const OBJECTIFS_SECRETS = {
     objectifs: [
       { id: 'obj_blanchir',    desc: 'Blanchir 20 000 FR via des activités louches', condition: s => (s.argent_blanchi||0) >= 20000,                                    points: 40 },
       { id: 'obj_dis90',       desc: 'Maintenir une Discrétion supérieure à 90',  condition: s => (s.dis||0) >= 90,                                                      points: 20 },
-      { id: 'obj_informateur', desc: 'Recruter 2 informateurs simultanément',      condition: s => (s.informateurs||[]).length >= 2,                                     points: 15 },
+      // Fred, 22/11/2026 au soir : compté par le serveur sur les achats d'informations (informateurs_achats) ; affichage seulement.
+      { id: 'obj_informateur', desc: 'Acheter 5 informations à des informateurs différents', condition: s => (s.informateurs_distincts_achetes||0) >= 5,          points: 15 },
       { id: 'obj_jamais_arrete',desc: 'Ne jamais être arrêté pendant 10 jours',   condition: s => (s.jours_libres||0) >= 10,                                            points: 30 },
     ]
   },
@@ -3034,6 +3029,8 @@ async function afficherObjectifsSecrets() {
       '</div>';
     document.getElementById('modal-postes').classList.add('open');
     globalThis.RPPlayerMissionsI18n?.apply();
+    // Accueil (Fred, 22/11/2026, points 24 et 25) : interview en attente et parcours du chemin choisi, en tête.
+    await globalThis.RPAccueil?.insererObjectifs?.(document.getElementById('postes-body'));
     return;
   }
 
@@ -3070,6 +3067,7 @@ async function afficherObjectifsSecrets() {
     '</div>';
   document.getElementById('modal-postes').classList.add('open');
   globalThis.RPPlayerMissionsI18n?.apply();
+  await globalThis.RPAccueil?.insererObjectifs?.(document.getElementById('postes-body'));
 }
 
 // Vérifier objectifs à chaque updateUI
@@ -3913,14 +3911,23 @@ function deviseDansTexte(texte, devise) {
   return texte.replace(/\bFR\b/g, devise);
 }
 
-// Le pays du mandat prime sur la position actuelle du voyageur.
-// Les fiches anciennes ne portent pas toujours poste.country : la domiciliation
-// d'origine, puis le pays de creation, servent de repli d'affichage uniquement.
-// Les actes sensibles sont controles a nouveau cote serveur.
-function paysMandatPourOrdre() {
+// Le pays du mandat prime sur la position actuelle du voyageur. Il se lit dans le REGISTRE des postes
+// (paysDuPoste, plateau-organisations-quetes.js : postes_attribues / cycles / compagnie) -- 23/11/2026, B.16.
+// Tant que le registre n'est pas encore lu, repli d'affichage sur le poste puis la domiciliation, JAMAIS sur la
+// position (state.country / char.country) : c'est elle qui donnait a un ministre en voyage les ordres de l'autre
+// empire. Les actes sont controles a nouveau cote serveur (poste_exerce, exiger_poste).
+function paysMandatPourOrdre(posteRequis) {
+  const registreLu = typeof paysDuPoste === 'function' && typeof _registrePostes !== 'undefined' && !!_registrePostes;
+  // L'ambassadeur d'un bureau est une nomination propre a ce bureau (ambassades_ouvertes), verifiee a part.
+  if (posteRequis === 'ambassadeur_local') return state.country;
+  // Le mandat de depute vit a part (poste_depute) : son pays est celui de son cycle electoral.
+  if (posteRequis === 'depute' && !String(state.poste?.id || '').startsWith('depute')) {
+    if (registreLu) return posteDetenu(state.char?.name, 'depute', state.country, null) ? state.country : null;
+    return state.posteDepute?.country || state.domicile?.country || null;
+  }
+  if (registreLu) return paysDuPoste(state.char?.name) || null;
   return state.poste?.country || state.poste?.pays ||
-    state.char?.domicile?.country || state.domicile?.country ||
-    state.char?.country || state.country;
+    state.char?.domicile?.country || state.domicile?.country || null;
 }
 
 function renderRoomActions(room, buildingId, roomId) {
@@ -4186,7 +4193,7 @@ function renderRoomActions(room, buildingId, roomId) {
     // Un mandat appartient a son pays, pas a tous les empires portant le meme
     // identifiant de poste. Un ministre de Republia visitant Novomirsk ne devient
     // jamais ministre de Sovarka. La garde serveur tranche l'autorite reelle.
-    if (o.requiresPost && !needsPost && paysMandatPourOrdre() !== state.country) {
+    if (o.requiresPost && !needsPost && paysMandatPourOrdre(o.requiresPost) !== state.country) {
       needsPost = true;
     }
     // DEUX DRAPEAUX DECLARATIFS AJOUTES LE 13 OCTOBRE 2026, et ils ne nomment aucun ordre.
@@ -4582,6 +4589,17 @@ function renderRoomActions(room, buildingId, roomId) {
     buttons.splice(0, buttons.length, ...menus.filter(Boolean), ...horsGroupes);
   }
 
+  // REGROUPEMENT DES ORDRES (Fred, 22/11/2026, soir ; GAME-DESIGN-INTERFACE-ACCUEIL-20261122.md, points 18 à 21) :
+  // accueil des mairies (« Élections », « Guichet »), salle des partis, bureau du syndicat et « Fonctions de [poste] »
+  // dans le bureau de chaque fonction (plateau-ordres-regroupes.js). Les boutons d'origine, déjà gardés ci-dessus,
+  // sont seulement remontés dans la fenêtre du groupe : ni droit, ni coût, ni appel ne change.
+  let ordresRegroupes = false;
+  if (!redactionTribune && !(/^terrain-a-batir-[1-5]$/.test(buildingId) && roomId === 'terrain') &&
+      typeof regrouperOrdresPiece === 'function') {
+    const regroupes = regrouperOrdresPiece(ordresTerrainLuthecia.map((o, i) => ({ o, html: buttons[i] })), buildingId, roomId);
+    if (regroupes) { buttons.splice(0, ordresTerrainLuthecia.length, ...regroupes); ordresRegroupes = true; }
+  }
+
   // Bouton generique "Ecouter l'audioguide" : apparait pour toute salle ayant un audioUrl,
   // sans passer par room.orders/doOrder (pas un ordre codable, juste un lecteur audio).
   // Batiment copie dont les audioguides ne sont pas encore enregistres (audiosAVenir) : pas
@@ -4601,7 +4619,8 @@ function renderRoomActions(room, buildingId, roomId) {
   // les sous-ordres complets (postes, couts, refus, handlers) ouvrent une pop-up.
   // Fonctionnement et composition communs a Luthecia, PSM et Montrouge.
   let boutonsOrganises = buttons;
-  if (state.country === 'republic' && ['commissariat', 'commissariat-local'].includes(buildingId) && roomId === 'bureau_commissaire') {
+  // Remplacé par « Fonctions du commissaire » quand le regroupement est chargé (point 21) ; repli inchangé sinon.
+  if (!ordresRegroupes && state.country === 'republic' && ['commissariat', 'commissariat-local'].includes(buildingId) && roomId === 'bureau_commissaire') {
     const familles = [
       {titre:'Enquêtes', icone:'ti-search', fns:['mener_enquete','organiser_filature','organiser_chasse_homme']},
       {titre:'Gérer les effectifs', icone:'ti-users-group', fns:['gerer_effectifs_police','recruter_policier','recruter_policier_cynophile']}
@@ -4626,7 +4645,7 @@ function renderRoomActions(room, buildingId, roomId) {
   // Greffes : boutons principaux au gabarit standard, sous-ordres dans la modale.
   // Conserver les boutons et handlers originaux, sans modifier les conditions métier.
   // Greffe du Tribunal Populaire de Sovarka : même rangement (Fred, 08/11/2026).
-  if (['republic','soviet'].includes(state.country) && ['tribunal','tribunal-local'].includes(buildingId) && roomId === 'greffe') {
+  if (!ordresRegroupes && ['republic','soviet'].includes(state.country) && ['tribunal','tribunal-local'].includes(buildingId) && roomId === 'greffe') {
     const familles = [
       {titre:'Consulter les affaires', icone:'ti-folders', fns:['archives','greffe_affaires','greffe_archives','demander_juge_instruction']},
       {titre:'Documents officiels', icone:'ti-file-certificate', fns:['casier_mon_extrait','casier_extrait_enquete','orga_extrait_duplicata','sovarka_acte_officiel','sovarka_acte_officiel_autorite']},
@@ -4653,7 +4672,7 @@ function renderRoomActions(room, buildingId, roomId) {
   // Casernes : les dix ordres du corps de garde et les quinze de commandement
   // etaient exposes sans structure. Memes groupes dans toutes les nations :
   // 3 menus lisibles plutot qu'un mur de boutons, aucune action supprimee.
-  if (buildingId === 'caserne-militaire' &&
+  if (!ordresRegroupes && buildingId === 'caserne-militaire' &&
       ['corps_garde','salle_commandement'].includes(roomId) &&
       ['republic','soviet','narco','khalija'].includes(state.country)) {
     const familles = roomId === 'corps_garde'
@@ -5268,7 +5287,7 @@ async function afficherOrganigrammeMairieNational() {
     const villeNomAssemblee = WORLD[country]?.[v]?.name || v;
     for (let i = 0; i < 3; i++) {
       const holderName = elus[i] || null;
-      const estPJ = holderName ? joueursPourAssemblee.some(j => j.country === country && j.name === holderName) : false;
+      const estPJ = holderName ? joueursPourAssemblee.some(j => j.name === holderName) : false; // PJ ou qu'il se trouve (B.15)
       const isMe = estPJ && holderName === myName;
       const avatar = holderName && typeof getAvatarHtmlPourNom === 'function'
         ? getAvatarHtmlPourNom(holderName, 30, isMe ? '#C9A84C' : '#4a8a4a')
@@ -8589,7 +8608,7 @@ async function confirmerReprimerManif(pa, cost) {
   updateUI();
   showToast('Repression menee', r.sujet + ' — Social -' + r.baisse_social + ', Securite +' + r.hausse_securite +
     (r.interdiction_recente ? ' (manifestation deja interdite)' : '') + '. ' + nbTouches +
-    ' PJ present(s) touche(s) (-10 HP, -10 VOL).', false, true);
+    ' PJ present(s) touche(s) (Santé -10 selon la robustesse de chacun, -10 VOL).', false, true);
   addExternalEvent('REPRESSION : Dispersion forcee de "' + r.sujet + '" a ' + nomVille + '.');
   addJournalEntry('Repression ordonnee : ' + r.sujet + ' (' + nomVille + '). ' + nbTouches + ' PJ touche(s).', 'event-bad');
 }
