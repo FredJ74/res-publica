@@ -49,11 +49,13 @@ test('écran : boutique, sacs, groupe, catastrophe (deux options et coûts) dans
     assert.match(T[l].catSacs, /\{cout\}/, l); assert.match(T[l].catTous, /\{cout\}/, l);
   }
   assert.equal(ctx.RPClimat.nomObjet({ stackKey: 'sac_de_sable' }), 'Saco de areia');
-  assert.match(ctx.boutonPoserSacs({ stackKey: 'sac_de_sable' }, ''), /poserSacsSable\(\)/);
+  // Sacs de sable retirés (Fred, 22/11/2026, point 30) : plus de bouton de pose dans l'inventaire.
+  assert.equal(ctx.boutonPoserSacs({ stackKey: 'sac_de_sable' }, ''), '');
   assert.match(ctx.boutonGroupeRemplir({ generique_id: 'groupe-electrogene', a_moi: true }), /groupeRemplir\(\)/);
   const forum = lire('forum.js');
-  assert.match(forum, /catastrophe_proposer: \{ fn:'catastropheProposer'/);
-  assert.match(forum, /catastrophe_examiner: \{ fn:'catastropheExaminer'/);
+  // État de catastrophe naturelle en sommeil (Fred, 22/11/2026, point 31) : boutons des courriers retirés de l'interface.
+  assert.ok(!/^\s*catastrophe_proposer: \{/m.test(forum) && !/^\s*catastrophe_examiner: \{/m.test(forum), 'boutons retirés');
+  assert.match(forum, /ÉTAT DE CATASTROPHE NATURELLE : EN SOMMEIL/);
   assert.equal((lire('i18n/forum-ui.js').match(/"catastrophe_examiner"/g) || []).length, 9);
   assert.match(lire('plateau-router.js'), /fn === 'boutique_climat'.*ouvrirBoutiqueClimat\(\)/);
   assert.match(lire('plateau-equipements.js'), /'groupe-electrogene': 'Groupe électrogène'/);

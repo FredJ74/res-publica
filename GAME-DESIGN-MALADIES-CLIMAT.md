@@ -359,3 +359,10 @@ bandelettes, plats cuisinés, furet renifleur).
    ses invités joueurs tombent malades ensemble.
 5. **Prix et taux** (réglables par le MJ) : bandelette 4 ; furet renifleur **150**, deux par boutique et par semaine, meurt au
    11e aliment avarié reniflé ; détection à la réception 70 % sans bandelette, 95 % avec.
+
+### Décision de Fred du 22/11/2026 (soir) — crue sans blocage, catastrophe en sommeil
+
+Remplace les règles ci-dessus sur la crue (20 % de stock perdu, lieux fermés, sacs de sable) et sur l'état de catastrophe
+naturelle. Un événement climatique peut coûter quelque chose, il ne bloque jamais le jeu d'un joueur : la crue arrête seulement
+les chantiers de la ville une journée (un jour de retard). **État de catastrophe naturelle : en sommeil, intérêt à définir**
+(fonctions serveur conservées, désactivées par un réglage MJ). Détail : `GAME-DESIGN-CLIMAT-20261121.md`, section du 22/11 (soir).

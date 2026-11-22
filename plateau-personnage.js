@@ -3554,6 +3554,8 @@ async function ouvrirDetailObjetInventaire(idx) {
       html += '<button onclick="lireCartePostale(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer"><i class="ti ti-mail-opened"></i> <span data-i18n="inventoryUi.read">Lire</span></button>';
     }
   }
+  // Cigarettes du tabac-presse (Fred, 22/11/2026, point 27) : bouton commun aux deux fenêtres de détail.
+  if (item.familleProduitMarche === 'tabac' && typeof boutonsTabacPresseObjet === 'function') html += boutonsTabacPresseObjet(item, idx, 'font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
 
   // Serrures (04/11/2026, issue #434) : poser le bloc, utiliser la cle, tailler une cle vierge.
   // Les boutons Donner / Jeter ci-dessous restent : une cle est un objet transmissible.
@@ -3817,48 +3819,131 @@ function ouvrirPopupArmoireSouvenirs(idx, tab) {
 // brut deja utilisee partout ailleurs dans le jeu (auteur/sujet de mail, titres de forum) --
 // reutilisee ici pour auteur/destinataire/message, jamais sanitizeRichHtml (reservee au mail
 // riche, autorise des balises : une carte postale est un texte simple, pas un editeur riche).
+// Textes de la carte postale et du tabac-presse (Fred, 22/11/2026, points 27 et 28) : français ici, Codex ajoute les
+// autres langues sous les mêmes clés ; repli sur le français tant qu'une langue manque. Une légende par carte de ville,
+// clé « legende_<modele> » : seule celle de Krasnov est décidée ; les autres cartes n'affichent rien tant que Fred
+// n'a pas donné leur texte (valeur vide).
+const TEXTES_CARTE_POSTALE = { fr: {
+  legende_carte_krasnov_place_ours: 'Krasnov, capitale de l’ours',
+  legende_carte_psm_notre_dame_mer: '', legende_carte_psm_touristique: '', legende_carte_psm_culture_marine: '',
+  legende_carte_montrouge_place_rail: '', legende_carte_montrouge_touristique: '', legende_carte_montrouge_musee_rail: '',
+  legende_carte_luthecia_institutions: '', legende_carte_luthecia_internationale: '', legende_carte_luthecia_culture: '',
+  ecrire_titre: 'Écrire et envoyer', recto: 'Recto', destinataire: 'Destinataire', choisir: '— Choisir un personnage —',
+  placeholder: 'Écrivez votre message ici...', envoyer: 'Envoyer', visuel_a_venir: 'Visuel à venir',
+  retourner: 'Retourner la carte', retourner_aide: 'Cliquez sur la carte pour la retourner.',
+  de: 'De :', a: 'À :', signature: '— {auteur}', lecture: 'Carte postale',
+  envoyee_titre: 'Carte envoyée', envoyee: 'Votre carte postale part pour {dest}.',
+  envoyee_journal: 'Vous avez envoyé une carte postale à {dest}.',
+  echec_titre: 'Envoi refusé', manque_dest: 'Choisissez un personnage destinataire.', manque_msg: 'Écrivez un message avant d’envoyer.',
+  r_message_vide: 'Écrivez un message avant d’envoyer.', r_message_trop_long: 'Le message est trop long ({max} caractères au plus).',
+  r_carte_deja_ecrite: 'Cette carte est déjà écrite : une carte ne s’écrit qu’une fois.',
+  r_pas_une_carte_postale: 'Cet objet n’est pas une carte postale.',
+  r_destinataire_plein: 'L’inventaire de {dest} est plein : la carte ne peut pas lui parvenir.',
+  fumer: 'Fumer', fume_titre: 'Une papirossy', fume: 'Vous fumez une papirossy en regardant passer les tracteurs. +{gain} Moral.',
+  fume_journal: 'Vous avez fumé une cigarette papirossy. +{gain} Moral.'
+} };
+function texteCartePostale(cle, vars) {
+  const l = (globalThis.i18next && globalThis.i18next.language) || 'fr';
+  const t = (TEXTES_CARTE_POSTALE[l] && TEXTES_CARTE_POSTALE[l][cle] != null) ? TEXTES_CARTE_POSTALE[l][cle] : TEXTES_CARTE_POSTALE.fr[cle];
+  return String(t == null ? cle : t).replace(/\{(\w+)\}/g, (m, k) => (vars && Object.prototype.hasOwnProperty.call(vars, k)) ? String(vars[k]) : m);
+}
+function legendeCartePostale(item) {
+  const modele = (item && (item.modele || item.type)) || '';
+  if (!modele || TEXTES_CARTE_POSTALE.fr['legende_' + modele] == null) return '';
+  return texteCartePostale('legende_' + modele);
+}
+function rectoCartePostaleHtml(item, hauteur) {
+  const esc = typeof escapeHtmlText === 'function' ? escapeHtmlText : (s => String(s == null ? '' : s));
+  const legende = legendeCartePostale(item);
+  const image = item.imageUrl
+    ? '<img src="' + esc(item.imageUrl) + '" alt="" style="width:100%;max-height:' + hauteur + 'px;object-fit:cover;border:1px solid #2a2010;display:block"/>'
+    : '<div style="width:100%;height:100px;border:1px dashed #3a2a10;display:flex;align-items:center;justify-content:center;color:#8a7a50;font-style:italic;gap:.4rem"><i class="ti ti-photo-off" style="font-size:1.3rem"></i> ' + esc(texteCartePostale('visuel_a_venir')) + '</div>';
+  return image + (legende ? '<div class="hg-carte-legende" style="text-align:center;font-family:Playfair Display,serif;font-style:italic;color:#e2d6b0;margin-top:.35rem">' + esc(legende) + '</div>' : '');
+}
+// Boutons communs aux deux fenêtres de détail de l'inventaire.
+function boutonsTabacPresseObjet(item, idx, style) {
+  if (!item) return '';
+  let html = '';
+  if (item.familleProduitMarche === 'carte_postale') {
+    if (item.etatCarte === 'ecrite') {
+      html += '<button class="hg-carte-lire" onclick="lireCartePostale(' + idx + ')" style="' + style + '"><i class="ti ti-mail-opened"></i> <span data-i18n="inventoryUi.read">Lire</span></button>';
+    } else {
+      html += '<button class="hg-carte-ecrire" onclick="ouvrirEcrireCartePostale(' + idx + ')" style="' + style + '"><i class="ti ti-feather"></i> <span data-i18n="inventoryUi.writeSend">Écrire et envoyer</span></button>';
+    }
+  }
+  if (item.familleProduitMarche === 'tabac') {
+    html += '<button class="hg-tabac-fumer" onclick="fumerTabac(' + idx + ')" style="' + style + '"><i class="ti ti-smoking"></i> <span data-i18n="inventoryUi.smoke">' + texteCartePostale('fumer') + '</span></button>';
+  }
+  return html;
+}
+
+// Cigarettes papirossy (point 27) : fumées par l'entonnoir serveur de consommation (inventaire_consommer), qui retire
+// la cigarette et ajoute le Moral réglé par le MJ ; l'écran recopie ce que le serveur a appliqué.
+let fumerTabacEnCours = false;
+async function fumerTabac(idx) {
+  if (fumerTabacEnCours) return;
+  const item = state.inventory[idx];
+  if (!item || item.familleProduitMarche !== 'tabac') return;
+  fumerTabacEnCours = true;
+  try {
+    document.getElementById('modal-postes')?.classList.remove('open');
+    const avant = Number(state.moral) || 0;
+    const r = await removeFromInventory(idx, 'consommer');
+    if (!r.ok) { showToast(texteCartePostale('fume_titre'), messageRefusSortieInventaire(r.raison), false); return; }
+    if (typeof r.moral === 'number') {
+      state.moral = r.moral;
+      if (typeof sbFicheBaseAdopter === 'function') sbFicheBaseAdopter({ moral: r.moral });
+    }
+    const gain = typeof r.moral === 'number' ? Math.max(0, r.moral - avant) : 0;
+    showToast(texteCartePostale('fume_titre'), texteCartePostale('fume', { gain }), true, true);
+    if (typeof addJournalEntry === 'function') addJournalEntry(texteCartePostale('fume_journal', { gain }), 'event-good');
+    if (typeof updateUI === 'function') updateUI();
+    if (typeof switchSelfTab === 'function') switchSelfTab('inventaire', null);
+  } finally {
+    fumerTabacEnCours = false;
+  }
+}
+
 function ouvrirEcrireCartePostale(idx) {
   const item = state.inventory[idx];
-  if (!item || item.familleProduitMarche !== 'carte_postale' || item.etatCarte !== 'vierge') return;
-
-  document.getElementById('carte-postale-modal-title').textContent = 'Écrire et envoyer';
-  document.getElementById('carte-postale-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Chargement...</div>';
+  if (!item || item.familleProduitMarche !== 'carte_postale' || item.etatCarte === 'ecrite') return;
+  // La fenêtre de détail se ferme : la carte occupe seule l'écran (une fenêtre visible à la fois).
+  document.getElementById('modal-postes')?.classList.remove('open');
+  document.getElementById('carte-postale-modal-title').textContent = texteCartePostale('ecrire_titre');
+  document.getElementById('carte-postale-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">…</div>';
   document.getElementById('modal-carte-postale').classList.add('open');
 
   const esc = typeof escapeHtmlText === 'function' ? escapeHtmlText : (s => String(s == null ? '' : s));
   const myName = state.char?.name || '';
 
   (typeof sbListPersonnages === 'function' ? sbListPersonnages().catch(() => []) : Promise.resolve([])).then(joueurs => {
-    const destinataires = (joueurs || []).filter(j => j.name !== myName);
-    const imagePreview = item.imageUrl
-      ? '<img src="' + item.imageUrl + '" style="width:100%;max-height:160px;object-fit:cover;border:1px solid #2a2010"/>'
-      : '<div style="width:100%;height:100px;border:1px dashed #3a2a10;display:flex;align-items:center;justify-content:center;color:#5a4a20;font-size:.72rem;font-style:italic;gap:.4rem"><i class="ti ti-photo-off" style="font-size:1.3rem"></i> Visuel à venir</div>';
-
+    const destinataires = (joueurs || []).filter(j => j && j.name && j.name !== myName);
     let html = '<div style="padding:1rem">';
     html += '<div style="margin-bottom:.8rem">';
-    html += '<div style="font-size:.68rem;color:#8a6a20;font-family:Bebas Neue,sans-serif;letter-spacing:.1em;margin-bottom:.3rem">RECTO — ' + esc(item.name) + '</div>';
-    html += imagePreview;
+    html += '<div style="font-family:Bebas Neue,sans-serif;letter-spacing:.1em;color:#C9A84C;margin-bottom:.3rem">' + esc(texteCartePostale('recto')) + ' — ' + esc(item.name) + '</div>';
+    html += rectoCartePostaleHtml(item, 160);
     html += '</div>';
 
-    html += '<div style="display:flex;border:1px solid #6a5a30;background:#f0ead6;min-height:220px">';
-    html += '<div style="flex:1.5;border-right:1px solid #8a7a50;padding:.8rem;display:flex;flex-direction:column">';
-    html += '<textarea id="carte-postale-message" maxlength="500" placeholder="Écrivez votre message ici..." style="flex:1;width:100%;background:transparent;border:none;outline:none;resize:none;color:#2a2010;font-family:\'Great Vibes\',cursive;font-size:1.3rem;line-height:1.7"></textarea>';
-    html += '<div id="carte-postale-compteur" style="font-family:Crimson Pro,serif;font-size:.65rem;color:#7a6a40;text-align:right;margin-top:.3rem">0/500</div>';
+    html += '<div style="display:flex;flex-wrap:wrap;border:1px solid #6a5a30;background:#f0ead6;min-height:220px">';
+    html += '<div style="flex:1.5 1 220px;border-right:1px solid #8a7a50;padding:.8rem;display:flex;flex-direction:column">';
+    html += '<textarea id="carte-postale-message" maxlength="500" placeholder="' + esc(texteCartePostale('placeholder')) + '" style="flex:1;min-height:150px;width:100%;background:transparent;border:none;outline:none;resize:none;color:#2a2010;font-family:\'Great Vibes\',cursive;font-size:1.3rem;line-height:1.7"></textarea>';
+    html += '<div id="carte-postale-compteur" style="font-family:Crimson Pro,serif;color:#5a4a20;text-align:right;margin-top:.3rem">0/500</div>';
     html += '</div>';
-    html += '<div style="flex:1;padding:.8rem;display:flex;flex-direction:column;gap:.5rem;position:relative">';
+    html += '<div style="flex:1 1 160px;padding:.8rem;display:flex;flex-direction:column;gap:.5rem;position:relative">';
     html += '<div style="position:absolute;top:.5rem;right:.5rem;width:34px;height:42px;border:1px dashed #8a7a50;display:flex;align-items:center;justify-content:center;color:#8a7a50"><i class="ti ti-stamp" style="font-size:1rem"></i></div>';
-    html += '<label style="font-family:Bebas Neue,sans-serif;font-size:.62rem;letter-spacing:.1em;color:#6a5a30;margin-top:1.7rem">Destinataire</label>';
-    html += '<select id="carte-postale-destinataire" style="width:100%;background:#fffdf6;border:1px solid #8a7a50;color:#2a2010;padding:.35rem;font-family:Crimson Pro,serif;font-size:.8rem;outline:none"><option value="">— Choisir —</option>';
+    html += '<label for="carte-postale-destinataire" style="font-family:Bebas Neue,sans-serif;letter-spacing:.1em;color:#4a3a10;margin-top:1.7rem">' + esc(texteCartePostale('destinataire')) + '</label>';
+    html += '<select id="carte-postale-destinataire" style="width:100%;background:#fffdf6;border:1px solid #8a7a50;color:#2a2010;padding:.35rem;font-family:Crimson Pro,serif;outline:none"><option value="">' + esc(texteCartePostale('choisir')) + '</option>';
     destinataires.forEach(j => { html += '<option value="' + esc(j.name) + '">' + esc(j.name) + '</option>'; });
     html += '</select>';
     html += '</div>';
     html += '</div>';
 
     html += '<div style="margin-top:.8rem;text-align:right">';
-    html += '<button id="carte-postale-envoyer-btn" onclick="envoyerCartePostale(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.12em;padding:.5rem 1rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer"><i class="ti ti-send"></i> Envoyer</button>';
+    html += '<button id="carte-postale-envoyer-btn" class="cpj-touche cpj-primaire" onclick="envoyerCartePostale(' + idx + ')"><i class="ti ti-send"></i> ' + esc(texteCartePostale('envoyer')) + '</button>';
     html += '</div></div>';
 
     document.getElementById('carte-postale-body').innerHTML = html;
+    if (typeof window !== 'undefined') window.RPI18nPlateau?.apply?.(document.getElementById('carte-postale-body'));
     const ta = document.getElementById('carte-postale-message');
     const compteur = document.getElementById('carte-postale-compteur');
     if (ta && compteur) ta.addEventListener('input', () => { compteur.textContent = ta.value.length + '/500'; });
@@ -3869,95 +3954,78 @@ function fermerModalCartePostale() {
   document.getElementById('modal-carte-postale')?.classList.remove('open');
 }
 
-// Envoi (point 9) : strategie fail-closed. Le transfert distant (sbDonnerObjetJoueur, deja
-// generique et deja sur pour les dons entre joueurs -- objets_recus, full JSON, lu par
-// verifierObjetsRecus) est tente EN PREMIER, avant toute mutation locale. Le retrait de
-// l'inventaire de l'expediteur ne survient QUE si ce transfert a reellement reussi : en cas
-// d'echec reseau, la carte reste intacte et rien n'a ete cree cote destinataire -- ni perte, ni
-// duplication possible dans aucun des deux cas. L'id de l'exemplaire (pose a l'achat,
-// commanderProduitCommerce) est conserve tel quel via le spread -- identite unique preservee.
+// Envoi (Fred, 22/11/2026, point 28) : le SERVEUR écrit la carte (carte_postale_envoyer) — message, signature de
+// l'expéditeur, date — une seule fois, la retire de l'inventaire et la dépose au sas du destinataire (objets_recus,
+// plafond commun des dons) dans la même transaction. L'écran n'envoie que le texte et le nom choisi.
 async function envoyerCartePostale(idx) {
   const item = state.inventory[idx];
-  if (!item || item.familleProduitMarche !== 'carte_postale' || item.etatCarte !== 'vierge') return;
-
+  if (!item || item.familleProduitMarche !== 'carte_postale' || item.etatCarte === 'ecrite') return;
   const destinataire = document.getElementById('carte-postale-destinataire')?.value?.trim();
   const message = document.getElementById('carte-postale-message')?.value?.trim();
-  const moi = state.char?.name || 'Anonyme';
-
-  if (!destinataire) { showToast('Destinataire manquant', 'Choisissez un joueur destinataire.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b8022b5d9", 'Choisissez un joueur destinataire.', undefined, 'Destinataire manquant'); return; }
-  if (destinataire === moi) { showToast('Destinataire invalide', 'Vous ne pouvez pas vous envoyer une carte à vous-même.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b4836affb", 'Vous ne pouvez pas vous envoyer une carte à vous-même.', undefined, 'Destinataire invalide'); return; }
-  if (!message) { showToast('Message vide', 'Écrivez un message avant d\'envoyer.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b54a7bf1a", 'Écrivez un message avant d\'envoyer.', undefined, 'Message vide'); return; }
-
+  if (!destinataire) { showToast(texteCartePostale('echec_titre'), texteCartePostale('manque_dest'), false); return; }
+  if (!message) { showToast(texteCartePostale('echec_titre'), texteCartePostale('manque_msg'), false); return; }
   const btn = document.getElementById('carte-postale-envoyer-btn');
-  if (btn) { btn.disabled = true; btn.style.opacity = '.5'; }
-
-  if (typeof removeFromInventory !== 'function') {
-    if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
-    showToast('Envoi impossible', 'Le service de courrier est indisponible pour le moment.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b680cdbb0", 'Le service de courrier est indisponible pour le moment.', undefined, 'Envoi impossible');
+  if (btn) btn.disabled = true;
+  const acteur = state.char?.name;
+  const r = typeof sbRpcVerdict === 'function'
+    ? await sbRpcVerdict('carte_postale_envoyer', { p_acteur: acteur, p_index: idx, p_signature: signatureObjetInventaire(item),
+        p_destinataire: destinataire, p_message: message.slice(0, 500) }).catch(() => null)
+    : null;
+  if (!r || r.ok !== true) {
+    if (btn) btn.disabled = false;
+    const raison = (r && r.raison) || 'refus_serveur';
+    const propre = TEXTES_CARTE_POSTALE.fr['r_' + raison] != null;
+    showToast(texteCartePostale('echec_titre'), propre ? texteCartePostale('r_' + raison, { dest: destinataire, max: r && r.max })
+      : messageRefusSortieInventaire(raison), false);
     return;
   }
-
-  // Seul don du jeu qui TRANSFORME l'objet en partant : l'exemplaire vierge quitte
-  // l'inventaire, un exemplaire ecrit arrive chez le destinataire. Ces champs ne sont que de
-  // la presentation -- le serveur retire d'office de ces mutations tout ce qui a une valeur
-  // (quantite, empilement, type, legalite, encombrement, identifiant).
-  // Le retrait et le depot sont desormais UNE SEULE transaction : l'ancien enchainement
-  // (envoi d'abord, splice ensuite) etait deja fail-closed, mais il pouvait laisser une carte
-  // partie ET restee en inventaire si le splice n'avait pas lieu.
-  const r = await removeFromInventory(idx, 'donner', {
-    destinataire: destinataire,
-    mutations: {
-      etatCarte: 'ecrite',
-      auteur: moi,
-      destinataireInitial: destinataire,
-      message: message.slice(0, 500),
-      dateEnvoi: typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : new Date().toISOString(),
-      bonusDeclenche: false
-    }
-  });
-  if (!r.ok) {
-    if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
-    showToast('Envoi échoué', messageRefusSortieInventaire(r.raison), false);
-    return;
+  if (Array.isArray(r.inventory)) {
+    if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(r); else state.inventory = r.inventory;
   }
-
   fermerModalCartePostale();
-  showToast('Carte envoyée', 'Votre carte postale a été envoyée à ' + destinataire + '.', true, true);
-  addJournalEntry('Vous avez envoyé une carte postale à ' + destinataire + '.', 'event-info');
-
-  if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
+  showToast(texteCartePostale('envoyee_titre'), texteCartePostale('envoyee', { dest: destinataire }), true, true);
+  if (typeof addJournalEntry === 'function') addJournalEntry(texteCartePostale('envoyee_journal', { dest: destinataire }), 'event-info');
+  if (typeof renderInventory === 'function') renderInventory();
+  if (typeof switchSelfTab === 'function' && document.getElementById('vue-self')?.classList.contains('active')) switchSelfTab('inventaire', null);
 }
 
-// Lecture (points 11/12/13/14/15). Affichage TOUJOURS possible (donnee deja possedee localement,
-// aucun appel reseau necessaire pour simplement lire) -- seul le declenchement du bonus depend
-// d'un appel reseau, et uniquement pour le lecteur qui est le VRAI destinataire initial (un tiers
-// qui recupererait la carte plus tard -- don/abandon/ramassage -- peut lire mais ne declenche
-// jamais rien, point 13). echappement systematique via escapeHtmlText avant toute insertion HTML,
-// y compris pour un tiers lecteur : meme convention, aucune exception.
+// Lecture (point 28) : la carte s'ouvre sur son recto (image et légende) ; un clic la retourne : au verso, le message
+// signé de l'expéditeur. Le bonus de lecture (Lot 4) est inchangé : seulement pour le destinataire initial.
 async function lireCartePostale(idx) {
   const item = state.inventory[idx];
   if (!item || item.familleProduitMarche !== 'carte_postale' || item.etatCarte !== 'ecrite') return;
 
   const esc = typeof escapeHtmlText === 'function' ? escapeHtmlText : (s => String(s == null ? '' : s));
   const messageHtml = esc(item.message || '').replace(/\n/g, '<br>');
-
-  document.getElementById('carte-postale-modal-title').textContent = 'Lecture — ' + esc(item.name);
+  document.getElementById('modal-postes')?.classList.remove('open');
+  document.getElementById('carte-postale-modal-title').textContent = texteCartePostale('lecture') + ' — ' + (item.name || '');
   let html = '<div style="padding:1rem">';
-  // Aperçu recto (Lot 5B, 24 aout 2026, raccordement des visuels) : meme champ item.imageUrl que
-  // ouvrirEcrireCartePostale, absent auparavant de cette modale de lecture -- gracieux si
-  // toujours null (carte sans visuel connu), jamais de chemin devine.
-  if (item.imageUrl) {
-    html += '<div style="margin-bottom:.7rem"><img src="' + item.imageUrl + '" style="width:100%;max-height:200px;object-fit:cover;border:1px solid #2a2010"/></div>';
-  }
-  html += '<div style="display:flex;border:1px solid #6a5a30;background:#f0ead6;min-height:200px">';
-  html += '<div style="flex:1.5;border-right:1px solid #8a7a50;padding:.8rem;color:#2a2010;font-family:\'Great Vibes\',cursive;font-size:1.25rem;line-height:1.7">' + messageHtml + '</div>';
-  html += '<div style="flex:1;padding:.8rem;color:#2a2010;font-family:Crimson Pro,serif;font-size:.8rem">';
-  html += '<div style="margin-bottom:.5rem"><strong>De :</strong> ' + esc(item.auteur || '?') + '</div>';
-  html += '<div style="margin-bottom:.5rem"><strong>À :</strong> ' + esc(item.destinataireInitial || '?') + '</div>';
-  html += '<div style="color:#6a5a30;font-size:.7rem">' + esc(item.dateEnvoi || '') + '</div>';
-  html += '</div></div></div>';
+  html += '<div id="carte-postale-retournable" class="hg-carte-retournable" role="button" tabindex="0" data-face="recto" title="' + esc(texteCartePostale('retourner')) + '" style="cursor:pointer">';
+  html += '<div class="hg-carte-recto">' + rectoCartePostaleHtml(item, 260) + '</div>';
+  html += '<div class="hg-carte-verso" style="display:none">';
+  html += '<div style="display:flex;flex-wrap:wrap;border:1px solid #6a5a30;background:#f0ead6;min-height:220px">';
+  html += '<div style="flex:1.5 1 220px;border-right:1px solid #8a7a50;padding:.8rem;color:#2a2010;font-family:\'Great Vibes\',cursive;font-size:1.3rem;line-height:1.7">' + messageHtml
+    + '<div class="hg-carte-signature" style="text-align:right;margin-top:.6rem">' + esc(texteCartePostale('signature', { auteur: item.auteur || '?' })) + '</div></div>';
+  html += '<div style="flex:1 1 160px;padding:.8rem;color:#2a2010;font-family:Crimson Pro,serif">';
+  html += '<div style="margin-bottom:.5rem"><strong>' + esc(texteCartePostale('de')) + '</strong> ' + esc(item.auteur || '?') + '</div>';
+  html += '<div style="margin-bottom:.5rem"><strong>' + esc(texteCartePostale('a')) + '</strong> ' + esc(item.destinataireInitial || '?') + '</div>';
+  html += '<div style="color:#4a3a10">' + esc(item.dateEnvoi || '') + '</div>';
+  html += '</div></div></div></div>';
+  html += '<div class="cpj-note" style="margin-top:.5rem;text-align:center">' + esc(texteCartePostale('retourner_aide')) + '</div>';
+  html += '<button type="button" class="cpj-touche hg-carte-retourner" style="width:100%;margin-top:.5rem"><i class="ti ti-refresh"></i> ' + esc(texteCartePostale('retourner')) + '</button>';
+  html += '</div>';
   document.getElementById('carte-postale-body').innerHTML = html;
   document.getElementById('modal-carte-postale').classList.add('open');
+  const carte = document.getElementById('carte-postale-retournable');
+  const retourner = () => {
+    const verso = carte.dataset.face !== 'verso';
+    carte.dataset.face = verso ? 'verso' : 'recto';
+    carte.querySelector('.hg-carte-recto').style.display = verso ? 'none' : '';
+    carte.querySelector('.hg-carte-verso').style.display = verso ? '' : 'none';
+  };
+  carte.addEventListener('click', retourner);
+  carte.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); retourner(); } });
+  document.querySelector('#carte-postale-body .hg-carte-retourner')?.addEventListener('click', retourner);
 
   const moi = state.char?.name || '';
   if (item.bonusDeclenche || item.destinataireInitial !== moi) return;
@@ -4375,6 +4443,9 @@ function ouvrirDetailObjet(idx) {
     html += '<button onclick="mangerOeufs()" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.5rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer">Manger 3 œufs</button>';
   }
   if (typeof boutonsTresorTsarsObjet === 'function') html += boutonsTresorTsarsObjet(item, 'flex:1;font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.5rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
+  // Bug de la carte postale (Fred, 22/11/2026, point 28) : l'onglet Inventaire ouvre cette fenêtre, qui n'avait pas
+  // l'action « Écrire et envoyer ».
+  if (typeof boutonsTabacPresseObjet === 'function') html += boutonsTabacPresseObjet(item, idx, 'flex:1;font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.5rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
   if (item.familleProduitMarche === 'aliment' || (item.generique_id === 'encas-a-emporter' && item.recette_id)) {
     html += '<button onclick="consommerAliment(' + idx + ')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.5rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer">Consommer</button>';
   }

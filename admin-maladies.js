@@ -123,7 +123,9 @@ async function admAlimentsCharger() {
 // Climat (lot 3, 18/11/2026) : réglages par type et par pays, calendrier (annuler), création d'un événement à une date.
 const ADM_CLIMAT_CHAMPS = [['actif', 'booléen', 'Actif'], ['par_periode', 'entier', 'Nombre par période'], ['delai_min', 'entier', 'Délai min. entre villes (jours)'],
  ['delai_max', 'entier', 'Délai max. entre villes (jours)'], ['duree_heures', 'entier', 'Durée (heures)'], ['preavis_heures', 'entier', 'Préavis de l’alerte (heures)'],
- ['bloque_chantiers', 'booléen', 'Bloque les chantiers']];
+ ['bloque_chantiers', 'booléen', 'Bloque les chantiers'],
+ // Crue seulement (Fred, 22/11/2026, point 31) : état de catastrophe naturelle EN SOMMEIL, intérêt à définir. Laisser à « non ».
+ ['catastrophe_active', 'booléen', 'État de catastrophe naturelle (en sommeil : laisser à non)', 'crue']];
 const ADM_CLIMAT_VILLES = { republic: { capitale: 'Luthécia', ville_a: 'Port-Sainte-Marie', ville_b: 'Montrouge' }, soviet: { capitale: 'Novomirsk', ville_a: 'Starovka', ville_b: 'Krasnov' } };
 async function admClimatCharger() {
  const el = document.getElementById('adm-climat'); if (!el) return;
@@ -134,7 +136,8 @@ async function admClimatCharger() {
   for (const c of (d.parametres || [])) {
    const bloc = document.createElement('div'); bloc.className = 'adm-dossier';
    const t = document.createElement('strong'); t.textContent = c.type + ' — ' + (c.pays === 'republic' ? 'Républia' : 'Sovarka') + ' (' + c.frequence + ')'; bloc.append(t);
-   for (const [k, type, label] of ADM_CLIMAT_CHAMPS) {
+   for (const [k, type, label, seulement] of ADM_CLIMAT_CHAMPS) {
+    if (seulement && seulement !== c.type) continue;
     const lab = document.createElement('label'); lab.className = 'adm-detail'; lab.style.display = 'block'; lab.textContent = label + ' ';
     let inp;
     if (type === 'booléen') { inp = document.createElement('select'); for (const o of ['true', 'false']) { const op = document.createElement('option'); op.value = o; op.textContent = o === 'true' ? 'oui' : 'non'; inp.append(op); } inp.value = String(!!c[k]); }

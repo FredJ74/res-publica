@@ -3059,16 +3059,8 @@ const RECETTES_ALIMENTAIRES = {
     typesAutorises: ['cafe'], paysAutorises: ['soviet'], villesAutorisees: ['ville_b'], buildingsAutorises: ['cafe-tabac-cheminots-montrouge']
   },
   // Tabac/Presse de Krasnov (14/11/2026, demande de Fred : 4 articles au choix de Claude) : famille
-  // « Tabac & loterie », consommes au comptoir. Prix PNJ 2 x cout de revient (echelle de Sovarka).
-  krasnov_papirossy: {
-    id: 'krasnov_papirossy',
-    label: 'Papirossy « Étoile du Nord »',
-    desc: 'Cigarettes à bout de carton roulées avec la makhorka du kolkhoze. On les fume sur le pas de la porte, en regardant passer les tracteurs.',
-    categorie: 'snack', image: null, icon: 'ti-smoking',
-    materiaux: { plantes: 1 }, pa: 1, portions: 15,
-    effets: { moral: 2 },
-    typesAutorises: ['tabac-presse'], paysAutorises: ['soviet'], villesAutorisees: ['ville_b'], buildingsAutorises: ['tabac-presse-krasnov']
-  },
+  // « Tabac & loterie ». Prix PNJ 2 x cout de revient (echelle de Sovarka). Les cigarettes papirossy sont
+  // devenues un produit de marche (PRODUITS_MARCHE, famille 'tabac', Fred 22/11/2026) ; le billet reste au comptoir.
   krasnov_loto_plan: {
     id: 'krasnov_loto_plan',
     label: 'Billet du Loto du Plan',
@@ -3293,7 +3285,9 @@ const RECETTES_ALIMENTAIRES = {
 // registre.
 // « livre » (15/11/2026) : guide des baies sauvages de Krasnov, objet garde en inventaire et lu (2 PA, +1 INT 24 h).
 // « vetement » (20/11/2026) : tenue ninja, objet revêtable (crim_objet_categorie_interne la reconnaît par son id de recette).
-const FAMILLES_PRODUITS_MARCHE = ['aliment', 'integration_locale', 'carte_postale', 'livre', 'vetement'];
+// « tabac » (Fred, 22/11/2026, point 27) : cigarettes papirossy de Krasnov, gardées en inventaire et fumées quand on
+// veut (inventaire_consommer, +2 Moral réglé par le serveur).
+const FAMILLES_PRODUITS_MARCHE = ['aliment', 'integration_locale', 'carte_postale', 'livre', 'vetement', 'tabac'];
 
 // Registre distinct, volontairement VIDE dans ce lot (aucun produit concret cree -- Lots 2/3/4).
 // Lot 2 (23 aout 2026) : 3 objets d'integration locale, rendement/couts valides par Fred (audit
@@ -3404,7 +3398,7 @@ const PRODUITS_MARCHE = {
     buildingsAutorises: ['marche', 'marche-psm']
   },
   // Tabac/Presse de Krasnov (14/11/2026) : famille « Presse & papeterie », objets deposes en inventaire
-  // par la vente (carte postale a ecrire ; revue d'integration locale, +1 ENT a Krasnov, non cumulable).
+  // par la vente (carte postale a ecrire ; revue lue, +1 ENT 24 h non cumulable).
   // Kolkhoze (Fred, 18/11/2026, décisions du soir) : viande et lait de renne = matières viande et laitages
   // (+1 PA au prochain sommeil en les mangeant), peau = textile, bois de renne = bois, graisse = objet sans effet ;
   // déposés par le serveur (livraisonServeur). La confiture reste un aliment : +1 PA au prochain sommeil.
@@ -3454,9 +3448,17 @@ const PRODUITS_MARCHE = {
     materiaux: { bois: 1 }, pa: 1, portions: 3,
     typesAutorises: ['tabac-presse'], paysAutorises: ['soviet'], villesAutorisees: ['ville_a'], buildingsAutorises: ['magasin-kolkhoze-starovka']
   },
+  // Cigarettes papirossy (Fred, 22/11/2026, point 27) : déposées dans l'inventaire par la vente, fumées quand on veut.
+  krasnov_papirossy: {
+    id: 'krasnov_papirossy', label: 'Cigarettes papirossy « Étoile du Nord »', familleProduitMarche: 'tabac',
+    desc: 'Cigarettes à bout de carton roulées avec la makhorka du kolkhoze. On les garde sur soi et on les fume quand on veut, en regardant passer les tracteurs.',
+    categorie: 'objet', image: null, icon: 'ti-smoking',
+    materiaux: { plantes: 1 }, pa: 1, portions: 15,
+    typesAutorises: ['tabac-presse'], paysAutorises: ['soviet'], villesAutorisees: ['ville_b'], buildingsAutorises: ['tabac-presse-krasnov']
+  },
   carte_krasnov_place_ours: {
     id: 'carte_krasnov_place_ours', label: 'Carte postale — Krasnov, la place de l\'Ours', familleProduitMarche: 'carte_postale',
-    desc: 'La statue de l\'Ours, ses bancs et la mairie, sous la neige. À écrire et à envoyer.',
+    desc: 'La statue de l\'Ours, ses bancs et la mairie, sous la pluie d\'automne. À écrire et à envoyer.',
     categorie: 'objet', image: 'images/Sovarka/Krasnov/Krasnov_place_ours.webp', icon: 'ti-mail',
     materiaux: { bois: 1 }, pa: 1, portions: 16,
     typesAutorises: ['tabac-presse'], paysAutorises: ['soviet'], villesAutorisees: ['ville_b'], buildingsAutorises: ['tabac-presse-krasnov']
@@ -3465,8 +3467,9 @@ const PRODUITS_MARCHE = {
     id: 'revue_chasse_peche_tracteurs', label: 'Revue « Chasse, Pêche & Tracteurs »', familleProduitMarche: 'integration_locale',
     desc: 'Le mensuel des forestiers de Krasnov : le brochet record, le nouveau modèle de tracteur, et les petites annonces du kolkhoze.',
     categorie: 'objet', image: null, icon: 'ti-news',
+    // Revue (Fred, 22/11/2026, point 29) : +1 ENT pendant 24 h à partir de l'achat, non cumulable, posé par le serveur
+    // (revue_bonus_appliquer_interne) ; la revue reste dans l'inventaire, lue, avec le numéro du mois.
     materiaux: { bois: 1 }, pa: 1, portions: 6,
-    bonusIntegrationVille: 'soviet.ville_b',
     typesAutorises: ['tabac-presse'], paysAutorises: ['soviet'], villesAutorisees: ['ville_b'], buildingsAutorises: ['tabac-presse-krasnov']
   },
   casse_croute_cheminot: {

@@ -31,6 +31,14 @@ traduction listées pour Codex dans RELAIS.md.
 27. Le produit devient « Cigarettes papirossy « Étoile du Nord » » : elles arrivent dans l'inventaire et se fument quand on veut, comme les chocolats à emporter, +2 Moral à la consommation.
 28. Carte postale (bug) : ajoute dans l'inventaire l'action « Écrire et envoyer » : le joueur rédige un message, choisit un personnage destinataire, et la carte arrive dans son inventaire avec l'image au recto et, au verso, le message signé de l'expéditeur ; un clic retourne la carte. Une carte ne s'écrit qu'une fois. Les cartes, vierges ou écrites, et les revues lues sont acceptées par les armoires à souvenirs. Corrige la description : « sous la pluie d'automne » au lieu de « sous la neige ». Sous l'image, la fenêtre affiche la légende traduite « Krasnov, capitale de l'ours » (clé de traduction ; une légende par carte de ville). Fred fournira plus tard une nouvelle image de recto avec le titre en russe : garde l'image actuelle d'ici là.
 29. Revue « Chasse, Pêche & Tracteurs » : +1 ENT pendant 24 h à partir de l'achat, non cumulable (un nouvel achat pendant le bonus ne l'augmente ni ne le prolonge). Elle reste dans l'inventaire comme objet de collection, avec le numéro du mois.
+    → Points 27 à 29 préparés le 22/11 (soir, Claude) : migration 20261123150000_tabac_presse_crue (écrite, NON appliquée).
+    Cigarettes : famille de produit « tabac », fumées par inventaire_consommer, +2 Moral (réglage aliments_parametres.papirossy_moral).
+    Carte : écrite une seule fois par le serveur (carte_postale_envoyer), sas objets_recus et plafond commun des dons ; le bug
+    venait de la fenêtre de détail de l'onglet Inventaire, qui n'avait pas l'action « Écrire et envoyer ». Recto (image et
+    légende), un clic la retourne (message signé). Une clé de légende par carte de ville : seule Krasnov a son texte ; les neuf
+    autres attendent celui de Fred. Armoires : le critère serveur (souvenir_utilisable_interne) accepte cartes et revues lues,
+    mais le dépôt dans l'armoire n'est toujours pas codé (décision du 13/11). Revue : bonus de 24 h posé à l'achat
+    (revue_ent_bonus, revue_ent_heures), non cumulable, revue gardée « lue » avec le numéro du mois.
 
 ## PARTIE F — CRUE
 

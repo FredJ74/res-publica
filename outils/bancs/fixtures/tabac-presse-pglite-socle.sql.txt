@@ -1,0 +1,398 @@
+-- Socle PGlite de la migration 20261123150000 (partie E : tabac-presse de Krasnov, carte postale, revue).
+-- Chargé APRÈS fixtures/inventaire-direct-pglite-socle.sql.txt et migrations/20261122200000_inventaire_direct_capacite.sql
+-- (inventaire_donner, inventaire_place_destinataire_interne, inventaire_unites_interne : définitions de production).
+-- Les fonctions que la migration remplace sont recopiées de la PRODUCTION (pg_get_functiondef du 22/11/2026, soir) :
+-- inventaire_consommer, commerce_vendre_produit_interne, souvenir_utilisable_interne, boisson_objet_interne,
+-- aliments_param_interne. Les dépendances périphériques (Santé, maladies, caisses, taxes) sont simplifiées, mêmes signatures.
+ALTER TABLE public.personnages_donnees ADD COLUMN IF NOT EXISTS moral integer DEFAULT 50,
+  ADD COLUMN IF NOT EXISTS effets_actifs jsonb DEFAULT '[]'::jsonb, ADD COLUMN IF NOT EXISTS day integer DEFAULT 1,
+  ADD COLUMN IF NOT EXISTS arg numeric DEFAULT 0, ADD COLUMN IF NOT EXISTS liquide numeric DEFAULT 1000,
+  ADD COLUMN IF NOT EXISTS updated_at timestamptz, ADD COLUMN IF NOT EXISTS bonus_pa_differe integer DEFAULT 0;
+CREATE TABLE public.aliments_parametres (cle text PRIMARY KEY, valeur numeric);
+CREATE TABLE public.recettes_commerce (id text PRIMARY KEY, source text, label text, pa integer, portions integer, materiaux jsonb,
+  prix_fixe numeric, categorie text, types_autorises jsonb, pays_autorises jsonb, villes_autorisees jsonb, buildings_autorises jsonb,
+  effets jsonb, stack_key text, sous_type text, icone text, image text, description text, famille_produit_marche text,
+  bonus_integration_ville text, generique_id text, label_forme text, intermediaires jsonb, boisson text);
+CREATE TABLE public.entreprises (id text PRIMARY KEY, data jsonb, updated_at timestamptz);
+CREATE TABLE public.entreprises_constantes (cle text PRIMARY KEY, valeur numeric);
+CREATE TABLE public.recettes_production (id text, pays text);
+CREATE TABLE public.enigmes_resolues (personnage text NOT NULL, enigme text NOT NULL, resolu_le timestamptz NOT NULL DEFAULT now(),
+  distinction text NOT NULL DEFAULT '', PRIMARY KEY (personnage, enigme));
+
+-- Périphérie simplifiée.
+CREATE OR REPLACE FUNCTION public.repas_differe_deja_pris_interne(p_nom text, p_cle text) RETURNS boolean LANGUAGE sql AS $$ SELECT false $$;
+CREATE OR REPLACE FUNCTION public.repas_differe_crediter_interne(p_nom text, p_cle text, p_source text) RETURNS integer LANGUAGE sql AS $$ SELECT 1 $$;
+CREATE OR REPLACE FUNCTION public.mineur_refus_interne(p_acteur text, p_cibles text[], p_motif text) RETURNS jsonb LANGUAGE sql AS $$ SELECT NULL::jsonb $$;
+CREATE OR REPLACE FUNCTION public.maladie_pa_plafond_interne(p_nom text, p_pa_actuel integer) RETURNS integer LANGUAGE sql AS $$ SELECT 999 $$;
+CREATE OR REPLACE FUNCTION public.sante_repas_appliquer_interne(p_nom text, p_categorie text, p_source text, p_details jsonb) RETURNS jsonb LANGUAGE sql AS $$ SELECT jsonb_build_object('gain', 1) $$;
+CREATE OR REPLACE FUNCTION public.sante_repas_objet_categorie_interne(p_item jsonb) RETURNS text LANGUAGE sql AS $$ SELECT 'snack' $$;
+CREATE OR REPLACE FUNCTION public.maladie_tirer_interne(p_nom text, p_cle text, p_pourcentage numeric, p_source text) RETURNS jsonb LANGUAGE sql AS $$ SELECT NULL::jsonb $$;
+CREATE OR REPLACE FUNCTION public.maladie_risque_interne(p_cle text, p_circonstance text) RETURNS numeric LANGUAGE sql AS $$ SELECT 0::numeric $$;
+CREATE OR REPLACE FUNCTION public.maladie_verre_interne(p_nom text) RETURNS jsonb LANGUAGE sql AS $$ SELECT '{}'::jsonb $$;
+CREATE OR REPLACE FUNCTION public.boisson_bue_interne(p_nom text) RETURNS void LANGUAGE sql AS $$ SELECT $$;
+CREATE OR REPLACE FUNCTION public.estadine_consommer_effets(p_acteur text) RETURNS jsonb LANGUAGE sql AS $$ SELECT '{}'::jsonb $$;
+CREATE OR REPLACE FUNCTION public.jour_de_jeu_pays(p_pays text) RETURNS integer LANGUAGE sql AS $$ SELECT 1 $$;
+CREATE OR REPLACE FUNCTION public.restaurant_luthecia_vente_verifier(d jsonb, acteur text, produits jsonb, mode_vente text, ordre text) RETURNS jsonb LANGUAGE sql AS $$ SELECT '{"ok":true}'::jsonb $$;
+CREATE OR REPLACE FUNCTION public.restaurant_luthecia_carte(d jsonb, acteur text) RETURNS jsonb LANGUAGE sql AS $$ SELECT coalesce(d->'carte', '[]'::jsonb) $$;
+CREATE OR REPLACE FUNCTION public.restaurant_luthecia_est_commerce(d jsonb) RETURNS boolean LANGUAGE sql AS $$ SELECT false $$;
+CREATE OR REPLACE FUNCTION public.quincaillerie_recette_interne(p_id text, p_pays text) RETURNS public.recettes_commerce LANGUAGE sql AS $$ SELECT r FROM public.recettes_commerce r WHERE false $$;
+CREATE OR REPLACE FUNCTION public.payer_ordre(p_acteur text, p_fn text, p_pa integer, p_cost integer) RETURNS jsonb LANGUAGE sql AS $$ SELECT '{"ok":true}'::jsonb $$;
+CREATE OR REPLACE FUNCTION public.helvetia_debiter_fonds_ordinaires(p_personnage text, p_montant numeric) RETURNS boolean LANGUAGE plpgsql AS $$
+BEGIN UPDATE public.personnages_donnees SET liquide = liquide - p_montant WHERE name = p_personnage AND liquide >= p_montant; RETURN FOUND; END $$;
+CREATE OR REPLACE FUNCTION public.appliquer_taxe_transaction(p_pays text, p_ville text, p_montant_brut numeric) RETURNS jsonb LANGUAGE sql AS $$ SELECT jsonb_build_object('net', p_montant_brut) $$;
+CREATE OR REPLACE FUNCTION public.caisse_institution_mouvement(p_id text, p_delta numeric, p_exiger_existant boolean) RETURNS jsonb LANGUAGE sql AS $$ SELECT '{"ok":true}'::jsonb $$;
+CREATE OR REPLACE FUNCTION public.entreprise_ajouter_historique(p_data jsonb, p_montant numeric, p_motif text, p_jour integer) RETURNS jsonb LANGUAGE sql AS $$ SELECT p_data $$;
+CREATE OR REPLACE FUNCTION public.maladie_contracter_interne(p_nom text, p_cle text, p_source text) RETURNS jsonb LANGUAGE sql AS $$ SELECT '{}'::jsonb $$;
+CREATE OR REPLACE FUNCTION public.hotel_nuitee_ajouter_interne(p_acteur text, p_hotel text) RETURNS jsonb LANGUAGE sql AS $$ SELECT '{}'::jsonb $$;
+CREATE OR REPLACE FUNCTION public.sovarka_matiere_objet_interne(p_cle text, p_qte integer, p_desc text) RETURNS jsonb LANGUAGE sql AS $$
+  SELECT jsonb_build_object('name', p_cle, 'stackable', true, 'stackKey', p_cle, 'qty', p_qte, 'desc', p_desc) $$;
+
+-- ===================== Production, à l'identique =====================
+CREATE OR REPLACE FUNCTION public.aliments_param_interne(p_cle text, p_defaut numeric)
+ RETURNS numeric
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT coalesce((SELECT valeur FROM public.aliments_parametres WHERE cle = p_cle), p_defaut);
+$function$;
+
+CREATE OR REPLACE FUNCTION public.boisson_objet_interne(p_item jsonb)
+ RETURNS text
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT CASE WHEN p_item->>'boisson' IN ('alcoolisee', 'non_alcoolisee') THEN p_item->>'boisson'
+              ELSE (SELECT boisson FROM public.recettes_commerce WHERE id = nullif(p_item->>'recette_id', '')) END;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.souvenir_utilisable_interne(p_acteur text, p_objet jsonb)
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT CASE WHEN p_objet->>'type' = 'feuille_enigme_krasnov'
+              THEN EXISTS (SELECT 1 FROM public.enigmes_resolues WHERE personnage = p_acteur AND enigme = 'krasnov')
+              ELSE true END;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.inventaire_consommer(p_acteur text, p_index integer, p_signature jsonb)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_inv jsonb;v_quete jsonb;v_item jsonb;v_r jsonb;v_pos integer;v_date numeric;v_frais boolean;v_pa integer;v_delta integer;v_aliment boolean;v_id text;v_base text;v_k integer;v_ch text;v_digit integer;v_boisson text; /* maladies_boissons_decl */
+BEGIN
+ PERFORM public.exiger_acteur(p_acteur);
+ SELECT coalesce(inventory,'[]'::jsonb),quete_carriere INTO v_inv,v_quete FROM public.personnages_donnees WHERE name=p_acteur FOR UPDATE;
+ IF NOT FOUND THEN RETURN jsonb_build_object('ok',false,'raison','personnage_introuvable'); END IF;
+ v_pos:=public.inventaire_localiser(v_inv,p_index,p_signature);
+ IF v_pos<0 THEN RETURN jsonb_build_object('ok',false,'raison','objet_absent'); END IF;
+ v_item:=v_inv->v_pos;
+ -- Confiture d'airelles du kolkhoze (Fred, 18/11/2026) : +1 PA au prochain Dormir, une par nuit.
+ IF coalesce(v_item->>'type','')='kolkhoze_confiture_airelles' AND public.repas_differe_deja_pris_interne(p_acteur,'confiture') THEN
+   RETURN jsonb_build_object('ok',false,'raison','confiture_deja_prise');
+ END IF;
+ v_aliment:=coalesce(v_item->>'familleProduitMarche','')='aliment'
+   OR (coalesce(v_item->>'generique_id','')='encas-a-emporter' AND coalesce(v_item->>'recette_id','')<>'');
+ v_boisson:=CASE WHEN v_aliment THEN NULL ELSE public.boisson_objet_interne(v_item) END; -- maladies_boissons_gate
+ IF (v_boisson = 'alcoolisee' OR coalesce(v_item->>'type','') = 'drogue') /* mineurs_v1 */
+    AND public.mineur_refus_interne(p_acteur, NULL, 'consommation') IS NOT NULL THEN
+   RETURN public.mineur_refus_interne(p_acteur, NULL, 'consommation'); END IF;
+ IF NOT (v_aliment OR v_boisson IS NOT NULL OR coalesce(v_item->>'type','') IN ('medicament','explosif','poison','drogue')) THEN
+   RETURN jsonb_build_object('ok',false,'raison','objet_non_consommable');
+ END IF;
+ IF v_aliment THEN
+   BEGIN v_date:=(v_item->>'dateAchat')::numeric; EXCEPTION WHEN others THEN v_date:=NULL; END;
+   IF v_date IS NULL OR v_date<=0 THEN
+     -- Les anciens achats comportent un identifiant horodate genere a l'achat.
+     -- Cette retrocompatibilite n'est admise que pour les aliments manufactures identifies.
+     v_id:=v_item#>>'{exemplaire,id}';
+     IF v_id ~ '^achat-[0-9a-z]{8,12}-[0-9a-z]+-[0-9]+$' AND v_item ? 'provenance' THEN
+       v_base:=split_part(v_id,'-',2);v_date:=0;
+       FOR v_k IN 1..length(v_base) LOOP
+         v_ch:=substr(v_base,v_k,1);
+         v_digit:=strpos('0123456789abcdefghijklmnopqrstuvwxyz',v_ch)-1;
+         v_date:=v_date*36+v_digit;
+       END LOOP;
+     END IF;
+   END IF;
+   IF v_date IS NULL OR v_date<1600000000000 OR v_date>(extract(epoch FROM now())*1000+300000) THEN
+     RETURN jsonb_build_object('ok',false,'raison','date_achat_invalide');
+   END IF;
+ END IF;
+ v_r:=public.helvetia_inventaire_sortie(v_inv,v_quete,p_index,p_signature,1);
+ IF NOT coalesce((v_r->>'ok')::boolean,false) THEN RETURN v_r; END IF;
+ UPDATE public.personnages_donnees SET inventory=v_r->'inventory' WHERE name=p_acteur;
+ IF coalesce(v_item->>'type','')='kolkhoze_confiture_airelles' THEN
+   v_r:=v_r||jsonb_build_object('bonus_pa_differe',public.repas_differe_crediter_interne(p_acteur,'confiture','confiture_airelles'),'bonus_differe',1);
+ ELSIF v_aliment THEN
+   v_frais:=(extract(epoch FROM now())*1000-v_date)<=coalesce((SELECT valeur FROM public.aliments_parametres WHERE cle='peremption_jours'),10)*86400000; -- aliments_peremption_v1
+   v_frais:=v_frais AND NOT coalesce((v_item->>'avarie')::boolean,false); -- climat_canicule_v1
+   v_delta:=0; /* sante_conso_inv_a */
+   UPDATE public.personnages_donnees SET pa=least(public.maladie_pa_plafond_interne(p_acteur,coalesce(pa,0)),greatest(0,coalesce(pa,0)+v_delta)) WHERE name=p_acteur RETURNING pa INTO v_pa;
+   v_r:=v_r||jsonb_build_object('sante',public.sante_repas_appliquer_interne(p_acteur,public.sante_repas_objet_categorie_interne(v_item),'inventaire',jsonb_build_object('objet',v_item->>'name'))) /* sante_conso_inv_b */
+     ||jsonb_build_object('pa',v_pa,'aliment_frais',true,
+     'maladie',CASE WHEN NOT v_frais THEN public.maladie_tirer_interne(p_acteur,'intoxication',public.maladie_risque_interne('intoxication','aliment_avarie'),'aliment_avarie')
+       WHEN coalesce((v_item->>'contamine')::boolean,false) THEN public.maladie_tirer_interne(p_acteur,'intoxication',public.maladie_risque_interne('intoxication','plat_avarie'),'plat_avarie') END); -- aliments_plats_tirage -- aliments_avarie_v1
+ END IF;
+ IF v_boisson IS NOT NULL THEN -- maladies_boissons_effet
+   IF v_boisson='alcoolisee' THEN PERFORM public.maladie_verre_interne(p_acteur); END IF;
+   IF v_boisson='non_alcoolisee' THEN PERFORM public.boisson_bue_interne(p_acteur); END IF; /* crim_boisson_bue_v1 */
+   v_r:=v_r||jsonb_build_object('boisson',v_boisson);
+ END IF;
+ IF coalesce(v_item->>'type','')='drogue' AND coalesce(v_item->>'drogue','')='estadine' THEN /* estadine_consommation_effets */
+  v_r:=v_r||public.estadine_consommer_effets(p_acteur);
+ ELSIF coalesce(v_item->>'type','')='drogue' THEN /* boulette_consommation_effets */
+  DECLARE d_p public.personnages_donnees%rowtype; d_now numeric; d_fin numeric; d_eff jsonb; d_bonus boolean;
+  BEGIN
+   SELECT * INTO d_p FROM public.personnages_donnees WHERE name=p_acteur;
+   d_now:=extract(epoch FROM clock_timestamp())*1000;
+   d_fin:=extract(epoch FROM ((date_trunc('day',now() AT TIME ZONE 'Europe/Paris')+interval '1 day') AT TIME ZONE 'Europe/Paris'))*1000;
+   SELECT coalesce(jsonb_agg(e),'[]'::jsonb) INTO d_eff FROM jsonb_array_elements(coalesce(d_p.effets_actifs,'[]'::jsonb)) e
+    WHERE jsonb_typeof(e)='object' AND coalesce((e->>'expireA')::numeric,0)>d_now;
+   d_bonus:=NOT EXISTS(SELECT 1 FROM jsonb_array_elements(d_eff) e WHERE e->>'cle'='boulette_ent');
+   IF d_bonus THEN
+    d_eff:=d_eff||jsonb_build_array(jsonb_build_object('cle','boulette_ent','cible','pj',
+     'deltas',jsonb_build_object('ENT',2),'libelle','Détendu (boulette)','poseA',d_now,'expireA',d_fin));
+   END IF;
+   UPDATE public.personnages_donnees SET
+     pa=greatest(0,coalesce(pa,0)-1),
+     hp=CASE WHEN coalesce(hp,0)>1 THEN greatest(1,hp-5) ELSE hp END,
+     moral=least(100,coalesce(moral,0)+10),
+     effets_actifs=d_eff
+    WHERE name=p_acteur RETURNING * INTO d_p;
+   INSERT INTO public.actions_tracables(id,auteur,cible,type_action,country,city,jour,jour_expiration)
+    VALUES('conso-'||d_p.id::text||'-'||md5(random()::text||clock_timestamp()::text),p_acteur,NULL,'consommation_drogue',
+     coalesce(d_p.country,'republic'),d_p.current_city,public.jour_de_jeu_pays(coalesce(d_p.country,'republic')),
+     public.jour_de_jeu_pays(coalesce(d_p.country,'republic'))+7);
+   v_r:=v_r||jsonb_build_object('drogue',true,'pa',d_p.pa,'hp',d_p.hp,'moral',d_p.moral,
+     'effets_actifs',d_eff,'bonus_ent',d_bonus,'effets',jsonb_build_object('moral',10,'ENT',2,'pa',-1,'hp',-5));
+  END;
+ END IF;
+ RETURN v_r;
+END;$function$;
+
+CREATE OR REPLACE FUNCTION public.commerce_vendre_produit_interne(p_acteur text, p_entreprise text, p_produits jsonb, p_mode text DEFAULT 'comptoir'::text, p_ordre text DEFAULT NULL::text, p_pa integer DEFAULT 0, p_cost integer DEFAULT 0, p_regle_pa text DEFAULT NULL::text, p_prix_tournee numeric DEFAULT NULL::numeric)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+DECLARE
+  v_data jsonb; v_type text; v_pays text; v_ville text; v_jour integer;
+  v_sp jsonb; v_ligne jsonb; v_id text; v_qte numeric; v_stock numeric; v_prix numeric; v_contamines numeric := 0; /* aliments_plats_decl */
+  v_dynamique numeric := 0; v_assiette numeric; v_net numeric;
+  v_caisse numeric; v_categorie text; v_caisse_id text;
+  v_r jsonb; v_taxe jsonb; v_au_catalogue boolean; v_livraison jsonb := '[]'::jsonb;
+  v_rec record; v_arg numeric; v_liquide numeric; v_pa_reste integer; v_libelle text := '';
+  v_pa_metier numeric := 0; v_pa_actuel integer; v_i integer;
+BEGIN
+  PERFORM set_config('rp.caisse_interne', 'on', true);
+  PERFORM public.exiger_acteur(p_acteur);
+  IF p_mode NOT IN ('comptoir', 'service', 'marche_noir') THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'mode_invalide');
+  END IF;
+  IF p_mode = 'service' AND (COALESCE(p_ordre,'') = '' OR COALESCE(p_cost,0) <= 0) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'ordre_requis');
+  END IF;
+  IF p_produits IS NULL OR jsonb_typeof(p_produits) <> 'array' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'articles_invalides');
+  END IF;
+  IF jsonb_array_length(p_produits) = 0 AND p_mode <> 'service' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'articles_invalides');
+  END IF;
+
+  IF COALESCE(p_regle_pa,'') <> '' THEN
+    SELECT valeur INTO v_pa_metier FROM public.entreprises_constantes WHERE cle = p_regle_pa;
+    IF v_pa_metier IS NULL THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'regle_pa_inconnue', 'cle', p_regle_pa);
+    END IF;
+  END IF;
+
+  SELECT data INTO v_data FROM public.entreprises WHERE id = p_entreprise FOR UPDATE;
+  IF NOT FOUND THEN RETURN jsonb_build_object('ok', false, 'raison', 'introuvable'); END IF;
+  v_r:=public.restaurant_luthecia_vente_verifier(v_data,p_acteur,p_produits,p_mode,p_ordre);
+  IF v_r->>'ok' IS DISTINCT FROM 'true' THEN RETURN v_r; END IF;
+  v_type  := COALESCE(v_data->>'type','');
+  v_pays  := COALESCE(v_data->>'country','republic');
+  v_ville := COALESCE(v_data->>'city','capitale');
+  v_sp    := COALESCE(v_data->'stockProduits', '{}'::jsonb);
+
+  FOR v_ligne IN SELECT value FROM jsonb_array_elements(p_produits) LOOP
+    v_id  := v_ligne->>'produit';
+    v_qte := COALESCE((v_ligne->>'qte')::numeric, 1);
+    IF COALESCE(v_id,'') = '' OR v_qte <= 0 OR v_qte <> trunc(v_qte) THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'articles_invalides');
+    END IF;
+    IF v_type = 'armurerie' THEN
+      SELECT EXISTS (SELECT 1 FROM public.recettes_production
+                      WHERE id = v_id AND pays = v_pays)
+          -- quincaillerie_armurerie_v1 : au comptoir seulement, jamais au marche noir.
+          OR (p_mode <> 'marche_noir' AND (SELECT q.id FROM public.quincaillerie_recette_interne(v_id, v_pays) q) IS NOT NULL)
+        INTO v_au_catalogue;
+    ELSE
+      v_au_catalogue := public.restaurant_luthecia_carte(v_data,p_acteur) @> jsonb_build_array(to_jsonb(v_id));
+    END IF;
+    IF NOT v_au_catalogue THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'produit_non_propose', 'produit', v_id);
+    END IF;
+    v_stock := COALESCE((v_sp->>v_id)::numeric, 0);
+    IF v_stock < v_qte THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'stock_insuffisant',
+                                'produit', v_id, 'stock', v_stock);
+    END IF;
+    IF p_mode <> 'service' THEN
+      v_prix := CASE WHEN public.restaurant_luthecia_est_commerce(v_data) AND v_id LIKE 'menu_gastronomique_%' THEN 125 WHEN public.restaurant_luthecia_est_commerce(v_data) AND v_id IN('champagne_luthecia','cocktail_luthecia') THEN 25 ELSE coalesce(p_prix_tournee, (v_data->'parametres'->'prixVente'->>v_id)::numeric) END;
+      IF v_prix IS NULL THEN
+        RETURN jsonb_build_object('ok', false, 'raison', 'prix_non_defini', 'produit', v_id);
+      END IF;
+      v_dynamique := v_dynamique + v_prix * v_qte
+                     * CASE WHEN p_mode = 'marche_noir' THEN 3 ELSE 1 END;
+    END IF;
+  END LOOP;
+
+  SELECT COALESCE(day,1), COALESCE(pa,0) INTO v_jour, v_pa_actuel
+    FROM public.personnages_donnees WHERE name = p_acteur FOR UPDATE;
+  IF v_pa_metier > 0 AND v_pa_actuel < v_pa_metier THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pa_insuffisants', 'pa_reel', v_pa_actuel);
+  END IF;
+
+  IF COALESCE(p_ordre,'') <> '' THEN
+    v_r := public.payer_ordre(p_acteur, p_ordre, COALESCE(p_pa,0), COALESCE(p_cost,0));
+    IF COALESCE((v_r->>'ok')::boolean, false) IS NOT TRUE THEN
+      RETURN jsonb_build_object('ok', false, 'raison', COALESCE(v_r->>'raison','paiement_refuse'),
+                                'detail', v_r);
+    END IF;
+  END IF;
+
+  IF v_pa_metier > 0 THEN
+    UPDATE public.personnages_donnees SET pa = GREATEST(0, pa - v_pa_metier), updated_at = now()
+     WHERE name = p_acteur;
+  END IF;
+
+  IF v_dynamique > 0 THEN
+    IF NOT public.helvetia_debiter_fonds_ordinaires(p_acteur, v_dynamique) THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'fonds_insuffisants', 'total', v_dynamique);
+    END IF;
+  END IF;
+
+  SELECT COALESCE(arg,0), COALESCE(liquide,0), COALESCE(pa,0)
+    INTO v_arg, v_liquide, v_pa_reste
+    FROM public.personnages_donnees WHERE name = p_acteur;
+
+  v_assiette := CASE p_mode WHEN 'service' THEN COALESCE(p_cost,0) ELSE v_dynamique END;
+  IF p_mode = 'marche_noir' THEN
+    v_net := 0;
+  ELSE
+    v_taxe := public.appliquer_taxe_transaction(v_pays, v_ville, v_assiette);
+    v_net := COALESCE((v_taxe->>'net')::numeric, v_assiette);
+    v_categorie := CASE v_type WHEN 'buvette' THEN 'stade' WHEN 'marche' THEN 'marche' ELSE NULL END;
+    IF v_categorie IS NOT NULL THEN
+      v_caisse_id := v_pays || '_' || v_categorie || '_' || v_ville;
+      PERFORM public.caisse_institution_mouvement(v_caisse_id, v_net, false);
+    ELSE
+      v_caisse := GREATEST(0, COALESCE((v_data->>'caisse')::numeric, 0));
+      v_data := jsonb_set(v_data, '{caisse}', to_jsonb(v_caisse + v_net), true);
+    END IF;
+  END IF;
+
+  FOR v_ligne IN SELECT value FROM jsonb_array_elements(p_produits) LOOP
+    v_id  := v_ligne->>'produit';
+    v_qte := COALESCE((v_ligne->>'qte')::numeric, 1);
+    v_stock := COALESCE((v_sp->>v_id)::numeric, 0);
+    v_sp := jsonb_set(v_sp, ARRAY[v_id], to_jsonb(v_stock - v_qte));
+    IF coalesce((v_data->'portionsContaminees'->>v_id)::numeric, 0) > 0 THEN -- aliments_plats_v1
+      v_contamines := v_contamines + least(v_qte, (v_data->'portionsContaminees'->>v_id)::numeric);
+      v_data := jsonb_set(v_data, ARRAY['portionsContaminees', v_id], to_jsonb(greatest(0, (v_data->'portionsContaminees'->>v_id)::numeric - v_qte)));
+    END IF;
+    v_libelle := v_libelle || CASE WHEN v_libelle = '' THEN '' ELSE ', ' END || v_id || ' x' || v_qte;
+    SELECT * INTO v_rec FROM public.recettes_commerce WHERE id = v_id;
+    v_livraison := v_livraison || jsonb_build_array(jsonb_build_object(
+      'produit', v_id, 'qte', v_qte,
+      'prixUnitaire', coalesce(p_prix_tournee, (v_data->'parametres'->'prixVente'->>v_id)::numeric),
+      'label', v_rec.label, 'categorie', v_rec.categorie,
+      'effets', COALESCE(v_rec.effets, '{}'::jsonb), 'icone', v_rec.icone,
+      'image', v_rec.image, 'description', v_rec.description,
+      'familleProduitMarche', v_rec.famille_produit_marche,
+      'bonusIntegrationVille', v_rec.bonus_integration_ville));
+  END LOOP;
+  v_data := jsonb_set(v_data, '{stockProduits}', v_sp, true);
+  PERFORM set_config('rp.plat_contamine', '0', true); -- aliments_plats_tablee_v1
+  IF v_contamines > 0 AND random() * 100 < public.maladie_risque_interne('intoxication', 'plat_avarie') THEN -- aliments_plats_tirage
+    PERFORM public.maladie_contracter_interne(regexp_replace(p_acteur, '^pj:', ''), 'intoxication', 'plat_avarie');
+    PERFORM set_config('rp.plat_contamine', '1', true);
+  END IF;
+
+  v_data := public.entreprise_ajouter_historique(v_data, v_net,
+              CASE WHEN p_mode = 'marche_noir' THEN 'Vol — ' ELSE 'Vente — ' END
+              || COALESCE(NULLIF(v_libelle,''), 'prestation') || ' — ' || p_acteur, v_jour);
+  UPDATE public.entreprises SET data = v_data, updated_at = now() WHERE id = p_entreprise;
+
+  -- La chambre payee survit meme si le navigateur se ferme avant sa sauvegarde.
+  -- Aucun second paiement : meme transaction que payer_ordre, taxe et caisse ci-dessus.
+  IF coalesce(v_data->>'buildingId','')='hotel-republica' AND p_ordre='reserver_chambre_hotel' THEN
+    PERFORM public.hotel_nuitee_ajouter_interne(p_acteur,'hotel-republica');
+  END IF;
+
+  -- Magasin du kolkhoze (Fred, 18/11/2026) : matières (viande, laitages, textile, bois) en pile, objet simple sans effet.
+  FOR v_ligne IN SELECT value FROM jsonb_array_elements(v_livraison) LOOP
+    IF coalesce(v_ligne -> 'effets' ->> 'matiere', '') IN ('viande', 'laitages', 'textile', 'bois') THEN
+      v_r := public.inventaire_deposer_interne(p_acteur, public.sovarka_matiere_objet_interne(v_ligne -> 'effets' ->> 'matiere',
+               coalesce((v_ligne ->> 'qte')::numeric, 1)::integer, coalesce(v_ligne ->> 'label', '') || ' : ' || coalesce(v_ligne ->> 'description', '')));
+      IF coalesce((v_r ->> 'ok')::boolean, false) IS NOT TRUE THEN RAISE EXCEPTION 'commerce_vendre_produit_interne : depot refuse %', v_r; END IF;
+    ELSIF coalesce((v_ligne -> 'effets' ->> 'objetSimple')::boolean, false) THEN
+      v_r := public.inventaire_deposer_interne(p_acteur, jsonb_build_object('name', v_ligne ->> 'label', 'icon', coalesce(v_ligne ->> 'icone', 'ti-package'),
+               'stackable', true, 'stackKey', v_ligne ->> 'produit', 'qty', coalesce((v_ligne ->> 'qte')::numeric, 1)::integer,
+               'legal', true, 'desc', v_ligne ->> 'description', 'villeOrigine', v_ville));
+      IF coalesce((v_r ->> 'ok')::boolean, false) IS NOT TRUE THEN RAISE EXCEPTION 'commerce_vendre_produit_interne : depot refuse %', v_r; END IF;
+    END IF;
+  END LOOP;
+  -- Produits du marche non alimentaires (familleProduitMarche deposes par le serveur, 27/10 ; retabli le 14/11/2026).
+  FOR v_ligne IN SELECT value FROM jsonb_array_elements(v_livraison) LOOP
+    IF coalesce(v_ligne ->> 'familleProduitMarche', '') <> '' THEN
+      FOR v_i IN 1..coalesce((v_ligne ->> 'qte')::numeric, 1)::integer LOOP
+        v_r := public.inventaire_deposer_interne(p_acteur, jsonb_strip_nulls(jsonb_build_object(
+          'id', (v_ligne ->> 'produit') || '_' || replace(gen_random_uuid()::text, '-', ''),
+          'type', v_ligne ->> 'produit', 'name', v_ligne ->> 'label', 'icon', coalesce(v_ligne ->> 'icone', 'ti-package'),
+          'imageUrl', v_ligne ->> 'image', 'desc', v_ligne ->> 'description', 'villeOrigine', v_ville,
+          'dateAchat', CASE WHEN v_ligne ->> 'familleProduitMarche' = 'aliment' THEN floor(extract(epoch FROM now()) * 1000) END,
+          'etatCarte', CASE WHEN v_ligne ->> 'familleProduitMarche' = 'carte_postale' THEN 'vierge' END,
+          'modele', CASE WHEN v_ligne ->> 'familleProduitMarche' = 'carte_postale' THEN v_ligne ->> 'produit' END,
+          'familleProduitMarche', v_ligne -> 'familleProduitMarche', 'bonusIntegrationVille', v_ligne -> 'bonusIntegrationVille')), true);
+        IF coalesce((v_r ->> 'ok')::boolean, false) IS NOT TRUE THEN
+          RAISE EXCEPTION 'commerce_vendre_produit_interne : depot refuse %', v_r;
+        END IF;
+      END LOOP;
+    END IF;
+  END LOOP;
+  RETURN (SELECT jsonb_build_object('inventory', inventory, 'revision', inventory_revision) FROM public.personnages_donnees WHERE name = p_acteur)
+    || jsonb_build_object('ok', true, 'mode', p_mode,
+    'total', v_dynamique, 'assiette', v_assiette, 'net', v_net,
+    'paMetier', v_pa_metier,
+    'arg', v_arg, 'liquide', v_liquide, 'pa', v_pa_reste,
+    'livraison', v_livraison);
+END; $function$;
+
+-- Catalogue du tabac-presse de Krasnov tel qu'en production (20261114220000).
+INSERT INTO public.recettes_commerce (id, source, label, pa, portions, materiaux, categorie, types_autorises, pays_autorises,
+  villes_autorisees, buildings_autorises, icone, image, description, effets, famille_produit_marche, bonus_integration_ville, generique_id) VALUES
+ ('krasnov_papirossy','tabac','Papirossy « Étoile du Nord »',1,15,'{"plantes":1}','snack','["tabac-presse"]','["soviet"]','["ville_b"]','["tabac-presse-krasnov"]',
+  'ti-smoking',NULL,'Cigarettes à bout de carton roulées avec la makhorka du kolkhoze. On les fume sur le pas de la porte, en regardant passer les tracteurs.',
+  '{"moral":2}',NULL,NULL,NULL),
+ ('krasnov_loto_plan','tabac','Billet du Loto du Plan',1,20,'{"bois":1}','snack','["tabac-presse"]','["soviet"]','["ville_b"]','["tabac-presse-krasnov"]',
+  'ti-ticket',NULL,'On gratte, on lit « Le Plan a gagné ».','{"moral":1}',NULL,NULL,NULL),
+ ('carte_krasnov_place_ours','tabac','Carte postale — Krasnov, la place de l''Ours',1,16,'{"bois":1}','objet','["tabac-presse"]','["soviet"]','["ville_b"]','["tabac-presse-krasnov"]',
+  'ti-mail','images/Sovarka/Krasnov/Krasnov_place_ours.webp','La statue de l''Ours, ses bancs et la mairie, sous la neige. À écrire et à envoyer.',
+  NULL,'carte_postale',NULL,'carte-postale'),
+ ('revue_chasse_peche_tracteurs','tabac','Revue « Chasse, Pêche & Tracteurs »',1,6,'{"bois":1}','objet','["tabac-presse"]','["soviet"]','["ville_b"]','["tabac-presse-krasnov"]',
+  'ti-news',NULL,'Le mensuel des forestiers de Krasnov.',NULL,'integration_locale','soviet.ville_b','imprime');
+INSERT INTO public.entreprises (id, data) VALUES ('tabac-presse-soviet-ville_b-tabac-presse-krasnov', jsonb_build_object(
+  'id', 'tabac-presse-soviet-ville_b-tabac-presse-krasnov', 'type', 'tabac-presse', 'country', 'soviet', 'city', 'ville_b',
+  'buildingId', 'tabac-presse-krasnov', 'proprietaire', 'PNJ', 'caisse', 500,
+  'stockProduits', '{"krasnov_papirossy":10,"krasnov_loto_plan":10,"carte_krasnov_place_ours":10,"revue_chasse_peche_tracteurs":10}'::jsonb,
+  'carte', '["krasnov_papirossy","krasnov_loto_plan","carte_krasnov_place_ours","revue_chasse_peche_tracteurs"]'::jsonb,
+  'parametres', '{"prixVente":{"krasnov_papirossy":2,"krasnov_loto_plan":2,"carte_krasnov_place_ours":2,"revue_chasse_peche_tracteurs":5}}'::jsonb));
