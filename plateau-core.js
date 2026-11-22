@@ -2071,6 +2071,17 @@ function applyCharToState(char) {
     state.poste.name = intitulePoste(state.poste.id, paysMandat, state.poste.name);
   }
   if (char.posteDepute) state.posteDepute = char.posteDepute;
+  // Pays du poste lu dans le REGISTRE (23/11/2026, B.16) : postes_attribues / cycles / compagnie, jamais la position.
+  // Il corrige l'intitule ci-dessus et sert a paysMandatPourOrdre ; la piece est redessinee quand il arrive.
+  if (typeof chargerRegistrePostes === 'function') {
+    chargerRegistrePostes().then(() => {
+      if (state.poste?.id && state.paysPoste) state.poste.name = intitulePoste(state.poste.id, state.paysPoste, state.poste.name);
+      const salle = typeof BUILDINGS !== 'undefined' ? BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom] : null;
+      if (salle && typeof renderRoomActions === 'function' && document.querySelector('[data-rp-order-index]')) {
+        try { renderRoomActions(salle, state.currentBuilding, state.currentRoom); } catch (_) {}
+      }
+    }).catch(() => {});
+  }
   // Lot 2 (hydratation financiere, chantier fiscalite/Helvetia) : le recalcul 15%/85% de
   // liquide/banque a partir de arg, execute ici a CHAQUE hydratation depuis des mois, est
   // supprime -- c'etait la cause du bug d'ecrasement des vrais soldes (meme famille que les

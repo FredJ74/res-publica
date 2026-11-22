@@ -1,0 +1,32 @@
+name: "Pays d'un poste — registre postes_attribues, jamais la position (B.15-16)"
+on:
+  pull_request:
+    paths: [plateau-organisations-quetes.js, plateau-politique.js, plateau-router.js, plateau-core.js, plateau-personnage.js, plateau-multijoueur.js, plateau-communication.js, plateau-pnj.js, continuite-municipale.js, api/cron-minuit.js, 'migrations/20261123120000_postes_pays.sql', 'outils/bancs/*postes-pays*', 'outils/bancs/fixtures/postes-pays-*', outils/bancs/banc-continuite-municipale.mjs, outils/bancs/banc-candidatures-nocturnes.js, .github/workflows/postes-pays-20261123.yml]
+  push:
+    branches: [main, 'claude/**']
+    paths: [plateau-organisations-quetes.js, plateau-politique.js, plateau-router.js, plateau-core.js, plateau-personnage.js, plateau-multijoueur.js, plateau-communication.js, plateau-pnj.js, continuite-municipale.js, api/cron-minuit.js, 'migrations/20261123120000_postes_pays.sql', 'outils/bancs/*postes-pays*', 'outils/bancs/fixtures/postes-pays-*', outils/bancs/banc-continuite-municipale.mjs, outils/bancs/banc-candidatures-nocturnes.js, .github/workflows/postes-pays-20261123.yml]
+permissions:
+  contents: read
+jobs:
+  postes-pays:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
+      - name: Règles, gardes de pays et registre (sans navigateur)
+        run: |
+          for f in plateau-organisations-quetes.js plateau-politique.js plateau-router.js plateau-core.js plateau-personnage.js plateau-multijoueur.js plateau-communication.js plateau-pnj.js api/cron-minuit.js; do node --check "$f"; done
+          node --experimental-vm-modules --test outils/bancs/banc-continuite-municipale.mjs
+          node --test outils/bancs/banc-dotation-cloisonnement-sovarka-20261113.cjs outils/bancs/banc-mandats-nationaux-caserne-20261113.cjs outils/bancs/banc-caserne-parite-menus-20261113.cjs outils/bancs/banc-saisines-ministre-juge-sovarka-20261113.cjs
+      - name: PostgreSQL local (PGlite) — migration non appliquée en production
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund --prefix "$RUNNER_TEMP/pglite" @electric-sql/pglite@0.2.17
+          PGLITE_DIR="$RUNNER_TEMP/pglite" node --experimental-vm-modules --test outils/bancs/banc-postes-pays-pglite-20261123.cjs
+      - name: Chromium réel — organigrammes, panneau du personnage, règle unique
+        env:
+          HG_CHROMIUM: /usr/bin/google-chrome
+        run: node --test outils/bancs/banc-postes-pays-navigateur-20261123.cjs

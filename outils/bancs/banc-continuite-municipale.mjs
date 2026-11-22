@@ -60,7 +60,9 @@ for(const [poste,piece,role] of [['maire','bureau_maire','Secrétaire général 
    await j.ctx.ajusterTitrePnjDePoste('mairie-capitale',piece);
    assert.equal(p.role,etat==='pj'?role:p.roleSiPnjTitulaire);
    assert.equal(p.name,nom);assert.equal(p.job,poste);assert.deepEqual(p.historique,['ancienne conversation']);
-   assert.ok(r.appels.every(a=>a.filtre.includes('country=eq.republic')));
+   // Registres territoriaux filtres sur le pays ; un PJ se reconnait a son nom, ou qu'il se trouve (23/11/2026, B.16).
+   assert.ok(r.appels.filter(a=>a.table!=='personnages').every(a=>a.filtre.includes('country=eq.republic')));
+   assert.ok(r.appels.filter(a=>a.table==='personnages').every(a=>!a.filtre.includes('country=')));
    assert.equal(j.ctx.personnesNormalesDeLaPiece('mairie-capitale',piece).length,1);
   }
  });

@@ -45,9 +45,9 @@ test('le bureau sovarkien des ministres limite chaque pouvoir à son propre post
  }
 });
 test('contrôle générique : tous les postes déclarés exigent le pays de leur mandat',()=>{
- assert.match(politique,/if \(o\.requiresPost && !needsPost && paysMandatPourOrdre\(\) !== state\.country\)/);
- assert.match(routeur,/definitionMinisterielle\?\.requiresPost && paysMandatPourOrdre\(\) !== state\.country/);
- const source=politique.slice(politique.indexOf('function paysMandatPourOrdre()'),politique.indexOf('\n}\n',politique.indexOf('function paysMandatPourOrdre()'))+2);
+ assert.match(politique,/if \(o\.requiresPost && !needsPost && paysMandatPourOrdre\(o\.requiresPost\) !== state\.country\)/);
+ assert.match(routeur,/definitionMinisterielle\?\.requiresPost && paysMandatPourOrdre\(definitionMinisterielle\.requiresPost\) !== state\.country/);
+ const source=politique.slice(politique.indexOf('function paysMandatPourOrdre(posteRequis)'),politique.indexOf('\n}\n',politique.indexOf('function paysMandatPourOrdre(posteRequis)'))+2);
  const a=vm.createContext({state:{country:'soviet',poste:{id:'min_def',country:'republic'}}});
  vm.runInContext(source+'\nthis.resultat=paysMandatPourOrdre();',a);
  assert.equal(a.resultat,'republic');

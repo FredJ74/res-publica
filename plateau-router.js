@@ -57,7 +57,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   // donne aucune autorite dans les ministeres de Sovarka, et reciproquement.
   if (typeof definitionOrdreDansPiece === 'function' && typeof paysMandatPourOrdre === 'function') {
     const definitionMinisterielle = definitionOrdreDansPiece(state.currentBuilding, state.currentRoom, fn);
-    if (definitionMinisterielle?.requiresPost && paysMandatPourOrdre() !== state.country) {
+    if (definitionMinisterielle?.requiresPost && paysMandatPourOrdre(definitionMinisterielle.requiresPost) !== state.country) {
       showToast('Accès refusé', 'Ce mandat ne vous donne aucun pouvoir dans cet empire.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b2276fa14", 'Ce mandat ne vous donne aucun pouvoir dans cet empire.', undefined, 'Accès refusé');
       return;
     }

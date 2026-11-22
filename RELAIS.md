@@ -81,6 +81,30 @@ Règles : voir `AGENTS.md`.
 - **À tester par Fred (après application)** : les comptoirs sont vides tant que l'usine n'a pas de plantes (0 aujourd'hui dans les deux pays) ;
   produire un antidote à l'usine, l'acheter (132 FR, en liquide), le prendre empoisonné, dormir : poison levé ; centre antipoison sans antidote :
   refus, puis soin le lendemain du rachat ; directeur de l'usine : « Virer à la tutelle » ; le lendemain matin, caisse de l'usine ramenée à 5 000.
+### Pays d'un poste : organigrammes et pouvoirs lus dans le registre (Claude, 23/11/2026) — GAME-DESIGN-INTERFACE-ACCUEIL-20261122.md, partie B, points 15 et 16
+- **Branche `claude/postes-pays-20261123`** (part de `0bba1e82`). Aucune fonction Vercel ajoutée.
+- **Migration `20261123120000_postes_pays.sql` : écrite, NON appliquée.** Trois fonctions nouvelles `poste_detenu`, `poste_pays_de`,
+  `poste_exerce` ; réécrites (même signature, mêmes droits) `acteur_poste_courant` (plus de repli sur la position),
+  `mon_poste_est`, `mon_poste_est_dans`, `guerre_acteur_poste`, `crim_force_ordre_interne` ; 66 remplacements contrôlés (marques
+  `pp_…`, ancrages comptés en production le 22/11 au soir, contrôle final des marques) dans 58 fonctions. Aucune donnée modifiée
+  (ni `postes_attribues`, ni `personnages_donnees.poste`). Règle documentée dans `AGENTS.md` (« Pays d'un poste »).
+- **Navigateur** : `plateau-organisations-quetes.js` (règle unique `posteDetenu` / `paysDuPoste` / `posteExerceIci` /
+  `titulairesRegistre`, cache `chargerRegistrePostes`, `getTitulaireActuel` sur le registre, libellés `libellePosteJoueur` /
+  `libellePostePJ`), `plateau-politique.js` (écran des postes du Palais, organigramme de l'Assemblée, `paysMandatPourOrdre` sur le
+  registre), `plateau-router.js`, `plateau-core.js` (lecture du registre au chargement), `plateau-personnage.js` (panneau),
+  `plateau-multijoueur.js` (PNJ de poste masqués par pays), `plateau-communication.js` (liste des PJ), `plateau-pnj.js`,
+  `continuite-municipale.js` ; **cron** `api/cron-minuit.js` (`titulairesPostesPaysServeur`).
+- **Clés pour Codex** : aucune nouvelle clé. Textes composés en français : « <poste> — <pays> » (panneau), « <poste> (<pays>) »
+  (liste des PJ).
+- **Bancs** : `banc-postes-pays-pglite-20261123.cjs` (7/7, chaque épreuve montre aussi le défaut avant migration),
+  `banc-postes-pays-navigateur-20261123.cjs` (6/6, Chrome réel) ; mis à jour sans les désactiver : `banc-continuite-municipale.mjs`,
+  `banc-candidatures-nocturnes.js` (décor du registre), `banc-dotation-cloisonnement-sovarka`, `banc-mandats-nationaux-caserne`,
+  `banc-caserne-parite-menus`, `banc-saisines-ministre-juge-sovarka` (signature `paysMandatPourOrdre(posteRequis)`). Workflow
+  `.github/workflows/postes-pays-20261123.yml`.
+- **À tester par Fred (après application)** : Arnie à Krasnov — organigramme national de Sovarka sans lui, celui de Républia avec lui,
+  aucun ordre de ministre de la Défense dans les ministères soviétiques, panneau « Ministre de la Defense — Republia » ; Arnie à
+  Luthécia — ses ordres de Défense marchent ; un Soviétique à Luthécia, idem en miroir. Ligne orpheline signalée :
+  `republic_directeur_entrepot_ville_a` (Ben, dont la fiche porte Commandant du Port) — non touchée, elle ne donne plus rien.
 ### Mission « Santé et forêt » (Claude, 22/11/2026, après-midi) — décisions : GAME-DESIGN-SANTE-20261122.md
 - **Appliquées en production le 22/11 (dans l'ordre, chacune validée par Fred à l'écran, contrôle en lecture après chacune, goulag
   `active=false` vérifié, aucune Santé de personnage modifiée)** : `20261122230000_sante_socle`, `20261122231000_sante_combat`,

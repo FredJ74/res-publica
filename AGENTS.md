@@ -72,6 +72,30 @@ Le raccordement reste à tester en production, ne pas le présenter comme réali
   `outils/bancs/test-ecritures-fiche-serveur.mjs` bloque toute migration qui la
   réintroduit.
 
+## Pays d'un poste : le registre, jamais la position (règle de Fred, 22/11/2026)
+
+- **Le pays (et la ville) d'un poste se lit dans son registre** : `postes_attribues` (`country`, `city` ; `id` =
+  `<pays>_<poste>_<ville|national>`) pour un poste nommé ; `cycles_electoraux` (`country`, `city`, `eluId` / `elus`)
+  pour un poste élu ; la compagnie (`compagnie-<pays>-…`) pour un grade militaire. **Jamais**
+  `personnages_donnees.country` / `state.country` (c'est la POSITION du voyageur, et les identifiants de ville sont
+  partagés entre pays : `ville_b` = Montrouge et Krasnov), **jamais** la nationalité, jamais `poste->>'id'` seul.
+- Une ligne du registre ne vaut que si la fiche du titulaire porte ce même poste (une seule fonction nommée à la
+  fois) : une ligne orpheline ne donne rien. On ne modifie ni le registre ni `personnages_donnees.poste` pour
+  « réparer » un affichage.
+- **Un personnage en voyage garde son poste, son salaire et sa place dans les organigrammes de SON pays, et
+  n'obtient jamais aucun pouvoir du pays où il se trouve.** Un ordre réservé se passe dans le pays du poste
+  (règle du 05/11 : `exiger_poste`, `poste_autorite_de`, `ordre_generique_executer` « hors_de_son_pays »).
+- Fonctions uniques — n'en écrivez pas d'autres :
+  - serveur (`migrations/20261123120000_postes_pays.sql`) : `poste_detenu(nom, poste, pays, ville DEFAULT NULL)`
+    (« ce personnage détient-il ce poste dans ce pays / cette ville »), `poste_pays_de(nom)` (pays du poste de la
+    fiche), `poste_exerce(nom)` (le poste s'il est dans le pays de son poste, sinon NULL) ; `acteur_poste_courant`,
+    `mon_poste_est_dans`, `exiger_poste` les utilisent ;
+  - navigateur (`plateau-organisations-quetes.js`) : `posteDetenu(nom, poste, pays, ville)`, `paysDuPoste(nom)`,
+    `posteExerceIci(poste)`, `titulairesRegistre(pays, poste, ville)`, cache `chargerRegistrePostes()` ; les
+    organigrammes, `getTitulaireActuel`, `paysMandatPourOrdre` et le panneau du personnage les lisent ;
+  - cron (`api/cron-minuit.js`) : `titulairesPostesPaysServeur(pays)`.
+- Bancs : `outils/bancs/banc-postes-pays-pglite-20261123.cjs`, `banc-postes-pays-navigateur-20261123.cjs`.
+
 ## Le relais entre agents
 
 Fred alterne les agents : il travaille avec l'un jusqu'à sa limite de
