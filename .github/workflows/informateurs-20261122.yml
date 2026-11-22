@@ -1,0 +1,32 @@
+name: "Informateurs (refonte, étape K) — barème commun, PNJ des lieux, commissaire"
+on:
+  pull_request:
+    paths: [plateau-informateurs.js, plateau-criminalite.js, plateau-secrets.js, plateau-router.js, data.js, plateau.html, 'migrations/20261122180000_informateurs_refonte.sql', 'outils/bancs/*informateurs*', 'outils/bancs/fixtures/informateurs-*', 'outils/generateurs/generer-informateurs-lieux.cjs', .github/workflows/informateurs-20261122.yml]
+  push:
+    branches: [main, 'claude/**']
+    paths: [plateau-informateurs.js, plateau-criminalite.js, plateau-secrets.js, plateau-router.js, data.js, plateau.html, 'migrations/20261122180000_informateurs_refonte.sql', 'outils/bancs/*informateurs*', 'outils/bancs/fixtures/informateurs-*', 'outils/generateurs/generer-informateurs-lieux.cjs', .github/workflows/informateurs-20261122.yml]
+permissions:
+  contents: read
+jobs:
+  informateurs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
+      - name: Règles et textes
+        run: |
+          node --check plateau-informateurs.js
+          node --check plateau-criminalite.js
+          node --test outils/bancs/test-krasnov-radar-20261121.cjs outils/bancs/test-crim-lot6-justice.cjs
+      - name: PostgreSQL local (PGlite) — migration non appliquée en production
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund --prefix "$RUNNER_TEMP/pglite" @electric-sql/pglite@0.2.17
+          PGLITE_DIR="$RUNNER_TEMP/pglite" node --test outils/bancs/banc-informateurs-refonte-pglite-20261122.cjs
+      - name: Chromium réel
+        env:
+          HG_CHROMIUM: /usr/bin/google-chrome
+        run: node --test outils/bancs/banc-informateurs-navigateur-20261122.cjs

@@ -3350,8 +3350,6 @@ const BUILDINGS = {
           {name:'Marc Hantile', role:'Lobbyiste — Conseil en affaires et économie', rel:'neutral', job:'lobbyiste', photoUrl:'images/luthecia-pnj-marc-hantile.jpg', photoPos:'55% 15%'}
         ],
         orders: [
-          {fn:'ecouter_rumeurs', label:'Ecouter le barman', i18nKey:'variant.rumours_barman',     pa:0, cost:0,   type:'grey',  icon:'ti-ear',      successRate:90,  desc:'Le barman entend tout. Revele une rumeur vraie ou generee selon le contexte.', sourceOverride:'Marco'},
-          {fn:'recruter_informateur_pnj', label:'Recruter un informateur', pa:1, cost:150, type:'grey', icon:'ti-user-plus', successRate:100, desc:'1 PA, 150 FR puis 150 FR/jour. Un PNJ (PER 12-18) rejoint votre groupe en permanence tant que vous le payez : sa PER s\'ajoute a celle du groupe pour les recherches, enquetes et localisations.'},
           {fn:'escort_piege',    label:'Organiser une rencontre piège', pa:3, cost:800, type:'illegal', icon:'ti-spy', successRate:55, desc:'Piéger un adversaire politique. Risque de scandale.'},
           {fn:'produire_commerce', label:'Préparer les consommations', i18nKey:'variant.commerce_prepare_drinks', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Préparer boissons et snacks pour le service (consomme les matières en stock, rémunéré en FR).'},
           {fn:'consulter_carte_commerce', label:'Consulter la carte', i18nKey:'variant.commerce_menu', pa:0, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir ce qui est disponible au bar et commander.'},
@@ -4696,10 +4694,6 @@ const BUILDINGS = {
           {name:'Venerable Maitre Duval', role:'PNJ - Chef de la Loge', rel:'neutral', job:'venerable'}
         ],
         orders: [
-          {fn:'recruter_informateur_2', label:'Recruter un informateur (Niv.2)', pa:1, cost:400, type:'grey', icon:'ti-user-search', successRate:100, desc:'400 FR/jour. Localisation précise, intentions vote, voyages récents.'},
-          {fn:'recruter_info_4', label:'Recruter une Taupe N4', pa:3, cost:0, type:'grey', icon:'ti-spy', successRate:50, desc:'1500 FR/jour. Confessions, transactions, ordres passés 24h.'},
-          {fn:'consulter_info_4', label:'Consulter la Taupe N4', pa:1, cost:0, type:'grey', icon:'ti-eye', successRate:100, desc:'Obtenir une information de votre taupe niveau 4.'},
-          {fn:'gerer_informateurs', label:'Gérer mes informateurs', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir et gérer vos informateurs actifs.'}
         ]
       },
       salle_reunion_loge: {
@@ -5758,18 +5752,19 @@ const BUILDINGS = {
         // touches, INFORMATEUR_NIVEAUX non modifie. recruter_informateur_pnj (systeme moderne
         // PNJ compagnon) conserve. René Seigne reste un figurant narratif, non raccorde a
         // recruter_informateur_pnj dans ce lot.
+        // REFONTE DES INFORMATEURS (Fred 19/11, codee le 22/11/2026) : « Recruter un informateur » et « Ecouter le patron »
+        // retires ; Marin Dulac est un informateur generaliste paye selon le bareme (ordre « Acheter une information »,
+        // plateau-informateurs.js, referentiel serveur informateurs_pnj).
         orders: [
           {fn:'produire_commerce', label:'Préparer les consommations', i18nKey:'variant.commerce_prepare_drinks', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Préparer boissons et snacks pour le service (consomme les matières en stock, rémunéré en FR).'},
           {fn:'consulter_carte_commerce', label:'Consulter la carte', i18nKey:'variant.commerce_menu', pa:0, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir ce qui est disponible au bar et commander.'},
           {fn:'offrir_tournee', label:'Offrir à boire', pa:1, cost:0, type:'legal', icon:'ti-glass-cocktail', successRate:100, desc:'Invitez un ou plusieurs PJ présents. Chacun accepte ou refuse. Vous buvez aussi : 1 PA par ordre, 25 FR par verre servi. Avec des acceptants : +5 Santé, +2 INF, +2 ENT une seule fois par participant. Sans acceptant : vous seul buvez et perdez 5 Moral.'},
           {fn:'gerer_commerce', label:'Gérer mon commerce', pa:0, cost:0, type:'legal', icon:'ti-settings', successRate:100, desc:'Réservé au propriétaire : coûts de revient, fourchette de prix autorisée, ajustement.'},
           {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', i18nKey:'variant.commerce_sell_business', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'},
-          {fn:'ecouter_rumeurs', label:'Ecouter le patron', i18nKey:'variant.rumours_owner', pa:0, cost:0, type:'grey', icon:'ti-ear', successRate:85, desc:'Marin Dulac entend tout ce qui se dit au bar. Revele une rumeur vraie ou generee selon le contexte.', sourceOverride:'Marin Dulac'},
           // Repris a l'identique du template BUILDINGS['marche'].rooms.marche_ext (meme
           // pa/cost/successRate/desc) -- meme principe que marche-psm : un nouveau point d'acces
           // au meme ordre, aucune variante specifique au bar (audit dedie, 30 aout 2026).
           {fn:'lancer_rumeur_cible', label:'Lancer une rumeur', pa:1, cost:0, type:'grey', icon:'ti-messages', successRate:75, desc:'Rediger une rumeur visant un PJ, une organisation, un local, un gouvernement ou un pays. Succes (75%) : effet selon la cible. Echec : retour de bâton limite + risque de detection.'},
-          {fn:'recruter_informateur_pnj', label:'Recruter un informateur', pa:1, cost:150, type:'grey', icon:'ti-user-plus', successRate:100, desc:'1 PA, 150 FR puis 150 FR/jour. Un PNJ (PER 12-18) rejoint votre groupe en permanence tant que vous le payez : sa PER s\'ajoute a celle du groupe pour les recherches, enquetes et localisations.'}
           // "Contacter reseau" (fn:'contrebande') retire (30 aout 2026, ordre abandonne sur
           // demande de Fred). Handler generique (executerOrdreGenerique) et entree ORDER_EFFECTS.
           // contrebande (data.js, table ORDER_EFFECTS) laisses en place : signales comme code mort
@@ -7505,8 +7500,6 @@ const BUILDINGS = {
           {name:'Lena Abramova (PNJ)', role:'Serveuse', rel:'neutral', job:'serveur', photoUrl:'images/Sovarka/Novomirsk/Novo_lena_abramova_portrait.webp'}
         ],
         orders: [
-          {fn:'ecouter_rumeurs', label:'Écouter la serveuse', i18nKey:'variant.rumours_waitress', pa:0, cost:0, type:'grey', icon:'ti-ear', successRate:90, desc:'La serveuse entend tout. Révèle une rumeur vraie ou générée selon le contexte.', sourceOverride:'Lena'},
-          {fn:'recruter_informateur_pnj', label:'Recruter un informateur', pa:1, cost:150, type:'grey', icon:'ti-user-plus', successRate:100, desc:'1 PA, 150 FR puis 150 FR/jour. Un PNJ (PER 12-18) rejoint votre groupe en permanence tant que vous le payez : sa PER s\'ajoute a celle du groupe pour les recherches, enquetes et localisations.'},
           {fn:'produire_commerce', label:'Préparer les consommations', i18nKey:'variant.commerce_prepare_drinks', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Préparer boissons et snacks pour le service (consomme les matières en stock, rémunéré en FR).'},
           {fn:'consulter_carte_commerce', label:'Consulter la carte', i18nKey:'variant.commerce_menu', pa:0, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir ce qui est disponible au bar et commander.'},
           {fn:'offrir_tournee', label:'Offrir à boire', pa:1, cost:0, type:'legal', icon:'ti-glass-cocktail', successRate:100, desc:'Invitez un ou plusieurs PJ présents. Chacun accepte ou refuse. Vous buvez aussi : 1 PA par ordre, 25 FR par verre servi. Avec des acceptants : +5 Santé, +2 INF, +2 ENT une seule fois par participant. Sans acceptant : vous seul buvez et perdez 5 Moral.'},
@@ -11906,10 +11899,8 @@ function CHAMBRE_HOPITAL_ORDRES_SOVARKA() { return CHAMBRE_HOPITAL_ORDRES(); }
         {fn:'consulter_carte_commerce', label:'Consulter la carte', i18nKey:'variant.commerce_menu', pa:0, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir les plats disponibles et commander.'},
         {fn:'produire_commerce', label:'Cuisiner', i18nKey:'variant.commerce_cook', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Préparer un plat de la carte (consomme les matières en stock, rémunéré en FR).'},
         {fn:'diner_affaires', label:'Diner d\'affaires', pa:2, cost:40, type:'legal', icon:'ti-wine', successRate:100, desc:'Invitez un PJ present dans la piece a diner, a vos frais. Si accepte : consomme 2 menus + 1 tarassoun de la maison. +10 Sante, +2 Moral, +5 INF, +3 PA au prochain Dormir pour chacun. Aucun cout si refuse ou si l\'hotel n\'a pas de quoi servir.'},
-        {fn:'ecouter_rumeurs', label:'Ecouter le barman', i18nKey:'variant.rumours_barman', pa:0, cost:0, type:'grey', icon:'ti-ear', successRate:90, desc:'Le barman entend tout. Revele une rumeur vraie ou generee selon le contexte.', sourceOverride:'Aldar Zhamsuev'},
         {fn:'lancer_rumeur_cible', label:'Lancer une rumeur', pa:1, cost:0, type:'grey', icon:'ti-messages', successRate:75, desc:'Rediger une rumeur visant un PJ, une organisation, un local, un gouvernement ou un pays. Succes (75%) : effet selon la cible. Echec : retour de bâton limite + risque de detection.'},
         {fn:'offrir_tournee', label:'Offrir à boire', pa:1, cost:0, type:'legal', icon:'ti-glass-cocktail', successRate:100, desc:'Invitez un ou plusieurs PJ présents. Chacun accepte ou refuse. Vous buvez aussi : 1 PA par ordre, 25 FR par verre servi. Avec des acceptants : +5 Santé, +2 INF, +2 ENT une seule fois par participant. Sans acceptant : vous seul buvez et perdez 5 Moral.'},
-        {fn:'recruter_informateur_pnj', label:'Recruter un informateur', pa:1, cost:150, type:'grey', icon:'ti-user-plus', successRate:100, desc:'1 PA, 150 FR puis 150 FR/jour. Un PNJ (PER 12-18) rejoint votre groupe en permanence tant que vous le payez : sa PER s\'ajoute a celle du groupe pour les recherches, enquetes et localisations.'}
       ]
     });
     hotel.roomOverrides.chambre_mineur = Object.assign(hotel.roomOverrides.chambre_mineur || {}, {
@@ -13208,7 +13199,7 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
   if (!bar) throw new Error('Krasnov : Bar Sever absent');
   bar.orders = (bar.orders || []).concat([
     { fn: 'offrir_verre_habitue_krasnov', label: 'Offrir un verre à l’habitué', pa: 0, cost: 0, type: 'grey', icon: 'ti-glass-full', successRate: 100,
-      desc: 'Un vieil habitué du Bar Sever connaît tout le monde à Krasnov. Il parle plus volontiers à ceux qui ont déjà leurs informateurs.' }
+      desc: 'Un vieil habitué du Bar Sever connaît tout le monde à Krasnov. Il parle à qui le paie, de 7 à 20 PSK : plus la somme est belle, meilleure est l’information.' }
   ]);
   const arsenal = sov.capitale && sov.capitale.buildingContext && sov.capitale.buildingContext.armurerie;
   if (!arsenal) throw new Error('Novomirsk : Arsenal collectif absent');

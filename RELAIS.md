@@ -8,6 +8,20 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Étape K — refonte des informateurs (Claude, 22/11/2026) — branche `claude/informateurs-refonte-20261122`
+- **Décisions** : `GAME-DESIGN-INFORMATEURS-20261121.md`, fondues dans `GAME-DESIGN-CRIMINALITE.md` (« Barème commun des informateurs » →
+  « Refonte des informateurs »).
+- **Migration écrite, NON appliquée** : `20261122180000_informateurs_refonte` (éprouvée sur PGlite ; ancrages vérifiés une fois chacun dans
+  les définitions de production). Raccords : `rumeur_ecoute_jauges_interne` (`informateurs_ecoute_payante_v1`), `crim_enquete_taux_interne`
+  (`informateurs_piste_v1`, `informateurs_taux_v1`, `informateurs_pistes_v1`).
+- **Navigateur** : nouveau `plateau-informateurs.js` (ordre dynamique « Acheter une information », fenêtre) ; `plateau-criminalite.js`
+  (commissaire : « Payer un informateur » dans les plaintes contre X) ; `plateau-secrets.js` (habitué → fenêtre commune) ; `plateau-router.js`,
+  `plateau-multijoueur.js`, `plateau-actions-illegales-rumeurs.js` (anciens informateurs retirés) ; `data.js` (5 ordres d'informateurs et
+  4 « Écouter le barman/patron/serveuse » retirés) ; `plateau.html`.
+- **Pour Codex (traductions)** : `TXT_INFORMATEURS` (plateau-informateurs.js) ; `T.fr` de plateau-criminalite.js : `kInfoTitre`, `kInfoNote`,
+  `kInfoPayer`, `kInfoHors`, `kInfoDeja`, `kPalier_flou`, `kPalier_correct`, `kPalier_premier_choix`, `kInfoOk`, `kInfoOkText`,
+  `kSource_caisse`, `kSource_fonds_propres`, `r_informateur_deja_paye_aujourdhui`, `r_montant_invalide` (modifié : `p_informateur`) ;
+  description de l'ordre `offrir_verre_habitue_krasnov` (data.js) ; textes des réponses écrits par le serveur (migration).
 ### Mission de la nuit du 22/11/2026 (Claude) — décisions : GAME-DESIGN-MISSION-NUIT-20261122.md
 - **Partage du travail** : Codex = logo du plateau et son témoin au pixel, courrier de bienvenue et ses traductions, fenêtres sans
   chevauchement, recette isolée de la PR #1176 (navigateur et tests seulement). Claude = tout le reste, seul à appliquer des migrations.
