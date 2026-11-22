@@ -2203,6 +2203,24 @@ body.plateau-body .top-right {
 #modal-forum .forum-new-btn:hover { background:#aa8848; color:#101820; }
 #modal-forum .forum-empty { color:#bdc7d0; }
 
+/* Interview d'accueil (Fred, 21/11/2026, point 3) : la question est le texte le plus lisible de la
+   fenêtre (clair, au moins la taille du texte courant de 17 px, casse normale) ; indications,
+   « Précédent », envoi et refus au niveau AA du WCAG sur le fond ardoise (#171e26).
+   Banc : outils/bancs/banc-interview-accueil-navigateur-20261122.cjs (contrastes mesurés). */
+#modal-forum .rp-portrait { padding:.9rem; }
+#modal-forum .rp-portrait-aide { color:#d5dde5; font-size:.95rem; line-height:1.5; margin:0 0 .8rem; }
+#modal-forum .rp-portrait-question { display:block; color:#fffdf6; font-family:inherit; font-size:18px; font-weight:600;
+  line-height:1.45; letter-spacing:normal; text-transform:none; margin:0 0 .6rem; }
+#modal-forum .rp-portrait-reponse { width:100%; box-sizing:border-box; background:#0f151c; color:#f2efe6; border:1px solid #8494a7;
+  padding:.55rem .65rem; font-size:1rem; line-height:1.5; font-family:inherit; }
+#modal-forum .rp-portrait-reponse:focus-visible, #modal-forum .rp-portrait-btn:focus-visible { outline:2px solid #e5c477; outline-offset:2px; }
+#modal-forum .rp-portrait-btn { font-size:.95rem; min-height:36px; padding:.4rem .9rem; margin-left:0; }
+#modal-forum .forum-back-btn.rp-portrait-btn { color:#e2e5e9; border-color:#8a9aac; }
+#modal-forum .forum-back-btn.rp-portrait-btn:hover { color:#ffe2a0; border-color:#e0ba6b; }
+#modal-forum .rp-portrait-btn.rp-portrait-refus { color:#ff9b8f; border-color:#c9675c; }
+#modal-forum .rp-portrait-note { color:#c9d2db; font-size:.9rem; font-style:italic; margin-bottom:.5rem; }
+#modal-forum .rp-portrait-attente { color:#d5dde5; text-align:center; padding:2rem; }
+
 /* Discret tant qu'aucun incident n'a ete enregistre ; meme palette que les controles communs. */
 #incidents-session{position:fixed;bottom:12px;right:12px;z-index:250;background:var(--bg2);color:var(--gold);border:1px solid var(--border2);padding:.45rem .7rem;font-size:.82rem;cursor:pointer}
 #incidents-session[hidden]{display:none}

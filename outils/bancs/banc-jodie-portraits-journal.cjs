@@ -9,6 +9,7 @@ const fragment=source.slice(a,b);
 async function cas({classiques=[],topics=[],posts=[],personnages=[]}={}){
   const appels=[];
   const context={SUPABASE_SERVICE_ROLE:'fixture',SB_HEADERS_SERVICE:{},encodeURIComponent,Date,Map,Set,
+    journalistesPresse:()=>['Jodie Moitout','Annie Houininon','Arthur Lutte','Zoïa Glazounova','Saran Batbayar','Anatoli Kolosov'],
     sbGet:async(table,query)=>{appels.push({table,query});return ({interviews_jodie:classiques,forum_topics:topics,forum_posts:posts,personnages})[table]||[]}};
   vm.createContext(context);vm.runInContext(fragment+'\nthis.executer=assemblerAvantDernierePage',context);
   return {sortie:await context.executer('republic'),appels};
@@ -20,7 +21,9 @@ async function cas({classiques=[],topics=[],posts=[],personnages=[]}={}){
   assert.equal(r.sortie.interviews[0].texte,'Portrait réel Arnie');
   assert.equal(r.sortie.interviews[0].photo_url,'photo.webp');
   assert(r.appels.some(a=>a.table==='forum_topics'&&a.query.includes('forum_id=eq.presse')&&a.query.includes('Jodie')));
-  assert(r.appels.some(a=>a.table==='forum_posts'&&a.query.includes('author=eq.')));
+  assert(r.appels.some(a=>a.table==='forum_posts'&&a.query.includes('author=in.')));
+  // Portraits d'accueil signés par le journaliste de chaque antenne (Fred, 21/11/2026), pas seulement Jodie.
+  assert(r.appels.some(a=>a.table==='forum_topics'&&a.query.includes(encodeURIComponent('"Anatoli Kolosov"'))));
   r=await cas({topics:[{id:'vide',title:'Un jour, un portrait : Bob',time:date}]});
   assert.equal(r.sortie.interviews.length,0,'pas de publication sans post');
   r=await cas({classiques:[{personnage:'Arnie',article_texte:'Entretien plus ancien',publie_le:'2026-10-29T12:00:00Z'}],topics:[{id:'arnie',title:'Un jour, un portrait : Arnie',time:date}],posts:[{topic_id:'arnie',content:'Portrait récent'}]});

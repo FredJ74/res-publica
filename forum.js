@@ -1016,6 +1016,16 @@ function renderCategorieHeader(cat, icon, label) {
   ${active ? renderForumCategorieItems(cat) : ''}`;
 }
 
+// Compteur de la Boîte Mail (Fred, 21/11/2026) : le nombre RÉEL de messages reçus, puis les non
+// lus. « Aucun message » seulement quand la boîte est vraiment vide (avant : affiché dès que tout
+// était lu, y compris pendant la lecture d'un courrier).
+function htmlCompteurBoiteMail(total, nonLus) {
+  if (!total) return rpForumUiOuvert('noMessages','Aucun message',rpForumLibelle('noMessages','Aucun message'));
+  const messages = rpForumCompte('messages', total, total + (total > 1 ? ' messages' : ' message'));
+  if (!nonLus) return messages;
+  return messages + ' · <span style="color:#C9A84C">' + rpForumCompte('unread',nonLus,nonLus+' non lu(s)') + '</span>';
+}
+
 // Extrait de renderForumModal() (correctif bug brouillon detruit, 26 aout 2026) : le HTML de la
 // sidebar seule, reutilise par renderForumModal() (rendu complet, navigation utilisateur directe)
 // ET par rafraichirVoyantsEtCompteursForum() (rafraichissements en arriere-plan -- sondage
@@ -1026,13 +1036,14 @@ function renderForumSidebar() {
   // que « Messages recus » l'exclut : un mail archive non lu maintenait donc un voyant rouge
   // pointant vers une boite ou il n'apparaissait jamais. Les deux passent desormais par
   // mailsRecusVisibles(), seule definition de « ce que le joueur peut reellement ouvrir ».
-  const unreadCount = mailsRecusVisibles().filter(m => !m.read).length;
+  const recus = mailsRecusVisibles();
+  const unreadCount = recus.filter(m => !m.read).length;
   return htmlSelecteurPaysForums() + `
     <div class="forum-nav-item forum-mail-item ${forumView === 'mail' ? 'active' : ''}" onclick="switchToMail()">
       <i class="ti ti-mail" style="font-size:.85rem"></i>
       <div>
         <div class="forum-nav-name">${rpForumUiOuvert('mailbox','Boîte Mail',rpForumLibelle('mailbox','Boîte Mail'))}${unreadCount > 0 ? htmlPointRougeActivite('.4rem') : ''}</div>
-        <div class="forum-nav-count">${unreadCount > 0 ? `<span style="color:#C9A84C">${rpForumCompte('unread',unreadCount,unreadCount+' non lu(s)')}</span>` : rpForumUiOuvert('noMessages','Aucun message',rpForumLibelle('noMessages','Aucun message'))}</div>
+        <div class="forum-nav-count">${htmlCompteurBoiteMail(recus.length, unreadCount)}</div>
       </div>
     </div>
     ${forumView === 'mail' ? `
@@ -1058,11 +1069,20 @@ function renderForumSidebar() {
 // entier comme avant.
 function rafraichirVoyantsEtCompteursForum() {
   if (!document.getElementById('modal-forum')?.classList.contains('open')) return;
-  const titreModal = document.getElementById('modal-forum-title');
   // La modalité indique précisément la rubrique dans la sidebar, pas sur le titre.
-  if (titreModal) titreModal.textContent = 'Forum';
+  appliquerTitreFenetreForum();
   const sidebar = document.getElementById('forum-sidebar');
   if (sidebar) sidebar.innerHTML = renderForumSidebar();
+}
+
+// Titre de la fenêtre = ce qu'elle affiche (Fred, 21/11/2026) : « Courrier » dans la boîte mail
+// (liste, lecture, rédaction, interview), « Forum » sinon. Une seule définition pour les deux rendus.
+function titreFenetreForum() {
+  return forumView === 'mail' ? rpForumLibelle('mailWindowTitle', 'Courrier') : rpForumLibelle('forumWindowTitle', 'Forum');
+}
+function appliquerTitreFenetreForum() {
+  const titreModal = document.getElementById('modal-forum-title');
+  if (titreModal) titreModal.textContent = titreFenetreForum();
 }
 
 function renderForumModal() {
@@ -1080,8 +1100,7 @@ function renderForumModal() {
   // ici ; seule marquerForumRubriqueVisitee(forumId), appelee sur l'ouverture EFFECTIVE d'un
   // forum precis, peut l'eteindre.
   const forumNonVu = forumADeLActiviteNonVue();
-  const titreModal = document.getElementById('modal-forum-title');
-  if (titreModal) titreModal.textContent = 'Forum';
+  appliquerTitreFenetreForum();
   modal.innerHTML = `
     <div class="forum-layout">
       <div class="forum-sidebar" id="forum-sidebar">${renderForumSidebar()}</div>
@@ -3030,11 +3049,13 @@ function renderMailRead() {
   const mail = getMails().find(m => m.id === currentMailId);
   if (!mail) return renderMailInbox();
   const myName = state.char?.name || '';
-  const estPropositionJodie = mail.to === myName && mail.from === 'Jodie Moitout' &&
-    mail.subject === (typeof JODIE_PORTRAIT_SUJET_PROPOSITION !== 'undefined' ? JODIE_PORTRAIT_SUJET_PROPOSITION : null);
-  // Portrait de Jodie Moitout : l'etat (encore a decider / deja refuse / deja publie) est verifie
-  // FRAIS depuis Supabase (jamais le simple cache local de getMails() ci-dessus, potentiellement
-  // perime -- voir jodiePortraitADejaRefuse()/jodiePortraitDejaPublie(), plateau-communication.js)
+  // Invitation au portrait d'accueil, quel que soit le journaliste de l'antenne qui l'a envoyée
+  // (Fred, 21/11/2026 : un journaliste par ville, plateau-communication.js).
+  const estPropositionJodie = mail.to === myName &&
+    (typeof portraitAntenneInvitation === 'function' ? !!portraitAntenneInvitation(mail) : false);
+  // Portrait d'accueil : l'etat (encore a decider / deja refuse / deja publie) est verifie
+  // FRAIS par le serveur (jamais le simple cache local de getMails() ci-dessus, potentiellement
+  // perime -- voir jodiePortraitEtat(), plateau-communication.js)
   // -- rendu en differe (comme de nombreux autres ecrans de ce jeu : placeholder synchrone puis
   // contenu reel une fois la reponse arrivee) plutot que de rendre renderMailRead() elle-meme
   // asynchrone, ce qui aurait exige de convertir en cascade renderMailView()/renderForumContent()

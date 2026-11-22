@@ -24,6 +24,8 @@ function extraire(source,noms){
 function code(ref){
  return extraire(lire('forum.js'),['renderForumContent','renderMailView','escapeHtmlText'])+'\n'+
   extraire(lire('plateau-communication.js',ref),['JODIE_QUESTIONS_INTERVIEW','JODIE_PORTRAIT_TITRE_PREFIXE','jodiePortraitOuvrirInterview',
+   // Interview d'accueil (22/11/2026) : textes, journaliste de l'antenne, état vérifié avant ouverture.
+   'PORTRAIT_TXT','portraitTexte','portraitJournaliste','jodiePortraitEtat','portraitMessageEtat','jodiePortraitRafraichirEtatMail',
    'jodieInterviewAllerPage','renderJodieInterviewForm','jodiePortraitGenererApercu','renderJodiePortraitPreview']);
 }
 async function ouvrir(largeur,ref){
@@ -40,7 +42,7 @@ async function ouvrir(largeur,ref){
   function showToast(t,m,ok){toasts.push({t,m,ok});}
   async function jodiePortraitADejaRefuse(){return false;} async function jodiePortraitDejaPublie(){return false;}
   async function jodiePortraitRefuser(){} async function jodiePortraitPublier(){}
-  async function jodiePortraitAppelApi(p){appels.push(JSON.parse(JSON.stringify(p)));if(attente)await attente;return reponseApi||{ok:true,texte:'Portrait de fixture',jeton:'j1'};}
+  async function jodiePortraitAppelApi(p){if(p.action==='etat')return {ok:true,peutRepondre:true,journaliste:'Jodie Moitout',journal:"L'Autruche Entravée"};appels.push(JSON.parse(JSON.stringify(p)));if(attente)await attente;return reponseApi||{ok:true,texte:'Portrait de fixture',jeton:'j1'};}
   ${code(ref)}`});
  const fermer=async()=>{await navigateur.close();await chrome.arreter();fs.rmSync(profil,{recursive:true,force:true});};
  return {page,fermer};
@@ -87,7 +89,9 @@ test('réponse vide refusée sans appel serveur ; refus serveur nommé, réponse
   await page.click('button:has-text("Envoyer mes réponses")');
   assert.equal(await page.evaluate(()=>appels.length),0);
   assert.equal(await page.evaluate(()=>toasts.at(-1).t),'Réponses incomplètes');
-  await page.click('button:has-text("Précédent")');await page.fill('#jodie-reponse-3',longue(3));await page.click('button:has-text("Suivant")');
+  // Depuis le 22/11/2026 : retour direct à la question vide (ici la 4e).
+  assert.match(await page.locator('#forum-main').innerText(),/Question 4 sur 5/);
+  await page.fill('#jodie-reponse-3',longue(3));await page.click('button:has-text("Suivant")');
   await page.evaluate(()=>{reponseApi={ok:false,error:'Jodie est indisponible.'};});
   await page.click('button:has-text("Envoyer mes réponses")');
   await page.waitForFunction(()=>toasts.length>=2);

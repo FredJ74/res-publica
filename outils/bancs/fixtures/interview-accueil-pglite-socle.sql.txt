@@ -1,0 +1,145 @@
+-- Socle PGlite de l'interview d'accueil (Claude, 22/11/2026) : le strict nécessaire, copié de la
+-- production en lecture le 22/11/2026 (définitions de mail_expediteur_autorise(_strict),
+-- mail_systeme_envoyer, mail_systeme_poser_interne, est_appel_serveur, politique mails_envoi).
+-- mon_personnage() lit le réglage de test « test.perso » (remplace l'identité GoTrue).
+CREATE TABLE public.mails (id text PRIMARY KEY, from_player text, to_player text, subject text, body text, time text,
+  read boolean DEFAULT false, archived boolean DEFAULT false, from_real text, from_org_id text, from_org_icon text,
+  created_at timestamp DEFAULT now());
+CREATE TABLE public.mails_expediteurs_systeme (
+  expediteur text PRIMARY KEY, note text, est_prefixe boolean DEFAULT false NOT NULL,
+  postes text[] DEFAULT '{}'::text[] NOT NULL, autorise_soi boolean DEFAULT false NOT NULL,
+  libre boolean DEFAULT false NOT NULL, autorise_vers_titulaire boolean DEFAULT false NOT NULL,
+  autorise_vers_conjoint boolean DEFAULT false NOT NULL, autorise_vers_destinataire_fret boolean DEFAULT false NOT NULL);
+CREATE TABLE public.mails_envois_systeme (id serial, auteur_reel text, expediteur text, destinataire text, sujet text, echec text);
+CREATE TABLE public.crim_evenements (personnage text, type text, donnees jsonb);
+INSERT INTO public.mails_expediteurs_systeme (expediteur, note, est_prefixe, postes, autorise_soi) VALUES
+  ('Jodie Moitout', 'presse — PNJ', false, '{}', true),
+  ('Lieutenant ', 'armée', true, '{}', false),
+  ('Commissariat', 'avis à soi : libération', false, '{}', true);
+
+CREATE FUNCTION public.mon_personnage() RETURNS text LANGUAGE sql STABLE AS
+$$ SELECT nullif(current_setting('test.perso', true), '') $$;
+CREATE FUNCTION public.rp_transition_active(p text) RETURNS boolean LANGUAGE sql STABLE AS $$ SELECT false $$;
+CREATE FUNCTION public.acteur_poste_courant() RETURNS TABLE(poste_id text) LANGUAGE sql STABLE AS $$ SELECT NULL::text WHERE false $$;
+CREATE FUNCTION public.mail_destinataire_est_titulaire(p text, q text[]) RETURNS boolean LANGUAGE sql STABLE AS $$ SELECT false $$;
+CREATE FUNCTION public.mail_destinataire_est_conjoint(p text, q text) RETURNS boolean LANGUAGE sql STABLE AS $$ SELECT false $$;
+CREATE FUNCTION public.mail_destinataire_est_fret(p text, q text) RETURNS boolean LANGUAGE sql STABLE AS $$ SELECT false $$;
+
+CREATE FUNCTION public.est_appel_serveur() RETURNS boolean LANGUAGE sql STABLE SET search_path TO 'public', 'pg_temp' AS $function$
+  SELECT CASE
+    WHEN coalesce(nullif(current_setting('role', true), 'none'), session_user) IN ('anon', 'authenticated') THEN false
+    WHEN coalesce(nullif(current_setting('role', true), 'none'), session_user) IN ('postgres', 'supabase_admin', 'service_role', 'supabase_auth_admin') THEN true
+    ELSE coalesce(nullif(current_setting('request.jwt.claim.role', true), ''),
+           (nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'role'), 'anon') = 'service_role'
+  END;
+$function$;
+
+CREATE FUNCTION public.mail_expediteur_autorise_strict(p_nom text, p_destinataire text) RETURNS boolean
+ LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path TO 'public', 'pg_temp' AS $function$
+DECLARE r record; v_moi text;
+BEGIN
+  SELECT * INTO r FROM public.mails_expediteurs_systeme m
+   WHERE (NOT m.est_prefixe AND m.expediteur = p_nom) OR (m.est_prefixe AND p_nom LIKE m.expediteur || '%')
+   ORDER BY m.est_prefixe LIMIT 1;
+  IF NOT FOUND THEN RETURN false; END IF;
+  IF r.libre THEN RETURN true; END IF;
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN RETURN false; END IF;
+  IF r.autorise_soi AND p_destinataire = v_moi THEN RETURN true; END IF;
+  IF array_length(r.postes, 1) IS NOT NULL AND EXISTS (SELECT 1 FROM public.acteur_poste_courant() a WHERE a.poste_id = ANY (r.postes)) THEN RETURN true; END IF;
+  IF r.autorise_vers_titulaire AND array_length(r.postes, 1) IS NOT NULL AND public.mail_destinataire_est_titulaire(p_destinataire, r.postes) THEN RETURN true; END IF;
+  IF r.autorise_vers_conjoint AND public.mail_destinataire_est_conjoint(v_moi, p_destinataire) THEN RETURN true; END IF;
+  IF r.autorise_vers_destinataire_fret AND public.mail_destinataire_est_fret(v_moi, p_destinataire) THEN RETURN true; END IF;
+  RETURN false;
+END;
+$function$;
+
+CREATE FUNCTION public.mail_expediteur_autorise(p_nom text, p_destinataire text) RETURNS boolean
+ LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path TO 'public', 'pg_temp' AS $function$
+DECLARE r record;
+BEGIN
+  IF public.mail_expediteur_autorise_strict(p_nom, p_destinataire) THEN RETURN true; END IF;
+  IF public.rp_transition_active('mails_expediteurs_tolerance') THEN
+    SELECT * INTO r FROM public.mails_expediteurs_systeme m
+     WHERE (NOT m.est_prefixe AND m.expediteur = p_nom) OR (m.est_prefixe AND p_nom LIKE m.expediteur || '%')
+     ORDER BY m.est_prefixe LIMIT 1;
+    IF FOUND THEN RETURN true; END IF;
+  END IF;
+  RETURN false;
+END;
+$function$;
+
+CREATE FUNCTION public.mail_systeme_poser_interne(p_expediteur text, p_destinataire text, p_sujet text, p_corps text, p_heure text DEFAULT NULL::text)
+ RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public', 'pg_temp' AS $function$
+DECLARE v_id text; v_etat text; v_msg text;
+BEGIN
+  IF coalesce(btrim(p_expediteur),'') = '' OR coalesce(btrim(p_destinataire),'') = '' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'parametres_invalides');
+  END IF;
+  IF p_expediteur IN ('Événement', 'Événement mystérieux') THEN
+    INSERT INTO public.crim_evenements (personnage, type, donnees)
+    VALUES (p_destinataire, 'journal', jsonb_build_object('sujet', p_sujet, 'texte', p_corps, 'mysterieux', p_expediteur = 'Événement mystérieux'));
+    RETURN jsonb_build_object('ok', true, 'journal', true);
+  END IF;
+  v_id := 'mail-' || (extract(epoch from clock_timestamp())*1000)::bigint || '-' || substr(md5(random()::text), 1, 6);
+  BEGIN
+    INSERT INTO public.mails (id, from_player, to_player, subject, body, time, read)
+    VALUES (v_id, p_expediteur, p_destinataire, p_sujet, p_corps, coalesce(p_heure, to_char(now() AT TIME ZONE 'Europe/Paris', 'HH24') || 'h'), false);
+  EXCEPTION WHEN others THEN
+    GET STACKED DIAGNOSTICS v_etat = RETURNED_SQLSTATE, v_msg = MESSAGE_TEXT;
+    INSERT INTO public.mails_envois_systeme (auteur_reel, expediteur, destinataire, sujet, echec)
+    VALUES (public.mon_personnage(), p_expediteur, p_destinataire, left(coalesce(p_sujet,''),200), v_etat || ' ' || left(coalesce(v_msg,''), 300));
+    RETURN jsonb_build_object('ok', false, 'raison', 'envoi_impossible', 'sqlstate', v_etat);
+  END;
+  RETURN jsonb_build_object('ok', true, 'id', v_id);
+END; $function$;
+
+CREATE FUNCTION public.mail_systeme_envoyer(p_expediteur text, p_destinataire text, p_sujet text, p_corps text, p_heure text DEFAULT NULL::text)
+ RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public', 'pg_temp' AS $function$
+DECLARE v_moi text;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL AND NOT public.est_appel_serveur() THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie');
+  END IF;
+  IF coalesce(btrim(p_expediteur),'') = '' OR coalesce(btrim(p_destinataire),'') = '' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'parametres_invalides');
+  END IF;
+  IF NOT public.est_appel_serveur() AND NOT public.mail_expediteur_autorise_strict(p_expediteur, p_destinataire) THEN
+    INSERT INTO public.mails_envois_systeme (auteur_reel, expediteur, destinataire, sujet)
+    VALUES (v_moi, p_expediteur, p_destinataire, left(coalesce(p_sujet,''),200));
+    RETURN jsonb_build_object('ok', false, 'raison', 'expediteur_non_autorise');
+  END IF;
+  RETURN public.mail_systeme_poser_interne(p_expediteur, p_destinataire, p_sujet, p_corps, p_heure);
+END; $function$;
+
+-- Politique d'écriture du navigateur (réduite aux deux clauses en jeu ici).
+DO $$ BEGIN CREATE ROLE authenticated NOLOGIN; EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+GRANT USAGE ON SCHEMA public TO authenticated;
+GRANT SELECT, INSERT ON public.mails TO authenticated;
+GRANT INSERT ON public.mails_envois_systeme TO authenticated;
+GRANT USAGE ON SEQUENCE public.mails_envois_systeme_id_seq TO authenticated;
+ALTER TABLE public.mails ENABLE ROW LEVEL SECURITY;
+CREATE POLICY mails_lecture ON public.mails FOR SELECT TO authenticated USING (to_player = public.mon_personnage());
+CREATE POLICY mails_envoi ON public.mails FOR INSERT TO authenticated
+  WITH CHECK ((from_player = public.mon_personnage()) OR public.mail_expediteur_autorise(from_player, to_player));
+
+-- Portraits vers le journal : tables réduites et déclencheur tel qu'en production le 22/11/2026.
+CREATE TABLE public.forum_topics (id text PRIMARY KEY, forum_id text, title text, author text, country text);
+CREATE TABLE public.forum_posts (id text PRIMARY KEY, topic_id text, author text, content text);
+CREATE TABLE public.journal_articles_en_attente (id text PRIMARY KEY, country text, rubrique text, titre text, texte text,
+  origine text, priorite text, statut text, dedup_key text, integree_le timestamptz);
+CREATE FUNCTION public.jodie_portrait_vers_journal() RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public', 'pg_temp' AS $function$
+DECLARE v_sujet public.forum_topics%ROWTYPE;
+BEGIN
+  SELECT * INTO v_sujet FROM public.forum_topics WHERE id=NEW.topic_id;
+  IF v_sujet.forum_id='presse' AND v_sujet.author='Jodie Moitout' AND NEW.author='Jodie Moitout'
+     AND v_sujet.title LIKE 'Un jour, un portrait : %' AND length(btrim(coalesce(NEW.content,'')))>=40
+  THEN
+    INSERT INTO public.journal_articles_en_attente (id,country,rubrique,titre,texte,origine,priorite,statut,dedup_key)
+    VALUES ('jodie-portrait-'||NEW.topic_id,v_sujet.country,'Portraits',v_sujet.title,NEW.content,'portrait_jodie','importante','attente','portrait-jodie-'||NEW.topic_id)
+    ON CONFLICT (id) DO UPDATE SET texte=EXCLUDED.texte WHERE public.journal_articles_en_attente.integree_le IS NULL;
+  END IF;
+  RETURN NEW;
+END; $function$;
+CREATE TRIGGER trg_jodie_portrait_vers_journal AFTER INSERT ON public.forum_posts FOR EACH ROW EXECUTE FUNCTION public.jodie_portrait_vers_journal();
