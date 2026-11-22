@@ -963,7 +963,7 @@ function openPnjModal(encodedPnj, options = null) {
   // "Interroger un detenu" (data.js:4314, gain d'INF, commissariat) et de la torture du QHS
   // (appliquerSentence 'torture', sanction judiciaire) -- aucune des deux n'est touchee ici.
   // Applicable a tout PNJ (jamais un PJ reel, hors perimetre de ce lot).
-  if (!isPJ && (state.poste?.id === 'commissaire' || state.poste?.id === 'juge')) {
+  if (!isPJ && (state.poste?.id === 'commissaire' || state.poste?.id === 'juge') && (typeof posteExerceIci !== 'function' || posteExerceIci(state.poste.id))) { // dans le pays de son poste (B.16)
     actionBtns += '<button class="pnj-action-btn" onclick="ouvrirModalInterrogatoireSujet(\'' + pnjSafeName + '\',\'' + (pnj.job || 'default').replace(/'/g,'') + '\')"><i class="ti ti-message-question" style="font-size:.85rem"></i> Interroger sur un sujet</button>';
   }
 

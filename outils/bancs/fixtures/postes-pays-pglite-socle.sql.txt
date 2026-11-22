@@ -1,0 +1,483 @@
+-- Socle PGlite de la migration 20261123120000_postes_pays (pays d'un poste, 23/11/2026).
+-- Recopiés de la PRODUCTION (pg_get_functiondef du 22/11/2026 au soir) : acteur_poste_courant, admin_pnj_titulaire,
+-- assemblee_gouvernement_actuel, crim_force_ordre_interne, crim_qhs_pays_mandat_interne, effort_commande_annuler,
+-- entrepot_du_directeur, exiger_poste, guerre_acteur_poste, juge_moi, justice_juge_titulaire, maire_tutelle_ici_interne,
+-- maire_tutelle_ministre, militaire_inspection_perimetre, mon_poste_est, mon_poste_est_dans, personnages_poste_perdu,
+-- piratage_titulaire_interne, poste_est_atteste, sovarka_est_titulaire_interne, sovarka_greffe_autorite_interne.
+-- Simplifiés (mêmes signatures) : auth.uid, mon_personnage, est_appel_serveur, incarnation_*. Tables réduites aux colonnes lues.
+CREATE SCHEMA IF NOT EXISTS auth;
+CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role;
+CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$ SELECT nullif(current_setting('test.uid', true), '')::uuid $$;
+CREATE TABLE public.personnages (name text PRIMARY KEY, user_id uuid);
+CREATE TABLE public.personnages_donnees (name text PRIMARY KEY, user_id uuid, country text, nationalite text, current_city text,
+  current_building text, current_room text, poste jsonb, poste_depute jsonb, requisition jsonb, est_emprisonne jsonb, resources jsonb);
+CREATE TABLE public.postes_attribues (id text PRIMARY KEY, country text, poste_id text, city text, titulaire text, depuis timestamptz DEFAULT now(),
+  source text, updated_at timestamptz DEFAULT now());
+CREATE TABLE public.cycles_electoraux (id text PRIMARY KEY, country text, poste_id text, data text, updated_at timestamptz DEFAULT now(), city text);
+CREATE TABLE public.compagnies_militaires (id text PRIMARY KEY, data jsonb, updated_at timestamptz DEFAULT now());
+CREATE TABLE public.titulaires_pnj (id text PRIMARY KEY, country text, poste_id text, city text, nom_pnj text, updated_at timestamptz DEFAULT now());
+CREATE TABLE public.entrepots_par_ville (pays text, ville text, building_id text);
+CREATE TABLE public.commandes_militaires (id text PRIMARY KEY, pays text, statut text, quantite_produite integer DEFAULT 0, updated_at timestamptz);
+CREATE OR REPLACE FUNCTION public.mon_personnage() RETURNS text LANGUAGE sql STABLE AS $$ SELECT name FROM public.personnages WHERE user_id = auth.uid() LIMIT 1 $$;
+CREATE OR REPLACE FUNCTION public.est_appel_serveur() RETURNS boolean LANGUAGE sql STABLE AS $$ SELECT current_setting('test.serveur', true) = 'oui' $$;
+CREATE OR REPLACE FUNCTION public.incarnation_courante() RETURNS text LANGUAGE sql STABLE AS $$ SELECT NULL::text $$;
+CREATE OR REPLACE FUNCTION public.incarnation_pays() RETURNS text LANGUAGE sql STABLE AS $$ SELECT NULL::text $$;
+CREATE OR REPLACE FUNCTION public.incarnation_siege() RETURNS text LANGUAGE sql STABLE AS $$ SELECT NULL::text $$;
+
+CREATE OR REPLACE FUNCTION public.maire_tutelle_ministre(p_pays text)
+ RETURNS text
+ LANGUAGE sql
+ IMMUTABLE
+AS $function$ SELECT CASE WHEN p_pays = 'soviet' THEN 'min_fin' ELSE 'min_int' END $function$
+;
+
+CREATE OR REPLACE FUNCTION public.maire_tutelle_ici_interne(p_nom text)
+ RETURNS text
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT p.current_city FROM public.personnages_donnees p
+    JOIN public.cycles_electoraux c ON c.country = p.country AND c.poste_id = 'maire' AND c.city = p.current_city
+   WHERE p.name = p_nom AND p.current_room IN ('bureau_maire', 'bureau_maire_local')
+     AND p.poste->>'id' = public.maire_tutelle_ministre(p.country)
+     AND EXISTS (SELECT 1 FROM public.postes_attribues a WHERE a.titulaire = p.name AND a.country = p.country
+                  AND a.poste_id = public.maire_tutelle_ministre(p.country) AND a.city IS NULL)
+     AND left(btrim(c.data), 1) = '{' AND coalesce(c.data::jsonb->>'eluId', '') = '' AND (c.data::jsonb ? 'tutelle')
+   LIMIT 1 $function$
+;
+
+CREATE OR REPLACE FUNCTION public.acteur_poste_courant()
+ RETURNS TABLE(nom text, poste_id text, poste_city text, pays text)
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT p.name,
+         CASE WHEN public.maire_tutelle_ici_interne(p.name) IS NOT NULL THEN 'maire' ELSE p.poste->>'id' END,
+         coalesce(public.maire_tutelle_ici_interne(p.name), p.poste->>'city'),
+         coalesce(
+           (SELECT a.country FROM public.postes_attribues a
+             WHERE a.titulaire = p.name AND a.poste_id = p.poste->>'id'
+               AND (p.poste->>'city' IS NULL OR a.city IS NULL OR a.city = p.poste->>'city')
+             ORDER BY a.updated_at DESC NULLS LAST LIMIT 1),
+           CASE WHEN p.poste->>'compagnieId' LIKE 'compagnie-%-%'
+                THEN nullif(split_part(p.poste->>'compagnieId', '-', 2), '') END,
+           p.country)
+    FROM public.personnages_donnees p
+   WHERE p.user_id = auth.uid()
+   LIMIT 1;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.admin_pnj_titulaire(p_pays text, p_poste text, p_ville text)
+ RETURNS text
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT CASE WHEN EXISTS (
+      SELECT 1 FROM public.personnages_donnees d
+       WHERE d.country = p_pays AND (d.poste ->> 'id') = p_poste
+         AND (d.poste ->> 'city') IS NOT DISTINCT FROM p_ville)
+    THEN NULL
+    ELSE (SELECT t.nom_pnj FROM public.titulaires_pnj t
+           WHERE t.country = p_pays AND t.poste_id = p_poste
+             AND t.city IS NOT DISTINCT FROM p_ville LIMIT 1)
+  END;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.assemblee_gouvernement_actuel(p_country text)
+ RETURNS TABLE(nom text, poste_id text)
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT pd.name, pd.poste ->> 'id'
+    FROM public.personnages_donnees pd
+   WHERE pd.country = p_country
+     AND pd.poste IS NOT NULL
+     AND (pd.poste ->> 'id' IN ('president', 'pm') OR pd.poste ->> 'id' LIKE 'min\_%')
+   ORDER BY pd.poste ->> 'id', pd.name;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.crim_force_ordre_interne(p_nom text)
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT coalesce((SELECT poste ->> 'id' ~ '^(commissaire|policier|agent_securite|maitre_chien)' FROM public.personnages_donnees WHERE name = p_nom), false);
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.crim_qhs_pays_mandat_interne(p_nom text)
+ RETURNS text
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT coalesce((SELECT a.country FROM public.postes_attribues a
+                    WHERE a.titulaire = p.name AND a.poste_id = p.poste ->> 'id'
+                    ORDER BY a.updated_at DESC NULLS LAST LIMIT 1), p.country)
+    FROM public.personnages_donnees p WHERE p.name = p_nom $function$
+;
+
+CREATE OR REPLACE FUNCTION public.effort_commande_annuler(p_id text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_moi text; v_pays text; v_poste text;
+  v_cmd public.commandes_militaires%ROWTYPE;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie');
+  END IF;
+  SELECT coalesce(country, 'republic'), poste ->> 'id'
+    INTO v_pays, v_poste
+    FROM public.personnages_donnees WHERE name = v_moi;
+  IF coalesce(v_poste, '') <> 'min_def' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'poste_requis',
+                              'attendu', 'min_def', 'obtenu', v_poste);
+  END IF;
+
+  SELECT * INTO v_cmd FROM public.commandes_militaires WHERE id = p_id FOR UPDATE;
+  IF v_cmd.id IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'commande_inconnue');
+  END IF;
+  IF v_cmd.pays <> v_pays THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'commande_hors_pays');
+  END IF;
+  IF v_cmd.statut <> 'en_cours' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'commande_close',
+                              'statut', v_cmd.statut);
+  END IF;
+
+  UPDATE public.commandes_militaires
+     SET statut = 'annulee', updated_at = now()
+   WHERE id = p_id;
+
+  RETURN jsonb_build_object('ok', true, 'id', p_id,
+                            'quantite_produite', v_cmd.quantite_produite);
+END;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.entrepot_du_directeur(p_acteur text)
+ RETURNS TABLE(entrepot_id text, ville text, batiment text)
+ LANGUAGE sql
+ STABLE
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT e.pays || '_' || e.ville || '_' || e.building_id, e.ville, e.building_id
+    FROM public.personnages_donnees p
+    JOIN public.entrepots_par_ville e ON e.pays = p.country AND e.ville = p.poste->>'city'
+   WHERE p.name = p_acteur AND p.poste->>'id' = 'directeur_entrepot';
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.poste_est_atteste(p_nom text, p_poste jsonb, p_pays text)
+ RETURNS boolean
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_id text; v_city text; v_cycle text;
+BEGIN
+  IF p_poste IS NULL OR jsonb_typeof(p_poste) = 'null' THEN RETURN true; END IF;
+  IF jsonb_typeof(p_poste) <> 'object' THEN RETURN false; END IF;
+  v_id   := p_poste ->> 'id';
+  v_city := nullif(p_poste ->> 'city', '');
+  IF v_id IS NULL OR v_id = '' THEN RETURN false; END IF;
+
+  -- a) POSTES ELUS : la verite est le depouillement, ecrit par le cron.
+  IF v_id IN ('president', 'maire', 'chef_syndicat') THEN
+    SELECT c.data INTO v_cycle FROM public.cycles_electoraux c
+     WHERE c.country = p_pays AND c.poste_id = v_id
+       AND c.city IS NOT DISTINCT FROM v_city
+     LIMIT 1;
+    IF v_cycle IS NULL OR left(btrim(v_cycle), 1) <> '{' THEN RETURN false; END IF;
+    RETURN (v_cycle::jsonb ->> 'eluId') = p_nom
+        OR (v_id = 'maire' AND public.maire_tutelle_ici_interne(p_nom) IS NOT DISTINCT FROM v_city AND v_city IS NOT NULL);
+  END IF;
+
+  IF v_id = 'depute' AND p_poste ->> 'country' = 'soviet' THEN
+    RETURN EXISTS (SELECT 1 FROM public.cycles_electoraux c,
+                          jsonb_each(coalesce(c.data::jsonb -> 'gloire' -> 'deputes', '{}'::jsonb)) l
+                    WHERE c.id = 'soviet_gloire_partis' AND jsonb_typeof(l.value) = 'array'
+                      AND l.value ? p_nom);
+  END IF;
+  IF v_id = 'depute' THEN
+    SELECT c.data INTO v_cycle FROM public.cycles_electoraux c
+     WHERE c.country = p_pays AND c.poste_id = 'depute'
+       AND c.city IS NOT DISTINCT FROM v_city
+     LIMIT 1;
+    IF v_cycle IS NULL OR left(btrim(v_cycle), 1) <> '{' THEN RETURN false; END IF;
+    RETURN (v_cycle::jsonb -> 'elus') ? p_nom;
+  END IF;
+
+  -- b) POSTES MILITAIRES : la verite est la compagnie.
+  IF v_id = 'capitaine' THEN
+    RETURN EXISTS (SELECT 1 FROM public.compagnies_militaires m
+                    WHERE m.data ->> 'capitaineNom' = p_nom);
+  END IF;
+  IF v_id = 'lieutenant' THEN
+    RETURN EXISTS (SELECT 1 FROM public.compagnies_militaires m,
+                        jsonb_array_elements(coalesce(m.data -> 'sections', '[]'::jsonb)) s
+                    WHERE s ->> 'lieutenantNom' = p_nom);
+  END IF;
+
+  -- c) TOUT LE RESTE : un poste nomme n'existe que s'il est inscrit au registre. Fail closed --
+  --    un identifiant inconnu n'est jamais accepte.
+  RETURN EXISTS (SELECT 1 FROM public.postes_attribues a
+                  WHERE a.titulaire = p_nom AND a.poste_id = v_id
+                    AND a.country = p_pays AND a.city IS NOT DISTINCT FROM v_city);
+END;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.exiger_poste(p_poste text)
+ RETURNS text
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_nom text;
+  v_poste text;
+  v_pays_present text;
+  v_pays_mandat text;
+  v_poste_json jsonb;
+BEGIN
+  IF public.est_appel_serveur() THEN RETURN NULL; END IF;
+  SELECT p.name,p.poste->>'id',p.country,p.poste
+    INTO v_nom,v_poste,v_pays_present,v_poste_json
+    FROM public.personnages_donnees p
+    WHERE p.user_id=auth.uid() LIMIT 1;
+  IF v_nom IS NULL THEN
+    RAISE EXCEPTION 'acteur_non_authentifie: aucun personnage rattache a ce compte'
+      USING ERRCODE='42501';
+  END IF;
+  IF v_poste IS DISTINCT FROM p_poste THEN
+    RAISE EXCEPTION 'autorite_insuffisante: poste % requis, poste reel %',
+      p_poste,coalesce(v_poste,'(aucun)') USING ERRCODE='42501';
+  END IF;
+  SELECT a.pays INTO v_pays_mandat
+    FROM public.acteur_poste_courant() a
+    WHERE a.nom=v_nom AND a.poste_id=p_poste;
+  IF v_pays_mandat IS NULL OR v_pays_mandat IS DISTINCT FROM v_pays_present
+      OR public.poste_est_atteste(v_nom,v_poste_json,v_pays_present) IS DISTINCT FROM true THEN
+    RAISE EXCEPTION 'mandat_autre_pays: fonction % valable uniquement dans son empire',
+      p_poste USING ERRCODE='42501';
+  END IF;
+  RETURN v_nom;
+END $function$
+;
+
+CREATE OR REPLACE FUNCTION public.guerre_acteur_poste(p_poste text)
+ RETURNS text
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT coalesce(d.country, 'republic')
+    FROM public.personnages_donnees d
+   WHERE d.user_id = auth.uid() AND (d.poste ->> 'id') = p_poste
+   LIMIT 1;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.juge_moi()
+ RETURNS TABLE(nom text, pays text, ville text)
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_inc text; v_pays text; v_ville text; v_pnj text;
+BEGIN
+  RETURN QUERY
+    SELECT d.name, d.country, coalesce(d.poste ->> 'city', 'capitale')
+      FROM public.personnages_donnees d
+     WHERE d.user_id = auth.uid() AND (d.poste ->> 'id') = 'juge'
+     LIMIT 1;
+  IF FOUND THEN RETURN; END IF;
+
+  v_inc := public.incarnation_courante();
+  IF v_inc IS NULL THEN RETURN; END IF;
+  v_pays  := public.incarnation_pays();
+  v_ville := public.incarnation_siege();
+  IF v_pays IS NULL OR v_ville IS NULL THEN RETURN; END IF;
+  v_pnj := public.admin_pnj_titulaire(v_pays, 'juge', v_ville);
+  IF v_pnj IS NULL OR v_pnj IS DISTINCT FROM v_inc THEN RETURN; END IF;
+  RETURN QUERY SELECT v_pnj, v_pays, v_ville;
+END $function$
+;
+
+CREATE OR REPLACE FUNCTION public.justice_juge_titulaire(p_pays text, p_ville text)
+ RETURNS text
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT coalesce(
+    (SELECT d.name FROM public.personnages_donnees d
+      WHERE d.country = p_pays AND (d.poste ->> 'id') = 'juge'
+        AND (d.poste ->> 'city') IS NOT DISTINCT FROM p_ville LIMIT 1),
+    (SELECT t.nom_pnj FROM public.titulaires_pnj t
+      WHERE t.country = p_pays AND t.poste_id = 'juge'
+        AND t.city IS NOT DISTINCT FROM p_ville LIMIT 1));
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.militaire_inspection_perimetre()
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_moi text; v_pays text; v_poste text;
+  v_compagnies text[]; v_sections text[]; v_portee text;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie');
+  END IF;
+  SELECT pd.country, pd.poste->>'id' INTO v_pays, v_poste
+    FROM public.personnages_donnees pd WHERE pd.name = v_moi;
+  IF v_pays IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pays_inconnu');
+  END IF;
+
+  IF coalesce(v_poste,'') IN ('min_def', 'commandant') THEN
+    v_portee := 'armee';
+    SELECT array_agg(c.id ORDER BY c.id) INTO v_compagnies
+      FROM public.compagnies_militaires c WHERE c.data->>'pays' = v_pays;
+
+  ELSIF coalesce(v_poste,'') = 'capitaine' THEN
+    v_portee := 'compagnie';
+    SELECT array_agg(c.id ORDER BY c.id) INTO v_compagnies
+      FROM public.compagnies_militaires c
+     WHERE c.data->>'pays' = v_pays AND c.data->>'capitaineNom' = v_moi;
+
+  ELSIF coalesce(v_poste,'') = 'lieutenant' THEN
+    v_portee := 'section';
+    SELECT array_agg(DISTINCT c.id), array_agg(DISTINCT s->>'id') INTO v_compagnies, v_sections
+      FROM public.compagnies_militaires c,
+           jsonb_array_elements(coalesce(c.data->'sections','[]'::jsonb)) s
+     WHERE c.data->>'pays' = v_pays AND s->>'lieutenantNom' = v_moi;
+
+  ELSE
+    -- Le soldat est dans la chaine de commandement, pas dans celle de l inspection.
+    RETURN jsonb_build_object('ok', false, 'raison', 'hors_chaine_d_inspection',
+                              'poste', coalesce(v_poste, '(aucun)'));
+  END IF;
+
+  IF v_compagnies IS NULL OR array_length(v_compagnies, 1) IS NULL THEN
+    RETURN jsonb_build_object('ok', true, 'portee', v_portee, 'pays', v_pays,
+                              'poste', v_poste, 'compagnies', '[]'::jsonb,
+                              'sections', '[]'::jsonb, 'vide', true);
+  END IF;
+
+  RETURN jsonb_build_object('ok', true, 'portee', v_portee, 'pays', v_pays,
+                            'poste', v_poste,
+                            'compagnies', to_jsonb(v_compagnies),
+                            'sections', coalesce(to_jsonb(v_sections), '[]'::jsonb),
+                            'vide', false);
+END;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.mon_poste_est(p_poste text)
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT EXISTS (
+    SELECT 1 FROM public.personnages_donnees d
+     WHERE d.user_id = auth.uid()
+       AND (d.poste ->> 'id') = p_poste
+  );
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.mon_poste_est_dans(p_poste text, p_pays text)
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT EXISTS (
+    SELECT 1 FROM public.personnages_donnees d
+     WHERE d.user_id = auth.uid()
+       AND (d.poste ->> 'id') = p_poste
+       AND (p_pays IS NULL OR d.country = p_pays)
+  );
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.personnages_poste_perdu()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+BEGIN
+  IF OLD.poste IS NOT NULL AND jsonb_typeof(OLD.poste) = 'object'
+     AND (NEW.poste IS NULL OR jsonb_typeof(NEW.poste) = 'null'
+          OR (NEW.poste ->> 'id') IS DISTINCT FROM (OLD.poste ->> 'id')
+          OR (NEW.poste ->> 'city') IS DISTINCT FROM (OLD.poste ->> 'city')) THEN
+    DELETE FROM public.postes_attribues
+     WHERE titulaire = OLD.name
+       AND poste_id = (OLD.poste ->> 'id')
+       AND country = OLD.country
+       AND city IS NOT DISTINCT FROM nullif(OLD.poste ->> 'city', '');
+  END IF;
+  RETURN NULL;
+END;
+$function$
+;
+CREATE TRIGGER personnages_poste_perdu AFTER UPDATE OF poste ON public.personnages_donnees
+  FOR EACH ROW EXECUTE FUNCTION public.personnages_poste_perdu();
+
+CREATE OR REPLACE FUNCTION public.piratage_titulaire_interne(p_poste text, p_pays text)
+ RETURNS text
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT name FROM public.personnages_donnees WHERE poste->>'id' = p_poste AND country = p_pays ORDER BY name LIMIT 1;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.sovarka_est_titulaire_interne(p_nom text, p_poste text)
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT EXISTS (SELECT 1 FROM public.postes_attribues a
+    JOIN public.personnages_donnees d ON d.name = a.titulaire AND d.poste->>'id' = a.poste_id
+   WHERE a.country = 'soviet' AND a.poste_id = p_poste AND a.titulaire = p_nom) $function$
+;
+
+CREATE OR REPLACE FUNCTION public.sovarka_greffe_autorite_interne(p_nom text)
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT EXISTS (SELECT 1 FROM public.personnages_donnees d
+                  WHERE d.name = p_nom AND d.country = 'soviet' AND (d.poste ->> 'id') IN ('juge', 'commissaire'))
+      OR public.sovarka_est_titulaire_interne(p_nom, 'min_just')
+      OR public.sovarka_est_titulaire_interne(p_nom, 'min_int');
+$function$
+;

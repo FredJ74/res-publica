@@ -66,7 +66,7 @@ async function openCharSheet() {
       <div>
         <div style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;color:#E8C97A">${char.name}</div>
         <div style="font-size:.8rem;color:#7a7060;font-style:italic">${ar?.name||''} · ${co?.n||''}</div>
-        ${state.poste ? `<div style="font-size:.75rem;color:#C9A84C;margin-top:.2rem"><i class="ti ti-briefcase" style="font-size:.7rem"></i> ${state.poste.name}</div>` : ''}
+        ${state.poste ? `<div style="font-size:.75rem;color:#C9A84C;margin-top:.2rem"><i class="ti ti-briefcase" style="font-size:.7rem"></i> ${typeof libellePosteJoueur === "function" ? libellePosteJoueur() : state.poste.name}</div>` : ''}
         ${char.motto ? `<div style="font-size:.75rem;color:#5a5040;margin-top:.3rem;font-style:italic">"${char.motto}"</div>` : ''}
       </div>
     </div>
@@ -421,7 +421,7 @@ function openSelfView(ongletInitial) {
   const char = state.char;
   if (char) {
     document.getElementById('self-view-name').textContent = char.name || 'Mon Personnage';
-    document.getElementById('self-view-role').textContent = state.poste?.name || 'Citoyen';
+    document.getElementById('self-view-role').textContent = (state.poste && typeof libellePosteJoueur === 'function' ? libellePosteJoueur() : state.poste?.name) || 'Citoyen';
   }
   const onglet = SELF_ONGLETS.indexOf(ongletInitial) !== -1 ? ongletInitial : 'actions';
   // L'onglet visuellement actif est designe par son RANG, pas devine : c'est ce qui manquait
@@ -593,7 +593,7 @@ function switchSelfTab(tab, el) {
     }
     // Commissaire : intervention sur les blocus de sa ville depuis sa propre interface (decision de
     // Fred, 02/11/2026). 2 PA ; le serveur revalide le poste et la ville (blocus_syndical_intervenir).
-    if (state.poste?.id === 'commissaire' && typeof ouvrirChoixBlocusCommissaire === 'function') {
+    if (state.poste?.id === 'commissaire' && (typeof posteExerceIci !== 'function' || posteExerceIci('commissaire')) && typeof ouvrirChoixBlocusCommissaire === 'function') {
       html += '<button onclick="closeSelfView();ouvrirChoixBlocusCommissaire(\'disperser\')" style="display:flex;justify-content:space-between;align-items:center;padding:.5rem .8rem;border:1px solid #3a2a1a;background:#0d0a08;color:#C9A84C;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">';
       html += '<span><i class="ti ti-shield" style="font-size:.85rem"></i> Disperser un blocus syndical</span><span style="font-family:Bebas Neue,sans-serif;font-size:.68rem">2 PA</span></button>';
       html += '<button onclick="closeSelfView();ouvrirChoixBlocusCommissaire(\'reprimer\')" style="display:flex;justify-content:space-between;align-items:center;padding:.5rem .8rem;border:1px solid #3a2a1a;background:#0d0a08;color:#C9A84C;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">';
@@ -699,7 +699,7 @@ function switchSelfTab(tab, el) {
     html += photo;
     html += '<div><div style="font-family:Playfair Display,serif;font-size:1.2rem;font-weight:700;color:#E8C97A">' + (char?.name||'') + '</div>';
     html += '<div style="font-size:.8rem;color:#7a7060;font-style:italic">' + (ar?.name||'') + ' · ' + (co?.n||'') + '</div>';
-    if (state.poste) html += '<div style="font-size:.75rem;color:#C9A84C;margin-top:.2rem"><i class="ti ti-briefcase" style="font-size:.7rem"></i> ' + state.poste.name + '</div>';
+    if (state.poste) html += '<div style="font-size:.75rem;color:#C9A84C;margin-top:.2rem"><i class="ti ti-briefcase" style="font-size:.7rem"></i> ' + (typeof libellePosteJoueur === 'function' ? libellePosteJoueur() : state.poste.name) + '</div>';
     if (char?.motto) html += '<div style="font-size:.72rem;color:#5a5040;margin-top:.3rem;font-style:italic">"' + char.motto + '"</div>';
     html += '</div></div>';
 

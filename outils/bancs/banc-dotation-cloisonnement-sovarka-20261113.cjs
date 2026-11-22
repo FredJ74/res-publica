@@ -15,7 +15,7 @@ function world(expression) {
  return vm.runInContext(expression,context);
 }
 function paysDuPoste(state) {
- const a=politique.indexOf('function paysMandatPourOrdre() {');
+ const a=politique.indexOf('function paysMandatPourOrdre(posteRequis) {');
  const b=politique.indexOf('\n}\n',a);
  assert.ok(a>=0&&b>a);
  const ctx=vm.createContext({state});
@@ -32,8 +32,8 @@ test('un ministre republicain voyageur conserve son mandat republicain',()=>{
  assert.equal(paysDuPoste({country:'soviet',poste:{id:'min_def',country:'soviet'}}),'soviet');
 });
 test('affichage et appel direct refusent un ordre de poste dans un autre pays',()=>{
- assert.match(politique,/if \(o\.requiresPost && !needsPost && paysMandatPourOrdre\(\) !== state\.country\)/);
- assert.match(router,/definitionMinisterielle\?\.requiresPost && paysMandatPourOrdre\(\) !== state\.country/);
+ assert.match(politique,/if \(o\.requiresPost && !needsPost && paysMandatPourOrdre\(o\.requiresPost\) !== state\.country\)/);
+ assert.match(router,/definitionMinisterielle\?\.requiresPost && paysMandatPourOrdre\(definitionMinisterielle\.requiresPost\) !== state\.country/);
 });
 test('Sovarka Defense ne propose pas la garde republicaine et exige son propre ministre',()=>{
  const defs=world(`ordresDeclaresDeLaPiece(BUILDINGS['palais-gouvernement'].rooms.bureau_min_def,

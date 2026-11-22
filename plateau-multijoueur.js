@@ -119,16 +119,20 @@ function filtrerPnjPostesPourvus(persons) {
 }
 
 async function rafraichirTitulairesPostesElectifs() {
-  if (typeof sbListPersonnages !== 'function') return;
+  if (typeof chargerRegistrePostes !== 'function') return;
   try {
-    const joueurs = await sbListPersonnages() || [];
+    // Titulaires du pays OU L'ON SE TROUVE, lus dans le registre (23/11/2026, B.16) : la cle poste/ville seule
+    // confondait les pays (ville_b = Montrouge et Krasnov) et un ministre de Republia en voyage masquait le PNJ
+    // ministre de Sovarka. Postes nommes : postes_attribues ; postes elus : leur cycle.
+    const reg = await chargerRegistrePostes();
     const cache = {};
-    joueurs.forEach(j => {
-      let poste = j.poste;
-      if (typeof poste === 'string') { try { poste = JSON.parse(poste); } catch(e) { poste = null; } }
-      if (!poste || !poste.id) return;
-      const cle = poste.city ? (poste.id + '_' + poste.city) : poste.id;
-      cache[cle] = j.name;
+    (reg?.lignes || []).forEach(l => {
+      if (l.country !== state.country || !ligneRegistreValable(l) || !reg.fiches.has(l.titulaire)) return;
+      cache[l.city ? (l.poste_id + '_' + l.city) : l.poste_id] = l.titulaire;
+    });
+    (reg?.elus || []).forEach(c => {
+      if (c.country !== state.country || !c.eluId || c.poste_id === 'depute' || !reg.fiches.has(c.eluId)) return;
+      cache[c.city ? (c.poste_id + '_' + c.city) : c.poste_id] = c.eluId;
     });
     window._titulairesPostes = cache;
   } catch(e) {}
@@ -1681,7 +1685,7 @@ function getGroupeHtmlPourPiece(buildingId, roomId) {
   // d'eux voit une simple connaissance de passage : lui proposer « reprendre » reviendrait a
   // lui apprendre que ce n'est pas un PNJ comme un autre. Le serveur revalide de toute facon
   // l'autorite dans agent_prendre -- cette condition est du confort, jamais la securite.
-  const peutReprendre = (state.poste?.id === 'min_def');
+  const peutReprendre = (state.poste?.id === 'min_def' && (typeof posteExerceIci !== 'function' || posteExerceIci('min_def'))); // pays du poste (B.16)
   const htmlAgentsPoses = poses.map(a => {
     const id = String(a.id).replace(/'/g, '');
     const av = a.portrait

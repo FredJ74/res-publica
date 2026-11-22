@@ -79,24 +79,18 @@ async function ouvrirEcranPostes() {
   // getTitulaireActuel et n'est pas touchee : joueur d'abord (meme pays, meme poste, meme ville
   // si le poste est local), PNJ en repli, null si vraiment vacant. getTitulaireActuel reste en
   // place pour ses autres appelants, qui n'en demandent qu'un a la fois.
-  const [joueursTous, pnjTous, compagnies] = await Promise.all([
-    (typeof sbListPersonnages === 'function' ? sbListPersonnages().catch(() => []) : Promise.resolve([])),
+  // Le titulaire PJ vient du REGISTRE postes_attribues filtre sur le pays affiche (23/11/2026, B.15) -- jamais
+  // de personnages.country, qui est la position : un ministre en voyage restait affiche dans l'autre empire.
+  const [, pnjTous, compagnies] = await Promise.all([
+    (typeof chargerRegistrePostes === 'function' ? chargerRegistrePostes().catch(() => null) : Promise.resolve(null)),
     (typeof sbGet === 'function' ? sbGet('titulaires_pnj', 'select=id,nom_pnj').catch(() => []) : Promise.resolve([])),
     (typeof sbGetCompagnies === 'function' ? sbGetCompagnies(country).catch(() => []) : Promise.resolve([]))
   ]);
   const pnjParId = {};
   (pnjTous || []).forEach(r => { if (r && r.id) pnjParId[r.id] = r.nom_pnj; });
   const resoudreTitulaire = (posteId, ville) => {
-    let posteMatch = null;
-    const match = (joueursTous || []).find(j => {
-      let poste = j.poste;
-      if (typeof poste === 'string') { try { poste = JSON.parse(poste); } catch (e) { poste = null; } }
-      if (j.country !== country || !poste || poste.id !== posteId) return false;
-      if (ville && poste.city !== ville) return false;
-      posteMatch = poste;
-      return true;
-    });
-    if (match) return { nom: match.name, estPJ: true, posteComplet: posteMatch };
+    const ligne = typeof titulairesRegistre === 'function' ? titulairesRegistre(country, posteId, ville || null)[0] : null;
+    if (ligne) return { nom: ligne.nom, estPJ: ligne.estPJ };
     const nomPnj = pnjParId[country + '_' + posteId + '_' + (ville || 'national')];
     return nomPnj ? { nom: nomPnj, estPJ: false } : null;
   };
@@ -3913,14 +3907,23 @@ function deviseDansTexte(texte, devise) {
   return texte.replace(/\bFR\b/g, devise);
 }
 
-// Le pays du mandat prime sur la position actuelle du voyageur.
-// Les fiches anciennes ne portent pas toujours poste.country : la domiciliation
-// d'origine, puis le pays de creation, servent de repli d'affichage uniquement.
-// Les actes sensibles sont controles a nouveau cote serveur.
-function paysMandatPourOrdre() {
+// Le pays du mandat prime sur la position actuelle du voyageur. Il se lit dans le REGISTRE des postes
+// (paysDuPoste, plateau-organisations-quetes.js : postes_attribues / cycles / compagnie) -- 23/11/2026, B.16.
+// Tant que le registre n'est pas encore lu, repli d'affichage sur le poste puis la domiciliation, JAMAIS sur la
+// position (state.country / char.country) : c'est elle qui donnait a un ministre en voyage les ordres de l'autre
+// empire. Les actes sont controles a nouveau cote serveur (poste_exerce, exiger_poste).
+function paysMandatPourOrdre(posteRequis) {
+  const registreLu = typeof paysDuPoste === 'function' && typeof _registrePostes !== 'undefined' && !!_registrePostes;
+  // L'ambassadeur d'un bureau est une nomination propre a ce bureau (ambassades_ouvertes), verifiee a part.
+  if (posteRequis === 'ambassadeur_local') return state.country;
+  // Le mandat de depute vit a part (poste_depute) : son pays est celui de son cycle electoral.
+  if (posteRequis === 'depute' && !String(state.poste?.id || '').startsWith('depute')) {
+    if (registreLu) return posteDetenu(state.char?.name, 'depute', state.country, null) ? state.country : null;
+    return state.posteDepute?.country || state.domicile?.country || null;
+  }
+  if (registreLu) return paysDuPoste(state.char?.name) || null;
   return state.poste?.country || state.poste?.pays ||
-    state.char?.domicile?.country || state.domicile?.country ||
-    state.char?.country || state.country;
+    state.char?.domicile?.country || state.domicile?.country || null;
 }
 
 function renderRoomActions(room, buildingId, roomId) {
@@ -4186,7 +4189,7 @@ function renderRoomActions(room, buildingId, roomId) {
     // Un mandat appartient a son pays, pas a tous les empires portant le meme
     // identifiant de poste. Un ministre de Republia visitant Novomirsk ne devient
     // jamais ministre de Sovarka. La garde serveur tranche l'autorite reelle.
-    if (o.requiresPost && !needsPost && paysMandatPourOrdre() !== state.country) {
+    if (o.requiresPost && !needsPost && paysMandatPourOrdre(o.requiresPost) !== state.country) {
       needsPost = true;
     }
     // DEUX DRAPEAUX DECLARATIFS AJOUTES LE 13 OCTOBRE 2026, et ils ne nomment aucun ordre.
@@ -5268,7 +5271,7 @@ async function afficherOrganigrammeMairieNational() {
     const villeNomAssemblee = WORLD[country]?.[v]?.name || v;
     for (let i = 0; i < 3; i++) {
       const holderName = elus[i] || null;
-      const estPJ = holderName ? joueursPourAssemblee.some(j => j.country === country && j.name === holderName) : false;
+      const estPJ = holderName ? joueursPourAssemblee.some(j => j.name === holderName) : false; // PJ ou qu'il se trouve (B.15)
       const isMe = estPJ && holderName === myName;
       const avatar = holderName && typeof getAvatarHtmlPourNom === 'function'
         ? getAvatarHtmlPourNom(holderName, 30, isMe ? '#C9A84C' : '#4a8a4a')

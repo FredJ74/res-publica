@@ -76,6 +76,8 @@ async function ouvrirRepertoirePJ() {
   let joueurs = [];
   if (typeof sbListPersonnages === 'function') {
     try { joueurs = await sbListPersonnages() || []; } catch(e) {}
+    // Registre des postes (23/11/2026, B.16) : le poste affiche est celui du registre, dans le pays de ce poste.
+    if (typeof chargerRegistrePostes === 'function') await chargerRegistrePostes().catch(() => null);
   }
 
   // Ajouter soi-même si pas dans la liste
@@ -108,7 +110,7 @@ async function ouvrirRepertoirePJ() {
       </div>
       ${pjs.map(j => {
         const isMe = j.name === myName;
-        const posteLabel = j.poste?.name || '';
+        const posteLabel = typeof libellePostePJ === 'function' ? libellePostePJ(j, j.nationalite || j.country) : (j.poste?.name || '');
         const villeDomicileId = j.domicile?.city;
         // La ville du domicile se lit dans le pays du DOMICILE (les identifiants de ville sont partagés entre pays).
         const villeDomicileNom = villeDomicileId ? (WORLD[j.domicile?.country || j.nationalite || j.country]?.[villeDomicileId]?.name || villeDomicileId) : null;

@@ -30,5 +30,5 @@ test('la règle de grisage générique utilise bien requiresPost', () => {
   const politique = fs.readFileSync('plateau-politique.js', 'utf8');
   assert.match(politique, /if \(o\.requiresPost\)/);
   assert.match(politique, /needsPost = posteId !== reqPost/);
-  assert.match(politique, /if \(o\.requiresPost && !needsPost && paysMandatPourOrdre\(\) !== state\.country\)/);
+  assert.match(politique, /if \(o\.requiresPost && !needsPost && paysMandatPourOrdre\(o\.requiresPost\) !== state\.country\)/);
 });

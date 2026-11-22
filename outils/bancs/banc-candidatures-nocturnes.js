@@ -93,6 +93,11 @@ globalThis.fetch = function (url, options) {
     // et min_just est a Arnie -- c'est donc lui l'autorite de nomination restee passive.
     return reponse(true, [{ name: 'Arnie', country: 'republic', poste: { id: 'min_just', city: null } }]);
   }
+  // Registre des postes (23/11/2026, B.16) : resoudreTitulaireActuelPosteServeur lit le titulaire du pays dans
+  // postes_attribues (et la fiche pour s'assurer que la ligne n'est pas orpheline), plus jamais sur la position.
+  if (appel.methode === 'GET' && appel.url.indexOf('postes_attribues') !== -1) {
+    return reponse(true, [{ poste_id: 'min_just', city: null, titulaire: 'Arnie' }]);
+  }
   if (appel.methode === 'GET' && appel.url.indexOf('titulaires_pnj') !== -1) {
     return reponse(true, [{ id: 'republic_juge_capitale', nom_pnj: 'Juge PNJ' }]);
   }
