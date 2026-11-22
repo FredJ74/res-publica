@@ -13165,11 +13165,11 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
 })();
 
 // Boutique « Équipements contre les intempéries » (maladies et climat, lot 5, 19/11/2026) : bouteilles d'eau sur les marchés
-// de Républia, sacs de sable dans les quincailleries de Républia, groupe électrogène au garage de Novomirsk et dans les
+// de Républia (sacs de sable retirés le 22/11/2026), groupe électrogène au garage de Novomirsk et dans les
 // armureries-quincailleries de Luthécia et de Montrouge (pas de garagiste en Républia). Le serveur (climat_boutiques) tranche.
 (function () {
   const ordre = {fn:'boutique_climat', label:'Équipements contre les intempéries', pa:0, cost:0, type:'legal', icon:'ti-umbrella', successRate:100,
-    desc:"Bouteilles d'eau, sacs de sable ou groupe électrogène, selon la boutique."};   // texte catalogué (i18n) : ne pas le changer sans Codex
+    desc:"Bouteilles d'eau ou groupe électrogène, selon la boutique."};   // texte catalogué (i18n) : français changé le 22/11 (sacs retirés), autres langues à refaire par Codex
   const parContexte = [['republic', 'capitale', 'armurerie', 'magasin'], ['republic', 'ville_b', 'armurerie', 'magasin'],
                        ['republic', 'capitale', 'marche', 'marche_ext'], ['republic', 'ville_b', 'marche', 'marche_ext'],
                        // Complément du 21/11 : sels de réhydratation à l'usine pharmaceutique de Novomirsk (Pharmanov).
@@ -13181,7 +13181,8 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     ctx.roomOverrides[piece] = Object.assign({}, ctx.roomOverrides[piece]);
     ctx.roomOverrides[piece].orders = (ctx.roomOverrides[piece].orders || []).concat([ordre]);
   }
-  for (const [bat, piece] of [['chasse-peche-psm', 'boutique'], ['marche-psm', 'etals'], ['garage-novomirsk', 'atelier_garage']]) {
+  // Sacs de sable retirés (Fred, 22/11/2026) : la boutique Chasse et Pêche de PSM, qui ne vendait qu'eux, n'a plus cet ordre.
+  for (const [bat, piece] of [['marche-psm', 'etals'], ['garage-novomirsk', 'atelier_garage']]) {
     const room = BUILDINGS[bat] && BUILDINGS[bat].rooms && BUILDINGS[bat].rooms[piece];
     if (room) room.orders = (room.orders || []).concat([ordre]);
   }

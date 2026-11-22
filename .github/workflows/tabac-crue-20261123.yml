@@ -1,0 +1,30 @@
+name: "Tabac-presse de Krasnov (cigarettes, carte postale, revue) et crue sans blocage"
+on:
+  pull_request:
+    paths: [plateau-personnage.js, plateau-actions-illegales-rumeurs.js, plateau-divers.js, plateau-climat.js, plateau-chantier-vue.js, forum.js, admin-maladies.js, admin.html, i18n/infobulles-communes-resources.js, data.js, plateau.html, 'migrations/20261123150000_tabac_presse_crue.sql', 'outils/bancs/banc-tabac-presse-*', 'outils/bancs/banc-crue-chantier-*', 'outils/bancs/fixtures/tabac-presse-*', 'outils/bancs/fixtures/crue-chantier-*', 'outils/bancs/fixtures/inventaire-direct-pglite-socle.sql.txt', 'outils/bancs/test-climat-*', 'outils/bancs/banc-climat-*', .github/workflows/tabac-crue-20261123.yml]
+  push:
+    branches: [main, 'claude/**']
+    paths: [plateau-personnage.js, plateau-actions-illegales-rumeurs.js, plateau-divers.js, plateau-climat.js, plateau-chantier-vue.js, forum.js, admin-maladies.js, admin.html, i18n/infobulles-communes-resources.js, data.js, plateau.html, 'migrations/20261123150000_tabac_presse_crue.sql', 'outils/bancs/banc-tabac-presse-*', 'outils/bancs/banc-crue-chantier-*', 'outils/bancs/fixtures/tabac-presse-*', 'outils/bancs/fixtures/crue-chantier-*', 'outils/bancs/fixtures/inventaire-direct-pglite-socle.sql.txt', 'outils/bancs/test-climat-*', 'outils/bancs/banc-climat-*', .github/workflows/tabac-crue-20261123.yml]
+permissions:
+  contents: read
+jobs:
+  tabac-crue:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
+      - run: for f in plateau-personnage.js plateau-actions-illegales-rumeurs.js plateau-divers.js plateau-climat.js plateau-chantier-vue.js forum.js admin-maladies.js data.js; do node --check "$f"; done
+      - name: Tests du climat
+        run: node --test outils/bancs/test-climat-*.cjs
+      - name: Chromium réel
+        env:
+          HG_CHROMIUM: /usr/bin/google-chrome
+        run: node --test outils/bancs/banc-tabac-presse-navigateur-20261123.cjs outils/bancs/banc-climat-crue-accueil-navigateur-20261121.cjs outils/bancs/banc-climat-arrivee-navigateur-20261121.cjs
+      - name: PostgreSQL local (PGlite)
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund --prefix "$RUNNER_TEMP/pglite" @electric-sql/pglite@0.2.17
+          PGLITE_DIR="$RUNNER_TEMP/pglite" node --test outils/bancs/banc-tabac-presse-pglite-20261123.cjs outils/bancs/banc-crue-chantier-pglite-20261123.cjs outils/bancs/banc-climat-pglite-20261121.cjs

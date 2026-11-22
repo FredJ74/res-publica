@@ -1,4 +1,4 @@
--- Banc annule (rien ne reste) : migration 20261114220000 puis une vente reelle a un PJ de test.
+-- Banc annule (rien ne reste) : migrations 20261114220000 et 20261123150000 puis une vente reelle a un PJ de test.
 -- A jouer en bloc : la migration (sans BEGIN/COMMIT) est inseree a la place de \i ci-dessous.
 DO $banc$
 DECLARE v jsonb; v_inv jsonb; v_carte jsonb; v_revue jsonb; v_pj text := 'Arnie';
@@ -15,9 +15,10 @@ BEGIN
   SELECT e INTO v_revue FROM jsonb_array_elements(v_inv) e WHERE e->>'type' = 'revue_chasse_peche_tracteurs' LIMIT 1;
   IF v_carte IS NULL OR v_carte->>'etatCarte' <> 'vierge' OR v_carte->>'familleProduitMarche' <> 'carte_postale' THEN
     RAISE EXCEPTION 'banc : carte non deposee %', v_carte; END IF;
-  IF v_revue IS NULL OR v_revue->>'bonusIntegrationVille' <> 'soviet.ville_b' THEN RAISE EXCEPTION 'banc : revue non deposee %', v_revue; END IF;
-  IF EXISTS (SELECT 1 FROM jsonb_array_elements(v_inv) e WHERE e->>'type' = 'krasnov_papirossy') THEN
-    RAISE EXCEPTION 'banc : les papirossy se fument au comptoir, pas en inventaire'; END IF;
+  -- Depuis 20261123150000 (Fred, 22/11/2026) : revue lue, sans bonus permanent ; cigarettes déposées dans l'inventaire.
+  IF v_revue IS NULL OR v_revue ? 'bonusIntegrationVille' OR (v_revue->>'lue')::boolean IS NOT TRUE THEN RAISE EXCEPTION 'banc : revue non deposee %', v_revue; END IF;
+  IF NOT EXISTS (SELECT 1 FROM jsonb_array_elements(v_inv) e WHERE e->>'type' = 'krasnov_papirossy' AND e->>'familleProduitMarche' = 'tabac') THEN
+    RAISE EXCEPTION 'banc : les cigarettes doivent arriver dans l''inventaire'; END IF;
   IF jsonb_typeof(v->'inventory') <> 'array' THEN RAISE EXCEPTION 'banc : inventaire non rendu'; END IF;
   RAISE EXCEPTION 'banc OK : rien ne doit rester (carte %, revue %)', v_carte->>'id', v_revue->>'id';
 END $banc$;

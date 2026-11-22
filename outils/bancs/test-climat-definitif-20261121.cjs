@@ -9,6 +9,10 @@ const path = require('node:path');
 const vm = require('node:vm');
 const root = path.resolve(__dirname, '../..');
 const lire = f => fs.readFileSync(path.join(root, f), 'utf8');
+// Partie F (crue) de la migration du 23/11 ; CRUE_SECTION permet la mise au point avant son collage dans la migration.
+const lireCrue = () => { const m = path.join(root, 'migrations/20261123150000_tabac_presse_crue.sql');
+  const t = fs.existsSync(m) ? fs.readFileSync(m, 'utf8') : '';
+  return t.includes('crue_chantier_jour_v1') || !process.env.CRUE_SECTION ? t : fs.readFileSync(process.env.CRUE_SECTION, 'utf8'); };
 const sql = lire('migrations/20261121090000_climat_six_heures_pays_sacs_eau.sql');
 const client = lire('plateau-climat.js');
 const code = sql.replace(/^--.*$/gm, '');
@@ -28,9 +32,13 @@ test('lieu protégé ouvert, stocks intacts ; lieu non protégé fermé (20 %)',
   assert.match(code, /v_pct := CASE WHEN v_prot THEN 0 ELSE public\.aliments_param_interne\('crue_perte_pct', 20\) END;/);
   assert.match(code, /VALUES \('sacs_plafond', 1\)\nON CONFLICT \(cle\) DO UPDATE SET valeur = 1;/);
   assert.match(code, /zp\.evenement = e\.id OR \(zp\.evenement IS NULL AND e\.effets_le IS NULL\)/);
-  // Le client ne marque que les lieux fermés et nomme les lieux protégés.
   assert.match(code, /'lieux', \(SELECT [^;]*WHERE NOT public\.climat_lieu_protege_interne\(e, l->>'batiment'\)\)/);
-  assert.match(client, /lieux_proteges: 'Protégés par des sacs de sable, donc ouverts : \{lieux\}\.'/);
+  // Décision du 22/11 (soir, point 30) : plus aucun lieu fermé ni protégé ; le client ne nomme plus que l'arrêt des chantiers.
+  assert.ok(!/lieux_proteges:|ferme_corps|ferme_infobulle/.test(client), 'plus de lieux fermés ni protégés à l’écran');
+  assert.match(client, /chantiers_crue: 'Tous les chantiers de la ville sont à l’arrêt pour la journée : ils prennent un jour de retard\. Tout le reste est ouvert\.'/);
+  const crue = lireCrue();
+  assert.match(crue, /SELECT false; \/\* crue_sans_fermeture_v1/);
+  assert.match(crue, /'lieux', '\[\]'::jsonb, 'lieux_proteges', '\[\]'::jsonb/);
 });
 
 test('sac de sable : 60 FR, 1 PA pour le poser', () => {
@@ -99,7 +107,9 @@ test('consignes : textes de Fred, lieux de vente vérifiés, un seul texte serve
   // Presse et journal (climat_texte_alerte_interne), client (climat_etat → consigne) : même source.
   assert.match(code, /'\. ' \|\| coalesce\(public\.climat_consigne_interne\(e\.type, e\.pays, e\.ville\), ''\) \/\* climat_consignes_v1 \*\//);
   assert.match(code, /'consigne', public\.climat_consigne_interne\(e\.type, e\.pays, e\.ville\)\);/);
-  assert.match(client, /return \[explic\('annonce_' \+ typeConnu\(ev\), \{ lieu, heure: heureDe\(ev\.debut\) \}\), lieuxFermes\(ev\), ev\.consigne \|\| ''\]/);
+  // 22/11 (soir) : plus de « lieux fermés » dans le message ; consigne de la crue réécrite (jour de retard des chantiers).
+  assert.match(client, /return \[explic\('annonce_' \+ typeConnu\(ev\), \{ lieu, heure: heureDe\(ev\.debut\) \}\), ev\.consigne \|\| ''\]/);
+  assert.match(lireCrue(), /'Tous les chantiers de la ville s''arrêtent pour la journée : ils prennent un jour de retard\. '/);
 });
 
 test('eau gratuite : point d’eau en configuration, 0 PA, bouteille identique', () => {

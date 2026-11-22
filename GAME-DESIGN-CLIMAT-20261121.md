@@ -138,3 +138,22 @@ Contrôle : tests
 - **Alerte** : annule le coin supérieur gauche compact du 22/11 (nuit, point 5), jugé trop petit et illisible. L'alerte s'affiche
   dans un **bandeau au-dessus de l'image**, centré, en taille normale (pictogramme, « Attention : orage », lien « Durée et
   consignes »), sans jamais couvrir la photo ni une flèche de déplacement. Seul le pictogramme clignote lentement.
+
+---
+
+## Décision de Fred du 22/11/2026 (soir) — crue et état de catastrophe naturelle — source : `GAME-DESIGN-INTERFACE-ACCUEIL-20261122.md`, points 30 à 32
+
+Cette décision **remplace** tout ce qui précède sur la crue (fermeture des lieux, pertes de stock, sacs de sable Q4).
+
+- **Principe** : un événement climatique peut coûter quelque chose, il ne bloque jamais le jeu d'un joueur.
+- **Crue** : elle arrête seulement **tous les chantiers de la ville pendant une journée** : le chantier prend **un jour de
+  retard**. Plus aucune fermeture de lieu, plus aucune perte de stock, plus de sacs de sable (ni vente ni pose). Sont gardés :
+  l'alerte 48 h avant, le filtre de pluie, le bandeau clignotant et sa fenêtre, avec des textes mis à jour.
+  Mise en œuvre (migration `20261123150000_tabac_presse_crue`, partie F) : le travail des joueurs sur les chantiers de la ville
+  est refusé du début de la crue jusqu'à minuit de ce jour-là ; la nuit suivante, le chantier n'avance pas (aucun salaire, aucune
+  consommation ni commande de matériaux, ligne « crue » dans le journal du chantier). Réglage MJ : « Bloque les chantiers » de la
+  crue (`climat_parametres.bloque_chantiers`).
+- **État de catastrophe naturelle** : **en sommeil, intérêt à définir.** Retiré de l'interface (boutons des courriers) ; les
+  fonctions serveur sont conservées mais refusent tant que le réglage MJ « État de catastrophe naturelle »
+  (`climat_parametres.catastrophe_active`, crue) vaut non. Sans pertes de stock, il n'a plus rien à indemniser : son rôle est à
+  redéfinir par Fred avant tout réveil.

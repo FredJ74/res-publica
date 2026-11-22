@@ -1,4 +1,5 @@
-// Chromium réel : décisions climat de Fred du 21/11/2026 (GAME-DESIGN-CLIMAT-20261121.md).
+// Chromium réel : décisions climat de Fred du 21/11/2026 (GAME-DESIGN-CLIMAT-20261121.md), crue revue le 22/11 au soir
+// (GAME-DESIGN-INTERFACE-ACCUEIL-20261122.md, point 30) : plus aucun lieu fermé, plus de sacs ; seuls les chantiers s'arrêtent.
 // Vue de rue factice (scène, flèche, zones de bâtiments) + vrai plateau-climat.js ; serveur simulé (sbRpc).
 const test = require('node:test'), assert = require('node:assert/strict'), fs = require('node:fs'), path = require('node:path'), os = require('node:os'), http = require('node:http');
 const { chromium } = require('../e2e/node_modules/playwright');
@@ -14,7 +15,8 @@ const PAGE = '<!doctype html><meta charset="utf-8"><body><div id="rue-image" sty
   + '</div></div></div><div id="rue-actions-row"><button class="action-btn legal" id="fouiller">Fouiller ou voler</button></div>'
   + '<div id="modal-postes"><div id="postes-modal-title"></div><div id="postes-body"></div></div></body>';
 
-const CONSIGNE = 'Pendant 6 heures, les commerces et entrepôts non protégés de la zone inondable sont fermés et perdent 20 % de leurs stocks, et les chantiers sont à l’arrêt.';
+// Consigne du serveur depuis le 22/11 (soir) : climat_consigne_interne, marque crue_consigne_v2.
+const CONSIGNE = 'Tous les chantiers de la ville s’arrêtent pour la journée : ils prennent un jour de retard. Rien d’autre ne change : commerces, entrepôts, gare et déplacements restent ouverts, et aucun stock n’est perdu.';
 async function avecPage(fn, { maintenant, creationRecente = true, ville = 'ville_a', pays = 'republic', type = 'crue' } = {}) {
   const serveur = http.createServer((req, res) => {
     // Le renderer masque une image non décodable : servir la vraie photo, pas le HTML de PAGE.
@@ -72,11 +74,11 @@ test('nouveau personnage pendant une crue : fenêtre d’accueil complète, une 
     assert.match(txt, /Bienvenue à Port-Sainte-Marie/);
     assert.match(txt, /Un événement climatique frappe la ville en ce moment \(crue\)/, 'phrase d’accueil bienveillante');
     // Même fenêtre que l'alerte : la durée restante, puis la consigne.
-    assert.ok(txt.indexOf('Encore 5 h') < txt.indexOf('Pendant 6 heures'), 'durée restante avant la consigne');
+    assert.ok(txt.indexOf('Encore 5 h') < txt.indexOf('Tous les chantiers de la ville s’arrêtent'), 'durée restante avant la consigne');
     assert.match(txt, /Encore 5 h 2\d min/, 'durée restante');
-    assert.match(txt, /Lieux fermés : /);
-    assert.match(txt, /Protégés par des sacs de sable, donc ouverts : port-sainte-marie/);
-    assert.match(txt, /Pendant 6 heures, les commerces et entrepôts non protégés/);
+    assert.match(txt, /Tous les chantiers de la ville sont à l’arrêt pour la journée : ils prennent un jour de retard\. Tout le reste est ouvert\./);
+    assert.doesNotMatch(txt, /Lieux fermés|sacs de sable|fermé à cause/, 'plus de lieux fermés ni de sacs');
+    assert.match(txt, /Rien d’autre ne change : commerces, entrepôts, gare et déplacements restent ouverts/);
     assert.equal(await page.locator('#climat-gouvernement').count(), 0, 'pas de doublon avec le message du gouvernement');
     await d.locator('button').click();
     await page.waitForFunction(() => window.__vus.includes(77));
@@ -94,32 +96,24 @@ test('personnage ancien : aucune fenêtre d’accueil', async () => {
   }, { creationRecente: false });
 });
 
-test('crue : on circule, la gare reste ouverte, le lieu touché est fermé avec un message clair', async () => {
+test('crue : on circule et on entre partout, aucun lieu n’est marqué ni fermé', async () => {
   await avecPage(async page => {
     await page.evaluate(async () => { await window.RPClimat.rafraichirClimat(); document.getElementById('climat-explication')?.remove(); document.getElementById('climat-gouvernement')?.remove(); window.RPClimat.appliquerFiltre(); });
-    // Marque sur le seul lieu touché, expliquée au survol.
-    assert.equal(await page.locator('#z-marche.climat-inonde').count(), 1);
-    assert.equal(await page.locator('#z-gare.climat-inonde').count(), 0, 'la gare n’est jamais marquée');
-    assert.equal(await page.locator('#z-port.climat-inonde').count(), 0, 'le lieu protégé par des sacs reste ouvert');
-    assert.match(await page.locator('#z-marche').getAttribute('title'), /Fermé \(crue\) : .*réouverture dans 5 h/);
+    // Plus aucune marque, même si un ancien serveur envoie encore des « lieux » (Fred, 22/11/2026, point 30).
+    assert.equal(await page.locator('.climat-inonde').count(), 0);
+    assert.equal(await page.locator('#z-marche').getAttribute('title'), null);
     // Déplacement : la flèche reste au-dessus du filtre et cliquable.
     await page.locator('#fleche').click();
     assert.equal(await page.evaluate(() => window.__deplace), 1);
-    // Entrée dans la gare : permise ; entrée dans le lieu inondé : bloquée, message (cause, durée, que faire).
+    // Entrée partout : gare, port, et le marché de la zone inondable.
     await page.locator('#z-gare').click();
-    assert.equal(await page.evaluate(() => window.__entrees), 1);
     await page.locator('#z-port').click();
-    assert.equal(await page.evaluate(() => window.__entrees), 2, 'lieu protégé : on entre');
     await page.locator('#z-marche').click();
-    assert.equal(await page.evaluate(() => window.__entrees), 2, 'entrée bloquée');
-    const [titre, corps] = await page.evaluate(() => window.__toasts.at(-1));
-    assert.equal(titre, 'Lieu fermé : crue');
-    assert.match(corps, /fermé à cause de la crue/);
-    assert.match(corps, /rouvre dans 5 h/);
-    assert.match(corps, /gare et trains restent ouverts/);
-    // Refus du serveur (autre chemin d'entrée) : même message clair.
-    await page.evaluate(() => window.showToast('Déplacement refusé', 'batiment_inonde'));
-    assert.match(await page.evaluate(() => window.__toasts.at(-1)[1]), /fermé à cause de la crue.*rouvre dans/);
+    assert.equal(await page.evaluate(() => window.__entrees), 3, 'aucune entrée bloquée');
+    assert.equal(await page.evaluate(() => window.__toasts.length), 0, 'aucun message de fermeture');
+    // Le refus des chantiers pendant la crue garde sa phrase traduite.
+    await page.evaluate(() => window.showToast('Chantier', 'chantier_intemperies'));
+    assert.equal(await page.evaluate(() => window.__toasts.at(-1)[1]), 'Chantier à l’arrêt : intempéries en cours dans la ville.');
   });
 });
 
@@ -136,7 +130,7 @@ test('le bandeau « Attention crue » s’explique au clic ; tout disparaît à 
     assert.ok(Number(await page.locator('#fleche').evaluate(el => getComputedStyle(el).zIndex)) > Number(await page.locator('#climat-filtre').evaluate(el => getComputedStyle(el).zIndex)));
     await alerte.click();
     const txt = await page.locator('#climat-explication').innerText();
-    assert.match(txt, /Crue/); assert.match(txt, /Encore 5 h/); assert.match(txt, /Consignes/i); assert.match(txt, /Pendant 6 heures/);
+    assert.match(txt, /Crue/); assert.match(txt, /Encore 5 h/); assert.match(txt, /Consignes/i); assert.match(txt, /un jour de retard/);
     await page.locator('#climat-explication button').click();
     // Fin de l'événement (12 heures) : le client le lit lui-même, sans attendre le serveur.
     await page.evaluate(() => { window.__crue.fin = new Date(Date.now() - 1000).toISOString(); window.RPClimat.appliquerFiltre(); });

@@ -6,7 +6,7 @@
 'use strict';
 const T = {
   fr: { gov: 'Message du gouvernement', ok: 'Compris', at: 'à {ville}, le {date}',
-    crue: 'Alerte crue {lieu} : {lieux} seront sous les eaux pendant 12 heures. Mettez vos biens à l’abri.',
+    crue: 'Alerte crue {lieu} : tous les chantiers de la ville s’arrêtent pour la journée. Rien d’autre ne ferme.',
     canicule: 'Alerte canicule {lieu} : buvez, restez à l’ombre, ne gardez pas de nourriture sur vous.',
     orage: 'Alerte orage {lieu} : coupures d’électricité et d’internet attendues pendant 12 heures.',
     brouillard: 'Brouillard épais attendu {lieu}. Prudence sur la voie publique.',
@@ -110,12 +110,10 @@ const EXPLIC = { fr: {
   nom_crue: 'Crue', nom_orage: 'Orage', nom_canicule: 'Canicule', nom_brouillard: 'Brouillard', nom_blizzard: 'Blizzard',
   restant: 'Encore {duree} (fin vers {heure}).', bientot: 'Se termine dans quelques instants.',
   duree_h: '{h} h {m} min', duree_m: '{m} min',
-  ferme_titre: 'Lieu fermé : crue', ce_lieu: 'Ce lieu',
-  ferme_corps: '{nom} est sous les eaux et fermé à cause de la crue. Il rouvre dans {duree} (vers {heure}). En attendant, vous circulez librement partout ailleurs : rues, autres lieux, gare et trains restent ouverts.',
-  ferme_infobulle: 'Fermé (crue) : {nom}, réouverture dans {duree}',
-  lieux_fermes: 'Lieux fermés : {lieux}.', aucun_lieu: 'Aucun lieu n’est fermé.',
+  // Crue (Fred, 22/11/2026, point 30) : plus aucun lieu fermé ni « protégé par des sacs » ; seuls les chantiers s'arrêtent.
+  chantiers_crue: 'Tous les chantiers de la ville sont à l’arrêt pour la journée : ils prennent un jour de retard. Tout le reste est ouvert.',
+  r_sacs_retires: 'Les sacs de sable n’existent plus : la crue ne ferme plus aucun lieu.', r_catastrophe_en_sommeil: 'L’état de catastrophe naturelle est en sommeil.',
   pourquoi: 'Pourquoi cet effet sur l’image ?',
-  lieux_proteges: 'Protégés par des sacs de sable, donc ouverts : {lieux}.',
   annonce_crue: 'Crue annoncée {lieu}, à {heure} (heure du jeu).', annonce_orage: 'Orage annoncé {lieu}, à {heure} (heure du jeu).',
   annonce_canicule: 'Canicule annoncée {lieu}, à {heure} (heure du jeu).', annonce_brouillard: 'Brouillard annoncé {lieu}, à {heure} (heure du jeu).',
   annonce_blizzard: 'Blizzard annoncé {lieu}, à {heure} (heure du jeu).', debut_le: 'Début : le {date} à {heure} (heure du jeu).',
@@ -162,14 +160,8 @@ function ligneRestant(ev) {
   return d ? explic('restant', { duree: d, heure: heureFin(ev) }) : explic('bientot');
 }
 function typeConnu(ev) { return TYPES.includes(ev && ev.type) ? ev.type : 'brouillard'; }
-function lieuxFermes(ev) {
-  const l = (ev && ev.type === 'crue' && Array.isArray(ev.lieux)) ? ev.lieux : [];
-  return l.length ? explic('lieux_fermes', { lieux: l.map(nomLieu).join(', ') }) : '';
-}
-function lieuxProteges(ev) {
-  const l = (ev && ev.type === 'crue' && Array.isArray(ev.lieux_proteges)) ? ev.lieux_proteges : [];
-  return l.length ? explic('lieux_proteges', { lieux: l.map(nomLieu).join(', ') }) : '';
-}
+// Crue : la seule conséquence (chantiers de la ville arrêtés une journée), dite dans la fenêtre d'explication.
+function chantiersCrue(ev) { return ev && ev.type === 'crue' ? explic('chantiers_crue') : ''; }
 // Fenêtre commune : explication d'un événement (bandeau des vues de rue, accueil du nouveau personnage).
 function fenetreExplication(ev, opts) {
   const doc = global.document;
@@ -187,8 +179,7 @@ function fenetreExplication(ev, opts) {
     + '<div style="font-family:Bebas Neue,sans-serif;letter-spacing:.12em;color:#C9A84C;font-size:1.1rem;margin-bottom:.6rem"><i class="ti ti-cloud-storm"></i> ' + esc(titre) + '</div>'
     + intro + '<p style="margin:0" class="climat-restant">' + esc(ligneRestant(ev)) + '</p>'
     + '<p style="margin:.2rem 0 0;opacity:.85" class="climat-debut">' + esc(explic('debut_le', { date: dateCourte(ev.debut), heure: heureDe(ev.debut) })) + '</p>'
-    + (lieuxFermes(ev) ? '<p style="margin:.4rem 0 0" class="climat-lieux">' + esc(lieuxFermes(ev)) + '</p>' : '')
-    + (lieuxProteges(ev) ? '<p style="margin:.4rem 0 0" class="climat-proteges">' + esc(lieuxProteges(ev)) + '</p>' : '')
+    + (chantiersCrue(ev) ? '<p style="margin:.4rem 0 0" class="climat-chantiers">' + esc(chantiersCrue(ev)) + '</p>' : '')
     + (ev.consigne ? sec(explic('consignes'), ev.consigne) : '')
     + '<button type="button" class="cpj-touche cpj-primaire" style="width:100%;margin-top:1rem">' + esc(o.bouton || texte('ok')) + '</button></div>';
   const fermer = () => { fond.remove(); if (typeof o.apres === 'function') o.apres(); };
@@ -201,45 +192,14 @@ function evenementIci() {
   const s = etat();
   return evenements.find(e => enCours(e) && e.ville === s.currentCity) || null;
 }
-function crueIci(batiment) {
-  const ev = evenementIci();
-  return ev && ev.type === 'crue' && Array.isArray(ev.lieux) && ev.lieux.includes(batiment) ? ev : null;
-}
-// Entrée refusée dans un lieu inondé : la cause, la durée restante et ce que le joueur peut faire.
-function messageLieuFerme(batiment) {
-  const ici = evenementIci();
-  const ev = batiment ? crueIci(batiment) : (ici && ici.type === 'crue' ? ici : null);
-  if (!ev) return texte('flooded');
-  return explic('ferme_corps', { nom: batiment ? nomLieu(batiment) : explic('ce_lieu'), duree: dureeRestante(ev) || explic('duree_m', { m: 1 }), heure: heureFin(ev) });
-}
-// Lieux inondés sur la vue de rue : hachures bleues, infobulle et clic expliqués, entrée bloquée avec le message clair.
+// Crue (Fred, 22/11/2026, point 30) : « un événement climatique peut coûter quelque chose, il ne bloque jamais le jeu d'un
+// joueur ». Plus aucun lieu fermé : plus de hachures, d'infobulle « Fermé (crue) » ni d'entrée refusée. Ces deux fonctions
+// restent pour un écran resté ouvert : la première dit la conséquence réelle, la seconde retire une ancienne marque.
+function messageLieuFerme() { return explic('chantiers_crue'); }
 function marquerLieuxInondes() {
   const doc = global.document;
   if (!doc || !doc.querySelectorAll) return;
-  const ev = evenementIci();
-  const lieux = (ev && ev.type === 'crue' && Array.isArray(ev.lieux)) ? ev.lieux : [];
-  doc.querySelectorAll('.rc-zone.climat-inonde').forEach(z => { if (!lieux.includes(z.dataset.building)) { z.classList.remove('climat-inonde'); z.removeAttribute('title'); } });
-  for (const b of lieux) {
-    doc.querySelectorAll('.rc-zone[data-building="' + String(b).replace(/["\\]/g, '') + '"]').forEach(z => {
-      const info = explic('ferme_infobulle', { nom: nomLieu(b), duree: dureeRestante(ev) || explic('duree_m', { m: 1 }) });
-      z.classList.add('climat-inonde');
-      z.title = info;
-      if (z.__climatInonde) return;
-      z.__climatInonde = true;
-      // Après l'infobulle d'origine (« Entrer dans : … ») : la raison de la marque la remplace.
-      z.addEventListener('mousemove', () => {
-        if (!z.classList.contains('climat-inonde')) return;
-        const tip = doc.getElementById('rc-tooltip');
-        if (tip) tip.textContent = z.title;
-      });
-      // Capture : passe avant l'entrée dans le bâtiment, qui serait de toute façon refusée par le serveur.
-      z.addEventListener('click', e => {
-        if (!z.classList.contains('climat-inonde') || !crueIci(z.dataset.building)) return;
-        e.stopImmediatePropagation(); e.preventDefault();
-        if (typeof global.showToast === 'function') global.showToast(explic('ferme_titre'), messageLieuFerme(z.dataset.building), false);
-      }, true);
-    });
-  }
+  doc.querySelectorAll('.rc-zone.climat-inonde').forEach(z => { z.classList.remove('climat-inonde'); z.removeAttribute('title'); });
 }
 // Fenêtre d'accueil du nouveau personnage : une fois par événement, tenue par le serveur (climat_accueil_vu).
 let accueilEnCours = false;
@@ -285,7 +245,7 @@ function dateCourte(iso) {
 function message(ev) {
   const pays = etat().country || 'republic';
   const lieu = texte('at', { ville: (VILLES[pays] && VILLES[pays][ev.ville]) || ev.ville, date: dateCourte(ev.debut) });
-  return [explic('annonce_' + typeConnu(ev), { lieu, heure: heureDe(ev.debut) }), lieuxFermes(ev), ev.consigne || ''].filter(Boolean).join(' ');
+  return [explic('annonce_' + typeConnu(ev), { lieu, heure: heureDe(ev.debut) }), ev.consigne || ''].filter(Boolean).join(' ');
 }
 
 // ── Fenêtre du gouvernement : une fois par alerte et par personnage ──────────────────────────────
@@ -343,8 +303,6 @@ function injecterStyle() {
     + '@keyframes climatEau{50%{transform:translateY(-6px)}}'
     // Le climat illustre, il ne gêne jamais la navigation (Fred, 21/11/2026) : flèches et zones restent nettes, au-dessus du filtre.
     + '#rc-scene .rc-fleche,#rue-image .rc-fleche{position:absolute;z-index:1001}'
-    // Lieux fermés par la crue : hachures bleues sur la zone du bâtiment (Fred, 21/11 : une marque toujours expliquée).
-    + '.rc-zone.climat-inonde{background:repeating-linear-gradient(135deg,rgba(60,120,170,.42) 0 6px,rgba(60,120,170,.12) 6px 12px);outline:2px dashed rgba(140,190,230,.8);cursor:not-allowed}'
     // Le bandeau s'explique au clic (pourquoi l'image est rayée, combien de temps, quoi faire).
     // Bandeau AU-DESSUS de l'image, centré, en taille normale (Fred, 22/11/2026, remontées du test en forêt, point 8 ; annule
     // le coin supérieur gauche compact du point 5 de la nuit) : il ne couvre jamais la photo ni une flèche de déplacement.
@@ -595,7 +553,8 @@ const uuid = () => (global.crypto && global.crypto.randomUUID) ? global.crypto.r
 function devise() { return etat().country === 'soviet' ? 'PSK' : 'FR'; }
 function motif(r) {
   const k = 'r_' + (r && r.raison);
-  return (T[langue()] && T[langue()][k]) || T.fr[k] ? texte(k, r || {}) : texte('refused');
+  if ((T[langue()] && T[langue()][k]) || T.fr[k]) return texte(k, r || {});
+  return EXPLIC.fr[k] ? explic(k, r || {}) : texte('refused');   // refus du 22/11 (sacs retirés, catastrophe en sommeil) : français, Codex
 }
 function appliquerInventaire(r) {
   if (r && typeof global.sbAdopterInventaireServeur === 'function') { try { global.sbAdopterInventaireServeur(r); } catch (_) {} }
@@ -704,11 +663,9 @@ async function confirmerBoutiqueClimat() {
     if (typeof global.updateUI === 'function') global.updateUI();
   } finally { boutiqueEnCours = false; }
 }
-// Sac de sable de l'inventaire : en poser un (1 PA) devant le bâtiment où l'on se trouve ; il le protège pour la prochaine crue (le serveur vérifie zone et droits).
-function boutonPoserSacs(item, style) {
-  if (!item || item.stackKey !== 'sac_de_sable') return '';
-  return '<button onclick="poserSacsSable()" style="' + (style || '') + '"><i class="ti ti-bag"></i> ' + esc(texte('pose')) + '</button>';
-}
+// Sacs de sable retirés (Fred, 22/11/2026, point 30) : ni vente ni pose. Plus aucun bouton dans l'inventaire ; la fonction
+// de pose reste pour un écran resté ouvert, le serveur la refuse (« sacs_retires »).
+function boutonPoserSacs() { return ''; }
 async function poserSacsSable() {
   const r = un(await global.sbRpc('sacs_sable_poser', { p_requete: uuid() }).catch(() => null));
   if (!r || r.ok !== true) { global.showToast(texte('o_sac_de_sable'), motif(r), false); return; }
@@ -733,7 +690,9 @@ async function groupeRemplir() {
   if (typeof global.updateUI === 'function') global.updateUI();
 }
 
-// ── État de catastrophe naturelle (boutons des courriers du ministère de l'Intérieur) ──────────────
+// ── État de catastrophe naturelle : EN SOMMEIL (Fred, 22/11/2026, point 31), retiré de l'interface ─────────────
+// Les boutons des courriers (forum.js, ACTIONS_MAIL) sont retirés et le serveur refuse « catastrophe_en_sommeil » tant que le
+// réglage MJ climat_parametres.catastrophe_active est faux. Ces fonctions restent pour le jour où Fred lui trouvera un intérêt.
 async function catastropheProposer(id) {
   const r = un(await global.sbRpc('catastrophe_proposer', { p_evenement: Number(id) }).catch(() => null));
   if (!r || r.ok !== true) { global.showToast(texte('cat'), motif(r), false); return; }
@@ -791,7 +750,6 @@ function brancherToast() {
   const enveloppe = function (titre, corps) {
     const args = Array.prototype.slice.call(arguments);
     if (corps === 'chantier_intemperies') args[1] = texte('building');
-    if (corps === 'batiment_inonde') { args[1] = messageLieuFerme(null); if (titre !== explic('ferme_titre')) args[0] = explic('ferme_titre'); }
     return orig.apply(this, args);
   };
   enveloppe.__climat = true;
