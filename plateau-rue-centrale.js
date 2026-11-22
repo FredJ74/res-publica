@@ -1201,8 +1201,8 @@ const RUE_CENTRALE_NOEUDS = {
       image: 'images/Sovarka/Krasnov/Krasnov_place_ours.webp',
       // La mairie se voit au fond mais on n'y entre pas d'ici : sa porte est dans la rue krasnov-rue-mairie-place (Fred, 21/11/2026).
       zones: [],
-      liens: { arriere: 'krasnov-rue-mairie-place' },
-      flechesStyle: { arriere: 'bottom:10px; left:50%; transform:translateX(-50%);' }
+      // Entrée par la gauche depuis la rue de la mairie : retour par la droite (Fred, 22/11/2026, point 9).
+      liens: { droite: 'krasnov-rue-mairie-place' }
     },
 
     // Rue du tabac/bar : retour à la mairie et progression vers station/musée.
@@ -1254,8 +1254,8 @@ const RUE_CENTRALE_NOEUDS = {
       zones: [
         { xPct: [40, 100], yPct: [6, 85], nom: 'Hôpital public de Krasnov', type: 'batiment', buildingId: 'dispensaire-public-v' }
       ],
-      liens: { arriere: 'krasnov-rue-bureaux' },
-      flechesStyle: { arriere: RC_FLECHE_BAS }
+      // Entrée par la droite depuis la rue des bureaux : retour par la gauche (Fred, 22/11/2026, point 9).
+      liens: { gauche: 'krasnov-rue-bureaux' }
     },
 
     // Rue descendante : raccordement de la boucle jusqu'à l'église.
