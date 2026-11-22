@@ -170,23 +170,28 @@ function surveillanceFenetreTrouvaille(trouvees, couinator) {
   document.body.appendChild(fond);
 }
 
-// ACTIONS DE PIÈCE (lot de Krasnov, point 9 ; GAME-DESIGN-KRASNOV-LOT-20261120.md ; étape I, 22/11/2026).
-// L'ancien ordre « Fouiller ou voler » (menu à quatre choix) devient, tout en bas des ordres de chaque lieu :
-//   * « Inspecter la pièce » (1 PA) : un seul ordre qui cherche à la fois les caméras cachées et les personnes cachées
-//     (inspecter_piece) ; dans une vue de rue, « Inspecter les lieux » : caméras seulement ;
-//   * « Désinstaller du matériel » (2 PA par matériel, pièces seulement) : l'objet tombe au sol et se ramasse sans PA ;
-//     légal chez soi ou dans le local de son organisation, sinon c'est un vol (desinstaller_lire / desinstaller_materiel) ;
-//   * « Se cacher » (1 PA, pièces seulement), à côté d'Inspecter : il n'est plus dans la fiche personnelle.
-// « Voler quelqu'un » n'y est plus (il reste dans la fenêtre de rencontre). Les PA sont débités par le serveur.
+// ACTIONS DE PIÈCE. Historique : lot de Krasnov, point 9 (GAME-DESIGN-KRASNOV-LOT-20261120.md ; étape I, 22/11/2026) :
+// « Inspecter la pièce » (1 PA), « Se cacher », « Désinstaller du matériel ».
+// REGROUPEMENT (Fred, 22/11/2026, soir ; GAME-DESIGN-INTERFACE-ACCUEIL-20261122.md, point 17) : « Inspecter la pièce »
+// devient UNE fenêtre à trois volets :
+//   * « Ce qui est installé ici » (0 PA, desinstaller_lire) : le matériel installé visible (les caméras sont dans une autre
+//     table et ne s'y trouvent jamais) ; en face de chaque matériel qui n'est pas au joueur, « Voler » applique les règles
+//     existantes du vol de matériel (crim_cambrioler 'materiel', le moteur de voler_materiel) ;
+//   * « Fouiller les lieux » (1 PA, inspecter_piece) : personnes cachées et caméras, inchangé ;
+//   * « Désinstaller » (2 PA, desinstaller_materiel) : légal, seulement le matériel du joueur, ou tout le matériel quand il
+//     est chez lui. Le serveur refuse le reste (migration 20261123130000, raison pas_a_vous) : cela passe par le vol.
+// Le bouton « Désinstaller du matériel » disparaît des pièces (le fn desinstaller_materiel ouvre le volet « Désinstaller »
+// pour un écran resté ouvert). « Se cacher » reste un ordre à part. Vue de rue : « Inspecter les lieux », caméras seulement.
 const PIECE_TXT = {
   inspecter: 'Inspecter la pièce',
   inspecterRue: 'Inspecter les lieux',
-  inspecterDesc: 'Chercher les caméras cachées et les personnes cachées ici, en une seule fois (1 PA).',
+  inspecterDesc: 'Voir ce qui est installé ici (gratuit), fouiller les lieux (1 PA), désinstaller votre matériel.',
   inspecterRueDesc: 'Chercher les caméras cachées dans cette rue (1 PA). Personne ne se cache dans la rue.',
-  inspecterIntro: 'Vous inspectez les lieux de fond en comble : caméras cachées et personnes cachées. Coût : <strong>1 PA</strong>.',
+  inspecterIntro: 'Vous fouillez les lieux de fond en comble : caméras cachées et personnes cachées. Coût : <strong>1 PA</strong>.',
   inspecterRueIntro: 'Vous inspectez la rue à la recherche de caméras cachées. Coût : <strong>1 PA</strong>.',
   inspecterChances: 'À mains nues, vous trouvez chaque caméra une fois sur sept environ ; avec un <strong>Couinator 3000</strong> sur vous, trois fois sur quatre. Une personne cachée est débusquée selon votre perception et sa discrétion.',
   inspecterBouton: 'Inspecter (1 PA)',
+  fouillerBouton: 'Fouiller (1 PA)',
   annuler: 'Annuler', fermer: 'Fermer',
   rien: 'Vous ne trouvez rien : ni caméra cachée, ni personne cachée.',
   rienRue: 'Vous ne trouvez aucune caméra cachée.',
@@ -194,19 +199,24 @@ const PIECE_TXT = {
   personnesN: 'Vous débusquez {n} personnes cachées : {noms}.',
   masque: 'un personnage masqué',
   titreFini: 'Inspection terminée',
-  desinstaller: 'Désinstaller du matériel',
-  desinstallerDesc: 'Démonter du matériel installé ici (2 PA par matériel) : il tombe au sol et se ramasse sans PA. Légal chez vous ; ailleurs, c’est un vol.',
-  desinstallerChezSoi: 'Vous êtes chez vous (ou dans le local de votre organisation) : démonter ce matériel est légal.',
-  desinstallerAilleurs: 'Vous n’êtes pas chez vous : démonter le matériel des autres est un vol. Les personnes présentes peuvent vous surprendre (jet de discrétion contre leur perception), vous laissez une trace et le propriétaire peut porter plainte.',
-  desinstallerVide: 'Aucun matériel n’est installé dans cette pièce.',
-  desinstallerApres: 'L’objet tombe au sol : il n’est plus lié à la pièce et se ramasse sans PA (liste « Objets au sol »).',
+  voletInstalle: 'Ce qui est installé ici',
+  voletFouiller: 'Fouiller les lieux',
+  voletDesinstaller: 'Désinstaller',
+  installeIntro: 'Le matériel installé dans cette pièce, tel que tout le monde le voit. Regarder ne coûte rien.',
+  installeVide: 'Aucun matériel n’est installé dans cette pièce.',
+  installeVolNote: '« Voler » applique les règles du vol de matériel : 2 PA ; sans témoin, vous l’emportez mais laissez une trace ; si quelqu’un est là, il peut vous surprendre et le propriétaire peut porter plainte.',
+  aVous: 'à vous', aAutrui: 'à quelqu’un d’autre',
+  volerBouton: 'Voler',
+  fouillerIntro: 'Cherche les personnes cachées et les caméras cachées.',
+  desinstaller: 'Désinstaller',
+  desinstallerChezSoi: 'Vous êtes chez vous (ou dans le local de votre organisation) : vous pouvez désinstaller tout le matériel, légalement.',
+  desinstallerAilleurs: 'Vous n’êtes pas chez vous : vous ne pouvez désinstaller que votre propre matériel. Celui des autres ne s’emporte qu’en le volant.',
+  desinstallerRien: 'Rien ici que vous puissiez désinstaller.',
+  desinstallerApres: '2 PA par matériel. L’objet tombe au sol : il n’est plus lié à la pièce et se ramasse sans PA (liste « Objets au sol »).',
   desinstallerBouton: 'Désinstaller (2 PA)',
-  aVous: 'à vous', legal: 'légal', vol: 'vol',
   fermeACle: 'Fermée à clé : ouvrez d’abord la serrure.',
   paManque: 'Il faut 2 PA.',
   auSol: '« {nom} » est au sol : ramassez-le sans PA.',
-  echecVol: 'Vous n’arrivez pas à démonter « {nom} » sans être vu : le matériel reste en place.',
-  bagarre: 'On vous a surpris en train de démonter « {nom} » : la bagarre éclate.',
   seCacher: 'Se cacher',
   seCacherDesc: 'Vous dissimuler dans la pièce (1 PA). Les chances vous sont annoncées avant le jet.',
 };
@@ -215,23 +225,21 @@ const pieceTxt = (k, v) => String(PIECE_TXT[k] || '').replace(/\{(\w+)\}/g, (_, 
 function ordresFouillerVoler(buildingId, roomId) {
   if (!buildingId || !roomId) return [];
   // Vues en plein air (Fred, 22/11/2026, GAME-DESIGN-SANTE-20261122.md, point 17 : PIECES_PLEIN_AIR et fiches pleinAir,
-  // plateau-climat.js) : ni « Inspecter la pièce » ni « Désinstaller du matériel » ; « Se cacher » reste. Le serveur
-  // refuse aussi les deux ordres (raison plein_air, migration 20261122234000).
+  // plateau-climat.js) : ni « Inspecter la pièce » ni désinstallation ; « Se cacher » reste. Le serveur refuse aussi
+  // (raison plein_air, migration 20261122234000).
   const s = typeof state !== 'undefined' ? state : null;
   const climat = globalThis.RPClimat;   // plateau-climat.js est chargé après ce fichier : lu au moment de l'appel
   const pleinAir = !!(climat && typeof climat.piecePleinAir === 'function'
     && climat.piecePleinAir({ country: s && s.country, currentCity: s && s.currentCity, currentBuilding: buildingId, currentRoom: roomId }));
-  if (pleinAir) {
-    return [{ fn: 'se_cacher', label: pieceTxt('seCacher'), pa: 1, cost: 0, type: 'legal', icon: 'ti-eye-off', successRate: 70, basDeListe: true,
-      desc: pieceTxt('seCacherDesc') }];
-  }
+  const seCacher = { fn: 'se_cacher', label: pieceTxt('seCacher'), pa: 1, cost: 0, type: 'legal', icon: 'ti-eye-off', successRate: 70, basDeListe: true,
+    desc: pieceTxt('seCacherDesc') };
+  if (pleinAir) return [seCacher];
+  // « pa: 1 » : le tarif d'ordres_couts reste celui de la fouille (seule action payante de la fenêtre) ; le routeur ouvre la
+  // fenêtre avant tout débit, la fouille débite son PA au serveur.
   return [
     { fn: 'inspecter_piece', label: pieceTxt('inspecter'), pa: 1, cost: 0, type: 'legal', icon: 'ti-search', successRate: 100, basDeListe: true,
       desc: pieceTxt('inspecterDesc') },
-    { fn: 'se_cacher', label: pieceTxt('seCacher'), pa: 1, cost: 0, type: 'legal', icon: 'ti-eye-off', successRate: 70, basDeListe: true,
-      desc: pieceTxt('seCacherDesc') },
-    { fn: 'desinstaller_materiel', label: pieceTxt('desinstaller'), pa: 0, cost: 0, type: 'legal', icon: 'ti-tool', successRate: 100, basDeListe: true,
-      desc: pieceTxt('desinstallerDesc') }
+    seCacher
   ];
 }
 if (typeof window !== 'undefined') {
@@ -252,17 +260,93 @@ function pieceEstIci() {
 }
 function pieceFermerFenetre() { document.getElementById('modal-postes')?.classList.remove('open'); }
 
-// Fenêtre d'inspection : explication, puis confirmation (le jet et le débit restent au serveur).
-function ouvrirFenetreInspecter() {
-  const piece = pieceEstIci();
-  const html = '<p class="cpj-note">' + pieceTxt(piece ? 'inspecterIntro' : 'inspecterRueIntro') + '</p>' +
-    '<p class="cpj-note">' + pieceTxt('inspecterChances') + '</p>' +
-    '<div style="margin-top:1rem;display:flex;gap:.5rem;flex-wrap:wrap">' +
-    '<button class="cpj-touche cpj-primaire" onclick="inspecterConfirmer()">' + pieceTxt('inspecterBouton') + '</button>' +
-    '<button class="cpj-touche" onclick="pieceFermerFenetre()">' + pieceTxt('annuler') + '</button></div>';
-  if (typeof equipementsModale === 'function' && equipementsModale(pieceTxt(piece ? 'inspecter' : 'inspecterRue'), html)) return;
-  inspecterConfirmer();
+const DESINSTALLER_REFUS = {
+  hors_batiment: 'Il faut être dans une pièce.', equipement_introuvable: 'Ce matériel n’est plus là.',
+  pas_sur_place: 'Il faut être dans la pièce du matériel.', armoire_fermee_a_cle: 'Cette armoire est fermée à clé.',
+  pa_insuffisants: 'Il vous faut 2 PA pour démonter un matériel.', emprisonne: 'Impossible en prison.',
+  pas_a_vous: 'Ce matériel n’est pas à vous et vous n’êtes pas chez vous : il ne s’emporte qu’en le volant.',
+  plein_air: 'Rien ne s’installe ni ne se désinstalle en plein air.'
+};
+const pieceRefus = r => DESINSTALLER_REFUS[r && r.raison] || surveillanceRefus(r);
+
+// Fenêtre d'inspection d'une pièce : trois volets. Le serveur décide de tout (liste, légalité, volable, coûts) ;
+// l'écran n'affiche que ses réponses. Hors d'une pièce (vue de rue) : la confirmation de la fouille des caméras.
+let inspectionVolet = 'installe';
+let inspectionLecture = null;
+async function ouvrirFenetreInspecter(volet, message) {
+  if (!pieceEstIci()) {
+    const html = '<p class="cpj-note">' + pieceTxt('inspecterRueIntro') + '</p>' +
+      '<p class="cpj-note">' + pieceTxt('inspecterChances') + '</p>' +
+      '<div style="margin-top:1rem;display:flex;gap:.5rem;flex-wrap:wrap">' +
+      '<button class="cpj-touche cpj-primaire" onclick="inspecterConfirmer()">' + pieceTxt('inspecterBouton') + '</button>' +
+      '<button class="cpj-touche" onclick="pieceFermerFenetre()">' + pieceTxt('annuler') + '</button></div>';
+    if (typeof equipementsModale === 'function' && equipementsModale(pieceTxt('inspecterRue'), html)) return;
+    inspecterConfirmer(); return;
+  }
+  if (['installe', 'fouiller', 'desinstaller'].includes(volet)) inspectionVolet = volet;
+  const r = await surveillanceRpc('desinstaller_lire', {});
+  if (!r || r.ok !== true) {
+    // La lecture du matériel est refusée (plein air, prison…) : la fouille reste proposée seule, le serveur tranchera.
+    if (r && r.raison !== 'plein_air') showToast(pieceTxt('inspecter'), pieceRefus(r), false);
+    inspectionLecture = { ok: false, chez_soi: false, pa: 0, materiel: [] };
+    inspectionVolet = 'fouiller';
+  } else inspectionLecture = r;
+  inspectionRendre(message);
 }
+// Repli tant que la migration 20261123130000 n'est pas appliquée : « volable » absent, déduit de la même règle que
+// crim_cambrioler (pas à moi, pas une armoire à souvenirs).
+const pieceVolable = m => (m.volable != null ? !!m.volable : (!m.a_moi && m.generique !== 'armoire_souvenirs'));
+function inspectionRendre(message) {
+  const r = inspectionLecture || { materiel: [] };
+  const liste = Array.isArray(r.materiel) ? r.materiel : [];
+  const pa = Number(r.pa) || 0;
+  const ech = surveillanceEchapper;
+  const onglet = (id, cle) => '<button type="button" role="tab" class="cpj-touche' + (inspectionVolet === id ? ' cpj-primaire' : '') +
+    '" aria-selected="' + (inspectionVolet === id) + '" data-volet="' + id + '" onclick="inspectionOnglet(\'' + id + '\')">' + pieceTxt(cle) + '</button>';
+  let h = '<div class="hg-volets" role="tablist" style="display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.8rem">' +
+    onglet('installe', 'voletInstalle') + onglet('fouiller', 'voletFouiller') + onglet('desinstaller', 'voletDesinstaller') + '</div>';
+  if (message) h += '<p style="color:#8ab070">' + ech(message) + '</p>';
+  const ligne = (gauche, droite) => '<div class="hg-volet-ligne" style="display:flex;gap:.5rem;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:.45rem 0;border-top:1px solid #2a3340">' +
+    '<span style="flex:1 1 12rem">' + gauche + '</span>' + droite + '</div>';
+  if (inspectionVolet === 'installe') {
+    h += '<div role="tabpanel" data-panneau="installe"><p class="cpj-note">' + pieceTxt('installeIntro') + '</p>';
+    if (!liste.length) h += '<p>' + pieceTxt('installeVide') + '</p>';
+    h += liste.map(m => ligne(ech(m.nom) + ' <span class="cpj-note">(' + pieceTxt(m.a_moi ? 'aVous' : 'aAutrui') + ')</span>',
+      pieceVolable(m) ? '<button type="button" class="cpj-touche" data-voler="' + ech(m.id) + '">' + pieceTxt('volerBouton') + '</button>' : '')).join('');
+    if (liste.some(pieceVolable)) h += '<p class="cpj-note" style="margin-top:.6rem">' + pieceTxt('installeVolNote') + '</p>';
+    h += '</div>';
+  } else if (inspectionVolet === 'fouiller') {
+    h += '<div role="tabpanel" data-panneau="fouiller"><p class="cpj-note">' + pieceTxt('inspecterIntro') + '</p>' +
+      '<p class="cpj-note">' + pieceTxt('inspecterChances') + '</p>' +
+      '<div style="margin-top:.8rem"><button type="button" class="cpj-touche cpj-primaire" onclick="inspecterConfirmer()">' + pieceTxt('fouillerBouton') + '</button></div></div>';
+  } else {
+    const legaux = liste.filter(m => m.legal);
+    h += '<div role="tabpanel" data-panneau="desinstaller"><p class="cpj-note">' + pieceTxt(r.chez_soi ? 'desinstallerChezSoi' : 'desinstallerAilleurs') + '</p>';
+    if (!legaux.length) h += '<p>' + pieceTxt('desinstallerRien') + '</p>';
+    else h += '<p class="cpj-note">' + pieceTxt('desinstallerApres') + '</p>';
+    h += legaux.map(m => {
+      const raison = m.ferme_a_cle ? pieceTxt('fermeACle') : (pa < 2 ? pieceTxt('paManque') : '');
+      return ligne(ech(m.nom) + ' <span class="cpj-note">(' + pieceTxt(m.a_moi ? 'aVous' : 'aAutrui') + ')</span>' +
+          (raison ? '<br><span style="color:#e0a040">' + raison + '</span>' : ''),
+        '<button type="button" class="cpj-touche cpj-primaire" data-desinstaller="' + ech(m.id) + '"' +
+          (raison ? ' disabled title="' + ech(raison) + '"' : '') + '>' + pieceTxt('desinstallerBouton') + '</button>');
+    }).join('') + '</div>';
+  }
+  h += '<div style="margin-top:1rem"><button type="button" class="cpj-touche" onclick="pieceFermerFenetre()">' + pieceTxt('fermer') + '</button></div>';
+  const corps = typeof equipementsModale === 'function' ? equipementsModale(pieceTxt('inspecter'), h) : null;
+  if (!corps) return;
+  corps.querySelectorAll('[data-desinstaller]').forEach(b => b.addEventListener('click', () => desinstallerConfirmer(b.dataset.desinstaller, b)));
+  corps.querySelectorAll('[data-voler]').forEach(b => b.addEventListener('click', () => pieceVoler(b.dataset.voler)));
+}
+function inspectionOnglet(volet) { inspectionVolet = volet; inspectionRendre(); }
+
+// « Voler » : les règles existantes du vol de matériel (crim_cambrioler 'materiel' : 2 PA, témoin, trace, plainte),
+// avec leur propre retour (plateau-criminalite.js). Repli : voler_materiel, la même règle serveur.
+function pieceVoler(id) {
+  if (typeof crimCambrioler === 'function') { crimCambrioler('materiel', id); return; }
+  if (typeof materielVoler === 'function') { pieceFermerFenetre(); materielVoler(id); }
+}
+
 let inspectionEnCours = false;
 async function inspecterConfirmer() {
   if (inspectionEnCours) return;
@@ -288,33 +372,8 @@ async function inspecterConfirmer() {
   } finally { inspectionEnCours = false; }
 }
 
-// Fenêtre « Désinstaller du matériel » : liste du matériel installé, 2 PA par matériel, légal ou vol annoncé avant.
-const DESINSTALLER_REFUS = {
-  hors_batiment: 'Il faut être dans une pièce.', equipement_introuvable: 'Ce matériel n’est plus là.',
-  pas_sur_place: 'Il faut être dans la pièce du matériel.', armoire_fermee_a_cle: 'Cette armoire est fermée à clé.',
-  pa_insuffisants: 'Il vous faut 2 PA pour démonter un matériel.', emprisonne: 'Impossible en prison.'
-};
-async function ouvrirDesinstaller(message) {
-  const r = await surveillanceRpc('desinstaller_lire', {});
-  if (!r || r.ok !== true) { showToast(pieceTxt('desinstaller'), DESINSTALLER_REFUS[r && r.raison] || surveillanceRefus(r), false); return; }
-  const liste = Array.isArray(r.materiel) ? r.materiel : [];
-  const pa = Number(r.pa) || 0;
-  let h = (message ? '<p style="color:#8ab070">' + surveillanceEchapper(message) + '</p>' : '') +
-    '<p class="cpj-note">' + pieceTxt(r.chez_soi ? 'desinstallerChezSoi' : 'desinstallerAilleurs') + '</p>' +
-    '<p class="cpj-note">' + pieceTxt('desinstallerApres') + '</p>';
-  if (!liste.length) h += '<p>' + pieceTxt('desinstallerVide') + '</p>';
-  h += liste.map(m => {
-    const raison = m.ferme_a_cle ? pieceTxt('fermeACle') : (pa < 2 ? pieceTxt('paManque') : '');
-    return '<div style="display:flex;gap:.5rem;align-items:center;justify-content:space-between;padding:.45rem 0;border-top:1px solid #2a3340">' +
-      '<span>' + surveillanceEchapper(m.nom) + ' <span class="cpj-note">(' + pieceTxt(m.legal ? 'legal' : 'vol') + (m.a_moi ? ', ' + pieceTxt('aVous') : '') + ')</span>' +
-      (raison ? '<br><span style="color:#e0a040;font-size:.85rem">' + raison + '</span>' : '') + '</span>' +
-      '<button type="button" class="cpj-touche' + (m.legal ? ' cpj-primaire' : '') + '" data-desinstaller="' + surveillanceEchapper(m.id) + '"' +
-      (raison ? ' disabled title="' + surveillanceEchapper(raison) + '"' : '') + '>' + pieceTxt('desinstallerBouton') + '</button></div>';
-  }).join('');
-  h += '<div style="margin-top:1rem"><button class="cpj-touche" onclick="pieceFermerFenetre()">' + pieceTxt('fermer') + '</button></div>';
-  if (!(typeof equipementsModale === 'function' && equipementsModale(pieceTxt('desinstaller'), h))) return;
-  document.querySelectorAll('[data-desinstaller]').forEach(b => b.addEventListener('click', () => desinstallerConfirmer(b.dataset.desinstaller, b)));
-}
+// Ancien point d'entrée « Désinstaller du matériel » (écran resté ouvert, fn desinstaller_materiel) : le volet du même nom.
+function ouvrirDesinstaller(message) { return ouvrirFenetreInspecter('desinstaller', message); }
 let desinstallationEnCours = false;
 async function desinstallerConfirmer(id, bouton) {
   if (desinstallationEnCours) return;
@@ -325,25 +384,20 @@ async function desinstallerConfirmer(id, bouton) {
       : 'xxxxxxxx-xxxx-4xxx-8xxx-xxxxxxxxxxxx'.replace(/x/g, () => Math.floor(Math.random() * 16).toString(16));
     const r = await surveillanceRpc('desinstaller_materiel', { p_requete: requete, p_id: id });
     if (!r || r.ok !== true) {
-      showToast(pieceTxt('desinstaller'), DESINSTALLER_REFUS[r && r.raison] || surveillanceRefus(r), false);
-      await ouvrirDesinstaller(); return;
+      showToast(pieceTxt('desinstaller'), pieceRefus(r), false);
+      await ouvrirFenetreInspecter('desinstaller'); return;
     }
     surveillanceAppliquer(r);
-    if (typeof rafraichirEtatCriminel === 'function' && !r.legal) rafraichirEtatCriminel(r);
-    let m;
-    if (r.au_sol) m = pieceTxt('auSol', { nom: r.nom });
-    else if (r.issue === 'combat') m = pieceTxt('bagarre', { nom: r.nom });
-    else m = pieceTxt('echecVol', { nom: r.nom });
+    const m = pieceTxt('auSol', { nom: r.nom });
     showToast(pieceTxt('desinstaller'), m, !!r.au_sol);
-    if (typeof addJournalEntry === 'function') addJournalEntry(m, r.au_sol ? 'event-info' : 'event-bad');
+    if (typeof addJournalEntry === 'function') addJournalEntry(m, 'event-info');
     if (typeof chargerObjetsAbandonnesDansPiece === 'function') chargerObjetsAbandonnesDansPiece();
     if (typeof updateUI === 'function') updateUI();
-    if (r.issue === 'combat') { pieceFermerFenetre(); if (typeof chargerPersonnage === 'function') chargerPersonnage(); return; }
-    await ouvrirDesinstaller(m);
+    await ouvrirFenetreInspecter('desinstaller', m);
   } finally { desinstallationEnCours = false; }
 }
 
 // Anciennes fenêtres de fouille (2 PA) : gardées pour un écran resté ouvert, elles ouvrent l'inspection.
-function ouvrirFenetreFouille() { ouvrirFenetreInspecter(); }
+function ouvrirFenetreFouille() { ouvrirFenetreInspecter('fouiller'); }
 function fouilleAnnuler() { pieceFermerFenetre(); }
 function fouilleConfirmer() { inspecterConfirmer(); }
