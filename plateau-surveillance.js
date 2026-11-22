@@ -170,105 +170,169 @@ function surveillanceFenetreTrouvaille(trouvees, couinator) {
   document.body.appendChild(fond);
 }
 
-// « Fouiller ou voler » : un seul ordre vert, tout en bas, dans toute piece et toute vue de rue
-// (decision de Fred, 11/11/2026, 14 h 57). Il ouvre un menu deroulant : « Fouiller les lieux » ou
-// « Voler du matériel installé », chacun avec sa fenetre dediee. Les PA sont debites par le serveur
-// (fouiller_lieux : 2 PA ; vol : 3 PA) ; le routeur sort avant tout debit generique.
+// ACTIONS DE PIÈCE (lot de Krasnov, point 9 ; GAME-DESIGN-KRASNOV-LOT-20261120.md ; étape I, 22/11/2026).
+// L'ancien ordre « Fouiller ou voler » (menu à quatre choix) devient, tout en bas des ordres de chaque lieu :
+//   * « Inspecter la pièce » (1 PA) : un seul ordre qui cherche à la fois les caméras cachées et les personnes cachées
+//     (inspecter_piece) ; dans une vue de rue, « Inspecter les lieux » : caméras seulement ;
+//   * « Désinstaller du matériel » (2 PA par matériel, pièces seulement) : l'objet tombe au sol et se ramasse sans PA ;
+//     légal chez soi ou dans le local de son organisation, sinon c'est un vol (desinstaller_lire / desinstaller_materiel) ;
+//   * « Se cacher » (1 PA, pièces seulement), à côté d'Inspecter : il n'est plus dans la fiche personnelle.
+// « Voler quelqu'un » n'y est plus (il reste dans la fenêtre de rencontre). Les PA sont débités par le serveur.
+const PIECE_TXT = {
+  inspecter: 'Inspecter la pièce',
+  inspecterRue: 'Inspecter les lieux',
+  inspecterDesc: 'Chercher les caméras cachées et les personnes cachées ici, en une seule fois (1 PA).',
+  inspecterRueDesc: 'Chercher les caméras cachées dans cette rue (1 PA). Personne ne se cache dans la rue.',
+  inspecterIntro: 'Vous inspectez les lieux de fond en comble : caméras cachées et personnes cachées. Coût : <strong>1 PA</strong>.',
+  inspecterRueIntro: 'Vous inspectez la rue à la recherche de caméras cachées. Coût : <strong>1 PA</strong>.',
+  inspecterChances: 'À mains nues, vous trouvez chaque caméra une fois sur sept environ ; avec un <strong>Couinator 3000</strong> sur vous, trois fois sur quatre. Une personne cachée est débusquée selon votre perception et sa discrétion.',
+  inspecterBouton: 'Inspecter (1 PA)',
+  annuler: 'Annuler', fermer: 'Fermer',
+  rien: 'Vous ne trouvez rien : ni caméra cachée, ni personne cachée.',
+  rienRue: 'Vous ne trouvez aucune caméra cachée.',
+  personnes1: 'Vous débusquez une personne cachée : {noms}.',
+  personnesN: 'Vous débusquez {n} personnes cachées : {noms}.',
+  masque: 'un personnage masqué',
+  titreFini: 'Inspection terminée',
+  desinstaller: 'Désinstaller du matériel',
+  desinstallerDesc: 'Démonter du matériel installé ici (2 PA par matériel) : il tombe au sol et se ramasse sans PA. Légal chez vous ; ailleurs, c’est un vol.',
+  desinstallerChezSoi: 'Vous êtes chez vous (ou dans le local de votre organisation) : démonter ce matériel est légal.',
+  desinstallerAilleurs: 'Vous n’êtes pas chez vous : démonter le matériel des autres est un vol. Les personnes présentes peuvent vous surprendre (jet de discrétion contre leur perception), vous laissez une trace et le propriétaire peut porter plainte.',
+  desinstallerVide: 'Aucun matériel n’est installé dans cette pièce.',
+  desinstallerApres: 'L’objet tombe au sol : il n’est plus lié à la pièce et se ramasse sans PA (liste « Objets au sol »).',
+  desinstallerBouton: 'Désinstaller (2 PA)',
+  aVous: 'à vous', legal: 'légal', vol: 'vol',
+  fermeACle: 'Fermée à clé : ouvrez d’abord la serrure.',
+  paManque: 'Il faut 2 PA.',
+  auSol: '« {nom} » est au sol : ramassez-le sans PA.',
+  echecVol: 'Vous n’arrivez pas à démonter « {nom} » sans être vu : le matériel reste en place.',
+  bagarre: 'On vous a surpris en train de démonter « {nom} » : la bagarre éclate.',
+  seCacher: 'Se cacher',
+  seCacherDesc: 'Vous dissimuler dans la pièce (1 PA). Les chances vous sont annoncées avant le jet.',
+};
+const pieceTxt = (k, v) => String(PIECE_TXT[k] || '').replace(/\{(\w+)\}/g, (_, x) => (v && v[x] != null ? v[x] : ''));
+
 function ordresFouillerVoler(buildingId, roomId) {
   if (!buildingId || !roomId) return [];
-  return [{ fn: 'fouiller_voler', label: texteEquip('fouillerVoler', 'Fouiller ou voler'), pa: 0, cost: 0, type: 'legal', icon: 'ti-search',
-    successRate: 100, basDeListe: true,
-    desc: texteEquip('fouillerVolerDesc', 'Fouiller les lieux à la recherche de caméras cachées, ou voler du matériel installé ici.') }];
+  return [
+    { fn: 'inspecter_piece', label: pieceTxt('inspecter'), pa: 1, cost: 0, type: 'legal', icon: 'ti-search', successRate: 100, basDeListe: true,
+      desc: pieceTxt('inspecterDesc') },
+    { fn: 'se_cacher', label: pieceTxt('seCacher'), pa: 1, cost: 0, type: 'legal', icon: 'ti-eye-off', successRate: 70, basDeListe: true,
+      desc: pieceTxt('seCacherDesc') },
+    { fn: 'desinstaller_materiel', label: pieceTxt('desinstaller'), pa: 0, cost: 0, type: 'legal', icon: 'ti-tool', successRate: 100, basDeListe: true,
+      desc: pieceTxt('desinstallerDesc') }
+  ];
 }
 if (typeof window !== 'undefined') {
   window.RP_ORDRES_DYNAMIQUES = window.RP_ORDRES_DYNAMIQUES || [];
   if (!window.RP_ORDRES_DYNAMIQUES.includes(ordresFouillerVoler)) window.RP_ORDRES_DYNAMIQUES.push(ordresFouillerVoler);
 }
 
-// Bouton de la vue de rue (meme ordre, meme place : tout en bas, en vert).
+// Bouton de la vue de rue (même place : tout en bas, en vert) : caméras seulement.
 function ordreFouillerVolerRueHtml() {
-  return '<button type="button" class="action-btn legal" data-fn="fouiller_voler" onclick="ouvrirMenuFouillerVoler(this)" title="' + texteEquip('fouillerVolerDesc', 'Fouiller les lieux à la recherche de caméras cachées, ou voler du matériel installé ici.') + '">' +
-    '<i class="ti ti-search" style="font-size:.82rem"></i> ' + texteEquip('fouillerVoler', 'Fouiller ou voler') + '</button>';
+  return '<button type="button" class="action-btn legal" data-fn="inspecter_piece" onclick="ouvrirFenetreInspecter()" title="' + pieceTxt('inspecterRueDesc') + '">' +
+    '<i class="ti ti-search" style="font-size:.82rem"></i> ' + pieceTxt('inspecterRue') + ' <span style="opacity:.7">(1 PA)</span></button>';
 }
+// Ancien nom (écran resté ouvert, ancien routeur) : ouvre la nouvelle fenêtre.
+function ouvrirMenuFouillerVoler() { ouvrirFenetreInspecter(); }
 
-function fermerMenuFouillerVoler() {
-  const m = document.getElementById('menu-fouiller-voler');
-  if (m) m.remove();
-  document.removeEventListener('pointerdown', fermerMenuFouillerVolerDehors, true);
-  document.removeEventListener('keydown', fermerMenuFouillerVolerEchap, true);
+function pieceEstIci() {
+  return typeof state !== 'undefined' && state && !!state.currentBuilding && !!state.currentRoom;
 }
-function fermerMenuFouillerVolerDehors(e) {
-  const m = document.getElementById('menu-fouiller-voler');
-  if (m && !m.contains(e.target)) fermerMenuFouillerVoler();
-}
-function fermerMenuFouillerVolerEchap(e) { if (e.key === 'Escape') fermerMenuFouillerVoler(); }
+function pieceFermerFenetre() { document.getElementById('modal-postes')?.classList.remove('open'); }
 
-// Dernier bouton d'ordre clique : le routeur peut appeler le menu apres une attente, quand
-// window.event n'existe plus ; le menu s'ancre alors sur ce bouton.
-let RP_DERNIER_BOUTON_ORDRE = null;
-if (typeof document !== 'undefined' && document.addEventListener) {
-  document.addEventListener('click', (e) => {
-    const b = e.target && e.target.closest ? e.target.closest('.action-btn') : null;
-    if (b) RP_DERNIER_BOUTON_ORDRE = b;
-  }, true);
-}
-
-// Menu deroulant sous le bouton (au-dessus s'il manque de place en bas).
-function ouvrirMenuFouillerVoler(ancre) {
-  fermerMenuFouillerVoler();
-  const evt = (typeof window !== 'undefined') ? window.event : null;
-  const el = ancre || (evt && evt.target && evt.target.closest ? evt.target.closest('.action-btn') : null)
-    || (RP_DERNIER_BOUTON_ORDRE && RP_DERNIER_BOUTON_ORDRE.isConnected ? RP_DERNIER_BOUTON_ORDRE : null);
-  const menu = document.createElement('div');
-  menu.id = 'menu-fouiller-voler';
-  menu.setAttribute('role', 'menu');
-  menu.style.cssText = 'position:fixed;z-index:1000;min-width:240px;max-width:calc(100vw - 16px);background:#151107;border:1px solid #6a5a20;border-radius:6px;box-shadow:0 6px 18px rgba(0,0,0,.6);padding:4px;display:flex;flex-direction:column;gap:4px';
-  const item = (libelle, action) => {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.setAttribute('role', 'menuitem');
-    b.textContent = libelle;
-    b.style.cssText = 'text-align:left;min-height:44px;padding:.5rem .75rem;background:#1d170a;color:#e0d8c0;border:1px solid #3a3215;border-radius:4px;font:inherit;font-size:.95rem;cursor:pointer';
-    b.addEventListener('click', () => { fermerMenuFouillerVoler(); action(); });
-    return b;
-  };
-  menu.appendChild(item(texteEquip('menuFouiller', '🔍 Fouiller les lieux (2 PA)'), ouvrirFenetreFouille));
-  // Criminalité lot 4 : matériel installé, stock et caisse passent par le cambriolage commun (crim_cambrioler, 2 PA).
-  if (typeof crimOuvrirCambriolage === 'function') menu.appendChild(item(window.RPCriminalite ? window.RPCriminalite.texte('kMenu') : 'Emporter ce qu’il y a ici (2 PA)', crimOuvrirCambriolage));
-  else menu.appendChild(item(texteEquip('menuVoler', '🕵 Voler du matériel installé (3 PA)'), () => { if (typeof ouvrirVolMateriel === 'function') ouvrirVolMateriel(); }));
-  // Criminalité lot 1 (19/11/2026) : débusquer un PJ caché (crim_fouiller_cachettes, 1 PA), dans une pièce seulement.
-  if (typeof ouvrirFouilleCachettes === 'function' && state.currentBuilding && state.currentRoom)
-    menu.appendChild(item(window.RPCriminalite ? window.RPCriminalite.texte('search') : 'Débusquer quelqu’un de caché (1 PA)', ouvrirFouilleCachettes));
-  // Criminalité lot 3 (19/11/2026) : voler une personne présente (crime_voler ; le serveur tranche tout).
-  if (typeof crimVolerChoisirCible === 'function' && state.currentBuilding && state.currentRoom)
-    menu.appendChild(item(window.RPCriminalite ? window.RPCriminalite.texte('vMenu') : 'Voler quelqu’un (2-3 PA)', crimVolerChoisirCible));
-  document.body.appendChild(menu);
-  const r = el && el.getBoundingClientRect ? el.getBoundingClientRect() : null;
-  const h = menu.offsetHeight, w = menu.offsetWidth, vw = window.innerWidth, vh = window.innerHeight;
-  if (r) {
-    const enBas = r.bottom + 4 + h <= vh;
-    menu.style.top = Math.max(8, enBas ? r.bottom + 4 : r.top - 4 - h) + 'px';
-    menu.style.left = Math.min(Math.max(8, r.left), vw - w - 8) + 'px';
-  } else {
-    menu.style.top = Math.max(8, (vh - h) / 2) + 'px';
-    menu.style.left = Math.max(8, (vw - w) / 2) + 'px';
-  }
-  menu.querySelector('button')?.focus({ preventScroll: true });
-  setTimeout(() => {
-    document.addEventListener('pointerdown', fermerMenuFouillerVolerDehors, true);
-    document.addEventListener('keydown', fermerMenuFouillerVolerEchap, true);
-  }, 0);
-}
-
-// Fenetre dediee a la fouille : explication puis confirmation (le jet et le debit restent au serveur).
-function ouvrirFenetreFouille() {
-  const html = '<p class="cpj-note">' + texteEquip('fouilleIntro', 'Vous inspectez les lieux à la recherche de caméras cachées. Coût : <strong>2 PA</strong>.') + '</p>' +
-    '<p class="cpj-note">' + texteEquip('fouilleChances', 'À mains nues, vous trouvez chaque caméra une fois sur sept environ. Avec un <strong>Couinator 3000</strong> sur vous, trois fois sur quatre. Une caméra trouvée peut être détruite ou emportée.') + '</p>' +
+// Fenêtre d'inspection : explication, puis confirmation (le jet et le débit restent au serveur).
+function ouvrirFenetreInspecter() {
+  const piece = pieceEstIci();
+  const html = '<p class="cpj-note">' + pieceTxt(piece ? 'inspecterIntro' : 'inspecterRueIntro') + '</p>' +
+    '<p class="cpj-note">' + pieceTxt('inspecterChances') + '</p>' +
     '<div style="margin-top:1rem;display:flex;gap:.5rem;flex-wrap:wrap">' +
-    '<button class="cpj-touche cpj-primaire" onclick="fouilleConfirmer()">' + texteEquip('fouiller2', 'Fouiller (2 PA)') + '</button>' +
-    '<button class="cpj-touche" onclick="fouilleAnnuler()">' + texteEquip('annuler', 'Annuler') + '</button></div>';
-  if (typeof equipementsModale === 'function' && equipementsModale(texteEquip('fouillerLieux', 'Fouiller les lieux'), html)) return;
-  surveillanceFouiller();
+    '<button class="cpj-touche cpj-primaire" onclick="inspecterConfirmer()">' + pieceTxt('inspecterBouton') + '</button>' +
+    '<button class="cpj-touche" onclick="pieceFermerFenetre()">' + pieceTxt('annuler') + '</button></div>';
+  if (typeof equipementsModale === 'function' && equipementsModale(pieceTxt(piece ? 'inspecter' : 'inspecterRue'), html)) return;
+  inspecterConfirmer();
 }
-function fouilleAnnuler() { document.getElementById('modal-postes')?.classList.remove('open'); }
-function fouilleConfirmer() { fouilleAnnuler(); surveillanceFouiller(); }
+let inspectionEnCours = false;
+async function inspecterConfirmer() {
+  if (inspectionEnCours) return;
+  inspectionEnCours = true;
+  pieceFermerFenetre();
+  try {
+    const r = await surveillanceRpc('inspecter_piece', {});
+    if (!r || r.ok !== true) { showToast(pieceTxt('inspecter'), surveillanceRefus(r), false); return; }
+    surveillanceAppliquer(r);
+    const trouvees = Array.isArray(r.trouvees) ? r.trouvees : [];
+    const trouves = Array.isArray(r.trouves) ? r.trouves : [];
+    if (trouves.length) {
+      const noms = trouves.map(t => t.masque ? pieceTxt('masque') : t.nom).join(', ');
+      const m = trouves.length > 1 ? pieceTxt('personnesN', { n: trouves.length, noms }) : pieceTxt('personnes1', { noms });
+      showToast(pieceTxt('titreFini'), m, true);
+      if (typeof addJournalEntry === 'function') addJournalEntry(m, 'event-good');
+      if (typeof chargerVraisJoueursPresents === 'function') chargerVraisJoueursPresents();
+    }
+    // Énigme du trésor des Tsars (12/11/2026) : au musée présidentiel de Novomirsk, le serveur peut joindre le livre.
+    if (r.livre_tresor === true && typeof tresorTsarsApresFouille === 'function' && tresorTsarsApresFouille(r) && !trouvees.length) return;
+    if (trouvees.length) { surveillanceFenetreTrouvaille(trouvees, r.couinator); return; }
+    if (!trouves.length) showToast(pieceTxt('titreFini'), r.couinator ? texteEquip('couinMuet', 'Le Couinator reste muet. Rien ici.') : pieceTxt(r.piece ? 'rien' : 'rienRue'), true);
+  } finally { inspectionEnCours = false; }
+}
+
+// Fenêtre « Désinstaller du matériel » : liste du matériel installé, 2 PA par matériel, légal ou vol annoncé avant.
+const DESINSTALLER_REFUS = {
+  hors_batiment: 'Il faut être dans une pièce.', equipement_introuvable: 'Ce matériel n’est plus là.',
+  pas_sur_place: 'Il faut être dans la pièce du matériel.', armoire_fermee_a_cle: 'Cette armoire est fermée à clé.',
+  pa_insuffisants: 'Il vous faut 2 PA pour démonter un matériel.', emprisonne: 'Impossible en prison.'
+};
+async function ouvrirDesinstaller(message) {
+  const r = await surveillanceRpc('desinstaller_lire', {});
+  if (!r || r.ok !== true) { showToast(pieceTxt('desinstaller'), DESINSTALLER_REFUS[r && r.raison] || surveillanceRefus(r), false); return; }
+  const liste = Array.isArray(r.materiel) ? r.materiel : [];
+  const pa = Number(r.pa) || 0;
+  let h = (message ? '<p style="color:#8ab070">' + surveillanceEchapper(message) + '</p>' : '') +
+    '<p class="cpj-note">' + pieceTxt(r.chez_soi ? 'desinstallerChezSoi' : 'desinstallerAilleurs') + '</p>' +
+    '<p class="cpj-note">' + pieceTxt('desinstallerApres') + '</p>';
+  if (!liste.length) h += '<p>' + pieceTxt('desinstallerVide') + '</p>';
+  h += liste.map(m => {
+    const raison = m.ferme_a_cle ? pieceTxt('fermeACle') : (pa < 2 ? pieceTxt('paManque') : '');
+    return '<div style="display:flex;gap:.5rem;align-items:center;justify-content:space-between;padding:.45rem 0;border-top:1px solid #2a3340">' +
+      '<span>' + surveillanceEchapper(m.nom) + ' <span class="cpj-note">(' + pieceTxt(m.legal ? 'legal' : 'vol') + (m.a_moi ? ', ' + pieceTxt('aVous') : '') + ')</span>' +
+      (raison ? '<br><span style="color:#e0a040;font-size:.85rem">' + raison + '</span>' : '') + '</span>' +
+      '<button type="button" class="cpj-touche' + (m.legal ? ' cpj-primaire' : '') + '" data-desinstaller="' + surveillanceEchapper(m.id) + '"' +
+      (raison ? ' disabled title="' + surveillanceEchapper(raison) + '"' : '') + '>' + pieceTxt('desinstallerBouton') + '</button></div>';
+  }).join('');
+  h += '<div style="margin-top:1rem"><button class="cpj-touche" onclick="pieceFermerFenetre()">' + pieceTxt('fermer') + '</button></div>';
+  if (!(typeof equipementsModale === 'function' && equipementsModale(pieceTxt('desinstaller'), h))) return;
+  document.querySelectorAll('[data-desinstaller]').forEach(b => b.addEventListener('click', () => desinstallerConfirmer(b.dataset.desinstaller, b)));
+}
+let desinstallationEnCours = false;
+async function desinstallerConfirmer(id, bouton) {
+  if (desinstallationEnCours) return;
+  desinstallationEnCours = true;
+  if (bouton) bouton.disabled = true;
+  try {
+    const requete = (window.crypto && crypto.randomUUID) ? crypto.randomUUID()
+      : 'xxxxxxxx-xxxx-4xxx-8xxx-xxxxxxxxxxxx'.replace(/x/g, () => Math.floor(Math.random() * 16).toString(16));
+    const r = await surveillanceRpc('desinstaller_materiel', { p_requete: requete, p_id: id });
+    if (!r || r.ok !== true) {
+      showToast(pieceTxt('desinstaller'), DESINSTALLER_REFUS[r && r.raison] || surveillanceRefus(r), false);
+      await ouvrirDesinstaller(); return;
+    }
+    surveillanceAppliquer(r);
+    if (typeof rafraichirEtatCriminel === 'function' && !r.legal) rafraichirEtatCriminel(r);
+    let m;
+    if (r.au_sol) m = pieceTxt('auSol', { nom: r.nom });
+    else if (r.issue === 'combat') m = pieceTxt('bagarre', { nom: r.nom });
+    else m = pieceTxt('echecVol', { nom: r.nom });
+    showToast(pieceTxt('desinstaller'), m, !!r.au_sol);
+    if (typeof addJournalEntry === 'function') addJournalEntry(m, r.au_sol ? 'event-info' : 'event-bad');
+    if (typeof chargerObjetsAbandonnesDansPiece === 'function') chargerObjetsAbandonnesDansPiece();
+    if (typeof updateUI === 'function') updateUI();
+    if (r.issue === 'combat') { pieceFermerFenetre(); if (typeof chargerPersonnage === 'function') chargerPersonnage(); return; }
+    await ouvrirDesinstaller(m);
+  } finally { desinstallationEnCours = false; }
+}
+
+// Anciennes fenêtres de fouille (2 PA) : gardées pour un écran resté ouvert, elles ouvrent l'inspection.
+function ouvrirFenetreFouille() { ouvrirFenetreInspecter(); }
+function fouilleAnnuler() { pieceFermerFenetre(); }
+function fouilleConfirmer() { inspecterConfirmer(); }

@@ -102,9 +102,10 @@ DECLARE e public.equipements_installes; v_sol text;
 BEGIN
   SELECT * INTO e FROM public.equipements_installes WHERE id = p_id FOR UPDATE;
   IF e.id IS NULL THEN RETURN NULL; END IF;
-  v_sol := 'sol-' || replace(gen_random_uuid()::text, '-', '');
+  -- Même forme qu'inventaire_abandonner : l'identifiant de la ligne est aussi celui de l'objet (le ramassage le retire).
+  v_sol := 'objet-abandonne-' || replace(gen_random_uuid()::text, '-', '');
   INSERT INTO public.objets_abandonnes (id, country, city, building_id, room_id, data)
-  VALUES (v_sol, e.pays, e.ville, e.batiment, e.piece, (e.objet - 'porte_par')::text);
+  VALUES (v_sol, e.pays, e.ville, e.batiment, e.piece, ((e.objet - 'porte_par') || jsonb_build_object('id', v_sol))::text);
   DELETE FROM public.equipements_installes WHERE id = e.id;
   RETURN v_sol;
 END $$;

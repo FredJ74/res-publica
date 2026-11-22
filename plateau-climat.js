@@ -413,17 +413,19 @@ function eviterFleches(a, hote) {
 // Eau gratuite, 1 PA par puisage quelle que soit la quantité, 10 bouteilles par tranche de 6 h (heure de Paris).
 const ORDRE_PUISER = { fn: 'puiser_eau', label: 'Puiser de l’eau', pa: 1, cost: 0, type: 'legal', icon: 'ti-bucket-droplet' };
 const EAU_TXT = {
-  tete: 'Fontaine de la statue de l’Ours. L’eau est gratuite. Puiser coûte 1 PA, quelle que soit la quantité. Vous pouvez puiser jusqu’à {max} bouteilles toutes les 6 heures.',
+  tete: '{lieu}. L’eau est gratuite. Puiser coûte 1 PA, quelle que soit la quantité. Vous pouvez puiser jusqu’à {max} bouteilles toutes les 6 heures.',
+  lieuKrasnov: 'Fontaine de la statue de l’Ours',
   reste: 'Vous pouvez encore puiser {n} bouteille{s} avant {h}.',
   place: 'Votre inventaire ne peut accueillir que {n} bouteille{s} de plus.',
-  plafond: 'Vous avez déjà puisé vos {max} bouteilles pour cette période. La fontaine sera de nouveau à vous à {h}. Astuce : le marché vend de l’eau déjà puisée, sans dépense de PA.',
+  plafond: 'Vous avez déjà puisé vos {max} bouteilles pour cette période. La fontaine sera de nouveau à vous à {h}.',
+  astuce: 'Astuce : le marché vend de l’eau déjà puisée, sans dépense de PA.',
   plein: 'Votre inventaire est plein : faites de la place pour puiser de l’eau.',
   sansPa: 'Il vous faut 1 PA pour puiser : reposez-vous ou revenez quand vos PA seront revenus.',
   fait: 'Vous avez puisé {n} bouteille{s} d’eau (−1 PA). Elle{s} {sont} dans votre inventaire.',
   quantite: 'Nombre de bouteilles à puiser',
   bouton: 'Puiser',
   fermer: 'Fermer',
-  ailleurs: 'Il n’y a pas de point d’eau ici : la fontaine est sur la place de l’Ours, à Krasnov.',
+  ailleurs: 'Il n’y a pas de point d’eau ici : chaque ville a sa fontaine, sur sa place principale (à Krasnov, la place de l’Ours).',
   ancien: 'Ce bouton a été remplacé par l’ordre « Puiser de l’eau » de la place.',
 };
 function eauTxt(k, v) {
@@ -470,11 +472,17 @@ function rendrePuiserEau(e, message) {
   const doc = global.document;
   const titre = doc.getElementById('postes-modal-title');
   if (titre) titre.textContent = ORDRE_PUISER.label;
-  const img = (e.point && e.point.image) || 'images/Sovarka/Krasnov/Krasnov_place_ours_fontaine.webp';
+  // Une fontaine par ville (lot de Krasnov, point 3, 22/11/2026) : nom et image viennent du serveur ; image absente = pas d'image.
+  const img = (e.point && e.point.image) || '';
+  const lieu = (e.point && e.point.id === 'krasnov-fontaine-ours') ? eauTxt('lieuKrasnov')
+    : String((e.point && e.point.nom) || '').replace(/^./, c => c.toUpperCase());
+  // Le marché vend l'eau déjà puisée en Républia et à Krasnov (pas encore à Novomirsk ni à Starovka).
+  const s0 = etat();
+  const astuce = (s0.country === 'republic' || (s0.country === 'soviet' && s0.currentCity === 'ville_b')) ? ' ' + eauTxt('astuce') : '';
   const h = heureFinEau(e.heure_fin);
   const max = Math.max(0, Math.min(Number(e.restant) || 0, Number(e.place) || 0));
   let explication = '', raison = '';
-  if (Number(e.restant) <= 0) raison = eauTxt('plafond', { max: e.max_tranche, h });
+  if (Number(e.restant) <= 0) raison = eauTxt('plafond', { max: e.max_tranche, h }) + astuce;
   else if (Number(e.place) <= 0) raison = eauTxt('plein');
   else if (Number(e.pa) < 1) raison = eauTxt('sansPa');
   if (!raison) {
@@ -483,9 +491,8 @@ function rendrePuiserEau(e, message) {
   }
   const possible = !raison && max > 0;
   doc.getElementById('postes-body').innerHTML = '<div class="cpj-dialogue" style="padding:1rem;font-size:1rem;line-height:1.45">'
-    + '<img src="' + esc(img) + '" alt="" style="width:100%;max-height:240px;object-fit:cover;border:1px solid #2a2010;border-radius:3px;margin-bottom:.7rem"'
-    + '>'
-    + '<p style="margin:0 0 .6rem">' + esc(eauTxt('tete', { max: e.max_tranche })) + '</p>'
+    + (img ? '<img src="' + esc(img) + '" alt="" onerror="this.remove()" style="width:100%;max-height:240px;object-fit:cover;border:1px solid #2a2010;border-radius:3px;margin-bottom:.7rem">' : '')
+    + '<p style="margin:0 0 .6rem">' + esc(eauTxt('tete', { max: e.max_tranche, lieu })) + '</p>'
     + (message ? '<p style="margin:0 0 .6rem;color:#8ab070">' + esc(message) + '</p>' : '')
     + (explication ? '<p style="margin:0 0 .6rem">' + esc(explication) + '</p>' : '')
     + (raison ? '<p style="margin:0 0 .6rem;color:#e0a040">' + esc(raison) + '</p>' : '')

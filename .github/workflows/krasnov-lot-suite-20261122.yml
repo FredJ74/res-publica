@@ -1,0 +1,32 @@
+name: "Lot de Krasnov, étape I — marché unique, une fontaine par ville, actions de pièce"
+on:
+  pull_request:
+    paths: [plateau-marche-krasnov.js, plateau-surveillance.js, plateau-climat.js, plateau-router.js, plateau-personnage.js, plateau-organisations-quetes.js, data.js, plateau.html,
+      'migrations/20261122160000_krasnov_marche_unique.sql', 'migrations/20261122161000_points_eau_une_fontaine_par_ville.sql', 'migrations/20261122162000_pieces_inspecter_desinstaller.sql',
+      'outils/bancs/*krasnov-lot-suite*', 'outils/bancs/fixtures/krasnov-lot-suite-*', 'outils/bancs/test-fouiller-voler-ordre-20261111.mjs', .github/workflows/krasnov-lot-suite-20261122.yml]
+  push:
+    branches: [main, 'claude/**']
+    paths: [plateau-marche-krasnov.js, plateau-surveillance.js, plateau-climat.js, plateau-router.js, plateau-personnage.js, plateau-organisations-quetes.js, data.js, plateau.html,
+      'migrations/20261122160000_krasnov_marche_unique.sql', 'migrations/20261122161000_points_eau_une_fontaine_par_ville.sql', 'migrations/20261122162000_pieces_inspecter_desinstaller.sql',
+      'outils/bancs/*krasnov-lot-suite*', 'outils/bancs/fixtures/krasnov-lot-suite-*', 'outils/bancs/test-fouiller-voler-ordre-20261111.mjs', .github/workflows/krasnov-lot-suite-20261122.yml]
+permissions:
+  contents: read
+jobs:
+  krasnov:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --check plateau-marche-krasnov.js && node --check plateau-surveillance.js && node --check plateau-climat.js
+      - name: Écran (sans navigateur)
+        run: >
+          node --test outils/bancs/test-krasnov-lot-suite-20261122.cjs outils/bancs/test-fouiller-voler-ordre-20261111.mjs
+          outils/bancs/test-crim-lot3-voler.cjs outils/bancs/test-crim-lot4-cambriolage.cjs outils/bancs/test-climat-blizzard-grippe-20261119.cjs
+          outils/bancs/banc-guide-musee-novomirsk-20261111.mjs outils/bancs/test-krasnov-lot-rapides-20261120.cjs outils/bancs/test-krasnov-ecole-enigme-20261121.cjs
+      - name: PostgreSQL local (PGlite)
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund --prefix "$RUNNER_TEMP/pglite" @electric-sql/pglite@0.2.17
+          PGLITE_DIR="$RUNNER_TEMP/pglite" node --test outils/bancs/banc-krasnov-lot-suite-pglite-20261122.cjs outils/bancs/banc-point-eau-pglite-20261121.cjs

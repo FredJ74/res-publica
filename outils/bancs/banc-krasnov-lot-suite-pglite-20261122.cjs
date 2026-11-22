@@ -157,6 +157,7 @@ test('point 9 : Désinstaller chez soi : 2 PA, l’objet tombe au sol, sans trac
   assert.equal(r.ok, true); assert.equal(r.legal, true); assert.equal(r.au_sol, true); assert.equal(r.pa, 8);
   const sol = await un(db, 'SELECT * FROM objets_abandonnes WHERE id = $1', [r.objet_sol]);
   assert.equal(sol.room_id, 'bureau_1'); assert.equal(JSON.parse(sol.data).name, 'Ordinateur');
+  assert.equal(JSON.parse(sol.data).id, r.objet_sol, 'même forme qu’un objet abandonné : ramassable par son identifiant');
   assert.equal((await un(db, 'SELECT count(*)::int n FROM equipements_installes WHERE id = $1', [e1])).n, 0, 'plus lié à la pièce');
   assert.equal((await un(db, 'SELECT count(*)::int n FROM crim_affaires')).n, 0, 'légal : aucune affaire');
 
