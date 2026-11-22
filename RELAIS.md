@@ -31,7 +31,7 @@ Règles : voir `AGENTS.md`.
   au-dessus de la photo, clic = durée et consignes) ; ouvrir des fenêtres (rencontre, rapport de combat, journal) : plus aucune petite mention grise.
 ### Inventaire en direct, quantité, capacité, don entre joueurs (Claude, 22/11/2026) — GAME-DESIGN-FORET-TEST-20261122.md, points 2, 3, 4
 - **Branche `claude/inventaire-direct-20261122`**. Aucune fonction Vercel.
-- **Migration à appliquer (pas encore appliquée)** : `20261122200000_inventaire_direct_capacite` — colonne
+- **Migration appliquée en production le 22/11/2026 (contrôlée : 10 personnages à 100, aucun au-delà de sa capacité, inventaires d'Arnie et de Tom Tom identiques)** : `20261122200000_inventaire_direct_capacite` — colonne
   `personnages_donnees.capacite_inventaire` (100 par défaut, 1 à 10 000) ; `inventaire_place_restante(jsonb, integer)` ; forme à un
   argument = capacité du joueur connecté ; `inventaire_deposer_interne` (capacité du personnage servi) ; `inventaire_abandonner(…, p_qte)`
   (lieu du serveur, une pile par objet au sol) ; `objet_abandonne_ramasser(p_id, p_qte)` (plafond pile + place libre, refus
@@ -52,7 +52,7 @@ Règles : voir `AGENTS.md`.
   dans le rapport du chantier et en tête de `texteInventaire` (plateau-divers.js).
 - **Bancs** : `banc-inventaire-direct-navigateur-20261122.cjs` (Chromium, deux joueurs), workflow `inventaire-direct-20261122.yml`.
 ### Forêt de Krasnov : groupe, meute de trois loups, rapport de combat (Claude, 22/11/2026, fin de nuit) — décisions : GAME-DESIGN-FORET-TEST-20261122.md (points 5, 6, 7 et le bouton « Explorer la forêt » du point 8)
-- **Branche `claude/foret-combat-20261122`**. Aucune fonction Vercel. **Migration à appliquer (non appliquée)** :
+- **Branche `claude/foret-combat-20261122`**. Aucune fonction Vercel. **Migration appliquée en production le 22/11/2026 (11 raccords contrôlés)** :
   `20261122210000_foret_groupe_combat_meute` — table `sovarka_foret_journal` ; nouvelles `sovarka_foret_journal_groupe_interne`,
   `sovarka_foret_journal_lire` (RPC), `sovarka_foret_pnj_racine_interne`, `sovarka_foret_faune_creer_interne`, `sovarka_foret_faune_retirer_interne`,
   `sovarka_foret_morsure_interne`, `sovarka_foret_combat_meute_interne`, `combat_rapport_lignes_interne` ; réécrites (texte de production) :
@@ -161,7 +161,7 @@ Règles : voir `AGENTS.md`.
 ### Étape K — refonte des informateurs (Claude, 22/11/2026) — branche `claude/informateurs-refonte-20261122`
 - **Décisions** : `GAME-DESIGN-INFORMATEURS-20261121.md`, fondues dans `GAME-DESIGN-CRIMINALITE.md` (« Barème commun des informateurs » →
   « Refonte des informateurs »).
-- **Migration écrite, NON appliquée** : `20261122180000_informateurs_refonte` (éprouvée sur PGlite ; ancrages vérifiés une fois chacun dans
+- **Migration appliquée en production le 22/11/2026 (contrôlée en lecture)** : `20261122180000_informateurs_refonte` (éprouvée sur PGlite ; ancrages vérifiés une fois chacun dans
   les définitions de production). Raccords : `rumeur_ecoute_jauges_interne` (`informateurs_ecoute_payante_v1`), `crim_enquete_taux_interne`
   (`informateurs_piste_v1`, `informateurs_taux_v1`, `informateurs_pistes_v1`).
 - **Navigateur** : nouveau `plateau-informateurs.js` (ordre dynamique « Acheter une information », fenêtre) ; `plateau-criminalite.js`
@@ -186,7 +186,7 @@ Règles : voir `AGENTS.md`.
     `liens: { gauche }`) ; tests `test-krasnov-place-ours-20261114.mjs`, `test-krasnov-hopital-acces-rue-20261114.mjs`.
   - point 4 (forêt) : `plateau-sovarka-provinces.js` (`FORET_TXT.surprise`, `foretAller` affiche la rencontre à l'arrivée,
     `foretAfficherRencontre(nom, pnj, intro)`).
-  - point 5 (climat) : `plateau-climat.js` (alerte compacte en haut à gauche, `eviterFleches`) ; banc `banc-climat-arrivee-navigateur-20261121.cjs`.
+  - point 5 (climat) : `plateau-climat.js` (alerte compacte en haut à gauche, `eviterFleches` — **remplacée** le 22/11 fin de nuit par le bandeau centré au-dessus de l'image, voir la section « texte minimum et météo ») ; banc `banc-climat-arrivee-navigateur-20261121.cjs`.
   - point 2 (chantier) : `plateau-chantiers.js` (`heuresUtilesRestantes` = capacité entière), `plateau-chantier-vue.js`
     (journal du chantier, jauges rouges, commande automatique dans Gestion, heures du jour d'avance) ; banc `banc-chantier-vue-navigateur-20261121.cjs`.
   - point 6 (types de bâtiments) : `plateau-chantiers.js` (`DUREES_CONSTRUCTION.logement`), `plateau-justice-economie.js`
@@ -198,7 +198,10 @@ Règles : voir `AGENTS.md`.
     « Ajouter une image » ouvre le choix d'un fichier) ; nouveau module serveur `api/_forum-images-externes.js` et **un appel
     ajouté** dans `api/cron-minuit.js` (recopie nocturne des images extérieures, 20 s au plus) ; banc `banc-forum-images-externes-20261122.mjs`.
 - **Migrations appliquées (cette nuit)** : `20261122100000_navigation_culs_de_sac_sovarka`, `20261122110000_foret_egarement_rencontre_arrivee`,
-  `20261122120000_chantier_heures_ouvertes_commande_nuit`, `20261122130000_types_batiments_cinq`, `20261122140000_forum_images_stockage`.
+  `20261122120000_chantier_heures_ouvertes_commande_nuit`, `20261122130000_types_batiments_cinq`, `20261122140000_forum_images_stockage`,
+  `20261122150000_interview_accueil_invitation_serveur`, `20261122160000_krasnov_marche_unique`, `20261122161000_points_eau_une_fontaine_par_ville`,
+  `20261122162000_pieces_inspecter_desinstaller`, `20261122163000_ordres_couts_lot_krasnov`, `20261122180000_informateurs_refonte`,
+  `20261122200000_inventaire_direct_capacite`, `20261122210000_foret_groupe_combat_meute`. Tout est en ligne (fusion `6d3606de` sur main).
   Détail dans AGENTS.md.
 - **Baseline (réconciliation par Codex)** : `baseline/domaines/economie/20_fonctions-1.sql` et
   `baseline/domaines/immobilier-et-territoire/20_fonctions-1/2.sql` citent encore les anciens types et les anciennes définitions

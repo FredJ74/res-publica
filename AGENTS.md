@@ -207,6 +207,28 @@ ordre), sans jamais réécrire ni annuler ces cinq migrations. Aucune ne touche 
 - `20261122140000_forum_images_stockage` : seau `forum-images` (public, 5 Mo, PNG/JPEG/WebP/GIF) ; politiques
   `forum_images_lecture` (lecture publique) et `forum_images_ecriture_joueur` (écriture du joueur connecté dans le dossier
   `<auth.uid()>/`). Le dossier `externes/` est écrit par le traitement de nuit (clé de service).
+- `20261122150000_interview_accueil_invitation_serveur` (étape H) : l'invitation d'interview de Jodie Moitout est écrite par le
+  serveur ; le navigateur perd le droit d'écrire au nom de Jodie.
+- `20261122160000_krasnov_marche_unique`, `20261122161000_points_eau_une_fontaine_par_ville`, `20261122162000_pieces_inspecter_desinstaller`,
+  `20261122163000_ordres_couts_lot_krasnov` (étape I) : marché unique de Krasnov (tables `marche_krasnov_*`, caisse `soviet_marche_ville_b`,
+  ligne `graisses_points_vente` conservée), une fontaine par ville dans `climat_points_eau`, RPC `inspecter_piece`, `desinstaller_lire`,
+  `desinstaller_materiel`, tarifs dans `ordres_couts` (594 ordres payants, listes en dur et seeds à jour).
+- `20261122180000_informateurs_refonte` (étape K) : 97 informateurs PNJ ; raccords `rumeur_ecoute_jauges_interne`
+  (`informateurs_ecoute_payante_v1`), `crim_enquete_taux_interne` (`informateurs_piste_v1`, `informateurs_taux_v1`, `informateurs_pistes_v1`).
+- `20261122200000_inventaire_direct_capacite` : colonne `personnages_donnees.capacite_inventaire` (100, de 1 à 10 000) ;
+  `inventaire_place_restante(jsonb, integer)` (la forme à un argument prend la capacité du joueur connecté), `inventaire_capacite`,
+  `inventaire_unites_interne`, `inventaire_place_destinataire_interne` ; `inventaire_abandonner(…, p_qte)`, `objet_abandonne_ramasser(p_id, p_qte)`,
+  `inventaire_donner` (refus `destinataire_plein`), `inventaire_reception_etat` (+ `capacite`), `admin_inventaire_capacite_fixer/lire` ;
+  remplacement contrôlé dans **`inventaire_deposer_interne`** (commune, marque `inventaire_capacite_v1`) ; `personnages_signaux_trg` réécrite
+  (inventaire et capacité) ; déclencheurs `zz_objets_recus_signaux`, `zz_objets_abandonnes_signaux`.
+- `20261122210000_foret_groupe_combat_meute` : table `sovarka_foret_journal` (RPC `sovarka_foret_journal_lire`) ; meute = trois loups
+  (`sovarka_foret_creature_interne`, `sovarka_foret_faune_creer_interne`, `sovarka_foret_combat_meute_interne`, `sovarka_foret_morsure_interne`) ;
+  `sovarka_foret_couper` (le membre coupe pour lui), `sovarka_foret_issue_combat_interne` (butin au chef une fois, par loup abattu) ;
+  `combat_rapport_lignes_interne` ; **remplacements contrôlés dans des fonctions communes** : `militaire_bataille_rapport`
+  (`combat_rapport_lignes_v1`), `militaire_bataille_appliquer` (`foret_morsure_v1`), `militaire_bataille_combattants`
+  (`foret_meute_griffes_v1`), `combat_ouvrir_interne` (`foret_meute_engagements_v1`), `combat_finaliser_interne` (`foret_meute_issue_v1`),
+  `militaire_bataille_etat` (`foret_meute_nom_v1`) ; forêt : `sovarka_foret_aller`, `sovarka_foret_lire` (`foret_groupe_membres_v1`),
+  `sovarka_foret_rencontre` (`foret_meute_retrait_v1`, `foret_journal_groupe_v1`). Batailles militaires inchangées.
 
 ### Fonctions communes et points de jonction
 - **Traitement de nuit** : `api/cron-minuit.js` (commun : il appelle aussi `sovarka_goulag_controle_minuit`, tâche
