@@ -27,7 +27,7 @@ const provForetImage = cle => PROV_FORET_IMAGES[cle]
   ? '<img src="images/Sovarka/Krasnov/' + PROV_FORET_IMAGES[cle] + '" alt="" style="display:block;width:100%;max-height:42vh;object-fit:cover;border-radius:6px;margin-bottom:.6rem">' : '';
 // Le serveur nomme la créature en français ; on retrouve sa clé dans le catalogue des messages.
 const provCreatureCle = nom => PROV_CREATURES.find(k => typeof RPCourriersSovarka === 'object' && RPCourriersSovarka.phrase([k], nom) && RPCourriersSovarka.phrase([k], nom) !== nom)
-  || ({ 'Loup solitaire': 'cf_loup', 'Meute de loups': 'cf_meute', 'Ours': 'cf_ours' })[nom] || null;
+  || ({ 'Loup solitaire': 'cf_loup', 'Meute de loups': 'cf_meute', 'Meute de 3 loups': 'cf_meute', 'Ours': 'cf_ours' })[nom] || null;
 const PROV_SERVICES = ['bois', 'fruits_legumes', 'oeufs', 'vodka', 'poisson', 'carburant', 'viande', 'viande_renne'];
 // Service demandé : en français le libellé du serveur ; ailleurs, la quantité et l'objet exigés par le serveur.
 function provService(s) {
@@ -461,7 +461,54 @@ const FORET_TXT = { bonChemin: 'Était-ce le bon chemin… ?', clairiere: 'La cl
   // Rencontre à l'arrivée (Fred, 22/11/2026, point 4) : texte pédagogique avant le choix.
   surprise: 'Vous n’avez même pas sorti la hache : une bête surgit d’entre les arbres. En forêt profonde, la faune rôde : '
     + 'chaque fois que vous arrivez dans un coin de bois, une rencontre peut survenir (environ une fois sur sept), même sans couper. '
-    + 'Si vous menez un groupe, tout le groupe fait face avec vous.' };
+    + 'Si vous menez un groupe, tout le groupe fait face avec vous.',
+  // Remontées du test de Fred (22/11/2026, fin de nuit, points 5 et 7) : suspense en deux fenêtres, groupe, journal.
+  approcher: 'Voir ce qui approche',
+  meute: 'Trois loups, trois combattants : chacun a 8 PA, mord une cible de votre groupe tirée au hasard, et peut tomber ou s’enfuir seul. '
+    + 'Chaque loup abattu donne 3 peaux et 2 viandes, remises au chef du groupe.',
+  membreTitre: 'Votre chef décide',
+  membreNote: 'Vous êtes membre du groupe de {chef} : c’est le chef qui choisit de combattre, de fuir ou de se laisser faire. '
+    + 'Si le combat est engagé, vous combattez à ses côtés avec votre arme (ou à mains nues), et le butin revient au chef.',
+  compris: 'Compris',
+  membreCoupe: 'Vous coupez pour vous seul : le bois va dans votre inventaire. En groupe, seul le chef peut faire surgir une bête ou Olga.',
+  j_rencontre: 'Forêt profonde : {nom} surgit devant votre groupe ({chef} mène le groupe).',
+  j_rencontre_arrivee: 'Forêt profonde : à peine arrivés, {nom} surgit devant votre groupe ({chef} mène le groupe).',
+  j_olga: 'Forêt profonde : Olga, la vieille de l’isba, a nourri le groupe de {chef}.',
+  j_olga_moi: ' Vous aussi : +{bonus} PA au prochain sommeil.',
+  j_fausse: 'Forêt profonde, fausse alerte près de {chef} : {texte}',
+  j_fuite: 'Forêt profonde : {chef} a donné l’ordre de fuir {nom}. Le groupe détale jusqu’à l’entrée de la forêt.',
+  j_subir: 'Forêt profonde : {chef} a choisi de ne pas se défendre contre {nom}. Le groupe se réveillera à l’hôpital.',
+  j_combat: 'Combat contre {nom}, mené par {chef} : {issue}',
+  j_butin: ' Butin remis à {chef} : {butin}.',
+  j_lire: 'Lire le rapport de combat',
+  t_combat_fin: 'Fin du combat' };
+// Suspense en deux fenêtres (Fred, 22/11/2026, point 7) : d'abord le seul texte de tension ; à la fermeture de cette
+// fenêtre (bouton ou croix), la seconde s'ouvre avec l'image, le récit, puis le bonus, le combat ou le butin.
+let foretSuspenseObs = null;
+function foretSuspense(suite) {
+  const m = document.getElementById('modal-postes');
+  let fait = false;
+  if (foretSuspenseObs) { foretSuspenseObs.disconnect(); foretSuspenseObs = null; }
+  const continuer = () => {
+    if (fait) return;
+    fait = true;
+    if (foretSuspenseObs) { foretSuspenseObs.disconnect(); foretSuspenseObs = null; }
+    globalThis.foretSuspenseSuite = null;
+    suite();
+  };
+  globalThis.foretSuspenseSuite = continuer;
+  const fenetre = () => provModal(provT('titleNoise'), '<div data-foret-suspense><p style="font-style:italic">' + provT('olga1') + '</p></div>' +
+    vehBouton(provEchapper(FORET_TXT.approcher), 'foretSuspenseSuite && foretSuspenseSuite()', true), fenetre);
+  fenetre();
+  if (!m || typeof MutationObserver !== 'function') return;
+  foretSuspenseObs = new MutationObserver(() => {
+    if (!m.classList.contains('open')) continuer();
+    else if (!document.querySelector('#postes-body [data-foret-suspense]')) { foretSuspenseObs.disconnect(); foretSuspenseObs = null; }
+  });
+  foretSuspenseObs.observe(m, { attributes: true, attributeFilter: ['class'] });
+}
+globalThis.foretSuspense = foretSuspense;
+
 function foretEstPerdu() {
   const enForet = /^foret_vue_[1-4]$/.test(state.currentRoom || '');
   // Première vue profonde affichée depuis le chargement : l'état est relu une fois au serveur.
@@ -508,7 +555,7 @@ async function foretAller(sens) {
   // Forêt de Krasnov, version définitive (Fred, 21/11/2026) : égaré au retour → « Était-ce le bon chemin… ? » ;
   // la clairière (vue 5) est la première et la dernière image, le campement est l'entrée de l'exploitation.
   if (Number(v.vue) === 0) showToast(provT('tOut'), provT('out'), true);
-  else if (v.rencontre === 'attaque') { foretAfficherRencontre(v.nom, v.pnj, FORET_TXT.surprise); return; }
+  else if (v.rencontre === 'attaque') { foretAfficherRencontre(v.nom, v.pnj, FORET_TXT.surprise, { suspense: true }); foretPrechargerImages(); return; }
   else if (v.egare === true) foretFenetrePerdu(FORET_TXT.bonChemin, v.vue);
   else if (Number(v.vue) === 5) showToast(FORET_TXT.clairiere, FORET_TXT.clairiereCorps, true);
   else showToast(provT('tDeep'), provT('deeper'), true);
@@ -537,35 +584,47 @@ async function foretCouper() {
   if (v.ok !== true) { if (v.raison === 'rencontre_en_cours') { await foretReprendreRencontre(); return; } provRefus(provT('tForest'), v); return; }
   if (v.rencontre === 'olga') {
     const nourris = Array.isArray(v.nourris) ? v.nourris.length : 1;
-    const fenetre = () => provModal(provT('titleNoise'), provForetImage('olga') + '<p>' + provT('olga1') + '</p>' +
+    const fenetre = () => provModal(provT('titleNoise'), provForetImage('olga') +
       '<p>' + provT('olga2') + '</p>' +
       '<p class="cpj-note">' + (nourris > 1 ? provT('olgaMealGroup', { bonus: v.bonus, n: nourris }) : provT('olgaMeal', { bonus: v.bonus })) + '</p>' +
       (v.quantite ? '<p class="cpj-note">' + provT('woodToo', { n: v.quantite }) + '</p>' : ''), fenetre);
-    fenetre();
+    foretSuspense(fenetre);
     if (typeof addJournalEntry === 'function') addJournalEntry('Olga vous a nourri dans la forêt profonde' + (v.quantite ? ' ; ' + v.quantite + ' bois coupés.' : '.'), 'event-good');
     return;
   }
-  if (v.rencontre === 'attaque') { foretAfficherRencontre(v.nom, v.pnj); return; }
+  if (v.rencontre === 'attaque') { foretAfficherRencontre(v.nom, v.pnj, null, { suspense: true }); return; }
   if (v.fausse_alerte) {
     const fenetre = () => provModal(provT('titleNoise'), '<p>' + provT('falseAlarm') + '</p>' +
-      '<p>' + provEchapper(provServeur(PROV_ALERTES, v.fausse_alerte)) + '</p><p class="cpj-note">' + provT('woodBack', { n: v.quantite }) + '</p>', fenetre);
+      '<p>' + provEchapper(provServeur(PROV_ALERTES, v.fausse_alerte)) + '</p><p class="cpj-note">' + provT('woodBack', { n: v.quantite }) + '</p>' +
+      (v.membre === true ? '<p class="cpj-note">' + provEchapper(FORET_TXT.membreCoupe) + '</p>' : ''), fenetre);
     fenetre();
   } else {
-    showToast(provT('tWood'), provT('woodCut', { n: v.quantite }), true, true);
+    showToast(provT('tWood'), provT('woodCut', { n: v.quantite }) + (v.membre === true ? ' ' + provEchapper(FORET_TXT.membreCoupe) : ''), true, true);
   }
   if (typeof addJournalEntry === 'function') addJournalEntry('Forêt profonde : ' + v.quantite + ' bois coupés.', 'event-good');
 }
 
 async function foretReprendreRencontre() {
   const v = await sbRpcVerdict('sovarka_foret_lire', {}).catch(() => null);
-  if (v?.ok === true && v.rencontre) foretAfficherRencontre(v.rencontre.nom, v.rencontre.pnj);
+  if (v?.ok === true && v.rencontre) foretAfficherRencontre(v.rencontre.nom, v.rencontre.pnj, null, { membre: v.membre === true, chef: v.chef });
   else showToast(provT('tForest'), provMotif({ raison: 'rencontre_en_cours' }), false);
 }
 
-function foretAfficherRencontre(nom, pnj, intro) {
+// options : suspense (première apparition : fenêtre de tension d'abord), membre et chef (un membre voit la rencontre
+// sans les choix, réservés au chef).
+function foretAfficherRencontre(nom, pnj, intro, options) {
+  const o = options || {};
+  if (o.suspense) { foretSuspense(() => foretAfficherRencontre(nom, pnj, intro, Object.assign({}, o, { suspense: false }))); return; }
   const js = s => JSON.stringify(String(s)).replace(/"/g, '&quot;');
   let html = provForetImage(provCreatureCle(nom)) + '<p>' + (intro ? provEchapper(intro) : provT('enc1')) + '</p>' +
-    '<p>' + provT('enc2', { nom: provEchapper(provServeur(PROV_CREATURES, nom)) }) + '</p>';
+    '<p>' + provT('enc2', { nom: provEchapper(provServeur(PROV_CREATURES, nom)) }) + '</p>' +
+    (provCreatureCle(nom) === 'cf_meute' ? '<p class="cpj-note">' + provEchapper(FORET_TXT.meute) + '</p>' : '');
+  if (o.membre) {
+    html += vehSection(provEchapper(FORET_TXT.membreTitre), '<p>' + provEchapper(FORET_TXT.membreNote.replace('{chef}', o.chef || '…')) + '</p>' +
+      vehBouton(provEchapper(FORET_TXT.compris), 'document.getElementById(\'modal-postes\')?.classList.remove(\'open\')', true));
+    provModal(provT('titleEncounter'), html, () => foretAfficherRencontre(nom, pnj, intro, Object.assign({}, o, { suspense: false })));
+    return;
+  }
   const modes = (typeof NEUTRALISER_MODES === 'object' && NEUTRALISER_MODES) ? NEUTRALISER_MODES : { mains: { label: provT('bare') } };
   html += vehSection(provT('fight'), Object.keys(modes).map(m => {
     const possede = m === 'mains' || typeof neutraliserPossedeArme !== 'function' || neutraliserPossedeArme(m);
@@ -574,7 +633,7 @@ function foretAfficherRencontre(nom, pnj, intro) {
   html += vehSection(provT('orElse'), vehBouton(provT('flee'), 'foretChoisir(\'fuir\')') +
     vehBouton(provT('noDefend'), 'foretChoisir(\'subir\')') +
     '<p class="cpj-note">' + provT('neverDie') + '</p>');
-  provModal(provT('titleEncounter'), html, () => foretAfficherRencontre(nom, pnj, intro));
+  provModal(provT('titleEncounter'), html, () => foretAfficherRencontre(nom, pnj, intro, Object.assign({}, o, { suspense: false })));
 }
 
 async function foretCombattre(pnj, mode) {
@@ -597,4 +656,80 @@ async function foretChoisir(choix) {
     showToast(provT('tEaten'), provT('eaten', { nom: provEchapper(provServeur(PROV_CREATURES, v.nom)) }), false);
     if (typeof relireHospitalisationServeur === 'function') await relireHospitalisationServeur(true);
   }
+}
+
+// JOURNAL DU GROUPE (Fred, 22/11/2026, point 5) : chaque membre reçoit le récit des rencontres du chef (Olga, bêtes,
+// fausses alertes, fuite, « se laisser faire ») et l'issue du combat avec le butin remis au chef. Le serveur les garde
+// (sovarka_foret_journal) ; l'écran du membre les relit à l'exploitation forestière toutes les 8 secondes, sans recharger.
+let foretJournalEnCours = false;
+function foretJournalTexte(e) {
+  const p = (e && e.params) || {};
+  const chef = String(p.chef || '…'), nom = String(p.nom || '');
+  const remplir = (t, v) => t.replace(/\{(\w+)\}/g, (m, k) => (k in v ? String(v[k]) : m));
+  switch (e && e.cle) {
+    case 'rencontre': return remplir(p.a_l_arrivee ? FORET_TXT.j_rencontre_arrivee : FORET_TXT.j_rencontre, { nom, chef });
+    case 'olga': {
+      const moi = state?.char?.name, nourri = Array.isArray(p.nourris) && p.nourris.includes(moi);
+      return remplir(FORET_TXT.j_olga, { chef }) + (nourri ? remplir(FORET_TXT.j_olga_moi, { bonus: Number(p.bonus) || 0 }) : '');
+    }
+    case 'fausse_alerte': return remplir(FORET_TXT.j_fausse, { chef, texte: provServeur(PROV_ALERTES, String(p.texte || '')) });
+    case 'fuite': return remplir(FORET_TXT.j_fuite, { chef, nom });
+    case 'subir': return remplir(FORET_TXT.j_subir, { chef, nom });
+    case 'combat': {
+      const issue = typeof rpConclusionFaune === 'function'
+        ? rpConclusionFaune({ nom, resultat: p.issue, abattus: Number(p.abattus) || 0, total: Number(p.total) || 1, groupe: true }) : String(p.issue || '');
+      const butin = (Array.isArray(p.butin) ? p.butin : []).filter(o => o && o.nom && Number(o.qte) > 0).map(o => o.nom + ' ×' + Number(o.qte)).join(', ');
+      return remplir(FORET_TXT.j_combat, { nom, chef, issue }) + (butin ? remplir(FORET_TXT.j_butin, { chef, butin }) : '');
+    }
+    default: return '';
+  }
+}
+function foretJournalAfficher(e) {
+  const p = (e && e.params) || {};
+  const texte = foretJournalTexte(e);
+  if (!texte) return;
+  const bataille = Number(e.bataille);
+  const lien = e.cle === 'combat' && Number.isSafeInteger(bataille) && bataille > 0
+    ? ' <button class="cpj-touche" onclick="ouvrirPanneauCombat(' + bataille + ')">' + provEchapper(FORET_TXT.j_lire) + '</button>' : '';
+  const gagne = ['tues', 'neutralises'].includes(p.issue);
+  const cls = e.cle === 'combat' ? (gagne ? 'event-good' : 'event-bad')
+    : (e.cle === 'olga' ? 'event-good' : (e.cle === 'fausse_alerte' ? 'event-neutral' : 'event-bad'));
+  if (typeof addJournalEntry === 'function') addJournalEntry(provEchapper(texte) + lien, cls);
+  // Le membre vit la même rencontre que son chef : mêmes deux fenêtres, sans les choix réservés au chef.
+  const enForet = state?.country === 'soviet' && state?.currentCity === 'ville_b' && state?.currentBuilding === 'zone-production';
+  if (e.cle === 'rencontre' && enForet) {
+    foretPrechargerImages();
+    foretAfficherRencontre(p.nom, null, p.a_l_arrivee ? FORET_TXT.surprise : null, { suspense: true, membre: true, chef: p.chef });
+  } else if (e.cle === 'olga' && enForet) {
+    const moi = state?.char?.name, nourri = Array.isArray(p.nourris) && p.nourris.includes(moi);
+    const fenetre = () => provModal(provT('titleNoise'), provForetImage('olga') + '<p>' + provT('olga2') + '</p>' +
+      (nourri ? '<p class="cpj-note">' + provT('olgaMeal', { bonus: Number(p.bonus) || 0 }) + '</p>' : ''), fenetre);
+    foretSuspense(fenetre);
+  } else if (e.cle === 'fausse_alerte' && enForet) {
+    const fenetre = () => provModal(provT('titleNoise'), '<p>' + provT('falseAlarm') + '</p><p>' +
+      provEchapper(provServeur(PROV_ALERTES, String(p.texte || ''))) + '</p>', fenetre);
+    fenetre();
+  } else if (e.cle === 'combat') {
+    showToast(provEchapper(FORET_TXT.t_combat_fin), provEchapper(texte), gagne);
+  } else if (e.cle === 'fuite') {
+    showToast(provT('tRun'), provEchapper(texte), false);
+  } else if (e.cle === 'subir') {
+    showToast(provT('tEaten'), provEchapper(texte), false);
+  }
+}
+async function foretJournalLire() {
+  if (foretJournalEnCours || !state?.char?.name) return;
+  if (!(state.country === 'soviet' && state.currentCity === 'ville_b' && state.currentBuilding === 'zone-production')) return;
+  if (typeof document !== 'undefined' && document.hidden) return;
+  foretJournalEnCours = true;
+  try {
+    const v = await sbRpcVerdict('sovarka_foret_journal_lire', {}).catch(() => null);
+    if (v?.ok !== true || !Array.isArray(v.evenements)) return;
+    v.evenements.forEach(foretJournalAfficher);
+  } finally { foretJournalEnCours = false; }
+}
+if (typeof window !== 'undefined' && typeof setInterval === 'function') {
+  setInterval(() => { foretJournalLire(); }, 8000);
+  window.foretJournalLire = foretJournalLire;
+  window.foretJournalAfficher = foretJournalAfficher;
 }
