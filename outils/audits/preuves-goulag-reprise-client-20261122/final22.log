@@ -1,0 +1,30 @@
+✔ ancienne porte QHS Sovarka, ouverture false : zéro paiement, sanction ou RPC (3.21576ms)
+✔ ancienne porte QHS Sovarka, ouverture true : zéro paiement, sanction ou RPC (1.111046ms)
+✔ republic/qhs : la porte historique reste atteignable (1.729389ms)
+✔ soviet/prison : la porte historique reste atteignable (1.278398ms)
+✔ republic/prison : la porte historique reste atteignable (1.132728ms)
+✔ dossier absent : aucun effet (1.177216ms)
+✔ serveur « sans_transport » : goulag fermé, aucun ordre ni masque, aucune autre RPC (45.333464ms)
+✔ serveur « fonction_absente » : goulag fermé, aucun ordre ni masque, aucune autre RPC (13.360031ms)
+✔ serveur « erreur_serveur » : goulag fermé, aucun ordre ni masque, aucune autre RPC (18.072758ms)
+✔ serveur « injoignable » : goulag fermé, aucun ordre ni masque, aucune autre RPC (15.141698ms)
+✔ serveur « exception » : goulag fermé, aucun ordre ni masque, aucune autre RPC (14.356333ms)
+✔ serveur « session_perdue » : goulag fermé, aucun ordre ni masque, aucune autre RPC (15.793311ms)
+✔ serveur « faux » : goulag fermé, aucun ordre ni masque, aucune autre RPC (29.163496ms)
+✔ serveur « nul » : goulag fermé, aucun ordre ni masque, aucune autre RPC (9.630876ms)
+✔ serveur « chaine_true » : goulag fermé, aucun ordre ni masque, aucune autre RPC (9.483303ms)
+✔ serveur « objet » : goulag fermé, aucun ordre ni masque, aucune autre RPC (17.537772ms)
+✔ serveur « tableau » : goulag fermé, aucun ordre ni masque, aucune autre RPC (11.809922ms)
+✔ serveur « verrou_en_place » : goulag fermé, aucun ordre ni masque, aucune autre RPC (10.180385ms)
+✔ rue de l'école de Krasnov : flèches identiques à main (48.414916ms)
+✔ contre-épreuve : seul un `true` du serveur ouvre (boutons et flèche apparaissent) (10.226084ms)
+✔ juge de Sovarka, goulag fermé : même écran et même condamnation au QHS que main (31.044102ms)
+✔ juge de Sovarka, goulag ouvert (contre-épreuve) : la RPC du goulag est appelée (6.603079ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 22
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 639.147475

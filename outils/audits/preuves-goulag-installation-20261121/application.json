@@ -1,0 +1,101 @@
+{
+  "mode": "apply",
+  "sha256": "b0c100bd52e4db7b691ebfa8904ed58e09c06b09ae61400ef6f11a21b0cbad6f",
+  "sources": [
+    {
+      "path": "migrations/20261116104500_goulag_toundra_etats_serveur.sql",
+      "sha256": "142cf8dbe6370fd7fd4ccd137108e36ae33fe9827a12d78cfb2b326a389cd266"
+    },
+    {
+      "path": "migrations/20261116163500_goulag_depots_internes.sql",
+      "sha256": "216a3ee20032be2c3c2a574acdf340d968ea06830bc229e64b32a7929798e5d9"
+    },
+    {
+      "path": "migrations/20261116164000_goulag_juge_sentence.sql",
+      "sha256": "26f48f396d13efa0e69a74a7590846817a4299543b5ca06784c32e4e48f52e40"
+    },
+    {
+      "path": "migrations/20261116164500_goulag_autorisations_ministre.sql",
+      "sha256": "7f020b41046bee16a6937a95148a3fbc7ed6e26fe7e4a12817b28336a242fc7a"
+    },
+    {
+      "path": "migrations/20261116165000_goulag_refuge_recuperation.sql",
+      "sha256": "4df13cd1208a5b17f2b68050a17f05fac929bced343420e371fa2e0cfbdbcb34"
+    },
+    {
+      "path": "migrations/20261116170000_goulag_transport_visiteurs.sql",
+      "sha256": "65e204cde4b998549d2c965d0f6b87f34abfd6f1004a79560dd55e7e526982c5"
+    },
+    {
+      "path": "migrations/20261116171000_goulag_traversee_transactionnelle.sql",
+      "sha256": "9bf8537bf38fc048ad08f8e06755f895d6232a000244c196211b6dac90a45797"
+    },
+    {
+      "path": "migrations/20261116171001_goulag_actions_transactionnelles.sql",
+      "sha256": "a5ba842197346035f008447b838570dfedaa55166d582cab73edf3baa69a431b"
+    },
+    {
+      "path": "migrations/20261116171500_goulag_repos_navigation.sql",
+      "sha256": "4323851cf4aeea25a7f7d25e78e2edfaeabbb456754f554dd488231383881fa5"
+    },
+    {
+      "path": "migrations/20261116172000_goulag_reprise_peine.sql",
+      "sha256": "443091360b84f8350f126550d98f8bca212caff923e2fe3e8da1f3c4fdd7f7bd"
+    },
+    {
+      "path": "migrations/20261116172500_goulag_jugement_atomique.sql",
+      "sha256": "1f1066811e4e389fc8f6a43661bb8e0050ea7fee3c80c652ed852b4aec95ee66"
+    },
+    {
+      "path": "migrations/20261116173000_goulag_liberation_restitution.sql",
+      "sha256": "2d52e25432b3b608c416c359d67755c79ae1154929148af35d064dd7610a901f"
+    },
+    {
+      "path": "migrations/20261116173500_goulag_refuge_rejoindre.sql",
+      "sha256": "45a5b685a7ce337d89101dac4c8f2b8567d0d5150b22c97a220c500b4e6c0b55"
+    },
+    {
+      "path": "migrations/20261116174000_goulag_admission_juge_seul.sql",
+      "sha256": "2da42c0aff8e2284a5d2d42ed2e0c9cb155db9d67e64ab4b715d754104f7261d"
+    },
+    {
+      "path": "migrations/20261116174500_goulag_ordres_confinement.sql",
+      "sha256": "2a48ca1fa503330578d058fd853d0b7c3deb90ad24d4db3860934acff888b791"
+    },
+    {
+      "path": "migrations/20261116175000_goulag_sortie_qhs_visiteur.sql",
+      "sha256": "1bc7773e0457e09a9cace426850a928339710f214e892befdca4b737ec595c46"
+    },
+    {
+      "path": "migrations/20261116175500_goulag_detenu_acces_entree.sql",
+      "sha256": "0b237e96ad895a405763eabefbe251dafd909da4c79594fcc8ac73fa642f2dec"
+    },
+    {
+      "path": "migrations/20261116176000_goulag_ouverture_lecture.sql",
+      "sha256": "76b96522b60894bb9cf6805494253613666d4de8d1aa6bbaf519740b796ae8a4"
+    },
+    {
+      "path": "migrations/20261117170000_goulag_ordres_internes_registre.sql",
+      "sha256": "6389be28b3ff8496fad9ac951022c8d20217779ed0d27e4714e9dc7739ae7288"
+    },
+    {
+      "path": "migrations/20261117170500_goulag_ordres_internes_detention.sql",
+      "sha256": "ba979be462f7e3a1642e1fe395b119b4dcce2e30e29946178176f87e67fe918b"
+    },
+    {
+      "path": "migrations/20261117171000_goulag_ordres_internes_bureau_mirador.sql",
+      "sha256": "42272f04846e3b13bf8f3b6fa57e1990b2261ee7844e4131459d1fd15af4e45d"
+    },
+    {
+      "path": "migrations/20261117171500_goulag_ordres_internes_raccord_evasion.sql",
+      "sha256": "974e4c156f26e368572544bbc4286f51e07486865987b880f73ff6f700c3f664"
+    }
+  ],
+  "registre_version": "20261121145200",
+  "registre_nom": "goulag_installation_verrouillee_20261121",
+  "installation_durable": true,
+  "active": false,
+  "tableaux": 15,
+  "fonctions_goulag": 46,
+  "archive": "historique/migrations-appliquees/20261121145200_goulag_installation_verrouillee_20261121.sql"
+}

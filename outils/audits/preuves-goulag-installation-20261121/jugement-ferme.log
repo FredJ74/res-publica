@@ -1,0 +1,14 @@
+✔ ancienne porte QHS Sovarka, ouverture false : zéro paiement, sanction ou RPC (3.145354ms)
+✔ ancienne porte QHS Sovarka, ouverture true : zéro paiement, sanction ou RPC (6.670451ms)
+✔ republic/qhs : la porte historique reste atteignable (1.6838ms)
+✔ soviet/prison : la porte historique reste atteignable (1.355365ms)
+✔ republic/prison : la porte historique reste atteignable (1.143785ms)
+✔ dossier absent : aucun effet (1.024655ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 338.302918

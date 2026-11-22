@@ -1,0 +1,48 @@
+Exports lus :
+  export_droits.json                                   export_droits         914801 octets
+  export_fonctions.json                                export_fonctions     5101635 octets
+  export_logique.json                                  export_logique        287815 octets
+  export_structure.json                                export_structure     1192822 octets
+
+OBJETS SANS DOMAINE (5434) -- le rendu s'arrete :
+    commentaire sur clinique_nuitees
+    commentaire sur crim_qhs_demandes
+    commentaire sur navigation_lieux_regles
+    commentaire sur organisation_commandes_recus
+    contraintes de acces_actes
+    contraintes de acces_intrusions
+    contraintes de acces_tentatives
+    contraintes de aliments_avaries_annonces
+    contraintes de aliments_parametres
+    contraintes de auteurs_secrets
+    contraintes de blocus_ordres_batiments
+    contraintes de boissons_du_jour
+    contraintes de bureaux_option_premium
+    contraintes de caches_pj
+    contraintes de cameras_decouvertes
+    contraintes de cameras_posees
+    contraintes de chaines_production_pays
+    contraintes de chantier_naval_bateaux
+    contraintes de chantier_naval_commandes
+    contraintes de chantier_naval_modeles
+    contraintes de chat_signaux
+    contraintes de climat_accueils
+    contraintes de climat_boutiques
+    contraintes de climat_catastrophes
+    contraintes de climat_crue_pertes
+    contraintes de climat_effets_personnages
+    contraintes de climat_evenements
+    contraintes de climat_lieux_vente
+    contraintes de climat_parametres
+    contraintes de climat_points_eau
+    contraintes de climat_protections
+    contraintes de climat_zones_inondables
+    contraintes de clinique_nuitees
+    contraintes de commerce_contrats
+    contraintes de commerce_passes
+    contraintes de crim_affaires
+    contraintes de crim_boutiques
+    contraintes de crim_constats
+    contraintes de crim_corruptions_qhs
+    contraintes de crim_evenements
+affectation incomplete

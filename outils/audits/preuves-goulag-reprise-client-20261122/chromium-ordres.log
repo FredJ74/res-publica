@@ -1,0 +1,12 @@
+{"moteur":"chromium","rendus":189,"largeurs":[320,390,1280],"langues":9,"fenetres":7,"rtl":true,"doubleClic":"une seule RPC","serveur":"simulé","personnageConnecte":false}
+✔ outils/bancs/test-goulag-ordres-internes-navigateur-20261117.cjs (60264.330898ms)
+{"moteur":"chromium","scenarios":27,"largeurs":[320,390,1280],"langues":9,"rtl":true,"ref1085":"77d457ad8e67702de8df5dec372f0596fa898737","modules":["plateau-goulag-ordres.js","plateau-goulag-toundra.js","plateau-goulag-transports.js","plateau-goulag-refuge.js"],"serveur":"simulé","personnageConnecte":false}
+✔ outils/bancs/test-goulag-raccord-navigateur-1085-20261117.cjs (14137.177509ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 74441.062444

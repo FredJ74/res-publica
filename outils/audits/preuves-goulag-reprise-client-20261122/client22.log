@@ -1,0 +1,30 @@
+✔ ancienne porte QHS Sovarka, ouverture false : zéro paiement, sanction ou RPC (3.145325ms)
+✔ ancienne porte QHS Sovarka, ouverture true : zéro paiement, sanction ou RPC (1.194992ms)
+✔ republic/qhs : la porte historique reste atteignable (1.587675ms)
+✔ soviet/prison : la porte historique reste atteignable (1.304097ms)
+✔ republic/prison : la porte historique reste atteignable (1.250987ms)
+✔ dossier absent : aucun effet (1.026188ms)
+✔ serveur « sans_transport » : goulag fermé, aucun ordre ni masque, aucune autre RPC (41.162644ms)
+✔ serveur « fonction_absente » : goulag fermé, aucun ordre ni masque, aucune autre RPC (11.68685ms)
+✔ serveur « erreur_serveur » : goulag fermé, aucun ordre ni masque, aucune autre RPC (16.004863ms)
+✔ serveur « injoignable » : goulag fermé, aucun ordre ni masque, aucune autre RPC (18.026623ms)
+✔ serveur « exception » : goulag fermé, aucun ordre ni masque, aucune autre RPC (14.052087ms)
+✔ serveur « session_perdue » : goulag fermé, aucun ordre ni masque, aucune autre RPC (15.146689ms)
+✔ serveur « faux » : goulag fermé, aucun ordre ni masque, aucune autre RPC (30.6ms)
+✔ serveur « nul » : goulag fermé, aucun ordre ni masque, aucune autre RPC (9.634674ms)
+✔ serveur « chaine_true » : goulag fermé, aucun ordre ni masque, aucune autre RPC (9.715696ms)
+✔ serveur « objet » : goulag fermé, aucun ordre ni masque, aucune autre RPC (16.212227ms)
+✔ serveur « tableau » : goulag fermé, aucun ordre ni masque, aucune autre RPC (11.739949ms)
+✔ serveur « verrou_en_place » : goulag fermé, aucun ordre ni masque, aucune autre RPC (9.931842ms)
+✔ rue de l'école de Krasnov : flèches identiques à main (48.23301ms)
+✔ contre-épreuve : seul un `true` du serveur ouvre (boutons et flèche apparaissent) (9.638941ms)
+✔ juge de Sovarka, goulag fermé : même écran et même condamnation au QHS que main (44.095559ms)
+✔ juge de Sovarka, goulag ouvert (contre-épreuve) : la RPC du goulag est appelée (7.180431ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 22
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 584.670275

@@ -1,0 +1,63 @@
+{
+  "date_utc": "2026-11-22T19:19:33.151292+00:00",
+  "alias": "https://human-gambit.com",
+  "commit_attendu": "5f137b44f05258dde646d4d6e0d85f3eb8c4570f",
+  "ressources": [
+    {
+      "fichier": "plateau.html",
+      "http": 200,
+      "encodage": null,
+      "sha256": "25ce522c5c46c2f84282e64fd0070c55d611f1ffb42e728c90968d4cfc63fe8d",
+      "identique_au_commit": true
+    },
+    {
+      "fichier": "style.css",
+      "http": 200,
+      "encodage": null,
+      "sha256": "3819d5b64e916f429c3dc5b0fb8063a4957d52d6aa049759be10949cd4711f5a",
+      "identique_au_commit": true
+    },
+    {
+      "fichier": "plateau-fenetres.js",
+      "http": 200,
+      "encodage": null,
+      "sha256": "97883af95bb774b871b4811a851c1954c95ecd61cf2c37f052a3e2ab27a65c89",
+      "identique_au_commit": true
+    },
+    {
+      "fichier": "plateau-mobile.js",
+      "http": 200,
+      "encodage": null,
+      "sha256": "f565329982abe4387657e03c86bdd08afc4bf504679297e227c289cd7142fdc0",
+      "identique_au_commit": true
+    },
+    {
+      "fichier": "plateau-multijoueur.js",
+      "http": 200,
+      "encodage": null,
+      "sha256": "f4125ebf34972da9d4c1f285f39d503d15e01b7ee583d539bfbd1151d13184cd",
+      "identique_au_commit": true
+    },
+    {
+      "fichier": "i18n/guide-resources.js",
+      "http": 200,
+      "encodage": "br",
+      "sha256": "c0acdd9fa05b89c424f87e07f2acc68843fae0b0a3be0432669f6ec60e7bab6b",
+      "identique_au_commit": true
+    }
+  ],
+  "supabase": "aucun accès",
+  "personnage_connecte": false,
+  "vercel": {
+    "id": "dpl_B87Di66B7pGuW8Dae7N77FbMh9tq",
+    "etat": "READY",
+    "cible": "production",
+    "commit": "5f137b44f05258dde646d4d6e0d85f3eb8c4570f",
+    "alias": [
+      "human-gambit.com",
+      "res-publica.vercel.app",
+      "www.human-gambit.com"
+    ],
+    "source": "connecteur Vercel get_deployment, 22/11/2026"
+  }
+}
