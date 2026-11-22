@@ -32,4 +32,4 @@ jobs:
           NODE_PATH: ./outils/e2e/node_modules
           CHROMIUM_PATH: /usr/bin/google-chrome
           HG_CHROMIUM: /usr/bin/google-chrome
-        run: node --test outils/bancs/banc-ordres-info-tactile-navigateur-20261113.cjs outils/bancs/banc-i18n-sovarka-infobulles-navigateur.cjs outils/bancs/banc-infobulles-navigateur.cjs
+        run: node --test --test-concurrency=1 outils/bancs/banc-ordres-info-tactile-navigateur-20261113.cjs outils/bancs/banc-i18n-sovarka-infobulles-navigateur.cjs outils/bancs/banc-infobulles-navigateur.cjs

@@ -96,7 +96,7 @@
   const visibles = p => [...p.querySelectorAll('button,a[href],input,textarea,select,[tabindex="0"]')]
     .filter(e => !e.disabled && e.getClientRects().length && getComputedStyle(e).visibility !== 'hidden');
   function fenetre() {
-    return [...document.querySelectorAll('.modal-overlay.open')]
+    return [...document.querySelectorAll('.modal-overlay.open:not(.hg-fenetre-en-attente)')]
       .sort((a,b) => (Number(getComputedStyle(a).zIndex)||0) - (Number(getComputedStyle(b).zIndex)||0)).at(-1) || null;
   }
   function suivreFenetre() {
@@ -113,7 +113,7 @@
         boite.setAttribute('role','dialog'); boite.setAttribute('aria-modal','true');
         boite.setAttribute('aria-label',courante.querySelector('.modal-title')?.textContent || 'Fenêtre');
         boite.tabIndex = -1;
-        (visibles(boite)[0] || boite).focus({preventScroll:true});
+        if (!courante.contains(document.activeElement)) (visibles(boite)[0] || boite).focus({preventScroll:true});
       }
     } else if (ancienne) {
       const retour = retoursFenetre.get(ancienne);
@@ -121,7 +121,7 @@
     }
   }
   const fenetres = new MutationObserver(suivreFenetre);
-  document.querySelectorAll('.modal-overlay').forEach(e => fenetres.observe(e,{attributes:true,attributeFilter:['class']}));
+  fenetres.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class']});
   document.addEventListener('keydown', e => {
     if (!petit.matches || !fenetreActive) return;
     if (e.key === 'Escape') {

@@ -1,0 +1,36 @@
+✔ L1 : bureau 1440 strictement identique au témoin avant mobile (3967.435528ms)
+✔ L1 : coque 375×667, panneaux uniques et navigation UI sans RPC (1778.678611ms)
+✔ L1 : coque 393×852, panneaux uniques et navigation UI sans RPC (1917.962604ms)
+✔ L1 : coque 412×915, panneaux uniques et navigation UI sans RPC (1784.649446ms)
+✔ L1 : coque 852×393, panneaux uniques et navigation UI sans RPC (1656.504261ms)
+✔ L1 : coque 768×1024, panneaux uniques et navigation UI sans RPC (1686.254069ms)
+✔ L2 : pas de panneau Lieux visibles, zones et clavier actifs (1331.940008ms)
+✔ L2 : pièces et actions accessibles en paysage (1733.119435ms)
+✔ L3 : longue modale, focus, fermeture existante et retour sans action métier (1706.904106ms)
+✔ L3 : chat paysage contenu dans l’écran, fenêtres au-dessus des flèches (1317.993375ms)
+✔ L6 contre-épreuve : ancien contrôleur immobile au toucher, contrôleur corrigé mobile et souris (2429.187578ms)
+✔ L6 : resize, pointeur étranger, annulation et perte de focus ne laissent aucun geste actif (1303.929068ms)
+✔ L6 : rubriques, liste et lecture sans débordement mobile ; bureau forum 1440 identique (14287.64095ms)
+✔ L6 : boutons historiques et champs dans une poignée ne déclenchent pas de déplacement (2194.838771ms)
+✔ L5 : inventaire long et tableau financier restent consultables sans mutation (2761.831574ms)
+✔ L8 : retour, panne et autre onglet bloquent le premier ordre sans le rejouer (2271.714795ms)
+✔ L4 : création réelle dans les six langues, explications et caractéristiques conservées (11224.094769ms)
+✔ L7 : rapport et décisions réels respectent les droits fournis par le serveur (1887.179685ms)
+✔ L9 : portraits réels différés dans le panneau fermé puis demandés à son ouverture (3206.545103ms)
+✔ L10 : téléphone masqué ne lit rien, retour visible attend la confirmation (1668.921347ms)
+✔ L8 : session refusée et authentification hors délai ne déclenchent aucun ordre ni chargement tardif (1563.166225ms)
+✔ Sovarka 360 : fenêtres réelles contenues et champs utilisables (10396.953567ms)
+✔ Sovarka 390 : fenêtres réelles contenues et champs utilisables (10044.373091ms)
+✔ Sovarka 768 : fenêtres réelles contenues et champs utilisables (9783.569479ms)
+✔ Bureau 1440 : pixels identiques au témoin avec le plancher de notes validé le 22/11 (21026.135648ms)
+✔ Contre-épreuve : sélecteur de local étroit dans le témoin (1989.479877ms)
+✔ Chromium : tactile 320/390, neuf langues, ordre normal/bloqué/gratuit/payant, clavier et position conservés (77727.548039ms)
+✔ bureau 1280 : rendu, title, clic et absence de bouton info identiques au main initial (2114.707603ms)
+ℹ tests 28
+ℹ suites 0
+ℹ pass 28
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 197966.515449

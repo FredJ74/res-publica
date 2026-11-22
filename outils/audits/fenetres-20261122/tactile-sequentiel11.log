@@ -1,0 +1,19 @@
+✔ Chromium Sovarka, téléphone 320 px : neuf langues, infobulles, badge et salon (1004.76992ms)
+✔ Chromium Sovarka, téléphone 390 px : neuf langues, infobulles, badge et salon (809.421528ms)
+✔ Chromium Sovarka, bureau 1280 px : neuf langues, infobulles, badge et salon (653.866211ms)
+✔ Chromium Républia, téléphone 320 px : neuf langues, infobulles, badge et salon (746.513268ms)
+✔ Chromium Républia, téléphone 390 px : neuf langues, infobulles, badge et salon (669.094087ms)
+✔ Chromium Républia, bureau 1280 px : neuf langues, infobulles, badge et salon (629.036201ms)
+✔ reproduction Chromium de la bulle persistante avec les anciens composants (636.975857ms)
+✔ Chromium 1280px : transitions, modal, evenement tardif et defilement (592.232246ms)
+✔ Chromium 390px : transitions, modal, evenement tardif et defilement (597.099653ms)
+✔ Chromium : tactile 320/390, neuf langues, ordre normal/bloqué/gratuit/payant, clavier et position conservés (77573.874638ms)
+✔ bureau 1280 : rendu, title, clic et absence de bouton info identiques au main initial (1911.222818ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 93278.049777

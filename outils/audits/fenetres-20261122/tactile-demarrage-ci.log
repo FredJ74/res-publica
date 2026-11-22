@@ -1,0 +1,42 @@
+descriptions-tactiles	Chromium mobile 320/390 et bureau 1280, neuf langues	﻿2026-11-22T18:34:07.9515945Z ##[group]Run node --test outils/bancs/banc-ordres-info-tactile-navigateur-20261113.cjs outils/bancs/banc-i18n-sovarka-infobulles-navigateur.cjs outils/bancs/banc-infobulles-navigateur.cjs
+descriptions-tactiles	Chromium mobile 320/390 et bureau 1280, neuf langues	2026-11-22T18:34:07.9517068Z [36;1mnode --test outils/bancs/banc-ordres-info-tactile-navigateur-20261113.cjs outils/bancs/banc-i18n-sovarka-infobulles-navigateur.cjs outils/bancs/banc-infobulles-navigateur.cjs[0m
+descriptions-tactiles	Chromium mobile 320/390 et bureau 1280, neuf langues	2026-11-22T18:34:07.9546739Z shell: /usr/bin/bash -e {0}
+descriptions-tactiles	Chromium mobile 320/390 et bureau 1280, neuf langues	2026-11-22T18:34:07.9546948Z env:
+descriptions-tactiles	Chromium mobile 320/390 et bureau 1280, neuf langues	2026-11-22T18:34:07.9547123Z   NODE_PATH: ./outils/e2e/node_modules
+descriptions-tactiles	Chromium mobile 320/390 et bureau 1280, neuf langues	2026-11-22T18:34:07.9547365Z   CHROMIUM_PATH: /usr/bin/google-chrome
+descriptions-tactiles	Chromium mobile 320/390 et bureau 1280, neuf langues	2026-11-22T18:34:07.9547605Z   HG_CHROMIUM: /usr/bin/google-chrome
+descriptions-tactiles	Chromium mobile 320/390 et bureau 1280, neuf langues	2026-11-22T18:34:07.9547827Z ##[endgroup]
+descriptions-tactiles	Chromium mobile 320/390 et bureau 1280, neuf langues	2026-11-22T18:34:36.2129825Z ✔ Chromium Sovarka, téléphone 320 px : neuf langues, infobulles, badge et salon (28157.433912ms)
+descriptions-tactiles	Chromium mobile 320/390 et bureau 1280, neuf langues	2026-11-22T18:34:36.7531801Z ✔ Chromium Sovarka, téléphone 390 px : neuf langues, infobulles, badge et salon (544.733942ms)
+descriptions-tactiles	Chromium mobile 320/390 et bureau 1280, neuf langues	2026-11-22T18:34:37.3595126Z ✔ Chromium Sovarka, bureau 1280 px : neuf langues, infobulles, badge et salon (607.822595ms)
+descriptions-tactiles	Chromium mobile 320/390 et bureau 1280, neuf langues	2026-11-22T18:34:38.0002383Z ✔ Chromium Républia, téléphone 320 px : neuf langues, infobulles, badge et salon (638.692179ms)
+descriptions-tactiles	Chromium mobile 320/390 et bureau 1280, neuf langues	2026-11-22T18:34:38.6480152Z ✔ Chromium Républia, téléphone 390 px : neuf langues, infobulles, badge et salon (648.504396ms)
+descriptions-tactiles	Chromium mobile 320/390 et bureau 1280, neuf langues	2026-11-22T18:34:39.2400969Z ✔ Chromium Républia, bureau 1280 px : neuf langues, infobulles, badge et salon (611.200019ms)
+descriptions-tactiles	Chromium mobile 320/390 et bureau 1280, neuf langues	2026-11-22T18:34:46.1483410Z ✖ reproduction Chromium de la bulle persistante avec les anciens composants (21113.969747ms)
+descriptions-tactiles	Chromium mobile 320/390 et bureau 1280, neuf langues	2026-11-22T18:34:46.1484160Z ✔ Chromium 1280px : transitions, modal, evenement tardif et defilement (6154.743224ms)
+descriptions-tactiles	Chromium mobile 320/390 et bureau 1280, neuf langues	2026-11-22T18:34:46.1485169Z ✔ Chromium 390px : transitions, modal, evenement tardif et defilement (891.763205ms)
+descriptions-tactiles	Chromium mobile 320/390 et bureau 1280, neuf langues	2026-11-22T18:35:47.5957159Z ✔ Chromium : tactile 320/390, neuf langues, ordre normal/bloqué/gratuit/payant, clavier et position conservés (99221.844541ms)
+descriptions-tactiles	Chromium mobile 320/390 et bureau 1280, neuf langues	2026-11-22T18:35:48.5961320Z ✔ bureau 1280 : rendu, title, clic et absence de bouton info identiques au main initial (1001.21251ms)
+descriptions-tactiles	Chromium mobile 320/390 et bureau 1280, neuf langues	2026-11-22T18:35:48.6185757Z ℹ tests 11
+descriptions-tactiles	Chromium mobile 320/390 et bureau 1280, neuf langues	2026-11-22T18:35:48.6186115Z ℹ suites 0
+descriptions-tactiles	Chromium mobile 320/390 et bureau 1280, neuf langues	2026-11-22T18:35:48.6186388Z ℹ pass 10
+descriptions-tactiles	Chromium mobile 320/390 et bureau 1280, neuf langues	2026-11-22T18:35:48.6186989Z ℹ fail 1
+descriptions-tactiles	Chromium mobile 320/390 et bureau 1280, neuf langues	2026-11-22T18:35:48.6187274Z ℹ cancelled 0
+descriptions-tactiles	Chromium mobile 320/390 et bureau 1280, neuf langues	2026-11-22T18:35:48.6187560Z ℹ skipped 0
+descriptions-tactiles	Chromium mobile 320/390 et bureau 1280, neuf langues	2026-11-22T18:35:48.6187821Z ℹ todo 0
+descriptions-tactiles	Chromium mobile 320/390 et bureau 1280, neuf langues	2026-11-22T18:35:48.6188134Z ℹ duration_ms 100632.819849
+descriptions-tactiles	Chromium mobile 320/390 et bureau 1280, neuf langues	2026-11-22T18:35:48.6193782Z 
+descriptions-tactiles	Chromium mobile 320/390 et bureau 1280, neuf langues	2026-11-22T18:35:48.6194370Z ✖ failing tests:
+descriptions-tactiles	Chromium mobile 320/390 et bureau 1280, neuf langues	2026-11-22T18:35:48.6194552Z 
+descriptions-tactiles	Chromium mobile 320/390 et bureau 1280, neuf langues	2026-11-22T18:35:48.6194890Z test at outils/bancs/banc-infobulles-navigateur.cjs:100:1
+descriptions-tactiles	Chromium mobile 320/390 et bureau 1280, neuf langues	2026-11-22T18:35:48.6195894Z ✖ reproduction Chromium de la bulle persistante avec les anciens composants (21113.969747ms)
+descriptions-tactiles	Chromium mobile 320/390 et bureau 1280, neuf langues	2026-11-22T18:35:48.6196819Z   Error: Initialisation Chromium depasse 20000 ms : point DevTools pas encore publie
+descriptions-tactiles	Chromium mobile 320/390 et bureau 1280, neuf langues	2026-11-22T18:35:48.6197760Z       at erreur (/home/runner/work/res-publica/res-publica/outils/bancs/fixtures/chromium-cdp.cjs:25:24)
+descriptions-tactiles	Chromium mobile 320/390 et bureau 1280, neuf langues	2026-11-22T18:35:48.6198851Z       at lancerChromium (/home/runner/work/res-publica/res-publica/outils/bancs/fixtures/chromium-cdp.cjs:79:11)
+descriptions-tactiles	Chromium mobile 320/390 et bureau 1280, neuf langues	2026-11-22T18:35:48.6200245Z       at async navigateur (/home/runner/work/res-publica/res-publica/outils/bancs/banc-infobulles-navigateur.cjs:49:17)
+descriptions-tactiles	Chromium mobile 320/390 et bureau 1280, neuf langues	2026-11-22T18:35:48.6201550Z       at async TestContext.<anonymous> (/home/runner/work/res-publica/res-publica/outils/bancs/banc-infobulles-navigateur.cjs:101:13)
+descriptions-tactiles	Chromium mobile 320/390 et bureau 1280, neuf langues	2026-11-22T18:35:48.6202514Z       at async Test.run (node:internal/test_runner/test:1409:7)
+descriptions-tactiles	Chromium mobile 320/390 et bureau 1280, neuf langues	2026-11-22T18:35:48.6203237Z       at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+descriptions-tactiles	Chromium mobile 320/390 et bureau 1280, neuf langues	2026-11-22T18:35:48.6203843Z     code: 'HG_CHROMIUM_TIMEOUT'
+descriptions-tactiles	Chromium mobile 320/390 et bureau 1280, neuf langues	2026-11-22T18:35:48.6204173Z   }
+descriptions-tactiles	Chromium mobile 320/390 et bureau 1280, neuf langues	2026-11-22T18:35:48.6261903Z ##[error]Process completed with exit code 1.

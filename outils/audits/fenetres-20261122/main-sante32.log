@@ -1,0 +1,40 @@
+✔ fenêtres sans chevauchement à 320px, saisies et commandes conservées (5941.961952ms)
+✔ fenêtres sans chevauchement à 390px, saisies et commandes conservées (5817.939762ms)
+✔ fenêtres sans chevauchement à 1280px, saisies et commandes conservées (5896.737711ms)
+✔ 52 clés, neuf langues, paramètres et français égaux au dictionnaire historique (16.369109ms)
+✔ terminal réel : neuf langues, RTL, saisies et données conservées sans nouvelle lecture (6144.205225ms)
+✔ terminal français 1440 : pixels identiques au main 336eace8 (4994.489694ms)
+✔ L1 : bureau 1440 strictement identique au témoin avant mobile (3885.74891ms)
+✔ L1 : coque 375×667, panneaux uniques et navigation UI sans RPC (2053.694026ms)
+✔ L1 : coque 393×852, panneaux uniques et navigation UI sans RPC (2035.659274ms)
+✔ L1 : coque 412×915, panneaux uniques et navigation UI sans RPC (2066.219159ms)
+✔ L1 : coque 852×393, panneaux uniques et navigation UI sans RPC (2070.717581ms)
+✔ L1 : coque 768×1024, panneaux uniques et navigation UI sans RPC (2070.359528ms)
+✔ L2 : pas de panneau Lieux visibles, zones et clavier actifs (1696.861718ms)
+✔ L2 : pièces et actions accessibles en paysage (2005.17197ms)
+✔ L3 : longue modale, focus, fermeture existante et retour sans action métier (2038.757578ms)
+✔ L3 : chat paysage contenu dans l’écran, fenêtres au-dessus des flèches (1605.568603ms)
+✔ L6 contre-épreuve : ancien contrôleur immobile au toucher, contrôleur corrigé mobile et souris (2873.483834ms)
+✔ L6 : resize, pointeur étranger, annulation et perte de focus ne laissent aucun geste actif (1444.702675ms)
+✔ L6 : rubriques, liste et lecture sans débordement mobile ; bureau forum 1440 identique (12636.21028ms)
+✔ L6 : boutons historiques et champs dans une poignée ne déclenchent pas de déplacement (1553.342093ms)
+✔ L5 : inventaire long et tableau financier restent consultables sans mutation (1827.993995ms)
+✔ L8 : retour, panne et autre onglet bloquent le premier ordre sans le rejouer (1911.631476ms)
+✔ L4 : création réelle dans les six langues, explications et caractéristiques conservées (9437.404774ms)
+✔ L7 : rapport et décisions réels respectent les droits fournis par le serveur (1917.459259ms)
+✔ L9 : portraits réels différés dans le panneau fermé puis demandés à son ouverture (2407.106644ms)
+✔ L10 : téléphone masqué ne lit rien, retour visible attend la confirmation (1674.816974ms)
+✔ L8 : session refusée et authentification hors délai ne déclenchent aucun ordre ni chargement tardif (1662.888271ms)
+✔ Sovarka 360 : fenêtres réelles contenues et champs utilisables (10412.216305ms)
+✔ Sovarka 390 : fenêtres réelles contenues et champs utilisables (10675.133125ms)
+✔ Sovarka 768 : fenêtres réelles contenues et champs utilisables (10726.484299ms)
+✔ Bureau 1440 : pixels identiques au témoin avec le plancher de notes validé le 22/11 (21116.525001ms)
+✔ Contre-épreuve : sélecteur de local étroit dans le témoin (2239.655602ms)
+ℹ tests 32
+ℹ suites 0
+ℹ pass 32
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 146737.894566

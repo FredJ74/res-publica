@@ -1,0 +1,15 @@
+✔ 52 clés, neuf langues, paramètres et français égaux au dictionnaire historique (9.66081ms)
+Skipping host requirements validation logic because `PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS` env variable is set.
+Pilote réel : webkit
+✔ terminal réel : neuf langues, RTL, saisies et données conservées sans nouvelle lecture (5137.576916ms)
+Skipping host requirements validation logic because `PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS` env variable is set.
+Pilote réel : webkit
+✔ terminal français 1440 : pixels identiques au main 336eace8 (6350.638586ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 11831.426532

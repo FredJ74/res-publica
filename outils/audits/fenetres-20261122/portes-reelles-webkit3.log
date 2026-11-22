@@ -1,0 +1,17 @@
+Skipping host requirements validation logic because `PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS` env variable is set.
+Pilote réel : webkit
+✔ fenêtres sans chevauchement à 320px, saisies et commandes conservées (9352.664199ms)
+Skipping host requirements validation logic because `PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS` env variable is set.
+Pilote réel : webkit
+✔ fenêtres sans chevauchement à 390px, saisies et commandes conservées (8826.962871ms)
+Skipping host requirements validation logic because `PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS` env variable is set.
+Pilote réel : webkit
+✔ fenêtres sans chevauchement à 1280px, saisies et commandes conservées (6023.514653ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 24879.128053

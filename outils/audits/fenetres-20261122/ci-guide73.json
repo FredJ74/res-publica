@@ -1,0 +1,376 @@
+{
+  "pr": 1178,
+  "date_utc": "2026-11-22T18:50:00.399355+00:00",
+  "head": "431b53cc32f4c59b8139e79153588ac1f6e29355",
+  "base_avant_fusion": "aadfc33254dea86d764855c58014c26f7f110289",
+  "merge": "d1a2c8994acb775256718d90b36b387d645d8b0c",
+  "base_donnees": "aucun accès",
+  "controles_verts": 73,
+  "controles": [
+    {
+      "nom": "pavillon",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055037410/job/137308260970"
+    },
+    {
+      "nom": "fidelity",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055037350/job/137308260894"
+    },
+    {
+      "nom": "naval",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055037205/job/137308260843"
+    },
+    {
+      "nom": "lisibilite",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055037295/job/137308260629"
+    },
+    {
+      "nom": "moteur-survie",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036805/job/137308259602"
+    },
+    {
+      "nom": "logements",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036893/job/137308259566"
+    },
+    {
+      "nom": "avertissement",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036779/job/137308259545"
+    },
+    {
+      "nom": "open-space",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036854/job/137308259528"
+    },
+    {
+      "nom": "parcours-immobilier",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036843/job/137308259520"
+    },
+    {
+      "nom": "agence-sociale",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036833/job/137308259338"
+    },
+    {
+      "nom": "verifier",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036856/job/137308259285"
+    },
+    {
+      "nom": "mesurer-le-payload",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036718/job/137308259252"
+    },
+    {
+      "nom": "premiere-rue",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036655/job/137308259215"
+    },
+    {
+      "nom": "passeur-i18n",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036761/job/137308259187"
+    },
+    {
+      "nom": "images-et-pieces",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036644/job/137308259144"
+    },
+    {
+      "nom": "descriptions-krasnov",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036782/job/137308259135"
+    },
+    {
+      "nom": "controle",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036653/job/137308259091"
+    },
+    {
+      "nom": "i18n-publicite",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036765/job/137308259090"
+    },
+    {
+      "nom": "presse",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036738/job/137308259060"
+    },
+    {
+      "nom": "foret",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036770/job/137308259016"
+    },
+    {
+      "nom": "socle",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036604/job/137308258960"
+    },
+    {
+      "nom": "building-categories",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036672/job/137308258905"
+    },
+    {
+      "nom": "republia",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036620/job/137308258898"
+    },
+    {
+      "nom": "audit",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036680/job/137308258886"
+    },
+    {
+      "nom": "parcours-statique",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036721/job/137308258872"
+    },
+    {
+      "nom": "sante-consommation",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036727/job/137308258870"
+    },
+    {
+      "nom": "vehicules-garage",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036711/job/137308258853"
+    },
+    {
+      "nom": "interieurs",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036694/job/137308258809"
+    },
+    {
+      "nom": "dealer",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036720/job/137308258807"
+    },
+    {
+      "nom": "coherence",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036629/job/137308258804"
+    },
+    {
+      "nom": "pieces-communes",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036651/job/137308258801"
+    },
+    {
+      "nom": "exit-feedback",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036683/job/137308258789"
+    },
+    {
+      "nom": "occupation",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036675/job/137308258783"
+    },
+    {
+      "nom": "checks",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036689/job/137308258750"
+    },
+    {
+      "nom": "plan-traduit",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036641/job/137308258746"
+    },
+    {
+      "nom": "refus-actions",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036602/job/137308258636"
+    },
+    {
+      "nom": "medecin",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036631/job/137308258595"
+    },
+    {
+      "nom": "verifier",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036483/job/137308258579"
+    },
+    {
+      "nom": "interview",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036714/job/137308258577"
+    },
+    {
+      "nom": "coherence",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036599/job/137308258575"
+    },
+    {
+      "nom": "clinic",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036622/job/137308258571"
+    },
+    {
+      "nom": "biographies",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036606/job/137308258507"
+    },
+    {
+      "nom": "bancs-hors-production",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036550/job/137308258498"
+    },
+    {
+      "nom": "navigation",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036618/job/137308258497"
+    },
+    {
+      "nom": "krasnov",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036535/job/137308258487"
+    },
+    {
+      "nom": "registre",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036628/job/137308258472"
+    },
+    {
+      "nom": "inventaire",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036612/job/137308258460"
+    },
+    {
+      "nom": "aide",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036600/job/137308258425"
+    },
+    {
+      "nom": "repertoire",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036611/job/137308258415"
+    },
+    {
+      "nom": "identite",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036552/job/137308258382"
+    },
+    {
+      "nom": "reservation-et-repos",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036566/job/137308258346"
+    },
+    {
+      "nom": "visual",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036570/job/137308258320"
+    },
+    {
+      "nom": "climat",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036572/job/137308258293"
+    },
+    {
+      "nom": "verifier",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036540/job/137308258290"
+    },
+    {
+      "nom": "recrutement-i18n",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036578/job/137308258265"
+    },
+    {
+      "nom": "corps-notifications",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036567/job/137308258191"
+    },
+    {
+      "nom": "chantier",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036510/job/137308258149"
+    },
+    {
+      "nom": "dialogues",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036509/job/137308257992"
+    },
+    {
+      "nom": "descriptions-goulag",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036123/job/137308257331"
+    },
+    {
+      "nom": "organisations",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036042/job/137308256984"
+    },
+    {
+      "nom": "navigateur",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036068/job/137308256982"
+    },
+    {
+      "nom": "descriptions-tactiles",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036036/job/137308256914"
+    },
+    {
+      "nom": "salles",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036076/job/137308256785"
+    },
+    {
+      "nom": "ventes-diners",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036038/job/137308256762"
+    },
+    {
+      "nom": "exploration",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036073/job/137308256727"
+    },
+    {
+      "nom": "informateurs",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036057/job/137308256673"
+    },
+    {
+      "nom": "building-header",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036037/job/137308256627"
+    },
+    {
+      "nom": "vehicules",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055036031/job/137308256486"
+    },
+    {
+      "nom": "verifier",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055030027/job/137308236903"
+    },
+    {
+      "nom": "salles",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055030093/job/137308236781"
+    },
+    {
+      "nom": "avertissement",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055030100/job/137308236761"
+    },
+    {
+      "nom": "navigation",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055030045/job/137308236735"
+    },
+    {
+      "nom": "coherence",
+      "conclusion": "success",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/45055030081/job/137308236657"
+    }
+  ]
+}

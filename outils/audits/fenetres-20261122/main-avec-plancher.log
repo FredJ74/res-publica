@@ -1,0 +1,96 @@
+✔ 21 clés, neuf langues, paramètres identiques (10.989325ms)
+✔ entrepôt : stock civil, prix, interdiction et saisie inchangés en neuf langues (3572.740037ms)
+✔ notaire : même recherche, résultats et panne partielle, bascule sans perdre le nom (1756.161433ms)
+✔ français 1440 : entrepôt et résultats notariaux identiques au main (3574.282903ms)
+✔ 79 clés complètes dans neuf langues ; toutes les tables officielles correspondent au français (4.949155ms)
+✔ aucune propriété officielle ajoutée ou modifiée, aucun contenu commercial réécrit (14.020937ms)
+✔ vraies fiches : neuf langues à chaud, RTL, données et saisie conservées sur mobile (2002.191907ms)
+✖ bureau 1440 : fiches françaises pixel-identiques au main 7aafbb9f (3474.722851ms)
+✔ 52 clés, neuf langues, paramètres et français égaux au dictionnaire historique (20.241721ms)
+✖ terminal réel : neuf langues, RTL, saisies et données conservées sans nouvelle lecture (1630.995424ms)
+✖ terminal français 1440 : pixels identiques au main 336eace8 (3934.72935ms)
+✔ 21 clés, neuf langues, paramètres et chiffres des origines préservés (23.520335ms)
+✔ port et douanes : neuf langues, lecture unique, pas de commande ni modification (4453.069263ms)
+✖ français à 1440 : port et effectifs pixel-identiques au main 336eace8 (3859.113128ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 10
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 30741.37485
+
+✖ failing tests:
+
+test at outils/bancs/banc-i18n-fiches-produits.cjs:41:1
+✖ bureau 1440 : fiches françaises pixel-identiques au main 7aafbb9f (3474.722851ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  -1 !== 0
+  
+      at /workspace/hg-main-controle/outils/bancs/banc-i18n-fiches-produits.cjs:42:266
+      at async avecJeu (/workspace/hg-main-controle/outils/bancs/mobile-navigateur.cjs:15:200)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: -1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-i18n-gestion-commerce.cjs:19:1
+✖ terminal réel : neuf langues, RTL, saisies et données conservées sans nouvelle lecture (1630.995424ms)
+  AssertionError [ERR_ASSERTION]: fr 360
+  
+  true !== false
+  
+      at /workspace/hg-main-controle/outils/bancs/banc-i18n-gestion-commerce.cjs:22:1493
+      at async avecJeu (/workspace/hg-main-controle/outils/bancs/mobile-navigateur.cjs:15:200)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-i18n-gestion-commerce.cjs:25:1
+✖ terminal français 1440 : pixels identiques au main 336eace8 (3934.72935ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at /workspace/hg-main-controle/outils/bancs/banc-i18n-gestion-commerce.cjs:26:522
+      at async avecJeu (/workspace/hg-main-controle/outils/bancs/mobile-navigateur.cjs:15:200)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-i18n-port-douanes.cjs:13:1
+✖ français à 1440 : port et effectifs pixel-identiques au main 336eace8 (3859.113128ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at /workspace/hg-main-controle/outils/bancs/banc-i18n-port-douanes.cjs:13:636
+      at async avecJeu (/workspace/hg-main-controle/outils/bancs/mobile-navigateur.cjs:15:200)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
