@@ -1,6 +1,22 @@
 // HTML/CSS et présentation réels ; aucun serveur de jeu, identité ou ordre.
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
-const {R,temoin,lecture,preuve,avecJeu,page,jaugesSanteTemoin}=require('./mobile-navigateur.cjs');
+const {R,temoin,lecture,preuve,avecJeu,page}=require('./mobile-navigateur.cjs');
+// Témoin de l'épreuve L1 (bureau 1440), renouvelé le 22/11/2026 : témoin 728010c8-human-gambit dont seuls le bloc HTML
+// « PA / Santé / Moral + Argent » et le bloc CSS des jauges sont repris de main (GAME-DESIGN-SANTE-20261122.md, point 14 ;
+// différence vérifiée sur capture, bureau et mobile). Il est servi tel quel : aucune injection, aucun masque, aucune tolérance.
+const zlibL1=require('node:zlib'),cryptoL1=require('node:crypto');
+const archiveL1=fs.readFileSync(path.join(__dirname,'fixtures/mobile-coque-l1-temoin-728010c8-jauges-20261122.json.gz'));
+assert.equal(cryptoL1.createHash('sha256').update(archiveL1).digest('hex'),'d5dfa86b52301265ab9a2bf33c1e20c3535da3b04df3557ebdd9a7889e000980');
+const temoinL1=JSON.parse(zlibL1.gunzipSync(archiveL1));
+assert.equal(temoinL1.commit,temoin.commit);
+async function pageTemoinL1(b,o){
+ const c=await b.newContext({viewport:{width:1440,height:900},hasTouch:false});
+ await c.route('**/*',r=>{const url=new URL(r.request().url());if(url.origin!==o)return r.abort();
+  if(url.pathname==='/plateau.html')return r.fulfill({contentType:'text/html',body:temoinL1.fichiers['plateau.html'].replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')});
+  return r.continue();});
+ const p=await c.newPage();p.setDefaultTimeout(5000);await p.goto(o+'/plateau.html');
+ await p.addStyleTag({content:temoinL1.fichiers['style.css']});await p.waitForTimeout(500);return p;
+}
 // Le libellé « Règles » est devenu « Aide » (aide HRP, PR #720) : texte voulu, sans rapport avec le CSS mobile
 // que ces comparaisons surveillent. On l'aligne sur les deux pages avant la capture.
 // De même, le bouton « Se déconnecter » du menu (PR #1067, voulu, absent du témoin 728010c) est retiré avant capture.
@@ -13,9 +29,9 @@ const ENTETE_MOBILE=['plateau-mobile-identite-20261117.js','plateau-mobile-entet
 const pageMobile=async(b,o,w,h)=>{const p=await page(b,o,w,h);for(const f of ENTETE_MOBILE)await p.addScriptTag({url:o+'/'+f});await p.waitForTimeout(200);return p;};
 const ACCES={personnage:'#hg-mobile-brand',menu:'[data-hg-panneau=menu]'};
 test('L1 : bureau 1440 strictement identique au témoin avant mobile',async()=>avecJeu(async(b,o)=>{
- const a=await page(b,o,1440,900,true),n=await page(b,o,1440,900);
+ const a=await pageTemoinL1(b,o),n=await page(b,o,1440,900);
  // Le témoin doit remplacer, pas compléter, la feuille courante.
- await a.locator('link[rel=stylesheet]').evaluateAll(es=>es.forEach(e=>e.remove()));await a.addStyleTag({content:lecture('style.css',true).toString()});await a.addStyleTag({content:lecture('rue-centrale.css',true).toString()});await jaugesSanteTemoin(a);await a.waitForTimeout(400);await memeLibelleAide(a);await memeLibelleAide(n);
+ await a.locator('link[rel=stylesheet]').evaluateAll(es=>es.forEach(e=>e.remove()));await a.addStyleTag({content:temoinL1.fichiers['style.css']});await a.addStyleTag({content:temoinL1.fichiers['rue-centrale.css']});await a.waitForTimeout(400);await memeLibelleAide(a);await memeLibelleAide(n);
  const avant=await a.screenshot(),apres=await n.screenshot();preuve('plateau-1440-avant.png',avant);preuve('plateau-1440-apres.png',apres);assert.ok(apres.equals(avant),'pixels du plateau bureau inchangés');
 }));
 for(const [w,h] of [[375,667],[393,852],[412,915],[852,393],[768,1024]])test(`L1 : coque ${w}×${h}, panneaux uniques et navigation UI sans RPC`,async()=>avecJeu(async(b,o)=>{
