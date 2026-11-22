@@ -4,7 +4,9 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const vm=require('node:vm');
 const {createHash,createHmac,timingSafeEqual}=require('node:crypto');
-const source=fs.readFileSync('api/jodie-portrait.js','utf8')
+// Antennes de presse (module importé par l'API) chargées dans le même contexte, sans « export ».
+const antennes=fs.readFileSync('api/_presse-antennes.js','utf8').replace(/^export /gm,'');
+const source=antennes+'\n'+fs.readFileSync('api/jodie-portrait.js','utf8')
   .replace(/^import .*;\s*$/gm,'')
   .replace('export default async function handler','async function handler');
 const INVITE="Un portrait pour L'Autruche Entravée ?";
@@ -19,7 +21,7 @@ async function scenario({user=true,owner=true,invite=true,refuse=false,postFailu
       let rows=[];
       if(table==='personnages_donnees') rows=owner?[{name:'Arnie'}]:[];
       if(table==='personnages') rows=[{created_at:new Date(Date.now()-2*86400000).toISOString()}];
-      if(table==='mails') rows=[...(invite?[{subject:INVITE}]:[]),...(refuse?[{subject:REFUS}]:[])];
+      if(table==='mails') rows=[...(invite?[{id:'m1',from_player:'Jodie Moitout',subject:INVITE}]:[]),...(refuse?[{id:'m2',from_player:'Jodie Moitout',subject:REFUS}]:[])];
       if(table==='forum_topics') rows=[...topics.values()];
       if(table==='forum_posts') rows=[...posts.values()];
       const id=u.searchParams.get('id');

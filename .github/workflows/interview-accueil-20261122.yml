@@ -1,0 +1,34 @@
+name: "Interview d'accueil — journaliste de la ville, premier jour, courrier lisible"
+on:
+  pull_request:
+    paths: [api/jodie-portrait.js, api/_presse-antennes.js, api/_journal-generation.js, plateau-communication.js, forum.js, style.css, plateau.html, 'migrations/20261122150000_interview_accueil_invitation_serveur.sql', 'outils/bancs/*interview-accueil*', 'outils/bancs/fixtures/interview-accueil-*', 'outils/bancs/banc-jodie-*', 'outils/bancs/banc-forum-voyants-reconnexion-20261103.cjs', 'outils/bancs/banc-mails-defilement-navigateur.cjs', .github/workflows/interview-accueil-20261122.yml]
+  push:
+    branches: [main, 'claude/**']
+    paths: [api/jodie-portrait.js, api/_presse-antennes.js, api/_journal-generation.js, plateau-communication.js, forum.js, style.css, plateau.html, 'migrations/20261122150000_interview_accueil_invitation_serveur.sql', 'outils/bancs/*interview-accueil*', 'outils/bancs/fixtures/interview-accueil-*', 'outils/bancs/banc-jodie-*', 'outils/bancs/banc-forum-voyants-reconnexion-20261103.cjs', 'outils/bancs/banc-mails-defilement-navigateur.cjs', .github/workflows/interview-accueil-20261122.yml]
+permissions:
+  contents: read
+jobs:
+  interview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
+      - name: Serveur et listes d'antennes
+        run: |
+          node --check plateau-communication.js && node --check forum.js
+          node --test outils/bancs/banc-interview-accueil-antennes-20261122.cjs
+          node outils/bancs/banc-jodie-portrait-api.cjs
+          node outils/bancs/banc-jodie-portraits-journal.cjs
+          node --test outils/bancs/banc-forum-voyants-reconnexion-20261103.cjs
+      - name: Chromium réel
+        env:
+          HG_CHROMIUM: /usr/bin/google-chrome
+        run: node --test outils/bancs/banc-interview-accueil-navigateur-20261122.cjs outils/bancs/banc-jodie-interview-navigateur.cjs outils/bancs/banc-mails-defilement-navigateur.cjs
+      - name: PostgreSQL local (PGlite)
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund --prefix "$RUNNER_TEMP/pglite" @electric-sql/pglite@0.2.17
+          PGLITE_DIR="$RUNNER_TEMP/pglite" node --test outils/bancs/banc-interview-accueil-pglite-20261122.cjs

@@ -32,6 +32,33 @@ Règles : voir `AGENTS.md`.
   `t_logement_social`, `t_building`, `t_inconnu`, `aller`, `panne`) ; phrase de `ouvrirTerrainsVille` « N parcelles. Cliquez sur une
   vignette ou sur un onglet pour vous rendre sur un lot. ». L'élision « d’Arnie » est faite en français seulement (voyelle ou h).
 - **À tester par Fred** : Luthécia, rue des terrains → « Terrains à Bâtir » ; Port-Sainte-Marie et Montrouge, « Terrains à bâtir ».
+### Étape H — interview d'accueil des nouveaux personnages (Claude, 22/11/2026) — décisions : GAME-DESIGN-INTERVIEW-ACCUEIL-20261121.md
+- **Branche `claude/interview-accueil-20261122`**, non fusionnée. **Migration écrite, NON APPLIQUÉE** :
+  `20261122150000_interview_accueil_invitation_serveur` (retire au navigateur le droit d'écrire au nom de Jodie Moitout ;
+  le déclencheur `jodie_portrait_vers_journal` reprend aussi dans le journal les portraits des cinq autres journalistes
+  d'antenne). Éprouvée sur PGlite (`banc-interview-accueil-pglite-20261122.cjs`, 4/4). Sans danger avant ou après le code.
+- **Cause de l'envoi refusé de Tom Tom** : `personnages.created_at` est sans fuseau ; le navigateur le lisait en heure de
+  Paris (Tom Tom « âgé » de 24 h 13), le serveur en UTC (23 h 13) : invitation écrite par le navigateur, réponses refusées
+  par le verrou « Portrait disponible après le premier jour ». Ce verrou n'existait que parce que l'invitation, écrite par
+  le navigateur, était falsifiable.
+- **Fait** : liste des antennes `api/_presse-antennes.js` (copie conforme `PRESSE_ANTENNES_ACCUEIL`, plateau-communication.js) ;
+  invitation, refus, état, rédaction et publication par `/api/jodie-portrait` (actions `inviter`, `refuser`, `etat`, `apercu`,
+  `publier` ; aucune nouvelle fonction Vercel) ; invitation par le journaliste de la ville (Jodie = Luthécia seulement),
+  sujet « Un portrait pour <journal> ? » (celui de Jodie inchangé) ; verrou du premier jour retiré des réponses (le délai d'un
+  jour avant l'ENVOI de l'invitation est gardé, heure UTC exacte) ; boutons sous l'invitation seulement si le serveur confirme
+  qu'on peut répondre (sinon message, panne = « Réessayer ») ; réponse vide = retour à la question ; portrait signé par le
+  journaliste qui a invité, dans son pays ; sollicitation « Jodie Moitout aimerait vous interviewer » (journal) réservée aux
+  personnages de Luthécia ; question lisible (18 px, quasi blanc, casse normale), contrastes AA mesurés ; titre de fenêtre
+  « Courrier »/« Forum » ; compteur de la Boîte Mail « N messages · M non lu(s) ».
+- **Antennes sans journaliste nommé** (pays non jouables, aucune invitation) : El Estado et Khalija, capitale et deux villes
+  chacun (PNJ génériques « Periodista Miedo », « Journaliste Local », « Journaliste Pétrole »…). « caserne » n'a pas d'antenne.
+- **Pour Codex (traductions)** : `PORTRAIT_TXT` (plateau-communication.js, toutes les clés) ; toasts du portrait réécrits
+  (« Vous avez décliné l'interview de {journaliste}. », « {journaliste} a publié votre portrait… », « Portrait prêt »,
+  « Interview impossible », « Rédaction injoignable », « Refus non enregistré », « Envoi non abouti », « Il manque la réponse… ») ;
+  `forumUI.mailWindowTitle` (« Courrier »), `forumUI.forumWindowTitle` (« Forum »), compteur `messages` de `RPForumUI.count`
+  (« 1 message » / « N messages ») ; courriers d'invitation et de refus (textes serveur, `api/jodie-portrait.js`).
+- **Baseline (Codex)** : `jodie_portrait_vers_journal` et la ligne `Jodie Moitout` de `mails_expediteurs_systeme` changent
+  après application.
 ### Mission de la nuit du 22/11/2026 (Claude) — décisions : GAME-DESIGN-MISSION-NUIT-20261122.md
 - **Partage du travail** : Codex = logo du plateau et son témoin au pixel, courrier de bienvenue et ses traductions, fenêtres sans
   chevauchement, recette isolée de la PR #1176 (navigateur et tests seulement). Claude = tout le reste, seul à appliquer des migrations.
