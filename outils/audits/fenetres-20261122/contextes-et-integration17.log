@@ -1,0 +1,25 @@
+✔ fenêtres sans chevauchement à 320px, saisies et commandes conservées (5277.32553ms)
+✔ fenêtres sans chevauchement à 390px, saisies et commandes conservées (4878.852328ms)
+✔ fenêtres sans chevauchement à 1280px, saisies et commandes conservées (4877.216645ms)
+✔ 21 clés, neuf langues, paramètres identiques (7.072027ms)
+✔ entrepôt : stock civil, prix, interdiction et saisie inchangés en neuf langues (1873.744557ms)
+✔ notaire : même recherche, résultats et panne partielle, bascule sans perdre le nom (1538.10668ms)
+✔ français 1440 : entrepôt et résultats notariaux identiques au main (2768.995982ms)
+✔ 79 clés complètes dans neuf langues ; toutes les tables officielles correspondent au français (5.591012ms)
+✔ aucune propriété officielle ajoutée ou modifiée, aucun contenu commercial réécrit (13.930248ms)
+✔ vraies fiches : neuf langues à chaud, RTL, données et saisie conservées sur mobile (1877.554171ms)
+✔ bureau 1440 : fiches françaises pixel-identiques au main 7aafbb9f (2554.150836ms)
+✔ 52 clés, neuf langues, paramètres et français égaux au dictionnaire historique (14.28918ms)
+✔ terminal réel : neuf langues, RTL, saisies et données conservées sans nouvelle lecture (3240.017783ms)
+✔ terminal français 1440 : pixels identiques au main 336eace8 (3169.157585ms)
+✔ 21 clés, neuf langues, paramètres et chiffres des origines préservés (13.882628ms)
+✔ port et douanes : neuf langues, lecture unique, pas de commande ni modification (2363.751238ms)
+✔ français à 1440 : port et effectifs pixel-identiques au main 336eace8 (2616.218788ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 39270.665918

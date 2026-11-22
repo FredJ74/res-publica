@@ -2057,6 +2057,7 @@ let _chatNotifInterval = null;
 function toggleChatPiece() {
   const panel = document.getElementById('chat-piece-panel');
   if (!panel) return;
+  if (window.rpReprendreFenetre?.(panel)) return;
   const ouvert = panel.style.display !== 'none';
   if (ouvert) {
     panel.style.display = 'none';
@@ -2094,6 +2095,7 @@ function chatLibelleParticipant(id) {
 }
 async function ouvrirConversationAvec(nom, jeton) {
   const panel = document.getElementById('chat-piece-panel');
+  window.rpReprendreFenetre?.(panel);
   if (panel) panel.style.display = 'flex';
   await chatRafraichirAlias();
   const autre = jeton ? 'masque:' + String(jeton).replace(/[^0-9a-f-]/gi, '') : nom;

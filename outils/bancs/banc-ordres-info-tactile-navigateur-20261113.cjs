@@ -10,6 +10,7 @@ async function setup(page,original=false){
  await page.route('**/*',r=>r.abort());
  await page.setContent('<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body class="plateau-body"><button data-hg-panneau="personnage" hidden></button><button data-hg-panneau="personnes" hidden></button><button data-hg-panneau="menu" hidden></button><button id="hg-mobile-fond" hidden></button><div id="action-context-bat"></div><div id="actions-row-bat" class="actions-row"></div><div id="modal-postes" class="modal-overlay"><div class="modal-box"><div class="modal-header"><h2 class="modal-title">Écran précédent</h2><button class="modal-close" onclick="window.underlyingClosed++;this.closest(\'.modal-overlay\').classList.remove(\'open\')">Fermer</button></div><div id="postes-body"></div></div></div><div style="height:1000px"></div></body></html>');
  await page.addStyleTag({content:original?old('style.css'):read('style.css')});
+ await page.addScriptTag({content:read('plateau-texte-minimum.js')});
  await page.addScriptTag({path:path.join(assets,'i18n/i18next.min.js')});
  await page.evaluate(()=>{
   window.RP_I18N_GAME_ENABLED=true;window.RPPlateauI18n={language:()=>i18next.language||'fr'};
@@ -44,7 +45,10 @@ async function setup(page,original=false){
   window.snapshot=()=>JSON.stringify({state,calls,toasts,orders});
   window.buttonSnapshots=()=>[...document.querySelectorAll('.action-btn')].map(b=>({html:b.innerHTML,onclick:b.getAttribute('onclick'),title:b.title,disabled:b.disabled,classes:b.className}));
  });
- if(!original)await page.addScriptTag({content:read('plateau-ordres-info.js')});
+ if(!original){
+  await page.addScriptTag({content:read('plateau-fenetres.js')});
+  await page.addScriptTag({content:read('plateau-ordres-info.js')});
+ }
  await page.addScriptTag({content:read('plateau-mobile.js')});
 }
 test('Chromium : tactile 320/390, neuf langues, ordre normal/bloqué/gratuit/payant, clavier et position conservés',async()=>{
@@ -78,8 +82,10 @@ test('Chromium : tactile 320/390, neuf langues, ordre normal/bloqué/gratuit/pay
   assert.equal(await page.evaluate(()=>outsideInfo),0,'aucune fermeture globale ni lecture auxiliaire');
   // Fenêtre et brouillon sous le dialogue : ni remplacement ni fermeture.
   await page.evaluate(()=>{const m=document.getElementById('modal-postes');m.classList.add('open');document.getElementById('postes-body').innerHTML='<textarea id="draft">Brouillon intact</textarea><div class="actions-row" id="nested"></div><div style="height:900px"></div>';document.getElementById('nested').append(originalButtons[0].parentElement);m.querySelector('.modal-box').scrollTop=30;});
-  await page.locator('#nested .rp-order-info-button').tap();
+  // Mesurer avant l'ouverture : le parent est désormais invisible pendant l'information.
   const saved=await page.evaluate(()=>document.querySelector('#modal-postes .modal-box').scrollTop);
+  assert.equal(saved,30);
+  await page.locator('#nested .rp-order-info-button').tap();
   // Le vrai gestionnaire mobile ne doit pas intercepter Tab/Échap du dialogue supérieur.
 
   for(const l of ['ar','ru','de','fr']){await page.evaluate(l=>i18next.changeLanguage(l),l);assert.ok((await page.locator('dialog .modal-title').textContent()).startsWith(await page.evaluate(()=>i18next.t('plateau.description'))));}

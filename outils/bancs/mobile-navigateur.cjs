@@ -27,7 +27,13 @@ async function page(b,o,w,h,ancien=false,options={}) {
  const p=await c.newPage();p.setDefaultTimeout(5000);
  await p.goto(o+'/plateau.html'+(ancien?'?ancien':''));
  if(ancien)await p.addStyleTag({content:lecture('style.css',true).toString()});
- else await p.addScriptTag(options.mobileSource?{content:options.mobileSource}:{url:o+'/plateau-mobile.js'});
+ else {
+  // Les bancs historiques isolent leurs rendus antérieurs au plancher de texte.
+  // Le chargement conjoint est explicite dans les recettes d'intégration actuelles.
+  if (options.texteMinimum) await p.addScriptTag({url:o+'/plateau-texte-minimum.js'});
+  await p.addScriptTag({url:o+'/plateau-fenetres.js'});
+  await p.addScriptTag(options.mobileSource?{content:options.mobileSource}:{url:o+'/plateau-mobile.js'});
+ }
  await p.waitForTimeout(500);return p;
 }
 

@@ -1,0 +1,56 @@
+{
+  "date_utc": "2026-11-22T18:51:07.721391+00:00",
+  "alias": "https://human-gambit.com",
+  "commit_attendu": "d1a2c8994acb775256718d90b36b387d645d8b0c",
+  "ressources": [
+    {
+      "fichier": "plateau.html",
+      "http": 200,
+      "encodage": null,
+      "sha256": "ae20f735f0b0ba69c8e511b4d88bdee08e274edd9c56de2d9652acae30326c9c",
+      "identique_au_commit": true
+    },
+    {
+      "fichier": "plateau-personnage.js",
+      "http": 200,
+      "encodage": null,
+      "sha256": "5e9632110376109db614dde623d2b7c30e011a9b433d3ea1c7bc676926f1173c",
+      "identique_au_commit": true
+    },
+    {
+      "fichier": "i18n/guide-resources.js",
+      "http": 200,
+      "encodage": "br",
+      "sha256": "c0acdd9fa05b89c424f87e07f2acc68843fae0b0a3be0432669f6ec60e7bab6b",
+      "identique_au_commit": true
+    },
+    {
+      "fichier": "i18n/guide-integrity.js",
+      "http": 200,
+      "encodage": null,
+      "sha256": "2381b4c11b3803d5c29033573b6dea19681b26ce7b6a7ad0464857bfc4610db0",
+      "identique_au_commit": true
+    },
+    {
+      "fichier": "style.css",
+      "http": 200,
+      "encodage": null,
+      "sha256": "cd5fede2d24ddf42dfbd0680ef332a8193583da31e6aea138c08c5e7d400d01f",
+      "identique_au_commit": true
+    }
+  ],
+  "supabase": "aucun accès",
+  "personnage_connecte": false,
+  "vercel": {
+    "id": "dpl_4o2eFnF3gVBWmZLAi3VtSe31stpb",
+    "etat": "READY",
+    "cible": "production",
+    "commit": "d1a2c8994acb775256718d90b36b387d645d8b0c",
+    "alias": [
+      "human-gambit.com",
+      "res-publica.vercel.app",
+      "www.human-gambit.com"
+    ],
+    "source": "connecteur Vercel get_deployment, 22/11/2026"
+  }
+}

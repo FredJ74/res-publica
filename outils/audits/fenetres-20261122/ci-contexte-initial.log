@@ -1,0 +1,589 @@
+bancs-hors-production	Bancs JavaScript, transports simulés	﻿2026-11-22T14:28:29.2712520Z ##[group]Run python3 outils/bancs/controler-client.py --rapport /tmp/hg-bancs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:28:29.2713048Z [36;1mpython3 outils/bancs/controler-client.py --rapport /tmp/hg-bancs[0m
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:28:29.2732531Z shell: /usr/bin/bash -e {0}
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:28:29.2732783Z env:
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:28:29.2733043Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.16/x64
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:28:29.2733463Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.16/x64/lib/pkgconfig
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:28:29.2733890Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.16/x64
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:28:29.2734260Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.16/x64
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:28:29.2734619Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.16/x64
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:28:29.2734981Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.16/x64/lib
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:28:29.2735409Z   NODE_PATH: /home/runner/work/res-publica/res-publica/outils/e2e/node_modules
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:28:29.2735918Z ##[endgroup]
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:28:29.4287118Z OK  banc-acces-reserve-20261112.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:28:29.5934331Z OK  banc-accueil-neuf-langues.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:28:29.7584711Z OK  banc-achats-cle-unicite-ecran.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:28:29.8732985Z OK  banc-acte-notaire-solde.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:28:30.0383684Z OK  banc-administration-client.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:28:30.3542247Z OK  banc-aide-avancee.mjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:28:30.5693889Z OK  banc-aide-corpus.mjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:28:30.6842922Z OK  banc-aide-hrp.mjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:28:46.9966564Z OK  banc-aide-interface.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:28:47.2119796Z OK  banc-aide-multilingue.mjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:29:22.9759504Z OK  banc-aide-neuf-langues-navigateur.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:29:23.1408890Z OK  banc-ambassades-bientot-20261101.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:29:23.2558437Z OK  banc-amendes-tresor.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:29:23.4710604Z OK  banc-annuaire-territoires.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:29:23.5358305Z OK  banc-api-supabase.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:29:23.6508416Z OK  banc-appro-chantier.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:29:23.8161100Z OK  banc-archives-musee.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:29:23.9814771Z OK  banc-assemblee-hall.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:29:25.1990410Z OK  banc-audit-i18n-global.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:29:25.7150601Z OK  banc-autorite-detecteurs.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:29:25.8298382Z OK  banc-avis-de-recherche.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:29:25.9949427Z OK  banc-avis-personnels-expediteurs.mjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:29:26.2605663Z OK  banc-banque-guichet-135.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:29:26.3753462Z OK  banc-barreau-temoins-client.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:29:26.5404000Z OK  banc-caisses-accueil-communal.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:29:26.7555240Z OK  banc-caisses-collectives-client.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:29:26.8705473Z OK  banc-caisses-dialogue-lisibilite-20261031.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:29:26.9856211Z OK  banc-calendrier-electoral.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:29:27.1506393Z OK  banc-calendrier-succession.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:29:27.2655545Z OK  banc-candidatures-nocturnes.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:29:27.3813710Z OK  banc-carrieres-creation-et-audience-client.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:29:27.5469968Z OK  banc-caserne-parite-menus-20261113.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:29:27.7123035Z OK  banc-catalogue-manufactures-20261104.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:29:27.8773968Z OK  banc-ced-football-client.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:29:28.0429348Z OK  banc-centre-artisanal-novomirsk-20261110.mjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:29:28.1581753Z OK  banc-chaines-17-a-20.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:29:28.2732452Z OK  banc-chantier-avance-pglite-20261121.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:29:28.3884193Z OK  banc-chantier-commande-nuit-pglite-20261122.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:29:28.4532796Z OK  banc-chantier-progression-serveur.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:29:28.5682722Z OK  banc-chantier-rue-terrains-etats-20261122.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:29:33.3735687Z OK  banc-chantier-vue-navigateur-20261121.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:29:33.6387481Z OK  banc-chat-disponibilite.mjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:29:36.6643286Z OK  banc-chemins-historiques.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:29:44.9073941Z OK  banc-chromium-cycle.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:29:45.6257417Z OK  banc-circuits-residuels-219-client.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:29:47.4162938Z OK  banc-climat-arrivee-navigateur-20261121.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:29:53.9349406Z OK  banc-climat-crue-accueil-navigateur-20261121.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:29:54.0502098Z OK  banc-climat-pglite-20261121.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:29:54.1653020Z OK  banc-clinique-nuitee-client.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:29:54.2806797Z OK  banc-clinique-repas-nuitee.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:29:54.4458528Z OK  banc-coherence-banques.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:29:54.6110574Z OK  banc-coherence-organisations.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:29:54.7762893Z OK  banc-coherence-sauvegarde.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:29:54.8912931Z OK  banc-commerce-etat-client.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:29:55.0565951Z OK  banc-commerce-transactions.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:29:56.4781042Z OK  banc-commerce-unifie-navigateur.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:30:02.6090975Z OK  banc-commerce-unifie.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:30:02.7242906Z OK  banc-commerces-stock-unique-20261104.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:30:02.8393350Z OK  banc-commissariats-pouvoirs.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:30:02.9543520Z OK  banc-compromis-nocturnes.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:30:03.0697623Z OK  banc-conference-presse-client.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:30:03.2353947Z OK  banc-confession-universelle-20261113.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:30:03.4008764Z OK  banc-consommation-inventaire.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:30:03.5164111Z OK  banc-construction-commandes.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:30:03.6314915Z OK  banc-contexte-public-dialogue.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:30:04.6991130Z OK  banc-continuite-municipale.mjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:30:13.4011451Z OK  banc-controles-globaux-20261107.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:30:20.9901081Z OK  banc-controleur-processus.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:30:21.1053851Z OK  banc-cotisations-organisations.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:30:21.2209090Z OK  banc-creation-personnage-reseau-20261028.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:30:21.4364126Z OK  banc-cron-paris.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:30:21.5515272Z OK  banc-cycle-plaintes.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:30:22.7194339Z OK  banc-deploiement-sobre.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:30:22.8342353Z OK  banc-desertion-liberation.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:30:22.9502423Z OK  banc-destinations-multimodal-20261028.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:30:23.0653645Z OK  banc-detention-plateau.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:30:23.2307408Z OK  banc-dialogue-pnj-republia.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:30:23.3962180Z OK  banc-direction-renseignement-novomirsk-20261113.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:30:23.6119216Z OK  banc-dotation-cloisonnement-sovarka-20261113.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:30:23.8775083Z OK  banc-ecritures-ecran.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:30:23.9926733Z OK  banc-entrepot-sovarka-saisie-20261113.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:30:24.3104538Z OK  banc-entrepots-caisse-unique.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:30:24.7766256Z OK  banc-equipements-collectifs-client.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:30:24.8920514Z OK  banc-escorts-sovarka-20261112.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:30:25.0070668Z OK  banc-etat-terrain.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:30:39.6168675Z OK  banc-fenetres-sans-chevauchement-20261122.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:30:56.9868288Z OK  banc-fiche-verite-serveur-20261030.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:30:57.1521247Z OK  banc-fonds-murs-ecran-66.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:30:57.2675063Z OK  banc-football-blessures-entrainement-3j.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:31:03.8159020Z OK  banc-foret-combat-navigateur-20261122.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:31:03.9314062Z OK  banc-foret-groupe-combat-pglite-20261122.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:31:05.4547063Z OK  banc-foret-krasnov-navigateur-20261121.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:31:05.5700892Z OK  banc-foret-krasnov-pglite-20261121.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:31:05.6853656Z OK  banc-foret-rencontre-arrivee-pglite-20261122.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:31:05.8508006Z OK  banc-forum-auteur-institutionnel.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:31:07.7315925Z OK  banc-forum-blocs-navigateur-20261121.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:31:07.8470986Z OK  banc-forum-images-externes-20261122.mjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:31:07.9623355Z OK  banc-forum-local-compteurs-20261103.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:31:08.0776161Z OK  banc-forum-voyants-reconnexion-20261103.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:31:08.4948513Z OK  banc-forums-contextes-422.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:31:08.6103476Z OK  banc-forums-territoires-adhesions-20261103.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:31:12.1403231Z OK  banc-generateur-couts-serveur.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:31:12.3558818Z OK  banc-genre-pnj-dialogue.mjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:31:12.4714048Z OK  banc-grace-atomique-379.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:31:14.5491234Z OK  banc-grace-sql-379.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:31:14.6644444Z OK  banc-greffe-documents-client.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:31:14.7802218Z OK  banc-greve-generale.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:31:15.1970836Z OK  banc-groupes-arrestation-confirmee.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:31:17.5685792Z OK  banc-groupes-bataille-client.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:31:17.7342186Z OK  banc-groupes-calendrier-client.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:31:18.2011856Z OK  banc-groupes-cibles-client.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:31:18.4676494Z OK  banc-groupes-cinq-rounds-client.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:31:18.7338030Z OK  banc-groupes-controle-client.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:31:19.1499114Z OK  banc-groupes-douanes-client.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:31:20.0180501Z OK  banc-groupes-effectifs-client.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:31:20.5362758Z OK  banc-groupes-interieurs-client.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:31:20.6515757Z OK  banc-groupes-pglite-20261121.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:31:21.4686628Z OK  banc-groupes-police-client.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:31:23.4440077Z OK  banc-groupes-presents-navigateur-20261121.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:31:23.8128616Z OK  banc-groupes-provenance-client.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:31:24.1788868Z OK  banc-groupes-transports-client.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:31:25.6993319Z OK  banc-groupes-universels.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:31:25.9149302Z OK  banc-guide-musee-novomirsk-20261111.mjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:31:26.0303152Z OK  banc-hopital-novomirsk-affichage-20261112.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:31:26.5472684Z OK  banc-hospitalisation-client.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:31:26.8632918Z OK  banc-hydratation-personnage.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:31:26.9787194Z OK  banc-i18n-actions-courrier.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:31:27.5454542Z OK  banc-i18n-adhesions-organisations-20261114.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:03.9580408Z OK  banc-i18n-adhesions-organisations-navigateur-20261114.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:10.1443680Z NON banc-i18n-administration-economie.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:10.1456243Z ✔ 21 clés, neuf langues, paramètres identiques (7.38171ms)
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:10.1457275Z ✔ entrepôt : stock civil, prix, interdiction et saisie inchangés en neuf langues (1731.128008ms)
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:10.1458575Z ✔ notaire : même recherche, résultats et panne partielle, bascule sans perdre le nom (1373.329768ms)
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:10.1459880Z ✖ français 1440 : entrepôt et résultats notariaux identiques au main (2520.811901ms)
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:10.1460683Z ℹ tests 4
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:10.1460895Z ℹ suites 0
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:10.1461125Z ℹ pass 3
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:10.1461337Z ℹ fail 1
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:10.1461540Z ℹ cancelled 0
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:10.1461755Z ℹ skipped 0
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:10.1461949Z ℹ todo 0
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:10.1462179Z ℹ duration_ms 6118.178406
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:10.1462328Z 
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:10.1462432Z ✖ failing tests:
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:10.1462555Z 
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:10.1462839Z test at outils/bancs/banc-i18n-administration-economie.cjs:17:1
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:10.1463445Z ✖ français 1440 : entrepôt et résultats notariaux identiques au main (2520.811901ms)
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:10.1463957Z   AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:10.1464299Z   
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:10.1464471Z   1 !== 0
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:10.1464644Z   
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:10.1465093Z       at /home/runner/work/res-publica/res-publica/outils/bancs/banc-i18n-administration-economie.cjs:17:744
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:10.1465837Z       at async avecJeu (/home/runner/work/res-publica/res-publica/outils/bancs/mobile-navigateur.cjs:15:200)
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:10.1466387Z       at async Test.run (node:internal/test_runner/test:1409:7)
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:10.1466855Z       at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:10.1467250Z     generatedMessage: true,
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:10.1467494Z     code: 'ERR_ASSERTION',
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:10.1467711Z     actual: 1,
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:10.1467906Z     expected: 0,
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:10.1468118Z     operator: 'strictEqual',
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:10.1468347Z     diff: 'simple'
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:10.1468552Z   }
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:10.1468647Z 
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:10.1489169Z ##[error]AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:10.2609148Z OK  banc-i18n-agence-emploi-20261111.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:10.4267612Z OK  banc-i18n-agence-sociale-20261111.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:10.5421471Z OK  banc-i18n-alertes-navigation.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:10.6574948Z OK  banc-i18n-beta-activation.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:10.7727802Z OK  banc-i18n-beta-public-avertissement.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:10.9383267Z OK  banc-i18n-bookmaker.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:22.3396409Z OK  banc-i18n-building-categories-20261116.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:28.7305955Z OK  banc-i18n-building-header-20261116.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:35.7322173Z OK  banc-i18n-catalogue-economique.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:36.0482400Z OK  banc-i18n-catalogue-ordres.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:36.1636790Z OK  banc-i18n-clinique-20261112.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:36.2792399Z OK  banc-i18n-commandes-forum.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:36.4449044Z OK  banc-i18n-commerce-menu.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:36.6607680Z OK  banc-i18n-communes-fonctions-20261113.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:36.8764097Z OK  banc-i18n-communes-partage-20261113.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:56.6471993Z OK  banc-i18n-communes-partage-navigateur-20261113.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:56.7627654Z OK  banc-i18n-compositeur-forum.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:32:57.0788259Z OK  banc-i18n-confirmation-adresse-20261113.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:07.1539907Z OK  banc-i18n-confirmation-adresse-navigateur-20261113.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:07.4720933Z OK  banc-i18n-confirmations-forum-20261113.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:09.2967808Z OK  banc-i18n-confirmations-forum-navigateur-20261113.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:14.3896829Z OK  banc-i18n-connexion-ui.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:14.5555307Z OK  banc-i18n-contenu-securise.mjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:15.3281658Z OK  banc-i18n-corps-integrite-20261114.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:21.8686468Z OK  banc-i18n-corps-notifications-20261114.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:21.9844106Z OK  banc-i18n-corrections-codex-20261109.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:22.0999909Z OK  banc-i18n-couverture.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:22.6666614Z OK  banc-i18n-creation-organisation-20261114.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:34.4204057Z OK  banc-i18n-creation-organisation-navigateur-20261114.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:34.5357752Z OK  banc-i18n-dealer-20261112.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:34.6513089Z OK  banc-i18n-dependances.mjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:34.8172199Z OK  banc-i18n-dialogues-pnj.mjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:35.1835312Z OK  banc-i18n-editorial.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:35.3493184Z OK  banc-i18n-etat-civil-20261112.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:35.5651131Z OK  banc-i18n-etat-ordres.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:39.9984137Z OK  banc-i18n-exit-feedback-20261116.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:40.2657806Z OK  banc-i18n-explications-creation-20261114.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:49.2161727Z OK  banc-i18n-explications-creation-navigateur-20261114.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:49.3819568Z OK  banc-i18n-fiche-personnage.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:53.7676262Z NON banc-i18n-fiches-produits.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:53.7690769Z ✔ 79 clés complètes dans neuf langues ; toutes les tables officielles correspondent au français (5.469214ms)
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:53.7692109Z ✔ aucune propriété officielle ajoutée ou modifiée, aucun contenu commercial réécrit (23.129782ms)
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:53.7693522Z ✔ vraies fiches : neuf langues à chaud, RTL, données et saisie conservées sur mobile (1651.345871ms)
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:53.7694710Z ✖ bureau 1440 : fiches françaises pixel-identiques au main 7aafbb9f (2294.029158ms)
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:53.7695151Z ℹ tests 4
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:53.7695353Z ℹ suites 0
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:53.7695566Z ℹ pass 3
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:53.7695762Z ℹ fail 1
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:53.7695960Z ℹ cancelled 0
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:53.7696186Z ℹ skipped 0
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:53.7696386Z ℹ todo 0
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:53.7696621Z ℹ duration_ms 4318.915246
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:53.7696763Z 
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:53.7696874Z ✖ failing tests:
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:53.7696991Z 
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:53.7697207Z test at outils/bancs/banc-i18n-fiches-produits.cjs:41:1
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:53.7697779Z ✖ bureau 1440 : fiches françaises pixel-identiques au main 7aafbb9f (2294.029158ms)
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:53.7698289Z   AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:53.7698633Z   
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:53.7698813Z   -1 !== 0
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:53.7698990Z   
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:53.7699403Z       at /home/runner/work/res-publica/res-publica/outils/bancs/banc-i18n-fiches-produits.cjs:42:266
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:53.7700109Z       at async avecJeu (/home/runner/work/res-publica/res-publica/outils/bancs/mobile-navigateur.cjs:15:200)
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:53.7701136Z       at async Test.run (node:internal/test_runner/test:1409:7)
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:53.7701639Z       at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:53.7702042Z     generatedMessage: true,
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:53.7702285Z     code: 'ERR_ASSERTION',
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:53.7702509Z     actual: -1,
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:53.7702708Z     expected: 0,
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:53.7702931Z     operator: 'strictEqual',
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:53.7703154Z     diff: 'simple'
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:53.7703342Z   }
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:53.7703436Z 
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:53.7705201Z ##[error]AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:53.8832296Z OK  banc-i18n-finance135-20261112.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:53.9993665Z OK  banc-i18n-garde-accueil.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5381959Z NON banc-i18n-gestion-commerce.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5397088Z ✔ 52 clés, neuf langues, paramètres et français égaux au dictionnaire historique (12.618097ms)
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5398427Z ✖ terminal réel : neuf langues, RTL, saisies et données conservées sans nouvelle lecture (1317.481429ms)
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5399575Z ✖ terminal français 1440 : pixels identiques au main 336eace8 (2775.733223ms)
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5399959Z ℹ tests 3
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5400162Z ℹ suites 0
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5400604Z ℹ pass 1
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5400844Z ℹ fail 2
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5401038Z ℹ cancelled 0
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5401247Z ℹ skipped 0
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5401442Z ℹ todo 0
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5401668Z ℹ duration_ms 4484.50639
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5401819Z 
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5401934Z ✖ failing tests:
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5402056Z 
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5402284Z test at outils/bancs/banc-i18n-gestion-commerce.cjs:19:1
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5402946Z ✖ terminal réel : neuf langues, RTL, saisies et données conservées sans nouvelle lecture (1317.481429ms)
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5403436Z   AssertionError [ERR_ASSERTION]: fr 360
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5403691Z   
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5403862Z   true !== false
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5404069Z   
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5404492Z       at /home/runner/work/res-publica/res-publica/outils/bancs/banc-i18n-gestion-commerce.cjs:22:1493
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5405185Z       at async avecJeu (/home/runner/work/res-publica/res-publica/outils/bancs/mobile-navigateur.cjs:15:200)
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5405730Z       at async Test.run (node:internal/test_runner/test:1409:7)
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5406198Z       at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5406592Z     generatedMessage: false,
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5406831Z     code: 'ERR_ASSERTION',
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5407055Z     actual: true,
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5407259Z     expected: false,
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5407474Z     operator: 'strictEqual',
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5407700Z     diff: 'simple'
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5407893Z   }
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5407989Z 
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5408202Z test at outils/bancs/banc-i18n-gestion-commerce.cjs:25:1
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5408750Z ✖ terminal français 1440 : pixels identiques au main 336eace8 (2775.733223ms)
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5409244Z   AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5409578Z   
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5409753Z   -1 !== 0
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5409934Z   
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5410551Z       at /home/runner/work/res-publica/res-publica/outils/bancs/banc-i18n-gestion-commerce.cjs:26:522
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5411237Z       at async avecJeu (/home/runner/work/res-publica/res-publica/outils/bancs/mobile-navigateur.cjs:15:200)
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5411778Z       at async Test.run (node:internal/test_runner/test:1409:7)
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5412247Z       at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5412648Z     generatedMessage: true,
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5412887Z     code: 'ERR_ASSERTION',
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5413111Z     actual: -1,
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5413323Z     expected: 0,
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5413531Z     operator: 'strictEqual',
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5413754Z     diff: 'simple'
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5414151Z   }
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5414246Z 
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:33:58.5415238Z ##[error]AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:34:01.6684917Z OK  banc-i18n-goulag-descriptions-20261116.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:34:01.7842685Z OK  banc-i18n-guide-complet.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:34:01.8998061Z OK  banc-i18n-guide-economie.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:34:02.0154413Z OK  banc-i18n-guide-integrite.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:34:02.1311228Z OK  banc-i18n-guide-interactions.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:34:02.2468065Z OK  banc-i18n-guide-mail.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:34:02.3624721Z OK  banc-i18n-guide-plateau.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:34:02.4780119Z OK  banc-i18n-guide-politique.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:34:02.5935801Z OK  banc-i18n-guide-sport.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:34:02.7093218Z OK  banc-i18n-ilia-20261113.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:34:07.0908715Z OK  banc-i18n-ilia-mobile-20261113.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:34:07.2065131Z OK  banc-i18n-inventaire-escaped.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:34:15.2575020Z OK  banc-i18n-inventaire-ui.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:34:17.8824560Z OK  banc-i18n-krasnov-descriptions-20261115.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:34:17.9980960Z OK  banc-i18n-lecture-rls.mjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:34:18.1639398Z OK  banc-i18n-logements-sociaux-20261112.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:34:18.7302911Z OK  banc-i18n-membres-organisations-20261114.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:34:35.9998566Z OK  banc-i18n-membres-organisations-navigateur-20261114.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:34:36.2157399Z OK  banc-i18n-modalites-communales.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:34:36.3312472Z OK  banc-i18n-musee-national-20261112.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:34:36.4971368Z OK  banc-i18n-naval-20261112.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:34:36.6631381Z OK  banc-i18n-navbar-20261106.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:34:36.7791177Z OK  banc-i18n-navigation-transports.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:34:36.8949783Z OK  banc-i18n-notifications.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:34:37.0105973Z OK  banc-i18n-occupation-20261112.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:34:37.7277234Z OK  banc-i18n-onglet-organisations-20261114.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:37:19.2328012Z OK  banc-i18n-onglet-organisations-navigateur-20261114.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:37:19.3487188Z OK  banc-i18n-open-space-20261112.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:37:19.4646236Z OK  banc-i18n-ordres.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:37:19.5802658Z OK  banc-i18n-panneau-personnel.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:37:20.1487161Z OK  banc-i18n-parametres-organisations-20261114.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:37:49.9008820Z OK  banc-i18n-parametres-organisations-navigateur-20261114.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:37:50.0673804Z OK  banc-i18n-passeur-20261111.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:37:50.1835292Z OK  banc-i18n-petit-accueil.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:37:50.3996229Z OK  banc-i18n-pieces-communes-20261112.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:37:51.7688043Z OK  banc-i18n-plan-rues-20261113.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:37:51.9347965Z OK  banc-i18n-plateau-init.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:37:52.0508930Z OK  banc-i18n-plateau-ressources.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:37:52.1665480Z OK  banc-i18n-plateau-wiring.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:37:52.3324010Z OK  banc-i18n-player-missions-20261113.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:37:56.4249945Z OK  banc-i18n-player-missions-mobile-20261113.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:37:56.5409597Z OK  banc-i18n-pluriels-forum.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:37:56.7065623Z OK  banc-i18n-pnj-sociaux-amorces.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:37:56.8222988Z OK  banc-i18n-pont-plateau.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:01.8570717Z NON banc-i18n-port-douanes.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:01.8587995Z ✔ 21 clés, neuf langues, paramètres et chiffres des origines préservés (14.667269ms)
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:01.8589164Z ✔ port et douanes : neuf langues, lecture unique, pas de commande ni modification (2087.122346ms)
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:01.8590562Z ✖ français à 1440 : port et effectifs pixel-identiques au main 336eace8 (2399.463183ms)
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:01.8590990Z ℹ tests 3
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:01.8591199Z ℹ suites 0
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:01.8591473Z ℹ pass 2
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:01.8591786Z ℹ fail 1
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:01.8592080Z ℹ cancelled 0
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:01.8592309Z ℹ skipped 0
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:01.8592506Z ℹ todo 0
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:01.8592745Z ℹ duration_ms 4981.428274
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:01.8592888Z 
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:01.8593038Z ✖ failing tests:
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:01.8593158Z 
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:01.8593362Z test at outils/bancs/banc-i18n-port-douanes.cjs:13:1
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:01.8594187Z ✖ français à 1440 : port et effectifs pixel-identiques au main 336eace8 (2399.463183ms)
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:01.8594718Z   AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:01.8595069Z   
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:01.8595251Z   -1 !== 0
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:01.8595439Z   
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:01.8595844Z       at /home/runner/work/res-publica/res-publica/outils/bancs/banc-i18n-port-douanes.cjs:13:636
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:01.8596531Z       at async avecJeu (/home/runner/work/res-publica/res-publica/outils/bancs/mobile-navigateur.cjs:15:200)
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:01.8597075Z       at async Test.run (node:internal/test_runner/test:1409:7)
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:01.8597554Z       at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:01.8597949Z     generatedMessage: true,
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:01.8598303Z     code: 'ERR_ASSERTION',
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:01.8598522Z     actual: -1,
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:01.8598714Z     expected: 0,
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:01.8598931Z     operator: 'strictEqual',
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:01.8599165Z     diff: 'simple'
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:01.8599354Z   }
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:01.8599451Z 
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:01.8602067Z ##[error]AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:01.9731191Z OK  banc-i18n-premieres-scenes-jeremy.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:02.0887174Z OK  banc-i18n-presentation-forum-jeremy.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:02.2043946Z OK  banc-i18n-prevol-rls.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:04.5788070Z OK  banc-i18n-production-commerce.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:04.6951943Z OK  banc-i18n-publicite-premium-20261112.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:04.8109581Z OK  banc-i18n-quete-carriere.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:05.1773530Z OK  banc-i18n-recherche-personnage-20261113.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:09.6155702Z OK  banc-i18n-recherche-personnage-navigateur-20261113.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:11.3406785Z OK  banc-i18n-refus-actions-20261113.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:18.4376460Z OK  banc-i18n-refus-actions-navigateur-20261113.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:18.6037541Z OK  banc-i18n-render-ordres.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:23.1477190Z OK  banc-i18n-repertoire-courrier-navigateur.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:23.2635877Z OK  banc-i18n-repertoire-courrier.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:23.4798448Z OK  banc-i18n-reprise-commandes-20261113.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:25.7580589Z OK  banc-i18n-reprise-commandes-navigateur-20261113.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:25.9739497Z OK  banc-i18n-retours-chantiers-20261113.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:29.0032716Z OK  banc-i18n-retours-chantiers-navigateur-20261113.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:29.6211296Z OK  banc-i18n-retours-compte-20261113.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:33.7589559Z OK  banc-i18n-retours-compte-navigateur-20261113.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:38.1476384Z OK  banc-i18n-retours-forum-navigateur.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:38.6150885Z OK  banc-i18n-retours-forum.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:38.7308469Z OK  banc-i18n-room-actions.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:38.8970022Z OK  banc-i18n-salles-gouvernement.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:39.0631771Z OK  banc-i18n-salles-sovarka-services.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:39.1790982Z OK  banc-i18n-selecteur-interactif.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:39.3454911Z OK  banc-i18n-social-par-langue.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:42.0221851Z OK  banc-i18n-socle-ordres-navigateur.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:42.7898876Z OK  banc-i18n-socle-ordres.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:42.9561827Z OK  banc-i18n-sovarka-droits-20261111.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:54.1731877Z OK  banc-i18n-sovarka-infobulles-navigateur.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:54.3399610Z OK  banc-i18n-sovarka-justice-provinces-20261111.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:54.6568772Z OK  banc-i18n-sovarka-messages-20261111.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:54.7727801Z OK  banc-i18n-sovarka-ordres-novembre.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:54.8887591Z OK  banc-i18n-sovarka-partis-20261111.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:55.0547431Z OK  banc-i18n-sovarka-pouvoir-20261111.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:55.1706279Z OK  banc-i18n-stade-et-guidage.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:55.2864114Z OK  banc-i18n-statut-pnj.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:55.4025886Z OK  banc-i18n-stockage.mjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:38:56.0200814Z OK  banc-i18n-tableau-organisations-20261114.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:39:32.4809587Z OK  banc-i18n-tableau-organisations-navigateur-20261114.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:39:32.5968738Z OK  banc-i18n-tarifs-variables.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:39:32.7127833Z OK  banc-i18n-texte-joueur.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:39:32.9789730Z OK  banc-i18n-titres-creation-20261114.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:39:44.4951601Z OK  banc-i18n-titres-creation-navigateur-20261114.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:39:44.9620671Z OK  banc-i18n-tracts-20261111.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:39:45.0781247Z OK  banc-i18n-traduction-sources.mjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:39:47.7512852Z OK  banc-i18n-transport-catalogues-20261114.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:39:47.9176381Z OK  banc-i18n-tutoriel.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:39:48.0838128Z OK  banc-i18n-variantes-hotel.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:39:48.2500529Z OK  banc-i18n-vehicules-garage-20261112.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:39:48.4159562Z OK  banc-i18n-vehicules-trajets-20261112.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:39:55.3042902Z OK  banc-i18n-vente-don-matieres.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:39:55.4705924Z OK  banc-i18n-ventes-diners-20261111.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:39:55.6367191Z OK  banc-indices-autorite-422.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:39:55.7528558Z OK  banc-infobulles-guillemets-20261113.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:39:57.8434281Z OK  banc-infobulles-navigateur.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:40:03.2538477Z OK  banc-informateurs-navigateur-20261122.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:40:03.4205983Z OK  banc-informateurs-refonte-pglite-20261122.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:40:03.5369404Z OK  banc-initialisation-rue-sovarka-20261120.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:40:05.6660545Z OK  banc-inspection-cargaisons-379.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:40:07.8890807Z OK  banc-interception-reseau.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:40:08.2056517Z OK  banc-interview-accueil-antennes-20261122.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:40:14.2191416Z OK  banc-interview-accueil-navigateur-20261122.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:40:14.3353866Z OK  banc-interview-accueil-pglite-20261122.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:40:14.7522243Z OK  banc-intitules-ministeres-empires.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:40:24.5586166Z OK  banc-inventaire-direct-navigateur-20261122.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:40:24.6746720Z OK  banc-inventaire-direct-pglite-20261122.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:40:25.4434617Z OK  banc-inventaire-raccordements.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:40:25.6096802Z OK  banc-inventaire-receptions.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:40:26.3787751Z OK  banc-inventaire-relecture-services.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:40:26.8957811Z OK  banc-jauges-copies-forum-379.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:40:28.9687882Z OK  banc-jauges-ordres-379.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:40:29.2354920Z OK  banc-jodie-confirmation.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:40:39.1576466Z OK  banc-jodie-interview-navigateur.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:40:39.2737346Z OK  banc-jodie-portrait-api.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:40:39.3897718Z OK  banc-jodie-portraits-journal.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:40:40.4610366Z OK  banc-journal-ventes-navigateur.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:40:40.5771312Z OK  banc-justice-peine-client.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:40:40.7435691Z OK  banc-kolkhoze-don-libre-20261113.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:40:40.8595620Z OK  banc-krasnov-lot-suite-pglite-20261122.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:40:43.1059867Z OK  banc-krasnov-marche-navigateur-20261122.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:42:32.0826163Z OK  banc-lisibilite-acces-reserve-20261113.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:42:32.1987137Z OK  banc-livraison-hotels-ambassade-20261104.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:42:32.3648041Z OK  banc-locaux-loyers.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:42:32.4807947Z OK  banc-logements-sociaux.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:42:36.3098549Z OK  banc-logo-human-gambit-20261122.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:42:36.4259208Z OK  banc-mail-systeme.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:42:41.3248276Z OK  banc-mails-defilement-navigateur.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:42:41.4411298Z OK  banc-mairie-acquereur.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:42:41.5572057Z OK  banc-mairies-communes.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:42:41.7234062Z OK  banc-mandats-nationaux-caserne-20261113.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:42:41.8392927Z OK  banc-memoire-mandats-dialogue.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:43:10.2308411Z OK  banc-mobile-certification.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:43:58.3819448Z OK  banc-mobile-coque.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:43:58.7993326Z OK  banc-mobile-helvetia-double-tap.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:43:58.9155126Z OK  banc-mobile-piece-20261111.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:43:59.1319904Z OK  banc-mobile-restauration-retardee.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:44:49.6930159Z OK  banc-mobile-sovarka.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:44:49.9094851Z OK  banc-moteur-javascript.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:44:50.0766644Z OK  banc-multimodal-psm-20261101.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:44:50.2431987Z OK  banc-musee-national-novomirsk-neuf-salles.mjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:44:50.3595187Z OK  banc-mutation-terrain.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:44:50.5257041Z OK  banc-navigation-rues.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:44:50.6421929Z OK  banc-negociation-squatteurs-client.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:44:52.6630487Z OK  banc-nominations-municipales.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:44:52.8297283Z OK  banc-novomirsk-palais-ambassades-acces-20261113.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:44:52.9959775Z OK  banc-novomirsk-palais-ambassades-reception-image-20261113.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:44:54.0656153Z OK  banc-objectifs-secrets-379.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:44:54.1816725Z OK  banc-occupant-terrain-visible.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:44:54.4983661Z OK  banc-occupation-actions-client.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:44:54.6146310Z OK  banc-ordre-de-bataille-client.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:44:54.8322029Z OK  banc-ordres-info-tactile-20261113.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:46:12.9513451Z OK  banc-ordres-info-tactile-navigateur-20261113.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:46:13.2180451Z OK  banc-ordres-territoires.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:46:13.4354494Z OK  banc-organisations-activation-client.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:46:13.7022762Z OK  banc-organisations-commandes-client.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:46:13.9687805Z OK  banc-organisations-evenements-client.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:46:15.6894278Z OK  banc-organisations-jauges-379.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:46:16.2586000Z OK  banc-organisations-membres-client.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:46:16.4755119Z OK  banc-palais-gouvernement.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:46:16.6418269Z OK  banc-parcelles-135.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:46:16.8081814Z OK  banc-parquet-client.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:46:16.9246259Z OK  banc-patcher-blob.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:46:17.1415012Z OK  banc-permis-cron-acquisition-135.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:46:17.3086491Z OK  banc-permis-depot-client.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:46:17.6253350Z OK  banc-pnj-localisation-psm.mjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:46:17.7918273Z OK  banc-pnj-promesses-objets.mjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:46:17.9080379Z OK  banc-point-eau-pglite-20261121.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:46:20.0374599Z OK  banc-pop-inf-cache-379.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:46:27.6417852Z OK  banc-pop-inf-forge-379.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:46:27.7582406Z OK  banc-portrait-liquide.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:46:27.9245827Z OK  banc-position-f5-luthecia-20261101.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:46:34.1572816Z OK  banc-position-initiale-relance-20261121.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:46:34.3239747Z OK  banc-position-ville-serveur-f5.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:46:34.4402369Z OK  banc-preemptions.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:04.6284191Z OK  banc-premiere-rue-navigateur-20261121.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:04.7948480Z OK  banc-presidence-client.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:06.0700711Z OK  banc-presse-20261121.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:06.1864290Z OK  banc-prets-bancaires.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:06.3529627Z OK  banc-prime-signature-client.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:06.6201426Z OK  banc-prime-signature-saisie.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:06.7864649Z OK  banc-psm-boutiques-location.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:09.2251705Z OK  banc-psm-portrait-navigateur.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:09.3413145Z OK  banc-psm-premium-bail.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:09.5077988Z OK  banc-quatrieme-passe-client.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:09.6245409Z OK  banc-raffinerie-derives.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:09.8409546Z OK  banc-reception-objets.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:09.9573282Z OK  banc-reception-rest-20261028.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:10.3256204Z OK  banc-reconnexion-trois-villes.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:10.4419082Z OK  banc-referent-commandant.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:10.5582384Z OK  banc-referents-palais.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:10.6746365Z OK  banc-reliquats-producteurs-morts-379.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:10.7911039Z OK  banc-reliquats-religion-jauges-379.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:11.4095730Z OK  banc-reliquats-subtilisation-impacts-379.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:11.6762337Z OK  banc-reliquats-vols-codetenu-379.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:11.8427610Z OK  banc-reprise-sovarka-ministeres-20261114.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:12.2104795Z OK  banc-reservation-republica.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:13.2294451Z OK  banc-restaurant-luthecia.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:13.4461325Z OK  banc-retours-acteur.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:18.2826114Z OK  banc-rues-navigateur.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:18.3991702Z OK  banc-rumeur-organisations-secretes.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:18.6686123Z OK  banc-rumeurs-ecoute-jauges-379.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:18.8351637Z OK  banc-saisines-ministre-juge-sovarka-20261113.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:18.9516633Z OK  banc-sanctions-financieres.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:19.0680072Z OK  banc-seance-client.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:19.3853606Z OK  banc-session-nocturne.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:19.5017775Z OK  banc-soins-discrets-confidentialite-20261113.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:19.6187853Z OK  banc-sortie-reponse-perdue-20261028.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:20.6924410Z OK  banc-sorties-batiments.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:20.8089705Z OK  banc-souvenirs-et-achat-direct.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:20.9757909Z OK  banc-squatteurs-roleplay.mjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:21.2426704Z OK  banc-stabilisation-session.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:21.3589964Z OK  banc-starovka-huit-portraits-20261118.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:21.4753909Z OK  banc-starovka-raffinerie-20261115.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:21.6420845Z OK  banc-starovka-raffinerie-interieurs-20261115.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:21.7592658Z OK  banc-starovka-rues-hopital-tribunal-20261115.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:21.8754332Z OK  banc-subventions-client.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:21.9919114Z OK  banc-successions-reglement.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:22.1084130Z OK  banc-taux-imposition.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:22.2247069Z OK  banc-taxe-fonciere.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:22.3409457Z OK  banc-terrain-achat-intrus.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:22.4573522Z OK  banc-terrain-banque-reprise-135.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:22.6238790Z OK  banc-terrain-intrus-seulement.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:22.7403733Z OK  banc-terrain-position-occupation.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:22.8568938Z OK  banc-terrains-plan-20261122.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:32.8779215Z OK  banc-terrains-plan-navigateur-20261122.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:41.9334587Z OK  banc-texte-meteo-navigateur-20261122.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:42.0496420Z OK  banc-titre-pnj-de-poste.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:42.2163313Z OK  banc-traduction-i18n.mjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:42.3330034Z OK  banc-transport-rest.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:42.9013050Z OK  banc-transports-sans-repli-local.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:43.0679083Z OK  banc-tribunal-client.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:43.1844557Z OK  banc-types-batiments-pglite-20261122.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:43.3011550Z OK  banc-universite-calendrier.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:43.4677257Z OK  banc-universite-et-pnj-client.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:43.5844798Z OK  banc-universite-missions-autres.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:43.7011820Z OK  banc-universite-missions-medecin.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:43.8176219Z OK  banc-urbanisme-nature-refusee.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:49.1514842Z OK  banc-vercel-bundle.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:49.2681252Z OK  banc-vercel-douze-fonctions-20261111.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:49.3848624Z OK  banc-verrou-inventaire-client-20261031.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:49.5513337Z OK  banc-virements-pelisson-20261104.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:49.6678119Z OK  banc-vote-electoral.js
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:49.7846150Z OK  banc-workflow-dependances.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:51.5046527Z OK  banc-workflow-rangement.cjs
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:51.5089224Z 419/423 bancs reussis ; 4 echec(s). Aucun SQL execute.
+bancs-hors-production	Bancs JavaScript, transports simulés	2026-11-22T14:47:51.5159063Z ##[error]Process completed with exit code 1.

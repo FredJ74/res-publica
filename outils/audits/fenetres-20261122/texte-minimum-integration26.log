@@ -1,0 +1,34 @@
+✔ fenêtres sans chevauchement à 320px, saisies et commandes conservées (7294.746295ms)
+✔ fenêtres sans chevauchement à 390px, saisies et commandes conservées (6771.654812ms)
+✔ fenêtres sans chevauchement à 1280px, saisies et commandes conservées (5294.777152ms)
+✔ L1 : bureau 1440 strictement identique au témoin avant mobile (5298.628335ms)
+✔ L1 : coque 375×667, panneaux uniques et navigation UI sans RPC (2407.122426ms)
+✔ L1 : coque 393×852, panneaux uniques et navigation UI sans RPC (2187.128432ms)
+✔ L1 : coque 412×915, panneaux uniques et navigation UI sans RPC (2394.918901ms)
+✔ L1 : coque 852×393, panneaux uniques et navigation UI sans RPC (2900.413287ms)
+✔ L1 : coque 768×1024, panneaux uniques et navigation UI sans RPC (2753.049959ms)
+✔ L2 : pas de panneau Lieux visibles, zones et clavier actifs (1777.875868ms)
+✔ L2 : pièces et actions accessibles en paysage (2211.428656ms)
+✔ L3 : longue modale, focus, fermeture existante et retour sans action métier (1771.568864ms)
+✔ L3 : chat paysage contenu dans l’écran, fenêtres au-dessus des flèches (1365.050161ms)
+✔ L6 contre-épreuve : ancien contrôleur immobile au toucher, contrôleur corrigé mobile et souris (2473.374501ms)
+✔ L6 : resize, pointeur étranger, annulation et perte de focus ne laissent aucun geste actif (1274.799927ms)
+✔ L6 : rubriques, liste et lecture sans débordement mobile ; bureau forum 1440 identique (14056.698912ms)
+✔ L6 : boutons historiques et champs dans une poignée ne déclenchent pas de déplacement (1410.552314ms)
+✔ L5 : inventaire long et tableau financier restent consultables sans mutation (1512.3878ms)
+✔ L8 : retour, panne et autre onglet bloquent le premier ordre sans le rejouer (1714.653707ms)
+✔ L4 : création réelle dans les six langues, explications et caractéristiques conservées (9283.848726ms)
+✔ L7 : rapport et décisions réels respectent les droits fournis par le serveur (1538.379784ms)
+✔ L9 : portraits réels différés dans le panneau fermé puis demandés à son ouverture (2153.543318ms)
+✔ L10 : téléphone masqué ne lit rien, retour visible attend la confirmation (1476.936709ms)
+✔ L8 : session refusée et authentification hors délai ne déclenchent aucun ordre ni chargement tardif (1353.758561ms)
+✔ Chromium : tactile 320/390, neuf langues, ordre normal/bloqué/gratuit/payant, clavier et position conservés (83592.50545ms)
+✔ bureau 1280 : rendu, title, clic et absence de bouton info identiques au main initial (2647.823004ms)
+ℹ tests 26
+ℹ suites 0
+ℹ pass 26
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 171328.340164

@@ -1,0 +1,11 @@
+✔ fenêtres sans chevauchement à 320px, saisies et commandes conservées (5358.510712ms)
+✔ fenêtres sans chevauchement à 390px, saisies et commandes conservées (4856.496588ms)
+✔ fenêtres sans chevauchement à 1280px, saisies et commandes conservées (4957.023632ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 15785.427389

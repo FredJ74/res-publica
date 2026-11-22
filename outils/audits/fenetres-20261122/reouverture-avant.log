@@ -1,0 +1,67 @@
+✖ fenêtres sans chevauchement à 320px, saisies et commandes conservées (4976.492786ms)
+✖ fenêtres sans chevauchement à 390px, saisies et commandes conservées (4665.773824ms)
+✖ fenêtres sans chevauchement à 1280px, saisies et commandes conservées (4628.50632ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 0
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 14814.097557
+
+✖ failing tests:
+
+test at outils/bancs/banc-fenetres-sans-chevauchement-20261122.cjs:4:37
+✖ fenêtres sans chevauchement à 320px, saisies et commandes conservées (4976.492786ms)
+  AssertionError [ERR_ASSERTION]: réouverture d’une fenêtre pilotée par display
+  
+  false !== true
+  
+      at /workspace/hg-fenetres/outils/bancs/banc-fenetres-sans-chevauchement-20261122.cjs:63:9
+      at async avecJeu (/workspace/hg-fenetres/outils/bancs/mobile-navigateur.cjs:15:200)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-fenetres-sans-chevauchement-20261122.cjs:4:37
+✖ fenêtres sans chevauchement à 390px, saisies et commandes conservées (4665.773824ms)
+  AssertionError [ERR_ASSERTION]: réouverture d’une fenêtre pilotée par display
+  
+  false !== true
+  
+      at /workspace/hg-fenetres/outils/bancs/banc-fenetres-sans-chevauchement-20261122.cjs:63:9
+      at async avecJeu (/workspace/hg-fenetres/outils/bancs/mobile-navigateur.cjs:15:200)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-fenetres-sans-chevauchement-20261122.cjs:4:37
+✖ fenêtres sans chevauchement à 1280px, saisies et commandes conservées (4628.50632ms)
+  AssertionError [ERR_ASSERTION]: réouverture d’une fenêtre pilotée par display
+  
+  false !== true
+  
+      at /workspace/hg-fenetres/outils/bancs/banc-fenetres-sans-chevauchement-20261122.cjs:63:9
+      at async avecJeu (/workspace/hg-fenetres/outils/bancs/mobile-navigateur.cjs:15:200)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
