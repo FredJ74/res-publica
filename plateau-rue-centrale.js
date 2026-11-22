@@ -267,6 +267,8 @@ const RUE_CENTRALE_NOEUDS = {
 
     'luthecia-terrains-artisanal': {
       image: 'images/rue-terrains-artisanal.webp',
+      // Rue en trois états (Fred, 20 et 21/11/2026, étape J) : seule la zone des terrains change ; zones et sorties identiques.
+      imagesEtatsTerrains: { ville: 'capitale', etat2: 'images/terrains/luthecia/rue-etat-2.webp', etat3: 'images/terrains/luthecia/rue-etat-3.webp' },
       zones: [
         // Debut de zone decale de 0 a 8% pour laisser un espace libre a la fleche gauche
         { xPct: [8, 60],   nom: 'Terrains à Bâtir',            type: 'noeud', noeudId: 'luthecia-terrains-lots' },
@@ -301,6 +303,9 @@ const RUE_CENTRALE_NOEUDS = {
         { xPct: [60, 80],  nom: 'Lot 4 (1850 m²)', type: 'batiment', buildingId: 'terrain-a-batir-4' },
         { xPct: [80, 100], nom: 'Lot 5 (2750 m²)', type: 'batiment', buildingId: 'terrain-a-batir-5' }
       ],
+      // Plan du lotissement en vignettes (Fred, 21/11/2026, étape J ; plateau-terrains-plan.js) : une carte par lot avec
+      // son image actuelle et son étiquette serveur. Les zones ci-dessus restent le repli si le plan ne peut pas s'afficher.
+      planLots: 'capitale',
       liens: { gauche: null, droite: null, toutDroit: null, arriere: 'luthecia-terrains-artisanal' },
       flechesStyle: { arriere: 'bottom:10px; left:50%; transform:translateX(-50%);' }
     },
@@ -738,6 +743,8 @@ const RUE_CENTRALE_NOEUDS = {
 
     'montrouge-vue-11': {
       image: 'images/montrouge/montrouge-rue-centre-artisanal-terrains.jpg',
+      // Rue en trois états (étape J) : images attendues de Fred ; tant qu'elles manquent, l'image actuelle reste.
+      imagesEtatsTerrains: { ville: 'ville_b', etat2: 'images/terrains/montrouge/rue-etat-2.webp', etat3: 'images/terrains/montrouge/rue-etat-3.webp' },
       zones: [
         { xPct: [0, 22],   nom: 'Centre artisanal de Montrouge', type: 'batiment', buildingId: 'centre-artisanal' },
         { xPct: [78, 100], nom: 'Terrains à bâtir de Montrouge', type: 'sous-lieu' }
@@ -1949,6 +1956,7 @@ async function afficherNoeudRue(pays, noeudId, depuisNoeudId, positionDejaConfir
 
   html += '<div class="rc-overlay" id="rc-overlay"><div class="rc-texte" id="rc-texte"></div></div>';
   html += '</div>';
+  if (typeof retirerPlanLots === 'function') retirerPlanLots();   // plan d'une autre vue (étape J)
   conteneur.innerHTML = html;
   if (noeud.imagesEtatsTerrains) appliquerEtatRueTerrains(noeudId, noeud);
 
@@ -2058,6 +2066,8 @@ async function afficherNoeudRue(pays, noeudId, depuisNoeudId, positionDejaConfir
     });
     scene.appendChild(div);
   });
+  // Plan du lotissement en vignettes (étape J) : posé par-dessus, flèches jamais couvertes (plateau-terrains-plan.js).
+  if (noeud.planLots && typeof afficherPlanLots === 'function') afficherPlanLots(scene, noeud.planLots, 'rue');
 }
 
 function afficherTooltipRue(e, nom, type, buildingId) {
@@ -2266,6 +2276,11 @@ function ouvrirTerrainsVille(ville) {
   pieceImg.style.background = "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 65%, rgba(0,0,0,0.18) 100%), url('" + conf.image + "') center/cover no-repeat";
   document.getElementById('piece-nom').textContent = conf.nom;
   document.getElementById('piece-desc').textContent = ids.length + ' parcelles. Choisissez un lot ci-dessus pour vous y rendre.';
+  // Plan du lotissement en vignettes (étape J) : remplace l'image d'ensemble ; si le plan ne peut pas s'afficher, elle reste.
+  if (typeof afficherPlanLots === 'function' && afficherPlanLots(pieceImg, ville, 'piece')) {
+    pieceImg.style.background = '';
+    document.getElementById('piece-desc').textContent = ids.length + ' parcelles. Cliquez sur une vignette ou sur un onglet pour vous rendre sur un lot.';
+  }
 
   renderPersonsList([]);
   document.getElementById('action-context-bat').textContent = conf.nom.toUpperCase() + ' — CHOISISSEZ UNE PARCELLE';

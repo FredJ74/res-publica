@@ -8,6 +8,30 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Étape J, terrains à bâtir (Claude, 22/11/2026) — décisions : GAME-DESIGN-CHANTIERS-IMAGES-20261120.md (complément du 21/11, points 1 et 2)
+- **Branche `claude/terrains-plan-20261122`** (part de `main` après la mission de la nuit). Aucune migration, aucune fonction Vercel.
+- **Plan du lotissement en vignettes** (`plateau-terrains-plan.js`, nouveau, chargé après `plateau-chantier-vue.js`) : une carte
+  cliquable par lot (Luthécia : scène `luthecia-terrains-lots`, attribut `planLots: 'capitale'` ; Port-Sainte-Marie et Montrouge :
+  vue « Terrains à bâtir » de `ouvrirTerrainsVille`). Image actuelle du lot (terrain nu = image de la pièce du lot ; chantier et bâtiment
+  achevé = `RPChantierVue.imageImmediate/imageResolue`, mêmes replis) ; jauge d'avancement pour un chantier ; étiquette tirée de
+  `terrains_etat` (« Lot 3 — 2 300 m² — À vendre », « Lot 5 — 2 750 m² — Terrain de Jean Jaaj », « Lot 3 — Chantier 47 % »,
+  « Lot 3 — Chantier 100 % — à réceptionner », « Lot 3 — Building d’Arnie », « Logements sociaux de la mairie »). Relecture du serveur
+  à l'ouverture puis toutes les 15 s tant que le plan est affiché ; message si le serveur ne répond pas. La flèche de retour n'est
+  jamais couverte (bas de scène réservé). Les anciennes zones de l'image et les onglets restent (repli, et onglets toujours utilisables).
+- **Rue en trois états** : `luthecia-terrains-artisanal` (images `images/terrains/luthecia/rue-etat-2/3.webp`, déjà dans le dépôt,
+  PR #1172) et `montrouge-vue-11` (`images/terrains/montrouge/rue-etat-2/3.webp`, **à fournir** ; l'image actuelle reste d'ici là).
+- **Fichiers du navigateur modifiés (pour rebaser)** : `plateau-terrains-plan.js` (nouveau), `plateau-rue-centrale.js` (`planLots`,
+  appel `afficherPlanLots` à la fin de `afficherNoeudRue`, `retirerPlanLots` avant le rendu, `ouvrirTerrainsVille`, deux
+  `imagesEtatsTerrains`), `plateau-navigation.js` (une ligne dans `enterRoom` : `retirerPlanLots`), `style.css` (classes `.tplan*`
+  à la fin), `plateau.html` (script ajouté, versions de `style.css`, `plateau-rue-centrale.js`, `plateau-navigation.js`).
+- **Bancs** : `banc-terrains-plan-20261122.cjs` (étiquettes, branchements), `banc-terrains-plan-navigateur-20261122.cjs` (Chromium
+  1280 et 390 px : images et étiquettes à vendre / acheté / chantier / achevé, clic vers le lot, mise à jour sans recharger, flèche
+  libre, PSM et Montrouge, repli d'image, rue en trois états) ; ajoutés à `chantier-construction-20261121.yml`.
+- **Pour Codex (traductions)** : `TXT_PLAN` de `plateau-terrains-plan.js` (`titre`, `aide`, `lot`, `surface`, `a_vendre`, `terrain_de`,
+  `chantier`, `a_receptionner`, `batiment`, `de_mairie`, `t_hangar`, `t_commerce_standard`, `t_commerce_premium`, `t_logement`,
+  `t_logement_social`, `t_building`, `t_inconnu`, `aller`, `panne`) ; phrase de `ouvrirTerrainsVille` « N parcelles. Cliquez sur une
+  vignette ou sur un onglet pour vous rendre sur un lot. ». L'élision « d’Arnie » est faite en français seulement (voyelle ou h).
+- **À tester par Fred** : Luthécia, rue des terrains → « Terrains à Bâtir » ; Port-Sainte-Marie et Montrouge, « Terrains à bâtir ».
 ### Mission de la nuit du 22/11/2026 (Claude) — décisions : GAME-DESIGN-MISSION-NUIT-20261122.md
 - **Partage du travail** : Codex = logo du plateau et son témoin au pixel, courrier de bienvenue et ses traductions, fenêtres sans
   chevauchement, recette isolée de la PR #1176 (navigateur et tests seulement). Claude = tout le reste, seul à appliquer des migrations.
