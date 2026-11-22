@@ -1,0 +1,23 @@
+name: "Santé — combat (robustesse, blessures, coma à 0 PA, meute)"
+on:
+  pull_request:
+    paths: ['migrations/20261122230000_sante_socle.sql', 'migrations/20261122231000_sante_combat.sql', 'migrations/20261122210000_foret_groupe_combat_meute.sql', 'outils/bancs/banc-sante-combat-pglite-20261122.cjs', 'outils/bancs/fixtures/sante-combat-ancrages.sql.txt', 'outils/bancs/fixtures/foret-combat-*', plateau-organisations-quetes.js, .github/workflows/sante-combat-20261122.yml]
+  push:
+    branches: [main, 'claude/**']
+    paths: ['migrations/20261122230000_sante_socle.sql', 'migrations/20261122231000_sante_combat.sql', 'migrations/20261122210000_foret_groupe_combat_meute.sql', 'outils/bancs/banc-sante-combat-pglite-20261122.cjs', 'outils/bancs/fixtures/sante-combat-ancrages.sql.txt', 'outils/bancs/fixtures/foret-combat-*', plateau-organisations-quetes.js, .github/workflows/sante-combat-20261122.yml]
+permissions:
+  contents: read
+jobs:
+  sante-combat:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --check plateau-organisations-quetes.js
+      - name: PostgreSQL local (PGlite)
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund --prefix "$RUNNER_TEMP/pglite" @electric-sql/pglite@0.2.17
+          PGLITE_DIR="$RUNNER_TEMP/pglite" node --test outils/bancs/banc-sante-combat-pglite-20261122.cjs outils/bancs/banc-foret-groupe-combat-pglite-20261122.cjs
