@@ -3310,11 +3310,26 @@ function getMembresGroupeAvecStat(stat) {
 // compte du groupe, pas ce bonus purement personnel. Relit l'inventaire a chaque appel, aucun
 // etat mis en cache : deposer/donner/detruire l'objet fait donc disparaitre le bonus des le
 // prochain appel, sans code supplementaire. Jamais d'ecriture dans state.char.stats.
+// Chemise de bûcheron du marché de Krasnov (lot de Krasnov, point 2, 22/11/2026) : un objet « revetable » ne compte que
+// s'il est revêtu (porte_par), et son effet se perd si l'on revêt la tenue ninja ou le gilet (catégories du serveur,
+// crim_objet_categorie_interne). Les objets d'intégration sans « revetable » gardent la règle d'origine (simple présence).
+function categorieRevetementObjet(i) {
+  if (!i || typeof i !== 'object') return null;
+  if (i.revetable) return i.revetable;
+  if (i.produitMilitaire === 'gilet_pare_balles' || (i.type === 'protection' && /^gilet/i.test(i.name || ''))) return 'gilet';
+  if (['tenue_ninja_marche', 'tenue_ninja_militaire'].includes(i.recette_id || i.type)) return 'tenue_ninja';
+  return null;
+}
 function bonusEntIntegrationLocale() {
-  return (state.inventory || []).some(i =>
+  const moi = state.char && state.char.name;
+  const inv = state.inventory || [];
+  const porte = i => !!i && !!i.porte_par && i.porte_par === moi;
+  const tenueQuiAnnule = inv.some(i => porte(i) && ['tenue_ninja', 'gilet'].includes(categorieRevetementObjet(i)));
+  return inv.some(i =>
     // Cible « pays.ville » (10/11/2026) : ville_a/ville_b/capitale existent dans les deux empires.
     i && i.familleProduitMarche === 'integration_locale' &&
-      (i.bonusIntegrationVille === state.currentCity || i.bonusIntegrationVille === state.country + '.' + state.currentCity)
+      (i.bonusIntegrationVille === state.currentCity || i.bonusIntegrationVille === state.country + '.' + state.currentCity) &&
+      (!i.revetable || (porte(i) && !tenueQuiAnnule))
   ) ? 1 : 0;
 }
 

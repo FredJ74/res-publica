@@ -561,8 +561,7 @@ function switchSelfTab(tab, el) {
     const tauxBlocus = Math.min(90, 25 + (groupSize - 1));
 
     html += '<div style="display:flex;flex-direction:column;gap:.4rem">';
-    html += '<button onclick="doOrder(\'se_cacher\',1,0,\'Se cacher\',\'Vous vous dissimulez dans la piece.\',70);closeSelfView()" style="display:flex;justify-content:space-between;align-items:center;padding:.5rem .8rem;border:1px solid #2a3a20;background:#0a0d08;color:#8a9a6a;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">';
-    html += '<span><i class="ti ti-eye-off" style="font-size:.85rem"></i> ' + rpCharSheetLabel('hide','Se cacher') + '</span><span style="font-family:Bebas Neue,sans-serif;font-size:.68rem;color:#4a6a3a">70% · 1 PA</span></button>';
+    // « Se cacher » n'est plus ici : il est dans les actions de la pièce, à côté d'« Inspecter la pièce » (lot de Krasnov, point 9).
     // Vehicules personnels (05/11/2026) : on conduit depuis n'importe quel endroit de la ville.
     html += '<button onclick="closeSelfView();ouvrirMesVehicules()" style="display:flex;justify-content:space-between;align-items:center;padding:.5rem .8rem;border:1px solid #2a3440;background:#0a0d10;color:#8aa0b4;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">';
     html += '<span><i class="ti ti-car" style="font-size:.85rem"></i> ' + rpCharSheetLabel('myVehicles','Mes véhicules') + '</span><span style="font-family:Bebas Neue,sans-serif;font-size:.68rem;color:#4a5a6a">plein · cargaison · conduire</span></button>';
@@ -3503,6 +3502,8 @@ async function ouvrirDetailObjetInventaire(idx) {
   }
   // Viande et laitages bruts (Fred, 18/11/2026) : +1 PA au prochain sommeil.
   if (typeof boutonMangerMatiereBrute === 'function') html += boutonMangerMatiereBrute(item, 'font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
+  // Marché de Krasnov (lot de Krasnov, point 2, 22/11/2026) : pain noir, goulash, fruits et légumes.
+  if (typeof boutonMangerProduitMarche === 'function') html += boutonMangerProduitMarche(item, 'font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
   // Énigme du trésor des Tsars (12/11/2026) : lire le livre, manger un gâteau.
   if (typeof boutonsTresorTsarsObjet === 'function') html += boutonsTresorTsarsObjet(item, 'font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
   if (item.familleProduitMarche === 'aliment' || (item.generique_id === 'encas-a-emporter' && item.recette_id)) {
@@ -4189,6 +4190,8 @@ function ouvrirDetailObjet(idx) {
     html += '<button onclick="consommerDrogue(' + idx + ')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.5rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer">' + (item.drogue === 'estadine' ? 'Consommer' : 'Fumer') + '</button>';
   }
   if (typeof boutonMangerMatiereBrute === 'function') html += boutonMangerMatiereBrute(item, 'flex:1;font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.5rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
+  // Marché de Krasnov (lot de Krasnov, point 2, 22/11/2026) : pain noir, goulash, fruits et légumes.
+  if (typeof boutonMangerProduitMarche === 'function') html += boutonMangerProduitMarche(item, 'flex:1;font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.5rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
   if (item.stackKey === 'oeufs' && typeof mangerOeufs === 'function') {
     html += '<button onclick="mangerOeufs()" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.5rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer">Manger 3 œufs</button>';
   }

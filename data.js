@@ -2810,9 +2810,12 @@ const WORLD = {
             photoPos: '50% 24%'
           }],
           roomOverrides: {
-            // Graisse d'ours (maladies et climat, lot 4) : vendue sur les étals du kolkhoze.
-            marche_ext: { imageUrl: 'images/Sovarka/Krasnov/Krasnov_marche_etals.webp', orders: [
-              {fn:'acheter_graisse', label:'Acheter un bocal de graisse', pa:0, cost:0, type:'legal', icon:'ti-jar', successRate:100, desc:"Un bocal de graisse contre le froid : protège du blizzard (consommé)."}] }
+            // Marché de Krasnov, interface unique (lot de Krasnov, point 2, 22/11/2026) : une seule fenêtre pour acheter,
+            // vendre et produire (graisse d'ours et eau comprises). Les anciens guichets du marché sont retirés ici seulement.
+            marche_ext: { imageUrl: 'images/Sovarka/Krasnov/Krasnov_marche_etals.webp',
+              excludeOrders: ['se_nourrir', 'produire_commerce', 'faire_achats_marche', 'vendre_matiere_commerce', 'acheter_graisse'],
+              orders: [
+              {fn:'marche_krasnov', label:'Acheter, vendre, produire', pa:0, cost:0, type:'legal', icon:'ti-building-store', successRate:100, desc:"Une seule fenêtre pour tout le marché : acheter, revendre (prix de vente moins 25 %) et fabriquer avec le stock du marché (15 PSK par PA)."}] }
           }
         },
         // Mêmes six pièces et tous les ordres sportifs du gabarit stade partagé.
@@ -12709,6 +12712,13 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     const p = (ro.persons || []).find(x => x.name === 'Brigadier Local (PNJ)');
     if (!p) throw new Error('Krasnov : brigadier de garde absent');
     p.name = 'Brigadier Matveï Doubov (PNJ)'; p.role = 'Brigadier de garde'; p.profilId = 'matvei_doubov';
+  }
+  // Lot de Krasnov, point 2 (Fred, 20/11/2026) : portrait de Nina Gorbounova descendu légèrement dans son cadre.
+  {
+    const ro = WORLD.soviet.ville_b.buildingContext.marche.roomOverrides.marche_ext;
+    const p = (ro.persons || []).find(x => x.name === 'Nina Gorbounova (PNJ)');
+    if (!p) throw new Error('Krasnov : Nina Gorbounova absente du marché');
+    p.photoPos = '50% 18%';
   }
 })();
 

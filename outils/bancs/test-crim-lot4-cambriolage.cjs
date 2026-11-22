@@ -218,7 +218,9 @@ test('Écran : boutons sur la porte fermée, aucun calcul, entrée par la naviga
   assert.match(equip, /crimBoutonsPorte\(batiment, genre === 'batiment' \? null : piece\)/);
   assert.match(nav, /serrurePopupFermee\('batiment', buildingId\)/);
   assert.match(nav, /serrurePopupFermee\(r\.batiment\?'batiment':'local',buildingId,r\.batiment\?null:roomId\)/);
-  assert.match(surv, /crimOuvrirCambriolage/);
+  // Lot de Krasnov, point 9 (22/11/2026) : « Emporter ce qu'il y a ici » est remplacé par « Désinstaller du matériel ».
+  assert.doesNotMatch(surv, /crimOuvrirCambriolage/);
+  assert.match(surv, /desinstaller_materiel/);
   assert.match(info, /if \(typeof crimOuvrirCambriolage === 'function'\) return crimOuvrirCambriolage\(\);/);
 
   const appels = [];

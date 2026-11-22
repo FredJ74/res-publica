@@ -177,7 +177,8 @@ test('Écran : aucun calcul ; fiche → module ; menu « Fouiller ou voler » ; 
   assert.equal((js.match(/Math\.random/g) || []).length, 1);
   assert.doesNotMatch(ill, /jetBase|BONUS_CARRIERE_VOL\[|sbRpc\('crime_voler'/);
   assert.match(ill, /function ouvrirModalVolerChoix\(encodedCible\) \{\s+if \(typeof crimOuvrirVoler === 'function'\) crimOuvrirVoler\(encodedCible\);/);
-  assert.match(surv, /crimVolerChoisirCible\)\);/);
+  // Lot de Krasnov, point 9 (22/11/2026) : « Voler quelqu'un » sort des actions de pièce (il reste dans la fenêtre de rencontre).
+  assert.doesNotMatch(surv, /crimVolerChoisirCible/);
   const appels = [];
   const ctx = { console, setTimeout() {}, setInterval() {}, showToast() {},
     sbRpc: async (fn, p) => { appels.push([fn, p]); return { ok: true, issue: 'reussite', description: '340 FR', livre: true, inventory: [] }; } };

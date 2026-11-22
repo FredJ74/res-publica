@@ -59,6 +59,38 @@ Règles : voir `AGENTS.md`.
   (« 1 message » / « N messages ») ; courriers d'invitation et de refus (textes serveur, `api/jodie-portrait.js`).
 - **Baseline (Codex)** : `jodie_portrait_vers_journal` et la ligne `Jodie Moitout` de `mails_expediteurs_systeme` changent
   après application.
+### Étape I : reste du lot de Krasnov, points 2, 3 et 9 (Claude, 22/11/2026) — branche `claude/krasnov-lot-suite-20261122`
+- Décisions : `GAME-DESIGN-KRASNOV-LOT-20261120.md` (points 2, 3, 9) ; eau précisée par `GAME-DESIGN-MISSION-SOIR-20261121.md` § 3
+  (puisage 1 PA, 10 bouteilles par 6 h : déjà en place à Krasnov). Points 5, 6, 7 non touchés.
+- **Migrations versionnées, NON APPLIQUÉES** (éprouvées sur PGlite : `banc-krasnov-lot-suite-pglite-20261122.cjs`, socle
+  `fixtures/krasnov-lot-suite-pglite-socle.sql.txt`) ; uniquement des fonctions et tables nouvelles, aucune fonction commune modifiée :
+  - `20261122160000_krasnov_marche_unique` : tables `marche_krasnov_produits` / `marche_krasnov_stock`, caisse `soviet_marche_ville_b`
+    (dotation 1 000 PSK, provisoire), réglages `marche_krasnov_*` dans `aliments_parametres`, RPC `marche_krasnov_etat`,
+    `marche_krasnov_valider` (tout ou rien), `marche_krasnov_manger` (pain noir, goulash, fruits et légumes) ; ligne
+    `graisses_points_vente.marche-krasnov` supprimée (la graisse d'ours passe dans la fenêtre unique, 16 PSK).
+  - `20261122161000_points_eau_une_fontaine_par_ville` : cinq fontaines de plus dans `climat_points_eau` (Luthécia, Montrouge,
+    Port-Sainte-Marie, Novomirsk, Starovka). Vues choisies par Claude, à valider par Fred.
+  - `20261122162000_pieces_inspecter_desinstaller` : RPC `inspecter_piece` (1 PA), `desinstaller_lire`, `desinstaller_materiel` (2 PA ;
+    légal chez soi, sinon moteur commun du vol `crim_resoudre_interne`, acte `cambrioler`), interne `desinstaller_au_sol_interne`.
+  - **Tant qu'elles ne sont pas appliquées, ne pas fusionner la branche** : l'écran appelle ces RPC (marché de Krasnov, Inspecter,
+    Désinstaller) et afficherait des refus.
+- **Fichiers du navigateur modifiés (pour rebaser)** : nouveau `plateau-marche-krasnov.js` (chargé par `plateau.html`) ;
+  `plateau-surveillance.js` (bloc « Fouiller ou voler » remplacé : `ordresFouillerVoler` rend Inspecter / Se cacher / Désinstaller,
+  `ouvrirFenetreInspecter`, `inspecterConfirmer`, `ouvrirDesinstaller`, `desinstallerConfirmer`, table `PIECE_TXT`) ;
+  `plateau-router.js` (`marche_krasnov`, `inspecter_piece`, `desinstaller_materiel`) ; `plateau-personnage.js` (bouton « Se cacher »
+  retiré de la fiche, bouton « Manger » des produits du marché) ; `plateau-organisations-quetes.js` (`categorieRevetementObjet`,
+  `bonusEntIntegrationLocale` : la chemise ne compte que revêtue, perdue avec ninja ou gilet) ; `plateau-climat.js` (fenêtre de la
+  fontaine générique : `EAU_TXT.tete` avec `{lieu}`, `lieuKrasnov`, `astuce`, image sans repli) ; `data.js` (marché de Krasnov :
+  `excludeOrders` + ordre `marche_krasnov` ; portrait de Nina `photoPos` 50 % 18 %).
+- **Pour Codex (traductions, textes français nouveaux)** : `MK_TXT` (`plateau-marche-krasnov.js`, toutes les clés) ; `PIECE_TXT` et
+  `DESINSTALLER_REFUS` (`plateau-surveillance.js`) ; `EAU_TXT.tete` (désormais avec `{lieu}`), `EAU_TXT.lieuKrasnov`, `EAU_TXT.astuce`,
+  `EAU_TXT.ailleurs` (changé), `EAU_TXT.plafond` (sans l'astuce) ; ordre `marche_krasnov` « Acheter, vendre, produire » et sa
+  description (ajoutée à `ATTENTE_CODEX` de `test-i18n-sovarka-infobulles-20261113.mjs`) ; libellés serveur des produits
+  (`marche_krasnov_produits.label` / `effet`) et des objets (`marche_krasnov_objet_interne`). Plus affichés : `texteEquip`
+  `fouillerVoler`, `fouillerVolerDesc`, `menuFouiller`, `menuVoler`, `fouilleIntro`, `fouilleChances`, `fouiller2` ; `RPCriminalite`
+  `search`, `kMenu`, `vMenu` ; `rpCharSheetLabel('hide')`.
+- **Images attendues** : `images/fontaines/{luthecia-fontaine-hotel-de-ville, montrouge-fontaine-place-du-rail, psm-fontaine-place-armes,
+  novomirsk-fontaine-place-peuple, starovka-fontaine-mairie}.webp` (la fenêtre s'en passe tant qu'elles manquent).
 ### Mission de la nuit du 22/11/2026 (Claude) — décisions : GAME-DESIGN-MISSION-NUIT-20261122.md
 - **Partage du travail** : Codex = logo du plateau et son témoin au pixel, courrier de bienvenue et ses traductions, fenêtres sans
   chevauchement, recette isolée de la PR #1176 (navigateur et tests seulement). Claude = tout le reste, seul à appliquer des migrations.

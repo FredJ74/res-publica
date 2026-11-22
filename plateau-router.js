@@ -526,6 +526,10 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   // mecanique. Sortie immediate, AVANT tout debit -- l'ordre est a 0 PA / 0 FR
   // et n'a rien a faire savoir au serveur. Voir plateau-equipements.js.
   if (fn === 'installer_equipements')    { ouvrirModalEquipements(); return; }
+  // ACTIONS DE PIÈCE (lot de Krasnov, point 9, 22/11/2026) : Inspecter (1 PA) et Désinstaller (2 PA par matériel),
+  // débités par le serveur ; sortie avant tout débit générique.
+  if (fn === 'inspecter_piece' && typeof ouvrirFenetreInspecter === 'function') { ouvrirFenetreInspecter(); return; }
+  if (fn === 'desinstaller_materiel' && typeof ouvrirDesinstaller === 'function') { ouvrirDesinstaller(); return; }
   // FOUILLER OU VOLER (11/11/2026) : ordre de piece qui ouvre un menu (fouille ou vol) ; les PA sont
   // debites par le serveur dans chaque action, donc sortie avant tout debit generique.
   if (fn === 'fouiller_voler' && typeof ouvrirMenuFouillerVoler === 'function') { ouvrirMenuFouillerVoler(); return; }
@@ -791,6 +795,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'pharmacie_medicaments') { if (typeof ouvrirPharmacie === 'function') ouvrirPharmacie(); return; }
   if (fn === 'acheter_furet') { if (typeof ouvrirFuret === 'function') ouvrirFuret(); return; }
   if (fn === 'acheter_graisse') { if (typeof ouvrirGraisses === 'function') ouvrirGraisses(); return; }
+  // Marché de Krasnov, interface unique (lot de Krasnov, point 2, 22/11/2026) : le serveur débite tout lui-même.
+  if (fn === 'marche_krasnov') { if (typeof ouvrirMarcheKrasnov === 'function') ouvrirMarcheKrasnov(); return; }
   if (fn === 'boutique_climat') { if (typeof ouvrirBoutiqueClimat === 'function') ouvrirBoutiqueClimat(); return; }
   if (fn === 'contrebande_poissonniere') { ouvrirPoissonniere('contrebande'); return; }
   if (fn === 'consulter_effectifs_douane') { ouvrirConsulterEffectifsDouane(); return; }
