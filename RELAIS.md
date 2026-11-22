@@ -8,6 +8,35 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Santé, lot combat : robustesse, blessures, coma à 0 PA, meute (Claude, 22/11/2026) — GAME-DESIGN-SANTE-20261122.md, points 1, 2, 3, 15 (serveur), 19
+- **Branche `claude/sante-combat-20261122`** (part de `5b2bef8d`, branche `claude/mission-nuit-20261122`). Aucune fonction Vercel.
+- **Migration écrite, NON appliquée** : `20261122231000_sante_combat.sql`, à appliquer **après** `20261122230000_sante_socle.sql`. Écrite à partir de
+  pg_get_functiondef de production (22/11), chaque ancrage compté en production (1, et 2 pour `militaire_bataille_commande_interne`).
+  - Points 1 et 3 : `sante_combat_coup_pj_interne` (nouvelle) — perte = `sante_perte_combat_interne(Santé au coup, perte brute)`, bornée aux PA ;
+    Santé perdue = PA perdus × `blessure_sante_par_pa`. Branchée dans `militaire_bataille_appliquer` (tous les rounds : batailles, PJ contre PJ,
+    faune, squatteurs, gardes ; ordre degré → morsure des loups → gilet → robustesse, le gilet garde 1 PA ; marques `sante_combat_*_v1`) et
+    `police_combat_personnage_interne` (marques `sante_police_*robustesse_v1`). PNJ : perte brute.
+  - Point 2 : 21 gardes « hp <= 0 » retirées (`sante_zero_libre_*`) dans acces_forcer_passage, chantier_commande, groupe_combattants_interne,
+    jardins_ouvriers_acteur_interne, local_louer, militaire_bataille_arbitrer_groupes (×2), militaire_bataille_combattants,
+    militaire_bataille_commande_interne (×2), militaire_bataille_etat, militaire_bataille_recruter_metier_interne, navigation_disponibilite_interne,
+    poissonniere_acteur_interne, police_combat_personnage_interne, pret_national_contracter_versionne, sovarka_reunion_evenement,
+    terrain_acquisition_commande, terrain_lot_loyer_fixer, terrain_lots_acte, terrain_occupation_action_preparer, vendre_materiaux_chantier ;
+    `combat_rapport_lignes_interne` réécrite (coma = PA 0) ; `militaire_bataille_neutralisation_terminale_interne` ne met plus la Santé à 0 (`sante_coma_pa_v1`).
+  - Point 15 : `impact_marquer_traite` n'écrit plus regen_jour ni stats_affaiblies ; lecteurs neutralisés (jauges_ordre_executer,
+    militaire_subtiliser_tenter, terrain_negociation_preparer, terrain_occupation_action_preparer ×2, terrain_squatteurs_don). Aucun texte serveur
+    « PV » pour la Santé (seulement commentaires, clé JSON degatsPV, « PV d'audition »).
+  - Point 19 : `sovarka_foret_meute_derniere_fuite_interne` (deux loups morts → les loups debout s'enfuient dans le même round ; paramètre
+    `aliments_parametres.foret_meute_fuite_apres_morts` = 2) et `combat_rapport_etats_rafraichir_interne` (état « fuite » repris dans la ligne du
+    round après arbitrage et fin), branchées dans `militaire_bataille_round` ; `sovarka_foret_issue_combat_interne` réécrite (butin de chaque loup tué
+    quelle que soit l'issue, `foret_meute_butin_v2` ; reste d'une pile non rangée au sas `objets_recus`, `foret_butin_sas_v1`).
+- **Fichiers du navigateur modifiés (pour rebaser)** : `plateau-organisations-quetes.js` (`getStatEffective` : statsAffaiblies sans effet). Aucun autre
+  blocage « Santé 0 » trouvé dans `plateau-*.js`. Régénération +10 de `doDormir` (`plateau-personnage.js`) laissée au lot sommeil (point 8).
+- **Pour Codex (traductions)** : aucune clé nouvelle.
+- **Bancs** : `banc-sante-combat-pglite-20261122.cjs` (nouveau, 9 tests) avec la fixture `fixtures/sante-combat-ancrages.sql.txt` ; workflow
+  `sante-combat-20261122.yml`. `banc-foret-groupe-combat-pglite-20261122.cjs` inchangé (passe).
+- **À tester par Fred** (après application) : combat contre la meute à Santé 100 puis à Santé 10 (PA et Santé perdus égaux, 8 contre 12 PA pour un
+  coup de 10) ; deux loups abattus → le troisième s'enfuit, « (en fuite) » au dernier round, butin des deux loups au chef ; un personnage à Santé 0
+  peut se déplacer, combattre, acheter un terrain.
 ### Remontées du test en forêt, points 1 et 8 : texte minimum et météo des vues en plein air (Claude, 22/11/2026) — décisions : GAME-DESIGN-FORET-TEST-20261122.md
 - **Branche `claude/texte-meteo-20261122`** (part de `main`). Aucune migration, aucune fonction Vercel. Le bouton « Explorer la forêt » (point 8) est
   traité par un autre agent ; la logique forêt, les groupes, le combat et l'inventaire aussi (branches séparées).

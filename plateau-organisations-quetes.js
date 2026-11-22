@@ -3357,10 +3357,8 @@ function getStatEffective(stat) {
   // Effets temporaires poses par le serveur (Brume : ENT +2 jusqu a minuit ; Estadine : CHA +2 et INT -0,1, 2 novembre 2026).
   const bonusTemp = (typeof bonusTemporaire === 'function') ? bonusTemporaire(state.effetsActifs, stat, Date.now()) : 0;
   const valeurNormale = base + bonusLocal + malusExcommunication + bonusTemp;
-  if (state.statsAffaiblies && state.statsAffaiblies[stat] !== undefined) {
-    const fraction = Math.max(0, Math.min(1, (state.hp || 0) / 100));
-    return Math.max(1, Math.round(valeurNormale * fraction));
-  }
+  // Caractéristiques affaiblies par la Santé : supprimées (Fred, 22/11/2026, point 15). state.statsAffaiblies est encore
+  // relu du serveur (colonne conservée) mais n'a plus aucun effet ; le serveur ne l'écrit plus.
   return Math.round(valeurNormale);
 }
 
