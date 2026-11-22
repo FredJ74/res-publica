@@ -125,3 +125,16 @@ Q4 – Sacs de sable : un seul sac (60 FR, 1 PA pour le poser) protège entière
 Contrôle : tests
 
 [… message tronqué ici, suite à recevoir …]
+
+---
+
+## Complément du 22/11/2026 (remontées du test en forêt de Krasnov, point 8) — source : `GAME-DESIGN-FORET-TEST-20261122.md`
+
+- **Vues en plein air** : la pluie et tout effet climatique (orage, blizzard, brouillard, canicule, crue) s'affichent dans toutes
+  les vues en plein air de la ville touchée, et plus seulement dans les rues : camp de bûcherons et vues de la forêt de Krasnov
+  compris. Liste tenue dans `plateau-climat.js` (`PIECES_PLEIN_AIR`) : camp de bûcherons, clairière et quatre vues de la forêt de
+  Krasnov ; champs de pétrole de Starovka ; cours des fermes et kolkhozes ; terrains à bâtir ; pelouse du stade ; Parc botanique ;
+  quais des ports. Une nouvelle pièce en plein air s'ajoute à cette liste, ou par `pleinAir: true` dans sa fiche (`data.js`).
+- **Alerte** : annule le coin supérieur gauche compact du 22/11 (nuit, point 5), jugé trop petit et illisible. L'alerte s'affiche
+  dans un **bandeau au-dessus de l'image**, centré, en taille normale (pictogramme, « Attention : orage », lien « Durée et
+  consignes »), sans jamais couvrir la photo ni une flèche de déplacement. Seul le pictogramme clignote lentement.
