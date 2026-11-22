@@ -17,6 +17,7 @@ jobs:
         with:
           node-version: '24'
       - run: npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
+      - run: npm ci --prefix outils/vercel --ignore-scripts --no-audit --no-fund
       - run: node --check plateau-foret-krasnov.js && node --test outils/bancs/test-foret-perdu-20261114.mjs outils/bancs/test-combat-faune-panneau-20261114.mjs outils/bancs/test-sovarka-provinces-20261110.mjs outils/bancs/test-sovarka-provinces-partie2-20261110.mjs
       - name: Chromium réel
         env:

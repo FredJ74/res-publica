@@ -156,7 +156,11 @@ att('il ne reste qu UN bouton Donner',
 att('il ouvre le choix, pas directement le don d argent',
     codePnj.indexOf('ouvrirDonPnjChoix(') >= 0);
 att('le choix propose les deux branches',
-    pnjJs.indexOf('ouvrirDonPnjModal(') >= 0 && pnjJs.indexOf('ouvrirDonObjetPnjModal(') >= 0);
+    pnjJs.indexOf('ouvrirDonPnjModal(') >= 0
+    && pnjJs.indexOf("estJoueur ? 'ouvrirDonObjetJoueurModal' : 'ouvrirDonObjetPnjModal'") >= 0);
+att('le choix objet distingue le joueur du PNJ depuis inventaire-direct (22/11)',
+    pnjJs.indexOf('const estJoueur = pnj.isPJ === true && pnj.masque !== true;') >= 0
+    && pnjJs.indexOf('function ouvrirDonObjetJoueurModal(encodedPnj)') >= 0);
 att("et il avertit que le don a un non-employe est sans retour",
     pnjJs.indexOf('Seul un vol le pourrait') >= 0);
 att("l avertissement se fonde sur state.employes, l etat qui paie les employes",

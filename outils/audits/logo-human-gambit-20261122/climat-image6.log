@@ -1,0 +1,14 @@
+✔ nouveau personnage pendant une crue : fenêtre d’accueil complète, une seule fois (1444.548028ms)
+✔ personnage ancien : aucune fenêtre d’accueil (1766.483865ms)
+✔ crue : on circule, la gare reste ouverte, le lieu touché est fermé avec un message clair (1809.087672ms)
+✔ le bandeau « Attention crue » s’explique au clic ; tout disparaît à l’heure de fin (1968.859968ms)
+✔ point d’eau : ordre vert « Puiser de l’eau » dans la liste des ordres de la place, fenêtre illustrée et pédagogique (1324.156735ms)
+✔ orage : pluie animée en continu, légère obliquité, sans redessin ; immobile si l’animation est réduite (1599.545549ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 10346.175016

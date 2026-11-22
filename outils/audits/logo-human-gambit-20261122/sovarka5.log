@@ -1,0 +1,13 @@
+✔ Sovarka 360 : fenêtres réelles contenues et champs utilisables (10136.960289ms)
+✔ Sovarka 390 : fenêtres réelles contenues et champs utilisables (9692.497465ms)
+✔ Sovarka 768 : fenêtres réelles contenues et champs utilisables (9657.912329ms)
+✔ Bureau 1440 : pixels identiques au témoin avec le plancher de notes validé le 22/11 (20494.422286ms)
+✔ Contre-épreuve : sélecteur de local étroit dans le témoin (1710.159053ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 52315.995722

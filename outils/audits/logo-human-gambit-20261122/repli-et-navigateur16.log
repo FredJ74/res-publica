@@ -1,0 +1,24 @@
+✔ Luthécia 1280px : plan en vignettes, étiquettes serveur, images actuelles, flèche libre, clic vers le lot (3091.045102ms)
+✔ Luthécia 390px : plan en vignettes, étiquettes serveur, images actuelles, flèche libre, clic vers le lot (2486.473985ms)
+✔ Port-Sainte-Marie et Montrouge : vignettes dans la vue « Terrains à bâtir », images de la ville, repli, clic vers le lot (1323.337272ms)
+✔ rue en trois états à Luthécia et Montrouge : aucune réception, une, toutes ; repli si l’image manque (3719.559885ms)
+✔ le catalogue réel des trois villes est examiné sans chemin cassé (284.973468ms)
+✔ chemins URL : espaces encodés admis, casse et références manquantes refusées (0.193722ms)
+✔ audit : les variantes préchargées absentes restent signalées avec un repli réellement présent (132.244601ms)
+✔ PSM : quatre images locales libres, sans mutation des variantes Luthécia ou des loyers (22.666458ms)
+✔ les avocats de PSM et Montrouge ont une fiche de dialogue (raccordés le 02/11, demande de Fred) (0.362667ms)
+✔ raccordements : profils de dialogue, routes et liens déclaratifs (1744.442534ms)
+✔ directions d’usine #351 : les actes conservent leur ordre de paiement hors du menu (166.497345ms)
+✔ #352 : la salle des ventes de la raffinerie conserve son image locale (104.236684ms)
+✔ les journalistes communs parlent depuis une rédaction, sans ancien hôtel ni fausse enseigne (0.99438ms)
+✔ étape B #350 : aucune ancienne exemption de copie pour la sauvegarde organisations (1.938784ms)
+✔ inventaire des producteurs : le chargeur réutilisé couvre les quatre empires sans mélanger les images (204.214424ms)
+✔ audit : seules les exclusions inconditionnelles du rendu sont reconnues (221.183323ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 14163.771796

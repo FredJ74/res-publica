@@ -1,0 +1,61 @@
+✖ le catalogue réel des trois villes est examiné sans chemin cassé (475.504801ms)
+✔ chemins URL : espaces encodés admis, casse et références manquantes refusées (0.449589ms)
+✔ PSM : quatre images locales libres, sans mutation des variantes Luthécia ou des loyers (45.246368ms)
+✔ les avocats de PSM et Montrouge ont une fiche de dialogue (raccordés le 02/11, demande de Fred) (0.448076ms)
+✔ raccordements : profils de dialogue, routes et liens déclaratifs (2299.173451ms)
+✔ directions d’usine #351 : les actes conservent leur ordre de paiement hors du menu (289.247526ms)
+✔ #352 : la salle des ventes de la raffinerie conserve son image locale (355.937227ms)
+✔ les journalistes communs parlent depuis une rédaction, sans ancien hôtel ni fausse enseigne (1.1865ms)
+✔ étape B #350 : aucune ancienne exemption de copie pour la sauvegarde organisations (8.889859ms)
+✔ inventaire des producteurs : le chargeur réutilisé couvre les quatre empires sans mélanger les images (368.921261ms)
+✔ audit : seules les exclusions inconditionnelles du rendu sont reconnues (84.98753ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 10
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4126.16245
+
+✖ failing tests:
+
+test at outils/bancs/test-audit-global-republia.mjs:10:1
+✖ le catalogue réel des trois villes est examiné sans chemin cassé (475.504801ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + [
+  +   {
+  +     candidats: [],
+  +     code: 'image_introuvable',
+  +     gravite: 'P2',
+  +     scene: 'republic.montrouge-vue-11.imagesEtatsTerrains.etat2',
+  +     statut: 'fichier_absent',
+  +     type: 'rue',
+  +     url: 'images/terrains/montrouge/rue-etat-2.webp'
+  +   },
+  +   {
+  +     candidats: [],
+  +     code: 'image_introuvable',
+  +     gravite: 'P2',
+  +     scene: 'republic.montrouge-vue-11.imagesEtatsTerrains.etat3',
+  +     statut: 'fichier_absent',
+  +     type: 'rue',
+  +     url: 'images/terrains/montrouge/rue-etat-3.webp'
+  +   }
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (file:///workspace/hg-main-controle/outils/bancs/test-audit-global-republia.mjs:12:9)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ { gravite: 'P2', code: 'image_introuvable', scene: 'republic.montrouge-vue-11.imagesEtatsTerrains.etat2', type: 'rue', statut: 'fichier_absent', url: 'images/terrains/montrouge/rue-etat-2.webp', candidats: [] }, { gravite: 'P2', code: 'image_introuvable', scene: 'republic.montrouge-vue-11.imagesEtatsTerrains.etat3', type: 'rue', statut: 'fichier_absent', url: 'images/terrains/montrouge/rue-etat-3.webp', candidats: [] } ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

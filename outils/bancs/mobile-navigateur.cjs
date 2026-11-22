@@ -2,8 +2,8 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),http=require('node:http'),zlib=require('node:zlib'),crypto=require('node:crypto');
 const {chromium}=require('../e2e/node_modules/playwright');
 const R=path.resolve(__dirname,'../..');
-const reference=fs.readFileSync(path.join(__dirname,'fixtures/mobile-temoin-728010c8.json.gz'));
-assert.equal(crypto.createHash('sha256').update(reference).digest('hex'),'7d79fac32ee8d3059505c494b18ccc958199698478b9702fc7d7017717f52d3c');
+const reference=fs.readFileSync(path.join(__dirname,'fixtures/mobile-temoin-728010c8-human-gambit-20261122.json.gz'));
+assert.equal(crypto.createHash('sha256').update(reference).digest('hex'),'0c402cd6e27f5c96e56fa0a32081ba5cd0c6a1458ba3ff0a4648e051ea9e4b30');
 const temoin=JSON.parse(zlib.gunzipSync(reference));
 assert.equal(temoin.commit,'728010c844597087e7c4063f72fabbcb2a746723');
 const lecture=(f,ancien)=>ancien?Buffer.from(temoin.fichiers[f]):fs.readFileSync(path.join(R,f));

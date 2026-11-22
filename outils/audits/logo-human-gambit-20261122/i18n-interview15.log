@@ -1,0 +1,23 @@
+✔ catalogue : neuf colonnes remplies, différentes du français, nombres et sigles conservés (32.932405ms)
+✔ provenance des phrases actives et des phrases retirées documentées (2000.150875ms)
+✔ aucun recouvrement avec les catalogues déjà raccordés (pas de double traduction ni de markToast contrarié) (118.799367ms)
+✔ showToast : français intact, neuf langues traduites, phrase inconnue ou dynamique laissée telle quelle (484.75403ms)
+✔ bêta fermée (RP_I18N_GAME_ENABLED absent) : tout reste en français (49.835441ms)
+✔ repli : traduction absente du moteur → français, jamais la clé technique (90.620992ms)
+✔ changement de langue pendant l’affichage : corps repeint, balisage markToast respecté (46.863259ms)
+✔ plateau.html : catalogue chargé après les titres et avant l’initialisation (0.99483ms)
+✔ navigateur : neuf langues, 320/390/1280, aucun débordement, saisie conservée au changement de langue (2806.418789ms)
+✔ contenu joueur : texte libre intact même identique à une phrase fixe, ordre/journal/PA inchangés (444.538729ms)
+✔ direction : arabe RTL, jauges LTR et balisage spécialisé conservé (45.52656ms)
+✔ neuf locales, langue française strictement compatible (0.86814ms)
+✔ formes simples et langue sans pluriel grammatical (1.09323ms)
+✔ formes russes et arabes : 0, 1, 2, 3, 5, 11 et 21 (0.464941ms)
+✔ absence serveur ne devient jamais zéro, valeurs invalides inchangées (48.733187ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6339.070961

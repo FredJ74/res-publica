@@ -1,0 +1,29 @@
+✔ nouveau personnage pendant une crue : fenêtre d’accueil complète, une seule fois (1649.568637ms)
+✔ personnage ancien : aucune fenêtre d’accueil (1244.364439ms)
+✔ crue : on circule, la gare reste ouverte, le lieu touché est fermé avec un message clair (1406.19025ms)
+✔ le bandeau « Attention crue » s’explique au clic ; tout disparaît à l’heure de fin (1288.279349ms)
+✖ point d’eau : ordre vert « Puiser de l’eau » dans la liste des ordres de la place, fenêtre illustrée et pédagogique (31082.713442ms)
+✔ orage : pluie animée en continu, légère obliquité, sans redessin ; immobile si l’animation est réduite (1445.729904ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 5
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 38480.313728
+
+✖ failing tests:
+
+test at outils/bancs/banc-climat-crue-accueil-navigateur-20261121.cjs:142:1
+✖ point d’eau : ordre vert « Puiser de l’eau » dans la liste des ordres de la place, fenêtre illustrée et pédagogique (31082.713442ms)
+  locator.waitFor: Timeout 30000ms exceeded.
+  Call log:
+  [2m  - waiting for locator('#postes-body').locator('img') to be visible[22m
+  
+      at avecPage.ville (/workspace/hg-main-controle/outils/bancs/banc-climat-crue-accueil-navigateur-20261121.cjs:155:32)
+      at async avecPage (/workspace/hg-main-controle/outils/bancs/banc-climat-crue-accueil-navigateur-20261121.cjs:53:5)
+      at async TestContext.<anonymous> (/workspace/hg-main-controle/outils/bancs/banc-climat-crue-accueil-navigateur-20261121.cjs:143:3) {
+    name: 'TimeoutError',
+    log: [ "  - waiting for locator('#postes-body').locator('img') to be visible" ]
+  }

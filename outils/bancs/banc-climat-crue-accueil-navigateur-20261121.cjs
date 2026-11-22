@@ -16,7 +16,14 @@ const PAGE = '<!doctype html><meta charset="utf-8"><body><div id="rue-image" sty
 
 const CONSIGNE = 'Pendant 6 heures, les commerces et entrepôts non protégés de la zone inondable sont fermés et perdent 20 % de leurs stocks, et les chantiers sont à l’arrêt.';
 async function avecPage(fn, { maintenant, creationRecente = true, ville = 'ville_a', pays = 'republic', type = 'crue' } = {}) {
-  const serveur = http.createServer((req, res) => { res.setHeader('Content-Type', 'text/html; charset=utf-8'); res.end(PAGE); });
+  const serveur = http.createServer((req, res) => {
+    // Le renderer masque une image non décodable : servir la vraie photo, pas le HTML de PAGE.
+    const photo = 'images/Sovarka/Krasnov/Krasnov_place_ours_fontaine.webp';
+    if (req.url.split('?')[0] === '/' + photo) {
+      res.setHeader('Content-Type', 'image/webp'); res.end(fs.readFileSync(path.join(root, photo))); return;
+    }
+    res.setHeader('Content-Type', 'text/html; charset=utf-8'); res.end(PAGE);
+  });
   const profil = fs.mkdtempSync(path.join(os.tmpdir(), 'hg-climat-crue-')); let nav, browser;
   try {
     await new Promise((r, j) => { serveur.once('error', j); serveur.listen(0, '127.0.0.1', r); });
@@ -153,6 +160,7 @@ test('point d’eau : ordre vert « Puiser de l’eau » dans la liste des ordre
     await b.click();
     const corps = page.locator('#postes-body');
     await corps.locator('img').waitFor();
+    await page.waitForFunction(() => document.querySelector('#postes-body img').naturalWidth > 0);
     const txt = await corps.innerText();
     assert.match(txt, /Fontaine de la statue de l’Ours\. L’eau est gratuite\. Puiser coûte 1 PA, quelle que soit la quantité\. Vous pouvez puiser jusqu’à 10 bouteilles toutes les 6 heures\./);
     assert.match(txt, /Vous pouvez encore puiser 10 bouteilles avant 12 h 00\./);

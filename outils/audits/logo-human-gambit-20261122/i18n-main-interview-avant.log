@@ -1,0 +1,85 @@
+✔ catalogue : neuf colonnes remplies, différentes du français, nombres et sigles conservés (47.26295ms)
+✖ provenance des phrases actives et de l’unique phrase retirée de navigation (1868.148333ms)
+✔ aucun recouvrement avec les catalogues déjà raccordés (pas de double traduction ni de markToast contrarié) (145.600118ms)
+✔ showToast : français intact, neuf langues traduites, phrase inconnue ou dynamique laissée telle quelle (572.503073ms)
+✔ bêta fermée (RP_I18N_GAME_ENABLED absent) : tout reste en français (47.998169ms)
+✔ repli : traduction absente du moteur → français, jamais la clé technique (43.081202ms)
+✔ changement de langue pendant l’affichage : corps repeint, balisage markToast respecté (47.383582ms)
+✔ plateau.html : catalogue chargé après les titres et avant l’initialisation (1.02781ms)
+✔ navigateur : neuf langues, 320/390/1280, aucun débordement, saisie conservée au changement de langue (2881.337552ms)
+✔ contenu joueur : texte libre intact même identique à une phrase fixe, ordre/journal/PA inchangés (508.533672ms)
+✔ direction : arabe RTL, jauges LTR et balisage spécialisé conservé (57.479096ms)
+✔ neuf locales, langue française strictement compatible (0.836212ms)
+✔ formes simples et langue sans pluriel grammatical (1.24662ms)
+✔ formes russes et arabes : 0, 1, 2, 3, 5, 11 et 21 (0.564571ms)
+✖ absence serveur ne devient jamais zéro, valeurs invalides inchangées (4.642713ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 13
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6382.028437
+
+✖ failing tests:
+
+test at outils/bancs/banc-i18n-corps-notifications-20261114.cjs:51:1
+✖ provenance des phrases actives et de l’unique phrase retirée de navigation (1868.148333ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  ... Skipped lines
+  
+    [
+      "Vous n'avez pas de rendez-vous en attente ici.",
+      'Le navigateur ne peut pas conserver la référence de cet ordre.',
+      'Le service a ete obtenu. -5 DIS.',
+      'La tentative de corruption a echoue.',
+  ...
+      'Cette prestation ne peut pas être vendue à emporter.',
+  +   "Vous avez décliné l'interview de Jodie Moitout.",
+  +   'Vous avez déjà décliné cette proposition — Jodie ne relance pas.',
+  +   'Jodie a déjà publié votre portrait dans Presse & Médias.',
+  +   'Merci de répondre à chacune des 5 questions.',
+  +   "Jodie a rédigé votre portrait : rouvrez sa proposition (« Accepter l'interview ») pour le relire avant publication.",
+  +   'Jodie a publié votre portrait dans Presse & Médias.',
+      'Impossible de restaurer la position depuis le serveur.',
+  +   "Jodie n'arrive pas à rédiger.",
+      'Réponse incertaine. Relancez le même ordre : il ne sera pas payé deux fois.'
+    ]
+  
+      at TestContext.<anonymous> (/workspace/hg-main-controle/outils/bancs/banc-i18n-corps-notifications-20261114.cjs:75:9)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ "Vous n'avez pas de rendez-vous en attente ici.", 'Le navigateur ne peut pas conserver la référence de cet ordre.', 'Le service a ete obtenu. -5 DIS.', 'La tentative de corruption a echoue.', 'Transfere au QHS. -25 PV, -15 DIS.', '+5 DIS.', 'Aucun paiement ne permet d’accélérer une construction dans les empires actuels.', 'Le fonctionnaire vous dénonce.', 'Le fonctionnaire a fait remonter votre dossier. Instruction raccourcie.', 'Vous ne pouvez pas voter dans cet empire.', 'Vous devez être dans un bâtiment pour tenter ceci.', 'Le feu ne prend pas. Rien ne se passe.', "Vous n'avez pas d'explosifs dans votre inventaire. Procurez-vous en à l'armurerie.", "Vous n'avez pas d'explosifs dans votre inventaire.", 'Le dispositif vous explose entre les mains. Vous êtes blessé(e).', `Vous devez d'abord réussir l'ordre "Se cacher" dans cette pièce.`, "Vous n'avez pas d'objet poison dans votre inventaire. Procurez-vous en dans votre empire.", 'Aucun PJ dans cette pièce.', "Vous n'avez pas d'objet poison dans votre inventaire.", "L'empoisonnement n'a pas pu avoir lieu.", 'Un témoin vous a vu(e). Vous êtes désormais recherché(e).', "L'empoisonnement a échoué. Objet perdu. Vous avez été identifié(e).", 'Maximum 2 récoltes par jour.', 'Cette prestation ne peut pas être vendue à emporter.', "Vous avez décliné l'interview de Jodie Moitout.", 'Vous avez déjà décliné cette proposition — Jodie ne relance pas.', 'Jodie a déjà publié votre portrait dans Presse & Médias.', 'Merci de répondre à chacune des 5 questions.', "Jodie a rédigé votre portrait : rouvrez sa proposition (« Accepter l'interview ») pour le relire avant publication.", 'Jodie a publié votre portrait dans Presse & Médias.', 'Impossible de restaurer la position depuis le serveur.', "Jodie n'arrive pas à rédiger.", 'Réponse incertaine. Relancez le même ordre : il ne sera pas payé deux fois.' ],
+    expected: [ "Vous n'avez pas de rendez-vous en attente ici.", 'Le navigateur ne peut pas conserver la référence de cet ordre.', 'Le service a ete obtenu. -5 DIS.', 'La tentative de corruption a echoue.', 'Transfere au QHS. -25 PV, -15 DIS.', '+5 DIS.', 'Aucun paiement ne permet d’accélérer une construction dans les empires actuels.', 'Le fonctionnaire vous dénonce.', 'Le fonctionnaire a fait remonter votre dossier. Instruction raccourcie.', 'Vous ne pouvez pas voter dans cet empire.', 'Vous devez être dans un bâtiment pour tenter ceci.', 'Le feu ne prend pas. Rien ne se passe.', "Vous n'avez pas d'explosifs dans votre inventaire. Procurez-vous en à l'armurerie.", "Vous n'avez pas d'explosifs dans votre inventaire.", 'Le dispositif vous explose entre les mains. Vous êtes blessé(e).', `Vous devez d'abord réussir l'ordre "Se cacher" dans cette pièce.`, "Vous n'avez pas d'objet poison dans votre inventaire. Procurez-vous en dans votre empire.", 'Aucun PJ dans cette pièce.', "Vous n'avez pas d'objet poison dans votre inventaire.", "L'empoisonnement n'a pas pu avoir lieu.", 'Un témoin vous a vu(e). Vous êtes désormais recherché(e).', "L'empoisonnement a échoué. Objet perdu. Vous avez été identifié(e).", 'Maximum 2 récoltes par jour.', 'Cette prestation ne peut pas être vendue à emporter.', 'Impossible de restaurer la position depuis le serveur.', 'Réponse incertaine. Relancez le même ordre : il ne sera pas payé deux fois.' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at outils/bancs/banc-i18n-pluriels-forum.cjs:35:1
+✖ absence serveur ne devient jamais zéro, valeurs invalides inchangées (4.642713ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(forum.includes("rpForumCompte('unread',unreadCount,unreadCount+' non lu(s)')"))
+  
+      at TestContext.<anonymous> (/workspace/hg-main-controle/outils/bancs/banc-i18n-pluriels-forum.cjs:44:9)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
