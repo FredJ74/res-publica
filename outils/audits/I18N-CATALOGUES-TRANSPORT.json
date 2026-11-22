@@ -222,10 +222,10 @@
     {
       "source": "i18n/guide-resources.js",
       "packed": "i18n/packed/guide-resources.js.br",
-      "sourceBytes": 41930,
-      "packedBytes": 13475,
-      "sourceSha256": "af453ccbd40d1e9f7d2328f5db20455de7d7a9c8b291bc8b5174baa79ec1fa3e",
-      "packedSha256": "8b2de534c0705e8b1f027dd7f06bde78a9b4f208c8e8a7796479616236faf294"
+      "sourceBytes": 41954,
+      "packedBytes": 13494,
+      "sourceSha256": "c0acdd9fa05b89c424f87e07f2acc68843fae0b0a3be0432669f6ec60e7bab6b",
+      "packedSha256": "d72e82131a2b59837b5fbe0a6dacdcbdbefcf2e1a7e588a26a2d4c13c597dec8"
     },
     {
       "source": "i18n/guide-sport-resources.js",

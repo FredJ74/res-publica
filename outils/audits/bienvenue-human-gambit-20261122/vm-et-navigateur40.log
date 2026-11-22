@@ -1,0 +1,48 @@
+✔ neuf langues : seul le nom change dans les textes relus, sans perte de récit ni de règle (1.984083ms)
+✔ les empreintes restent strictes et couvrent le nom Human Gambit (3.183041ms)
+✔ bienvenue, langues à chaud et état conservé à 320px (2281.692599ms)
+✔ bienvenue, langues à chaud et état conservé à 390px (1878.911563ms)
+✔ bienvenue, langues à chaud et état conservé à 1440px (1898.317559ms)
+✔ doSoinPublic/personnage : apres le cout, aucune RPC pour un autre acteur (9.36169ms)
+✔ doSoinPublic/compte : apres le cout, aucune RPC pour un autre acteur (1.352239ms)
+✔ doSoinPublic/session : apres le cout, aucune RPC pour un autre acteur (1.499552ms)
+✔ doSoinPublic : retour tardif ignore et succes normal conserve (18.156355ms)
+✔ doSoinCliniquePrivee/personnage : apres le cout, aucune RPC pour un autre acteur (2.729878ms)
+✔ doSoinCliniquePrivee/compte : apres le cout, aucune RPC pour un autre acteur (1.315394ms)
+✔ doSoinCliniquePrivee/session : apres le cout, aucune RPC pour un autre acteur (1.461415ms)
+✔ doSoinCliniquePrivee : retour tardif ignore et succes normal conserve (4.344733ms)
+✔ sommeil : reponse de repos tardive ne modifie pas le nouveau personnage (1.872484ms)
+✔ sommeil : changement pendant la solde ne declenche pas le salaire pour le nouvel acteur (1.84929ms)
+✔ Assemblee/personnage : ni reexecution ni application d'une ancienne reponse (2.208081ms)
+✔ Assemblee/compte : ni reexecution ni application d'une ancienne reponse (1.333662ms)
+✔ Assemblee/session : ni reexecution ni application d'une ancienne reponse (1.640615ms)
+✔ justice : une liberation ancienne ne libere pas le nouveau personnage (3.204353ms)
+✔ politique : une candidature acceptee pour Alice ne donne pas son poste a Bob (3.388511ms)
+✔ militaire : lecture tardive ignoree apres changement de compte (1.355965ms)
+✔ Assemblee : succes, zeros et meme cle au rejeu restent fonctionnels (2.348352ms)
+✔ Assemblee : changement pendant la sauvegarde empeche toute nouvelle commande (1.613694ms)
+✔ justice : un verdict ne remplace pas une autre detention du meme personnage (3.965411ms)
+✔ militaire : deux lectures dans le desordre conservent la plus recente (1.827877ms)
+✔ militaire/milOrdonnerManger : ancienne reponse ne vide pas les selections (1.406852ms)
+✔ militaire/milOrdonnerDormir : ancienne reponse ne vide pas les selections (1.28615ms)
+✔ militaire/milRejoindre : ancienne reponse ne vide pas les selections (1.275524ms)
+✔ le vrai motif deja_repose resynchronise les PA sans rejouer les effets (6.580736ms)
+✔ reponse perdue puis marqueur confirme : exactement deux appels idempotents, aucun soin double (1.647886ms)
+✔ reponses absentes : resultat annonce indetermine, sans PA ni succes invente (1.753174ms)
+✔ changement de personnage pendant la confirmation : aucune nouvelle requete (2.590006ms)
+✔ mot de passe : seul GoTrue recoit le secret, via PUT authentifie (2.330405ms)
+✔ mot de passe : session changee pendant lecture, compte anonyme ou secret court refusent tout PUT (2.193509ms)
+✔ compteur PA plus recent pendant la requete : le retour du repos ne l ecrase pas (2.402334ms)
+✔ historique : borne de 30 entrees, separation par personnage, aucune persistance (62.361502ms)
+✔ HTTP 200 sans JSON exploitable : aucun faux verdict ni rejeu automatique, incident conserve (5.188446ms)
+✔ renouvellement JWT de la meme session : le repos confirme reste applicable (2.313149ms)
+✔ nouvelle connexion meme compte : ancienne reponse toujours ignoree (2.023632ms)
+✔ reconnexion : le bandeau ne se ferme qu apres une restauration confirmee (13.863781ms)
+ℹ tests 40
+ℹ suites 0
+ℹ pass 40
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7053.622291

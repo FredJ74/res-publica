@@ -1,0 +1,33 @@
+foret	Chromium réel	﻿2026-11-22T14:15:47.2861092Z ##[group]Run node --test outils/bancs/banc-foret-krasnov-navigateur-20261121.cjs outils/bancs/banc-foret-combat-navigateur-20261122.cjs
+foret	Chromium réel	2026-11-22T14:15:47.2862080Z [36;1mnode --test outils/bancs/banc-foret-krasnov-navigateur-20261121.cjs outils/bancs/banc-foret-combat-navigateur-20261122.cjs[0m
+foret	Chromium réel	2026-11-22T14:15:47.2884016Z shell: /usr/bin/bash -e {0}
+foret	Chromium réel	2026-11-22T14:15:47.2884367Z env:
+foret	Chromium réel	2026-11-22T14:15:47.2884748Z   HG_CHROMIUM: /usr/bin/google-chrome
+foret	Chromium réel	2026-11-22T14:15:47.2885098Z ##[endgroup]
+foret	Chromium réel	2026-11-22T14:15:59.3688140Z ✖ rapport par round, suspense en deux fenêtres, membre du groupe (1280 et 390 px) (11557.075027ms)
+foret	Chromium réel	2026-11-22T14:15:59.6926670Z ✔ portique → clairière, sentier → exploration, sous-bois → exploration ; rien ailleurs (12026.901043ms)
+foret	Chromium réel	2026-11-22T14:15:59.7076585Z ℹ tests 2
+foret	Chromium réel	2026-11-22T14:15:59.7077179Z ℹ suites 0
+foret	Chromium réel	2026-11-22T14:15:59.7077745Z ℹ pass 1
+foret	Chromium réel	2026-11-22T14:15:59.7078130Z ℹ fail 1
+foret	Chromium réel	2026-11-22T14:15:59.7078456Z ℹ cancelled 0
+foret	Chromium réel	2026-11-22T14:15:59.7078846Z ℹ skipped 0
+foret	Chromium réel	2026-11-22T14:15:59.7079582Z ℹ todo 0
+foret	Chromium réel	2026-11-22T14:15:59.7080194Z ℹ duration_ms 12382.171411
+foret	Chromium réel	2026-11-22T14:15:59.7085660Z 
+foret	Chromium réel	2026-11-22T14:15:59.7086398Z ✖ failing tests:
+foret	Chromium réel	2026-11-22T14:15:59.7086803Z 
+foret	Chromium réel	2026-11-22T14:15:59.7087428Z test at outils/bancs/banc-foret-combat-navigateur-20261122.cjs:67:1
+foret	Chromium réel	2026-11-22T14:15:59.7088684Z ✖ rapport par round, suspense en deux fenêtres, membre du groupe (1280 et 390 px) (11557.075027ms)
+foret	Chromium réel	2026-11-22T14:15:59.7091348Z   AssertionError [ERR_ASSERTION]: le premier loup au niveau du chef
+foret	Chromium réel	2026-11-22T14:15:59.7092573Z       at TestContext.<anonymous> (/home/runner/work/res-publica/res-publica/outils/bancs/banc-foret-combat-navigateur-20261122.cjs:96:14)
+foret	Chromium réel	2026-11-22T14:15:59.7093786Z       at async Test.run (node:internal/test_runner/test:1409:7)
+foret	Chromium réel	2026-11-22T14:15:59.7094720Z       at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+foret	Chromium réel	2026-11-22T14:15:59.7095424Z     generatedMessage: false,
+foret	Chromium réel	2026-11-22T14:15:59.7095956Z     code: 'ERR_ASSERTION',
+foret	Chromium réel	2026-11-22T14:15:59.7096437Z     actual: false,
+foret	Chromium réel	2026-11-22T14:15:59.7096887Z     expected: true,
+foret	Chromium réel	2026-11-22T14:15:59.7097335Z     operator: '==',
+foret	Chromium réel	2026-11-22T14:15:59.7097721Z     diff: 'simple'
+foret	Chromium réel	2026-11-22T14:15:59.7098133Z   }
+foret	Chromium réel	2026-11-22T14:15:59.7143833Z ##[error]Process completed with exit code 1.

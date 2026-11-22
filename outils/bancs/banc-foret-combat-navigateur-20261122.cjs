@@ -92,7 +92,12 @@ test('rapport par round, suspense en deux fenêtres, membre du groupe (1280 et 3
       assert.match(await lignes.nth(2).innerText(), /Arnie\s*−6 PA/);
       assert.match(await lignes.nth(3).innerText(), /Loup 2\s*−4 PA/);
       assert.match(await lignes.nth(5).innerText(), /Loup 3\s*−0 PA/);
-      const [bTom, bLoup, bTrait] = [await lignes.nth(0).boundingBox(), await lignes.nth(1).boundingBox(), await r1.locator('.hg-round-trait').first().boundingBox()];
+      // Une seule mesure dans la même frame : les lectures CDP séparées pouvaient
+      // chevaucher l'animation d'ouverture et comparer des instants différents.
+      const [bTom, bLoup, bTrait] = await r1.evaluate(r => {
+        const l = r.querySelectorAll('.hg-round-ligne');
+        return [l[0], l[1], r.querySelector('.hg-round-trait')].map(e => e.getBoundingClientRect().toJSON());
+      });
       assert.ok(Math.abs(bTom.y - bLoup.y) < 3, 'le premier loup au niveau du chef');
       assert.ok(bTom.x < bTrait.x && bTrait.x < bLoup.x, 'chef à gauche, trait, loup à droite');
       // Le trait est continu d'une rangée à l'autre, sur toute la hauteur du round.

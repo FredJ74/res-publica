@@ -177,7 +177,7 @@ function closeCharSheet() {
 const REGLES = {
   tuto: {
     titre: '🎓 Tutoriel — Premiers pas',
-    contenu: `Bienvenue dans Res Publica ! Voici comment commencer en 5 étapes.
+    contenu: `Bienvenue dans Human Gambit ! Voici comment commencer en 5 étapes.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━
 ÉTAPE 1 — Créer votre personnage
@@ -216,11 +216,11 @@ CONSEILS
     titre: 'Le Grand Jeu',
     contenu: `Panem et circenses — du pain et des jeux. Voilà, à quelques siècles près, ce qui faisait déjà tourner Rome, et c'est encore ce qui fait tourner le monde aujourd'hui, sous des habits neufs.
 
-Res Publica est un jeu de rôle politique parodique où plusieurs mondes cohabitent, s'entremêlent et se nourrissent les uns des autres. Certains y mènent une guerre de pouvoir sans merci — élections truquées, coups d'État feutrés, alliances de circonstance. D'autres y bâtissent une fortune, terrain après terrain, entreprise après entreprise, préférant le grand livre de comptes aux tribunes de l'Assemblée. D'autres encore y trouvent leur gloire sur un terrain de foot, portés par des supporters aussi capables de vous élire en idole que de vous brûler en effigie. D'autres, enfin, choisissent l'ombre — le vol, la corruption, l'assassinat, l'art délicat de ne jamais se faire prendre.
+Human Gambit est un jeu de rôle politique parodique où plusieurs mondes cohabitent, s'entremêlent et se nourrissent les uns des autres. Certains y mènent une guerre de pouvoir sans merci — élections truquées, coups d'État feutrés, alliances de circonstance. D'autres y bâtissent une fortune, terrain après terrain, entreprise après entreprise, préférant le grand livre de comptes aux tribunes de l'Assemblée. D'autres encore y trouvent leur gloire sur un terrain de foot, portés par des supporters aussi capables de vous élire en idole que de vous brûler en effigie. D'autres, enfin, choisissent l'ombre — le vol, la corruption, l'assassinat, l'art délicat de ne jamais se faire prendre.
 
 Comme le citoyen romain d'autrefois, vous ne serez jamais qu'une seule chose à la fois : un politique peut tomber en disgrâce et se relever entrepreneur ; un criminel peut blanchir sa fortune dans le sport ; un capitaine d'industrie peut financer, en coulisses, l'élection qui décidera de son propre avenir. Rien n'est cloisonné. Tout se répond.
 
-Choisissez qui vous voulez être. Mais sachez que dans Res Publica, comme à Rome, le pouvoir ne se donne jamais — il se prend, se négocie, ou se rachète.`
+Choisissez qui vous voulez être. Mais sachez que dans Human Gambit, comme à Rome, le pouvoir ne se donne jamais — il se prend, se négocie, ou se rachète.`
   },
   personnage: {
     titre: 'Créer son personnage',
@@ -4534,6 +4534,19 @@ function renderRulesContent(section) {
 
 
 // =====================
+// Le changement de langue ne rouvre pas le guide et ne touche pas aux saisies.
+function rafraichirGuideOuvert() {
+  const vue = document.getElementById('vue-rules');
+  const contenu = document.getElementById('rules-content');
+  const section = vue?.querySelector('.rules-tab.active')?.dataset.section;
+  if (!vue?.classList.contains('active') || !contenu || !section || section === 'aide') return;
+  const defilements = [contenu, vue].filter(Boolean)
+    .map(el => ({el, top: el.scrollTop, left: el.scrollLeft}));
+  renderRulesContent(section);
+  for (const {el, top, left} of defilements) { el.scrollTop = top; el.scrollLeft = left; }
+}
+if (typeof window !== 'undefined') (window.RP_I18N_CHANGE_CALLBACKS = window.RP_I18N_CHANGE_CALLBACKS || []).push(rafraichirGuideOuvert);
+
 // TROUSSE DE PREMIERS SECOURS (phase 2, 18 septembre 2026)
 // =====================
 // Le gain est calcule et applique SERVEUR : +2 PA, +1 par tranche complete de 25 de Secourisme du
