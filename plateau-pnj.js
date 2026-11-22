@@ -3084,7 +3084,8 @@ async function escortIntimiteServeur(nomEscort, palierVise) {
   document.getElementById('modal-postes').classList.add('open');
 
   if (v.rejeu) return;
-  addJournalEntry('Moment privé avec ' + nomEscort + '. +' + v.gain_moral + ' Moral, +' + v.gain_hp + ' Santé' +
+  // Santé (Fred, 22/11/2026, point 6) : une nuit avec une escort ne rend plus aucune Santé (serveur : gain_hp = 0).
+  addJournalEntry('Moment privé avec ' + nomEscort + '. +' + v.gain_moral + ' Moral' +
     (v.gain_ent > 0 ? ', +' + v.gain_ent + ' ENT' : '') + '. -' + v.cout_prestation + ' ' + cur + '.', 'event-good');
 
   if (typeof tracerActionPourRumeur === 'function') {

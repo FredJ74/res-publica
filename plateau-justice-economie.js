@@ -6070,7 +6070,7 @@ function chainesUsinePays(pays) {
   return CHAINES_PRODUCTION_PAYS[pays || (typeof state !== 'undefined' && state && state.country) || 'republic'] || CHAINES_PRODUCTION_USINE;
 }
 
-async function doProduireUsine(produitId) {
+async function doProduireUsine(produitId, medicamentChoisi) {
   const c = chainesUsinePays(state.country)[produitId];
   if (!c) { showToast('Indisponible', '', false); globalThis.RPI18nPlateau?.markToast(null, '', undefined, 'Indisponible'); return; }
   const cur = COUNTRIES[state.country || 'republic']?.cur || 'FR';
@@ -6094,7 +6094,24 @@ async function doProduireUsine(produitId) {
   document.getElementById('postes-modal-title').textContent = 'Produire — ' + produitCfg.label;
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.82rem;color:#8a8060;margin-bottom:.7rem">' + PA_PRODUCTION_USINE + ' PA consomme ' + MATIERE_PAR_PA_USINE + ' ' + matiereCfg.label + ' du stock de l\'usine et produit ' + PRODUIT_PAR_PA_USINE + ' ' + produitCfg.label + '. Salaire fixe : ' + salairePA + ' ' + cur + '.</div>';
-  html += '<div style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.8rem;font-size:.85rem;color:#8a8060">Stock de ' + matiereCfg.label + ' : ' + stockMatiereActuel + ' · Stock local de ' + produitCfg.label + ' : ' + stockActuel + '/' + PLAFOND_VENTE_DIRECTE_USINE + ' · Caisse de l\'usine : ' + Math.round(caisse) + ' ' + cur + '</div>';
+  html += '<div style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.8rem;font-size:.85rem;color:#8a8060">Stock de ' + matiereCfg.label + ' : ' + stockMatiereActuel + (produitId === 'medicaments' ? '' : ' · Stock local de ' + produitCfg.label + ' : ' + stockActuel + '/' + PLAFOND_VENTE_DIRECTE_USINE) + ' · Caisse de l\'usine : ' + Math.round(caisse) + ' ' + cur + '</div>';
+  // Santé (Fred, 22/11/2026, point 13) : un seul ordre « Produire des médicaments », le producteur choisit le médicament.
+  // Le serveur (produire_medicament) applique les mêmes matières, salaire et plafond à tous ; l'écran n'affiche que ses chiffres.
+  if (produitId === 'medicaments') {
+    const RM = globalThis.RPMaladies;
+    const e = await sbRpc('usine_medicaments_etat', {}).catch(() => null);
+    const etatMed = Array.isArray(e) ? e[0] : e;
+    const liste = (etatMed && etatMed.ok === true && Array.isArray(etatMed.medicaments)) ? etatMed.medicaments : [];
+    const echap = v => String(v ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+    html += '<label for="usine-medicament-choix" style="display:block;font-size:.85rem;color:#8a8060;margin-bottom:.3rem">Médicament à fabriquer</label>';
+    html += '<select id="usine-medicament-choix" class="cpj-champ" style="width:100%;margin-bottom:.8rem">';
+    for (const m of liste) {
+      const nom = RM && typeof RM.nomMedicament === 'function' ? RM.nomMedicament(m.medicament) : m.medicament;
+      html += '<option value="' + echap(m.medicament) + '"' + (m.medicament === medicamentChoisi ? ' selected' : '') + '>'
+        + echap(nom) + ' — stock national ' + echap(m.stock) + '/' + echap(etatMed.stock_max) + '</option>';
+    }
+    html += '</select>';
+  }
   html += '<button onclick="confirmerProductionUsine(\'' + produitId + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.9rem;letter-spacing:.1em;padding:.6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Produire (' + PA_PRODUCTION_USINE + ' PA)</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
@@ -6111,14 +6128,17 @@ async function confirmerProductionUsine(produitId) {
   const c = chainesUsinePays(state.country)[produitId];
   if (!c) { document.getElementById('modal-postes')?.classList.remove('open'); return; }
   const cur = COUNTRIES[state.country || 'republic']?.cur || 'FR';
+  const medicament = produitId === 'medicaments' ? (document.getElementById('usine-medicament-choix')?.value || '') : null;
+  if (produitId === 'medicaments' && !medicament) { showToast('Production impossible', 'Choisissez un médicament.', false); return; }
 
   // Les PA restent preleves par la voie centrale (cost:0 : le salaire est un GAIN).
   const rPa = await deduireCoutOrdre({ pa: PA_PRODUCTION_USINE, cost: 0, fn: 'produire_' + produitId });
   if (!rPa.ok) { showToast('PA insuffisants', PA_PRODUCTION_USINE + ' PA requis.', false); globalThis.RPI18nPlateau?.markToast(null, PA_PRODUCTION_USINE + ' PA requis.', undefined, 'PA insuffisants');
     document.getElementById('modal-postes')?.classList.remove('open'); return; }
 
-  const rows = await sbRpc('produire_en_usine', {
-    p_acteur: state.char?.name, p_pays: state.country, p_produit: produitId });
+  const rows = medicament
+    ? await sbRpc('produire_medicament', { p_acteur: state.char?.name, p_pays: state.country, p_medicament: medicament })
+    : await sbRpc('produire_en_usine', { p_acteur: state.char?.name, p_pays: state.country, p_produit: produitId });
   const v = Array.isArray(rows) ? rows[0] : rows;
   if (!v || v.ok !== true) {
     const raison = (v && v.raison) || 'indisponible';
@@ -6127,7 +6147,8 @@ async function confirmerProductionUsine(produitId) {
       caisse_insuffisante: "L'usine ne peut pas payer ce travail actuellement.",
       stock_plein: 'Le stock local de ce produit est au maximum.',
       pas_sur_place: 'Il faut être dans l\'usine pour y travailler.',
-      chaine_inconnue: 'Production indisponible.'
+      chaine_inconnue: 'Production indisponible.',
+      medicament_inconnu: 'Ce médicament ne se fabrique pas ici.'
     };
     showToast(raison === 'stock_plein' ? 'Stock plein' : 'Production impossible',
               libelles[raison] || ('Refusé (' + raison + ').'), false);
@@ -6138,13 +6159,15 @@ async function confirmerProductionUsine(produitId) {
   state.arg = v.arg; state.liquide = v.liquide;
   if (state.char) state.char.arg = state.arg;
   updateUI();
-  showToast('Production réussie !', RESSOURCES_ECONOMIE[produitId].label + ' produit(s). +'
+  const libelleProduit = medicament && globalThis.RPMaladies?.nomMedicament
+    ? globalThis.RPMaladies.nomMedicament(medicament) : RESSOURCES_ECONOMIE[produitId].label;
+  showToast('Production réussie !', libelleProduit + ' produit(s). +'
     + v.salaire + ' ' + cur + ' de salaire.', true, true);
-  addJournalEntry('Production de ' + v.produits + ' ' + RESSOURCES_ECONOMIE[produitId].label
+  addJournalEntry('Production de ' + v.produits + ' ' + libelleProduit
     + ' (+' + v.salaire + ' ' + cur + ').', 'event-good');
 
   // Ne ferme pas le modal : rafraichit pour permettre d'enchainer, meme logique que produire_arme.
-  doProduireUsine(produitId);
+  doProduireUsine(produitId, medicament);
 }
 
 

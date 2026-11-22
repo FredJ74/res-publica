@@ -37,6 +37,32 @@ Règles : voir `AGENTS.md`.
 - **À tester par Fred** (après application) : combat contre la meute à Santé 100 puis à Santé 10 (PA et Santé perdus égaux, 8 contre 12 PA pour un
   coup de 10) ; deux loups abattus → le troisième s'enfuit, « (en fuite) » au dernier round, butin des deux loups au chef ; un personnage à Santé 0
   peut se déplacer, combattre, acheter un terrain.
+### Santé : maladies, MST, escort, médicaments, fontaines (Claude, 22/11/2026) — GAME-DESIGN-SANTE-20261122.md, points 4, 5, 6, 13, 20
+- **Branche `claude/sante-maladies-20261122`** (part de `5b2bef8d`, `claude/mission-nuit-20261122`). Aucune fonction Vercel, aucun ordre payant ajouté.
+- **Migration écrite, NON appliquée** : `20261122233000_sante_maladies_medicaments.sql` (suppose le socle `20261122230000_sante_socle.sql`
+  appliqué avant). `maladies_parametres.perte_sante` (intoxication 10, grippe 10, coup de chaleur 5, gueule de bois 3, MST 10 ; posées une seule
+  fois) et `guerison_spontanee` ; maladie `mst` (−2 CHA, non contagieuse, jamais guérie seule, antibiotique, stock 20) ; tables `escort_relations`,
+  `mst_en_attente`, `medicaments_stocks` ; paramètres `medicament_matiere_par_pa` 5, `medicament_produits_par_pa` 10, `medicament_stock_max` 50.
+  Remplacements contrôlés (marques `sante_maladies_v1_*`) : `maladie_contracter_interne` (perte de Santé à la contraction, durée de 100 ans sans
+  guérison spontanée), `admin_maladie_modifier` (deux réglages en plus), `escort_intimite` (plus de Santé, tirage MST à l'acte). Réécrites :
+  `pharmacie_etat`, `pharmacie_acheter_interne` (stock produit vendu d'abord, recette à l'usine ; « Antibiotique »), `sante_reveil_interne`
+  (révèle la MST : maladie, perte, journal d'événements avec le texte exact de Fred). Nouvelles : `mst_relation_interne`, `produire_medicament`,
+  `usine_medicaments_etat`, `medicament_stock_pays_interne`, `usine_medicaments_chaine_interne`, `usine_medicaments_crediter_interne`.
+  Fontaines (point 20) : vérifiées sans tirage, contrôle en fin de migration, rien à neutraliser.
+- **Dépendance** : l'agent du sommeil doit appeler `sante_reveil_interne(nom)` au Dormir (accroche du socle) : sans lui, la MST tirée n'est jamais révélée.
+- **Fichiers du navigateur modifiés (pour rebaser)** : `plateau-maladies.js` (`CLES` + `mst`, `MEDICAMENTS` + `antibiotique`, quatre clés fr),
+  `plateau-justice-economie.js` (`doProduireUsine(produitId, medicamentChoisi)` : liste des médicaments ; `confirmerProductionUsine` →
+  `produire_medicament` ; ligne « Stock local » masquée pour les médicaments), `plateau-pnj.js` (journal de « Faire l'amour » sans Santé),
+  `admin-maladies.js` (deux champs, affichés seulement si le serveur les connaît), `plateau.html` et `admin.html` (versions des scripts).
+- **Pour Codex (traductions)** : `plateau-maladies.js` `T.fr` : `n_mst` « MST », `s_mst`, `o_mst` « Démangeaisons très gênantes. »,
+  `m_antibiotique` « Antibiotique » (liste `EN_ATTENTE_CODEX` de `test-maladies-lot1-20261118.cjs` à vider une fois traduites) ;
+  `plateau-justice-economie.js` : « Médicament à fabriquer », « stock national », « Choisissez un médicament. », « Ce médicament ne se fabrique pas
+  ici. » ; journal d'événements : clé `mst_revelee`, paramètres `partenaires`, `jours`, `perte` (texte serveur en français).
+- **Bancs** : `banc-sante-maladies-pglite-20261122.cjs` (nouveau, 8 essais, fixture `fixtures/sante-maladies-pglite.sql.txt`), workflow
+  `sante-maladies-20261122.yml` ; `test-maladies-lot1-20261118.cjs` mis à jour (clés fr en attente de Codex).
+- **À tester par Fred** : avec trois escorts différentes, « Faire l'amour » avec chacune (même escort revue : aucun risque), puis Dormir : message
+  du journal et −10 Santé si la MST est tombée ; démangeaisons visibles des autres ; antibiotique acheté à la pharmacie, pris, Dormir : guéri ;
+  à l'usine pharmaceutique, « Produire des médicaments » : choisir l'antibiotique, puis le voir en vente au comptoir.
 ### Remontées du test en forêt, points 1 et 8 : texte minimum et météo des vues en plein air (Claude, 22/11/2026) — décisions : GAME-DESIGN-FORET-TEST-20261122.md
 - **Branche `claude/texte-meteo-20261122`** (part de `main`). Aucune migration, aucune fonction Vercel. Le bouton « Explorer la forêt » (point 8) est
   traité par un autre agent ; la logique forêt, les groupes, le combat et l'inventaire aussi (branches séparées).

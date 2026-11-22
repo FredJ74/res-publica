@@ -24,9 +24,14 @@ test('neuf langues, mêmes clés et mêmes variables que le français', () => {
   const langues = ['fr', 'en', 'es', 'zh-TW', 'ru', 'ko', 'ar', 'pt-BR', 'de'];
   assert.deepEqual(Object.keys(T).sort(), [...langues].sort());
   const vars = s => (String(s).match(/\{\w+\}/g) || []).sort().join(',');
+  // Santé (22/11/2026, MST et antibiotique) : clés écrites en français seulement, en attente de traduction par Codex ;
+  // les autres langues retombent sur le français. Retirer de cette liste une fois traduites.
+  const EN_ATTENTE_CODEX = ['n_mst', 's_mst', 'o_mst', 'm_antibiotique'];
   for (const l of langues) {
-    assert.deepEqual(Object.keys(T[l]).sort(), Object.keys(T.fr).sort(), l);
+    const attendues = Object.keys(T.fr).filter(k => l === 'fr' || !EN_ATTENTE_CODEX.includes(k) || k in T[l]).sort();
+    assert.deepEqual(Object.keys(T[l]).sort(), attendues, l);
     for (const [k, v] of Object.entries(T.fr)) {
+      if (!(k in T[l]) && EN_ATTENTE_CODEX.includes(k)) continue;
       assert.ok(String(T[l][k]).trim(), l + ' ' + k);
       assert.equal(vars(T[l][k]), vars(v), l + ' ' + k);
     }
@@ -42,7 +47,8 @@ test('le texte libre du MJ prime ; le nom de la maladie n’est jamais dans le s
   assert.equal(M.nomMaladie({ cle: 'grippe', nom_mj: 'Gastro du sirocco' }), 'Gastro du sirocco');
   assert.equal(M.symptomeAutre({ symptome: 'grippe', symptome_mj: 'Court aux toilettes.' }), 'Court aux toilettes.');
   for (const l of Object.keys(M.T)) for (const c of M.CLES) {
-    assert.ok(!M.T[l]['o_' + c].includes(M.T[l]['n_' + c]), l + ' ' + c);
+    const o = M.T[l]['o_' + c] || M.T.fr['o_' + c], n = M.T[l]['n_' + c] || M.T.fr['n_' + c];
+    assert.ok(!o.includes(n), l + ' ' + c);
   }
   assert.equal(M.motif({ raison: 'stock_insuffisant', restant: 3 }), 'Недостаточно запасов: осталось 3.');
   assert.equal(M.motif({ raison: 'inconnue' }), 'Сервер отклонил операцию.');

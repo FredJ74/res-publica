@@ -7,7 +7,9 @@ const ADM_MAL_CHAMPS = [
  ['pa_max', 'entier?', 'Plafond de PA (vide = aucun)'], ['sans_bonus_arme', 'booléen', 'Bonus d’arme supprimé'],
  ['medicament', 'texte', 'Médicament adapté (clé)'], ['contagieuse', 'booléen', 'Contagieuse'], ['risques', 'json', 'Risques (%)'],
  ['prix_fixe', 'entier?', 'Prix fixe (vide = 2 × prix de base)'], ['stock_journalier', 'entier', 'Stock journalier par pharmacie (0 = pénurie)'],
- ['nom_mj', 'texte?', 'Nom temporaire (texte libre)'], ['symptome_mj', 'texte?', 'Symptôme temporaire (texte libre)']
+ ['nom_mj', 'texte?', 'Nom temporaire (texte libre)'], ['symptome_mj', 'texte?', 'Symptôme temporaire (texte libre)'],
+ // Santé (Fred, 22/11/2026, points 4 et 5) : affichés seulement quand le serveur les connaît (migration 20261122233000).
+ ['perte_sante', 'entier', 'Santé perdue à la contraction'], ['guerison_spontanee', 'booléen', 'Guérit seule à l’échéance (non = seulement par médicament)']
 ];
 function admMalLire(type, brut) {
  const v = String(brut ?? '').trim();
@@ -27,6 +29,7 @@ async function admMaladiesCharger() {
    const bloc = document.createElement('div'); bloc.className = 'adm-dossier';
    const t = document.createElement('strong'); t.textContent = m.cle + (m.nom_mj ? ' — « ' + m.nom_mj + ' »' : ''); bloc.append(t);
    for (const [k, type, label] of ADM_MAL_CHAMPS) {
+    if (!(k in m)) continue;
     const lab = document.createElement('label'); lab.className = 'adm-detail'; lab.style.display = 'block';
     lab.textContent = label + ' ';
     let inp;
