@@ -386,3 +386,8 @@ BEGIN
     || ' : les sinistrés de la crue sont indemnisés à ' || v_part || ' % des stocks perdus.', NULL);
   RETURN jsonb_build_object('ok', true, 'cout', v_total);
 END $function$;
+
+-- poste_detenu (migration 20261123120000_postes_pays, appliquée avant la crue en production) : doublure minimale
+-- (le titulaire du banc est dans son pays ; la vraie fonction lit postes_attribues).
+CREATE OR REPLACE FUNCTION public.poste_detenu(p_nom text, p_poste text, p_pays text, p_ville text DEFAULT NULL)
+ RETURNS boolean LANGUAGE sql STABLE AS $$ SELECT EXISTS (SELECT 1 FROM public.personnages_donnees WHERE name = p_nom AND poste->>'id' = p_poste AND country = p_pays) $$;

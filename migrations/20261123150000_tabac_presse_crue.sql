@@ -307,7 +307,7 @@ BEGIN
   -- crue_sans_perte_v1 (Fred, 22/11/2026) : ni stock perdu ni lieu fermé ; seuls les chantiers de la ville s'arrêtent
   -- pour la journée (climat_chantiers_bloques_interne, chantier_crue_jour_interne).
   IF public.catastrophe_active_interne(e.pays) THEN
-    SELECT name INTO v_min FROM public.personnages_donnees WHERE country = e.pays AND poste->>'id' = 'min_int' LIMIT 1;
+    SELECT name INTO v_min FROM public.personnages_donnees WHERE poste->>'id' = 'min_int' AND public.poste_detenu(name, 'min_int', e.pays) /*pp_crue_min : appliquée après 20261123120000_postes_pays*/ LIMIT 1;
     IF v_min IS NOT NULL THEN
       PERFORM public.mail_systeme_poser_interne('Ministère de l''Intérieur', v_min, 'Crue à ' || public.climat_nom_ville_interne(e.pays, e.ville),
         'Une crue frappe ' || public.climat_nom_ville_interne(e.pays, e.ville) || '. Vous pouvez proposer au Premier ministre de déclarer l''état de catastrophe naturelle (72 h après la crue au plus tard). '
