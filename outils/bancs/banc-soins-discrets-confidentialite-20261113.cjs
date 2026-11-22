@@ -24,5 +24,5 @@ test('Prix, taux, Santé et type gris préservés dans le jeu',()=>{
   assert.match(l,/pa:1, cost:800/);
   assert.match(l,/type:'grey'/);
   assert.match(l,/successRate:95/);
-  assert.match(l,/\+30 Sante/);
+  assert.match(l,/\+15 Santé/); // soins sans trace : +15 Santé (Fred, 22/11/2026, GAME-DESIGN-SANTE-20261122.md, point 10)
 });
