@@ -48,7 +48,7 @@ test('inventaire : 237 descriptions communes affichées après isolation du goul
   // catalogue (trou antérieur, chantier de traduction à venir, consigné dans RELAIS.md). Le plafond
   // autorise la seule description de gestion de caserne rétablie à Sovarka ;
   // elle doit rejoindre le catalogue partagé dans le prochain lot i18n.
-  assert.equal(communesJeu.length, 239, // -1 le 21/11 : boycott des supporters retiré en Sovarka (lot de Krasnov, point 6), sa description n'est plus affichée qu'en Républia ; +1 le 19/11 : boutique climat (lot 5) ; +1 le 18/11 : furet renifleur (maladies lot 2c) ; +1 le 18/11 : pharmacie de Républia (maladies lot 1).  Le 16/11 : 245 -> 237 ; les ordres hérités du QHS de Républia disparaissent du goulag de Sovarka (entrée, cellules et salles républicaines), sans retirer leurs traductions encore nécessaires en Républia.
+  assert.equal(communesJeu.length, 233, // -6 le 22/11 : refonte des informateurs (« Écouter le barman / la serveuse », « Recruter un informateur », ordres d'informateurs de la loge retirés) ; -1 le 21/11 : boycott des supporters retiré en Sovarka (lot de Krasnov, point 6), sa description n'est plus affichée qu'en Républia ; +1 le 19/11 : boutique climat (lot 5) ; +1 le 18/11 : furet renifleur (maladies lot 2c) ; +1 le 18/11 : pharmacie de Républia (maladies lot 1).  Le 16/11 : 245 -> 237 ; les ordres hérités du QHS de Républia disparaissent du goulag de Sovarka (entrée, cellules et salles républicaines), sans retirer leurs traductions encore nécessaires en Républia.
     'nombre de descriptions communes affichées après exclusions ministérielles spécifiques à Sovarka');
   const manquantes = communesJeu.filter(d => !cat.includes(d));
   t.diagnostic('Descriptions communes manquantes : ' + JSON.stringify(manquantes));
@@ -62,7 +62,12 @@ test('inventaire : 237 descriptions communes affichées après isolation du goul
   // « Falsifier un procès-verbal » (QHS) supprimé le 20/11 (criminalité lot 7) : sa ligne livrée reste au catalogue.
   // « Suivre une formation » ouvert le 20/11 (criminalité lot 9) : l'ancienne infobulle « Bientôt disponible » reste au catalogue.
   const HISTORIQUES = ['Recolter une matiere premiere locale. Maximum 2 fois par jour.', 'Modifier les declarations. Tres risque.',
-    'Bientôt disponible : cet ordre permettra d\'acquérir une seconde carrière.'];
+    'Bientôt disponible : cet ordre permettra d\'acquérir une seconde carrière.',
+    // Refonte des informateurs (22/11/2026) : ordres retirés, lignes livrées gardées au catalogue.
+    'Le barman entend tout. Revele une rumeur vraie ou generee selon le contexte.',
+    "1 PA, 150 FR puis 150 FR/jour. Un PNJ (PER 12-18) rejoint votre groupe en permanence tant que vous le payez : sa PER s'ajoute a celle du groupe pour les recherches, enquetes et localisations.",
+    '400 FR/jour. Localisation précise, intentions vote, voyages récents.', '1500 FR/jour. Confessions, transactions, ordres passés 24h.',
+    'Obtenir une information de votre taupe niveau 4.', 'Voir et gérer vos informateurs actifs.'];
   assert.deepEqual(cat.filter(d => !sov.has(d) && !rep.has(d) && !HISTORIQUES.includes(d)), [], 'textes du catalogue introuvables tels quels');
   assert.equal(new Set(cat).size, cat.length);
 });
