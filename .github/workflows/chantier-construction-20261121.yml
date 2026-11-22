@@ -1,10 +1,10 @@
 name: "Chantier « construction » — fenêtre unique, images par étape, accélération"
 on:
   pull_request:
-    paths: [plateau-chantier-vue.js, plateau-chantiers.js, plateau-construction-commandes.js, plateau-politique.js, plateau-navigation.js, plateau.html, 'migrations/20261121140000_chantier_jour_avance.sql', 'outils/bancs/*chantier*', 'outils/bancs/fixtures/chantier-pglite-socle.sql.txt', .github/workflows/chantier-construction-20261121.yml]
+    paths: [plateau-chantier-vue.js, plateau-chantiers.js, plateau-construction-commandes.js, plateau-politique.js, plateau-navigation.js, plateau.html, 'migrations/20261121140000_chantier_jour_avance.sql', plateau-rue-centrale.js, 'images/chantiers/psm/**', 'images/terrains/**', 'outils/bancs/*chantier*', 'outils/bancs/fixtures/chantier-pglite-socle.sql.txt', .github/workflows/chantier-construction-20261121.yml]
   push:
     branches: [main, 'claude/**']
-    paths: [plateau-chantier-vue.js, plateau-chantiers.js, plateau-construction-commandes.js, plateau-politique.js, plateau-navigation.js, plateau.html, 'migrations/20261121140000_chantier_jour_avance.sql', 'outils/bancs/*chantier*', 'outils/bancs/fixtures/chantier-pglite-socle.sql.txt', .github/workflows/chantier-construction-20261121.yml]
+    paths: [plateau-chantier-vue.js, plateau-chantiers.js, plateau-construction-commandes.js, plateau-politique.js, plateau-navigation.js, plateau.html, 'migrations/20261121140000_chantier_jour_avance.sql', plateau-rue-centrale.js, 'images/chantiers/psm/**', 'images/terrains/**', 'outils/bancs/*chantier*', 'outils/bancs/fixtures/chantier-pglite-socle.sql.txt', .github/workflows/chantier-construction-20261121.yml]
 permissions:
   contents: read
 jobs:
@@ -17,7 +17,7 @@ jobs:
         with:
           node-version: '24'
       - run: npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
-      - run: node --check plateau-chantier-vue.js && node --test outils/bancs/banc-construction-commandes.cjs
+      - run: node --check plateau-chantier-vue.js && node --check plateau-rue-centrale.js && node --test outils/bancs/banc-construction-commandes.cjs outils/bancs/banc-chantier-rue-terrains-etats-20261122.cjs
       - name: Chromium réel
         env:
           HG_CHROMIUM: /usr/bin/google-chrome

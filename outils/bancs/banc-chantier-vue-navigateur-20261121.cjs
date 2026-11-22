@@ -54,7 +54,8 @@ test('images par étape, ville et gabarit, avec repli (jamais d’image cassée)
   const cas = await page.evaluate(async () => {
     const R = window.RPChantierVue, ch = __terrain.chantier, r = {};
     const essai = async (prog, niveau) => { ch.progressionJours = prog; ch.niveau = niveau; return await R.imageResolue(__terrain); };
-    r.demarrage = await essai(1, 'building');
+    r.demarrage = await essai(0, 'building');
+    r.fondations = await essai(1, 'building');
     r.grosHaut = await essai(9, 'building');
     r.grosBas = await essai(9, 'hangar');           // gros-oeuvre-bas absent → démarrage
     r.facadeHaut = await essai(20, 'building');
@@ -66,24 +67,26 @@ test('images par étape, ville et gabarit, avec repli (jamais d’image cassée)
     return r;
   });
   assert.equal(cas.demarrage, 'images/chantier-en-cours.webp');
+  assert.equal(cas.fondations, 'images/chantiers/luthecia/fondations.webp');
   assert.equal(cas.grosHaut, 'images/chantiers/luthecia/gros-oeuvre-haut.webp');
   assert.equal(cas.grosBas, 'images/chantier-en-cours.webp');
   assert.equal(cas.facadeHaut, 'images/chantiers/luthecia/facade-haut.webp');
   assert.equal(cas.facadeBas, 'images/chantier-en-cours.webp');
   assert.equal(cas.finalBuilding, 'images/chantiers/luthecia/final-building.webp');
   assert.equal(cas.finalHangar, 'images/hangar-construction-terrain.webp');
-  // Luthécia et Montrouge : la photo des fondations n'est pas branchée (document de design). Port-Sainte-Marie a sa série
-  // complète (Fred, 21/11/2026, soir) : PSM_chantier_fondations.webp, avec repli tant que le fichier manque.
-  assert.ok(!/base \+ 'fondations|luthecia\/fondations/.test(fs.readFileSync(path.join(racine, 'plateau-chantier-vue.js'), 'utf8')));
+  // Règle du 22/11/2026 (point 3) : fondations par ville après le premier jour (Luthécia : fondations.webp) ;
+  // Port-Sainte-Marie a sa série complète, sans repli.
+  const lu = await page.evaluate(() => window.RPChantierVue.candidatsImage({ chantier: { niveau: 'hangar', dureeJours: 6, progressionJours: 1 } }));
+  assert.deepEqual(lu, ['images/chantiers/luthecia/fondations.webp', 'images/chantier-en-cours.webp']);
   const psm = await page.evaluate(() => { state.currentCity = 'ville_a'; const c = window.RPChantierVue.candidatsImage({ chantier: { niveau: 'hangar', dureeJours: 6, progressionJours: 1 } }); state.currentCity = 'capitale'; return c; });
-  assert.deepEqual(psm, ['images/chantiers/psm/PSM_chantier_fondations.webp', 'images/chantiers/psm/PSM_chantier_demarrage_petit.webp', 'images/chantier-en-cours.webp']);
+  assert.deepEqual(psm, ['images/chantiers/psm/PSM_chantier_fondations.webp']);
 }));
 
 const sansEsp = t => t.replace(/[  ]/g, ' ');
 test('aucun encadré sur l’image, jamais d’ouverture automatique ; rafraîchissement de la fenêtre ouverte, sans recharger', () => avecPage(async page => {
   await page.evaluate(() => rafraichirVueChantier());
   assert.equal(await page.locator('#chantier-surcouche').count(), 0, 'l’ancien encadré « État du chantier » ne chevauche plus le texte');
-  assert.match(await fond(page), /chantier-en-cours\.webp/);
+  assert.match(await fond(page), /luthecia\/fondations\.webp/);   // Arnie : jour 2 → fondations de Luthécia
   assert.equal(await page.evaluate(() => document.getElementById('modal-postes').classList.contains('open')), false);
   // Fenêtre ouverte puis fermée : entrer de nouveau sur le terrain ne la rouvre pas.
   await page.evaluate(() => { ouvrirFenetreChantier(); document.getElementById('modal-postes').classList.remove('open'); rafraichirVueChantier(); });

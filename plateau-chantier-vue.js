@@ -51,26 +51,20 @@ function villeSlug() { const s = etat(); return (VILLES[s.country] || {})[s.curr
 function fraction(ch) { const d = Number(ch && ch.dureeJours) || 0; return d > 0 ? Math.max(0, Math.min(1, (Number(ch.progressionJours) || 0) / d)) : 0; }
 function etapeDe(ch) { const f = fraction(ch); return f >= 1 ? 'acheve' : f < 1 / 3 ? 'demarrage' : f < 2 / 3 ? 'gros_oeuvre' : 'facade'; }
 // Candidats, du plus juste au plus général ; le dernier existe toujours.
-// Port-Sainte-Marie : série complète (Fred, 21/11/2026, soir, point 5), fichiers attendus dans images/chantiers/psm/.
+// Port-Sainte-Marie : série complète (Fred, 21/11/2026, soir, point 5 ; images reçues le 22/11/2026), dans images/chantiers/psm/.
 // Démarrage petit (hangar, commerce standard) ou grand (commerce premium, logement, building) ; puis une image par étape,
-// quelle que soit la taille ; puis le bâtiment achevé par type. Tant qu'un fichier manque, repli sur l'image la plus proche.
+// quelle que soit la taille ; puis le bâtiment achevé par type. Tous les fichiers existent : plus de repli.
 const PSM_TYPE = { hangar: 'hangar', commerce_standard: 'commerce_standard', commerce_premium: 'commerce_premium', logement: 'logement',
-  logements_petit: 'logement', logements_moyen: 'logement', logements_barre: 'logement', building: 'building' };
+  logements_petit: 'logement', logements_moyen: 'logement', logements_barre: 'building', building: 'building' };
 const PSM_PETIT = new Set(['hangar', 'commerce_standard']);
 function candidatsPsm(t0) {
   const b = 'images/chantiers/psm/';
   if (t0 && t0.chantier) {
     const ch = t0.chantier, e = etapeDe(ch), prog = Number(ch.progressionJours) || 0;
-    const dem = b + 'PSM_chantier_demarrage_' + (PSM_PETIT.has(ch.niveau) ? 'petit' : 'grand') + '.webp';
-    if (e === 'demarrage') return prog < 1 ? [dem, DEMARRAGE] : [b + 'PSM_chantier_fondations.webp', dem, DEMARRAGE];
-    if (e === 'gros_oeuvre') return [b + 'PSM_chantier_gros_oeuvre.webp', b + 'PSM_chantier_fondations.webp', dem, DEMARRAGE];
-    return [b + 'PSM_chantier_facade.webp', b + 'PSM_chantier_gros_oeuvre.webp', dem, DEMARRAGE];
+    if (e === 'demarrage') return [prog < 1 ? b + 'PSM_chantier_demarrage_' + (PSM_PETIT.has(ch.niveau) ? 'petit' : 'grand') + '.webp' : b + 'PSM_chantier_fondations.webp'];
+    return [b + (e === 'gros_oeuvre' ? 'PSM_chantier_gros_oeuvre.webp' : 'PSM_chantier_facade.webp')];
   }
-  if (t0 && t0.niveau_construction) {
-    const type = PSM_TYPE[t0.niveau_construction] || t0.niveau_construction;
-    const fiche = (typeof NIVEAUX_CONSTRUCTION !== 'undefined' && NIVEAUX_CONSTRUCTION[t0.niveau_construction]?.imageUrl) || DEMARRAGE;
-    return [b + 'PSM_batiment_' + type + '.webp', fiche];
-  }
+  if (t0 && t0.niveau_construction) return [b + 'PSM_batiment_' + (PSM_TYPE[t0.niveau_construction] || 'building') + '.webp'];
   return [];
 }
 function candidatsImage(t0) {
@@ -78,7 +72,9 @@ function candidatsImage(t0) {
   if (v === 'psm') return candidatsPsm(t0);
   if (t0 && t0.chantier) {
     const ch = t0.chantier, g = GABARIT_HAUT.has(ch.niveau) ? 'haut' : 'bas', e = etapeDe(ch);
-    if (e === 'demarrage') return [DEMARRAGE];
+    // Règle des images (Fred, 22/11/2026, point 3) : démarrage commun le premier jour, puis fondations par ville
+    // (même image pour tous les types), puis gros œuvre et façade en deux gabarits. Repli si l'image de la ville manque.
+    if (e === 'demarrage') return (Number(ch.progressionJours) || 0) < 1 ? [DEMARRAGE] : [base + 'fondations.webp', DEMARRAGE];
     if (e === 'gros_oeuvre') return [base + 'gros-oeuvre-' + g + '.webp', DEMARRAGE];
     return [base + 'facade-' + g + '.webp', base + 'gros-oeuvre-' + g + '.webp', DEMARRAGE];
   }
