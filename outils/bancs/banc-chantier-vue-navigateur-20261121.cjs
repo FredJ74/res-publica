@@ -57,23 +57,23 @@ test('images par étape, ville et gabarit, avec repli (jamais d’image cassée)
     r.demarrage = await essai(0, 'building');
     r.fondations = await essai(1, 'building');
     r.grosHaut = await essai(9, 'building');
-    r.grosBas = await essai(9, 'hangar');           // gros-oeuvre-bas absent → démarrage
+    r.grosBas = await essai(9, 'hangar');           // série de Luthécia complète depuis le 22/11 (soir)
     r.facadeHaut = await essai(20, 'building');
     r.facadeBas = await essai(20, 'commerce_standard');
     const fini = { proprietaire: 'Arnie', niveau_construction: 'building' };
     r.finalBuilding = await R.imageResolue(fini);
-    r.finalHangar = await R.imageResolue({ proprietaire: 'Arnie', niveau_construction: 'hangar' });   // absent → fiche actuelle
+    r.finalHangar = await R.imageResolue({ proprietaire: 'Arnie', niveau_construction: 'hangar' });
     ch.progressionJours = 1; ch.niveau = 'building';
     return r;
   });
   assert.equal(cas.demarrage, 'images/chantier-en-cours.webp');
   assert.equal(cas.fondations, 'images/chantiers/luthecia/fondations.webp');
   assert.equal(cas.grosHaut, 'images/chantiers/luthecia/gros-oeuvre-haut.webp');
-  assert.equal(cas.grosBas, 'images/chantier-en-cours.webp');
+  assert.equal(cas.grosBas, 'images/chantiers/luthecia/gros-oeuvre-bas.webp');
   assert.equal(cas.facadeHaut, 'images/chantiers/luthecia/facade-haut.webp');
-  assert.equal(cas.facadeBas, 'images/chantier-en-cours.webp');
+  assert.equal(cas.facadeBas, 'images/chantiers/luthecia/facade-bas.webp');
   assert.equal(cas.finalBuilding, 'images/chantiers/luthecia/final-building.webp');
-  assert.equal(cas.finalHangar, 'images/hangar-construction-terrain.webp');
+  assert.equal(cas.finalHangar, 'images/chantiers/luthecia/final-hangar.webp');
   // Règle du 22/11/2026 (point 3) : fondations par ville après le premier jour (Luthécia : fondations.webp) ;
   // Port-Sainte-Marie a sa série complète, sans repli.
   const lu = await page.evaluate(() => window.RPChantierVue.candidatsImage({ chantier: { niveau: 'hangar', dureeJours: 6, progressionJours: 1 } }));
