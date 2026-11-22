@@ -180,6 +180,12 @@ export default async function handler(req, res) {
       const d = await dossier(nom);
       // Déjà contacté (invitation ou refus, quelle que soit l'antenne) ou portrait déjà publié : jamais deux fois.
       if (d.contacte || d.publie) return res.status(200).json({ ok: true, envoye: false, raison: 'deja' });
+      // Interview d'accueil de la première connexion déjà donnée (Fred, 22/11/2026, point 23) : pas de second
+      // portrait par courrier. Table absente (migration 20261123140000 pas encore appliquée) = comportement d'avant.
+      const accueil = await lire('accueil_personnages', 'personnage=eq.' + encodeURIComponent(nom) + '&select=etat_interview&limit=1').catch(() => []);
+      if (['article_a_publier', 'faite'].includes(accueil[0]?.etat_interview)) {
+        return res.status(200).json({ ok: true, envoye: false, raison: 'deja' });
+      }
       await envoyerCourrier(antenne.journaliste, nom, sujetInvitation(antenne), corpsInvitation(antenne), heure);
       return res.status(200).json({ ok: true, envoye: true, journaliste: antenne.journaliste });
     }

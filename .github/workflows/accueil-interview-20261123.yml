@@ -1,0 +1,30 @@
+name: "Accueil — interview de la première connexion, parcours dans Mes objectifs, bulle des PA"
+on:
+  pull_request:
+    paths: [plateau-accueil-interview.js, plateau-politique.js, plateau-evenements-personnage.js, plateau.html, style.css, data.js, api/journal-interview.js, api/jodie-portrait.js, 'migrations/20261123140000_accueil_interview.sql', 'outils/bancs/banc-accueil-interview-*', 'outils/bancs/fixtures/accueil-interview-*', .github/workflows/accueil-interview-20261123.yml]
+  push:
+    branches: [main, 'claude/**']
+    paths: [plateau-accueil-interview.js, plateau-politique.js, plateau-evenements-personnage.js, plateau.html, style.css, data.js, api/journal-interview.js, api/jodie-portrait.js, 'migrations/20261123140000_accueil_interview.sql', 'outils/bancs/banc-accueil-interview-*', 'outils/bancs/fixtures/accueil-interview-*', .github/workflows/accueil-interview-20261123.yml]
+permissions:
+  contents: read
+jobs:
+  accueil:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
+      - run: for f in plateau-accueil-interview.js plateau-politique.js api/journal-interview.js api/jodie-portrait.js data.js; do node --check "$f"; done
+      - name: Mode accueil de /api/journal-interview (base et IA simulées)
+        run: node --test outils/bancs/banc-accueil-interview-api-20261123.mjs
+      - name: Chromium réel, 1280 et 390 px
+        env:
+          HG_CHROMIUM: /usr/bin/google-chrome
+        run: node --test outils/bancs/banc-accueil-interview-navigateur-20261123.cjs
+      - name: PostgreSQL local (PGlite)
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund --prefix "$RUNNER_TEMP/pglite" @electric-sql/pglite@0.2.17
+          PGLITE_DIR="$RUNNER_TEMP/pglite" node --test outils/bancs/banc-accueil-interview-pglite-20261123.cjs

@@ -4609,7 +4609,8 @@ export const SCENES_PNJ = {
     "piece": "Accueil",
     "personnes": [
       "Zoïa Glazounova",
-      "Capitaine Arseni Petchatnikov"
+      "Capitaine Arseni Petchatnikov",
+      "Vera Pravdina"
     ]
   },
   "[\"soviet\",\"capitale\",\"la-tribune\",\"redaction\"]": {

@@ -2307,7 +2307,10 @@ const WORLD = {
           // Accueil de La Voix de Sovarka (Fred, 12/11/2026) : la réceptionniste au regard inquiétant est la journaliste,
           // l'officier souriant est l'officier de censure ; ils remplacent le « Correspondant Local » générique.
           persons: [{"name": "Zoïa Glazounova (PNJ)", "role": "Journaliste de La Voix de Sovarka", "rel": "neutral", "job": "journaliste", "photoUrl": "images/Sovarka/Novomirsk/Novo_zoia_glazounova_portrait.webp"},
-                    {"name": "Capitaine Arseni Petchatnikov (PNJ)", "role": "Officier de censure", "rel": "neutral", "job": "censeur", "photoUrl": "images/Sovarka/Novomirsk/Novo_arseni_petchatnikov_portrait.webp"}],
+                    {"name": "Capitaine Arseni Petchatnikov (PNJ)", "role": "Officier de censure", "rel": "neutral", "job": "censeur", "photoUrl": "images/Sovarka/Novomirsk/Novo_arseni_petchatnikov_portrait.webp"},
+                    // Vera Pravdina (Fred, 22/11/2026, GAME-DESIGN-INTERFACE-ACCUEIL-20261122.md, point 23) : journaliste qui interviewe
+                    // les nouveaux arrivants de Sovarka. Portrait à fournir par Fred : images/Sovarka/Novomirsk/Novo_vera_pravdina_portrait.webp.
+                    {"name": "Vera Pravdina (PNJ)", "role": "Journaliste de La Voix de Sovarka", "rel": "neutral", "job": "journaliste"}],
           // article/etouffer exclus (chantier "lobbying presse", 4 septembre 2026) : cet organe du
           // Parti a Sovarka est distinct de La Tribune de Republia (Republic uniquement) -- ces deux
           // ordres n'ont de sens qu'aupres de cette derniere. Le reste (produire_fuite/
