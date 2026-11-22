@@ -45,7 +45,7 @@ const ts = () => (typeof getTerrainState === 'function' ? getTerrainState(etat()
 // ── Images ───────────────────────────────────────────────────────────────────────────────────
 const VILLES = { republic: { capitale: 'luthecia', ville_a: 'psm', ville_b: 'montrouge' },
                  soviet: { capitale: 'novomirsk', ville_a: 'starovka', ville_b: 'krasnov' } };
-const GABARIT_HAUT = new Set(['building', 'logements_moyen', 'logements_barre']);
+const GABARIT_HAUT = new Set(['building', 'logement']);
 const DEMARRAGE = 'images/chantier-en-cours.webp';
 function villeSlug() { const s = etat(); return (VILLES[s.country] || {})[s.currentCity] || String(s.currentCity || ''); }
 function fraction(ch) { const d = Number(ch && ch.dureeJours) || 0; return d > 0 ? Math.max(0, Math.min(1, (Number(ch.progressionJours) || 0) / d)) : 0; }
@@ -54,8 +54,7 @@ function etapeDe(ch) { const f = fraction(ch); return f >= 1 ? 'acheve' : f < 1 
 // Port-Sainte-Marie : série complète (Fred, 21/11/2026, soir, point 5 ; images reçues le 22/11/2026), dans images/chantiers/psm/.
 // Démarrage petit (hangar, commerce standard) ou grand (commerce premium, logement, building) ; puis une image par étape,
 // quelle que soit la taille ; puis le bâtiment achevé par type. Tous les fichiers existent : plus de repli.
-const PSM_TYPE = { hangar: 'hangar', commerce_standard: 'commerce_standard', commerce_premium: 'commerce_premium', logement: 'logement',
-  logements_petit: 'logement', logements_moyen: 'logement', logements_barre: 'building', building: 'building' };
+const PSM_TYPE = { hangar: 'hangar', commerce_standard: 'commerce_standard', commerce_premium: 'commerce_premium', logement: 'logement', building: 'building' };
 const PSM_PETIT = new Set(['hangar', 'commerce_standard']);
 function candidatsPsm(t0) {
   const b = 'images/chantiers/psm/';

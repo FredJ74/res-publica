@@ -1,0 +1,54 @@
+-- Socle minimal pour la migration 20261122130000 (types de bâtiments) : paliers réels, et fonctions communes réduites à
+-- leurs ancrages exacts (copiés de la production le 22/11/2026) pour éprouver les remplacements et leur décompte.
+CREATE ROLE anon; CREATE ROLE authenticated;
+CREATE TABLE public.terrains_etat (id text PRIMARY KEY, country text, data text, niveau_construction text);
+CREATE TABLE public.chantiers_paliers (palier text PRIMARY KEY, label text, duree_jours integer, cout_total numeric, cout_materiaux numeric,
+  cout_travail numeric, heures_totales numeric, apport_minimal numeric, gabarit jsonb);
+INSERT INTO public.chantiers_paliers VALUES
+ ('hangar','Hangar',6,30000,9000,21000,300,10500,'{"niveau":"hangar"}'), ('commerce_standard','Commerce standard',12,60000,18000,42000,600,21000,'{"niveau":"commerce_standard"}'),
+ ('commerce_premium','Commerce premium',18,90000,27000,63000,900,31500,'{"niveau":"commerce_premium","dureeJours":18}'), ('building','Building',24,120000,36000,84000,1200,42000,'{"niveau":"building"}'),
+ ('logements_petit','Logements sociaux — petit bâtiment',12,60000,18000,42000,600,21000,'{}'), ('logements_moyen','Logements sociaux — bâtiment moyen',18,90000,27000,63000,900,31500,'{}'),
+ ('logements_barre','Logements sociaux — barre d''immeuble',24,120000,36000,84000,1200,42000,'{}');
+CREATE OR REPLACE FUNCTION public.logements_sociaux_terrain_communal(p_etat jsonb) RETURNS boolean LANGUAGE sql IMMUTABLE AS $function$
+  SELECT coalesce(p_etat->>'proprietaire','') LIKE 'ville:%' OR coalesce(p_etat->>'acquisitionAcquereur','') LIKE 'ville:%' $function$;
+CREATE OR REPLACE FUNCTION public.terrain_permis_deposer(p_terrain text, p_palier text, p_requete uuid) RETURNS jsonb LANGUAGE plpgsql AS $function$
+DECLARE duree integer; etat jsonb := '{}'; doc jsonb;
+BEGIN
+ duree:=CASE p_palier WHEN 'hangar' THEN 2 WHEN 'commerce_standard' THEN 4 WHEN 'commerce_premium' THEN 6 WHEN 'building' THEN 7 WHEN 'logements_petit' THEN 4 WHEN 'logements_moyen' THEN 6 WHEN 'logements_barre' THEN 7 END;
+ IF duree IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','palier_invalide'); END IF;
+ etat := coalesce((SELECT data::jsonb FROM public.terrains_etat WHERE id = p_terrain), '{}');
+ IF p_palier LIKE 'logements_%' THEN
+  IF NOT public.logements_sociaux_terrain_communal(etat) THEN RETURN jsonb_build_object('ok',false,'raison','logements_reserves_commune');END IF;
+  IF (p_palier='logements_moyen' AND coalesce((etat->>'surface')::numeric,0)<2000) OR (p_palier='logements_barre' AND coalesce((etat->>'surface')::numeric,0)<=2200) THEN RETURN jsonb_build_object('ok',false,'raison','terrain_trop_petit');END IF;
+ END IF;
+ doc:=jsonb_build_object('palierLabel',CASE p_palier WHEN 'hangar' THEN 'Hangar'
+   WHEN 'commerce_standard' THEN 'Commerce standard' WHEN 'commerce_premium' THEN 'Commerce premium' WHEN 'logements_petit' THEN 'Logements sociaux — petit bâtiment' WHEN 'logements_moyen' THEN 'Logements sociaux — bâtiment moyen' WHEN 'logements_barre' THEN 'Logements sociaux — barre d''immeuble' ELSE 'Building' END,
+  'duree',duree);
+ RETURN jsonb_build_object('ok',true,'document',doc);
+END $function$;
+CREATE OR REPLACE FUNCTION public.terrain_permis_decider(p_terrain text, p_ok boolean, p_motif text, p_requete uuid) RETURNS jsonb LANGUAGE plpgsql AS $function$
+DECLARE lib text; pm jsonb := jsonb_build_object('palierDemande', p_terrain);
+BEGIN
+  lib := CASE pm->>'palierDemande' WHEN 'hangar' THEN 'Hangar' WHEN 'commerce_standard' THEN 'Commerce standard'
+           WHEN 'commerce_premium' THEN 'Commerce premium' WHEN 'building' THEN 'Building' WHEN 'logements_petit' THEN 'Logements sociaux — petit bâtiment' WHEN 'logements_moyen' THEN 'Logements sociaux — bâtiment moyen' WHEN 'logements_barre' THEN 'Logements sociaux — barre d''immeuble' ELSE coalesce(pm->>'palierDemande','') END;
+  RETURN jsonb_build_object('lib', lib);
+END $function$;
+CREATE OR REPLACE FUNCTION public.terrain_acquisition_commande(p_terrain text, p_action text, p_parametres jsonb, p_requete uuid) RETURNS jsonb LANGUAGE plpgsql AS $function$
+DECLARE permis text := p_parametres->>'permis';
+BEGIN
+  IF permis IS NOT NULL AND (p_action<>'compromis' OR permis NOT IN('hangar','commerce_standard','commerce_premium','building','logements_petit','logements_moyen','logements_barre')) THEN RETURN jsonb_build_object('ok',false,'raison','palier_invalide');END IF;
+  RETURN jsonb_build_object('ok',true);
+END $function$;
+CREATE OR REPLACE FUNCTION public.traiter_prets_helvetia_quotidien() RETURNS jsonb LANGUAGE plpgsql AS $function$
+-- La vraie fonction porte quatre fois la même grille de valeurs.
+DECLARE v jsonb := '{}'; n text; a numeric; b numeric; c numeric; d numeric;
+BEGIN
+  FOREACH n IN ARRAY ARRAY['hangar','commerce_standard','commerce_premium','logement','building'] LOOP
+    v := v || jsonb_build_object(n, CASE n WHEN 'hangar' THEN 30000 WHEN 'commerce_standard' THEN 50000
+          WHEN 'commerce_premium' THEN 70000 WHEN 'building' THEN 100000 ELSE 0 END);
+  END LOOP;
+  a := CASE n WHEN 'commerce_premium' THEN 70000 WHEN 'building' THEN 100000 ELSE 0 END;
+  b := CASE n WHEN 'commerce_premium' THEN 70000 WHEN 'building' THEN 100000 ELSE 0 END;
+  c := CASE n WHEN 'commerce_premium' THEN 70000 WHEN 'building' THEN 100000 ELSE 0 END;
+  RETURN v;
+END $function$;

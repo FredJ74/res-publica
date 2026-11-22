@@ -32,9 +32,10 @@ t('ecran : historiques fusionnes dans le tableau, ancien ecran plus ouvert', /co
 // Écran
 const ctx = { window: {}, console, document: {}, localStorage: { getItem() {} } }; vm.createContext(ctx);
 vm.runInContext(ch, ctx); const D = vm.runInContext('DUREES_CONSTRUCTION', ctx);
-t('ecran : durees 12/18/24', D.logements_petit === 12 && D.logements_moyen === 18 && D.logements_barre === 24);
+// Refonte du 22/11/2026 (Fred, point 6) : un seul type Logement (18 jours), catégorie selon le donneur d'ordre.
+t('ecran : Logement unique en 18 jours, anciens paliers retires', D.logement === 18 && D.logements_petit === undefined && D.logements_barre === undefined);
 t('ecran : paliers proposes seulement si palierProposable (permis et construction)', (je.match(/if \(!palierProposable\(key, ts(Permis)?\)\) return;/g) || []).length === 2);
-t('ecran : seuils de surface 0 / 2000 / 2201', /logements_petit:[^\n]*surfaceMin: 0 \}/.test(je) && /logements_moyen:[^\n]*surfaceMin: 2000 \}/.test(je) && /logements_barre:[^\n]*surfaceMin: 2201 \}/.test(je));
+t('ecran : Logement des 2 000 m2, social pour la mairie, classique pour un joueur', /logement: [^\n]*surfaceMin: 2000 \}/.test(je) && /logements sociaux \(6 appartements\)/.test(je) && /logements classiques \(6 appartements\)/.test(je));
 t('ecran : un logement social n est pas propose a la location libre', /l\.destination !== 'logement_social'/.test(je));
 t('ecran : ordres routes vers le socle', /demanderLogementSocialCommun\(pa, cost\)/.test(rt) && /ouvrirTableauLogementsSociaux\(\)/.test(rt));
 t('ecran : tableau de bord (loyer par appartement, attribution)', /logement_social_loyer_fixer/.test(ls) && /logement_social_attribuer/.test(ls) && /logements_sociaux_tableau/.test(ls));

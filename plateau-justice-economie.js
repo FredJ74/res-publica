@@ -4508,12 +4508,10 @@ const NIVEAUX_CONSTRUCTION = {
   commerce_standard: { label: 'Commerce standard',  cout: coutTotalConstruction('commerce_standard'), imageUrl: 'images/commerce-standard-construction-terrain.webp' },
   commerce_premium:  { label: 'Commerce premium',   cout: coutTotalConstruction('commerce_premium'),  imageUrl: 'images/commerce-premium-construction-terrain.webp' },
   building:          { label: 'Building',           cout: coutTotalConstruction('building'),          imageUrl: 'images/building-construction-terrain.webp' },
-  // Logements sociaux (29/10/2026, décision de Fred) : terrains de la commune seulement ; la
-  // surface fixe le plus grand type permis (petit partout, moyen dès 2 000 m², barre au-delà de
-  // 2 200 m²). Appartements générés à la réception, attribués par l'adjoint au maire.
-  logements_petit:   { label: 'Logements sociaux — petit bâtiment (4 appartements)', cout: coutTotalConstruction('logements_petit'), imageUrl: 'images/commerce-standard-construction-terrain.webp', logementSocial: true, surfaceMin: 0 },
-  logements_moyen:   { label: 'Logements sociaux — bâtiment moyen (6 appartements)', cout: coutTotalConstruction('logements_moyen'), imageUrl: 'images/commerce-premium-construction-terrain.webp', logementSocial: true, surfaceMin: 2000 },
-  logements_barre:   { label: "Logements sociaux — barre d'immeuble (10 appartements)", cout: coutTotalConstruction('logements_barre'), imageUrl: 'images/building-construction-terrain.webp', logementSocial: true, surfaceMin: 2201 }
+  // Logement (Fred, 22/11/2026, point 6) : 6 appartements (3 de 45 m², 3 de 75 m²), dès 2 000 m² de terrain.
+  // Catégorie selon le donneur d'ordre : mairie = logements sociaux (attribués par le maire, loyer fixé par le jeu,
+  // bonus au sommeil) ; joueur = logements classiques (loyer et attribution libres). Le Building remplace la barre.
+  logement:          { label: 'Logement (6 appartements)', cout: coutTotalConstruction('logement'), imageUrl: 'images/commerce-premium-construction-terrain.webp', surfaceMin: 2000 }
 };
 
 // Un palier est-il proposable sur ce terrain ? Les logements sociaux ne le sont que sur un
@@ -4522,15 +4520,22 @@ const NIVEAUX_CONSTRUCTION = {
 function palierProposable(key, ts) {
   const niv = NIVEAUX_CONSTRUCTION[key];
   if (!niv) return false;
-  if (!niv.logementSocial) return true;
-  const communal = String(ts?.proprietaire || '').startsWith('ville:') || String(ts?.acquisitionAcquereur || '').startsWith('ville:');
-  return communal && Number(ts?.surface || 0) >= niv.surfaceMin;
+  return !niv.surfaceMin || Number(ts?.surface || 0) >= niv.surfaceMin;
+}
+// Catégorie des appartements (Logement, Building) selon le donneur d'ordre : la mairie construit des logements sociaux.
+function logementsSociauxPour(ts) {
+  return String(ts?.proprietaire || '').startsWith('ville:') || String(ts?.acquisitionAcquereur || '').startsWith('ville:');
+}
+function libellePalier(key, ts) {
+  const niv = NIVEAUX_CONSTRUCTION[key]; if (!niv) return key;
+  if (key === 'logement') return logementsSociauxPour(ts) ? 'Logement — logements sociaux (6 appartements)' : 'Logement — logements classiques (6 appartements)';
+  return niv.label;
 }
 
 // Zonage fixe par ville — verrouille des la conception, pour que la justice ait un critere
 // objectif face a un refus de permis du maire (voir obstruction). Pas de zonage cliquable :
 // une seule valeur "palier maximum autorise" par ville, cohérente avec son folklore.
-const PALIER_ORDRE = ['hangar', 'commerce_standard', 'commerce_premium', 'building'];
+const PALIER_ORDRE = ['hangar', 'commerce_standard', 'logement', 'commerce_premium', 'building'];   // Logement au rang du commerce premium (même coût)
 
 const ZONAGE_VILLES = {
   republic: {
@@ -7482,7 +7487,7 @@ async function ouvrirModalConstruire() {
     if (!palierProposable(key, ts)) return;
     html += '<div style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;display:flex;justify-content:space-between;align-items:center">';
     const mini = montantMinimalLancement(niv.cout);
-    html += '<div><div style="font-size:.85rem;color:#c0b090">' + niv.label + '</div>'
+    html += '<div><div style="font-size:.85rem;color:#c0b090">' + libellePalier(key, ts) + '</div>'
          + '<div style="font-size:.68rem;color:#6a5a30">' + niv.cout.toLocaleString('fr-FR') + ' ' + cur
          + ' · ' + dureeConstruction(key) + ' jours · apport minimum ' + mini.toLocaleString('fr-FR') + ' ' + cur + ' (35 %)</div></div>';
     html += '<button onclick="confirmerConstruction(&quot;' + key + '&quot;)" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.3rem .6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Construire</button>';
@@ -8190,9 +8195,7 @@ const DUREE_INSTRUCTION_PERMIS = {
   commerce_standard: 4,
   commerce_premium: 6,
   building: 7,
-  logements_petit: 4,
-  logements_moyen: 6,
-  logements_barre: 7
+  logement: 6
 };
 
 // Le depot de permis n'a plus de bouton propre sur les parcelles (01/11/2026) : il s'ouvre par
@@ -8232,7 +8235,7 @@ async function doDeposerDemandePermis(pa, cost) {
     // Aucun plan au depot : le decoupage intervient dans le dernier tiers du chantier.
     const action = 'confirmerDepotPermis(\'' + key + '\',1,100)';
     html += '<button onclick="' + action + '" style="display:flex;justify-content:space-between;width:100%;margin-bottom:.4rem;padding:.6rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.8rem">';
-    html += '<span>' + niv.label + '</span><span style="color:#8a8060">' + duree + ' jour(s) d\'instruction</span></button>';
+    html += '<span>' + libellePalier(key, tsPermis) + '</span><span style="color:#8a8060">' + duree + ' jour(s) d\'instruction</span></button>';
   });
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;

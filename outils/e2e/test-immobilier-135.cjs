@@ -14,7 +14,7 @@ function selection(fichier,noms){
  for(const nom of noms)assert.ok(vus.has(nom),'source réelle manquante : '+fichier+' / '+nom);
  return code;
 }
-const justice=selection('plateau-justice-economie.js',['PRIX_TERRAIN','NIVEAUX_CONSTRUCTION','palierProposable','DUREE_INSTRUCTION_PERMIS','TYPES_PRET','getTerrainState','ouvrirModalConstruire','doDeposerDemandePermis','getTauxPret','pretBancaireDisponibilite','ouvrirModalPretBancaire','getBuildingIdCommissariat','getBuildingIdCentreMultimodal','getBuildingIdDispensaire','getBuildingIdTribunal','getCaisseLocaleId']);
+const justice=selection('plateau-justice-economie.js',['PRIX_TERRAIN','NIVEAUX_CONSTRUCTION','palierProposable','logementsSociauxPour','libellePalier','DUREE_INSTRUCTION_PERMIS','TYPES_PRET','getTerrainState','ouvrirModalConstruire','doDeposerDemandePermis','getTauxPret','pretBancaireDisponibilite','ouvrirModalPretBancaire','getBuildingIdCommissariat','getBuildingIdCentreMultimodal','getBuildingIdDispensaire','getBuildingIdTribunal','getCaisseLocaleId']);
 const sources=[fs.readFileSync(path.join(R,'data.js'),'utf8'),fs.readFileSync(path.join(R,'plateau-chantiers.js'),'utf8'),
  selection('plateau-immobilier.js',['PERMIS_COOLDOWN_REFUS_JOURS','PERMIS_STATUT_INSTRUCTION','PERMIS_STATUT_LEGACY_ATTENTE','permisEnInstruction','cooldownRefusActif','verdictNouvelleDemandePermis']),justice,
  selection('plateau-pnj.js',['ACOMPTE_COMPROMIS','PLAFOND_PRET_COMPROMIS','SURFACE_TERRAINS','terrainOrdreDisponible','doSignerCompromis']),
@@ -44,6 +44,8 @@ test('cinq terrains : rendu et formulaires réels dans Chromium, contreparties u
    for(const nom of ['sbRpc','sbRpcVerdict','sbSavePersonnage','finance135Acquerir','finance135ContracterPret'])window[nom]=(...args)=>{mutations.push(nom);throw Error('MUTATION_INTERDITE_DANS_LA_FIXTURE '+nom);};
   `});
   for(const content of sources)await page.addScriptTag({content});
+  // Cinq types (Fred, 22/11/2026) : le Logement n'est proposé qu'à partir de 2 000 m² de terrain.
+  const typesAttendus=async()=>4+((await page.evaluate(()=>Number((getTerrainState(state.currentBuilding)||{}).surface||0)))>=2000?1:0);
   async function preparer(numero,etat){
    await page.evaluate(({numero,etat})=>{
     state.currentBuilding='terrain-a-batir-'+numero;state.currentRoom='terrain';state.terrainsState[state.currentBuilding]={pnj:null,dateGeneration:1,...etat};
@@ -61,18 +63,18 @@ test('cinq terrains : rendu et formulaires réels dans Chromium, contreparties u
     // Ne JAMAIS cliquer acheter_terrain : cet ordre engage immédiatement le dépôt.
     await page.locator('#postes-body [onclick*="signer_compromis"]').click();
     await page.locator('#compromis-pret-check').check();await page.locator('#compromis-permis-check').check();
-    assert.equal(await page.locator('#compromis-pret-montant').isVisible(),true);assert.equal(await page.locator('#compromis-permis-type option').count(),4);
+    assert.equal(await page.locator('#compromis-pret-montant').isVisible(),true);assert.equal(await page.locator('#compromis-permis-type option').count(),await typesAttendus());
    });
    await t.test('lot '+numero+' : propriétaire sans permis rejoint la demande existante',async()=>{
     await preparer(numero,{proprietaire:'Recette fixture',constructionAutorisee:false});
     await page.getByRole('button',{name:'Démarrage du chantier',exact:false}).click();
     await page.locator('#postes-body [onclick*="construire_sur_terrain"]').click();
     await page.locator('#modal-postes.open [onclick*="confirmerDepotPermis"]').first().waitFor({timeout:3000});
-    assert.equal(await page.locator('#postes-body [onclick*="confirmerDepotPermis"]').count(),4);
+    assert.equal(await page.locator('#postes-body [onclick*="confirmerDepotPermis"]').count(),await typesAttendus());
    });
    await t.test('lot '+numero+' : construction autorisée et matériaux sans lancement',async()=>{
     await preparer(numero,{proprietaire:'Recette fixture',constructionAutorisee:true});
-    await page.evaluate(()=>ouvrirModalConstruire());assert.equal(await page.locator('#postes-body [onclick*="confirmerConstruction"]').count(),4);
+    await page.evaluate(()=>ouvrirModalConstruire());assert.equal(await page.locator('#postes-body [onclick*="confirmerConstruction"]').count(),await typesAttendus());
     await preparer(numero,{proprietaire:'Recette fixture',chantier:{type:'construction',palier:'hangar',dureeJours:6,progressionJours:0,totalVerse:10500,coutTotal:30000,prixAchatPJ:{bois:6,minerai:11,metal:17}}});
     // Fenêtre « Le chantier » (Fred, 21/11/2026) : l'approvisionnement est l'onglet « Stock de matériaux ».
     await page.getByRole('button',{name:'Le chantier',exact:true}).click();
