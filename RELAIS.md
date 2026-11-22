@@ -8,9 +8,23 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Mission « Santé et forêt » (Claude, 22/11/2026, après-midi) — décisions : GAME-DESIGN-SANTE-20261122.md
+- **Appliquées en production le 22/11 (dans l'ordre, chacune validée par Fred à l'écran, contrôle en lecture après chacune, goulag
+  `active=false` vérifié, aucune Santé de personnage modifiée)** : `20261122230000_sante_socle`, `20261122231000_sante_combat`,
+  `20261122232000_sante_consommation`, `20261122233000_sante_maladies_medicaments`, `20261122234000_medecin_montrer`. En ligne :
+  fusion `77750497` sur main. Pas de migration pour le point 23 (terrains de Sovarka : absence de ligne normale, décision du 06/11).
+- **Socle (Claude)** : `sante_parametres` (tous les chiffres, page MJ « Santé — paramètres » : `admin-sante.js`, `admin.html`) ;
+  `sante_gagner_interne` / `sante_perdre_interne` (gain modulé par le Moral, perte jamais) ; robustesse ; journal d'événements serveur
+  `personnage_evenements` lu par le nouveau `plateau-evenements-personnage.js` (au chargement, à chaque signal du personnage —
+  `plateau-temps-reel.js` — et toutes les minutes ; gestionnaires par clé `window.rpEvenementsPersonnageGestionnaires`).
+- **Essai de bout en bout en production (transaction annulée, rien ne reste — empreintes vérifiées)** : meute à Santé 100 et 10,
+  1/2/3 verres, sommeil chambre/bâtiment/dehors, menu Moral 80/20, diagnostic et soin d'un médecin avec trousse et accord, MST au
+  3e partenaire révélée au réveil, « Montrer ». Détail dans le rapport final de la mission.
+- Les sections des quatre lots (combat, consommation, maladies, médecin) suivent, avec leurs fichiers du navigateur et leurs clés
+  pour Codex ; clés du socle : aucune (textes serveur en français).
 ### Santé, lot combat : robustesse, blessures, coma à 0 PA, meute (Claude, 22/11/2026) — GAME-DESIGN-SANTE-20261122.md, points 1, 2, 3, 15 (serveur), 19
 - **Branche `claude/sante-combat-20261122`** (part de `5b2bef8d`, branche `claude/mission-nuit-20261122`). Aucune fonction Vercel.
-- **Migration écrite, NON appliquée** : `20261122231000_sante_combat.sql`, à appliquer **après** `20261122230000_sante_socle.sql`. Écrite à partir de
+- **Migration appliquée en production le 22/11/2026 (contrôlée en lecture)** : `20261122231000_sante_combat.sql`, à appliquer **après** `20261122230000_sante_socle.sql`. Écrite à partir de
   pg_get_functiondef de production (22/11), chaque ancrage compté en production (1, et 2 pour `militaire_bataille_commande_interne`).
   - Points 1 et 3 : `sante_combat_coup_pj_interne` (nouvelle) — perte = `sante_perte_combat_interne(Santé au coup, perte brute)`, bornée aux PA ;
     Santé perdue = PA perdus × `blessure_sante_par_pa`. Branchée dans `militaire_bataille_appliquer` (tous les rounds : batailles, PJ contre PJ,
@@ -39,7 +53,7 @@ Règles : voir `AGENTS.md`.
   peut se déplacer, combattre, acheter un terrain.
 ### Santé : maladies, MST, escort, médicaments, fontaines (Claude, 22/11/2026) — GAME-DESIGN-SANTE-20261122.md, points 4, 5, 6, 13, 20
 - **Branche `claude/sante-maladies-20261122`** (part de `5b2bef8d`, `claude/mission-nuit-20261122`). Aucune fonction Vercel, aucun ordre payant ajouté.
-- **Migration écrite, NON appliquée** : `20261122233000_sante_maladies_medicaments.sql` (suppose le socle `20261122230000_sante_socle.sql`
+- **Migration appliquée en production le 22/11/2026 (contrôlée en lecture)** : `20261122233000_sante_maladies_medicaments.sql` (suppose le socle `20261122230000_sante_socle.sql`
   appliqué avant). `maladies_parametres.perte_sante` (intoxication 10, grippe 10, coup de chaleur 5, gueule de bois 3, MST 10 ; posées une seule
   fois) et `guerison_spontanee` ; maladie `mst` (−2 CHA, non contagieuse, jamais guérie seule, antibiotique, stock 20) ; tables `escort_relations`,
   `mst_en_attente`, `medicaments_stocks` ; paramètres `medicament_matiere_par_pa` 5, `medicament_produits_par_pa` 10, `medicament_stock_max` 50.
@@ -66,7 +80,7 @@ Règles : voir `AGENTS.md`.
 ### Santé : médecin de terrain, montrer un objet, jauges, « PV » → « Santé », forêt en plein air (Claude, 22/11/2026, après-midi) — GAME-DESIGN-SANTE-20261122.md, points 12, 14, 15 (navigateur), 17, 18, 22
 - **Branche `claude/sante-medecin-20261122`** (part de `5b2bef8d`, avec le commit du coordinateur « lecture du journal d'événements » repris).
   Aucune fonction Vercel. Ne pas pousser ni fusionner avant la validation de Fred.
-- **Migration écrite, NON appliquée** : `20261122234000_medecin_montrer` (suppose le socle `20261122230000`, non appliqué lui non plus).
+- **Migration appliquée en production le 22/11/2026 (contrôlée en lecture)** : `20261122234000_medecin_montrer` (après le socle `20261122230000`).
   Nouvelles : table `medecin_propositions` ; `medecin_etat`, `medecin_proposer`, `medecin_repondre`, `medecin_propositions_lire`,
   `objet_montrer`, `sante_paliers_lire` (RPC) ; `personnages_meme_lieu_interne`, `medecin_trousse_position_interne`,
   `medecin_trousses_compter_interne`, `medecin_diagnostic_interne`, `medecin_diagnostic_texte_interne`, `medecin_maladie_nom_interne`,
@@ -106,7 +120,7 @@ Règles : voir `AGENTS.md`.
 ### Santé — consommation : alcool, sommeil, repas, soins (Claude, 22/11/2026, après-midi) — décisions : GAME-DESIGN-SANTE-20261122.md, points 7 à 11
 - **Branche `claude/sante-consommation-20261122`** (part de `5b2bef8d`, socle Santé). Aucune fonction Vercel. Le point 6 (escort) est
   traité par la branche des maladies.
-- **Migration écrite, NON appliquée** : `20261122232000_sante_consommation` (requiert `20261122230000_sante_socle`). Tous les gains passent par
+- **Migration appliquée en production le 22/11/2026 (contrôlée en lecture)** : `20261122232000_sante_consommation` (requiert `20261122230000_sante_socle`). Tous les gains passent par
   `sante_gagner_interne` (Moral, point 11), valeurs dans `sante_parametres` (+ `repas_joueur_p5_prix_min`, `repas_joueur_p10_prix_min`,
   `repas_pa_differe_plafond`). Nouvelles tables : `sante_repas_categories` (classement des plats), `sante_sommeil_lieux` (lieux du sommeil,
   motifs bâtiment/pièce), `sante_sommeils` (un crédit de sommeil par jour de Paris). Nouvelle RPC `sante_se_nourrir(p_pa, p_cost)`.

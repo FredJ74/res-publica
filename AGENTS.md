@@ -230,6 +230,29 @@ ordre), sans jamais réécrire ni annuler ces cinq migrations. Aucune ne touche 
   `militaire_bataille_etat` (`foret_meute_nom_v1`) ; forêt : `sovarka_foret_aller`, `sovarka_foret_lire` (`foret_groupe_membres_v1`),
   `sovarka_foret_rencontre` (`foret_meute_retrait_v1`, `foret_journal_groupe_v1`). Batailles militaires inchangées.
 
+- `20261122230000_sante_socle` : `sante_parametres` (MJ : `admin_sante_parametres_lire/fixer`), `sante_param`, `sante_facteur_robustesse`,
+  `sante_perte_combat_interne`, `sante_modulation_moral`, `sante_gagner_interne`, `sante_perdre_interne`, table `personnage_evenements`
+  + `personnage_evenement_ajouter_interne` + RPC `personnage_evenements_lire`, accroche `sante_reveil_interne`.
+- `20261122231000_sante_combat` : `sante_combat_coup_pj_interne` ; remplacements contrôlés dans des **fonctions communes** :
+  `militaire_bataille_appliquer` (`sante_combat_*`), `police_combat_personnage_interne` (`sante_police_*`),
+  `militaire_bataille_neutralisation_terminale_interne` (`sante_coma_pa_v1`), `militaire_bataille_round` (`foret_meute_derniere_fuite_v1`,
+  `combat_rapport_etats_fin_v1`), 20 gardes « Santé ≤ 0 » retirées (`sante_zero_libre_*`, liste dans RELAIS), `impact_marquer_traite`
+  et 5 lecteurs de `stats_affaiblies` (`sante_sans_*`) ; réécrites : `combat_rapport_lignes_interne`, `sovarka_foret_issue_combat_interne`
+  (butin par loup tué, reste d'une pile au sas) ; nouvelles : `combat_etat_ligne_interne`, `combat_rapport_etats_rafraichir_interne`,
+  `sovarka_foret_meute_derniere_fuite_interne` ; réglage `aliments_parametres.foret_meute_fuite_apres_morts` = 2.
+- `20261122232000_sante_consommation` : tables `sante_repas_categories`, `sante_sommeil_lieux`, `sante_sommeils` ; 15 fonctions de
+  production modifiées (`sante_conso_*`) : `maladie_verre_interne`, `tournee_cloturer_boire`, `commerce_vendre_produit`,
+  `consommer_sur_place_commerce`, `inventaire_consommer`, `restaurant_diner_servir`, `diner_commerce_servir_interne`,
+  `service_etage_commander`, `hotel_service_etage_commander`, `marche_krasnov_manger`, `pa_repos_nocturne` (Santé du sommeil + réveil),
+  `clinique_nuitee_marquer_repos`, `clinique_nuitee_consommer`, `recevoir_soin`, `ordre_generique_executer` ; nouvel ordre `sante_se_nourrir`.
+- `20261122233000_sante_maladies_medicaments` : `maladies_parametres.perte_sante` et `guerison_spontanee`, maladie `mst` ; tables
+  `escort_relations`, `mst_en_attente`, `medicaments_stocks` ; remplacements contrôlés `maladie_contracter_interne`, `admin_maladie_modifier`,
+  `escort_intimite` (`sante_maladies_v1_*`) ; réécrites `sante_reveil_interne`, `pharmacie_etat`, `pharmacie_acheter_interne` ;
+  nouvelles `mst_relation_interne`, `produire_medicament`, `usine_medicaments_etat` et fonctions d'appui.
+- `20261122234000_medecin_montrer` : table `medecin_propositions` ; RPC `medecin_etat`, `medecin_proposer`, `medecin_repondre`,
+  `medecin_propositions_lire`, `objet_montrer`, `sante_paliers_lire` ; `personnages_meme_lieu_interne`, `piece_plein_air_interne` ;
+  remplacements contrôlés `inspecter_piece`, `desinstaller_lire`, `desinstaller_materiel` (`plein_air_*`) ; `ordres_couts`
+  medecin_diagnostiquer (1 PA), medecin_soigner (2 PA).
 ### Fonctions communes et points de jonction
 - **Traitement de nuit** : `api/cron-minuit.js` (commun : il appelle aussi `sovarka_goulag_controle_minuit`, tâche
   `controle_goulag_sovarka`). Claude **ne le réécrit pas** : la nuit des chantiers reste l'appel existant
