@@ -542,6 +542,13 @@ function verdictAjoutLot(ts, lot) {
                       + ' doit faire au moins ' + min + ' m².' };
   }
 
+  // Building (Fred, 22/11/2026, point 6) : au plus 6 commerces et 14 appartements.
+  const plafond = niveau === 'building' ? (destination === 'appartement' ? 14 : 6) : null;
+  if (plafond !== null && (ts.subdivisions || []).filter(x => destinationDuLot(x) === destination).length >= plafond) {
+    return { ok: false, raison: 'trop_de_lots',
+             message: 'Un building compte au plus ' + plafond + (destination === 'appartement' ? ' appartements.' : ' commerces.') };
+  }
+
   const dispo = surfaceDisponible(ts);
   if (surface > dispo) {
     return { ok: false, raison: 'surface_indisponible',

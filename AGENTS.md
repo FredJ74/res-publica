@@ -198,6 +198,12 @@ ordre), sans jamais réécrire ni annuler ces cinq migrations. Aucune ne touche 
   (`chantier_heures_ouvertes_v1`), `chantier_jour_traiter` (plus de courrier de pénurie `chantier_sans_courrier_v1`, commande de
   nuit `chantier_commande_nuit_v1`). Le chantier garde `derniereCommande` et des entrées `commande_materiaux` / `manque_materiaux`
   dans `evenements`.
+- `20261122130000_types_batiments_cinq` : `chantiers_paliers` = hangar, commerce_standard, commerce_premium, **logement**, building
+  (les trois `logements_*` supprimés, aucun usage) ; nouvelles `logements_classiques_lots_interne` ; réécrites
+  `logements_sociaux_lots_interne` (logement = 6) et `chantier_plan_normaliser_interne` (Logement fixe, Building ≤ 6 commerces et
+  ≤ 14 appartements, catégorie sociale si terrain communal) ; remplacements contrôlés dans `terrain_permis_deposer`
+  (durée, surface ≥ 2 000 m², libellé), `terrain_permis_decider` (libellé), `terrain_acquisition_commande` (liste),
+  `traiter_prets_helvetia_quotidien` (valeur du Logement 70 000, 4 grilles). Marques `types_batiments_cinq_*`.
 
 ### Fonctions communes et points de jonction
 - **Traitement de nuit** : `api/cron-minuit.js` (commun : il appelle aussi `sovarka_goulag_controle_minuit`, tâche

@@ -54,10 +54,8 @@ const DUREES_CONSTRUCTION = {
   commerce_standard: 12,
   commerce_premium: 18,
   building: 24,
-  // Logements sociaux communaux (29/10/2026, décision de Fred) : même barème, réservés à la commune.
-  logements_petit: 12,
-  logements_moyen: 18,
-  logements_barre: 24
+  // Logement (Fred, 22/11/2026, point 6) : remplace les trois paliers de logements sociaux.
+  logement: 18
 };
 
 // Seuils de financement CUMULE d'une construction, en pourcentage du cout total. Le joueur peut
