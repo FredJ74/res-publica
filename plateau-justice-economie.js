@@ -2146,8 +2146,11 @@ async function doSeRebeller(pa, cost) {
   const degats = Number(r.grilles?.degats || 0);
   if (r.reussi) {
     updateUI();
-    showToast('Rebellion !', 'Vous avez tenu tete aux gardiens. +6 DIS, mais +1 jour de detention et -10 Santé.', true, true);
-    addJournalEntry('Rebellion en cellule reussie. Grilles endommagees (-' + degats + '). +1 jour de peine, -10 Santé.', 'event-info');
+    // Perte de Santé arrêtée par le serveur (robustesse, Fred 22/11/2026 au soir) ; 10 avant robustesse.
+    const santePerdue = Number.isFinite(Number(r.sante_perdue)) ? Number(r.sante_perdue) : 10;
+    if (Number.isInteger(r.hp)) state.hp = r.hp;
+    showToast('Rebellion !', 'Vous avez tenu tete aux gardiens. +6 DIS, mais +1 jour de detention et -' + santePerdue + ' Santé.', true, true);
+    addJournalEntry('Rebellion en cellule reussie. Grilles endommagees (-' + degats + '). +1 jour de peine, -' + santePerdue + ' Santé.', 'event-info');
     if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('rebellion_cellule', ville);
   } else {
     // Criminalite lot 6 (§ 14) : rebellion matee = +4 jours d'office (bareme), plus de QHS automatique, aucun degat aux grilles.
@@ -2155,7 +2158,9 @@ async function doSeRebeller(pa, cost) {
     updateUI();
     const T6 = globalThis.RPCriminalite;
     const jours = Number(r.jours_ajoutes || 0);
-    const texteMatee = T6 ? T6.texte('bMateeText', { jours }) + (r.proces ? ' ' + T6.texte('bProces') : '') : '';
+    if (Number.isInteger(r.hp)) state.hp = r.hp;
+    const texteMatee = T6 ? T6.texte('bMateeText', { jours, sante: Number.isFinite(Number(r.sante_perdue)) ? Number(r.sante_perdue) : 25 })
+      + (r.proces ? ' ' + T6.texte('bProces') : '') : '';
     showToast(T6 ? T6.texte('bMatee') : '', texteMatee, false);
     addJournalEntry(texteMatee, 'event-bad');
   }

@@ -1,0 +1,585 @@
+-- Socle PGlite de la migration 20261123100000_sante_suites (chargé après inventaire-direct-pglite-socle.sql.txt, le socle
+-- Santé 20261122230000, sante-consommation-pglite-socle.sql.txt et la migration 20261122232000_sante_consommation).
+--  • « COPIE DE PRODUCTION » : texte rendu par pg_get_functiondef le 22/11/2026 au soir (projet jxpwoosmmhohoihxpbuc, lecture
+--    seule) ; le banc vérifie l'empreinte md5 de chaque copie contre celle de la production avant d'appliquer la migration.
+--  • « DOUBLURE » : dépendance périphérique, même signature, comportement minimal testable.
+
+-- ===================== Colonnes et tables utiles =====================
+ALTER TABLE public.personnages_donnees ADD COLUMN IF NOT EXISTS archetype text, ADD COLUMN IF NOT EXISTS banque numeric DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS informateurs jsonb DEFAULT '[]'::jsonb, ADD COLUMN IF NOT EXISTS employes jsonb DEFAULT '[]'::jsonb,
+  ADD COLUMN IF NOT EXISTS capacite_inventaire integer DEFAULT 100;
+CREATE TABLE IF NOT EXISTS public.sovarka_repas_presidentiels (jour date PRIMARY KEY, president text, invite text, invites jsonb, requete text, resultat jsonb);
+CREATE TABLE IF NOT EXISTS public.caisses_batiments (id text PRIMARY KEY, data jsonb, updated_at timestamptz DEFAULT now());
+CREATE TABLE IF NOT EXISTS public.mails_test (expediteur text, destinataire text, sujet text, corps text);
+CREATE TABLE IF NOT EXISTS public.sovarka_foret_actes (acteur text, requete uuid, resultat jsonb, PRIMARY KEY (acteur, requete));
+CREATE TABLE IF NOT EXISTS public.sovarka_foret_rencontres (id bigserial PRIMARY KEY, bucheron text, statut text, pnj_id text, creature text, vue integer, clos_le timestamptz);
+CREATE TABLE IF NOT EXISTS public.sovarka_foret_visites (bucheron text PRIMARY KEY, bois integer);
+CREATE TABLE IF NOT EXISTS public.groupes_pj_adhesions (membre text PRIMARY KEY, chef text);
+CREATE TABLE IF NOT EXISTS public.batailles (id bigserial PRIMARY KEY, statut text);
+CREATE TABLE IF NOT EXISTS public.batailles_engagements (id bigserial PRIMARY KEY, bataille_id bigint, pnj_id text);
+CREATE TABLE IF NOT EXISTS public.indices_villes (id text PRIMARY KEY, data jsonb);
+CREATE TABLE IF NOT EXISTS public.organisations (id text PRIMARY KEY, data text, country_origine text);
+CREATE TABLE IF NOT EXISTS public.budgets_municipaux (id text PRIMARY KEY, data jsonb, updated_at timestamptz);
+CREATE TABLE IF NOT EXISTS public.detentions_test (nom text PRIMARY KEY, country text, city text);
+CREATE TABLE IF NOT EXISTS public.inventaire_actions_recus (acteur text, requete uuid, action text, parametres jsonb, resultat jsonb, le timestamptz);
+CREATE TABLE IF NOT EXISTS public.informateurs_achats (id bigserial PRIMARY KEY, acteur text, informateur text, montant integer, palier text, lignes jsonb, le timestamptz DEFAULT now());
+CREATE TABLE IF NOT EXISTS public.crim_parametres (cle text PRIMARY KEY, valeur numeric);
+CREATE TABLE IF NOT EXISTS public.commerces_dotations (cle text PRIMARY KEY, type text, parametres jsonb);
+ALTER TABLE public.recettes_commerce ADD COLUMN IF NOT EXISTS prix_fixe numeric;
+INSERT INTO public.ordres_couts VALUES ('repas_clinique', 1, 30), ('repas_hopital', 1, 0), ('reprimer_manif', 3, 0), ('se_rebeller', 1, 0);
+
+-- Marché de Krasnov : table et lignes de PRODUCTION (22/11/2026 au soir), caisse à 1 000 PSK.
+DROP TABLE IF EXISTS public.marche_krasnov_produits;
+CREATE TABLE public.marche_krasnov_produits (cle text PRIMARY KEY, ordre integer NOT NULL, label text NOT NULL, genre text NOT NULL,
+  prix_vente integer NOT NULL CHECK (prix_vente > 0), prix_rachat integer NOT NULL CHECK (prix_rachat >= 0), recette jsonb, pa integer NOT NULL DEFAULT 0,
+  unites integer NOT NULL DEFAULT 0, stock_max integer NOT NULL DEFAULT 60, effet text, actif boolean NOT NULL DEFAULT true);
+INSERT INTO public.marche_krasnov_produits (cle, ordre, label, genre, prix_vente, prix_rachat, recette, pa, unites, stock_max, effet) VALUES
+  ('fruits_legumes', 10, 'Fruits et légumes', 'brut', 2, 1, NULL, 0, 0, 60, 'Se mangent crus : un en-cas (Santé, selon le barème des repas ; un seul repas brut par nuit).'),
+  ('oeufs', 20, 'Œufs (lot de 3)', 'brut', 3, 2, NULL, 0, 0, 60, 'Se mangent par 3 : +2 PA au prochain Dormir.'),
+  ('viande', 30, 'Volaille (viande)', 'brut', 3, 2, NULL, 0, 0, 60, 'Se mange crue : +1 PA au prochain Dormir, avec un risque d''intoxication.'),
+  ('sucre', 40, 'Sucre', 'brut', 2, 1, NULL, 0, 0, 60, 'Sert à faire la confiture.'),
+  ('cereales', 50, 'Céréales', 'brut', 2, 1, NULL, 0, 0, 60, 'Servent à faire le pain noir.'),
+  ('poisson', 60, 'Poisson', 'brut', 2, 1, NULL, 0, 0, 60, 'Sert à faire le goulash.'),
+  ('textile', 70, 'Textile', 'brut', 2, 1, NULL, 0, 0, 60, 'Sert à faire la chemise de bûcheron.'),
+  ('bouteille_eau', 80, 'Bouteille d''eau', 'brut', 2, 1, NULL, 0, 0, 60, 'Protège de la canicule ; sert à faire le pain noir. Gratuite à la fontaine de la place de l''Ours.'),
+  ('graisse_ours', 90, 'Bocal de graisse d''ours', 'brut', 16, 12, NULL, 0, 0, 30, 'Protège du blizzard (consommé).'),
+  ('confiture', 100, 'Confiture d''airelles (bocal)', 'transforme', 10, 7, '{"sucre": 1, "fruits_legumes": 1}', 1, 4, 60, '+1 PA au prochain Dormir, en plus d''un repas brut.'),
+  ('pain_noir', 110, 'Pain noir', 'transforme', 8, 6, '{"cereales": 1, "bouteille_eau": 1}', 1, 5, 60, 'Un repas de pain : Santé et PA au prochain Dormir, comme une tartine (pas en plus d''un repas brut).'),
+  ('goulash', 120, 'Portion de goulash', 'transforme', 13, 9, '{"poisson": 1, "fruits_legumes": 1}', 1, 3, 60, 'Un plat chaud : Santé et PA au prochain Dormir, comme un plat du jour.'),
+  ('chemise', 130, 'Chemise de bûcheron à carreaux', 'transforme', 18, 13, '{"textile": 1}', 1, 2, 30, 'À revêtir : +1 ENT tant que vous êtes à Krasnov (effet perdu si vous revêtez la tenue ninja ou le gilet).'),
+  ('tenue_ninja', 140, 'Tenue ninja', 'objet', 32, 24, NULL, 0, 0, 10, 'Revêtue : +15 % pour se cacher, −15 % aux fouilles qui vous visent.'),
+  ('masque_carnaval', 150, 'Masque de carnaval', 'objet', 20, 15, NULL, 0, 0, 10, 'Revêtu, vous n''êtes plus qu''un « personnage masqué » pour ceux qui vous croisent.');
+INSERT INTO public.aliments_parametres VALUES ('marche_krasnov_salaire_pa', 15), ('marche_krasnov_decote_rachat_pct', 25), ('marche_krasnov_dotation', 1000)
+  ON CONFLICT (cle) DO NOTHING;
+INSERT INTO public.caisses_batiments (id, data) VALUES ('soviet_marche_ville_b', '{"solde": 1000}'), ('soviet_palais-presidentiel', '{"solde": 1000}')
+  ON CONFLICT (id) DO NOTHING;
+
+-- Kolkhoze de Starovka : recette et commerce de PRODUCTION (confiture à 5 PSK, prix recalculé à chaque production).
+INSERT INTO public.recettes_commerce (id, label, categorie, famille_produit_marche, prix_fixe)
+  VALUES ('kolkhoze_confiture_airelles', 'Confiture d''airelles', 'objet', 'aliment', NULL) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.entreprises (id, data) VALUES ('tabac-presse-soviet-ville_a-magasin-kolkhoze-starovka',
+  '{"type": "tabac-presse", "proprietaire": "PNJ", "parametres": {"stockMax": {"kolkhoze_confiture_airelles": 20}, "prixVente": {"kolkhoze_bois_renne": 10, "kolkhoze_lait_renne": 4, "kolkhoze_peau_renne": 16, "kolkhoze_viande_renne": 8, "kolkhoze_graisse_renne": 5, "kolkhoze_confiture_airelles": 5}}}')
+  ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.commerces_dotations VALUES ('magasin-kolkhoze-starovka@soviet.ville_a', 'tabac-presse',
+  '{"prixVente": {"kolkhoze_bois_renne": 10, "kolkhoze_lait_renne": 4, "kolkhoze_peau_renne": 16, "kolkhoze_viande_renne": 8, "kolkhoze_graisse_renne": 5, "kolkhoze_confiture_airelles": 5}}');
+
+-- ===================== Doublures =====================
+CREATE OR REPLACE FUNCTION public.caisse_institution_mouvement(p_id text, p_delta numeric, p_exiger_existant boolean DEFAULT false) RETURNS jsonb LANGUAGE plpgsql AS $$
+DECLARE s numeric;
+BEGIN
+  SELECT coalesce((data->>'solde')::numeric, 0) INTO s FROM public.caisses_batiments WHERE id = p_id FOR UPDATE;
+  IF s IS NULL OR s + p_delta < 0 THEN RETURN jsonb_build_object('ok', false, 'raison', 'solde_insuffisant'); END IF;
+  UPDATE public.caisses_batiments SET data = jsonb_build_object('solde', s + p_delta) WHERE id = p_id;
+  RETURN jsonb_build_object('ok', true, 'solde', s + p_delta);
+END $$;
+CREATE OR REPLACE FUNCTION public.mail_systeme_envoyer(p_expediteur text, p_destinataire text, p_sujet text, p_corps text, p_heure text DEFAULT NULL::text)
+RETURNS jsonb LANGUAGE sql AS $$ INSERT INTO public.mails_test VALUES (p_expediteur, p_destinataire, p_sujet, p_corps) RETURNING jsonb_build_object('ok', true) $$;
+CREATE OR REPLACE FUNCTION public.sovarka_inventaire_ligne_interne(p_inv jsonb, p_cles text[]) RETURNS jsonb LANGUAGE sql AS $$ SELECT '{"qte": 0}'::jsonb $$;
+CREATE OR REPLACE FUNCTION public.sovarka_foret_faune_retirer_interne(p_pnj text) RETURNS void LANGUAGE sql AS $$ SELECT $$;
+CREATE OR REPLACE FUNCTION public.sovarka_foret_deplacer_interne(p_nom text, p_piece text) RETURNS jsonb LANGUAGE sql AS
+$$ UPDATE public.personnages_donnees SET current_room = p_piece WHERE name = p_nom RETURNING jsonb_build_object('ok', true, 'membres', '[]'::jsonb, 'positions', '[]'::jsonb) $$;
+CREATE OR REPLACE FUNCTION public.sovarka_foret_journal_groupe_interne(p_chef text, p_cle text, p_params jsonb, p_bataille bigint DEFAULT NULL::bigint) RETURNS integer LANGUAGE sql AS $$ SELECT 0 $$;
+CREATE OR REPLACE FUNCTION public.sovarka_foret_creature_interne(p_type text) RETURNS jsonb LANGUAGE sql AS $$ SELECT jsonb_build_object('nom', 'Ours brun') $$;
+CREATE OR REPLACE FUNCTION public.mon_poste_est_dans(p_poste text, p_pays text) RETURNS boolean LANGUAGE sql AS $$ SELECT public.mon_personnage() = 'Tom Tom' $$;
+CREATE OR REPLACE FUNCTION public.indice_ville_ajuster_interne(p_pays text, p_ville text, p_cle text, p_delta integer) RETURNS void LANGUAGE sql AS $$ SELECT $$;
+CREATE OR REPLACE FUNCTION public.detention_active(p_nom text) RETURNS TABLE(id text, country text, city text, jour_debut integer, jour_fin integer, qhs boolean) LANGUAGE sql AS
+$$ SELECT 'det-' || nom, country, city, 1, 5, false FROM public.detentions_test WHERE nom = p_nom $$;
+CREATE OR REPLACE FUNCTION public.crim_peine_jours_interne(p_acte text, p_pays text) RETURNS integer LANGUAGE sql AS $$ SELECT 4 $$;
+CREATE OR REPLACE FUNCTION public.prison_grilles_endommager_interne(p_pays text, p_ville text, p_degats integer) RETURNS jsonb LANGUAGE sql AS $$ SELECT jsonb_build_object('degats', p_degats, 'niveau', 90) $$;
+CREATE OR REPLACE FUNCTION public.detention_prolonger_interne(p_nom text, p_motifs jsonb, p_forcer_qhs boolean) RETURNS jsonb LANGUAGE sql AS $$ SELECT '{"jour_fin": 9, "jours_ajoutes": 4, "proces": false}'::jsonb $$;
+CREATE OR REPLACE FUNCTION public.inventaire_action_rejouer_interne(p_acteur text, p_requete uuid, p_action text, p_parametres jsonb) RETURNS jsonb LANGUAGE sql AS
+$$ SELECT resultat FROM public.inventaire_actions_recus WHERE acteur = p_acteur AND requete = p_requete $$;
+CREATE OR REPLACE FUNCTION public.crim_param_interne(p_cle text, p_defaut numeric) RETURNS numeric LANGUAGE sql STABLE AS
+$$ SELECT coalesce((SELECT valeur FROM public.crim_parametres WHERE cle = p_cle), p_defaut) $$;
+
+-- ===================== Copies de production =====================
+-- sante_combat_coup_pj_interne : migration 20261122231000 (identique à la production, md5 vérifié par le banc).
+CREATE OR REPLACE FUNCTION public.sante_combat_coup_pj_interne(p_nom text, p_pa_avant integer, p_perte_brute integer,
+  p_perte_max integer DEFAULT NULL, p_source text DEFAULT 'combat')
+ RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_pa integer := greatest(0, coalesce(p_pa_avant, 0)); v_brute integer := greatest(0, coalesce(p_perte_brute, 0));
+        v_hp integer; v_perte integer; v_sante integer; r jsonb;
+BEGIN
+  -- sante_combat_robustesse_v1 : perte × facteur(Santé au moment du coup), au moins 1 PA, jamais plus que les PA restants
+  -- (ni que p_perte_max) ; chaque PA perdu retire blessure_sante_par_pa point(s) de Santé (plancher 0, jamais modulé).
+  IF v_brute = 0 OR v_pa = 0 THEN
+    RETURN jsonb_build_object('perte_brute', v_brute, 'perte', 0, 'pa_apres', v_pa, 'sante_perdue', 0);
+  END IF;
+  SELECT hp INTO v_hp FROM public.personnages_donnees WHERE name = p_nom FOR UPDATE;
+  IF NOT FOUND THEN
+    v_perte := least(v_pa, v_brute, coalesce(p_perte_max, v_pa));
+    RETURN jsonb_build_object('perte_brute', v_brute, 'perte', v_perte, 'pa_apres', v_pa - v_perte, 'sante_perdue', 0);
+  END IF;
+  v_hp := coalesce(v_hp, public.sante_param('sante_max', 100)::integer);
+  v_perte := least(v_pa, greatest(0, coalesce(p_perte_max, v_pa)), public.sante_perte_combat_interne(v_hp, v_brute));
+  v_sante := round(v_perte * public.sante_param('blessure_sante_par_pa', 1))::integer;
+  IF v_sante > 0 THEN
+    r := public.sante_perdre_interne(p_nom, v_sante, coalesce(p_source, 'combat'),
+           jsonb_build_object('pa_perdus', v_perte, 'perte_brute', v_brute));
+  END IF;
+  RETURN jsonb_build_object('perte_brute', v_brute, 'perte', v_perte, 'pa_apres', v_pa - v_perte,
+    'facteur', public.sante_facteur_robustesse(v_hp), 'sante_avant', v_hp,
+    'sante_apres', coalesce((r->>'apres')::integer, v_hp), 'sante_perdue', v_hp - coalesce((r->>'apres')::integer, v_hp));
+END $function$;
+
+CREATE OR REPLACE FUNCTION public.inventaire_unites_interne(p_inv jsonb)
+ RETURNS integer
+ LANGUAGE sql
+ IMMUTABLE
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+ SELECT coalesce((
+ SELECT sum(CASE
+   WHEN coalesce(e->>'quantite','') ~ '^[0-9]+$' THEN (e->>'quantite')::numeric
+   WHEN coalesce(e->>'qty','') ~ '^[0-9]+$' THEN (e->>'qty')::numeric
+   WHEN coalesce(e->>'encombrement','') ~ '^[0-9]+$' THEN (e->>'encombrement')::numeric
+   ELSE 1 END)
+ FROM jsonb_array_elements(CASE WHEN jsonb_typeof(p_inv) = 'array' THEN p_inv ELSE '[]'::jsonb END) e), 0)::integer; /* inventaire_capacite_v1 */
+$function$
+;
+CREATE OR REPLACE FUNCTION public.inventaire_place_restante(p_inv jsonb, p_capacite integer)
+ RETURNS integer
+ LANGUAGE sql
+ IMMUTABLE
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT greatest(0, coalesce(p_capacite, 100) - public.inventaire_unites_interne(p_inv)); /* inventaire_capacite_v1 */
+$function$
+;
+CREATE OR REPLACE FUNCTION public.inventaire_objet_lire_interne(p_texte text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ IMMUTABLE
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v jsonb;
+BEGIN
+  BEGIN v := p_texte::jsonb; EXCEPTION WHEN others THEN RETURN NULL; END;
+  IF jsonb_typeof(v) = 'string' THEN
+    BEGIN v := (v #>> '{}')::jsonb; EXCEPTION WHEN others THEN RETURN NULL; END;
+  END IF;
+  RETURN CASE WHEN jsonb_typeof(v) = 'object' THEN v ELSE NULL END; /* inventaire_capacite_v1 */
+END $function$
+;
+CREATE OR REPLACE FUNCTION public.inventaire_place_destinataire_interne(p_nom text)
+ RETURNS integer
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT greatest(0, public.inventaire_place_restante(d.inventory, d.capacite_inventaire)
+    - coalesce((SELECT sum(public.inventaire_unites_interne(jsonb_build_array(o)))
+                  FROM (SELECT public.inventaire_objet_lire_interne(r.data::text) o FROM public.objets_recus r WHERE r.destinataire = p_nom) x
+                 WHERE o IS NOT NULL), 0))::integer
+    FROM public.personnages_donnees d WHERE d.name = p_nom; /* inventaire_capacite_v1 */
+$function$
+;
+CREATE OR REPLACE FUNCTION public.hospitalisation_repas_prendre()
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE moi text; p public.personnages_donnees%ROWTYPE; v_j integer; aujourdhui text;
+ v_pa integer; v_cost integer; paiement jsonb; v_fn text; v_bonus integer;
+ v_nuit public.clinique_nuitees%ROWTYPE;
+BEGIN
+ moi := public.mon_personnage();
+ IF moi IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','non_authentifie'); END IF;
+ SELECT * INTO p FROM public.personnages_donnees WHERE name = moi FOR UPDATE;
+ v_j := public.hospitalisation_jour_pa0(p.hospitalisation);
+ IF v_j IS NULL AND p.country IN ('republic','soviet')
+    AND p.current_city='capitale'
+    AND p.current_building='clinique-privee'
+    AND p.current_room ~ '^chambre_([1-9]|10)$'
+    AND (p.hospitalisation IS NULL OR p.hospitalisation='null'::jsonb)
+ THEN
+   -- Le client d'une nuitée réservée est un occupant légitime, pas un patient hospitalisé.
+   -- Vérifier conjointement le titre de réservation ET l'occupation réelle de sa chambre.
+   SELECT * INTO v_nuit FROM public.clinique_nuitees
+    WHERE personnage=moi AND country=p.country AND city='capitale'
+      AND room_id=p.current_room AND consommee_le IS NULL AND annulee_le IS NULL
+    ORDER BY id DESC LIMIT 1 FOR UPDATE;
+   IF NOT FOUND OR NOT EXISTS (
+     SELECT 1 FROM public.locations_actives l
+      WHERE l.id=p.country||':clinique-privee:'||p.current_room||':capitale'
+        AND l.country=p.country AND l.data->>'locataire'=moi
+        AND l.data->>'reservationClinique'='true'
+        AND l.data->>'roomId'=p.current_room
+   ) THEN
+     RETURN jsonb_build_object('ok',false,'raison','non_hospitalise');
+   END IF;
+   aujourdhui := (statement_timestamp() AT TIME ZONE 'Europe/Paris')::date::text;
+   IF v_nuit.repas_le=aujourdhui::date THEN
+     RETURN jsonb_build_object('ok',false,'raison','repas_deja_pris'); END IF;
+   SELECT pa,cost INTO v_pa,v_cost FROM public.ordres_couts
+     WHERE fn='repas_clinique' ORDER BY cost DESC LIMIT 1;
+   IF v_pa IS NULL OR v_pa<>1 OR v_cost<>30 THEN
+     RETURN jsonb_build_object('ok',false,'raison','cout_non_declare','fn','repas_clinique'); END IF;
+   paiement:=public.payer_ordre_interne(moi,'repas_clinique',v_pa,v_cost);
+   IF NOT coalesce((paiement->>'ok')::boolean,false) THEN RETURN paiement; END IF;
+   UPDATE public.clinique_nuitees SET repas_le=aujourdhui::date WHERE id=v_nuit.id;
+   -- Ce crédit est consommé une seule fois par pa_repos_nocturne au prochain Dormir autorisé ;
+   -- ne jamais créer une fausse hospitalisation pour le client d'une chambre privée.
+   UPDATE public.personnages_donnees
+      SET bonus_pa_differe=coalesce(bonus_pa_differe,0)+4
+    WHERE name=moi RETURNING pa INTO v_pa;
+   RETURN jsonb_build_object('ok',true,'mode','nuitee','pa',v_pa,
+     'cout',v_cost,'bonus_lendemain',4,
+     'liquide',(SELECT liquide FROM public.personnages_donnees WHERE name=moi),
+     'arg',(SELECT arg FROM public.personnages_donnees WHERE name=moi));
+ END IF;
+ IF v_j IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','non_hospitalise'); END IF;
+ IF p.current_building = 'clinique-privee' THEN v_fn := 'repas_clinique'; v_bonus := 4;
+ ELSIF coalesce(p.current_building,'') LIKE 'dispensaire-public%' THEN v_fn := 'repas_hopital'; v_bonus := 2;
+ ELSE RETURN jsonb_build_object('ok',false,'raison','pas_a_l_hopital'); END IF;
+ aujourdhui := (statement_timestamp() AT TIME ZONE 'Europe/Paris')::date::text;
+ IF p.hospitalisation->>'repasLe' = aujourdhui THEN
+  RETURN jsonb_build_object('ok',false,'raison','repas_deja_pris'); END IF;
+ SELECT pa, cost INTO v_pa, v_cost FROM public.ordres_couts WHERE fn = v_fn ORDER BY cost DESC LIMIT 1;
+ IF v_pa IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','cout_non_declare','fn',v_fn); END IF;
+ paiement := public.payer_ordre_interne(moi, v_fn, v_pa, v_cost);
+ IF NOT coalesce((paiement->>'ok')::boolean,false) THEN RETURN paiement; END IF;
+ UPDATE public.personnages_donnees
+    SET hospitalisation = hospitalisation || jsonb_build_object('repasLe', aujourdhui, 'repasBonus', v_bonus)
+  WHERE name = moi RETURNING pa INTO v_pa;
+ RETURN jsonb_build_object('ok',true,'pa',v_pa,'cout',v_cost,'bonus_lendemain',v_bonus,'jour',v_j,
+   'liquide',(SELECT liquide FROM public.personnages_donnees WHERE name = moi),
+   'arg',(SELECT arg FROM public.personnages_donnees WHERE name = moi));
+END $function$
+;
+CREATE OR REPLACE FUNCTION public.sovarka_repas_presidentiel(p_requete text, p_invites text[] DEFAULT NULL::text[])
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_jour date := (now() AT TIME ZONE 'Europe/Paris')::date; v_ligne record;
+        v_invites text[]; v_n integer; v_presents integer; v_cout numeric; v_bonus integer; v_r jsonb;
+        v_moi_fiche record; v_flag text; v_rep jsonb; v_solde numeric; v_i text;
+        c_prix constant numeric := 60;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  IF coalesce(btrim(p_requete), '') = '' THEN RETURN jsonb_build_object('ok', false, 'raison', 'requete_absente'); END IF;
+
+  PERFORM pg_advisory_xact_lock(hashtext('sovarka_repas_presidentiel|' || v_jour::text));
+  SELECT * INTO v_ligne FROM public.sovarka_repas_presidentiels WHERE jour = v_jour;
+  IF FOUND THEN
+    IF v_ligne.requete = p_requete AND v_ligne.president = v_moi THEN RETURN v_ligne.resultat || '{"rejeu":true}'; END IF;
+    RETURN jsonb_build_object('ok', false, 'raison', 'deja_pris_aujourdhui');
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM public.cycles_electoraux
+                  WHERE id = 'soviet_president' AND data::jsonb ->> 'eluId' = v_moi) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'reserve_president');
+  END IF;
+  SELECT country, current_city, current_building, current_room INTO v_moi_fiche
+    FROM public.personnages_donnees WHERE name = v_moi FOR UPDATE;
+  IF v_moi_fiche.country IS DISTINCT FROM 'soviet' OR v_moi_fiche.current_city IS DISTINCT FROM 'capitale'
+     OR v_moi_fiche.current_building IS DISTINCT FROM 'palais-presidentiel'
+     OR v_moi_fiche.current_room IS DISTINCT FROM 'salle_reception' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pas_sur_place');
+  END IF;
+
+  SELECT coalesce(array_agg(DISTINCT n ORDER BY n), '{}') INTO v_invites
+    FROM (SELECT nullif(btrim(x), '') AS n FROM unnest(coalesce(p_invites, '{}'::text[])) x) t WHERE n IS NOT NULL;
+  IF v_moi = ANY (v_invites) THEN RETURN jsonb_build_object('ok', false, 'raison', 'invite_invalide'); END IF;
+  v_n := coalesce(array_length(v_invites, 1), 0);
+  IF v_n > 0 THEN
+    SELECT count(*) INTO v_presents FROM (
+      SELECT 1 FROM public.personnages_donnees
+       WHERE name = ANY (v_invites) AND country = 'soviet' AND current_city = 'capitale'
+         AND current_building = 'palais-presidentiel' AND current_room = 'salle_reception'
+       FOR UPDATE) t;
+    IF v_presents <> v_n THEN RETURN jsonb_build_object('ok', false, 'raison', 'invite_absent'); END IF;
+    v_cout := v_n * c_prix;
+    v_flag := current_setting('rp.caisse_interne', true);
+    PERFORM set_config('rp.caisse_interne', 'on', true);
+    v_rep := public.caisse_institution_mouvement('soviet_palais-presidentiel', -v_cout, true);
+    PERFORM set_config('rp.caisse_interne', coalesce(v_flag, ''), true);
+    IF (v_rep->>'ok')::boolean IS NOT TRUE THEN
+      SELECT coalesce((data->>'solde')::numeric, 0) INTO v_solde FROM public.caisses_batiments WHERE id = 'soviet_palais-presidentiel';
+      RETURN jsonb_build_object('ok', false, 'raison', 'caisse_insuffisante', 'cout', v_cout,
+                                'solde', coalesce(v_solde, 0), 'invites_possibles', floor(coalesce(v_solde, 0) / c_prix));
+    END IF;
+  END IF;
+
+  SELECT montant INTO v_bonus FROM public.pa_bonus_differes WHERE source = 'diner_affaires';
+  IF v_bonus IS DISTINCT FROM 3 THEN RAISE EXCEPTION 'bonus_diner_incompatible'; END IF;
+  UPDATE public.personnages_donnees
+     SET hp = least(100, coalesce(hp, 100) + 10), moral = least(100, coalesce(moral, 75) + 2),
+         resources = jsonb_set(coalesce(resources, '{}') - 'popBase' - 'infBase', '{inf}',
+                               to_jsonb(least(100, coalesce((resources ->> 'inf')::numeric, 0) + 5)), true),
+         bonus_pa_differe = least(30, coalesce(bonus_pa_differe, 0) + v_bonus), updated_at = now()
+   WHERE name = v_moi OR name = ANY (v_invites);
+
+  SELECT jsonb_build_object('ok', true, 'invites', to_jsonb(v_invites), 'cout', coalesce(v_cout, 0),
+                            'hp', hp, 'moral', moral, 'inf', (resources ->> 'inf')::numeric,
+                            'bonus_pa_differe', bonus_pa_differe)
+    INTO v_r FROM public.personnages_donnees WHERE name = v_moi;
+  INSERT INTO public.sovarka_repas_presidentiels (jour, president, invite, invites, requete, resultat)
+  VALUES (v_jour, v_moi, v_invites[1], to_jsonb(v_invites), p_requete, v_r);
+  FOREACH v_i IN ARRAY v_invites LOOP
+    PERFORM public.mail_systeme_envoyer('Système', v_i, 'Repas au Palais présidentiel',
+      v_moi || ', Président de la République de Sovarka, vous a offert un repas au Palais présidentiel '
+      || '(+10 Santé, +2 Moral, +5 INF, +3 PA au prochain Dormir).');
+  END LOOP;
+  RETURN v_r;
+END $function$
+;
+CREATE OR REPLACE FUNCTION public.sovarka_foret_rencontre(p_requete uuid, p_choix text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE a text := public.mon_personnage(); x record; e record; s record; l jsonb; v_perdu integer := 0; v jsonb; r jsonb; v_victimes jsonb;
+BEGIN
+  IF a IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  IF p_requete IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'requete_absente'); END IF;
+  IF p_choix NOT IN ('fuir', 'subir') THEN RETURN jsonb_build_object('ok', false, 'raison', 'action_inconnue'); END IF;
+  PERFORM pg_advisory_xact_lock(hashtextextended('sovarka:foret:' || a, 0));
+  SELECT * INTO x FROM public.sovarka_foret_actes WHERE acteur = a AND requete = p_requete;
+  IF FOUND THEN RETURN x.resultat || jsonb_build_object('rejeu', true); END IF;
+  IF EXISTS (SELECT 1 FROM public.groupes_pj_adhesions WHERE membre = a) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'chef_de_groupe_requis'); END IF;
+  SELECT * INTO e FROM public.sovarka_foret_rencontres WHERE bucheron = a AND statut = 'en_attente' ORDER BY id DESC LIMIT 1 FOR UPDATE;
+  IF NOT FOUND THEN RETURN jsonb_build_object('ok', false, 'raison', 'aucune_rencontre'); END IF;
+  IF EXISTS (SELECT 1 FROM public.batailles_engagements be JOIN public.batailles b ON b.id = be.bataille_id
+              WHERE be.pnj_id = e.pnj_id AND b.statut = 'en_cours') THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'combat_en_cours'); END IF;
+
+  IF p_choix = 'fuir' THEN
+    SELECT * INTO s FROM public.sovarka_foret_visites WHERE bucheron = a;
+    PERFORM 1 FROM public.personnages_donnees WHERE name = a FOR UPDATE;
+    l := public.sovarka_inventaire_ligne_interne((SELECT inventory FROM public.personnages_donnees WHERE name = a), ARRAY['bois']);
+    v_perdu := least(coalesce(s.bois, 0), (l->>'qte')::integer);
+    v_perdu := 0;  -- la premiere coupe est acquise (Fred, 10/11) : la fuite ne fait perdre que la seconde, jamais livree
+    PERFORM public.sovarka_foret_faune_retirer_interne(e.pnj_id); /* foret_meute_retrait_v1 */
+    UPDATE public.sovarka_foret_rencontres SET statut = 'fuite', clos_le = now() WHERE id = e.id;
+    v := public.sovarka_foret_deplacer_interne(a, 'zone_recolte');
+    IF coalesce((v->>'ok')::boolean, false) IS NOT TRUE THEN RAISE EXCEPTION 'sovarka_foret_fuite: deplacement refuse %', v; END IF;
+    DELETE FROM public.sovarka_foret_visites WHERE bucheron = a;
+    r := jsonb_build_object('ok', true, 'choix', 'fuir', 'bois_perdu', v_perdu, 'room', 'zone_recolte', 'membres', v->'membres', 'positions', v->'positions');
+  ELSE
+    PERFORM public.sovarka_foret_faune_retirer_interne(e.pnj_id); /* foret_meute_retrait_v1 */
+    UPDATE public.sovarka_foret_rencontres SET statut = 'devore', clos_le = now() WHERE id = e.id;
+    DELETE FROM public.sovarka_foret_visites WHERE bucheron = a;
+    WITH g AS (
+      SELECT d.name FROM public.personnages_donnees d
+       WHERE (d.name = a OR d.name IN (SELECT membre FROM public.groupes_pj_adhesions WHERE chef = a))
+         AND d.country = 'soviet' AND d.current_city = 'ville_b' AND d.current_building = 'zone-production' AND d.current_room = 'foret_vue_' || e.vue /* foret_rencontre_vue_v1 */
+    ), u AS (
+      UPDATE public.personnages_donnees d SET pa = 0, updated_at = now() FROM g WHERE d.name = g.name AND coalesce(d.pa, 0) > 0 RETURNING d.name)
+    SELECT coalesce(jsonb_agg(name ORDER BY name), '[]'::jsonb) INTO v_victimes FROM u;
+    r := jsonb_build_object('ok', true, 'choix', 'subir', 'victimes', v_victimes, 'pa', 0);
+  END IF;
+  PERFORM public.sovarka_foret_journal_groupe_interne(a, CASE WHEN p_choix = 'fuir' THEN 'fuite' ELSE 'subir' END,
+    jsonb_build_object('creature', e.creature, 'nom', public.sovarka_foret_creature_interne(e.creature)->>'nom')); /* foret_journal_groupe_v1 */
+  r := r || jsonb_build_object('creature', e.creature, 'nom', public.sovarka_foret_creature_interne(e.creature)->>'nom')
+         || (SELECT jsonb_build_object('inventory', inventory, 'revision', inventory_revision) FROM public.personnages_donnees WHERE name = a);
+  INSERT INTO public.sovarka_foret_actes (acteur, requete, resultat) VALUES (a, p_requete, r - 'inventory');
+  RETURN r;
+END $function$
+;
+CREATE OR REPLACE FUNCTION public.manifestation_reprimer(p_ville text, p_sujet text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_pays text; v_jour integer; v_paie jsonb; v_sujet text; v_cle text; v_indices jsonb;
+        v_interdite jsonb; v_recente boolean; v_delta integer; v_touches integer := 0; v_fiche record;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  SELECT country, coalesce(day, 1) INTO v_pays, v_jour FROM public.personnages_donnees WHERE name = v_moi;
+  IF NOT public.mon_poste_est_dans('min_int', v_pays) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'reserve_ministre_interieur');
+  END IF;
+  v_cle := v_pays || '_' || coalesce(p_ville, '');
+  IF NOT EXISTS (SELECT 1 FROM public.indices_villes WHERE id = v_cle) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'ville_inconnue');
+  END IF;
+  IF EXISTS (SELECT 1 FROM public.organisations o
+              WHERE o.data::jsonb->>'type' = 'syndicale' AND o.country_origine = v_pays
+                AND o.data::jsonb->>'corpsMetier' = 'police'
+                AND (coalesce((o.data::jsonb->'greve'->>'actif')::boolean, false)
+                     OR o.data::jsonb->>'greveGeneraleStatut' = 'actif')) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'police_en_greve');
+  END IF;
+  v_sujet := left(coalesce(nullif(btrim(p_sujet), ''), 'Rassemblement non precise'), 200);
+  v_paie := public.payer_ordre(v_moi, 'reprimer_manif', 3, 0);
+  IF NOT coalesce((v_paie->>'ok')::boolean, false) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', coalesce(v_paie->>'raison', 'paiement_refuse'), 'paiement', v_paie);
+  END IF;
+  SELECT data->'manifestationInterdite' INTO v_interdite FROM public.budgets_municipaux WHERE id = v_cle FOR UPDATE;
+  v_recente := v_interdite IS NOT NULL AND jsonb_typeof(v_interdite) = 'object'
+               AND coalesce((v_interdite->>'expireJour')::integer, 0) >= v_jour;
+  v_delta := CASE WHEN v_recente THEN 8 ELSE 5 END;
+  PERFORM public.indice_ville_ajuster_interne(v_pays, p_ville, 'social', -v_delta);
+  PERFORM public.indice_ville_ajuster_interne(v_pays, p_ville, 'isn', v_delta);
+  IF v_recente THEN
+    UPDATE public.budgets_municipaux SET data = data - 'manifestationInterdite', updated_at = now() WHERE id = v_cle;
+  END IF;
+  FOR v_fiche IN SELECT name FROM public.personnages_donnees
+                  WHERE country = v_pays AND coalesce(current_city, 'capitale') = p_ville FOR UPDATE LOOP
+    UPDATE public.personnages_donnees
+       SET hp = greatest(1, coalesce(hp, 100) - 10),
+           stats = coalesce(stats, '{}'::jsonb) || jsonb_build_object('VOL',
+                     greatest(1, coalesce(CASE WHEN jsonb_typeof(stats->'VOL') = 'number' THEN (stats->>'VOL')::integer END, 6) - 10))
+     WHERE name = v_fiche.name;
+    v_touches := v_touches + 1;
+  END LOOP;
+  SELECT data INTO v_indices FROM public.indices_villes WHERE id = v_cle;
+  RETURN jsonb_build_object('ok', true, 'paiement', v_paie, 'ville', p_ville, 'sujet', v_sujet,
+    'interdiction_recente', v_recente, 'baisse_social', v_delta, 'hausse_securite', v_delta,
+    'touches', v_touches, 'indices', v_indices,
+    'moi', (SELECT jsonb_build_object('hp', hp, 'vol', stats->'VOL') FROM public.personnages_donnees WHERE name = v_moi));
+END $function$
+;
+CREATE OR REPLACE FUNCTION public.detention_se_rebeller(p_pa integer, p_cost integer)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_moi text; p public.personnages_donnees%ROWTYPE; v_det record; v_paie jsonb;
+  v_ville text; v_pays text; v_vol numeric; v_for numeric; v_taux integer; v_jet integer; v_degats integer;
+  v_grilles jsonb; v_dis numeric; v_hp integer; v_res jsonb; v_r jsonb; v_fiche record; v_jours integer; j jsonb;
+  v_ts text := to_char(now() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"');
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  SELECT * INTO p FROM public.personnages_donnees WHERE name = v_moi FOR UPDATE;
+  SELECT * INTO v_det FROM public.detention_active(v_moi);
+  IF v_det.id IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'non_detenu'); END IF;
+  v_paie := public.payer_ordre_interne(v_moi, 'se_rebeller', p_pa, p_cost);
+  IF NOT coalesce((v_paie ->> 'ok')::boolean, false) THEN RETURN v_paie; END IF;
+  v_pays := coalesce(v_det.country, p.country, 'republic');
+  v_ville := coalesce(v_det.city, p.current_city, 'capitale');
+  v_vol := coalesce(CASE WHEN jsonb_typeof(p.stats -> 'VOL') = 'number' THEN (p.stats ->> 'VOL')::numeric END, 8);
+  SELECT greatest(0, least(20, coalesce(CASE WHEN jsonb_typeof(e -> 'stats' -> 'FOR') = 'number'
+                                             THEN (e -> 'stats' ->> 'FOR')::numeric END, 0)))
+    INTO v_for
+    FROM jsonb_array_elements(CASE WHEN jsonb_typeof(p.employes) = 'array' THEN p.employes ELSE '[]'::jsonb END) e
+   WHERE e ->> 'job' = 'codetenu' LIMIT 1;
+  v_taux := least(60, floor(v_vol * 3 + floor(coalesce(v_for, 0) / 2)))::integer;
+  j := CASE WHEN session_user = 'postgres' THEN nullif(current_setting('rp.crim_jets', true), '')::jsonb END;
+  v_jet := coalesce((j ->> 'rebellion')::integer, floor(random() * 100)::integer + 1);
+  v_res := CASE WHEN jsonb_typeof(p.resources) = 'object' THEN p.resources ELSE '{}'::jsonb END;
+  v_dis := coalesce(CASE WHEN jsonb_typeof(v_res -> 'dis') = 'number' THEN (v_res ->> 'dis')::numeric END, 50);
+  IF v_jet <= v_taux THEN
+    v_degats := coalesce((j ->> 'degats')::integer, floor(random() * 7)::integer + 4);
+    v_grilles := public.prison_grilles_endommager_interne(v_pays, v_ville, v_degats);
+    v_jours := public.crim_peine_jours_interne('se_rebeller', v_pays);
+    v_hp := greatest(1, coalesce(p.hp, 100) - 10);
+    UPDATE public.personnages_donnees
+       SET hp = v_hp, resources = v_res || jsonb_build_object('dis', least(100, v_dis + 6))
+     WHERE name = v_moi;
+    v_r := public.detention_prolonger_interne(v_moi, jsonb_build_array(jsonb_build_object(
+        'type', 'Rébellion en cellule', 'acte', 'se_rebeller', 'jour_fait', coalesce(p.day, 1), 'city', v_ville, 'jours', v_jours,
+        'source', 'evenement_detention', 'date_evenement', v_ts)), false);
+    SELECT est_emprisonne INTO v_fiche FROM public.personnages_donnees WHERE name = v_moi;
+    RETURN jsonb_build_object('ok', true, 'reussi', true, 'taux', v_taux, 'jet', v_jet,
+      'grilles', v_grilles, 'hp', v_hp, 'dis', least(100, v_dis + 6),
+      'jour_fin', v_r -> 'jour_fin', 'jours_ajoutes', v_r -> 'jours_ajoutes', 'proces', v_r -> 'proces',
+      'est_emprisonne', v_fiche.est_emprisonne, 'paiement', v_paie);
+  END IF;
+  v_jours := public.crim_peine_jours_interne('rebellion_matee', v_pays);
+  v_hp := greatest(1, coalesce(p.hp, 100) - 25);
+  UPDATE public.personnages_donnees
+     SET hp = v_hp, resources = v_res || jsonb_build_object('dis', greatest(0, v_dis - 15))
+   WHERE name = v_moi;
+  v_r := public.detention_prolonger_interne(v_moi, jsonb_build_array(jsonb_build_object(
+      'type', 'Rébellion en cellule matée', 'acte', 'rebellion_matee', 'jour_fait', coalesce(p.day, 1), 'city', v_ville, 'jours', v_jours,
+      'source', 'evenement_detention', 'date_evenement', v_ts)), false);
+  SELECT est_emprisonne INTO v_fiche FROM public.personnages_donnees WHERE name = v_moi;
+  RETURN jsonb_build_object('ok', true, 'reussi', false, 'taux', v_taux, 'jet', v_jet,
+    'grilles', NULL, 'hp', v_hp, 'dis', greatest(0, v_dis - 15), 'qhs', false,
+    'jour_fin', v_r -> 'jour_fin', 'jours_ajoutes', v_r -> 'jours_ajoutes', 'proces', v_r -> 'proces',
+    'est_emprisonne', v_fiche.est_emprisonne, 'paiement', v_paie);
+END $function$
+;
+CREATE OR REPLACE FUNCTION public.tracts_donner_joueur(p_requete uuid, p_index integer, p_revision bigint, p_destinataire text, p_quantite integer)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE a public.personnages_donnees; d public.personnages_donnees; o jsonb; v jsonb; params jsonb; total numeric; don text;
+BEGIN
+ SELECT * INTO a FROM public.personnages_donnees WHERE name=public.mon_personnage() FOR UPDATE;
+ IF NOT FOUND THEN RETURN jsonb_build_object('ok',false,'raison','acteur_non_authentifie');END IF;
+ IF p_requete IS NULL OR p_quantite IS NULL OR p_quantite NOT BETWEEN 1 AND 1000 THEN RETURN jsonb_build_object('ok',false,'raison','quantite_invalide');END IF;
+ params:=jsonb_build_object('index',p_index,'revision',p_revision,'destinataire',p_destinataire,'quantite',p_quantite);
+ v:=public.inventaire_action_rejouer_interne(a.name,p_requete,'don_tracts',params);IF v IS NOT NULL THEN RETURN v;END IF;
+ SELECT * INTO d FROM public.personnages_donnees WHERE name=p_destinataire;
+ IF NOT FOUND OR d.name=a.name THEN RETURN jsonb_build_object('ok',false,'raison','destinataire_invalide');END IF;
+ IF (a.country,a.current_city,a.current_building,a.current_room) IS DISTINCT FROM (d.country,d.current_city,d.current_building,d.current_room)
+ OR a.current_building IS NULL OR a.current_room IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','pas_co_presents');END IF;
+ IF p_revision IS DISTINCT FROM a.inventory_revision THEN RETURN jsonb_build_object('ok',false,'raison','inventaire_perime');END IF;
+ IF p_index IS NULL OR p_index<0 OR p_index>=jsonb_array_length(a.inventory) THEN RETURN jsonb_build_object('ok',false,'raison','index_invalide');END IF;
+ o:=a.inventory->p_index;
+ IF coalesce(o->>'type','') NOT IN('tract','tract_calomnieux') OR o->>'origineQuete'='jean_lou'
+ OR nullif(btrim(o->>'cible'),'') IS NULL OR jsonb_typeof(o->'quantite') IS DISTINCT FROM 'number' THEN RETURN jsonb_build_object('ok',false,'raison','objet_invalide');END IF;
+ total:=(o->>'quantite')::numeric;
+ IF total<>trunc(total) OR total<p_quantite THEN RETURN jsonb_build_object('ok',false,'raison','quantite_invalide');END IF;
+ UPDATE public.personnages_donnees SET inventory=CASE WHEN total=p_quantite THEN inventory-p_index
+  ELSE jsonb_set(inventory,ARRAY[p_index::text,'quantite'],to_jsonb(total-p_quantite)) END WHERE name=a.name;
+ o:=o||jsonb_build_object('quantite',p_quantite);
+ don:='don-tracts-'||md5(a.name)||'-'||p_requete;
+ INSERT INTO public.objets_recus(id,destinataire,expediteur,data) VALUES(don,d.name,a.name,to_jsonb(o::text));
+ SELECT jsonb_build_object('ok',true,'inventory',inventory,'revision',inventory_revision,'quantite',p_quantite,'destinataire',d.name,'livraison',don)
+ INTO v FROM public.personnages_donnees WHERE name=a.name;
+ INSERT INTO public.inventaire_actions_recus VALUES(a.name,p_requete,'don_tracts',params,v,now());RETURN v;
+END; $function$
+;
+CREATE OR REPLACE FUNCTION public.objectifs_secrets_eligibles_interne(p_acteur text)
+ RETURNS text[]
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+ SELECT array_remove(ARRAY[
+ CASE WHEN a.archetype='ambitieux'AND a.poste->>'id'='president' THEN 'obj_president'END,
+ CASE WHEN a.archetype='ambitieux'AND coalesce((a.resources->>'inf')::numeric,0)>=80 THEN 'obj_inf80'END,
+ CASE WHEN a.archetype='ambitieux'AND a.poste->>'id'NOT IN('citoyen','depute')THEN 'obj_poste_haut'END,
+ CASE WHEN a.archetype='ambitieux'AND coalesce(a.banque,0)>=50000 THEN 'obj_argent_50k'END,
+ CASE WHEN a.archetype='criminel'AND coalesce((a.resources->>'dis')::numeric,0)>=90 THEN 'obj_dis90'END,
+ CASE WHEN a.archetype='criminel'AND CASE WHEN jsonb_typeof(a.informateurs)='array'THEN jsonb_array_length(a.informateurs)ELSE 0 END>=2 THEN 'obj_informateur'END,
+ CASE WHEN a.archetype='militaire'AND a.poste->>'id'IN('min_def','ministre_defense')THEN 'obj_ministre_def'END,
+ CASE WHEN a.archetype='religieux'AND coalesce((a.resources->>'pop')::numeric,0)>=80 THEN 'obj_pop80'END
+ ],NULL)FROM public.personnages_donnees a WHERE a.name=p_acteur
+$function$
+;
+CREATE OR REPLACE FUNCTION public.admin_aliment_modifier(p_cle text, p_valeur numeric)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+BEGIN
+  PERFORM public.admin_exiger();
+  IF p_cle NOT IN ('peremption_jours', 'detection_base', 'detection_bandelette', 'prix_bandelette') OR p_valeur IS NULL OR p_valeur < 0
+     OR (p_cle LIKE 'detection_%' AND p_valeur > 100) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'valeur_invalide'); END IF;
+  INSERT INTO public.aliments_parametres (cle, valeur) VALUES (p_cle, p_valeur)
+  ON CONFLICT (cle) DO UPDATE SET valeur = EXCLUDED.valeur;
+  INSERT INTO public.admin_journal (admin_user_id, admin_libelle, action, parametres, ok)
+  VALUES (auth.uid(), 'MJ', 'aliment_modifier', jsonb_build_object('cle', p_cle, 'valeur', p_valeur), true);
+  RETURN jsonb_build_object('ok', true, 'cle', p_cle, 'valeur', p_valeur);
+END $function$
+;
+CREATE OR REPLACE FUNCTION public.aliments_param_interne(p_cle text, p_defaut numeric)
+ RETURNS numeric
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT coalesce((SELECT valeur FROM public.aliments_parametres WHERE cle = p_cle), p_defaut);
+$function$
+;

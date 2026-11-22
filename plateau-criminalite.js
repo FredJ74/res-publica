@@ -130,7 +130,7 @@ const T = {
     uRenouveler: 'Renouveler pour 7 jours — 3 PA', uLever: 'Lever l’état d’urgence',
     uRenouvele: 'État d’urgence renouvelé', uRenouveleText: 'Il court désormais jusqu’au {date}. {pop} POP, +{inf} INF.',
     uDuree: 'L’état d’urgence dure 7 jours ; le Président peut le renouveler (3 PA et une perte de popularité). Sous l’état d’urgence, le juge fixe librement la peine.',
-    bMatee: 'Rébellion matée', bMateeText: 'Les gardiens interviennent avant que les grilles ne cèdent. −25 Santé, −15 DIS, +{jours} jour(s) de détention.',
+    bMatee: 'Rébellion matée', bMateeText: 'Les gardiens interviennent avant que les grilles ne cèdent. −{sante} Santé, −15 DIS, +{jours} jour(s) de détention.',
     bProces: 'Vos peines automatiques dépassent 4 jours : un procès décidera d’un éventuel complément.',
     qDirTitre: 'Corrompre le directeur du QHS',
     qDirNote: 'Le directeur ne peut pas vous renvoyer en cellule ordinaire, mais il peut diviser par deux votre peine restante, une seule fois par détention. En cas d’échec : +{jours} jour(s) de peine, l’argent est confisqué et il ne vous recevra plus.',

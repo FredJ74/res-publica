@@ -75,9 +75,14 @@ test('toute description et mention « Bientôt » propre à Sovarka affichée pa
     'Le guide des baies sauvages de Krasnov (lecture une fois par semaine : +1 INT pendant 24 h). Une feuille volante est glissée dedans.',
     'Vous croyez avoir trouvé l’ingrédient effacé de la feuille volante ? Le directeur du musée vous écoute.',
     // Marché unique de Krasnov (lot de Krasnov, point 2, 22/11/2026).
-    'Une seule fenêtre pour tout le marché : acheter, revendre (prix de vente moins 25 %) et fabriquer avec le stock du marché (15 PSK par PA).',
+    'Une seule fenêtre pour tout le marché : acheter, revendre (prix de vente moins 30 %, arrondi) et fabriquer avec le stock du marché (15 PSK par PA).',
     // Santé (consommation, 22/11/2026) : « Se nourrir » prend l'effet d'un sandwich au barème du serveur.
-    'Repas économique : l’effet d’un sandwich (Santé et PA au prochain Dormir).'];
+    'Repas économique : l’effet d’un sandwich (Santé et PA au prochain Dormir).',
+    // Santé, Suites (22/11/2026 au soir) : repas du Président (+5 Santé) ; « zakouski » au lieu de « snacks » (bar du Grand Hôtel,
+    // Pavillon des ambassadeurs, buvettes des trois stades).
+    'Un repas par jour, gratuit pour le Président ; chaque invité présent coûte 60 PSK à la caisse présidentielle. Effets pour chacun : +5 Santé (modulée par le Moral), +2 Moral, +5 INF, +3 PA au prochain Dormir.',
+    'Préparer boissons et zakouski pour le service (consomme les matières en stock, rémunéré en FR).',
+    'Préparer bières, boissons et zakouski pour le service (consomme le stock, rémunéré en FR).'];
   assert.deepEqual(descs.filter(d => !textes.has(d) && !ATTENTE_CODEX.includes(d)), []);
   assert.deepEqual(bientot.filter(d => !textes.has(d)), []);
 });

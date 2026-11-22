@@ -39,7 +39,7 @@ const texts={
     "rm_deja_pris_aujourdhui": "Le repas présidentiel a déjà été servi aujourd’hui.",
     "rm_invite_absent": "Vos invités doivent se trouver avec vous dans la salle de restaurant.",
     "rm_invite_invalide": "Choisissez d’autres invités.",
-    "mealIntro": "Un repas par jour, gratuit pour vous. Chaque invité coûte 60 PSK à la caisse présidentielle. Effets pour chacun : +10 Santé, +2 Moral, +5 INF et +3 PA au prochain Dormir.",
+    "mealIntro": "Un repas par jour, gratuit pour vous. Chaque invité coûte 60 PSK à la caisse présidentielle. Effets pour chacun : +5 Santé (modulée par le Moral), +2 Moral, +5 INF et +3 PA au prochain Dormir.",
     "alone": "Personne d’autre n’est à table : vous mangerez seul.",
     "serveMeal": "Faire servir le repas",
     "titleRestaurant": "Salle de restaurant",

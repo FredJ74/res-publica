@@ -422,10 +422,10 @@
     {
       "source": "i18n/player-missions-resources.js",
       "packed": "i18n/packed/player-missions-resources.js.br",
-      "sourceBytes": 43193,
-      "packedBytes": 10801,
-      "sourceSha256": "fdbe6f9aec03586eaad74df9c50c2f2f52670f433fdf98d5e88362f0abdaaeff",
-      "packedSha256": "ef8f0965e0087faa75644eb4ae6ffc809de44c7d3502ef84e5e4a26ce7072967"
+      "sourceBytes": 43209,
+      "packedBytes": 10859,
+      "sourceSha256": "995db2f730e688c07f278ad731c0b6daaec3d6cb72455070bf25775f4d65b9dd",
+      "packedSha256": "6206ade11d8362587c4651357ed6f53b60c9a2ce088d130d7ed2835a981ebe3b"
     },
     {
       "source": "i18n/pnj-status-resources.js",
@@ -614,10 +614,10 @@
     {
       "source": "i18n/sovarka-pouvoir-resources.js",
       "packed": "i18n/packed/sovarka-pouvoir-resources.js.br",
-      "sourceBytes": 142016,
-      "packedBytes": 33992,
-      "sourceSha256": "0816118d5e7d96906946dec0519e6fb3b39fd5bd6a37e3dbbf98ce509607a789",
-      "packedSha256": "714d0e8f44481f3ea156a9deedba0d00a8cf652cc2d1cb21174f5ddba5310a34"
+      "sourceBytes": 142039,
+      "packedBytes": 33978,
+      "sourceSha256": "36554a569b7319a9818bbeb476b9626f83e565e82cc51a75acc27549bed32101",
+      "packedSha256": "a2117bdea635462c606dc23752d94d451078b6fa93fd00273cd94cd9362c0dff"
     },
     {
       "source": "i18n/sovarka-provinces-resources.js",

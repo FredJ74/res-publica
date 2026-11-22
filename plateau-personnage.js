@@ -2608,6 +2608,9 @@ async function doRepasHopital() {
   if (!r || r.transport) { showToast('Repas non confirmé', 'La réponse du serveur est incertaine. Rechargez votre fiche.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.be3f6a8c7", 'La réponse du serveur est incertaine. Rechargez votre fiche.', undefined, 'Repas non confirmé'); return; }
   if (r.ok !== true) { showToast('Repas refusé', HOSPITALISATION_REFUS[r.raison] || r.raison || 'Refus du serveur.', false); return; }
   if (Number.isInteger(r.pa)) state.pa = r.pa;
+  // Santé du repas (Fred, 22/11/2026 au soir : hôpital +4, clinique +5, modulée par le Moral) : valeur du serveur.
+  if (Number.isInteger(r.hp)) state.hp = r.hp;
+  const santeRepas = Number.isInteger(r.sante_gain) && r.sante_gain > 0 ? ', +' + r.sante_gain + ' Santé' : '';
   // Montants arrêtés par le serveur (repas de la clinique payant), jamais calculés ici.
   if (typeof r.liquide === 'number') state.liquide = r.liquide;
   if (typeof r.arg === 'number') { state.arg = r.arg; if (state.char) state.char.arg = r.arg; }
@@ -2616,10 +2619,10 @@ async function doRepasHopital() {
   updateUI();
   const estNuiteePrivee = r.mode === 'nuitee';
   const deviseRepas = state.country === 'soviet' ? 'PSK' : 'FR';
-  showToast('Repas servi', '-1 PA' + (r.cout ? ', -' + r.cout + ' ' + deviseRepas : '')
+  showToast('Repas servi', '-1 PA' + (r.cout ? ', -' + r.cout + ' ' + deviseRepas : '') + santeRepas
     + '. +' + (r.bonus_lendemain || 0) + ' PA au prochain sommeil autorisé.', true);
   addJournalEntry((estNuiteePrivee ? 'Repas de la clinique privée' : 'Repas de l’hôpital')
-    + ' (-1 PA, +' + (r.bonus_lendemain || 0) + ' PA au prochain sommeil).', 'event-info');
+    + ' (-1 PA' + santeRepas + ', +' + (r.bonus_lendemain || 0) + ' PA au prochain sommeil).', 'event-info');
 }
 
 async function doSortieHopital() {

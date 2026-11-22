@@ -50,7 +50,11 @@ test('français intégral comparé à main ; 38 situations × 9 langues, mobile 
  for(const viewport of [{width:320,height:568},{width:390,height:844},{width:1280,height:900}]){
   const page=await browser.newPage({viewport}),original=await browser.newPage({viewport}),errors=[];
   page.on('pageerror',e=>errors.push(String(e)));await setup(page);await setup(original,true);
-  const originals=await original.evaluate(async()=>{const out=[];for(const s of scenarios){await openScenario(s);out.push(frenchSnapshot());}return out;});
+  // Changements de français VOULUS depuis main (Santé, Suites, 22/11/2026 au soir : nouvel objectif du criminel), appliqués
+  // au témoin de main avant la comparaison ; tout autre écart reste une erreur. Sans effet une fois la branche fusionnée.
+  const CHANGEMENTS_VOULUS=[['Recruter 2 informateurs simultanément','Acheter 5 informations à des informateurs différents']];
+  const originals=JSON.parse(CHANGEMENTS_VOULUS.reduce((s,[a,b])=>s.split(a).join(b),
+   JSON.stringify(await original.evaluate(async()=>{const out=[];for(const s of scenarios){await openScenario(s);out.push(frenchSnapshot());}return out;}))));
   const result=await page.evaluate(async({langs,originals})=>{
    const keys=new Set(),failures=[];let checks=0;
    const check=(ok,message)=>{if(!ok)failures.push(message);};

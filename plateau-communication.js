@@ -809,8 +809,13 @@ async function confirmerDonTracts(tractIdx, pjName) {
   const index = state.inventory.indexOf(tract);
   const quantite = Number(document.getElementById('don-tract-' + tractIdx)?.value || 1);
   if (!Number.isInteger(quantite) || quantite < 1) { showToast('Quantité invalide', '', false); globalThis.RPI18nPlateau?.markToast(null, '', undefined, 'Quantité invalide'); return; }
+  // Plafond commun des dons (Fred, 22/11/2026 au soir) : le serveur refuse au-delà de la place du destinataire et dit combien tient encore.
   const v = await executerReceptionInventaire('tracts_donner_joueur', { p_index: index, p_revision: state._inventaireRevision ?? null,
-    p_destinataire: pjName, p_quantite: quantite });
+    p_destinataire: pjName, p_quantite: quantite }, { surRefus: r => {
+      if (r.raison !== 'destinataire_plein' || typeof messageRefusSortieInventaire !== 'function') return false;
+      showToast('Don refusé', messageRefusSortieInventaire(r.raison, r), false);
+      return true;
+    } });
   if (!v) return;
   document.getElementById('modal-postes').classList.remove('open'); updateUI();
   showToast('Tracts donnés', v.quantite + ' tracts remis à ' + v.destinataire + '.', true);
@@ -1840,7 +1845,7 @@ const PRESSE_ANTENNES_ACCUEIL = Object.freeze([
   { pays: 'republic', ville: 'ville_a',  villeNom: 'Port-Sainte-Marie', paysNom: 'Républia', journaliste: 'Annie Houininon', journal: 'La Tribune de Républia' },
   { pays: 'republic', ville: 'ville_b',  villeNom: 'Montrouge',         paysNom: 'Républia', journaliste: 'Arthur Lutte',    journal: 'La Tribune de Républia' },
   { pays: 'soviet',   ville: 'capitale', villeNom: 'Novomirsk',         paysNom: 'Sovarka',  journaliste: 'Zoïa Glazounova', journal: 'La Voix de Sovarka' },
-  { pays: 'soviet',   ville: 'ville_a',  villeNom: 'Starovka',          paysNom: 'Sovarka',  journaliste: 'Saran Batbayar',  journal: 'Metel' },
+  { pays: 'soviet',   ville: 'ville_a',  villeNom: 'Starovka',          paysNom: 'Sovarka',  journaliste: 'Saran Batbayar',  journal: 'La Voix de Sovarka' },
   { pays: 'soviet',   ville: 'ville_b',  villeNom: 'Krasnov',           paysNom: 'Sovarka',  journaliste: 'Anatoli Kolosov', journal: 'La Voix de Sovarka' }
 ].map(a => Object.freeze(a)));
 const JODIE_PORTRAIT_SUJET_PROPOSITION = "Un portrait pour L'Autruche Entravée ?";

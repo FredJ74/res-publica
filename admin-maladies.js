@@ -94,7 +94,10 @@ async function admMaladiesCharger() {
 
 // Aliments (lot 2b, 18/11/2026) : péremption, détection à la réception, prix des bandelettes réactives.
 const ADM_ALIM_CHAMPS = [['peremption_jours', 'Péremption (jours)'], ['detection_base', 'Détection à la réception sans bandelette (%)'],
- ['detection_bandelette', 'Détection avec bandelette (%)'], ['prix_bandelette', 'Prix d’une bandelette']];
+ ['detection_bandelette', 'Détection avec bandelette (%)'], ['prix_bandelette', 'Prix d’une bandelette'],
+ // Règle commune de rachat de tous les marchés (Fred, 22/11/2026 au soir) : rachat = prix × taux, arrondi, au moins l'écart minimal.
+ ['marches_rachat_taux', 'Marchés : taux de rachat (0,7 = 30 % sous le prix de vente)'], ['marches_rachat_ecart_min', 'Marchés : écart minimal entre vente et rachat'],
+ ['marche_krasnov_dotation', 'Marché de Krasnov : dotation de la caisse (PSK)']];
 async function admAlimentsCharger() {
  const el = document.getElementById('adm-aliments'); if (!el) return;
  el.textContent = 'Chargement…';
@@ -104,7 +107,7 @@ async function admAlimentsCharger() {
   const p = (d && d.parametres) || {};
   for (const [cle, label] of ADM_ALIM_CHAMPS) {
    const lab = document.createElement('label'); lab.className = 'adm-detail'; lab.style.display = 'block'; lab.textContent = label + ' ';
-   const inp = document.createElement('input'); inp.type = 'number'; inp.min = '0'; inp.value = p[cle] ?? ''; inp.style.width = '6rem';
+   const inp = document.createElement('input'); inp.type = 'number'; inp.min = '0'; inp.step = 'any'; inp.value = p[cle] ?? ''; inp.style.width = '6rem';
    const b = document.createElement('button'); b.type = 'button'; b.textContent = 'Enregistrer';
    b.onclick = async () => {
     try {
