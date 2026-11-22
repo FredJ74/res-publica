@@ -1,0 +1,31 @@
+name: "Inventaire en direct — déposer, ramasser, donner, capacité par personnage"
+on:
+  pull_request:
+    paths: [plateau-divers.js, plateau-personnage.js, plateau-pnj.js, plateau-justice-economie.js, plateau-communication.js, plateau-temps-reel.js, plateau-multijoueur.js, supabase.js, admin-inventaire.js, 'migrations/20261122200000_inventaire_direct_capacite.sql', 'outils/bancs/banc-inventaire-direct-*', 'outils/bancs/fixtures/inventaire-direct-*', .github/workflows/inventaire-direct-20261122.yml]
+  push:
+    branches: [main, 'claude/**']
+    paths: [plateau-divers.js, plateau-personnage.js, plateau-pnj.js, plateau-justice-economie.js, plateau-communication.js, plateau-temps-reel.js, plateau-multijoueur.js, supabase.js, admin-inventaire.js, 'migrations/20261122200000_inventaire_direct_capacite.sql', 'outils/bancs/banc-inventaire-direct-*', 'outils/bancs/fixtures/inventaire-direct-*', .github/workflows/inventaire-direct-20261122.yml]
+permissions:
+  contents: read
+jobs:
+  inventaire:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
+      - run: npm ci --prefix outils/vercel --no-audit --no-fund
+      - run: for f in plateau-divers.js plateau-personnage.js plateau-pnj.js plateau-communication.js plateau-temps-reel.js supabase.js admin-inventaire.js; do node --check "$f"; done
+      - name: Bancs existants touchés
+        run: node --test outils/bancs/test-tracts-plafond-inventaire-100.cjs outils/bancs/banc-reception-objets.cjs outils/bancs/banc-consommation-inventaire.cjs outils/bancs/banc-inventaire-raccordements.cjs
+      - name: Chromium réel, deux joueurs
+        env:
+          HG_CHROMIUM: /usr/bin/google-chrome
+        run: node --test outils/bancs/banc-inventaire-direct-navigateur-20261122.cjs outils/bancs/banc-groupes-presents-navigateur-20261121.cjs outils/bancs/banc-i18n-inventaire-ui.cjs
+      - name: PostgreSQL local (PGlite)
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund --prefix "$RUNNER_TEMP/pglite" @electric-sql/pglite@0.2.17
+          PGLITE_DIR="$RUNNER_TEMP/pglite" node --test outils/bancs/banc-inventaire-direct-pglite-20261122.cjs

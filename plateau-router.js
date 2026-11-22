@@ -176,7 +176,6 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'pouls_populaire') { doPoulsPopulaire(); return; }
   if (fn === 'lancer_rumeur_cible') { ouvrirModalLancerRumeur(pa, cost); return; }
   if (fn === 'diner_affaires') { ouvrirModalInvitationSociale('diner_affaires', pa, cost, successRate); return; }
-  if (fn === 'recruter_informateur_pnj') { doRecruterInformateurPNJ(pa); return; }
   // Comptoir d'embauche d'une agence (5 octobre 2026). Le routeur ne transmet
   // NI pa NI cost : agenceEmploiOuvrir relit l'ordre dans la piece pour y lire
   // `employeur` et `metier`, et c'est le SERVEUR qui lit le tarif. Ajouter un
@@ -578,17 +577,9 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'elections_tableau')      { ouvrirTableauElectoral(); return; }
   if (fn === 'changer_domicile')       { changerDomicile(state.country, state.currentCity); return; }
   if (fn === 'escort_piege')           { doEscortPiege(pa, cost); return; }
-  // INFORMATEURS PAR LE SERVEUR (27/10/2026). Seuls trois ordres existent dans data.js :
-  // recruter_informateur_2, recruter_info_4 et consulter_info_4. « Consulter la Taupe N4 »
-  // RECRUTAIT par erreur : c'est l'interrogation (1 PA). Les autres routes restent branchees au
-  // serveur, qui refuse un niveau sans ordre declare.
-  if (/^recruter_informateur_[1-4]$/.test(fn)) { consulterInformateur(Number(fn.slice(-1)), pa, cost); return; }
-  if (/^interroger_informateur_[1-4]$/.test(fn)) { interrogerInformateur(Number(fn.slice(-1)), pa); return; }
-  if (fn === 'recruter_info')          { ouvrirRecruterInformateur(1, pa, cost); return; }
-  if (/^recruter_info_[2-4]$/.test(fn)) { ouvrirRecruterInformateur(Number(fn.slice(-1)), pa, cost); return; }
-  if (fn === 'consulter_info')         { interrogerInformateur(1, pa); return; }
-  if (/^consulter_info_[2-4]$/.test(fn)) { interrogerInformateur(Number(fn.slice(-1)), pa); return; }
-  if (fn === 'gerer_informateurs')     { ouvrirGestionInformateurs(); return; }
+  // Informateurs recrutes et taupe SUPPRIMES (refonte du 22/11/2026) : leurs ordres ont quitte data.js.
+  // « Acheter une information » : informateur present dans la piece, paye selon le bareme commun.
+  if (fn === 'informateur_payer')      { ouvrirInformateursIci(); return; }
   if (fn === 'taxi_qhs')               { doTaxiSpecial('qhs', pa, cost); return; }
   if (fn === 'renseignement_transport_intl') { ouvrirRenseignementMireilleGuichet(); return; }
   if (fn === 'prendre_bus_taxi')       { ouvrirModalTransport('bus'); return; }
@@ -606,7 +597,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'acheter_ghb')            { doAcheterPoisonObjet('ghb', pa, cost); return; }
   if (fn === 'acheter_polonium')       { doAcheterPoisonObjet('polonium', pa, cost); return; }
   // Lot de Krasnov, point 8 (20/11/2026) : contacts et secrets, polonium du colonel Voronov.
-  if (fn === 'offrir_verre_habitue_krasnov') { ecouterSourceSecret('habitue_krasnov'); return; }
+  if (fn === 'offrir_verre_habitue_krasnov') { ouvrirInformateursIci('habitue_krasnov'); return; }
   if (fn === 'demander_fournisseur_kalachnikov') { ecouterSourceSecret('kalachnikov'); return; }
   if (fn === 'interroger_ganbaatar_polonium') { ganbaatarPolonium(); return; }
   if (fn === 'acheter_polonium_colonel') { acheterPoloniumColonel(); return; }
@@ -766,8 +757,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'archives') { ouvrirArchivesTribunal(); return; }
   if (fn === 'consulter_dossiers_gouv') { doConsulterDossiersGouv(pa, cost); return; }
   // Route 'recruter_info' SUPPRIMEE le 8 septembre 2026, meme cas exactement : doRecruterInfo()
-  // n'existe nulle part, aucun ordre ne declare ce fn. Le recrutement reel passe par
-  // 'recruter_informateur_pnj' -> doRecruterInformateurPNJ (plateau-multijoueur.js).
+  // n'existe nulle part, aucun ordre ne declare ce fn. Depuis le 22/11/2026 on ne recrute plus d'informateur :
+  // on paie un informateur present (« Acheter une information », plateau-informateurs.js).
   if (fn === 'mobiliser_police') { doMobiliserPolice(fn); return; }
   if (fn === 'mobiliser_armee') { doMobiliserArmee(pa, cost); return; }
   if (fn === 'etat_urgence') { doEtatUrgence(pa, cost); return; }

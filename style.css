@@ -2604,3 +2604,29 @@ body.plateau-body .top-right {
 .piece-image[data-plan-lots="1"]{flex-direction:column;align-items:stretch;justify-content:flex-start;background:#16202b}
 .piece-image[data-plan-lots="1"] .tplan{padding-bottom:8px}
 @media (prefers-reduced-motion:reduce){.tplan-carte{transition:none}.tplan-carte:hover{transform:none}}
+
+/* TEXTE MINIMUM DANS LES FENÊTRES (Fred, 22/11/2026, GAME-DESIGN-FORET-TEST-20261122.md, point 1) : aucune fenêtre, aucun
+   rapport, aucune note sous le texte courant des pages du plateau (0,95 rem, celui des descriptions de pièce et des ordres).
+   Classes communes remontées ici ; les tailles écrites dans le HTML des fenêtres sont remontées par plateau-texte-minimum.js
+   (plancher : un texte plus petit monte à 0,95 rem, un titre plus grand n'est jamais touché). */
+.cpj-note{font-size:.95rem}
+.toast-result{font-size:1rem}
+.toast-sub{font-size:.95rem}
+.journal-entry{font-size:.95rem}
+.journal-time{font-size:.95rem}
+/* Rapport de combat par round (Fred, 22/11/2026, point 6) : camp du joueur à gauche, trait vertical, adversaires à droite. */
+.hg-combat-adversaire{font-family:'Bebas Neue',sans-serif;letter-spacing:.05em;font-size:1.05rem;color:#e5c477;margin:.2rem 0 .4rem}
+.hg-round{margin:0 0 .6rem;padding:.5rem .7rem;border:1px solid #394656;border-radius:6px;background:#1b2531}
+.hg-round-titre{font-family:'Bebas Neue',sans-serif;letter-spacing:.08em;color:#e5c477;margin-bottom:.3rem;text-transform:uppercase}
+.hg-round-grille{display:grid;grid-template-columns:minmax(0,1fr) 2px minmax(0,1fr);column-gap:.7rem;row-gap:0}
+.hg-round-trait{background:#a98d56;align-self:stretch}
+.hg-round-ligne{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 .45rem;padding:.15rem 0;color:#e2e9f1}
+.hg-round-nom{font-weight:600;overflow-wrap:anywhere}
+.hg-round-perte{color:#f2a37f;white-space:nowrap}
+.hg-round-perte.nulle{color:#9fb0c2}
+.hg-round-etat{color:#ff9b9b;font-style:italic;white-space:nowrap}
+.hg-round-tombe .hg-round-nom{color:#c9d3de}
+.hg-combat-conclusion{margin:.6rem 0 .3rem;padding:.6rem .7rem;border:1px solid #a98d56;border-radius:6px;background:#202a36;color:#e5c477;text-align:center;font-weight:600}
+/* Forêt de Krasnov : « Explorer la forêt » sans halo, infobulle au format des entrées de bâtiment (Fred, 22/11/2026, point 8). */
+.foret-porte{position:absolute;z-index:2;cursor:pointer;background:transparent;border:0}
+.foret-porte:focus-visible{outline:2px solid #e5c477;outline-offset:2px}

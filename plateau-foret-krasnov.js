@@ -3,8 +3,9 @@
 //  - entrée de la forêt (cour de l'exploitation) : le portique en bois → la clairière ;
 //  - clairière : le sentier au centre → une vue de la forêt au hasard (mécanisme existant) ;
 //  - vues de la forêt : le sous-bois au centre → une autre vue (on continue d'explorer).
-// Au survol : main et infobulle « Explorer la forêt » ; au toucher : l'action directement ; un fin contour lumineux qui
-// pulse lentement et faiblement (figé si le système demande moins d'animations). Aucun PA : ce sont des déplacements.
+// Au survol : main et infobulle « Explorer la forêt » au format des entrées de bâtiment des rues (.rc-tooltip : même
+// taille, même police, même cadre) ; au toucher : l'action directement. Plus de halo (Fred, 22/11/2026, point 8 : il
+// donnait l'impression d'un problème d'affichage). Aucun PA : ce sont des déplacements.
 // En groupe, seul le chef fait avancer le groupe : le serveur le dit aux autres membres (« chef_de_groupe_requis »).
 (function (global) {
 'use strict';
@@ -23,29 +24,31 @@ function ici() {
   const s = etat();
   return s.country === 'soviet' && s.currentCity === 'ville_b' && s.currentBuilding === 'zone-production' ? ZONES[s.currentRoom] || null : null;
 }
-function style() {
+// Infobulle flottante des entrées de bâtiment (plateau-rue-centrale.js, afficherTooltipRue) : même classe, suit le curseur.
+function infobulle(e) {
   const doc = global.document;
-  if (doc.getElementById('foret-porte-style')) return;
-  const st = doc.createElement('style'); st.id = 'foret-porte-style';
-  st.textContent = '.foret-porte{position:absolute;z-index:2;cursor:pointer;border-radius:10px;background:transparent;'
-    + 'box-shadow:0 0 0 1px rgba(255,236,180,.10),0 0 10px rgba(255,236,180,.06);animation:foretHalo 5s ease-in-out infinite}'
-    + '.foret-porte:focus-visible{outline:2px solid rgba(255,236,180,.6)}'
-    + '@keyframes foretHalo{0%,100%{box-shadow:0 0 0 1px rgba(255,236,180,.06),0 0 8px rgba(255,236,180,.03)}50%{box-shadow:0 0 0 1px rgba(255,236,180,.20),0 0 14px rgba(255,236,180,.10)}}'
-    + '@media (prefers-reduced-motion: reduce){.foret-porte{animation:none}}';
-  doc.head.appendChild(st);
+  let tip = doc.getElementById('foret-tooltip');
+  if (!tip) { tip = doc.createElement('div'); tip.id = 'foret-tooltip'; tip.className = 'rc-tooltip'; doc.body.appendChild(tip); }
+  tip.textContent = TXT.explorer;
+  tip.style.left = (e.pageX + 16) + 'px';
+  tip.style.top = (e.pageY - 10) + 'px';
+  tip.classList.add('visible');
 }
+function masquerInfobulle() { const t = global.document && global.document.getElementById('foret-tooltip'); if (t) t.remove(); }
 function poser() {
   const doc = global.document, cadre = doc && doc.getElementById('piece-image');
   if (!cadre) return;
   cadre.querySelectorAll('.foret-porte').forEach(e => e.remove());
+  masquerInfobulle();
   const z = ici();
   if (!z) return;
-  style();
   const b = doc.createElement('div');
   b.className = 'foret-porte'; b.setAttribute('role', 'button'); b.tabIndex = 0;
-  b.title = TXT.explorer; b.setAttribute('aria-label', TXT.explorer); b.dataset.sens = z.sens;
-  b.style.display = 'none';
-  const agir = e => { e.preventDefault(); e.stopPropagation(); if (typeof global.foretAller === 'function') global.foretAller(z.sens); };
+  b.setAttribute('aria-label', TXT.explorer); b.dataset.sens = z.sens;
+  Object.assign(b.style, { position: 'absolute', zIndex: '2', cursor: 'pointer', display: 'none' });
+  b.addEventListener('mousemove', infobulle);
+  b.addEventListener('mouseleave', masquerInfobulle);
+  const agir = e => { e.preventDefault(); e.stopPropagation(); masquerInfobulle(); if (typeof global.foretAller === 'function') global.foretAller(z.sens); };
   b.addEventListener('click', agir);
   b.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') agir(e); });
   if (global.getComputedStyle && global.getComputedStyle(cadre).position === 'static') cadre.style.position = 'relative';

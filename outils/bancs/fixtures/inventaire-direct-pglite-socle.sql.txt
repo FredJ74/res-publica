@@ -1,0 +1,472 @@
+-- Socle PGlite de la migration 20261122200000 (inventaire en direct, capacité par personnage).
+-- Les fonctions que la migration remplace sont recopiées de la PRODUCTION (pg_get_functiondef du 22/11/2026) ;
+-- les dépendances périphériques (aliments, criminalité, authentification) sont simplifiées, mêmes signatures.
+CREATE SCHEMA IF NOT EXISTS auth;
+CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role;
+CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$ SELECT nullif(current_setting('test.uid', true), '')::uuid $$;
+CREATE TABLE public.personnages (name text PRIMARY KEY, user_id uuid);
+CREATE TABLE public.personnages_donnees (id bigserial, name text PRIMARY KEY, user_id uuid, country text, current_city text,
+  current_building text, current_room text, current_street text, pa integer DEFAULT 30, hp integer DEFAULT 100,
+  est_emprisonne boolean DEFAULT false, detention_qhs boolean DEFAULT false, hospitalisation jsonb,
+  inventory jsonb DEFAULT '[]'::jsonb, inventory_revision bigint NOT NULL DEFAULT 0, quete_carriere jsonb);
+CREATE OR REPLACE FUNCTION public.mon_personnage() RETURNS text LANGUAGE sql STABLE AS $$ SELECT name FROM public.personnages WHERE user_id = auth.uid() LIMIT 1 $$;
+CREATE OR REPLACE FUNCTION public.est_mon_personnage(p_nom text) RETURNS boolean LANGUAGE sql STABLE AS $$ SELECT p_nom IS NOT NULL AND p_nom = public.mon_personnage() $$;
+CREATE OR REPLACE FUNCTION public.est_appel_serveur() RETURNS boolean LANGUAGE sql STABLE AS $$ SELECT false $$;
+CREATE TABLE public.administrateurs (user_id uuid PRIMARY KEY, actif boolean DEFAULT true);
+CREATE OR REPLACE FUNCTION public.est_administrateur() RETURNS boolean LANGUAGE sql STABLE AS
+$$ SELECT auth.uid() IS NOT NULL AND EXISTS (SELECT 1 FROM public.administrateurs a WHERE a.user_id = auth.uid() AND a.actif) $$;
+CREATE OR REPLACE FUNCTION public.admin_exiger() RETURNS uuid LANGUAGE plpgsql STABLE AS $$
+BEGIN IF NOT public.est_administrateur() THEN RAISE EXCEPTION 'autorite_administrateur_requise' USING ERRCODE = '42501'; END IF; RETURN auth.uid(); END $$;
+CREATE TABLE public.admin_journal (rang bigserial, admin_user_id uuid, admin_libelle text, pnj text, poste text, affaire text, action text,
+  parametres jsonb, resultat jsonb, ok boolean, fait_le timestamptz DEFAULT now());
+CREATE TABLE public.objets_abandonnes (id text PRIMARY KEY, country text, city text, building_id text, room_id text, data text, created_at timestamptz DEFAULT now());
+CREATE TABLE public.objets_recus (id text PRIMARY KEY, destinataire text, expediteur text, data jsonb, reception_token uuid DEFAULT gen_random_uuid(), created_at timestamptz DEFAULT now());
+CREATE TABLE public.inventaire_livraisons_recues (jeton uuid, id text, destinataire text);
+CREATE TABLE public.salles_signaux (salle text PRIMARY KEY, version bigint DEFAULT 1, maj timestamptz);
+CREATE TABLE public.personnages_signaux (personnage text PRIMARY KEY, version bigint DEFAULT 1, maj timestamptz);
+CREATE TABLE public.presences (name text PRIMARY KEY, country text, city text, building_id text, room_id text, updated_at timestamptz);
+-- Aliments : rien de périssable dans ce banc.
+CREATE OR REPLACE FUNCTION public.aliment_perissable_interne(p_cle text) RETURNS boolean LANGUAGE sql IMMUTABLE AS $$ SELECT false $$;
+CREATE OR REPLACE FUNCTION public.aliment_recu_interne(p_o jsonb) RETURNS date LANGUAGE sql IMMUTABLE AS $$ SELECT NULL::date $$;
+CREATE OR REPLACE FUNCTION public.aliments_jour_interne() RETURNS date LANGUAGE sql STABLE AS $$ SELECT current_date $$;
+CREATE TABLE public.crim_constats_test (nom text, objet jsonb);
+CREATE OR REPLACE FUNCTION public.crim_ramasser_constater_interne(p_nom text, p_objet jsonb) RETURNS bigint LANGUAGE sql AS
+$$ INSERT INTO public.crim_constats_test VALUES (p_nom, p_objet) RETURNING NULL::bigint $$;
+
+-- ===================== Production, à l'identique =====================
+CREATE OR REPLACE FUNCTION public.exiger_acteur(p_nom text)
+ RETURNS void
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+BEGIN
+  IF NOT public.est_mon_personnage(p_nom) THEN
+    RAISE EXCEPTION 'acteur_non_authentifie: % n''appartient pas au compte connecte', coalesce(p_nom, '(null)')
+      USING ERRCODE = '42501';
+  END IF;
+END;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.aliment_dater_interne(p_o jsonb)
+ RETURNS jsonb
+ LANGUAGE sql
+ STABLE
+AS $function$
+  SELECT CASE WHEN jsonb_typeof(p_o) = 'object' AND public.aliment_perissable_interne(p_o->>'stackKey') AND public.aliment_recu_interne(p_o) IS NULL
+              THEN p_o || jsonb_build_object('recu', to_char(public.aliments_jour_interne(), 'YYYY-MM-DD')) ELSE p_o END;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.inventaire_objet_protege(p_quete jsonb, p_item jsonb)
+ RETURNS boolean
+ LANGUAGE sql
+ IMMUTABLE
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT coalesce(p_item->>'type', '') = 'colis_secret_pat'
+     AND (p_quete IS NULL
+          OR (coalesce(p_quete->>'ambition', '') = 'criminel'
+              AND coalesce(p_quete->>'etape', '') <> 'terminee'));
+$function$;
+
+CREATE OR REPLACE FUNCTION public.inventaire_pile_fusionnable(p_e jsonb, p_o jsonb)
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE
+AS $function$
+  SELECT coalesce(p_e->>'stackKey' = p_o->>'stackKey', false) AND (
+    NOT public.aliment_perissable_interne(p_o->>'stackKey')
+    OR (coalesce(public.aliment_recu_interne(p_e), public.aliments_jour_interne()) = coalesce(public.aliment_recu_interne(p_o), public.aliments_jour_interne())
+        AND coalesce((p_e->>'avarie')::boolean, false) = coalesce((p_o->>'avarie')::boolean, false)));
+$function$;
+
+CREATE OR REPLACE FUNCTION public.inventaire_quantite(p_inv jsonb, p_cle text)
+ RETURNS numeric
+ LANGUAGE sql
+ IMMUTABLE
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT coalesce((SELECT sum(coalesce((e->>'qty')::numeric,1))
+                   FROM jsonb_array_elements(coalesce(p_inv,'[]'::jsonb)) e
+                   WHERE e->>'stackKey' = p_cle), 0);
+$function$;
+
+CREATE OR REPLACE FUNCTION public.inventaire_retirer_depuis(p_inv jsonb, p_cle text, p_qte integer, p_pos integer)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_inv jsonb := coalesce(p_inv, '[]'::jsonb); v_reste numeric := greatest(coalesce(p_qte, 0), 0); r record; v_q numeric; v_pris numeric;
+BEGIN
+  IF jsonb_typeof(v_inv) <> 'array' OR v_reste = 0 THEN RETURN v_inv; END IF;
+  FOR r IN SELECT (o - 1)::integer AS i FROM jsonb_array_elements(v_inv) WITH ORDINALITY x(e, o)
+            WHERE e->>'stackKey' = p_cle
+            ORDER BY (o - 1 = coalesce(p_pos, -1)) DESC, public.aliment_recu_interne(e) NULLS FIRST, o LOOP
+    EXIT WHEN v_reste <= 0;
+    v_q := coalesce((v_inv -> r.i ->> 'qty')::numeric, 1);
+    v_pris := least(v_q, v_reste);
+    v_inv := jsonb_set(v_inv, ARRAY[r.i::text, 'qty'], to_jsonb(v_q - v_pris));
+    v_reste := v_reste - v_pris;
+  END LOOP;
+  RETURN (SELECT coalesce(jsonb_agg(e ORDER BY o) FILTER (WHERE e->>'stackKey' IS DISTINCT FROM p_cle OR coalesce((e->>'qty')::numeric, 1) > 0), '[]'::jsonb)
+            FROM jsonb_array_elements(v_inv) WITH ORDINALITY x(e, o));
+END $function$;
+
+CREATE OR REPLACE FUNCTION public.inventaire_retirer_position(p_inv jsonb, p_pos integer)
+ RETURNS jsonb
+ LANGUAGE sql
+ IMMUTABLE
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT coalesce(jsonb_agg(e ORDER BY ord), '[]'::jsonb)
+    FROM jsonb_array_elements(coalesce(p_inv, '[]'::jsonb)) WITH ORDINALITY AS t(e, ord)
+   WHERE (ord - 1) <> p_pos;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.inventaire_localiser(p_inv jsonb, p_index integer, p_signature jsonb)
+ RETURNS integer
+ LANGUAGE sql
+ IMMUTABLE
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  WITH inv AS (
+    SELECT e, (ord - 1)::int AS pos
+      FROM jsonb_array_elements(coalesce(p_inv, '[]'::jsonb)) WITH ORDINALITY AS t(e, ord)
+  ), correspond AS (
+    SELECT pos FROM inv
+     WHERE coalesce(e->>'name', '')     = coalesce(p_signature->>'name', '')
+       AND coalesce(e->>'type', '')     = coalesce(p_signature->>'type', '')
+       AND coalesce(e->>'stackKey', '') = coalesce(p_signature->>'stackKey', '')
+  )
+  SELECT coalesce((SELECT pos FROM correspond WHERE pos = p_index),
+                  (SELECT min(pos) FROM correspond), -1);
+$function$;
+
+CREATE OR REPLACE FUNCTION public.helvetia_inventaire_sortie(p_inv jsonb, p_quete jsonb, p_index integer, p_signature jsonb, p_qte integer)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ IMMUTABLE
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_pos integer; v_item jsonb; v_cle text; v_detenu numeric; v_nouveau jsonb; v_sorti jsonb;
+BEGIN
+  IF p_qte IS NULL OR p_qte <= 0 OR p_qte > 1000 THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'quantite_invalide');
+  END IF;
+
+  v_pos := public.inventaire_localiser(p_inv, p_index, p_signature);
+  IF v_pos < 0 THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'objet_absent');
+  END IF;
+  v_item := p_inv -> v_pos;
+
+  IF public.inventaire_objet_protege(p_quete, v_item) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'objet_protege');
+  END IF;
+
+  v_cle := v_item->>'stackKey';
+  IF coalesce((v_item->>'stackable')::boolean, false) AND v_cle IS NOT NULL THEN
+    v_detenu := public.inventaire_quantite(p_inv, v_cle);
+    IF v_detenu < p_qte THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'quantite_insuffisante', 'detenu', v_detenu);
+    END IF;
+    v_nouveau := public.inventaire_retirer_depuis(p_inv, v_cle, p_qte, v_pos); -- aliments_piles_v1
+    v_sorti := v_item || jsonb_build_object('qty', p_qte);
+  ELSE
+    IF p_qte <> 1 THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'quantite_insuffisante', 'detenu', 1);
+    END IF;
+    v_nouveau := public.inventaire_retirer_position(p_inv, v_pos);
+    v_sorti := v_item;
+  END IF;
+
+  RETURN jsonb_build_object('ok', true, 'inventory', v_nouveau, 'objet', v_sorti, 'position', v_pos);
+END; $function$;
+
+CREATE OR REPLACE FUNCTION public.inventaire_ajouter(p_inv jsonb, p_cle text, p_qte integer, p_desc text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_inv jsonb := coalesce(p_inv, '[]'::jsonb); v_neuf jsonb; v_pos integer;
+BEGIN
+  IF p_qte <= 0 THEN RETURN v_inv; END IF;
+  v_neuf := public.aliment_dater_interne(jsonb_build_object('name', p_cle, 'stackable', true, 'stackKey', p_cle, 'qty', p_qte, 'desc', p_desc));
+  SELECT (o - 1)::integer INTO v_pos FROM jsonb_array_elements(v_inv) WITH ORDINALITY x(e, o)
+   WHERE public.inventaire_pile_fusionnable(e, v_neuf) ORDER BY o LIMIT 1;
+  IF v_pos IS NOT NULL THEN
+    RETURN jsonb_set(v_inv, ARRAY[v_pos::text, 'qty'], to_jsonb(coalesce((v_inv -> v_pos ->> 'qty')::numeric, 1) + p_qte));
+  END IF;
+  RETURN v_inv || jsonb_build_array(v_neuf);
+END $function$;
+
+CREATE OR REPLACE FUNCTION public.inventaire_place_restante(p_inv jsonb)
+ RETURNS integer
+ LANGUAGE sql
+ IMMUTABLE
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+ SELECT greatest(0,100-coalesce((
+ SELECT sum(CASE
+   WHEN coalesce(e->>'quantite','') ~ '^[0-9]+$' THEN (e->>'quantite')::numeric
+   WHEN coalesce(e->>'qty','') ~ '^[0-9]+$' THEN (e->>'qty')::numeric
+   WHEN coalesce(e->>'encombrement','') ~ '^[0-9]+$' THEN (e->>'encombrement')::numeric
+   ELSE 1 END)
+ FROM jsonb_array_elements(coalesce(p_inv,'[]'::jsonb)) e),0))::integer;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.inventaire_deposer_interne(p_nom text, p_objet jsonb, p_automatique boolean DEFAULT false)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_inv jsonb; v_place integer; v_q integer; v_cle text; v_obj jsonb := p_objet; v_pile bigint;
+BEGIN
+  IF p_objet IS NULL OR jsonb_typeof(p_objet) <> 'object' THEN RETURN jsonb_build_object('ok', false, 'raison', 'objet_invalide'); END IF;
+  SELECT coalesce(inventory,'[]'::jsonb) INTO v_inv
+    FROM public.personnages_donnees WHERE name = p_nom FOR UPDATE;
+  IF NOT FOUND THEN RETURN jsonb_build_object('ok', false, 'raison', 'personnage_introuvable'); END IF;
+  IF jsonb_typeof(v_inv) IS DISTINCT FROM 'array' THEN RETURN jsonb_build_object('ok',false,'raison','inventaire_format_a_examiner'); END IF;
+  v_place := CASE WHEN p_automatique THEN 1000000 ELSE public.inventaire_place_restante(v_inv) END;
+  v_cle := nullif(p_objet ->> 'stackKey', '');
+  IF coalesce((p_objet ->> 'stackable')::boolean, false) AND v_cle IS NOT NULL THEN
+    IF coalesce((p_objet->>'qty')::numeric,1)<=0 OR coalesce((p_objet->>'qty')::numeric,1)<>trunc(coalesce((p_objet->>'qty')::numeric,1)) THEN
+      RETURN jsonb_build_object('ok',false,'raison','quantite_invalide'); END IF;
+    v_q := least(coalesce((p_objet->>'qty')::numeric,1),v_place)::integer;
+    IF v_q <= 0 THEN RETURN jsonb_build_object('ok', false, 'raison', 'inventaire_plein'); END IF;
+    SELECT o INTO v_pile FROM jsonb_array_elements(v_inv) WITH ORDINALITY x(e,o) WHERE coalesce((e->>'stackable')::boolean,false) AND e->>'stackKey'=v_cle AND public.inventaire_pile_fusionnable(e, p_objet) ORDER BY o LIMIT 1; -- aliments_piles_v1
+    IF v_pile IS NOT NULL THEN
+      SELECT jsonb_agg(CASE WHEN o=v_pile
+                       THEN jsonb_set(e, '{qty}', to_jsonb(coalesce((e ->> 'qty')::numeric, 1) + v_q)) ELSE e END ORDER BY o)
+        INTO v_inv FROM jsonb_array_elements(v_inv) WITH ORDINALITY x(e, o);
+    ELSE
+      v_inv := v_inv || jsonb_build_array(public.aliment_dater_interne(p_objet) || jsonb_build_object('qty', v_q)); -- aliments_dater_v1
+    END IF;
+  ELSE
+    v_q := greatest(1, coalesce((p_objet ->> 'encombrement')::numeric, 1)::integer);
+    IF v_place < v_q THEN RETURN jsonb_build_object('ok', false, 'raison', 'inventaire_plein'); END IF;
+    IF coalesce(p_objet ->> 'id', '') = '' THEN
+      v_obj := p_objet || jsonb_build_object('id', 'obj-' || replace(gen_random_uuid()::text, '-', ''));
+    END IF;
+    v_inv := v_inv || jsonb_build_array(v_obj);
+    v_q := 1;
+  END IF;
+  UPDATE public.personnages_donnees SET inventory = v_inv WHERE name = p_nom;
+  RETURN jsonb_build_object('ok', true, 'qte', v_q)
+    || (SELECT jsonb_build_object('inventory', inventory, 'revision', inventory_revision) FROM public.personnages_donnees WHERE name = p_nom);
+END; $function$;
+
+CREATE OR REPLACE FUNCTION public.inventaire_abandonner(p_acteur text, p_index integer, p_signature jsonb, p_country text, p_city text, p_building text, p_room text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_inv jsonb; v_quete jsonb; v_trouve boolean; v_r jsonb; v_objet jsonb; v_id text;
+BEGIN
+  PERFORM public.exiger_acteur(p_acteur);
+  IF coalesce(p_building, '') = '' OR coalesce(p_room, '') = '' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'lieu_invalide');
+  END IF;
+
+  SELECT true, coalesce(inventory, '[]'::jsonb), quete_carriere
+    INTO v_trouve, v_inv, v_quete
+    FROM public.personnages_donnees WHERE name = p_acteur FOR UPDATE;
+  IF NOT coalesce(v_trouve, false) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'personnage_introuvable');
+  END IF;
+
+  v_r := public.helvetia_inventaire_sortie(v_inv, v_quete, p_index, p_signature, 1);
+  IF NOT (v_r->>'ok')::boolean THEN RETURN v_r; END IF;
+
+  v_id := 'objet-abandonne-' || replace(gen_random_uuid()::text, '-', '');
+  v_objet := (v_r->'objet') || jsonb_build_object('id', v_id);
+
+  UPDATE public.personnages_donnees SET inventory = v_r->'inventory' WHERE name = p_acteur;
+  INSERT INTO public.objets_abandonnes (id, country, city, building_id, room_id, data)
+  VALUES (v_id, p_country, p_city, p_building, p_room, v_objet::text);
+
+  RETURN v_r || jsonb_build_object('objet', v_objet, 'objet_id', v_id);
+END; $function$;
+
+CREATE OR REPLACE FUNCTION public.objet_abandonne_ramasser(p_id text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; d record; o record; v_objet jsonb; v_inv jsonb;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  SELECT current_city, current_building, current_room, coalesce(inventory, '[]'::jsonb) AS inv
+    INTO d FROM public.personnages_donnees WHERE name = v_moi FOR UPDATE;
+  SELECT * INTO o FROM public.objets_abandonnes WHERE id = p_id FOR UPDATE;
+  IF NOT FOUND THEN RETURN jsonb_build_object('ok', false, 'raison', 'objet_disparu'); END IF;
+  IF o.building_id IS DISTINCT FROM d.current_building OR o.room_id IS DISTINCT FROM d.current_room
+     OR (o.city IS NOT NULL AND o.city IS DISTINCT FROM d.current_city) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pas_sur_place'); END IF;
+  BEGIN v_objet := o.data::jsonb; EXCEPTION WHEN others THEN v_objet := NULL; END;
+  IF v_objet IS NULL OR jsonb_typeof(v_objet) <> 'object' THEN
+    DELETE FROM public.objets_abandonnes WHERE id = p_id;
+    RETURN jsonb_build_object('ok', false, 'raison', 'objet_illisible'); END IF;
+  v_objet := v_objet - 'id';
+  IF coalesce((v_objet ->> 'stackable')::boolean, false) AND (v_objet ->> 'stackKey') IS NOT NULL THEN
+    v_inv := public.inventaire_ajouter(d.inv, v_objet ->> 'stackKey', greatest(1, coalesce((v_objet ->> 'qty')::integer, 1)), v_objet ->> 'desc');
+  ELSE
+    v_inv := d.inv || jsonb_build_array(v_objet);
+  END IF;
+  DELETE FROM public.objets_abandonnes WHERE id = p_id;
+  UPDATE public.personnages_donnees SET inventory = v_inv WHERE name = v_moi;
+  PERFORM public.crim_ramasser_constater_interne(v_moi, v_objet); /* crim_ramasser_v1 */
+  RETURN jsonb_build_object('ok', true, 'objet', v_objet, 'inventory', v_inv);
+END; $function$;
+
+CREATE OR REPLACE FUNCTION public.inventaire_donner(p_acteur text, p_destinataire text, p_index integer, p_signature jsonb, p_qte integer DEFAULT 1, p_mutations jsonb DEFAULT NULL::jsonb)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_inv jsonb; v_quete jsonb; v_trouve boolean; v_r jsonb; v_id text;
+        v_mut jsonb; v_objet jsonb;
+BEGIN
+  PERFORM public.exiger_acteur(p_acteur);
+  IF coalesce(p_destinataire, '') = '' OR p_destinataire = p_acteur THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'destinataire_invalide');
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM public.personnages_donnees WHERE name = p_destinataire) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'destinataire_introuvable');
+  END IF;
+
+  SELECT true, coalesce(inventory, '[]'::jsonb), quete_carriere
+    INTO v_trouve, v_inv, v_quete
+    FROM public.personnages_donnees WHERE name = p_acteur FOR UPDATE;
+  IF NOT coalesce(v_trouve, false) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'personnage_introuvable');
+  END IF;
+
+  v_r := public.helvetia_inventaire_sortie(v_inv, v_quete, p_index, p_signature, p_qte);
+  IF NOT (v_r->>'ok')::boolean THEN RETURN v_r; END IF;
+
+  v_objet := v_r->'objet';
+  IF p_mutations IS NOT NULL AND jsonb_typeof(p_mutations) = 'object' THEN
+    v_mut := p_mutations - 'qty' - 'quantite' - 'stackable' - 'stackKey'
+                         - 'encombrement' - 'type' - 'legal' - 'id';
+    v_objet := v_objet || v_mut;
+  END IF;
+
+  v_id := 'objet-recu-' || replace(gen_random_uuid()::text, '-', '');
+  UPDATE public.personnages_donnees SET inventory = v_r->'inventory' WHERE name = p_acteur;
+  INSERT INTO public.objets_recus (id, destinataire, expediteur, data)
+  VALUES (v_id, p_destinataire, p_acteur, to_jsonb(v_objet::text));
+
+  RETURN v_r || jsonb_build_object('objet', v_objet, 'objet_id', v_id);
+END; $function$;
+
+CREATE OR REPLACE FUNCTION public.inventaire_reception_etat(p_acteur text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v public.personnages_donnees%rowtype;
+BEGIN
+  IF auth.uid() IS NULL THEN RAISE EXCEPTION 'acteur_non_authentifie' USING ERRCODE='42501'; END IF;
+  PERFORM public.exiger_acteur(p_acteur);
+  SELECT * INTO v FROM public.personnages_donnees WHERE name=p_acteur FOR UPDATE;
+  IF NOT FOUND OR v.user_id IS DISTINCT FROM auth.uid() THEN
+    RAISE EXCEPTION 'personnage_non_possede' USING ERRCODE='42501';
+  END IF;
+  IF jsonb_typeof(v.inventory) IS DISTINCT FROM 'array' THEN
+    RAISE EXCEPTION 'inventaire_format_a_reexaminer';
+  END IF;
+  RETURN jsonb_build_object('ok',true,'contrat',1,'inventory',v.inventory,'revision',v.inventory_revision);
+END;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.inventaire_revision_garder()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+BEGIN
+  IF coalesce(nullif(current_setting('role',true),'none'),session_user) IN ('anon','authenticated')
+     AND coalesce(current_setting('request.path',true),'') NOT LIKE '/rpc/%' THEN
+    NEW.inventory := OLD.inventory;
+  END IF;
+  NEW.inventory_revision := OLD.inventory_revision
+    + CASE WHEN NEW.inventory IS DISTINCT FROM OLD.inventory THEN 1 ELSE 0 END;
+  RETURN NEW;
+END;
+$function$;
+CREATE TRIGGER zzzz_hg_inventory_revision BEFORE UPDATE ON public.personnages_donnees FOR EACH ROW EXECUTE FUNCTION public.inventaire_revision_garder();
+
+CREATE OR REPLACE FUNCTION public.salle_cle_interne(p_pays text, p_ville text, p_batiment text, p_piece text, p_rue text)
+ RETURNS text
+ LANGUAGE sql
+ IMMUTABLE
+AS $function$
+  SELECT coalesce(p_pays, '') || '|' || coalesce(p_ville, '') || '|'
+      || CASE WHEN coalesce(p_batiment, '') <> '' THEN p_batiment || '|' || coalesce(p_piece, '') ELSE 'rue|' || coalesce(p_rue, '') END;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.salle_signaler_interne(p_salle text)
+ RETURNS void
+ LANGUAGE sql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  INSERT INTO public.salles_signaux (salle) VALUES (p_salle)
+  ON CONFLICT (salle) DO UPDATE SET version = public.salles_signaux.version + 1, maj = now();
+$function$;
+
+CREATE OR REPLACE FUNCTION public.personnage_signaler_interne(p_nom text)
+ RETURNS void
+ LANGUAGE sql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  INSERT INTO public.personnages_signaux (personnage) VALUES (p_nom)
+  ON CONFLICT (personnage) DO UPDATE SET version = public.personnages_signaux.version + 1, maj = now();
+$function$;
+
+CREATE OR REPLACE FUNCTION public.personnages_signaux_trg()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_pos boolean; v_etat boolean;
+BEGIN
+  IF TG_OP = 'DELETE' THEN
+    PERFORM public.salle_signaler_interne(public.salle_cle_interne(OLD.country, OLD.current_city, OLD.current_building, OLD.current_room, OLD.current_street));
+    RETURN OLD;
+  END IF;
+  v_pos := TG_OP = 'INSERT' OR NEW.country IS DISTINCT FROM OLD.country OR NEW.current_city IS DISTINCT FROM OLD.current_city
+        OR NEW.current_building IS DISTINCT FROM OLD.current_building OR NEW.current_room IS DISTINCT FROM OLD.current_room
+        OR NEW.current_street IS DISTINCT FROM OLD.current_street;
+  v_etat := v_pos OR NEW.est_emprisonne IS DISTINCT FROM OLD.est_emprisonne OR NEW.detention_qhs IS DISTINCT FROM OLD.detention_qhs
+        OR NEW.hospitalisation IS DISTINCT FROM OLD.hospitalisation OR NEW.pa IS DISTINCT FROM OLD.pa OR NEW.hp IS DISTINCT FROM OLD.hp;
+  IF v_pos THEN
+    IF TG_OP = 'UPDATE' THEN
+      PERFORM public.salle_signaler_interne(public.salle_cle_interne(OLD.country, OLD.current_city, OLD.current_building, OLD.current_room, OLD.current_street));
+    END IF;
+    PERFORM public.salle_signaler_interne(public.salle_cle_interne(NEW.country, NEW.current_city, NEW.current_building, NEW.current_room, NEW.current_street));
+    INSERT INTO public.presences (name, country, city, building_id, room_id, updated_at)
+    VALUES (NEW.name, NEW.country, NEW.current_city, coalesce(NEW.current_building, 'rue-centrale'),
+            CASE WHEN NEW.current_building IS NULL THEN NEW.current_street ELSE NEW.current_room END, NULL)
+    ON CONFLICT (name) DO UPDATE SET country = excluded.country, city = excluded.city,
+      building_id = excluded.building_id, room_id = excluded.room_id;
+  ELSIF TG_OP = 'UPDATE' AND NEW.inventory IS DISTINCT FROM OLD.inventory THEN
+    PERFORM public.salle_signaler_interne(public.salle_cle_interne(NEW.country, NEW.current_city, NEW.current_building, NEW.current_room, NEW.current_street));
+  END IF;
+  IF v_etat THEN PERFORM public.personnage_signaler_interne(NEW.name); END IF;
+  RETURN NEW;
+END $function$;
+CREATE TRIGGER zz_personnages_signaux AFTER INSERT OR DELETE OR UPDATE ON public.personnages_donnees FOR EACH ROW EXECUTE FUNCTION public.personnages_signaux_trg();

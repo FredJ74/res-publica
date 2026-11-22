@@ -40,13 +40,25 @@ function maSalle() {
 // Relectures (le serveur seul fait foi)
 // ---------------------------------------------------------------------------------------------------------------
 let presentsMinuteur = null;
+// Signal de la pièce : tout ce que les présents voient se relit — personnes (arrivées, départs, masque, cachette,
+// groupe), objets posés au sol, et l'appartenance à mon groupe (Fred, 22/11/2026 : Arnie ramassait le bois, il restait
+// affiché au sol chez Tom Tom).
 function rafraichirPresents() {
   clearTimeout(presentsMinuteur);
   presentsMinuteur = setTimeout(() => {
-    if (typeof global.chargerVraisJoueursPresents === 'function') {
-      try { global.chargerVraisJoueursPresents(); } catch (_) {}
+    for (const f of ['chargerVraisJoueursPresents', 'chargerObjetsAbandonnesDansPiece', 'rafraichirGroupePj']) {
+      if (typeof global[f] === 'function') { try { const p = global[f](); if (p && p.catch) p.catch(() => {}); } catch (_) {} }
     }
   }, 250);
+}
+// Signal du personnage : son inventaire (objet reçu, butin, correction du MJ, capacité) se relit aussi, par la même
+// réception versionnée que les dons (verifierObjetsRecus) — jamais une adoption aveugle qui écraserait une action en cours.
+let inventaireMinuteur = null;
+function rafraichirMonInventaire() {
+  clearTimeout(inventaireMinuteur);
+  inventaireMinuteur = setTimeout(() => {
+    if (typeof global.verifierObjetsRecus === 'function') { try { const p = global.verifierObjetsRecus(); if (p && p.catch) p.catch(() => {}); } catch (_) {} }
+  }, 600);
 }
 
 // Message explicatif d'un changement subi : détention, libération, hôpital, sortie d'hôpital, déplacement.
@@ -149,7 +161,7 @@ function traiterMessage(m) {
   if (!m || m.event !== 'postgres_changes') return;
   const rec = (m.payload && m.payload.data && (m.payload.data.record || m.payload.data.old_record)) || {};
   if (m.topic === SUJET_SALLE) { versions.salle = rec.version || versions.salle; rafraichirPresents(); }
-  else if (m.topic === SUJET_PERSO) { versions.perso = rec.version || versions.perso; rpResynchroniserEtat('signal'); }
+  else if (m.topic === SUJET_PERSO) { versions.perso = rec.version || versions.perso; rpResynchroniserEtat('signal'); rafraichirMonInventaire(); }
   else if (m.topic === SUJET_CHAT) signalChat();
 }
 
@@ -191,7 +203,7 @@ async function verifierVersions() {
       salleAbonnee ? global.sbGet('salles_signaux', 'salle=eq.' + encodeURIComponent(salleAbonnee) + '&select=version') : null
     ]);
     const vp = p && p[0] ? p[0].version : null, vs = sa && sa[0] ? sa[0].version : null;
-    if (vp != null && versions.perso != null && vp !== versions.perso) rpResynchroniserEtat('version');
+    if (vp != null && versions.perso != null && vp !== versions.perso) { rpResynchroniserEtat('version'); rafraichirMonInventaire(); }
     if (vs != null && versions.salle != null && vs !== versions.salle) rafraichirPresents();
     if (vp != null) versions.perso = vp;
     if (vs != null) versions.salle = vs;
@@ -211,5 +223,5 @@ if (global.document && global.setTimeout) {
 }
 
 global.rpResynchroniserEtat = rpResynchroniserEtat;
-global.RPTempsReel = { signalChat, cleSalle, maSalle, messageChangement, traiterMessage, abonnerSalle, verifierVersions, rpResynchroniserEtat, versions };
+global.RPTempsReel = { signalChat, cleSalle, maSalle, messageChangement, traiterMessage, abonnerSalle, verifierVersions, rpResynchroniserEtat, rafraichirMonInventaire, versions };
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -12140,13 +12140,45 @@ function libelleAdversaireDebout(b, dernier) {
   return est.libelle || '—';
 }
 
+// Conclusion d'un combat contre la faune (Fred, 22/11/2026, points 6 et 7) : une bête seule, ou la meute de trois loups
+// (abattus nommés quand le rapport par round les donne, sinon comptés). Aussi utilisée par le journal des membres.
+function rpConclusionFaune(d) {
+  const nom = d?.nom || 'L’adversaire';
+  const morts = Array.isArray(d?.morts) ? d.morts : null, fuyards = Array.isArray(d?.fuyards) ? d.fuyards : [];
+  const total = Number(d?.total) || (morts ? morts.length + fuyards.length : 1);
+  const liste = a => a.length <= 1 ? (a[0] || '') : a.slice(0, -1).join(', ') + ' et ' + a[a.length - 1];
+  if (d?.resultat === 'tues' || d?.resultat === 'neutralises') {
+    if (total <= 1) return nom + (d.resultat === 'tues' ? ' est abattu. Victoire.' : ' est hors de combat. Victoire.');
+    if (morts) {
+      const abattus = liste(morts) + (morts.length > 1 ? ' sont abattus' : ' est abattu');
+      return fuyards.length ? abattus + ' ; ' + liste(fuyards) + (fuyards.length > 1 ? ' s’enfuient' : ' s’enfuit') + ' entre les arbres. Victoire.' : abattus + '. Victoire.';
+    }
+    const a = Number(d.abattus) || 0;
+    return a >= total ? 'Les ' + total + ' loups sont abattus. Victoire.'
+      : a + ' loup' + (a > 1 ? 's' : '') + ' sur ' + total + (a > 1 ? ' abattus' : ' abattu') + ', les autres s’enfuient entre les arbres. Victoire.';
+  }
+  if (d?.resultat === 'fuite') return total > 1 ? 'La meute rompt le combat et s’enfuit entre les arbres : ni peau ni viande.'
+    : nom + ' rompt le combat et s’enfuit entre les arbres : ni peau ni viande.';
+  if (d?.resultat === 'defaite') return d.groupe ? 'Votre groupe est hors de combat.' : 'Vous êtes hors de combat.';
+  return '';
+}
+
+function dernierRoundDetaille(b) {
+  const r = (Array.isArray(b?.rounds) ? b.rounds : []).filter(x => Array.isArray(x?.lignes) && x.lignes.length);
+  return r.length ? r[r.length - 1] : null;
+}
+
 function libelleIssueCombat(b) {
   const nom = b?.adversaire_nom || 'L’adversaire';
   if (b?.type === 'faune' && b.resultat) {
-    const fins = { tues: nom + ' est abattu. Victoire.', neutralises: nom + ' est hors de combat. Victoire.',
-      fuite: nom + ' rompt le combat et s’enfuit entre les arbres : ni peau ni viande.',
-      defaite: 'Vous êtes hors de combat.' };
-    if (fins[b.resultat]) return fins[b.resultat];
+    const der = dernierRoundDetaille(b);
+    const adv = der ? der.lignes.filter(l => !l.mien) : [];
+    const plusieurs = adv.length > 1;
+    const t = rpConclusionFaune({ nom, resultat: b.resultat, total: adv.length || 1,
+      morts: plusieurs ? adv.filter(l => l.etat === 'mort').map(l => l.nom) : null,
+      fuyards: plusieurs ? adv.filter(l => l.etat !== 'mort').map(l => l.nom) : [],
+      groupe: der ? der.lignes.filter(l => l.mien).length > 1 : false });
+    if (t) return t;
   }
   const issue = String(b?.issue || '');
   if (issue && b?.mon_camp && issue === 'victoire_' + b.mon_camp) return 'Victoire.';
@@ -12200,7 +12232,11 @@ async function ouvrirPanneauCombat(batailleId, options) {
 
   const rounds = Array.isArray(b.rounds) ? b.rounds : [];
   const dernier = rounds.length ? rounds[rounds.length - 1] : null;
-  if (dernier) {
+  // Nouvelle présentation (Fred, 22/11/2026, point 6) : chaque round, une ligne par combattant, adversaire nommé.
+  const detaille = rounds.some(r => Array.isArray(r?.lignes) && r.lignes.length);
+  if (detaille) {
+    html += htmlRoundsCombat(b, fini);
+  } else if (dernier) {
     html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.6rem;margin-bottom:.8rem">';
     html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.78rem;color:#e0d5b8;margin-bottom:.4rem">BILAN DU ROUND ' + dernier.round + '</div>';
     html += '<div style="font-size:.76rem;color:#c0b090">Vos pertes : ' + (dernier.mes_pa_perdus || 0) +
@@ -12214,13 +12250,46 @@ async function ouvrirPanneauCombat(batailleId, options) {
 
   if (!fini) {
     html += htmlDecisionsCombat(b);
+  } else if (detaille) {
+    html += '<div class="hg-combat-conclusion">' + escapeHtmlText(libelleIssueCombat(b)) + '</div>';
+    const butin = Array.isArray(b.butin) ? b.butin.filter(o => o && o.nom && Number(o.qte) > 0) : [];
+    if (butin.length) html += '<p class="cpj-note">' + escapeHtmlText('Butin, remis au chef du groupe : ' + butin.map(o => o.nom + ' ×' + Number(o.qte)).join(', ') + '.') + '</p>';
   } else {
     html += '<div style="font-size:.8rem;color:#C9A84C;text-align:center;padding:.5rem">' + escapeHtmlText(libelleIssueCombat(b)) + '</div>';
   }
 
   html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
+  const corps = document.getElementById('postes-body');
+  corps.innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
+  // Le dernier round et la conclusion restent sous les yeux.
+  if (detaille && corps.scrollHeight > corps.clientHeight) corps.scrollTop = corps.scrollHeight;
+}
+
+// Rapport par round : à gauche le camp du joueur (le chef d'abord), un trait vertical, à droite le camp adverse (son premier
+// combattant au niveau du chef) ; les dégâts subis dans le round à côté de chaque nom ; un combattant tombé garde sa ligne
+// avec son état. À la fin d'un combat de faune, une bête encore debout au dernier round s'est enfuie.
+const ETATS_COMBATTANT = { coma: 'coma', fuite: 'en fuite', mort: 'mort', rendu: 's’est rendu', capture: 'capturé' };
+function htmlRoundsCombat(b, fini) {
+  const rounds = (Array.isArray(b.rounds) ? b.rounds : []).filter(r => Array.isArray(r?.lignes) && r.lignes.length);
+  let h = b.adversaire_nom ? '<div class="hg-combat-adversaire">' + escapeHtmlText('Contre : ' + b.adversaire_nom) + '</div>' : '';
+  const enFuite = fini && b.type === 'faune' && ['tues', 'neutralises', 'fuite'].includes(b.resultat);
+  const cellule = (l, dernier) => {
+    if (!l) return '<span class="hg-round-ligne hg-round-vide"></span>';
+    const etat = l.etat || (dernier && enFuite && !l.mien ? 'fuite' : null);
+    const perte = Number(l.perte) || 0;
+    return '<span class="hg-round-ligne' + (etat ? ' hg-round-tombe' : '') + '"><span class="hg-round-nom">' + escapeHtmlText(l.nom || '—') + '</span>'
+      + '<span class="hg-round-perte' + (perte ? '' : ' nulle') + '">−' + perte + ' PA</span>'
+      + (etat ? '<span class="hg-round-etat">(' + escapeHtmlText(ETATS_COMBATTANT[etat] || etat) + ')</span>' : '') + '</span>';
+  };
+  rounds.forEach((r, i) => {
+    const dernier = i === rounds.length - 1;
+    const g = r.lignes.filter(l => l.mien), d = r.lignes.filter(l => !l.mien);
+    h += '<div class="hg-round"><div class="hg-round-titre">Round ' + Number(r.round) + '</div><div class="hg-round-grille">';
+    for (let k = 0; k < Math.max(g.length, d.length); k++) h += cellule(g[k], dernier) + '<span class="hg-round-trait"></span>' + cellule(d[k], dernier);
+    h += '</div></div>';
+  });
+  return h;
 }
 
 // Le contrat serveur décide des commandes affichées ; aucun membre ne reçoit

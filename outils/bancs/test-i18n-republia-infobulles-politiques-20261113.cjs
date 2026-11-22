@@ -39,11 +39,13 @@ test('141 descriptions du catalogue Républia : françaises exactes et réelleme
  // 162 → 159 le 20/11 (criminalité lot 7) : « Falsifier un procès-verbal » et les deux accélérations par corruption (permis, rendez-vous) sont supprimés.
  // 159 → 162 le 20/11 (distillerie) : produire des spiritueux, produire du sucre et « Spiritueux de la maison » au pôle de Port-Sainte-Marie.
  // 162 → 163 le 21/11 (lot de Krasnov, point 6) : « Organiser un boycott » n'est plus affiché en Sovarka.
- assert.equal(spec.length,163,'inventaire réel après séparation du goulag de Sovarka et du QHS républicain');
+ // 163 → 162 le 22/11 (refonte des informateurs) : les ordres d'informateurs recrutés de la loge et « Recruter un informateur » sont retirés.
+ assert.equal(spec.length,162,'inventaire réel après séparation du goulag de Sovarka et du QHS républicain');
  const rows=setup('republic','fr').RP_INFOBULLES_REPUBLIA;
  assert.equal(rows.length,141);
  // Lignes livrées dont l'ordre est supprimé (criminalité lot 7, 20/11 : le temps ne s'achète pas) : gardées au catalogue.
- const HISTORIQUES=["Réduit de moitié le délai restant avant le rendez-vous notarial d'un achat direct.","Reduit de moitie la duree d'instruction restante. Risque de decouverte.","Réduit de moitié la durée d'instruction restante du permis. Risque de découverte."];
+ // Refonte des informateurs (22/11/2026) : « Écouter le patron » (Marin Dulac) retiré ; sa ligne livrée reste au catalogue.
+ const HISTORIQUES=["Marin Dulac entend tout ce qui se dit au bar. Revele une rumeur vraie ou generee selon le contexte.","Réduit de moitié le délai restant avant le rendez-vous notarial d'un achat direct.","Reduit de moitie la duree d'instruction restante. Risque de decouverte.","Réduit de moitié la durée d'instruction restante du permis. Risque de découverte."];
  for(const line of rows){assert.equal(line.length,9,line[0]);assert.ok(rep.has(line[0])||HISTORIQUES.includes(line[0]),line[0]);}
  assert.equal(new Set(rows.map(l=>l[0])).size,141);
 });

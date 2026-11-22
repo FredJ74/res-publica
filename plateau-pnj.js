@@ -1977,11 +1977,18 @@ function ouvrirDonPnjChoix(encodedPnj) {
   try { pnj = JSON.parse(decodeURIComponent(encodedPnj)); } catch (e) { return; }
   const estEmploye = (state.employes || []).some(e => e && e.nom === (pnj.name || '').replace(' (PNJ)', '').trim());
   const objets = (state.inventory || []).filter(i => i && i.type !== 'acte_officiel');
+  // UN AUTRE JOUEUR N'EST PAS UN PNJ (Fred, 22/11/2026 : Tom Tom, chef de groupe, n'arrivait pas a donner un objet a
+  // Arnie). « Un objet » menait au don a un PNJ (don_objet_pnj), que le serveur refuse pour un joueur : le don entre
+  // joueurs passe par inventaire_donner, quel que soit le groupe (chef → membre comme membre → chef).
+  const estJoueur = pnj.isPJ === true && pnj.masque !== true;
 
   document.getElementById('modal-pnj')?.classList.remove('open');
   document.getElementById('postes-modal-title').textContent = 'Donner — ' + (pnj.name || '').replace(' (PNJ)', '');
   let html = '<div style="padding:1rem">';
-  if (!estEmploye) {
+  if (estJoueur) {
+    html += '<div class="cpj-note" style="margin-bottom:.9rem">'
+         +  'Ce que vous donnez à un autre joueur arrive aussitôt dans son inventaire, s\'il lui reste de la place. Il pourra vous le rendre s\'il le souhaite.</div>';
+  } else if (!estEmploye) {
     html += '<div style="font-size:.8rem;color:#aa7a30;font-style:italic;margin-bottom:.9rem;padding:.55rem;background:#0f0d05;border:1px solid #3a2810">'
          +  'Cette personne n\'est pas à votre service. Ce que vous lui donnez ne vous reviendra pas : aucune action ordinaire ne permet de le récupérer. Seul un vol le pourrait.</div>';
   }
@@ -1989,12 +1996,35 @@ function ouvrirDonPnjChoix(encodedPnj) {
   html += '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\');ouvrirDonPnjModal(\'' + encodedPnj + '\')" style="text-align:left;padding:.6rem .8rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.85rem">'
        + '<i class="ti ti-coins"></i> De l\'argent</button>';
   if (objets.length > 0) {
-    html += '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\');ouvrirDonObjetPnjModal(\'' + encodedPnj + '\')" style="text-align:left;padding:.6rem .8rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.85rem">'
+    html += '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\');' + (estJoueur ? 'ouvrirDonObjetJoueurModal' : 'ouvrirDonObjetPnjModal') + '(\'' + encodedPnj + '\')" style="text-align:left;padding:.6rem .8rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.85rem">'
          + '<i class="ti ti-package"></i> Un objet</button>';
   } else {
     html += '<div style="padding:.6rem .8rem;border:1px solid #1a1810;color:#6a5a30;font-style:italic;font-size:.8rem">Un objet — votre inventaire est vide.</div>';
   }
   html += '</div></div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+// Liste des objets a donner a un autre joueur : un clic ouvre la fenetre de quantite (plateau-personnage.js).
+function ouvrirDonObjetJoueurModal(encodedPnj) {
+  let pnj;
+  try { pnj = JSON.parse(decodeURIComponent(encodedPnj)); } catch (e) { return; }
+  const cible = (pnj.name || '').replace(' (PNJ)', '').trim();
+  if (!cible || pnj.isPJ !== true) return;
+  const esc = t => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+  window._donObjetCible = cible;   // jamais de nom dans un attribut onclick
+  document.getElementById('postes-modal-title').textContent = 'Donner un objet à ' + cible;
+  let html = '<div class="cpj-dialogue" style="padding:1rem"><p class="cpj-note">Choisissez l\'objet à donner à ' + esc(cible) + ' :</p>'
+    + '<div style="display:flex;flex-direction:column;gap:.35rem;max-height:60vh;overflow-y:auto">';
+  (state.inventory || []).forEach((item, idx) => {
+    if (!item || item.type === 'acte_officiel') return;
+    const q = (item.stackable && Number(item.qty) > 1) ? Number(item.qty) : 1;
+    html += '<button type="button" class="cpj-touche hg-don-objet" style="text-align:left;display:flex;justify-content:space-between;gap:.5rem" '
+      + 'onclick="donnerObjetQuantite(' + idx + ',window._donObjetCible)"><span><i class="ti ' + esc(item.icon || 'ti-package') + '"></i> '
+      + esc(item.name) + '</span><span>' + (q > 1 ? '× ' + q : '') + '</span></button>';
+  });
+  html += '</div><div style="margin-top:.8rem"><button type="button" class="cpj-touche" onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')">Annuler</button></div></div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }

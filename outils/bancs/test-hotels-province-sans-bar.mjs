@@ -28,5 +28,8 @@ for (const [batiment, piece] of [['hotel-port', 'hall_port'], ['hotel-mineur', '
 test('La Républia garde ses ordres de bar', () => {
   const b = src.indexOf("\n  'hotel-republica': {");
   const s = src.slice(b, src.indexOf("\n  'hotel-port': {"));
-  for (const fn of INTERDITS) assert.match(s, new RegExp(`fn:'${fn}'`));
+  // Refonte des informateurs (22/11/2026) : « Recruter un informateur » est retiré partout ; au bar, le barman se paie
+  // (« Acheter une information », ordre dynamique de plateau-informateurs.js). Les tables du restaurant restent à l'écoute.
+  for (const fn of INTERDITS.filter(f => f !== 'recruter_informateur_pnj')) assert.match(s, new RegExp(`fn:'${fn}'`));
+  assert.doesNotMatch(src, /fn:'recruter_informateur_pnj'/);
 });

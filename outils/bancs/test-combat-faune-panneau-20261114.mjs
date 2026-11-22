@@ -30,7 +30,7 @@ function contexte() {
   };
   vm.createContext(c);
   vm.runInContext('let commandeCombatEnCours=false;\n' + fonctions('plateau-politique.js',
-    ['libelleLieuCombat', 'libelleAdversaireDebout', 'libelleIssueCombat', 'verrouillerCommandesCombat', 'avecVerrouCombat', 'journaliserFinCombat'])
+    ['libelleLieuCombat', 'libelleAdversaireDebout', 'rpConclusionFaune', 'dernierRoundDetaille', 'libelleIssueCombat', 'verrouillerCommandesCombat', 'avecVerrouCombat', 'journaliserFinCombat'])
     + '\nconst combatsJournalises = new Set();', c);
   c.journal = []; c.addJournalEntry = (t, cls) => c.journal.push([t, cls]); c.escapeHtmlText = t => String(t);
   return c;

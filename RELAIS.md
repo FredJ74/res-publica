@@ -8,6 +8,73 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Remontées du test en forêt, points 1 et 8 : texte minimum et météo des vues en plein air (Claude, 22/11/2026) — décisions : GAME-DESIGN-FORET-TEST-20261122.md
+- **Branche `claude/texte-meteo-20261122`** (part de `main`). Aucune migration, aucune fonction Vercel. Le bouton « Explorer la forêt » (point 8) est
+  traité par un autre agent ; la logique forêt, les groupes, le combat et l'inventaire aussi (branches séparées).
+- **Point 1, texte minimum** : plancher **0,95 rem (15,2 px)** = texte courant du plateau (descriptions de pièce, personnes, ordres). Nouveau
+  `plateau-texte-minimum.js` (chargé après `plateau-core.js`) : dans toute fenêtre (`.modal-overlay`, `role=dialog`, fenêtres en position fixe créées
+  par le code, journal, notification, infobulles, `#climat-explication`, `.cpj-note`), un texte plus petit monte à 0,95 rem ; un texte plus grand
+  (titres) n'est jamais touché ; pictogrammes, SVG et canevas exclus ; forum (`#modal-forum`, témoin au pixel) et plan de la ville exclus ;
+  `data-texte-libre` pour exclure un élément. Les rapports de combat et rencontres (écrits dans `#modal-postes`) sont couverts sans toucher leur code.
+- **Point 8, météo** : `plateau-climat.js` pose l'effet dans les pièces en plein air (`PIECES_PLEIN_AIR` ou `pleinAir: true`) sur `#piece-image`,
+  aussitôt l'entrée dans la pièce (enveloppe de `enterRoom`, donc aussi `provForetRendre`, sans modifier `plateau-sovarka-provinces.js`). Alerte dans
+  un bandeau au-dessus de l'image (avant `.rue-container` ou `.piece-container`), centré, lisible ; `eviterFleches` supprimée.
+- **Fichiers du navigateur modifiés (pour rebaser)** : `plateau-texte-minimum.js` (nouveau), `plateau-climat.js` (`PIECES_PLEIN_AIR`, `piecePleinAir`,
+  `hoteClimat`, `cadreImage`, `appliquerFiltre`, `brancherPieces`, CSS `#climat-alerte`), `style.css` (bloc « TEXTE MINIMUM » à la fin),
+  `rue-centrale.css` (`.rc-tooltip` 0,95 rem), `plateau.html` (script ajouté ; versions de `style.css`, `rue-centrale.css`, `plateau-climat.js`).
+- **Pour Codex (traductions)** : une clé nouvelle, `EXPLIC.fr.alerte_aide` = « Durée et consignes » (`plateau-climat.js`).
+- **Bancs** : `banc-texte-meteo-navigateur-20261122.cjs` (nouveau, Chromium, vrai `plateau.html` à 1280 et 390 px : tailles mesurées par
+  getComputedStyle dans huit fenêtres types ; effet dans la rue de Krasnov, au camp de bûcherons et dans les six vues de la forêt ; bandeau au-dessus
+  de l'image, centré, ≥ 16 px, sans flèche couverte) ; `banc-climat-arrivee-navigateur-20261121.cjs`, `banc-climat-crue-accueil-navigateur-20261121.cjs`,
+  `test-climat-affichage-20261121.cjs`, `test-climat-definitif-20261121.cjs` mis à jour ; workflow `climat-crue-accueil-20261121.yml`.
+- **À tester par Fred** : pendant un événement climatique à Krasnov, aller au camp de bûcherons puis en forêt (pluie sur chaque vue, bandeau jaune
+  au-dessus de la photo, clic = durée et consignes) ; ouvrir des fenêtres (rencontre, rapport de combat, journal) : plus aucune petite mention grise.
+### Inventaire en direct, quantité, capacité, don entre joueurs (Claude, 22/11/2026) — GAME-DESIGN-FORET-TEST-20261122.md, points 2, 3, 4
+- **Branche `claude/inventaire-direct-20261122`**. Aucune fonction Vercel.
+- **Migration à appliquer (pas encore appliquée)** : `20261122200000_inventaire_direct_capacite` — colonne
+  `personnages_donnees.capacite_inventaire` (100 par défaut, 1 à 10 000) ; `inventaire_place_restante(jsonb, integer)` ; forme à un
+  argument = capacité du joueur connecté ; `inventaire_deposer_interne` (capacité du personnage servi) ; `inventaire_abandonner(…, p_qte)`
+  (lieu du serveur, une pile par objet au sol) ; `objet_abandonne_ramasser(p_id, p_qte)` (plafond pile + place libre, refus
+  `place_insuffisante` avec `place`) ; `inventaire_donner` (refus `destinataire_plein` avec `place`, dons en route compris) ;
+  `inventaire_reception_etat` (+ `capacite`, `place`) ; `personnages_signaux_trg` (inventaire et capacité préviennent le propriétaire) ;
+  déclencheurs `zz_objets_recus_signaux`, `zz_objets_abandonnes_signaux` ; `admin_inventaire_capacite_fixer/lire`. Banc PGlite
+  `banc-inventaire-direct-pglite-20261122.cjs` (6/6).
+- **Fichiers du navigateur modifiés (pour rebaser)** : `supabase.js` (`sbInventaireAbandonner` + quantité, nouveau `sbObjetAbandonneRamasser`),
+  `plateau-divers.js` (`capaciteInventaire`, `adopterCapaciteInventaire`, `placeInventaireLibre`, `getTotalInventaire` = règle du serveur,
+  `removeFromInventory`, `texteInventaire`, `messageRefusSortieInventaire(raison, details)`, `rafraichirOngletInventaireSiOuvert` appelé par
+  `renderInventory`), `plateau-personnage.js` (`switchSelfTab` mémorise l'onglet ; fenêtre de quantité `ouvrirFenetreQuantite` et suivantes ;
+  `jeterObjetInventaire`, `chargerObjetsAbandonnesDansPiece`, `ramasserObjetAbandonne`, `donnerObjetAJoueur`, nouveaux `donnerObjetQuantite`),
+  `plateau-pnj.js` (`ouvrirDonPnjChoix` : un joueur n'est plus traité comme un PNJ ; nouveau `ouvrirDonObjetJoueurModal`),
+  `plateau-justice-economie.js` (`confirmerDonObjetPj`), `plateau-communication.js` (`verifierObjetsRecus` lit la capacité ;
+  `capaciteImpressionTracts`), `plateau-temps-reel.js` (signal de pièce : sol et groupe ; signal du personnage : inventaire),
+  `admin.html` + `admin-inventaire.js` (nouveau, réglage MJ), `plateau.html` (versions des sept scripts : `-inventaire-direct-20261122`).
+- **Pour Codex (traductions)** : nouvelles clés `inventoryUi.*` non encore dans le catalogue (repli français dans le code) — voir la liste
+  dans le rapport du chantier et en tête de `texteInventaire` (plateau-divers.js).
+- **Bancs** : `banc-inventaire-direct-navigateur-20261122.cjs` (Chromium, deux joueurs), workflow `inventaire-direct-20261122.yml`.
+### Forêt de Krasnov : groupe, meute de trois loups, rapport de combat (Claude, 22/11/2026, fin de nuit) — décisions : GAME-DESIGN-FORET-TEST-20261122.md (points 5, 6, 7 et le bouton « Explorer la forêt » du point 8)
+- **Branche `claude/foret-combat-20261122`**. Aucune fonction Vercel. **Migration à appliquer (non appliquée)** :
+  `20261122210000_foret_groupe_combat_meute` — table `sovarka_foret_journal` ; nouvelles `sovarka_foret_journal_groupe_interne`,
+  `sovarka_foret_journal_lire` (RPC), `sovarka_foret_pnj_racine_interne`, `sovarka_foret_faune_creer_interne`, `sovarka_foret_faune_retirer_interne`,
+  `sovarka_foret_morsure_interne`, `sovarka_foret_combat_meute_interne`, `combat_rapport_lignes_interne` ; réécrites (texte de production) :
+  `sovarka_foret_couper`, `sovarka_foret_creature_interne`, `sovarka_foret_rencontre_arrivee_interne`, `sovarka_foret_issue_combat_interne` ;
+  **remplacements contrôlés dans les fonctions communes** (marques) : `militaire_bataille_rapport` (`combat_rapport_lignes_v1`),
+  `militaire_bataille_appliquer` (`foret_morsure_v1`), `militaire_bataille_combattants` (`foret_meute_griffes_v1`), `combat_ouvrir_interne`
+  (`foret_meute_engagements_v1`), `combat_finaliser_interne` (`foret_meute_issue_v1`), `militaire_bataille_etat` (`foret_meute_nom_v1`),
+  `sovarka_foret_aller` et `sovarka_foret_lire` (`foret_groupe_membres_v1`), `sovarka_foret_rencontre` (`foret_meute_retrait_v1`, `foret_journal_groupe_v1`).
+- **Fichiers du navigateur modifiés (pour rebaser)** : `plateau-sovarka-provinces.js` (`FORET_TXT` complété, `foretSuspense`, `foretAfficherRencontre(nom, pnj,
+  intro, options)`, Olga en deux fenêtres, coupe du membre, journal du groupe `foretJournalLire/Afficher` relu toutes les 8 s à l'exploitation
+  forestière, `provCreatureCle` connaît « Meute de 3 loups ») ; `plateau-politique.js` (`rpConclusionFaune`, `dernierRoundDetaille`,
+  `libelleIssueCombat`, `ouvrirPanneauCombat` : rapport par round, `htmlRoundsCombat`, `ETATS_COMBATTANT`) ; `plateau-foret-krasnov.js` (plus de halo,
+  infobulle `.rc-tooltip`) ; `style.css` (classes `.hg-round*`, `.hg-combat-*`, `.foret-porte` à la fin) ; `plateau.html` (versions des quatre fichiers).
+- **Bancs** : `banc-foret-groupe-combat-pglite-20261122.cjs` (+ fixtures `foret-combat-socle.sql.txt`, `foret-combat-ouverture.sql.txt`, copies de
+  production) ; `banc-foret-combat-navigateur-20261122.cjs` (Chromium, 1280 et 390 px) ; `banc-foret-krasnov-navigateur-20261121.cjs` et
+  `test-combat-faune-panneau-20261114.mjs` mis à jour ; tous ajoutés à `foret-krasnov-20261121.yml`.
+- **Pour Codex (traductions)** : `FORET_TXT` de `plateau-sovarka-provinces.js` : `approcher`, `meute`, `membreTitre`, `membreNote`, `compris`, `membreCoupe`,
+  `j_rencontre`, `j_rencontre_arrivee`, `j_olga`, `j_olga_moi`, `j_fausse`, `j_fuite`, `j_subir`, `j_combat`, `j_butin`, `j_lire`, `t_combat_fin` ;
+  `plateau-politique.js` : phrases de `rpConclusionFaune`, « Contre : », « Round », `ETATS_COMBATTANT`, « Butin, remis au chef du groupe : » ;
+  noms donnés par le serveur : « Meute de 3 loups », « Loup 1/2/3 » (le catalogue `cf_meute` garde « Meute de loups » pour les anciens courriers).
+- **À tester par Fred** (après la migration) : Tom Tom chef, Arnie membre, en forêt profonde : chacun coupe ; seconde coupe du chef au ravin → rencontre
+  (deux fenêtres chez les deux) ; combat contre la meute lancé par Tom Tom ; rapport par round ; butin chez Tom Tom ; journal d'Arnie.
 ### Étape J, terrains à bâtir (Claude, 22/11/2026) — décisions : GAME-DESIGN-CHANTIERS-IMAGES-20261120.md (complément du 21/11, points 1 et 2)
 - **Branche `claude/terrains-plan-20261122`** (part de `main` après la mission de la nuit). Aucune migration, aucune fonction Vercel.
 - **Plan du lotissement en vignettes** (`plateau-terrains-plan.js`, nouveau, chargé après `plateau-chantier-vue.js`) : une carte
@@ -91,6 +158,20 @@ Règles : voir `AGENTS.md`.
   `search`, `kMenu`, `vMenu` ; `rpCharSheetLabel('hide')`.
 - **Images attendues** : `images/fontaines/{luthecia-fontaine-hotel-de-ville, montrouge-fontaine-place-du-rail, psm-fontaine-place-armes,
   novomirsk-fontaine-place-peuple, starovka-fontaine-mairie}.webp` (la fenêtre s'en passe tant qu'elles manquent).
+### Étape K — refonte des informateurs (Claude, 22/11/2026) — branche `claude/informateurs-refonte-20261122`
+- **Décisions** : `GAME-DESIGN-INFORMATEURS-20261121.md`, fondues dans `GAME-DESIGN-CRIMINALITE.md` (« Barème commun des informateurs » →
+  « Refonte des informateurs »).
+- **Migration écrite, NON appliquée** : `20261122180000_informateurs_refonte` (éprouvée sur PGlite ; ancrages vérifiés une fois chacun dans
+  les définitions de production). Raccords : `rumeur_ecoute_jauges_interne` (`informateurs_ecoute_payante_v1`), `crim_enquete_taux_interne`
+  (`informateurs_piste_v1`, `informateurs_taux_v1`, `informateurs_pistes_v1`).
+- **Navigateur** : nouveau `plateau-informateurs.js` (ordre dynamique « Acheter une information », fenêtre) ; `plateau-criminalite.js`
+  (commissaire : « Payer un informateur » dans les plaintes contre X) ; `plateau-secrets.js` (habitué → fenêtre commune) ; `plateau-router.js`,
+  `plateau-multijoueur.js`, `plateau-actions-illegales-rumeurs.js` (anciens informateurs retirés) ; `data.js` (5 ordres d'informateurs et
+  4 « Écouter le barman/patron/serveuse » retirés) ; `plateau.html`.
+- **Pour Codex (traductions)** : `TXT_INFORMATEURS` (plateau-informateurs.js) ; `T.fr` de plateau-criminalite.js : `kInfoTitre`, `kInfoNote`,
+  `kInfoPayer`, `kInfoHors`, `kInfoDeja`, `kPalier_flou`, `kPalier_correct`, `kPalier_premier_choix`, `kInfoOk`, `kInfoOkText`,
+  `kSource_caisse`, `kSource_fonds_propres`, `r_informateur_deja_paye_aujourdhui`, `r_montant_invalide` (modifié : `p_informateur`) ;
+  description de l'ordre `offrir_verre_habitue_krasnov` (data.js) ; textes des réponses écrits par le serveur (migration).
 ### Mission de la nuit du 22/11/2026 (Claude) — décisions : GAME-DESIGN-MISSION-NUIT-20261122.md
 - **Partage du travail** : Codex = logo du plateau et son témoin au pixel, courrier de bienvenue et ses traductions, fenêtres sans
   chevauchement, recette isolée de la PR #1176 (navigateur et tests seulement). Claude = tout le reste, seul à appliquer des migrations.

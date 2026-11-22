@@ -3014,11 +3014,26 @@ async function sbInventaireDetruire(acteur, index, signature, qte) {
   });
 }
 
-async function sbInventaireAbandonner(acteur, index, signature, country, city, building, room) {
-  return sbRpcVerdict('inventaire_abandonner', {
-    p_acteur: acteur, p_index: index, p_signature: signature,
-    p_country: country, p_city: city, p_building: building, p_room: room
-  });
+// Quantite (Fred, 22/11/2026) : on depose autant d'unites qu'on le choisit (migration 20261122200000). Tant que la
+// migration n'est pas posee (fonction a huit arguments absente : PGRST202), une seule unite part par l'ancienne forme.
+async function sbInventaireAbandonner(acteur, index, signature, country, city, building, room, qte) {
+  if (Number.isInteger(qte) && qte > 0) {
+    const v = await sbRpcVerdict('inventaire_abandonner', { p_acteur: acteur, p_index: index, p_signature: signature,
+      p_country: country, p_city: city, p_building: building, p_room: room, p_qte: qte });
+    if (!(v && v.transport && v.transport.code === 'PGRST202' && qte === 1)) return v;
+  }
+  return sbRpcVerdict('inventaire_abandonner', { p_acteur: acteur, p_index: index, p_signature: signature,
+    p_country: country, p_city: city, p_building: building, p_room: room });
+}
+
+// Ramasser au sol avec une quantite, plafonnee a la pile et a la place libre (migration 20261122200000).
+// Sans quantite, ou tant que la migration n'est pas posee : toute la pile, par l'ancienne forme.
+async function sbObjetAbandonneRamasser(id, qte) {
+  if (Number.isInteger(qte) && qte > 0) {
+    const v = await sbRpcVerdict('objet_abandonne_ramasser', { p_id: id, p_qte: qte });
+    if (!(v && v.transport && v.transport.code === 'PGRST202')) return v;
+  }
+  return sbRpcVerdict('objet_abandonne_ramasser', { p_id: id });
 }
 
 // p_mutations : transformations de PRESENTATION appliquees a l'exemplaire qui part (la carte

@@ -1,10 +1,10 @@
 name: "Climat (décisions définitives du 21/11) — 6 heures, sacs de sable, un événement par pays, pictogrammes, eau gratuite"
 on:
   pull_request:
-    paths: [plateau-climat.js, plateau-rue-centrale.js, plateau.html, 'migrations/2026111*climat*.sql', 'migrations/20261121070000_climat_douze_heures_gare_accueil.sql', 'migrations/20261121090000_climat_six_heures_pays_sacs_eau.sql', 'migrations/20261121110000_climat_parades_vente.sql', 'migrations/20261121120000_climat_parades_sovarka.sql', 'migrations/20261121130000_climat_horaire_cadence_catastrophe_sacs.sql', 'migrations/20261121170000_point_eau_puiser_mairie_krasnov.sql', data.js, 'outils/bancs/*climat*', 'outils/bancs/*point-eau*', .github/workflows/climat-crue-accueil-20261121.yml]
+    paths: [plateau-climat.js, plateau-rue-centrale.js, plateau.html, 'migrations/2026111*climat*.sql', 'migrations/20261121070000_climat_douze_heures_gare_accueil.sql', 'migrations/20261121090000_climat_six_heures_pays_sacs_eau.sql', 'migrations/20261121110000_climat_parades_vente.sql', 'migrations/20261121120000_climat_parades_sovarka.sql', 'migrations/20261121130000_climat_horaire_cadence_catastrophe_sacs.sql', 'migrations/20261121170000_point_eau_puiser_mairie_krasnov.sql', data.js, plateau-texte-minimum.js, plateau-foret-krasnov.js, style.css, rue-centrale.css, 'outils/bancs/*climat*', 'outils/bancs/*point-eau*', 'outils/bancs/*texte-meteo*', .github/workflows/climat-crue-accueil-20261121.yml]
   push:
     branches: [main, 'claude/**']
-    paths: [plateau-climat.js, plateau-rue-centrale.js, plateau.html, 'migrations/2026111*climat*.sql', 'migrations/20261121070000_climat_douze_heures_gare_accueil.sql', 'migrations/20261121090000_climat_six_heures_pays_sacs_eau.sql', 'migrations/20261121110000_climat_parades_vente.sql', 'migrations/20261121120000_climat_parades_sovarka.sql', 'migrations/20261121130000_climat_horaire_cadence_catastrophe_sacs.sql', 'migrations/20261121170000_point_eau_puiser_mairie_krasnov.sql', data.js, 'outils/bancs/*climat*', 'outils/bancs/*point-eau*', .github/workflows/climat-crue-accueil-20261121.yml]
+    paths: [plateau-climat.js, plateau-rue-centrale.js, plateau.html, 'migrations/2026111*climat*.sql', 'migrations/20261121070000_climat_douze_heures_gare_accueil.sql', 'migrations/20261121090000_climat_six_heures_pays_sacs_eau.sql', 'migrations/20261121110000_climat_parades_vente.sql', 'migrations/20261121120000_climat_parades_sovarka.sql', 'migrations/20261121130000_climat_horaire_cadence_catastrophe_sacs.sql', 'migrations/20261121170000_point_eau_puiser_mairie_krasnov.sql', data.js, plateau-texte-minimum.js, plateau-foret-krasnov.js, style.css, rue-centrale.css, 'outils/bancs/*climat*', 'outils/bancs/*point-eau*', 'outils/bancs/*texte-meteo*', .github/workflows/climat-crue-accueil-20261121.yml]
 permissions:
   contents: read
 jobs:
@@ -30,4 +30,8 @@ jobs:
       - name: Chromium réel
         env:
           HG_CHROMIUM: /usr/bin/google-chrome
-        run: node --test outils/bancs/banc-climat-crue-accueil-navigateur-20261121.cjs outils/bancs/banc-climat-arrivee-navigateur-20261121.cjs
+        run: |
+          node --check plateau-texte-minimum.js
+          node --test outils/bancs/banc-climat-crue-accueil-navigateur-20261121.cjs outils/bancs/banc-climat-arrivee-navigateur-20261121.cjs
+          # Remontées du test en forêt (22/11/2026), points 1 et 8 : texte minimum des fenêtres, météo des vues en plein air.
+          node --test outils/bancs/banc-texte-meteo-navigateur-20261122.cjs

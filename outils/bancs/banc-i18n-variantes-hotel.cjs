@@ -56,10 +56,13 @@ test('sept rumeurs et deux conférences disposent de variantes sûres',()=>{
  const rumours=[...data.matchAll(/fn:'ecouter_rumeurs',\s*label:'((?:\\.|[^'])*)',\s*i18nKey:'variant\.(rumours_[a-z]+)'/g)];
  const press=[...data.matchAll(/fn:'conference_presse',\s*label:'((?:\\.|[^'])*)',\s*i18nKey:'variant\.press_conference'/g)];
  // Hôtel des Voyageurs de Starovka (17/11/2026) : + « Écouter le barman ».
- assert.equal(rumours.length,8);
+ // Refonte des informateurs (22/11/2026) : « Écouter le barman / le patron / la serveuse » retirés (4 ordres) ; le barman est un
+ // informateur payant (« Acheter une information »). Leurs traductions restent au catalogue.
+ assert.equal(rumours.length,4);
  assert.equal(press.length,2);
  const expected=['rumours_tables','rumours_barman','rumours_general','rumours_owner','rumours_waitress','rumours_listen'];
- for(const key of expected)assert.ok(rumours.some(match=>match[2]===key),key);
+ for(const key of ['rumours_tables','rumours_general','rumours_listen'])assert.ok(rumours.some(match=>match[2]===key),key);
+ for(const key of ['rumours_barman','rumours_owner','rumours_waitress'])assert.ok(!rumours.some(match=>match[2]===key),key);
  for(const lng of Object.keys(w.RP_I18N_LANGUAGES)){
   const words=w.RP_I18N_RESOURCES[lng].translation.orderVariants;
   for(const key of [...expected,'press_conference']){

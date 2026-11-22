@@ -574,8 +574,8 @@ Relevé en production (`pg_proc` du projet `jxpwoosmmhohoihxpbuc`, lecture seule
 - **Rattachement d'une plainte contre X** : à l'affaire la plus récente, non élucidée, dont la plaignante ou le plaignant est la victime (ou
   l'employeur), dans le même pays ; une seule plainte contre X à la fois (règle existante `plainte_deja_en_cours`). — *valeur provisoire choisie par l'agent, à valider par Fred*
 - **Pistes** : parts égales de la moitié haute (3 pistes ; 4 pour crochetage, effraction, cambriolage, objets ramassés). Trace = trace ou
-  détection masquée ; rumeurs vraies = trace de rumeur active du coupable dans la ville ; informateur = au moins un informateur du
-  commissaire ; achats = kit ou pied-de-biche acheté dans le pays. — *valeur provisoire choisie par l'agent, à valider par Fred*
+  détection masquée ; rumeurs vraies = trace de rumeur active du coupable dans la ville ; informateur = un informateur payé par le
+  commissaire sur cette plainte (refonte du 22/11/2026, voir « Barème commun des informateurs » ; flou = demi-piste) ; achats = kit ou pied-de-biche acheté dans le pays. — *valeur provisoire choisie par l'agent, à valider par Fred*
 - **Écran du commissaire** : les chances et les pistes sont affichées (calculées par le serveur) ; le genre n'est pas montré (réservé aux
   rumeurs, § 4). — *valeur provisoire choisie par l'agent, à valider par Fred*
 - **Peine doublée** : celle de l'acte selon l'issue (réussite / tentative), soit 4 j pour un assassinat, 2 j pour un vol. — *valeur provisoire choisie par l'agent, à valider par Fred*
@@ -1006,5 +1006,65 @@ Migration `20261120190000_crim_laissez_passer_registre` (essayée en transaction
   - 18 à 20 PSK : premier choix.
 - **Côté serveur :** la fonction `informateur_palier_interne(pays, montant)` donne le palier (migration `20261121040000_informateurs_sovarka_bareme`). Tout informateur payé à la somme doit l'utiliser.
 - **Première application :** l'habitué du Bar Sever de Krasnov, qui met sur la piste du colonel Voronov (lot de Krasnov, point 8). Le premier choix donne la phrase de passe et inscrit le colonel au carnet « Contacts et secrets ».
-- « Écouter le barman » (gratuit) et « Recruter un informateur » (150 par jour) gardent leur propre fonctionnement.
+- ~~« Écouter le barman » (gratuit) et « Recruter un informateur » (150 par jour) gardent leur propre fonctionnement.~~ Remplacé par la
+  refonte ci-dessous (décisions de Fred du 19/11/2026, consigne intégrale : `GAME-DESIGN-INFORMATEURS-20261121.md`).
+
+### Refonte des informateurs (Fred, 19/11/2026 ; codée le 22/11/2026, étape K — migration `20261122180000_informateurs_refonte`)
+
+**Décisions de Fred (consigne intégrale, points 1 à 6) :**
+1. « Recruter un informateur » (150 par jour) et les quatre niveaux d'informateurs recrutés (rue, politique, criminel, taupe) sont
+   **supprimés**, dans tous les pays.
+2. Leur rôle passe aux **PNJ présents dans les lieux**, payés selon le barème ci-dessus. Payer donne toujours une réponse ; la somme en
+   fixe la qualité ; **l'argent versé disparaît du jeu** ; **aucun nom n'est jamais donné**, seulement des traits (physiques et sociaux :
+   ville de domicile, nationalité, milieu professionnel, allure), **jamais un trait qui désigne une seule personne**.
+3. Deux profils :
+   - **spécialiste de lieu** (réceptionnistes, serveuses et hôtesses, personnel de l'Assemblée, de la présidence et des mairies, chefs de
+     gare, commandants et directeurs de port, agents de sécurité privée) : rapport sur son lieu (allées et venues des dernières 24 h, cachés
+     exclus, masqués en « individu masqué », une rumeur réelle entendue sur place) ; flou = 1 trait, correct = 2 traits, premier choix =
+     3 traits dont un social ;
+   - **généraliste** (barmans, habitués de bar) : une seule information au hasard sur toute la ville, au même prix ; flou = information
+     banale ou hors sujet, correct = 1 trait sur le sujet, premier choix = le fait le plus marquant avec 1 trait. Le RP doit rester crédible.
+   - **Spécialistes de sujet** dans leur ville : entraîneurs (drogue et addictions), dealers, lobbyistes, dirigeants syndicaux.
+4. « Écouter le barman » ne reste pas gratuit : il devient l'ordre payant du généraliste.
+5. **Non-informateurs** : magistrats, policiers et militaires en service, religieux, soignants, notaires et clercs, guides de musée,
+   vendeurs de souvenirs, journalistes hors système.
+6. Le **commissaire** paie aussi selon ces paliers (flou = bonus d'enquête divisé par deux), avec la caisse de son commissariat, et
+   seulement en dernier ressort avec ses fonds propres.
+7. L'habitué du Bar Sever de Krasnov rejoint le profil « généraliste » en gardant sa piste vers le colonel Voronov au premier choix.
+
+**Ce qui existait avant la refonte (relevé du 22/11/2026) :** quatre niveaux recrutés (`informateur_recruter`, `informateur_interroger`,
+salaires de nuit `minuit_informateurs`, ordres de la loge maçonnique `recruter_informateur_2`, `recruter_info_4`, `consulter_info_4`,
+`gerer_informateurs`) ; « Recruter un informateur » PNJ compagnon (`recruter_informateur_pnj`, métier `informateur` au socle d'embauche,
+quatre bars) ; « Écouter le barman / le patron / la serveuse » gratuit (`ecouter_rumeurs`, qui donnait des noms) ; l'habitué du Bar Sever
+(seule application du barème). En production : **aucun** informateur recruté (ni niveaux, ni PNJ compagnon).
+
+**Comment c'est codé (serveur seul juge) :**
+- **Référentiel** `informateurs_pnj` : généré depuis le vrai casting de `data.js` (`outils/generateurs/generer-informateurs-lieux.cjs`,
+  même résolution que l'écran), Républia et Sovarka. Classement par métier : `barman` et patrons de bar → généraliste ; `serveur`,
+  `hotesse`, `hotesse_accueil`, `receptionniste`, `hotelier`, `chef_gare`, `capitaine_port`, `agent_securite`, `securite`, `protocole`,
+  secrétaires des mairies, de l'Assemblée et de la présidence → lieu ; `entraineur` et dealers → sujet « drogue », `lobbyiste` →
+  « politique », `syndicaliste` et délégués du Syndicat national → « syndicat ». Les lieux de soins (dispensaires, cliniques, hôpitaux)
+  sont exclus. L'habitué du Bar Sever y figure (généraliste, tout le bar).
+- **Ordre « Acheter une information »** (`informateur_payer`, 0 PA ; la somme, libre dans le barème, est versée hors `payer_ordre`) :
+  affiché seulement dans une pièce où le serveur voit un informateur (`informateurs_ici`). La fenêtre dit qui il est, ce qu'il sait, le
+  barème ; le bouton dit la somme et le palier et reste grisé hors barème. L'habitué garde son ordre « Offrir un verre à l'habitué ».
+- **Traits** (`informateur_traits_interne`) : genre, allure (milieu d'origine), ville de domicile, nationalité, milieu professionnel. Un
+  trait n'est donné que s'il est porté par **au moins deux personnages** ; sinon l'informateur dit qu'il ne peut pas décrire la personne.
+- **Lieu** : passages du bâtiment des dernières 24 h (`historique_deplacements`), six au plus, les plus récents ; exclus : quiconque est
+  caché dans ce bâtiment au moment de la question ; masqué au moment de la question = « un individu masqué ». Plus une rumeur réelle de
+  la ville (trace non expirée, sans nom ; rumeurs et tracts exclus, ils ne sortent que par le bouche-à-oreille).
+- **Généraliste / sujet** : faits réels de la ville (traces non expirées ; manifestations des trois derniers jours pour les syndicats) ;
+  « le plus marquant » = le plus grave (assassinat, explosifs, empoisonnement, incendie, vol…), puis le plus récent. Sans fait : une
+  phrase banale et « il ne se passe vraiment rien en ce moment » — jamais d'impasse.
+- **Écouter le barman** : refusé par le serveur (`ecoute_payante`) dans toute pièce où se tient un généraliste ; « Écouter les tables »
+  (restaurants) et « Écouter les rumeurs » (couloirs de l'Assemblée) restent tels quels (non visés par la consigne).
+- **Commissaire** (`crim_informateur_payer`, depuis la fenêtre des plaintes contre X) : même barème, une fois par jour et par plainte ;
+  caisse du commissariat de sa ville d'abord, ses fonds propres seulement si elle ne suffit pas ; argent disparu. Correct ou premier
+  choix = piste « informateur » entière ; flou = demi-piste ; premier choix = en plus un trait de l'auteur. — *le contenu du correct et du
+  premier choix pour le commissaire est une interprétation de l'agent, à valider par Fred*
+- **Anciens informateurs** : `informateur_recruter` et `informateur_interroger` refusent (`informateurs_supprimes`), plus aucun salaire de
+  nuit, métier `informateur` non recrutable ; colonnes et lignes existantes conservées (aucune donnée effacée).
+- **À trancher par Fred** : l'objectif secret « Recruter 2 informateurs simultanément » (`obj_informateur`, archétype criminel) n'est plus
+  atteignable ; Khalija et Narcoméria n'ont pas de barème (aucun informateur proposé) ; le blocus syndical ne bloque pas « Acheter une
+  information » (le paiement ne passe pas par `payer_ordre`).
 

@@ -87,6 +87,6 @@ test('État périmé : un refus de position relance la resynchronisation ; modul
   const sb = lire('supabase.js');
   assert.match(sb, /v\.ok === false && RP_RAISONS_ETAT_PERIME\.has\(v\.raison\)/);
   assert.match(sb, /'pas_sur_place', 'personnage_indisponible', 'sortie_invalide'/);
-  assert.match(lire('plateau.html'), /<script src="plateau-temps-reel\.js\?v=1"><\/script>/);
+  assert.match(lire('plateau.html'), /<script src="plateau-temps-reel\.js\?v=[^"]+"><\/script>/);
   assert.match(lire('plateau-temps-reel.js'), /postgres_changes: \[\{ event: '\*', schema: 'public', table, filter: filtre \}\]/);
 });

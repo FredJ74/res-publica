@@ -110,7 +110,13 @@ const T = {
     jAffaire: '{acte} — victime : {victime} (jour {jour})', jAuteur: 'Auteur : {auteur}', jInconnu: 'inconnu', jMasque: 'un individu masqué',
     jIssueOk: 'acte réussi', jIssueKo: 'tentative ratée', jIndices: 'Indices : {liste}', jChances: 'Chances d’identification : {taux} %',
     jPistes: 'Pistes : {liste}', jPisteAucune: 'aucune', jTentatives: 'Tentatives : {n}',
-    p_trace: 'trace', p_rumeurs: 'rumeurs', p_informateur: 'votre informateur', p_achats: 'achats tracés',
+    p_trace: 'trace', p_rumeurs: 'rumeurs', p_informateur: 'informateur payé', p_achats: 'achats tracés',
+    kInfoTitre: 'Payer un informateur', kInfoNote: 'Un informateur répond toujours ; la somme fixe la qualité : de {min} à {max} {cur}. La caisse du commissariat paie d’abord, vos fonds propres seulement si elle ne suffit pas. Une fois par jour et par plainte. Flou : le bonus de l’informateur est divisé par deux.',
+    kInfoPayer: 'Payer {montant} {cur}', kInfoHors: 'Choisissez une somme entre {min} et {max} {cur}.', kInfoDeja: 'Informateur payé : {libelle}.',
+    kPalier_flou: 'flou (bonus divisé par deux)', kPalier_correct: 'correct', kPalier_premier_choix: 'premier choix',
+    kInfoOk: 'Informateur payé', kInfoOkText: '{ligne} — {montant} {cur} pris sur {source}. Chances d’identification : {taux} %.',
+    kSource_caisse: 'la caisse du commissariat', kSource_fonds_propres: 'vos fonds propres',
+    r_informateur_deja_paye_aujourdhui: 'Vous avez déjà payé un informateur sur cette plainte aujourd’hui.', r_montant_invalide: 'Cette somme n’est pas dans le barème.',
     a_neutraliser: 'Agression', a_voler: 'Vol', a_crocheter: 'Crochetage', a_forcer_porte: 'Effraction', a_cambrioler: 'Cambriolage',
     a_ramasser: 'Objets disparus', a_empoisonner: 'Empoisonnement', a_utiliser_explosifs: 'Explosion', a_incendier: 'Incendie',
     i_arme: 'arme : {v}', i_poison: 'poison : {v}', i_batiment: 'lieu : {v}', i_objet: 'objet : {v}',
@@ -671,13 +677,58 @@ function libellePistes(p) {
   for (const k of ['trace', 'rumeurs', 'informateur', 'achats']) if (p && p[k] === true) out.push(texte('p_' + k));
   return out.length ? out.join(', ') : texte('jPisteAucune');
 }
+// Barème des informateurs (refonte du 22/11/2026) : lu au serveur (informateurs_ici), jamais calculé ici.
+let baremeInformateur = null;
+function blocInformateurEnquete(a) {
+  const b = baremeInformateur;
+  const deja = a.pistes && a.pistes.informateur_palier;
+  let h = '<div style="margin-top:.4rem"><span class="cpj-note">' + esc(texte('kInfoTitre')) + ' : </span>';
+  if (deja) h += '<span class="cpj-note">' + esc(texte('kInfoDeja', { libelle: texte('kPalier_' + deja) })) + '</span> ';
+  if (!b) return h + '</div>';
+  const n = Number(a.affaire);
+  const correct = (b.paliers || []).find(p => p.palier === 'correct') || { min: b.min };
+  return h + '<input type="number" class="cpj-champ" id="crim-info-' + n + '" min="' + b.min + '" max="' + b.max + '" value="' + correct.min
+    + '" style="width:5rem" oninput="crimInformateurMaj(' + n + ')"> ' + esc(b.devise) + ' '
+    + '<button class="cpj-touche" id="crim-info-btn-' + n + '" onclick="crimInformateurPayer(' + n + ')"></button>'
+    + '<div class="cpj-note" id="crim-info-note-' + n + '"></div></div>';
+}
+function crimInformateurMaj(affaire) {
+  const b = baremeInformateur; if (!b) return;
+  const champ = global.document.getElementById('crim-info-' + affaire), bouton = global.document.getElementById('crim-info-btn-' + affaire);
+  const note = global.document.getElementById('crim-info-note-' + affaire);
+  if (!champ || !bouton) return;
+  const m = Math.floor(Number(champ.value));
+  const p = (b.paliers || []).find(x => m >= x.min && m <= x.max);
+  bouton.disabled = !p || informateurEnCours;
+  bouton.textContent = texte('kInfoPayer', { montant: p ? m : '…', cur: b.devise });
+  if (note) note.textContent = p ? texte('kPalier_' + p.palier) : texte('kInfoHors', { min: b.min, max: b.max, cur: b.devise });
+}
+let informateurEnCours = false;
+async function crimInformateurPayer(affaire) {
+  const b = baremeInformateur;
+  const m = Math.floor(Number((global.document.getElementById('crim-info-' + affaire) || {}).value));
+  if (informateurEnCours || !b || !(b.paliers || []).some(x => m >= x.min && m <= x.max)) return;
+  informateurEnCours = true; crimInformateurMaj(affaire);
+  let r;
+  try { r = await rpc('crim_informateur_payer', { p_affaire: Number(affaire), p_montant: m, p_requete: uuid() }); }
+  finally { informateurEnCours = false; }
+  if (!r || r.ok !== true) { toast(texte('kInfoTitre'), motif(r), false); crimInformateurMaj(affaire); return; }
+  if (r.paie && typeof global.appliquerPaiementServeur === 'function') global.appliquerPaiementServeur(r.paie);
+  toast(texte('kInfoOk'), texte('kInfoOkText', { ligne: r.ligne || '', montant: r.montant, cur: r.devise || b.devise,
+    source: texte('kSource_' + r.source), taux: r.taux == null ? '?' : r.taux }), true);
+  if (typeof global.updateUI === 'function') global.updateUI();
+  crimOuvrirEnquetes();
+}
 async function crimOuvrirEnquetes() {
+  const ici = await rpc('informateurs_ici');
+  baremeInformateur = (ici && ici.ok === true && ici.bareme) ? ici.bareme : null;
   const r = await rpc('crim_enquetes_lire');
   const pa = (r && r.pa) || ORDRES_JUSTICE.enqueter.pa;
   titreModale(texte('jTitre'));
   if (!r || r.ok !== true) { ouvrirModale('<div class="cpj-dialogue"><p class="cpj-note">' + esc(motif(r)) + '</p></div>'); return; }
   const liste = Array.isArray(r.affaires) ? r.affaires : [];
   let html = '<div class="cpj-dialogue"><p class="cpj-note">' + esc(texte('jNote', { pa })) + '</p>';
+  if (baremeInformateur && liste.length) html += '<p class="cpj-note">' + esc(texte('kInfoNote', { min: baremeInformateur.min, max: baremeInformateur.max, cur: baremeInformateur.devise })) + '</p>';
   if (!liste.length) html += '<p class="cpj-note">' + esc(texte('jAucune')) + '</p>';
   for (const a of liste) {
     const acte = T.fr['a_' + a.acte] ? texte('a_' + a.acte) : a.acte;
@@ -691,9 +742,11 @@ async function crimOuvrirEnquetes() {
       + esc(texte('jChances', { taux: a.chances == null ? '?' : a.chances })) + ' · ' + esc(texte('jTentatives', { n: a.tentatives || 0 })) + '</p>'
       + (a.deja_aujourdhui ? '<button class="cpj-touche" disabled>' + esc(texte('jDeja')) + '</button>'
         : '<button class="cpj-touche cpj-primaire" onclick="crimEnqueter(' + Number(a.affaire) + ')">' + esc(texte('jEnqueter', { pa })) + '</button>')
+      + blocInformateurEnquete(a)
       + '</div>';
   }
   ouvrirModale(html + '</div>');
+  for (const a of liste) crimInformateurMaj(Number(a.affaire));
 }
 async function crimEnqueter(affaire) {
   if (enqueteEnCours || !Number.isSafeInteger(Number(affaire))) return;
@@ -1100,7 +1153,7 @@ Object.assign(global, { ouvrirBoutiqueDiscretion, acheterDiscretion, boutonRevet
   messageSeCacher, ouvrirFouilleCachettes, fouilleCachettesConfirmer, lireEvenementsCrim, animationDemasquage,
   ouvrirNeutraliser, crimNeutraliserConfirmer, crimOuvrirVoler, crimVolerTypes, crimVolerConfirmer, crimVolerChoisirCible,
   crimBoutonsPorte, crimPorteAgir, crimOuvrirCambriolage, crimCambrioler,
-  crimOuvrirEmpoisonner, crimEmpoisonnerConfirmer, crimOuvrirSabotage, crimSabotageConfirmer, crimOuvrirEnquetes, crimEnqueter,
+  crimOuvrirEmpoisonner, crimEmpoisonnerConfirmer, crimOuvrirSabotage, crimSabotageConfirmer, crimOuvrirEnquetes, crimEnqueter, crimInformateurMaj, crimInformateurPayer,
   crimOuvrirCorruptionQhs, crimCorrompreDirecteur, crimCorrompreGardien, crimRumeurResultat, crimTractFlagrant,
   crimOuvrirEnvoisQhs, crimQhsDecider, crimVoterReferendumQhs, crimOuvrirLaissezPasserQhs, crimLaissezPasserQhs, crimFauxLpOuvrir, crimFauxLpValider });
 })(typeof window !== 'undefined' ? window : globalThis);
