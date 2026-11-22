@@ -338,7 +338,7 @@ function capaciteImpressionTracts(stockBois) {
     : (state.inventory || []).reduce((total, o) => total +
       ((o?.type === 'tract' || o?.type === 'tract_calomnieux')
         ? (Number(o.quantite) || 1) : Number(o?.qty || o?.encombrement || 1)), 0);
-  const libres = Math.max(0, 100 - charge);
+  const libres = Math.max(0, (typeof capaciteInventaire === 'function' ? capaciteInventaire() : 100) - charge);
   const parPlace = Math.floor(libres / TRACTS_PAR_LOT);
   return { lots: Math.max(0, Math.min(parBois, parPa, parFonds, parPlace)),
            parBois, parPa, parFonds, parPlace, charge, libres, fonds, prixLot };
@@ -718,6 +718,8 @@ async function verifierObjetsRecus() {
       console.warn('[reception] contrat serveur absent ou invalide : aucun objet reclame', etat?.raison || 'RPC indisponible');
       return;
     }
+    // Capacite propre au personnage (22/11/2026) : relue avec l'inventaire, jamais devinee.
+    if (typeof adopterCapaciteInventaire === 'function') adopterCapaciteInventaire(etat);
     if (empreinte(state.inventory || []) !== avant) return;
     if (Number.isSafeInteger(state._inventaireRevision) && etat.revision < state._inventaireRevision) return;
     const serveur = empreinte(etat.inventory);

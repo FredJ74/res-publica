@@ -457,6 +457,7 @@ function calculerSalaireDormir() {
 }
 
 function switchSelfTab(tab, el) {
+  if (typeof window !== 'undefined') window._ongletSelfActif = tab;   // suivi en direct (rafraichirOngletInventaireSiOuvert)
   if (el) {
     document.querySelectorAll('#vue-self .piece-tab').forEach(t => t.classList.remove('active'));
     el.classList.add('active');
@@ -3452,7 +3453,8 @@ async function ouvrirDetailObjetInventaire(idx) {
   if (typeof sbGetPresencesInRoom === 'function' && state.currentBuilding && state.currentRoom) {
     try {
       const presents = await sbGetPresencesInRoom(state.country, state.currentCity, state.currentBuilding, state.currentRoom);
-      joueursPresents = (presents || []).filter(p => p.name !== state.char?.name);
+      // Un masque inconnu n'a pas de vrai nom : on ne peut rien lui donner par cette liste.
+      joueursPresents = (presents || []).filter(p => p.name !== state.char?.name && !(p.masque && p.mon_groupe !== true));
     } catch(e) {}
   }
 
@@ -3981,22 +3983,15 @@ async function donnerObjetAJoueur(idx) {
   const cible = document.getElementById('donner-objet-cible')?.value;
   if (!item || !cible) return;
 
-  const r = await removeFromInventory(idx, 'donner', { destinataire: cible });
-  if (!r.ok) {
-    showToast('Impossible', messageRefusSortieInventaire(r.raison), false);
-    return;
-  }
-  document.getElementById('modal-postes').classList.remove('open');
-  showToast('Objet donné', 'Vous avez donné "' + item.name + '" à ' + cible + '.', true, true);
-  addJournalEntry('Vous avez donné "' + item.name + '" à ' + cible + '.', 'event-info');
-
-  // Notifier le destinataire par mail reel
-  if (typeof sbSendMail === 'function') {
+  // Quantite (22/11/2026) : fenetre commune « Donner » (champ + « Tout »), plafonnee a ce que l'on possede ;
+  // le serveur refuse au-dela de la place du destinataire et le message le dit.
+  donnerObjetQuantite(idx, cible, n => {
+    if (typeof sbSendMail !== 'function') return;
     const h = String(state.hour || 8).padStart(2,'0');
     const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : dateCivileParisMedicale() + ' · ' + h + 'h';
     sbSendMail(state.char?.name || 'Anonyme', cible, 'Objet reçu',
-      (state.char?.name || 'Quelqu\'un') + ' vous a remis : "' + item.name + '". ' + (item.desc || ''), time).catch(() => {});
-  }
+      (state.char?.name || 'Quelqu\'un') + ' vous a remis : ' + (n > 1 ? n + ' × ' : '') + '"' + item.name + '". ' + (item.desc || ''), time).catch(() => {});
+  });
 }
 
 // Destruction definitive — passe par l'entonnoir serveur (chantier C, 14 septembre 2026).
@@ -4014,21 +4009,94 @@ async function supprimerItemInventaire(idx) {
   addJournalEntry('Vous avez détruit "' + item.name + '" définitivement.', 'event-info');
 }
 
+// =====================================================================
+// DEPOSER, RAMASSER, DONNER : FENETRE DE QUANTITE (Fred, 22/11/2026, fin de nuit, point 3)
+// =====================================================================
+// « Codons comme pour un enfant » : une fenetre dit ce que l'on a, combien on peut en prendre ou en poser, et
+// pourquoi ; un champ, un bouton « Tout », un bouton d'action et un bouton « Annuler ». Le plafond affiche est
+// celui du serveur (possede, pile au sol, place libre selon la capacite du personnage) ; le serveur revalide tout.
+// Jamais d'action sans issue : si rien n'est possible (inventaire plein), la fenetre l'explique et propose « Fermer ».
+let RP_FENETRE_QUANTITE = null;
+function echapperTexteInventaire(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]); }
+function fermerFenetreQuantite() { RP_FENETRE_QUANTITE = null; document.getElementById('modal-postes')?.classList.remove('open'); }
+// o : { titre, intro, note, max, action, onValider(q), bloque (texte si rien n'est possible) }
+function ouvrirFenetreQuantite(o) {
+  RP_FENETRE_QUANTITE = o;
+  const T = texteInventaire, max = Math.max(0, Math.floor(o.max || 0));
+  document.getElementById('postes-modal-title').textContent = o.titre;
+  let html = '<div class="cpj-dialogue hg-fenetre-quantite" style="padding:1rem">';
+  html += '<p style="margin:0 0 .6rem;line-height:1.5">' + echapperTexteInventaire(o.intro) + '</p>';
+  if (o.note) html += '<p class="cpj-note">' + echapperTexteInventaire(o.note) + '</p>';
+  if (max <= 0) {
+    html += '<p class="hg-quantite-bloque" style="margin:.4rem 0;color:#e5c477;line-height:1.5">' + echapperTexteInventaire(o.bloque || T('qtyNothing', 'Rien n’est possible pour l’instant.')) + '</p>';
+    html += '<div style="margin-top:.8rem"><button type="button" class="cpj-touche cpj-primaire" onclick="fermerFenetreQuantite()">' + echapperTexteInventaire(T('close', 'Fermer')) + '</button></div>';
+  } else {
+    html += '<label for="hg-quantite" style="display:block;margin:.5rem 0 .3rem">' + echapperTexteInventaire(T('qtyHowMany', 'Combien ? (de 1 à {{values.max}})', { max })) + '</label>';
+    html += '<div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">'
+      + '<input id="hg-quantite" class="cpj-champ" type="number" inputmode="numeric" min="1" max="' + max + '" value="1" style="width:5.5rem;font-size:1rem" onkeydown="if(event.key===\'Enter\')validerFenetreQuantite()">'
+      + '<button type="button" id="hg-quantite-tout" class="cpj-touche" onclick="document.getElementById(\'hg-quantite\').value=' + max + '">' + echapperTexteInventaire(T('qtyAll', 'Tout ({{values.max}})', { max })) + '</button></div>';
+    html += '<p id="hg-quantite-erreur" role="alert" style="min-height:1.2em;margin:.4rem 0;color:#e08a6a"></p>';
+    html += '<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.4rem">'
+      + '<button type="button" id="hg-quantite-ok" class="cpj-touche cpj-primaire" onclick="validerFenetreQuantite()">' + echapperTexteInventaire(o.action) + '</button>'
+      + '<button type="button" class="cpj-touche" onclick="fermerFenetreQuantite()">' + echapperTexteInventaire(T('cancel', 'Annuler')) + '</button></div>';
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+  setTimeout(() => { const c = document.getElementById('hg-quantite'); if (c) { c.focus(); c.select(); } }, 30);
+}
+async function validerFenetreQuantite() {
+  const o = RP_FENETRE_QUANTITE; if (!o) return;
+  const champ = document.getElementById('hg-quantite'), err = document.getElementById('hg-quantite-erreur');
+  const q = Number(champ && champ.value), max = Math.floor(o.max || 0);
+  if (!Number.isInteger(q) || q < 1 || q > max) {
+    if (err) err.textContent = texteInventaire('qtyBetween', 'Choisissez un nombre entier entre 1 et {{values.max}}.', { max });
+    return;
+  }
+  const bouton = document.getElementById('hg-quantite-ok'); if (bouton) bouton.disabled = true;
+  try { await o.onValider(q); } finally { if (bouton) bouton.disabled = false; }
+}
+// Quantite totale detenue d'un objet empilable (toutes ses piles), comme le serveur (inventaire_quantite).
+function quantiteDetenueInventaire(item) {
+  if (!item) return 0;
+  if (!(item.stackable && item.stackKey)) return 1;
+  return (state.inventory || []).filter(o => o && o.stackKey === item.stackKey).reduce((n, o) => n + (Number(o.qty) > 0 ? Number(o.qty) : 1), 0);
+}
+
 // Abandon au sol — retrait de l'inventaire ET depot dans la piece DANS LA MEME TRANSACTION
 // (chantier C, 14 septembre 2026). Avant ce lot, le splice local precedait un INSERT separe
 // avale par un .catch(() => {}) : une coupure reseau entre les deux detruisait l'objet sans
 // que personne ne puisse jamais le ramasser.
-async function jeterObjetInventaire(idx) {
+// Quantite (22/11/2026) : une pile se depose en une fois, autant d'unites que l'on veut.
+function jeterObjetInventaire(idx) {
   const item = state.inventory[idx];
   if (!item) return;
-  const r = await removeFromInventory(idx, 'abandonner');
+  const detenu = quantiteDetenueInventaire(item);
+  if (detenu <= 1) return deposerObjetInventaire(idx, 1);
+  const T = texteInventaire, nom = item.name;
+  ouvrirFenetreQuantite({
+    titre: T('dropTitleQty', 'Déposer au sol — {{values.nom}}', { nom }),
+    intro: T('dropIntro', 'Vous avez {{values.n}} × {{values.nom}}. Combien voulez-vous en déposer ici ?', { n: detenu, nom }),
+    note: T('dropNote', 'Ce que vous déposez reste au sol : toutes les personnes présentes le voient et peuvent le ramasser.'),
+    max: detenu, action: T('dropAction', 'Déposer'),
+    onValider: q => deposerObjetInventaire(idx, q)
+  });
+}
+async function deposerObjetInventaire(idx, q) {
+  const item = state.inventory[idx];
+  if (!item) return;
+  const r = await removeFromInventory(idx, 'abandonner', { qte: q });
   if (!r.ok) {
-    showToast('Impossible', messageRefusSortieInventaire(r.raison), false);
+    const msg = messageRefusSortieInventaire(r.raison, r), err = document.getElementById('hg-quantite-erreur');
+    if (err && RP_FENETRE_QUANTITE) err.textContent = msg; else showToast(texteInventaire('impossible', 'Impossible'), msg, false);
     return;
   }
-  document.getElementById('modal-postes').classList.remove('open');
-  showToast('Objet abandonné', '"' + item.name + '" laissé sur place. Quelqu\'un pourrait le trouver...', true);
-  addJournalEntry('Vous avez abandonné "' + item.name + '" sur place.', 'event-info');
+  fermerFenetreQuantite();
+  const nom = item.name, quantite = (item.stackable && item.stackKey) ? q : 1;
+  showToast(texteInventaire('droppedTitle', 'Déposé au sol'),
+    quantite > 1 ? texteInventaire('droppedMany', 'Vous déposez {{values.n}} × {{values.nom}} au sol. Les personnes présentes peuvent les voir et les ramasser.', { n: quantite, nom })
+                 : texteInventaire('droppedOne', '« {{values.nom}} » est posé au sol. Les personnes présentes peuvent le voir et le ramasser.', { nom }), true);
+  addJournalEntry('Vous avez déposé ' + (quantite > 1 ? quantite + ' × ' : '') + '"' + nom + '" sur place.', 'event-info');
   // Petite chance qu'un PNJ le remarque et que ca se sache (registre comique, sans gravite)
   if (Math.random() < 0.15) {
     addExternalEvent('👀 Un témoin affirme avoir vu ' + (state.char?.name||'quelqu\'un') + ' abandonner un objet suspect.', 'local');
@@ -4037,7 +4105,9 @@ async function jeterObjetInventaire(idx) {
   if (typeof chargerObjetsAbandonnesDansPiece === 'function') chargerObjetsAbandonnesDansPiece();
 }
 
-// Charge et affiche les objets abandonnes presents dans la piece courante
+// Charge et affiche les objets abandonnes presents dans la piece courante. Rappelee par le signal de la piece
+// (plateau-temps-reel.js) : un objet pose ou ramasse par quelqu'un d'autre apparait ou disparait aussitot.
+window._objetsAuSol = window._objetsAuSol || {};
 async function chargerObjetsAbandonnesDansPiece() {
   if (typeof sbGetObjetsAbandonnesDansPiece !== 'function') return;
   if (!state.currentBuilding || !state.currentRoom) return;
@@ -4047,19 +4117,24 @@ async function chargerObjetsAbandonnesDansPiece() {
     if (state.currentBuilding !== buildingId || state.currentRoom !== roomId) return;
     const list = document.getElementById('persons-list');
     if (!list) return;
+    window._objetsAuSol = {};
+    objets.forEach(o => { if (o && o.id) window._objetsAuSol[o.id] = o; });
 
     // Retirer les anciennes cartes objet avant de reinserer (evite les doublons au rafraichissement periodique)
     list.querySelectorAll('.objet-abandonne-card').forEach(el => el.remove());
 
     if (objets.length === 0) return;
-    const html = objets.map(o =>
-      '<div class="person-card objet-abandonne-card" style="border-left:2px solid #8a6a30">' +
-      '<div class="person-avatar" style="border-color:#8a6a30"><i class="ti ' + (o.icon||'ti-package') + '" style="font-size:.75rem;color:#a0905a"></i></div>' +
-      '<div style="flex:1"><div class="person-name" style="color:#a0905a">' + o.name + '</div>' +
-      '<div class="person-role">Objet trouvé ici</div></div>' +
-      '<button onclick="ramasserObjetAbandonne(&quot;' + o.id + '&quot;)" style="font-size:.82rem;font-family:Bebas Neue,sans-serif;padding:.15rem .4rem;border:1px solid #4a6a30;background:transparent;color:#6a9a6a;cursor:pointer;flex-shrink:0">Ramasser</button>' +
-      '</div>'
-    ).join('');
+    const T = texteInventaire;
+    const html = objets.map(o => {
+      const q = (o.stackable && Number(o.qty) > 1) ? Number(o.qty) : 1;
+      const id = echapperTexteInventaire(String(o.id).replace(/[^\w-]/g, ''));
+      return '<div class="person-card objet-abandonne-card" data-objet-sol="' + id + '" style="border-left:2px solid #8a6a30">' +
+      '<div class="person-avatar" style="border-color:#8a6a30"><i class="ti ' + echapperTexteInventaire(o.icon||'ti-package') + '" style="color:#a0905a"></i></div>' +
+      '<div style="flex:1"><div class="person-name" style="color:#a0905a">' + echapperTexteInventaire(o.name) + (q > 1 ? ' × ' + q : '') + '</div>' +
+      '<div class="person-role">' + echapperTexteInventaire(T('groundFound', 'Au sol, ici')) + '</div></div>' +
+      '<button type="button" class="cpj-touche" onclick="ramasserObjetAbandonne(\'' + id + '\')" style="flex-shrink:0">' + echapperTexteInventaire(T('pickAction', 'Ramasser')) + '</button>' +
+      '</div>';
+    }).join('');
     const empty = list.querySelector('.person-empty');
     if (empty) empty.remove();
     list.insertAdjacentHTML('beforeend', html);
@@ -4070,22 +4145,93 @@ async function chargerObjetsAbandonnesDansPiece() {
 // verifie qu'on est dans la meme piece, retire l'objet du sol et l'ajoute a l'inventaire reel,
 // dans une seule transaction. Avant, l'objet etait retire de la base mais n'arrivait que sur
 // l'ecran : il disparaissait au rechargement.
-async function ramasserObjetAbandonne(objetId) {
-  const v = (typeof sbRpcVerdict === 'function')
-    ? await sbRpcVerdict('objet_abandonne_ramasser', { p_id: objetId }).catch(() => null) : null;
+// Quantite et capacite (22/11/2026) : on choisit combien, dans la limite de la pile et de la place libre.
+function ramasserObjetAbandonne(objetId) {
+  const o = (window._objetsAuSol || {})[objetId];
+  if (!o) return ramasserObjetAbandonneQuantite(objetId, null);
+  const T = texteInventaire, nom = o.name || T('anItem', 'un objet');
+  const pile = (o.stackable && Number(o.qty) > 1) ? Number(o.qty) : 1;
+  const encombrement = o.stackable ? 1 : Math.max(1, Number(o.encombrement) || 1);
+  const place = placeInventaireLibre(), capacite = capaciteInventaire();
+  const maxi = o.stackable ? Math.min(pile, place) : (place >= encombrement ? 1 : 0);
+  if (maxi >= 1 && pile === 1) return ramasserObjetAbandonneQuantite(objetId, 1);
+  ouvrirFenetreQuantite({
+    titre: T('pickTitleQty', 'Ramasser — {{values.nom}}', { nom }),
+    intro: pile > 1 ? T('pickIntroMany', 'Il y a {{values.n}} × {{values.nom}} au sol. Combien voulez-vous en prendre ?', { n: pile, nom })
+                    : T('pickIntroOne', '« {{values.nom}} » est au sol.', { nom }),
+    note: T('pickNote', 'Votre inventaire peut encore accueillir {{values.place}} unité(s) (capacité : {{values.capacite}}).', { place, capacite }),
+    max: maxi, action: T('pickAction', 'Ramasser'),
+    bloque: place <= 0 ? T('pickFull', 'Votre inventaire est plein. Déposez ou donnez quelque chose pour faire de la place, puis revenez.')
+                       : T('pickTooBig', 'Cet objet prend {{values.n}} unités : il n’y a pas assez de place dans votre inventaire.', { n: encombrement }),
+    onValider: q => ramasserObjetAbandonneQuantite(objetId, q)
+  });
+}
+async function ramasserObjetAbandonneQuantite(objetId, q) {
+  const v = (typeof sbObjetAbandonneRamasser === 'function')
+    ? await sbObjetAbandonneRamasser(objetId, q).catch(() => null) : null;
+  const T = texteInventaire;
   if (!v || v.ok !== true) {
-    if (v?.raison === 'objet_disparu') { showToast('Trop tard', 'Quelqu\'un d\'autre l\'a déjà ramassé.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bc98f0617", 'Quelqu\'un d\'autre l\'a déjà ramassé.', undefined, 'Trop tard'); }
-    else if (v?.raison === 'pas_sur_place') { showToast('Trop loin', 'Cet objet n\'est pas dans la pièce où vous êtes.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b4526693b", 'Cet objet n\'est pas dans la pièce où vous êtes.', undefined, 'Trop loin'); }
-    else { showToast('Impossible', 'L\'objet n\'a pas pu être ramassé.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b51bf439a", 'L\'objet n\'a pas pu être ramassé.', undefined, 'Impossible'); }
+    if (v?.raison === 'objet_disparu') { fermerFenetreQuantite(); showToast('Trop tard', 'Quelqu\'un d\'autre l\'a déjà ramassé.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bc98f0617", 'Quelqu\'un d\'autre l\'a déjà ramassé.', undefined, 'Trop tard'); }
+    else if (v?.raison === 'pas_sur_place') { fermerFenetreQuantite(); showToast('Trop loin', 'Cet objet n\'est pas dans la pièce où vous êtes.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b4526693b", 'Cet objet n\'est pas dans la pièce où vous êtes.', undefined, 'Trop loin'); }
+    else if (v && ['place_insuffisante', 'inventaire_plein', 'quantite_invalide'].includes(v.raison)) {
+      // La pile ou la place a change entre-temps : on le dit, et la fenetre reste ouverte pour choisir a nouveau.
+      adopterCapaciteInventaire(v);
+      const msg = v.raison === 'quantite_invalide'
+        ? T('pickChanged', 'La pile a changé : il en reste {{values.n}} au sol.', { n: Number(v.dispo) || 0 })
+        : messageRefusSortieInventaire(v.raison, v);
+      const err = document.getElementById('hg-quantite-erreur');
+      if (err && RP_FENETRE_QUANTITE) err.textContent = msg; else showToast(T('impossible', 'Impossible'), msg, false);
+    }
+    else { fermerFenetreQuantite(); showToast('Impossible', 'L\'objet n\'a pas pu être ramassé.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b51bf439a", 'L\'objet n\'a pas pu être ramassé.', undefined, 'Impossible'); }
     chargerObjetsAbandonnesDansPiece();
     return;
   }
-  if (Array.isArray(v.inventory)) state.inventory = v.inventory;
+  fermerFenetreQuantite();
+  if (!(typeof sbAdopterInventaireServeur === 'function' && sbAdopterInventaireServeur(v)) && Array.isArray(v.inventory)) state.inventory = v.inventory;
+  adopterCapaciteInventaire(v);
   if (typeof renderInventory === 'function') renderInventory();
-  const nom = v.objet?.name || 'un objet';
-  showToast('Objet ramassé', 'Vous récupérez : ' + nom + '.', true, true);
-  addJournalEntry('Vous avez ramassé "' + nom + '" trouvé sur place.', 'event-info');
+  const nom = v.objet?.name || T('anItem', 'un objet'), n = Number(v.qte) > 1 ? Number(v.qte) : 1;
+  showToast(T('pickedTitle', 'Objet ramassé'), n > 1 ? T('pickedMany', 'Vous récupérez {{values.n}} × {{values.nom}}.', { n, nom })
+                                                    : T('pickedOne', 'Vous récupérez : {{values.nom}}.', { nom }), true, true);
+  addJournalEntry('Vous avez ramassé ' + (n > 1 ? n + ' × ' : '') + '"' + nom + '" trouvé sur place.', 'event-info');
   chargerObjetsAbandonnesDansPiece();
+}
+
+// DONNER A UN JOUEUR PRESENT, avec quantite (22/11/2026, point 4). Chemin d'interface commun vers inventaire_donner :
+// fiche de l'objet (liste des presents), carte du joueur (« Donner » → « Un objet ») et « Donner » → « De l'argent ».
+// Aucune restriction de groupe : chef et membres se donnent des objets comme deux joueurs quelconques.
+function donnerObjetQuantite(idx, cible, apres) {
+  const item = state.inventory[idx];
+  if (!item || !cible) return;
+  const detenu = quantiteDetenueInventaire(item);
+  if (detenu <= 1) return confirmerDonObjetQuantite(idx, cible, 1, apres);
+  const T = texteInventaire, nom = item.name;
+  ouvrirFenetreQuantite({
+    titre: T('giveTitleQty', 'Donner à {{values.cible}} — {{values.nom}}', { cible, nom }),
+    intro: T('giveIntro', 'Vous avez {{values.n}} × {{values.nom}}. Combien voulez-vous en donner à {{values.cible}} ?', { n: detenu, nom, cible }),
+    note: T('giveNote', 'L’objet arrive aussitôt dans son inventaire, s’il lui reste de la place.'),
+    max: detenu, action: T('giveAction', 'Donner'),
+    onValider: q => confirmerDonObjetQuantite(idx, cible, q, apres)
+  });
+}
+async function confirmerDonObjetQuantite(idx, cible, q, apres) {
+  const item = state.inventory[idx];
+  if (!item || !cible) return;
+  const r = await removeFromInventory(idx, 'donner', { destinataire: cible, qte: q });
+  if (!r.ok) {
+    const msg = messageRefusSortieInventaire(r.raison, r);
+    const err = document.getElementById('hg-quantite-erreur');
+    if (err && RP_FENETRE_QUANTITE) err.textContent = msg; else showToast(texteInventaire('impossible', 'Impossible'), msg, false);
+    return;
+  }
+  fermerFenetreQuantite();
+  document.getElementById('modal-pnj')?.classList.remove('open');
+  const nom = item.name, n = (item.stackable && item.stackKey) ? q : 1;
+  const texte = n > 1 ? texteInventaire('givenMany', 'Vous avez donné {{values.n}} × {{values.nom}} à {{values.cible}}.', { n, nom, cible })
+                      : texteInventaire('givenOne', 'Vous avez donné « {{values.nom}} » à {{values.cible}}.', { nom, cible });
+  showToast(texteInventaire('givenTitle', 'Objet donné'), texte, true, true);
+  addJournalEntry('Vous avez donné ' + (n > 1 ? n + ' × ' : '') + '"' + nom + '" à ' + cible + '.', 'event-info');
+  if (typeof apres === 'function') { try { apres(n); } catch (_) {} }
 }
 function toggleSection(panelId, chevronId) {
   const panel = document.getElementById(panelId);
