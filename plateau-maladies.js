@@ -8,15 +8,19 @@
 const T = {
   fr: {
     n_intoxication: 'Intoxication alimentaire', n_gueule_de_bois: 'Gueule de bois', n_grippe: 'Grippe', n_coup_de_chaleur: 'Coup de chaleur',
+    n_mst: 'MST',
     s_intoxication: 'Vous vomissez toutes les 10 minutes, ce qui vous rend moins charmeur.',
     s_gueule_de_bois: 'La lumière vous agresse et chaque pensée vous coûte.',
     s_grippe: 'Vous avez le nez qui coule et les idées embrumées.',
     s_coup_de_chaleur: 'Vous avez la tête qui tourne et transpirez à grosses gouttes.',
+    s_mst: 'Des démangeaisons très gênantes, qui ne passeront pas sans antibiotique.',
     o_intoxication: 'Teint verdâtre, une main sur le ventre, s’éclipse souvent.',
     o_gueule_de_bois: 'Yeux cernés, plisse les paupières à la moindre lumière.',
     o_grippe: 'Tousse, renifle, a le nez rouge.',
     o_coup_de_chaleur: 'Visage écarlate, ruisselant de sueur, un peu chancelant.',
+    o_mst: 'Démangeaisons très gênantes.',
     m_antinauseeux: 'Anti-nauséeux', m_aspirine: 'Aspirine', m_antigrippal: 'Antigrippal', m_sels_rehydratation: 'Sels de réhydratation',
+    m_antibiotique: 'Antibiotique',
     health: 'État de santé', treated: 'traitement pris', paCap: 'PA plafonnés à {n}', noWeapon: 'bonus d’arme perdu',
     sick: 'Vous êtes malade', cured: 'Vous êtes guéri(e) : {noms}.', symptoms: 'Symptômes : {s}',
     pharmacy: 'Pharmacie', pharmacyIntro: 'Le médicament adapté guérit au prochain Dormir.',
@@ -250,8 +254,10 @@ const T = {
     r_quantite_invalide: 'Ungültige Menge (1 bis 10).', refused: 'Der Server hat den Vorgang abgelehnt.'
   }
 };
-const CLES = ['intoxication', 'gueule_de_bois', 'grippe', 'coup_de_chaleur'];
-const MEDICAMENTS = ['antinauseeux', 'aspirine', 'antigrippal', 'sels_rehydratation'];
+// Santé (Fred, 22/11/2026, points 5 et 13) : MST et antibiotique. Textes français seulement ; les autres langues retombent sur
+// le français en attendant Codex (n_mst, s_mst, o_mst, m_antibiotique).
+const CLES = ['intoxication', 'gueule_de_bois', 'grippe', 'coup_de_chaleur', 'mst'];
+const MEDICAMENTS = ['antinauseeux', 'aspirine', 'antigrippal', 'sels_rehydratation', 'antibiotique'];
 
 function langue() {
   const l = (global.RPPlateauI18n && typeof global.RPPlateauI18n.language === 'function' && global.RPPlateauI18n.language())

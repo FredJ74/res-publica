@@ -1,0 +1,23 @@
+name: "Santé — maladies, MST, escort, médicaments, fontaines"
+on:
+  pull_request:
+    paths: [plateau-maladies.js, plateau-justice-economie.js, plateau-pnj.js, admin-maladies.js, 'migrations/20261122230000_sante_socle.sql', 'migrations/20261122233000_sante_maladies_medicaments.sql', 'outils/bancs/banc-sante-maladies-*', 'outils/bancs/fixtures/sante-maladies-*', 'outils/bancs/fixtures/inventaire-direct-pglite-socle.sql.txt', .github/workflows/sante-maladies-20261122.yml]
+  push:
+    branches: [main, 'claude/**']
+    paths: [plateau-maladies.js, plateau-justice-economie.js, plateau-pnj.js, admin-maladies.js, 'migrations/20261122230000_sante_socle.sql', 'migrations/20261122233000_sante_maladies_medicaments.sql', 'outils/bancs/banc-sante-maladies-*', 'outils/bancs/fixtures/sante-maladies-*', 'outils/bancs/fixtures/inventaire-direct-pglite-socle.sql.txt', .github/workflows/sante-maladies-20261122.yml]
+permissions:
+  contents: read
+jobs:
+  sante-maladies:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: for f in plateau-maladies.js plateau-justice-economie.js plateau-pnj.js admin-maladies.js; do node --check "$f"; done
+      - name: PostgreSQL local (PGlite)
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund --prefix "$RUNNER_TEMP/pglite" @electric-sql/pglite@0.2.17
+          PGLITE_DIR="$RUNNER_TEMP/pglite" node --test outils/bancs/banc-sante-maladies-pglite-20261122.cjs
