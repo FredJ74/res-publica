@@ -1,0 +1,178 @@
+-- Socle minimal (PGlite) pour les migrations 20261122160000 (marché unique de Krasnov), 20261122161000 (une fontaine par
+-- ville) et 20261122162000 (Inspecter la pièce, Désinstaller du matériel). Mêmes signatures que la production ; corps
+-- simplifiés, sauf les primitives d'inventaire et d'argent recopiées de la production.
+CREATE SCHEMA IF NOT EXISTS auth;
+CREATE ROLE anon; CREATE ROLE authenticated;
+CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$ SELECT nullif(current_setting('test.uid', true), '')::uuid $$;
+CREATE TABLE public.personnages (name text PRIMARY KEY, user_id uuid);
+CREATE TABLE public.personnages_donnees (name text PRIMARY KEY, country text, current_city text, current_building text, current_room text,
+  current_street text, pa integer, liquide numeric DEFAULT 0, arg numeric DEFAULT 0, stats jsonb DEFAULT '{}'::jsonb, moral integer DEFAULT 50,
+  recherche jsonb, inventory jsonb DEFAULT '[]'::jsonb, inventory_revision bigint DEFAULT 0, est_emprisonne jsonb, pa_repos_le date,
+  bonus_pa_differe integer DEFAULT 0, updated_at timestamptz);
+CREATE OR REPLACE FUNCTION public.mon_personnage() RETURNS text LANGUAGE sql STABLE AS $$ SELECT name FROM public.personnages WHERE user_id = auth.uid() $$;
+CREATE TABLE public.comptes_bancaires (id text PRIMARY KEY, personnage text, banque text, solde numeric, updated_at timestamptz);
+CREATE TABLE public.caisses_batiments (id text PRIMARY KEY, data jsonb, updated_at timestamptz);
+CREATE TABLE public.aliments_parametres (cle text PRIMARY KEY, valeur numeric);
+CREATE OR REPLACE FUNCTION public.aliments_param_interne(p_cle text, p_defaut numeric) RETURNS numeric LANGUAGE sql STABLE AS
+$$ SELECT coalesce((SELECT valeur FROM public.aliments_parametres WHERE cle = p_cle), p_defaut) $$;
+CREATE TABLE public.graisses_points_vente (id text PRIMARY KEY, pays text, ville text, batiment text, piece text, cle text);
+INSERT INTO public.graisses_points_vente VALUES ('marche-krasnov', 'soviet', 'ville_b', 'marche', 'marche_ext', 'graisse_ours'),
+  ('poissonniere-novomirsk', 'soviet', 'capitale', 'poissonniere-novomirsk', 'etal_poissonniere', 'graisse_castor');
+CREATE TABLE public.climat_points_eau (id text PRIMARY KEY, pays text NOT NULL, ville text NOT NULL, noeud text NOT NULL, nom text NOT NULL, image text, actif boolean NOT NULL DEFAULT true);
+INSERT INTO public.climat_points_eau VALUES ('krasnov-fontaine-ours', 'soviet', 'ville_b', 'krasnov-place-ours', 'la fontaine de la statue de l''Ours, place de l''Ours',
+  'images/Sovarka/Krasnov/Krasnov_place_ours_fontaine.webp', true);
+CREATE TABLE public.rue_noeuds_serveur (country text, city text, noeud text, voisins jsonb, directions jsonb);
+INSERT INTO public.rue_noeuds_serveur (country, city, noeud) VALUES ('soviet', 'ville_b', 'krasnov-place-ours'),
+  ('republic', 'capitale', 'luthecia-hotel-de-ville'), ('republic', 'ville_b', 'montrouge-vue-7'), ('republic', 'ville_a', 'psm-hotel-mairie-place'),
+  ('soviet', 'capitale', 'novomirsk-vue-1'), ('soviet', 'ville_a', 'starovka-rue-mairie-marche');
+
+-- Requêtes rejouables.
+CREATE TABLE public.requetes_test (acteur text, requete uuid, resultat jsonb, PRIMARY KEY (acteur, requete));
+CREATE OR REPLACE FUNCTION public.achat_requete_ouvrir_interne(a text, r uuid, f text, p jsonb) RETURNS jsonb LANGUAGE sql AS
+$$ SELECT resultat || '{"rejeu":true}'::jsonb FROM public.requetes_test WHERE acteur = a AND requete = r $$;
+CREATE OR REPLACE FUNCTION public.achat_requete_clore_interne(a text, r uuid, f text, p jsonb, v jsonb) RETURNS jsonb LANGUAGE sql AS
+$$ INSERT INTO public.requetes_test VALUES (a, r, v) RETURNING resultat || (SELECT jsonb_build_object('inventory', inventory) FROM public.personnages_donnees WHERE name = a) $$;
+
+-- Inventaire et argent (recopiés de la production, sans la péremption).
+CREATE OR REPLACE FUNCTION public.aliment_recu_interne(p_e jsonb) RETURNS date LANGUAGE sql IMMUTABLE AS $$ SELECT nullif(p_e->>'recu', '')::date $$;
+CREATE OR REPLACE FUNCTION public.aliment_pile_avariee_interne(p_e jsonb) RETURNS boolean LANGUAGE sql IMMUTABLE AS $$ SELECT coalesce((p_e->>'avarie')::boolean, false) $$;
+CREATE OR REPLACE FUNCTION public.aliment_dater_interne(p_o jsonb) RETURNS jsonb LANGUAGE sql IMMUTABLE AS $$ SELECT p_o $$;
+CREATE OR REPLACE FUNCTION public.inventaire_pile_fusionnable(p_e jsonb, p_o jsonb) RETURNS boolean LANGUAGE sql IMMUTABLE AS
+$$ SELECT coalesce(p_e->>'stackKey' = p_o->>'stackKey', false) $$;
+CREATE OR REPLACE FUNCTION public.inventaire_place_restante(p_inv jsonb) RETURNS integer LANGUAGE sql IMMUTABLE AS $$
+ SELECT greatest(0,100-coalesce((SELECT sum(CASE WHEN coalesce(e->>'qty','') ~ '^[0-9]+$' THEN (e->>'qty')::numeric
+   WHEN coalesce(e->>'encombrement','') ~ '^[0-9]+$' THEN (e->>'encombrement')::numeric ELSE 1 END)
+   FROM jsonb_array_elements(coalesce(p_inv,'[]'::jsonb)) e),0))::integer $$;
+CREATE OR REPLACE FUNCTION public.inventaire_deposer_interne(p_nom text, p_objet jsonb, p_automatique boolean DEFAULT false)
+RETURNS jsonb LANGUAGE plpgsql AS $$
+DECLARE v_inv jsonb; v_place integer; v_q integer; v_cle text; v_obj jsonb := p_objet; v_pile bigint;
+BEGIN
+  SELECT coalesce(inventory,'[]'::jsonb) INTO v_inv FROM public.personnages_donnees WHERE name = p_nom FOR UPDATE;
+  v_place := CASE WHEN p_automatique THEN 1000000 ELSE public.inventaire_place_restante(v_inv) END;
+  v_cle := nullif(p_objet ->> 'stackKey', '');
+  IF coalesce((p_objet ->> 'stackable')::boolean, false) AND v_cle IS NOT NULL THEN
+    v_q := least(coalesce((p_objet->>'qty')::numeric,1),v_place)::integer;
+    IF v_q <= 0 THEN RETURN jsonb_build_object('ok', false, 'raison', 'inventaire_plein'); END IF;
+    SELECT o INTO v_pile FROM jsonb_array_elements(v_inv) WITH ORDINALITY x(e,o) WHERE coalesce((e->>'stackable')::boolean,false) AND e->>'stackKey'=v_cle ORDER BY o LIMIT 1;
+    IF v_pile IS NOT NULL THEN
+      SELECT jsonb_agg(CASE WHEN o=v_pile THEN jsonb_set(e, '{qty}', to_jsonb(coalesce((e ->> 'qty')::numeric, 1) + v_q)) ELSE e END ORDER BY o)
+        INTO v_inv FROM jsonb_array_elements(v_inv) WITH ORDINALITY x(e, o);
+    ELSE v_inv := v_inv || jsonb_build_array(p_objet || jsonb_build_object('qty', v_q)); END IF;
+  ELSE
+    v_q := greatest(1, coalesce((p_objet ->> 'encombrement')::numeric, 1)::integer);
+    IF v_place < v_q THEN RETURN jsonb_build_object('ok', false, 'raison', 'inventaire_plein'); END IF;
+    IF coalesce(p_objet ->> 'id', '') = '' THEN v_obj := p_objet || jsonb_build_object('id', 'obj-' || replace(gen_random_uuid()::text, '-', '')); END IF;
+    v_inv := v_inv || jsonb_build_array(v_obj); v_q := 1;
+  END IF;
+  UPDATE public.personnages_donnees SET inventory = v_inv WHERE name = p_nom;
+  RETURN jsonb_build_object('ok', true, 'qte', v_q, 'inventory', v_inv);
+END $$;
+CREATE OR REPLACE FUNCTION public.argent_crediter_interne(p_nom text, p_montant numeric, p_poche text DEFAULT 'nationale') RETURNS numeric LANGUAGE plpgsql AS $$
+DECLARE v_m numeric := round(coalesce(p_montant, 0));
+BEGIN
+  IF v_m <= 0 THEN RETURN 0; END IF;
+  UPDATE public.personnages_donnees SET liquide = coalesce(liquide, 0) + v_m WHERE name = p_nom; RETURN v_m;
+END $$;
+CREATE OR REPLACE FUNCTION public.argent_debiter_interne(p_nom text, p_montant numeric, p_poches text DEFAULT 'liquide_puis_nationale') RETURNS numeric LANGUAGE plpgsql AS $$
+DECLARE v_m numeric := round(coalesce(p_montant, 0)); v_liq numeric; v_id text; v_solde numeric; v_pris_l numeric := 0; v_pris_n numeric := 0;
+BEGIN
+  IF v_m <= 0 THEN RETURN 0; END IF;
+  SELECT coalesce(liquide, 0) INTO v_liq FROM public.personnages_donnees WHERE name = p_nom FOR UPDATE;
+  v_pris_l := least(greatest(v_liq, 0), v_m);
+  IF p_poches = 'liquide_puis_nationale' AND v_pris_l < v_m THEN
+    SELECT id, coalesce(solde, 0) INTO v_id, v_solde FROM public.comptes_bancaires WHERE personnage = p_nom AND banque = 'nationale' ORDER BY id LIMIT 1 FOR UPDATE;
+    IF v_id IS NOT NULL THEN v_pris_n := least(greatest(v_solde, 0), v_m - v_pris_l); END IF;
+  END IF;
+  IF v_pris_l > 0 THEN UPDATE public.personnages_donnees SET liquide = v_liq - v_pris_l WHERE name = p_nom; END IF;
+  IF v_pris_n > 0 THEN UPDATE public.comptes_bancaires SET solde = solde - v_pris_n WHERE id = v_id; END IF;
+  RETURN v_pris_l + v_pris_n;
+END $$;
+CREATE OR REPLACE FUNCTION public.caisse_institution_mouvement(p_id text, p_delta numeric, p_exiger_existant boolean DEFAULT false) RETURNS jsonb LANGUAGE plpgsql AS $$
+DECLARE v_solde numeric;
+BEGIN
+  SELECT (data->>'solde')::numeric INTO v_solde FROM public.caisses_batiments WHERE id = p_id FOR UPDATE;
+  IF coalesce(v_solde, 0) + p_delta < 0 THEN RETURN '{"ok":false,"raison":"solde_insuffisant"}'; END IF;
+  UPDATE public.caisses_batiments SET data = jsonb_build_object('solde', coalesce(v_solde, 0) + p_delta) WHERE id = p_id;
+  RETURN '{"ok":true}';
+END $$;
+
+-- Objets du climat et des graisses (formes de la production).
+CREATE OR REPLACE FUNCTION public.climat_objet_interne(p_cle text, p_qte integer) RETURNS jsonb LANGUAGE sql IMMUTABLE AS $$
+  SELECT jsonb_build_object('name', 'Bouteille d''eau', 'icon', 'ti-bottle', 'type', 'bouteille_eau', 'stackable', true, 'stackKey', 'bouteille_eau', 'qty', p_qte, 'legal', true) $$;
+CREATE OR REPLACE FUNCTION public.graisse_objet_interne(p_cle text, p_qte integer) RETURNS jsonb LANGUAGE sql IMMUTABLE AS $$
+  SELECT jsonb_build_object('name', 'Bocal de graisse d''ours', 'type', 'graisse', 'graisse', p_cle, 'stackable', true, 'stackKey', p_cle, 'qty', p_qte, 'legal', true) $$;
+
+-- Repas et maladies.
+CREATE TABLE public.repas_differes_nuits (nom text, cle text, nuit text, pris_le timestamptz DEFAULT now(), PRIMARY KEY (nom, cle));
+CREATE OR REPLACE FUNCTION public.repas_differe_deja_pris_interne(p_nom text, p_cle text) RETURNS boolean LANGUAGE sql STABLE AS $$
+  SELECT EXISTS (SELECT 1 FROM public.repas_differes_nuits r JOIN public.personnages_donnees p ON p.name = r.nom
+                  WHERE r.nom = p_nom AND r.cle = p_cle AND r.nuit = coalesce(p.pa_repos_le::text, 'jamais')) $$;
+CREATE OR REPLACE FUNCTION public.repas_differe_crediter_interne(p_nom text, p_cle text, p_source text) RETURNS integer LANGUAGE plpgsql AS $$
+DECLARE v_b integer;
+BEGIN
+  INSERT INTO public.repas_differes_nuits (nom, cle, nuit) VALUES (p_nom, p_cle, 'jamais') ON CONFLICT (nom, cle) DO UPDATE SET nuit = 'jamais';
+  UPDATE public.personnages_donnees SET bonus_pa_differe = coalesce(bonus_pa_differe, 0) + 1 WHERE name = p_nom RETURNING bonus_pa_differe INTO v_b;
+  RETURN v_b;
+END $$;
+CREATE OR REPLACE FUNCTION public.maladie_pa_plafond_interne(p_nom text, p_pa_actuel integer) RETURNS integer LANGUAGE sql STABLE AS $$ SELECT 30 $$;
+CREATE OR REPLACE FUNCTION public.maladie_risque_interne(p_cle text, p_circonstance text) RETURNS numeric LANGUAGE sql STABLE AS $$ SELECT 50::numeric $$;
+CREATE OR REPLACE FUNCTION public.maladie_tirer_interne(p_nom text, p_cle text, p_pourcentage numeric, p_source text) RETURNS jsonb LANGUAGE sql AS $$ SELECT jsonb_build_object('tiree', p_cle) $$;
+
+-- Pièces, caméras, cachettes, équipements, objets au sol, criminalité (corps simplifiés, jets réglables).
+CREATE TABLE public.reglages_test (cle text PRIMARY KEY, valeur text);
+CREATE OR REPLACE FUNCTION public.surveillance_lieu_interne(p_acteur text) RETURNS TABLE(pays text, ville text, batiment text, piece text) LANGUAGE sql STABLE AS $$
+  SELECT pd.country, pd.current_city,
+         CASE WHEN pd.current_building IS NOT NULL AND pd.current_room IS NOT NULL THEN pd.current_building WHEN pd.current_street IS NOT NULL THEN 'rue-centrale' END,
+         CASE WHEN pd.current_building IS NOT NULL AND pd.current_room IS NOT NULL THEN pd.current_room ELSE pd.current_street END
+    FROM public.personnages_donnees pd WHERE pd.name = p_acteur $$;
+CREATE TABLE public.cameras_posees (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), proprietaire text, pays text, ville text, batiment text, piece text, posee_le timestamptz DEFAULT now());
+CREATE TABLE public.cameras_decouvertes (acteur text, camera_id uuid, trouvee_le timestamptz DEFAULT now(), PRIMARY KEY (acteur, camera_id));
+CREATE TABLE public.caches_pj (personnage text PRIMARY KEY, pays text, ville text, batiment text, piece text, le timestamptz DEFAULT now());
+CREATE TABLE public.organisations (id text PRIMARY KEY, data text);
+CREATE TABLE public.organisation_materiel_autorises (organisation text, membre text);
+CREATE OR REPLACE FUNCTION public.equipement_a_moi_interne(p_proprietaire text, p_acteur text) RETURNS boolean LANGUAGE sql STABLE AS $$ SELECT p_proprietaire = p_acteur $$;
+CREATE TABLE public.locaux_test (acteur text, batiment text, piece text);
+CREATE OR REPLACE FUNCTION public.local_jouissance_interne(p_acteur text, p_pays text, p_ville text, p_batiment text, p_piece text) RETURNS boolean LANGUAGE sql STABLE AS $$
+  SELECT EXISTS (SELECT 1 FROM public.locaux_test WHERE acteur = p_acteur AND batiment = p_batiment AND piece = p_piece) $$;
+CREATE TABLE public.equipements_installes (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), proprietaire text, generique_id text, objet jsonb,
+  pays text, ville text, batiment text, piece text, installe_le timestamptz DEFAULT now(), jouissance_perdue_le timestamptz);
+CREATE TABLE public.serrures (id serial PRIMARY KEY, statut text, cible text, fermee boolean, armoire_objet text);
+CREATE TABLE public.objets_abandonnes (id text PRIMARY KEY, country text, city text, building_id text, room_id text, data text, created_at timestamptz DEFAULT now());
+CREATE TABLE public.crim_affaires (id bigserial PRIMARY KEY, acte text, auteur text, cible text, remarque boolean DEFAULT false, pays text, ville text,
+  batiment text, piece text, details jsonb DEFAULT '{}'::jsonb, maj_le timestamptz);
+CREATE TABLE public.crim_constats (id bigserial PRIMARY KEY, destinataire text, pays text, ville text, batiment text, piece text, entreprise text, titre text, corps text, affaire bigint);
+CREATE TABLE public.evenements_test (nom text, type text, donnees jsonb);
+CREATE OR REPLACE FUNCTION public.crim_force_ordre_interne(p_nom text) RETURNS boolean LANGUAGE sql STABLE AS $$ SELECT false $$;
+CREATE OR REPLACE FUNCTION public.crim_stat_interne(p_nom text, p_cle text, p_defaut numeric) RETURNS numeric LANGUAGE sql STABLE AS $$ SELECT p_defaut $$;
+CREATE OR REPLACE FUNCTION public.crim_fouiller_taux_interne(p_per_fouilleur numeric, p_dis_cache numeric, p_ninja boolean, p_force boolean) RETURNS integer LANGUAGE sql STABLE AS
+$$ SELECT coalesce((SELECT valeur::integer FROM public.reglages_test WHERE cle = 'taux_fouille'), 50) $$;
+CREATE OR REPLACE FUNCTION public.crim_objet_porte_interne(p_nom text, p_categorie text) RETURNS boolean LANGUAGE sql STABLE AS $$ SELECT false $$;
+CREATE OR REPLACE FUNCTION public.crim_debusquer_interne(p_nom text, p_motif text) RETURNS boolean LANGUAGE sql AS $$ DELETE FROM public.caches_pj WHERE personnage = p_nom RETURNING true $$;
+CREATE OR REPLACE FUNCTION public.crim_masque_interne(p_nom text) RETURNS boolean LANGUAGE sql STABLE AS $$ SELECT false $$;
+CREATE OR REPLACE FUNCTION public.crim_evenement_interne(p_nom text, p_type text, p_donnees jsonb) RETURNS void LANGUAGE sql AS $$ INSERT INTO public.evenements_test VALUES (p_nom, p_type, p_donnees) $$;
+CREATE OR REPLACE FUNCTION public.tresor_tsars_fouille_interne(p_acteur text, p_batiment text, p_piece text) RETURNS jsonb LANGUAGE sql AS $$ SELECT '{}'::jsonb $$;
+CREATE OR REPLACE FUNCTION public.crim_carriere_interne(p_nom text) RETURNS text LANGUAGE sql STABLE AS $$ SELECT NULL::text $$;
+CREATE OR REPLACE FUNCTION public.commerce_de_la_piece_interne(p_nom text) RETURNS text LANGUAGE sql STABLE AS $$ SELECT NULL::text $$;
+CREATE OR REPLACE FUNCTION public.payer_ordre(p_acteur text, p_fn text, p_pa integer, p_cost integer) RETURNS jsonb LANGUAGE plpgsql AS $$
+BEGIN
+  IF (SELECT pa FROM public.personnages_donnees WHERE name = p_acteur) < p_pa THEN RETURN '{"ok":false,"raison":"pa_insuffisants"}'; END IF;
+  UPDATE public.personnages_donnees SET pa = pa - p_pa WHERE name = p_acteur;
+  RETURN jsonb_build_object('ok', true, 'fn', p_fn, 'pa', p_pa);
+END $$;
+CREATE OR REPLACE FUNCTION public.crim_temoin_interne(p_auteur text, p_entreprise text) RETURNS jsonb LANGUAGE sql STABLE AS $$
+  SELECT CASE WHEN EXISTS (SELECT 1 FROM public.reglages_test WHERE cle = 'temoin') THEN jsonb_build_object('pj', true, 'nom', 'Témoin', 'per', 12) END $$;
+CREATE OR REPLACE FUNCTION public.crim_resoudre_interne(p_acte text, p_auteur text, p_cible text, p_params jsonb) RETURNS jsonb LANGUAGE plpgsql AS $$
+DECLARE v_id bigint; v_issue text := coalesce((SELECT valeur FROM public.reglages_test WHERE cle = 'issue'), 'reussite'); d record;
+BEGIN
+  SELECT * INTO d FROM public.personnages_donnees WHERE name = p_auteur;
+  INSERT INTO public.crim_affaires (acte, auteur, cible, pays, ville, batiment, piece, details)
+  VALUES (p_acte, p_auteur, p_cible, d.country, d.current_city, d.current_building, d.current_room, jsonb_build_object('params', p_params)) RETURNING id INTO v_id;
+  RETURN jsonb_build_object('issue', v_issue, 'affaire', v_id, 'params_vus', p_params);
+END $$;
+CREATE OR REPLACE FUNCTION public.crim_param_interne(p_cle text, p_defaut numeric) RETURNS numeric LANGUAGE sql STABLE AS $$ SELECT p_defaut $$;
+CREATE OR REPLACE FUNCTION public.crim_proprietaire_pj_interne(p_proprietaire text) RETURNS text LANGUAGE sql STABLE AS $$ SELECT p_proprietaire $$;
+CREATE OR REPLACE FUNCTION public.crim_per_groupe_interne(p_ci jsonb) RETURNS numeric LANGUAGE sql STABLE AS $$ SELECT 12::numeric $$;
+CREATE OR REPLACE FUNCTION public.crim_voler_taux_interne(p_butin text, p_dis numeric, p_per numeric, p_carriere text) RETURNS integer LANGUAGE sql STABLE AS $$ SELECT 50 $$;
+CREATE OR REPLACE FUNCTION public.crim_voler_remarque_interne(p_per numeric, p_dis numeric) RETURNS integer LANGUAGE sql STABLE AS $$ SELECT 50 $$;
+CREATE OR REPLACE FUNCTION public.crim_combat_ouvrir_interne(p_auteur text, p_r jsonb, p_ci jsonb, p_mode text, p_requete uuid) RETURNS jsonb LANGUAGE sql AS $$ SELECT p_r || '{"combat_ouvert":true}'::jsonb $$;
+CREATE OR REPLACE FUNCTION public.crime_trace_rumeur_interne(p_auteur text, p_type text, p_cible text) RETURNS void LANGUAGE sql AS $$ INSERT INTO public.evenements_test VALUES (p_auteur, 'trace_' || p_type, jsonb_build_object('cible', p_cible)) $$;
