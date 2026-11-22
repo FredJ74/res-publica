@@ -4107,7 +4107,6 @@ async function deposerObjetInventaire(idx, q) {
 
 // Charge et affiche les objets abandonnes presents dans la piece courante. Rappelee par le signal de la piece
 // (plateau-temps-reel.js) : un objet pose ou ramasse par quelqu'un d'autre apparait ou disparait aussitot.
-window._objetsAuSol = window._objetsAuSol || {};
 async function chargerObjetsAbandonnesDansPiece() {
   if (typeof sbGetObjetsAbandonnesDansPiece !== 'function') return;
   if (!state.currentBuilding || !state.currentRoom) return;

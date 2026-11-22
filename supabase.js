@@ -3017,13 +3017,13 @@ async function sbInventaireDetruire(acteur, index, signature, qte) {
 // Quantite (Fred, 22/11/2026) : on depose autant d'unites qu'on le choisit (migration 20261122200000). Tant que la
 // migration n'est pas posee (fonction a huit arguments absente : PGRST202), une seule unite part par l'ancienne forme.
 async function sbInventaireAbandonner(acteur, index, signature, country, city, building, room, qte) {
-  const p = { p_acteur: acteur, p_index: index, p_signature: signature,
-    p_country: country, p_city: city, p_building: building, p_room: room };
   if (Number.isInteger(qte) && qte > 0) {
-    const v = await sbRpcVerdict('inventaire_abandonner', { ...p, p_qte: qte });
+    const v = await sbRpcVerdict('inventaire_abandonner', { p_acteur: acteur, p_index: index, p_signature: signature,
+      p_country: country, p_city: city, p_building: building, p_room: room, p_qte: qte });
     if (!(v && v.transport && v.transport.code === 'PGRST202' && qte === 1)) return v;
   }
-  return sbRpcVerdict('inventaire_abandonner', p);
+  return sbRpcVerdict('inventaire_abandonner', { p_acteur: acteur, p_index: index, p_signature: signature,
+    p_country: country, p_city: city, p_building: building, p_room: room });
 }
 
 // Ramasser au sol avec une quantite, plafonnee a la pile et a la place libre (migration 20261122200000).
