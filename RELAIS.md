@@ -8,6 +8,42 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+### Santé — « Suites » : paliers, repas, robustesse, tracts, antenne, marchés, objectif (Claude, 22/11/2026, soir) — GAME-DESIGN-SANTE-20261122.md, « Suites », points 1, 2, 3, 7, 9, 10, 11, 13
+- **Branche `claude/sante-suites-20261123`** (part de `0bba1e82`, `claude/mission-nuit-20261122`). Aucune fonction Vercel, aucun ordre payant ajouté.
+- **Migration écrite, NON appliquée** : `20261123100000_sante_suites.sql` (après les migrations Santé du 22/11, déjà en production). Écrite à partir des
+  définitions de production du 22/11 au soir (doublure PGlite à md5 identique). Remplacements contrôlés (marques `sante_suites_*`) :
+  `hospitalisation_repas_prendre` (repas de l'hôpital +4 Santé / +2 PA, gratuit, hospitalisés seulement ; clinique +5 / +4, 30 FR ; nuitée de la
+  clinique par `sante_repas_appliquer_interne`), `sovarka_repas_presidentiel` (+5 Santé / +3 PA différés pour chacun par le barème commun, courrier
+  chiffré par les réglages), `sovarka_foret_rencontre` (« subir » : `sante_combat_coup_pj_interne` pour chaque membre, `pertes` rendues),
+  `manifestation_reprimer` et `detention_se_rebeller` (perte de Santé × robustesse, plancher 1 ; `sante_perdue` rendue), `tracts_donner_joueur` (plafond
+  commun, refus `destinataire_plein` avec `place`), `admin_aliment_modifier` (taux, écart, dotation du marché réglables), `objectifs_secrets_eligibles_interne`
+  (obj_informateur = 5 informateurs différents dans `informateurs_achats`). Réécrite : `sante_repas_joueur_categorie_interne` (palier `joueur_p15`, contrainte
+  CHECK élargie). Nouvelles : `marches_prix_rachat_interne`, déclencheurs `marche_krasnov_produits_rachat` et `marches_rachat_realigner`. Réglages :
+  `sante_parametres` repas_joueur_p15_*, repas_president_*, repas_hopital_*, repas_clinique_*, repression_perte_sante, rebellion_*_perte_sante ;
+  `aliments_parametres` marches_rachat_taux 0,7, marches_rachat_ecart_min 1 (marche_krasnov_decote_rachat_pct supprimé) ; `crim_parametres`
+  objectif_informateurs_distincts 5. **Données modifiées** (catalogue, pas de joueur) : rachats du marché de Krasnov (graisse 12→11, tenue ninja 24→22, masque 15→14,
+  chemise 18/13→17/12), effet des fruits et légumes (« un zakouski »), confiture du kolkhoze de Starovka 5→10 PSK (prix fixe), libellés MJ « En-cas ».
+- **Fichiers du navigateur modifiés (pour rebaser)** : `data.js` (« boissons et en-cas » ; bloc final : « zakouski » dans les pièces de Sovarka ; descriptions des
+  repas de l'hôpital, de la clinique et du Président ; marché de Krasnov « moins 30 % »), `plateau-personnage.js` (`doRepasHopital` : Santé du serveur),
+  `plateau-sovarka-provinces.js` (`FORET_TXT.j_subir`, nouveau `subirDebout`, `foretChoisir`), `plateau-communication.js` (antenne de Starovka « La Voix de Sovarka »,
+  `confirmerDonTracts` : refus destinataire plein), `plateau-justice-economie.js` (`doSeRebeller` : Santé perdue du serveur), `plateau-criminalite.js` (`bMateeText` :
+  `{sante}`), `plateau-politique.js` (obj_informateur, toast de répression), `plateau-actions-illegales-rumeurs.js` (confiture du kolkhoze `prixFixe: 10`),
+  `admin-maladies.js` (trois réglages des marchés), `api/_presse-antennes.js`, `api/_pnj-personnalites.js` (Saran Batbayar), `i18n/player-missions-resources.js`,
+  `i18n/sovarka-pouvoir-resources.js` (catalogues recompressés), `plateau.html`, `admin.html` (versions `-sante-suites-20261123`).
+- **Pour Codex (traductions, français seul modifié)** : `playerMissions.obj_informateur` « Acheter 5 informations à des informateurs différents » (liste
+  `EN_ATTENTE_CODEX` de `banc-i18n-player-missions-20261113.cjs` à vider) ; `sovarkaPouvoir.mealIntro` (+5 Santé modulée par le Moral) ; descriptions de `data.js` :
+  « Préparer boissons et en-cas pour le service (…) », « Préparer bières, boissons et en-cas pour le service (…) », leurs variantes « zakouski » (Sovarka), repas de
+  la clinique et de l'hôpital (avec Santé), repas du Président, marché de Krasnov (« moins 30 %, arrondi ») — listes `ATTENTE_CODEX` / `HISTORIQUES` des tests
+  d'infobulles ; `FORET_TXT.j_subir` et `FORET_TXT.subirDebout` (plateau-sovarka-provinces.js) ; `bMateeText` (variable `{sante}`) ; toasts sans clé : « Don refusé »,
+  « +N Santé » du repas de l'hôpital, Santé de la rébellion, toast de la répression.
+- **Bancs** : `banc-sante-suites-pglite-20261123.cjs` (9/9, doublure `fixtures/sante-suites-pglite.sql.txt`), `test-sante-suites-navigateur-20261123.cjs` (5/5) ;
+  workflow `sante-suites-20261123.yml`. Tests figés mis à jour (jamais désactivés) : `banc-interview-accueil-antennes-20261122.cjs`, `banc-i18n-player-missions-20261113.cjs`
+  (+ fixture fr), `banc-i18n-player-missions-mobile-20261113.cjs` (changement voulu appliqué au témoin de main), `test-i18n-infobulles-communes-20261113.mjs`,
+  `test-i18n-sovarka-infobulles-20261113.mjs`, `test-i18n-republia-infobulles-politiques-20261113.cjs`. `node --test outils/bancs/test-*.mjs` : 422/422.
+- **À tester par Fred (après application)** : un plat de joueur vendu 15 FR et plus (+5 Santé, +3 PA au prochain Dormir) ; le repas du Président avec un invité ;
+  le repas de l'hôpital en patient (gratuit, +4 Santé) et de la clinique (30 FR, +5 Santé) ; en forêt, « se laisser faire » à Santé 100 (on reste debout) puis à Santé 10 ;
+  donner 10 tracts à un joueur presque plein (refus avec la place) ; au marché de Krasnov, rachats (graisse 11, chemise 17/12) ; la confiture du kolkhoze à 10 PSK ;
+  la buvette d'un stade en Républia (« en-cas ») et en Sovarka (« zakouski ») ; l'invitation d'accueil à Starovka signée « La Voix de Sovarka ».
 ### Mission « Santé et forêt » (Claude, 22/11/2026, après-midi) — décisions : GAME-DESIGN-SANTE-20261122.md
 - **Appliquées en production le 22/11 (dans l'ordre, chacune validée par Fred à l'écran, contrôle en lecture après chacune, goulag
   `active=false` vérifié, aucune Santé de personnage modifiée)** : `20261122230000_sante_socle`, `20261122231000_sante_combat`,

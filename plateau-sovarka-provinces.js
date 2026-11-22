@@ -477,7 +477,9 @@ const FORET_TXT = { bonChemin: 'Était-ce le bon chemin… ?', clairiere: 'La cl
   j_olga_moi: ' Vous aussi : +{bonus} PA au prochain sommeil.',
   j_fausse: 'Forêt profonde, fausse alerte près de {chef} : {texte}',
   j_fuite: 'Forêt profonde : {chef} a donné l’ordre de fuir {nom}. Le groupe détale jusqu’à l’entrée de la forêt.',
-  j_subir: 'Forêt profonde : {chef} a choisi de ne pas se défendre contre {nom}. Le groupe se réveillera à l’hôpital.',
+  // Robustesse (Fred, 22/11/2026 au soir, Suites point 7) : chacun perd ses PA selon sa Santé ; on ne finit plus toujours à l'hôpital.
+  j_subir: 'Forêt profonde : {chef} a choisi de ne pas se défendre contre {nom}. Chacun perd des PA et de la Santé, selon sa robustesse ; qui tombe à 0 PA se réveillera à l’hôpital.',
+  subirDebout: '{nom} ne s’est pas fait prier : vous perdez {perte} PA et {sante} Santé, mais vous tenez encore debout.',
   j_combat: 'Combat contre {nom}, mené par {chef} : {issue}',
   j_butin: ' Butin remis à {chef} : {butin}.',
   j_lire: 'Lire le rapport de combat',
@@ -653,8 +655,17 @@ async function foretChoisir(choix) {
     provForetRendre(v.room);
     showToast(provT('tRun'), provT('run'), false);
   } else {
-    showToast(provT('tEaten'), provT('eaten', { nom: provEchapper(provServeur(PROV_CREATURES, v.nom)) }), false);
-    if (typeof relireHospitalisationServeur === 'function') await relireHospitalisationServeur(true);
+    const moi = Array.isArray(v.pertes) ? v.pertes.find(p => p && p.nom === state?.char?.name) : null;
+    if (Number.isInteger(v.pa)) state.pa = v.pa;
+    if (Number.isInteger(v.pa) && v.pa > 0) {
+      // Robustesse : le serveur a laissé des PA, le personnage reste en forêt.
+      showToast(provT('tEaten'), FORET_TXT.subirDebout.replace(/\{(\w+)\}/g, (m, k) => String({
+        nom: provEchapper(provServeur(PROV_CREATURES, v.nom)), perte: Number(moi?.pa_perdus) || 0, sante: Number(moi?.sante_perdue) || 0 }[k] ?? m)), false);
+      if (typeof updateUI === 'function') updateUI();
+    } else {
+      showToast(provT('tEaten'), provT('eaten', { nom: provEchapper(provServeur(PROV_CREATURES, v.nom)) }), false);
+      if (typeof relireHospitalisationServeur === 'function') await relireHospitalisationServeur(true);
+    }
   }
 }
 

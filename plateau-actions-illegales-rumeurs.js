@@ -3429,6 +3429,8 @@ const PRODUITS_MARCHE = {
     desc: 'Les airelles de la toundra, cuites au sucre par les femmes du kolkhoze.',
     categorie: 'objet', image: null, icon: 'ti-jar',
     materiaux: { fruits_legumes: 1 }, pa: 1, portions: 6,
+    // Prix fixe (Fred, 22/11/2026 au soir) : 10 PSK, comme au marché de Krasnov ; le serveur tient le même prix (recettes_commerce.prix_fixe).
+    prixFixe: 10,
     typesAutorises: ['tabac-presse'], paysAutorises: ['soviet'], villesAutorisees: ['ville_a'], buildingsAutorises: ['magasin-kolkhoze-starovka']
   },
   kolkhoze_graisse_renne: {

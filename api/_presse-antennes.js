@@ -18,7 +18,7 @@ export const ANTENNES_PRESSE = Object.freeze([
   { pays: 'republic', ville: 'ville_a',  villeNom: 'Port-Sainte-Marie', paysNom: 'Républia', journaliste: 'Annie Houininon', journal: 'La Tribune de Républia' },
   { pays: 'republic', ville: 'ville_b',  villeNom: 'Montrouge',         paysNom: 'Républia', journaliste: 'Arthur Lutte',    journal: 'La Tribune de Républia' },
   { pays: 'soviet',   ville: 'capitale', villeNom: 'Novomirsk',         paysNom: 'Sovarka',  journaliste: 'Zoïa Glazounova', journal: 'La Voix de Sovarka' },
-  { pays: 'soviet',   ville: 'ville_a',  villeNom: 'Starovka',          paysNom: 'Sovarka',  journaliste: 'Saran Batbayar',  journal: 'Metel' },
+  { pays: 'soviet',   ville: 'ville_a',  villeNom: 'Starovka',          paysNom: 'Sovarka',  journaliste: 'Saran Batbayar',  journal: 'La Voix de Sovarka' },
   { pays: 'soviet',   ville: 'ville_b',  villeNom: 'Krasnov',           paysNom: 'Sovarka',  journaliste: 'Anatoli Kolosov', journal: 'La Voix de Sovarka' }
 ].map(a => Object.freeze(a)));
 

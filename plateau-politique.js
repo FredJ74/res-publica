@@ -2971,7 +2971,8 @@ const OBJECTIFS_SECRETS = {
     objectifs: [
       { id: 'obj_blanchir',    desc: 'Blanchir 20 000 FR via des activités louches', condition: s => (s.argent_blanchi||0) >= 20000,                                    points: 40 },
       { id: 'obj_dis90',       desc: 'Maintenir une Discrétion supérieure à 90',  condition: s => (s.dis||0) >= 90,                                                      points: 20 },
-      { id: 'obj_informateur', desc: 'Recruter 2 informateurs simultanément',      condition: s => (s.informateurs||[]).length >= 2,                                     points: 15 },
+      // Fred, 22/11/2026 au soir : compté par le serveur sur les achats d'informations (informateurs_achats) ; affichage seulement.
+      { id: 'obj_informateur', desc: 'Acheter 5 informations à des informateurs différents', condition: s => (s.informateurs_distincts_achetes||0) >= 5,          points: 15 },
       { id: 'obj_jamais_arrete',desc: 'Ne jamais être arrêté pendant 10 jours',   condition: s => (s.jours_libres||0) >= 10,                                            points: 30 },
     ]
   },
@@ -8589,7 +8590,7 @@ async function confirmerReprimerManif(pa, cost) {
   updateUI();
   showToast('Repression menee', r.sujet + ' — Social -' + r.baisse_social + ', Securite +' + r.hausse_securite +
     (r.interdiction_recente ? ' (manifestation deja interdite)' : '') + '. ' + nbTouches +
-    ' PJ present(s) touche(s) (-10 HP, -10 VOL).', false, true);
+    ' PJ present(s) touche(s) (Santé -10 selon la robustesse de chacun, -10 VOL).', false, true);
   addExternalEvent('REPRESSION : Dispersion forcee de "' + r.sujet + '" a ' + nomVille + '.');
   addJournalEntry('Repression ordonnee : ' + r.sujet + ' (' + nomVille + '). ' + nbTouches + ' PJ touche(s).', 'event-bad');
 }

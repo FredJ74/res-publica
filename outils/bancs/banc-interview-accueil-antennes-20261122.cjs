@@ -72,7 +72,7 @@ function serveur({ fiche = {}, mails = [], topics = [], posts = [], proprio = tr
 const REP = ['Un', 'Deux', 'Trois', 'Quatre', 'Cinq'];
 const VILLES = [['republic', 'capitale', 'Jodie Moitout', "L'Autruche Entravée"], ['republic', 'ville_a', 'Annie Houininon', 'La Tribune de Républia'],
   ['republic', 'ville_b', 'Arthur Lutte', 'La Tribune de Républia'], ['soviet', 'capitale', 'Zoïa Glazounova', 'La Voix de Sovarka'],
-  ['soviet', 'ville_a', 'Saran Batbayar', 'Metel'], ['soviet', 'ville_b', 'Anatoli Kolosov', 'La Voix de Sovarka']];
+  ['soviet', 'ville_a', 'Saran Batbayar', 'La Voix de Sovarka'], ['soviet', 'ville_b', 'Anatoli Kolosov', 'La Voix de Sovarka']];
 
 test('invitation par le journaliste de la ville du personnage, dans les six villes jouables ; Jodie seulement à Luthécia', async () => {
   for (const [pays, ville, journaliste, journal] of VILLES) {
