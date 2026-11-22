@@ -6719,6 +6719,8 @@ export default async function handler(req, res) {
     // 12c. Arrivage quotidien de poisson propre a la Criee de PSM (arbitrage du 25 aout 2026) :
     // independant de livrerEntrepotsQuotidien ci-dessus, ne touche aucun entrepot.
     const arrivagePoissonCriee = await tacheQuotidienne('arrivage_criee', genererArrivagePoissonCriee);
+    // 12d. Usines d'Etat (Fred, 22/11/2026, Sante point 8) : boites des PNJ, antidotes des centres, excedent a la tutelle.
+    const usinesEtatNuit = await tacheQuotidienne('usines_etat_nuit', async () => (await sbRpc('usines_etat_nuit', {}, HEADERS_SERVICE)) || { ok: false, raison: 'rpc_indisponible' });
 
     // 13. Production quotidienne des transformateurs (mode PNJ), redistribution 60/40
     const production = await tacheQuotidienne('production_transformateurs', produireTransformateursQuotidien);

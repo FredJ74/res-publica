@@ -6128,8 +6128,11 @@ async function doProduireUsine(produitId, medicamentChoisi) {
     html += '<select id="usine-medicament-choix" class="cpj-champ" style="width:100%;margin-bottom:.8rem">';
     for (const m of liste) {
       const nom = RM && typeof RM.nomMedicament === 'function' ? RM.nomMedicament(m.medicament) : m.medicament;
+      // Antidote (Fred, 22/11/2026, soir, point 8d) : recette plus riche, chiffre du serveur.
+      const recette = (m.matiere_par_pa != null && Number(m.matiere_par_pa) !== Number(etatMed.matiere_par_pa))
+        ? ' — ' + echap(m.matiere_par_pa) + ' ' + echap(matiereCfg.label) + ' par PA' : '';
       html += '<option value="' + echap(m.medicament) + '"' + (m.medicament === medicamentChoisi ? ' selected' : '') + '>'
-        + echap(nom) + ' — stock national ' + echap(m.stock) + '/' + echap(etatMed.stock_max) + '</option>';
+        + echap(nom) + ' — stock national ' + echap(m.stock) + '/' + echap(etatMed.stock_max) + recette + '</option>';
     }
     html += '</select>';
   }
@@ -6164,7 +6167,7 @@ async function confirmerProductionUsine(produitId) {
   if (!v || v.ok !== true) {
     const raison = (v && v.raison) || 'indisponible';
     const libelles = {
-      matiere_insuffisante: 'Il manque du ' + (RESSOURCES_ECONOMIE[c.matiere]?.label || c.matiere) + ' en stock.',
+      matiere_insuffisante: 'Il manque du ' + (RESSOURCES_ECONOMIE[c.matiere]?.label || c.matiere) + ' en stock' + (v?.requis ? ' (' + v.requis + ' requis)' : '') + '.',
       caisse_insuffisante: "L'usine ne peut pas payer ce travail actuellement.",
       stock_plein: 'Le stock local de ce produit est au maximum.',
       pas_sur_place: 'Il faut être dans l\'usine pour y travailler.',
@@ -6832,15 +6835,26 @@ function doOuvrirVirementUsineMinistere(pa, cost) {
     showToast('Accès refusé', 'Seul le directeur en poste peut ordonner ce virement, depuis sa propre usine.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bfb637da5", 'Seul le directeur en poste peut ordonner ce virement, depuis sa propre usine.', undefined, 'Accès refusé');
     return;
   }
-  document.getElementById('postes-modal-title').textContent = 'Virement vers le Ministère';
+  document.getElementById('postes-modal-title').textContent = 'Virer à la tutelle';
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.8rem">Prélevé sur la caisse de cette usine, versé à la caisse du Ministère des Finances.</div>';
+  html += '<div style="font-size:.96rem;color:#8a8060;margin-bottom:.8rem">Prélevé sur la caisse de cette usine, versé à la caisse du ministère de tutelle.</div>';
+  // Usines d'État (Fred, 22/11/2026, soir, point 8c) : fonds de roulement réglé par le MJ ; l'excédent part chaque nuit.
+  html += '<div id="virement-tutelle-etat" style="font-size:.96rem;color:#8a8060;margin-bottom:.8rem"></div>';
   html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Montant (FR)</label>';
   html += '<input id="virement-ministere-montant" type="number" min="1" step="1" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-size:.85rem;outline:none;margin-bottom:.8rem"/>';
   html += '<button onclick="confirmerVirementUsineMinistere(' + pa + ',' + cost + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Virer</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
+  const curTutelle = COUNTRIES[state.country || 'republic']?.cur || 'FR';
+  Promise.resolve(typeof sbRpc === 'function' ? sbRpc('usine_tutelle_etat', {}) : null).catch(() => null).then(rep => {
+    const e = Array.isArray(rep) ? rep[0] : rep;
+    const zone = document.getElementById('virement-tutelle-etat');
+    if (!zone || !e || e.ok !== true) return;
+    zone.textContent = 'Caisse : ' + Math.round(Number(e.caisse) || 0).toLocaleString('fr-FR') + ' ' + curTutelle
+      + '. Fonds de roulement : ' + Math.round(Number(e.fonds_roulement) || 0).toLocaleString('fr-FR') + ' ' + curTutelle
+      + ' ; chaque nuit, l\'excédent est reversé automatiquement à la tutelle.';
+  });
 }
 
 async function confirmerVirementUsineMinistere(pa, cost) {
@@ -6871,8 +6885,8 @@ async function confirmerVirementUsineMinistere(pa, cost) {
 
   document.getElementById('modal-postes')?.classList.remove('open');
   updateUI();
-  showToast('Virement effectué', montantPreleve.toLocaleString('fr-FR') + ' ' + cur + ' versés au Ministère des Finances.', true, true);
-  addJournalEntry("Virement de l'usine vers le Ministère des Finances (" + montantPreleve + ' FR).', 'event-good');
+  showToast('Virement effectué', montantPreleve.toLocaleString('fr-FR') + ' ' + cur + ' versés au ministère de tutelle.', true, true);
+  addJournalEntry("Virement de l'usine vers le ministère de tutelle (" + montantPreleve + ' ' + cur + ').', 'event-good');
 }
 
 async function doOuvrirFixerPrixVenteDirecte(pa, cost) {

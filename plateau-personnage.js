@@ -2127,6 +2127,14 @@ async function doDormir() {
     }
   }
 
+  // Antidote pris la veille (Fred, 22/11/2026, soir, point 8d) : le serveur a neutralisé le poison au réveil (sante_reveil_interne,
+  // avant la progression du poison) ; l'écran relit ce verdict. Le texte arrive par le journal d'événements du personnage.
+  if (Array.isArray(vRepos?.evenements_reveil) && vRepos.evenements_reveil.some(e => e && e.cle === 'antidote_poison_neutralise')) {
+    state.empoisonnement = null;
+    if (state.statsAffaiblies) state.statsAffaiblies = null;
+    updateUI();
+  }
+
   // La régénération (+10) et la récupération (+12) calculées ici jusqu'au 22/11/2026 sont supprimées : le serveur
   // a déjà crédité la Santé du sommeil (sommeilSanteServeur ci-dessus) ; l'écran n'ajoute rien.
 
@@ -2801,6 +2809,9 @@ async function doCentreAntiPoison(pa) {
     if (raison === 'limite_journaliere') { showToast('Limite atteinte', 'Deux tentatives maximum par jour.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b1f34df95", 'Deux tentatives maximum par jour.', undefined, 'Limite atteinte'); }
     else if (raison === 'pas_empoisonne') { state.empoisonnement = null; updateUI(); showToast('Rien a traiter', 'Vous n\'etes pas empoisonne(e).', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b31c48d67", 'Vous n\'etes pas empoisonne(e).', undefined, 'Rien a traiter'); }
     else if (raison === 'pas_sur_place') { showToast('Pas ici', 'Ce traitement se fait au dispensaire ou a la clinique.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bf623e631", 'Ce traitement se fait au dispensaire ou a la clinique.', undefined, 'Pas ici'); }
+    // Antidote (Fred, 22/11/2026, soir, point 8d) : le centre soigne avec son propre stock ; paiement en liquide (point 5).
+    else if (raison === 'plus_d_antidote') { showToast('Centre anti-poison', 'Plus d\'antidote, réapprovisionnement en attente.', false); }
+    else if (raison === 'fonds_insuffisants' && v?.paiement === 'liquide') { showToast('Argent liquide insuffisant', 'Le centre anti-poison se paie en liquide : ' + v.requis + ' requis.', false); }
     else if (typeof signalerRefusCout === 'function' && v) signalerRefusCout(v);
     else { showToast('Impossible', 'Le traitement n\'a pas pu avoir lieu.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b5e4af13c", 'Le traitement n\'a pas pu avoir lieu.', undefined, 'Impossible'); }
     return;

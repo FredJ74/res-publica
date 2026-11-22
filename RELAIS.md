@@ -44,6 +44,43 @@ Règles : voir `AGENTS.md`.
   le repas de l'hôpital en patient (gratuit, +4 Santé) et de la clinique (30 FR, +5 Santé) ; en forêt, « se laisser faire » à Santé 100 (on reste debout) puis à Santé 10 ;
   donner 10 tracts à un joueur presque plein (refus avec la place) ; au marché de Krasnov, rachats (graisse 11, chemise 17/12) ; la confiture du kolkhoze à 10 PSK ;
   la buvette d'un stade en Républia (« en-cas ») et en Sovarka (« zakouski ») ; l'invitation d'accueil à Starovka signée « La Voix de Sovarka ».
+### Médicaments, usines d'État et antidote (Claude, 22/11/2026, soir) — GAME-DESIGN-SANTE-20261122.md, « Suites », point 8 a-d (et point 5 pour ce lot)
+- **Branche `claude/medicaments-usines-20261123`** (part de `0bba1e82`). Aucune fonction Vercel ajoutée, aucun ordre payant ajouté ni retiré.
+- **Migration écrite, NON appliquée** : `20261123110000_medicaments_usines_antidote.sql` (après `20261122230000_sante_socle` et
+  `20261122233000_sante_maladies_medicaments`, déjà en production). Écrite depuis pg_get_functiondef de production (md5 vérifiés par le banc).
+  - Paramètres (sante_parametres, groupes « Médicaments » et « Usines d'État » de la page MJ) : trousse_medicaments/textile/desinfectant 1,
+    medicament_pnj_stock_max 50, antidote_actif 1, antidote_recette_coef 3, antidote_pnj_boites_nuit 10, antipoison_antidotes_par_soin 1,
+    antipoison_stock_cible 5, usine_fonds_roulement 5000.
+  - 8a : la trousse (caserne, seul lieu de fabrication) consommait déjà 1 Médicaments + 1 textile + 1 désinfectant en dur ; recette réglable
+    (remplacements contrôlés de militaire_trousse_retirer, marques `medicaments_usines_v1_trousse_*`).
+  - 8b : dotation gratuite remplacée par la production des PNJ chaque nuit (`medicaments_pnj_produire_interne`, appelée par `usines_etat_nuit`,
+    une ligne dans `api/cron-minuit.js`, tâche « usines_etat_nuit », avant la production des transformateurs) : plantes de usine.stockMatieres,
+    même ratio que produire_medicament, plafond, prorata si la matière manque, aucun salaire PNJ. Stock PNJ distinct (`medicaments_stocks.quantite_pnj`),
+    boîtes des joueurs vendues d'abord. pharmacie_stock_point_interne / pharmacies_ventes ne servent plus.
+  - 8c : toute la recette au comptoir et des rachats d'antidotes → caisse de l'usine. Usines d'État (six) : fonds de roulement, excédent reversé
+    chaque nuit à la caisse du ministère qui nomme le directeur (min_fin dans les deux pays), journal `usines_reversements` ; virement volontaire =
+    ordre existant virement_usine_ministere (1 PA) réécrit sur le même mécanisme, libellé « Virer à la tutelle » ; lecture `usine_tutelle_etat()`.
+  - 8d : antidote (catalogue `medicaments_catalogue_interne`), 15 plantes / 10 boîtes, 132 FR (2 × 22 × 3) ; pris (medicament_prendre, marque
+    `medicaments_usines_v1_antidote`), poison annulé au réveil suivant par sante_reveil_interne réécrite (MST intégralement conservée, bloc
+    antidote avant). Centre antipoison : antidote du stock du centre (sante.antidotes) par tentative, refus `plus_d_antidote` sans stock ;
+    rachat nocturne jusqu'à 5 par la caisse de la structure (clinique : sante.caisse ; dispensaire : <pays>_dispensaire_<ville>) ; le prix du soin
+    (60/150) va à cette caisse.
+  - Point 5 : pharmacie et centre antipoison en liquide seulement.
+- **Fichiers du navigateur modifiés (pour rebaser)** : `plateau-maladies.js` (antidote, nom « Empoisonnement », refus liquide, monnaie du comptoir
+  qui manquait : COUNTRIES lu hors de window), `plateau-justice-economie.js` (recette de l'antidote dans la fenêtre de production ; fenêtre « Virer à
+  la tutelle » avec caisse et fonds de roulement), `plateau-personnage.js` (refus du centre antipoison ; poison effacé au réveil), `admin-sante.js`
+  (libellés des deux groupes), `data.js` et `i18n/orders-resources.js` (libellé fr « Virer à la tutelle », catalogue recompressé), `plateau.html`,
+  `admin.html` (versions), `api/cron-minuit.js` (une ligne).
+- **Pour Codex (traductions)** : `plateau-maladies.js` `T.fr` : `m_antidote`, `n_empoisonnement`, `takenAntidote`, `r_pas_empoisonne`,
+  `r_antidote_deja_pris`, `r_fonds_liquide` (ajoutées à `EN_ATTENTE_CODEX` de `test-maladies-lot1-20261118.cjs`) ; `orders-resources.js` :
+  `virement_usine_ministere` (fr changé en « Virer à la tutelle », autres langues à réaligner) ; textes en dur fr de `plateau-justice-economie.js`
+  (fenêtre « Virer à la tutelle ») et `plateau-personnage.js` (« Plus d'antidote, réapprovisionnement en attente. », « Argent liquide insuffisant ») ;
+  journal d'événements : clé `antidote_poison_neutralise` (texte serveur fr).
+- **Bancs** : `banc-medicaments-usines-pglite-20261123.cjs` (7 essais, fixture `fixtures/medicaments-usines-pglite.sql.txt`),
+  `banc-medicaments-usines-navigateur-20261123.cjs` (6 essais, 1280 et 390 px) ; workflow `medicaments-usines-20261123.yml`.
+- **À tester par Fred (après application)** : les comptoirs sont vides tant que l'usine n'a pas de plantes (0 aujourd'hui dans les deux pays) ;
+  produire un antidote à l'usine, l'acheter (132 FR, en liquide), le prendre empoisonné, dormir : poison levé ; centre antipoison sans antidote :
+  refus, puis soin le lendemain du rachat ; directeur de l'usine : « Virer à la tutelle » ; le lendemain matin, caisse de l'usine ramenée à 5 000.
 ### Mission « Santé et forêt » (Claude, 22/11/2026, après-midi) — décisions : GAME-DESIGN-SANTE-20261122.md
 - **Appliquées en production le 22/11 (dans l'ordre, chacune validée par Fred à l'écran, contrôle en lecture après chacune, goulag
   `active=false` vérifié, aucune Santé de personnage modifiée)** : `20261122230000_sante_socle`, `20261122231000_sante_combat`,
