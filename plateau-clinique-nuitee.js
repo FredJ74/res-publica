@@ -10,7 +10,7 @@ function ordresNuiteeClinique(buildingId,roomId){
  if(roomId==='reception_clinique')return [{
    fn:'clinique_reserver_nuit',label:clT('reserveLabel',"Réserver une chambre — 150 {currency}",{currency:cliniqueDevise()}),
    pa:0,cost:0,type:'legal',icon:'ti-bed',successRate:100,
-   desc:clT('reserveDesc',"Réserver une chambre jusqu’à votre prochain Dormir validé dans celle-ci : 150 {currency}. Même après avoir déjà dormi aujourd’hui, vous pouvez réserver. Le prochain Dormir dans votre chambre apportera +2 PA, +10 Santé et +3 Moral en plus du repos normal.",{currency:cliniqueDevise()})
+   desc:clT('reserveDesc',"Réserver une chambre jusqu’à votre prochain Dormir validé dans celle-ci : 150 {currency}. Même après avoir déjà dormi aujourd’hui, vous pouvez réserver. Le prochain Dormir dans votre chambre apportera +2 PA et +3 Moral en plus du repos normal, et la Santé d’une nuit à la clinique (+7).",{currency:cliniqueDevise()})
  }];
  if(/^chambre_(?:[1-9]|10)$/.test(roomId)){
  // Occupant de la chambre : client d'une nuit ou patient hospitalisé (même bail de clinique).
@@ -19,7 +19,7 @@ function ordresNuiteeClinique(buildingId,roomId){
  const ordres=[{
    fn:'clinique_dormir',label:clT('sleepLabel','Dormir dans la chambre'),
    pa:0,cost:0,type:'legal',icon:'ti-moon',successRate:100,
-   desc:clT('sleepDesc','Une seule nuitée payée donne +2 PA, +10 Santé et +3 Moral lors du prochain Dormir validé par le serveur.'),
+   desc:clT('sleepDesc','Une seule nuitée payée donne +2 PA et +3 Moral lors du prochain Dormir validé par le serveur ; dormir à la clinique rend +7 Santé.'),
    // « Sortir de l'hôpital » ne concerne que le patient hospitalisé (relevé de Fred, 13/11/2026).
    masque:state.hospitalisation?[]:['sortie_hopital']
  }];
@@ -119,11 +119,12 @@ async function consommerNuiteeCliniqueApresDormir(nomInitial,paysInitial,pieceIn
  if(!r||r.transport||!r.ok)return;
  if(state.char?.name!==nomInitial||state.country!==paysInitial)return;
  if(typeof r.pa==='number')state.pa=r.pa;
- if(typeof r.hp==='number')state.hp=r.hp;
+ if(typeof r.hp==='number'){state.hp=r.hp;if(typeof sbFicheBaseAdopter==='function')sbFicheBaseAdopter({hp:r.hp});}
  if(typeof r.moral==='number')state.moral=r.moral;
  if(typeof updateUI==='function')updateUI();
- showToast(clT('night','Nuit à la clinique'),clT('bonus','+2 PA, +10 Santé, +3 Moral (plafonds habituels).'),true);
- if(typeof addJournalEntry==='function')addJournalEntry('Nuit à la clinique privée : +2 PA, +10 Santé, +3 Moral.','event-good');
+ // La Santé de la nuit (+7 à la clinique, 22/11/2026) est créditée et annoncée par le sommeil lui-même (doDormir).
+ showToast(clT('night','Nuit à la clinique'),clT('bonus','+2 PA, +3 Moral (plafonds habituels). La Santé de la nuit est comptée au réveil.'),true);
+ if(typeof addJournalEntry==='function')addJournalEntry('Nuit à la clinique privée : +2 PA, +3 Moral.','event-good');
  if(typeof chargerLocations==='function')await chargerLocations();
 }
 global.reserverNuiteeClinique=reserverNuiteeClinique;

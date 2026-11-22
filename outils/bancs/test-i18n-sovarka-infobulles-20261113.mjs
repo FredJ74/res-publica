@@ -75,7 +75,9 @@ test('toute description et mention « Bientôt » propre à Sovarka affichée pa
     'Le guide des baies sauvages de Krasnov (lecture une fois par semaine : +1 INT pendant 24 h). Une feuille volante est glissée dedans.',
     'Vous croyez avoir trouvé l’ingrédient effacé de la feuille volante ? Le directeur du musée vous écoute.',
     // Marché unique de Krasnov (lot de Krasnov, point 2, 22/11/2026).
-    'Une seule fenêtre pour tout le marché : acheter, revendre (prix de vente moins 25 %) et fabriquer avec le stock du marché (15 PSK par PA).'];
+    'Une seule fenêtre pour tout le marché : acheter, revendre (prix de vente moins 25 %) et fabriquer avec le stock du marché (15 PSK par PA).',
+    // Santé (consommation, 22/11/2026) : « Se nourrir » prend l'effet d'un sandwich au barème du serveur.
+    'Repas économique : l’effet d’un sandwich (Santé et PA au prochain Dormir).'];
   assert.deepEqual(descs.filter(d => !textes.has(d) && !ATTENTE_CODEX.includes(d)), []);
   assert.deepEqual(bientot.filter(d => !textes.has(d)), []);
 });

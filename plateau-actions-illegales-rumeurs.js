@@ -4535,6 +4535,7 @@ async function commanderProduitCommerce(commerceType, pays, ville, buildingId, r
 
   // CHANTIER C / PHASE 3 : prix relu dans le blob, debit, taxe, caisse (autonome ou
   // institutionnelle) et stock arretes par le serveur dans une seule transaction.
+  const avantVente = { hp: Number(state.hp) || 0, moral: Number(state.moral) || 0 };
   const vente = await commerceVendreProduit(data.id, [{ produit: recetteId, qte: 1 }], 'comptoir');
   if (!vente.ok) return { ok: false, raison: vente.raison, prix };
   const net = vente.net;
@@ -4556,8 +4557,10 @@ async function commanderProduitCommerce(commerceType, pays, ville, buildingId, r
     // d'un aliment, carte postale vierge) et rend l'inventaire, que l'ecran adopte.
     if (Array.isArray(vente.inventory) && typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(vente);
   } else {
-    if (effets.hp) state.hp = Math.min(100, Math.max(0, (state.hp || 0) + effets.hp));
-    if (effets.moral) state.moral = Math.min(100, Math.max(0, (state.moral || 0) + effets.moral));
+    // Santé, Moral et PA différés d'un plat ou d'une boisson servis au comptoir : appliqués par le SERVEUR dans la
+    // vente (commerce_vendre_produit, 22/11/2026 : barème des repas, verre d'alcool compté). L'écran recopie.
+    if (typeof vente.hp === 'number') { state.hp = vente.hp; if (typeof sbFicheBaseAdopter === 'function') sbFicheBaseAdopter({ hp: vente.hp }); }
+    if (typeof vente.moral === 'number') { state.moral = vente.moral; if (typeof sbFicheBaseAdopter === 'function') sbFicheBaseAdopter({ moral: vente.moral }); }
     // effets.pop retiré (#379) : aucune recette ne le porte ; une jauge ne s'écrit plus à l'écran.
     // Bonus differe atteste : le serveur lit le montant de la recette dans son miroir, le
     // client ne fait que nommer la source (16 septembre 2026).
@@ -4574,7 +4577,12 @@ async function commanderProduitCommerce(commerceType, pays, ville, buildingId, r
   // sauvegarde concurrente ni fallback reintroduits.
   if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
 
-  return { ok: true, prix, net, effets };
+  // Affichage : ce que le serveur a réellement appliqué (Santé selon le barème et le Moral, PA différés), jamais la recette.
+  const effetsServis = (typeof vente.hp === 'number' && !(recette.familleProduitMarche || recette.livraisonServeur))
+    ? { hp: vente.hp - avantVente.hp, moral: (typeof vente.moral === 'number' ? vente.moral : avantVente.moral) - avantVente.moral,
+        paDiffere: Number(vente.pa_differe_servi) || 0 }
+    : effets;
+  return { ok: true, prix, net, effets: effetsServis };
 }
 
 // Interface "Consulter la carte" -- modele de l'achat d'armes (liste + bouton), sans registre
@@ -4896,7 +4904,15 @@ async function doRepasGastronomiqueGenerique(pa, cost, label, desc, successRate)
               vente.raison === 'fonds_insuffisants' ? cost + ' FR requis.' : '', false);
     return;
   }
-  executerOrdreGenerique('repas_gastronomique', 0, 0, label, desc, successRate);
+  // Effet du plat réellement servi (Fred, 22/11/2026, point 9) : Santé et PA différés appliqués par le serveur dans la
+  // même vente (commerce_vendre_produit, mode service) ; l'ancien jet générique (+10 Santé en dur) n'est plus appelé.
+  if (typeof vente.hp === 'number') { state.hp = vente.hp; if (typeof sbFicheBaseAdopter === 'function') sbFicheBaseAdopter({ hp: vente.hp }); }
+  updateUI();
+  const servi = vente.sante || {};
+  const plat = (typeof nomProduitCommerce === 'function') ? nomProduitCommerce(recetteId, resoudreProduitCommerce(recetteId)?.label || recetteId) : recetteId;
+  const effet = '+' + (Number(servi.gain) || 0) + ' Santé, +' + (Number(servi.pa_differe) || 0) + ' PA au prochain Dormir';
+  showToast(label || 'Repas gastronomique', plat + ' — ' + effet + '.', true, true);
+  addJournalEntry((label || 'Repas gastronomique') + ' : ' + plat + ' (' + effet + ').', 'event-good');
 }
 
 async function doConsommerBoisson(commerceType, buildingId, roomId) {

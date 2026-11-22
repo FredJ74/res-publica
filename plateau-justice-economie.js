@@ -2006,20 +2006,36 @@ async function doDefense(pa, cost) {
 // doCorruption SUPPRIMEE (criminalité lot 7, § 12) : directeur et gardien du QHS passent par
 // crimOuvrirCorruptionQhs (plateau-criminalite.js) ; crime_corrompre répond « ordre_remplace » / « ordre_supprime ».
 
-function doSeReposer(fn) {
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  if (fn === 'se_nourrir') {
-    const cost = 10;
-    if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); globalThis.RPI18nPlateau?.markToast(null, cost + ' ' + cur + ' requis.', undefined, 'Fonds insuffisants'); return; }
-    state.arg -= cost;
-    state.moral = Math.min(100, state.moral + 3);
-    updateUI();
-    showToast('Verre pris', '+3 Moral. -' + cost + ' ' + cur + '.', true);
-  } else {
+function doSeReposer(fn, pa, cost) {
+  if (fn === 'se_nourrir') return doSeNourrir(pa, cost);
+  {
     state.moral = Math.min(100, state.moral + 2);
     updateUI();
     showToast('Repos', '+2 Moral.', true); globalThis.RPI18nPlateau?.markToast("toastBodies.b1365072f", '+2 Moral.', undefined, 'Repos');
   }
+}
+
+// « Se nourrir » (marché central de Luthécia) : ordre SERVEUR depuis le 22/11/2026 (sante_se_nourrir) — tarif du
+// miroir des coûts, effet d'un sandwich au barème des repas (Santé modulée par le Moral, PA au prochain Dormir).
+// L'ancien chemin de l'écran (10 FR retirés à l'écran, +3 Moral) est supprimé.
+async function doSeNourrir(pa, cost) {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const v = (typeof sbRpcVerdict === 'function') ? await sbRpcVerdict('sante_se_nourrir', { p_pa: pa || 0, p_cost: cost || 0 }).catch(() => null) : null;
+  if (!v || v.transport) { showToast('Repas non confirmé', 'Le serveur ne répond pas. Vérifiez votre argent avant de recommencer.', false); return; }
+  if (v.ok !== true) {
+    if (v.raison === 'fonds_insuffisants') showToast('Fonds insuffisants', (cost || 0) + ' ' + cur + ' requis.', false);
+    else if (typeof signalerRefusCout === 'function' && v.raison !== 'pas_sur_place') signalerRefusCout(v);
+    else showToast('Repas impossible', 'Il faut être au marché.', false);
+    return;
+  }
+  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: v.pa, liquide: v.liquide, arg: v.arg });
+  if (typeof v.hp === 'number') { state.hp = v.hp; if (typeof sbFicheBaseAdopter === 'function') sbFicheBaseAdopter({ hp: v.hp }); }
+  if (typeof v.moral === 'number') { state.moral = v.moral; if (typeof sbFicheBaseAdopter === 'function') sbFicheBaseAdopter({ moral: v.moral }); }
+  updateUI();
+  const s = v.sante || {};
+  const effet = '+' + (Number(s.gain) || 0) + ' Santé, +' + (Number(s.pa_differe) || 0) + ' PA au prochain Dormir';
+  showToast('Repas pris', effet + '. -' + (cost || 0) + ' ' + cur + '.', true);
+  addJournalEntry('Repas économique au marché (-' + (cost || 0) + ' ' + cur + ') : ' + effet + '.', 'event-good');
 }
 
 // doRequeteAvocat / confirmerRequeteAvocat SUPPRIMEES le 13 octobre 2026 (arbitrage valide).
