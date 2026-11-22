@@ -861,7 +861,7 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
 <!-- Equipements de bureau : interface d'attente seule, aucune mecanique. AVANT le
      routeur, qui resout ouvrirModalEquipements(). -->
 <script src="plateau-equipements.js?v=informatique-20261111-3-ceder-i18n-equip-20261112-appartements-20261112-heros-boite-20261113-ventes-fermees-20261118"></script>
-<script src="plateau-surveillance.js?v=20261111-3-fouiller-ordre-fouiller-voler-20261111-i18n-equip-20261112-tresor-tsars-20261112-sante-medecin-20261122"></script>
+<script src="plateau-surveillance.js?v=20261111-3-fouiller-ordre-fouiller-voler-20261111-i18n-equip-20261112-tresor-tsars-20261112-sante-medecin-20261122-ordres-regroupes-20261123"></script>
 <script src="plateau-informatique.js?v=20261111-3-ceder-i18n-equip-20261112"></script>
 <script src="plateau-plan-rues.js?v=plan-rues-i18n-20261113-carrefour-declare-20261113-quai-hopital-20261113-reperes-hors-rue-20261114-place-ours-20261114-place-ours-clic-20261114"></script>
 <script src="plateau-navigation.js?v=goulag-arrestation-20261117-building-categories-i18n-20261116-exit-feedback-i18n-20261116-building-header-i18n-20261116-i18n-refresh-fenetres-20261110-sovarka-nuit-20261110-retablir-p2-20261110-fouiller-voler-20261111-acces-reserve-20261112-desc-sovarka-20261112-volga-ancrage-20261112-appartements-20261112-musee-depart-20261113-krasnov-accueil-cadrage-20261115-krasnov-accueil-sans-vide-20261115-krasnov-accueil-image-unique-20261115-musee-valerie-20261116-ventes-fermees-20261118-chantier-unique-20261121-terrains-plan-20261122"></script>
@@ -873,7 +873,9 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
 <script src="plateau-communication.js?v=repertoire-i18n-20261113-autorite219-20261101-cloture135-20261102-r2-reliquats379-tracts-i18n-20261111-nationalite-20261118-interview-accueil-20261122-inventaire-direct-20261122-sante-suites-20261123"></script>
 <!-- Nationalité, domicile et élections (18/11/2026) : textes en neuf langues, avant plateau-politique.js. -->
 <script src="plateau-nationalite.js?v=nationalite-20261118"></script>
-<script src="plateau-politique.js?v=goulag-20261117-texte-joueur-871-socle-ordres-871-20261113-ordres-info-tactile-20261113-i18n-refresh-fenetres-20261110-sovarka-nuit-20261110-fouiller-20261111-i18n-missions-20261113-infobulles-20261113-min636-20261114-foret-perdu-20261114-combat-faune-20261114-journal-20261114-audit-mairie-krasnov-20261114-calendrier-gloire-20261115-failles-20261117-terrain-sovarka-20261117-nationalite-20261118-krasnov-radar-20261121-chantier-unique-20261121-foret-combat-20261122-sante-suites-20261123-accueil-20261123"></script>
+<script src="plateau-politique.js?v=goulag-20261117-texte-joueur-871-socle-ordres-871-20261113-ordres-info-tactile-20261113-i18n-refresh-fenetres-20261110-sovarka-nuit-20261110-fouiller-20261111-i18n-missions-20261113-infobulles-20261113-min636-20261114-foret-perdu-20261114-combat-faune-20261114-journal-20261114-audit-mairie-krasnov-20261114-calendrier-gloire-20261115-failles-20261117-terrain-sovarka-20261117-nationalite-20261118-krasnov-radar-20261121-chantier-unique-20261121-foret-combat-20261122-sante-suites-20261123-accueil-20261123-ordres-regroupes-20261123"></script>
+<!-- Regroupement des ordres dans les pièces (22/11/2026, soir, points 18 à 21) : lu par renderRoomActions au rendu. -->
+<script src="plateau-ordres-regroupes.js?v=ordres-regroupes-20261123"></script>
 <!-- Presse : noms cliquables des personnages cités (21/11/2026). APRÈS plateau-politique.js (construireHtmlJournalDuJour). -->
 <script src="plateau-presse-noms.js?v=presse-20261121"></script>
 <script src="plateau-gouvernement.js?v=6-min636-20261114"></script>
@@ -969,7 +971,7 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
 <script src="plateau-secrets.js?v=krasnov-radar-20261121-informateurs-20261122"></script>
 <script src="plateau-marche-krasnov.js?v=krasnov-marche-20261122"></script>
 <script src="plateau-informateurs.js?v=informateurs-20261122"></script>
-<script src="plateau-router.js?v=sovarka-surveillance-20261108-palais-pres-20261108-justice-sovarka-retablir-p2-20261110-fouiller-20261111-fouiller-voler-20261111-msg-20261111-guide-fiches-20261111-acces-reserve-20261112-escorts-sovarka-20261112-tresor-tsars-20261112-musee-depart-20261113-clinique-20261113-heros-boite-20261113-min636-20261114-foret-perdu-20261114-zeropa-20261114-hall-renseigner-20261115-regulation-20261116-musee-valerie-20261116-goulag-20261116-distillerie-20261120-krasnov-radar-20261121-krasnov-ecole-20261121-foret-clairiere-20261121-informateurs-20261122"></script>
+<script src="plateau-router.js?v=sovarka-surveillance-20261108-palais-pres-20261108-justice-sovarka-retablir-p2-20261110-fouiller-20261111-fouiller-voler-20261111-msg-20261111-guide-fiches-20261111-acces-reserve-20261112-escorts-sovarka-20261112-tresor-tsars-20261112-musee-depart-20261113-clinique-20261113-heros-boite-20261113-min636-20261114-foret-perdu-20261114-zeropa-20261114-hall-renseigner-20261115-regulation-20261116-musee-valerie-20261116-goulag-20261116-distillerie-20261120-krasnov-radar-20261121-krasnov-ecole-20261121-foret-clairiere-20261121-informateurs-20261122-ordres-regroupes-20261123"></script>
 <div style="display:none">
   <div id="char-avatar-top"></div>
   <div id="char-name-display"></div>

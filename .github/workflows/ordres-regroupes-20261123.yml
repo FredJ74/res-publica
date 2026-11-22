@@ -1,0 +1,33 @@
+name: "Ordres regroupés dans les pièces (inspection à trois volets, mairies, partis, syndicat, Fonctions de [poste])"
+on:
+  pull_request:
+    paths: [plateau-ordres-regroupes.js, plateau-surveillance.js, plateau-politique.js, plateau-router.js, plateau.html, data.js, style.css, 'migrations/20261123130000_ordres_regroupes.sql', 'outils/bancs/*ordres-regroupes*', 'outils/bancs/fixtures/ordres-regroupes-*', outils/bancs/test-fouiller-voler-ordre-20261111.mjs, outils/bancs/banc-medecin-montrer-navigateur-20261122.cjs, .github/workflows/ordres-regroupes-20261123.yml]
+  push:
+    branches: [main, 'claude/**']
+    paths: [plateau-ordres-regroupes.js, plateau-surveillance.js, plateau-politique.js, plateau-router.js, plateau.html, data.js, style.css, 'migrations/20261123130000_ordres_regroupes.sql', 'outils/bancs/*ordres-regroupes*', 'outils/bancs/fixtures/ordres-regroupes-*', outils/bancs/test-fouiller-voler-ordre-20261111.mjs, outils/bancs/banc-medecin-montrer-navigateur-20261122.cjs, .github/workflows/ordres-regroupes-20261123.yml]
+permissions:
+  contents: read
+jobs:
+  ordres-regroupes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
+      - name: Règles et textes
+        run: |
+          node --check plateau-ordres-regroupes.js
+          node --check plateau-surveillance.js
+          node --check plateau-politique.js
+          node --test outils/bancs/test-fouiller-voler-ordre-20261111.mjs
+      - name: PostgreSQL local (PGlite) — migration non appliquée en production
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund --prefix "$RUNNER_TEMP/pglite" @electric-sql/pglite@0.2.17
+          PGLITE_DIR="$RUNNER_TEMP/pglite" node --test outils/bancs/banc-ordres-regroupes-pglite-20261123.cjs outils/bancs/banc-krasnov-lot-suite-pglite-20261122.cjs
+      - name: Chromium réel (1280 et 390 px)
+        env:
+          HG_CHROMIUM: /usr/bin/google-chrome
+        run: node --test outils/bancs/banc-ordres-regroupes-navigateur-20261123.cjs outils/bancs/banc-medecin-montrer-navigateur-20261122.cjs

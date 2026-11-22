@@ -145,6 +145,43 @@ Règles : voir `AGENTS.md`.
 - **À tester par Fred (après application)** : au tabac-presse de Krasnov, acheter des cigarettes, les voir dans l'inventaire, « Fumer » (+2 Moral) ; acheter une carte, onglet Inventaire → « Écrire et envoyer » à un personnage, le destinataire la reçoit, « Lire » : recto avec « Krasnov, capitale de l'ours », un clic la retourne ; acheter deux revues dans les 24 h : +1 ENT une seule fois, 24 h ; crue annoncée : alerte et pluie, aucun lieu fermé, aucun sac en vente, le chantier de la ville perd un jour.
 - **En attente de Fred** : légendes des neuf autres cartes ; dépôt dans l'armoire à souvenirs toujours non codé (seul le critère serveur est prêt) ; arrêts de chantier d'orage/canicule/blizzard et coupure informatique de l'orage à juger (point 32).
 
+### Regroupement des ordres dans les pièces (Claude, 23/11/2026) — GAME-DESIGN-INTERFACE-ACCUEIL-20261122.md, partie C, points 17 à 22
+- **Branche `claude/ordres-regroupes-20261123`** (part de `0bba1e82`). Aucune fonction Vercel, aucun ordre payant ajouté ou retiré, aucun tarif modifié.
+- **Migration écrite, NON appliquée** : `migrations/20261123130000_ordres_regroupes.sql` (point 17, côté serveur), écrite depuis
+  pg_get_functiondef de production (md5 de prosrc vérifiés dans le banc), ancrages comptés en production (1 chacun), sans BEGIN/COMMIT :
+  - `desinstaller_materiel` : remplacement contrôlé `ordres_regroupes_desinstaller_legal_v1` — le matériel d'autrui hors de chez soi est
+    refusé (`pas_a_vous`) ; il ne s'emporte plus que par le vol. Son matériel, ou tout le matériel chez soi : inchangé (2 PA, au sol).
+    La branche « vol » devient inatteignable (laissée en place). Plein air : toujours refusé.
+  - `desinstaller_lire` : `ordres_regroupes_lire_volable_v1` — drapeau `volable` (ni à moi, ni armoire à souvenirs). Aucune donnée modifiée.
+- **Point 17** : « Inspecter la pièce » = une fenêtre à trois volets (`plateau-surveillance.js`) : « Ce qui est installé ici » (0 PA,
+  `desinstaller_lire` ; « Voler » en face du matériel d'autrui → `crim_cambrioler('materiel')`, le moteur de `voler_materiel`),
+  « Fouiller les lieux » (1 PA, `inspecter_piece` inchangé), « Désinstaller » (seulement le matériel légal). Le bouton « Désinstaller du
+  matériel » disparaît des pièces ; le fn `desinstaller_materiel` ouvre le volet du même nom (écran resté ouvert). L'ordre garde `pa: 1`
+  (tarif `ordres_couts` de la fouille). Avant application de la migration, l'écran ne propose déjà plus la désinstallation illégale.
+- **Points 18 à 21** : nouveau `plateau-ordres-regroupes.js`, branché dans `renderRoomActions` (plateau-politique.js) après La Tribune :
+  les boutons d'origine (gardes, grisage, doOrder) sont remontés dans la fenêtre du groupe, avec une phrase chacun. Mairies (tous pays) :
+  « Élections », « Guichet » (« Héros du Travail » à part) ; salle des partis : « Les partis » (volets selon l'appartenance,
+  `partiCharger`), « Dénonciations » ; syndicat national et dockers : « Le syndicat » (selon l'adhésion), « Fonctions du chef du syndicat » ;
+  bureaux des fonctions : un bouton « Fonctions de [poste] » par poste, thèmes, lecture seule « Réservé au [poste] » pour les autres,
+  « Dossiers commerciaux » rangé chez le maire (reste actif pour tous). Le menu à deux familles du commissaire (Républia) est remplacé par
+  « Fonctions du commissaire » (repli inchangé si le module manque). Jamais regroupés : goulag, caserne, greffe, Tribune, terrains.
+- **Habilitation (pour la fusion avec le lot postes-pays)** : un seul point, `estTitulaireFonction(poste)` (plateau-ordres-regroupes.js),
+  qui ne recalcule rien : il lit le verdict de la règle existante du plateau (grisage `needsPost` / `paysMandatPourOrdre` de
+  renderRoomActions, chef du syndicat). La correction du lot postes-pays s'y applique d'elle-même ; s'il expose une fonction, seule cette
+  fonction est à changer. Le bloc needsPost de renderRoomActions n'est PAS modifié.
+- **Fichiers du navigateur modifiés** : `plateau-surveillance.js`, `plateau-router.js` (entrée `inspecter_piece`), `plateau-politique.js`
+  (branchement + garde `!ordresRegroupes` sur commissaire, greffe, caserne), `plateau-ordres-regroupes.js` (nouveau), `plateau.html`.
+- **Pour Codex (traductions)** : aucun catalogue modifié ; nouveaux textes français en dur à mettre en clés : `PIECE_TXT` de
+  plateau-surveillance.js (voletInstalle, voletFouiller, voletDesinstaller, installeIntro, installeVide, installeVolNote, aVous, aAutrui,
+  volerBouton, fouillerBouton, desinstallerChezSoi, desinstallerAilleurs, desinstallerRien, desinstallerApres, inspecterDesc, refus
+  pas_a_vous / plein_air) et `TXT` + `PHRASES` + `THEMES` + `POSTES` de plateau-ordres-regroupes.js.
+- **Bancs** : `banc-ordres-regroupes-pglite-20261123.cjs` (7 tests, fixture `fixtures/ordres-regroupes-desinstaller.sql.txt`),
+  `banc-ordres-regroupes-navigateur-20261123.cjs` (Chromium 1280 et 390 px, 10 tests) ; tests mis à jour (jamais désactivés) :
+  `test-fouiller-voler-ordre-20261111.mjs`, `banc-medecin-montrer-navigateur-20261122.cjs` (plus de « Désinstaller du matériel »).
+  Workflow `ordres-regroupes-20261123.yml`.
+- **À tester par Fred (après application)** : inspecter une pièce avec son matériel et celui d'un autre (Voler, Désinstaller le sien,
+  refus pour l'autre), chez soi (tout se désinstalle) ; mairie (Guichet, Élections) en Républia et en Sovarka ; salle des partis avec et
+  sans parti ; syndicat membre / non-membre / chef ; bureau d'un ministre en titulaire puis en visiteur.
 ### Mission « Santé et forêt » (Claude, 22/11/2026, après-midi) — décisions : GAME-DESIGN-SANTE-20261122.md
 - **Appliquées en production le 22/11 (dans l'ordre, chacune validée par Fred à l'écran, contrôle en lecture après chacune, goulag
   `active=false` vérifié, aucune Santé de personnage modifiée)** : `20261122230000_sante_socle`, `20261122231000_sante_combat`,

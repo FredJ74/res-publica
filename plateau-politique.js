@@ -4589,6 +4589,17 @@ function renderRoomActions(room, buildingId, roomId) {
     buttons.splice(0, buttons.length, ...menus.filter(Boolean), ...horsGroupes);
   }
 
+  // REGROUPEMENT DES ORDRES (Fred, 22/11/2026, soir ; GAME-DESIGN-INTERFACE-ACCUEIL-20261122.md, points 18 à 21) :
+  // accueil des mairies (« Élections », « Guichet »), salle des partis, bureau du syndicat et « Fonctions de [poste] »
+  // dans le bureau de chaque fonction (plateau-ordres-regroupes.js). Les boutons d'origine, déjà gardés ci-dessus,
+  // sont seulement remontés dans la fenêtre du groupe : ni droit, ni coût, ni appel ne change.
+  let ordresRegroupes = false;
+  if (!redactionTribune && !(/^terrain-a-batir-[1-5]$/.test(buildingId) && roomId === 'terrain') &&
+      typeof regrouperOrdresPiece === 'function') {
+    const regroupes = regrouperOrdresPiece(ordresTerrainLuthecia.map((o, i) => ({ o, html: buttons[i] })), buildingId, roomId);
+    if (regroupes) { buttons.splice(0, ordresTerrainLuthecia.length, ...regroupes); ordresRegroupes = true; }
+  }
+
   // Bouton generique "Ecouter l'audioguide" : apparait pour toute salle ayant un audioUrl,
   // sans passer par room.orders/doOrder (pas un ordre codable, juste un lecteur audio).
   // Batiment copie dont les audioguides ne sont pas encore enregistres (audiosAVenir) : pas
@@ -4608,7 +4619,8 @@ function renderRoomActions(room, buildingId, roomId) {
   // les sous-ordres complets (postes, couts, refus, handlers) ouvrent une pop-up.
   // Fonctionnement et composition communs a Luthecia, PSM et Montrouge.
   let boutonsOrganises = buttons;
-  if (state.country === 'republic' && ['commissariat', 'commissariat-local'].includes(buildingId) && roomId === 'bureau_commissaire') {
+  // Remplacé par « Fonctions du commissaire » quand le regroupement est chargé (point 21) ; repli inchangé sinon.
+  if (!ordresRegroupes && state.country === 'republic' && ['commissariat', 'commissariat-local'].includes(buildingId) && roomId === 'bureau_commissaire') {
     const familles = [
       {titre:'Enquêtes', icone:'ti-search', fns:['mener_enquete','organiser_filature','organiser_chasse_homme']},
       {titre:'Gérer les effectifs', icone:'ti-users-group', fns:['gerer_effectifs_police','recruter_policier','recruter_policier_cynophile']}
@@ -4633,7 +4645,7 @@ function renderRoomActions(room, buildingId, roomId) {
   // Greffes : boutons principaux au gabarit standard, sous-ordres dans la modale.
   // Conserver les boutons et handlers originaux, sans modifier les conditions métier.
   // Greffe du Tribunal Populaire de Sovarka : même rangement (Fred, 08/11/2026).
-  if (['republic','soviet'].includes(state.country) && ['tribunal','tribunal-local'].includes(buildingId) && roomId === 'greffe') {
+  if (!ordresRegroupes && ['republic','soviet'].includes(state.country) && ['tribunal','tribunal-local'].includes(buildingId) && roomId === 'greffe') {
     const familles = [
       {titre:'Consulter les affaires', icone:'ti-folders', fns:['archives','greffe_affaires','greffe_archives','demander_juge_instruction']},
       {titre:'Documents officiels', icone:'ti-file-certificate', fns:['casier_mon_extrait','casier_extrait_enquete','orga_extrait_duplicata','sovarka_acte_officiel','sovarka_acte_officiel_autorite']},
@@ -4660,7 +4672,7 @@ function renderRoomActions(room, buildingId, roomId) {
   // Casernes : les dix ordres du corps de garde et les quinze de commandement
   // etaient exposes sans structure. Memes groupes dans toutes les nations :
   // 3 menus lisibles plutot qu'un mur de boutons, aucune action supprimee.
-  if (buildingId === 'caserne-militaire' &&
+  if (!ordresRegroupes && buildingId === 'caserne-militaire' &&
       ['corps_garde','salle_commandement'].includes(roomId) &&
       ['republic','soviet','narco','khalija'].includes(state.country)) {
     const familles = roomId === 'corps_garde'
