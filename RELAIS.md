@@ -8,6 +8,57 @@ Règles : voir `AGENTS.md`.
 
 
 ## En cours
+
+### Images — SQL NON APPLIQUÉ, à reprendre lors de la réconciliation (Codex, 23/11/2026)
+- Livraison client : branche `codex/images-cassees-20261122`, **PR #1180**, rebases sur `032ed966`, `e9f496ca` puis `f40e7413` (correctifs CI Santé et window.state de Claude repris tels quels). Aucun autre chantier lancé, aucun accès en écriture à la base, aucun seed ni fichier image modifié. Le goulag reste hors périmètre.
+- Relevé des 22 commits / 119 fichiers arrivés sur main, chevauchements et PR ouvertes : `outils/audits/images-cassees-20261122/reprise-etape1.json`. Conflits HTML et cartes postales résolus en conservant main puis en réappliquant les seuls raccords images ; preuve de conservation intégrale des huit fichiers : `preservation-main.json`.
+- Audit et liste de corrections/manques : `outils/audits/images-cassees-20261122/RAPPORT-REPRISE.md` et `IMAGES-MANQUANTES-20261122.json`. 1308 références littérales / 1046 URL, 3156 références issues des modèles des quatre empires, aucune cible locale absente. Six images de chantier Luthécia et tabac-presse de Claude préservés ; les cinq fontaines manquantes ne sont pas corrigées ici (lot crue).
+- **Garde CI** : `banc-images-references-20261122.cjs`, workflow `images-cassees-20261122.yml`, job `images`. Contrôle fichiers suivis par Git, casse et alias ; refuse fichier absent, mauvais nom, mauvaise casse ou cible d’alias absente. Recette Chromium 320/390/1280 et neuf langues, sans compte ni RPC de production. Résultat final CI/fusion/diffusion : [PR #1180](https://github.com/FredJ74/res-publica/pull/1180).
+- Raccord des deux fenêtres d’objet rendu compatible avec les fragments isolés : repli `typeof imageUrlObjet` comme dans les autres consommateurs ; aucun banc Tabac de Claude modifié, cartes recto/verso et cigarettes préservées (15/15 épreuves locales).
+- **Collecte en lecture seule** : `python3 outils/images/controler-images-base.py --sql-metadonnees` imprime le SELECT ; `--metadonnees <export privé> --requete N` imprime un lot de SELECT, sans l’exécuter ; `--resultats <export privé> --rapport <rapport privé>` liste les chemins sans fichier ou nécessitant une résolution de stockage. Les exports privés et URL utilisateur ne sont pas commis. L’audit base publié correspond à la lecture du 22/11, avant les dernières migrations de Claude ; ne pas le présenter comme un nouvel état canonique.
+- **NON APPLIQUÉ** : fichier `migrations/20261122210046_correction_chemins_images_non_appliquee.sql`, 16 règles, 76 lignes relevées le 22/11 dans six tables (escorts_catalogue 3, inventaire_actions_recus 1, journal_editions 60, objets_modeles 3, personnages_donnees 3, pnj_possessions 6). Images identiques, chemins PNG / GitHub périmés vers les WebP existants. Aucune quantité, PA, argent ou règle modifiée. À relire et intégrer seulement lors de la réconciliation séparée après Claude ; ne jamais déduire une application de sa présence dans Git.
+
+```sql
+-- NON APPLIQUÉE — Fred, mission images du 22/11/2026.
+-- Claude seul intervient en production. Préparation pour la réconciliation ultérieure.
+-- Images uniquement : aucun coût, droit, ordre, inventaire quantitatif, seed ni fonction métier.
+-- Remplace des chaînes JSON ENTIÈRES, jamais le contenu narratif d’une chaîne.
+-- Idempotente : aucune ancienne valeur => aucune écriture. Une transaction à l’application future.
+DO $images$
+DECLARE r record; v_anciennes text;
+BEGIN
+  FOR r IN SELECT * FROM (VALUES
+    ('escorts_catalogue','portrait','text','images/escort-h-1-costume-beige.png','images/escort-h-1-costume-beige.webp'),
+    ('escorts_catalogue','portrait','text','images/escort-republic.png','images/escort-republic.webp'),
+    ('escorts_catalogue','portrait','text','images/escort-f-1-robe-verte.png','images/escort-f-1-robe-verte.webp'),
+    ('inventaire_actions_recus','resultat','jsonb','https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-fusil-republic.png','images/arme-fusil-republic.webp'),
+    ('journal_editions','faits_sources','jsonb','https://raw.githubusercontent.com/FredJ74/res-publica/main/images/stade-brise-mariannaise.png','images/stade-brise-mariannaise.webp'),
+    ('journal_editions','faits_sources','jsonb','https://raw.githubusercontent.com/FredJ74/res-publica/main/images/stade-olympique-luthecia.png','images/stade-olympique-luthecia.webp'),
+    ('journal_editions','faits_sources','jsonb','images/stade-brise-mariannaise.png','images/stade-brise-mariannaise.webp'),
+    ('journal_editions','faits_sources','jsonb','images/stade-olympique-luthecia.png','images/stade-olympique-luthecia.webp'),
+    ('objets_modeles','objet','jsonb','images/arme-baionnette-soviet.png','images/arme-baionnette-soviet.webp'),
+    ('objets_modeles','objet','jsonb','images/arme-makarov-soviet.png','images/arme-makarov-soviet.webp'),
+    ('objets_modeles','objet','jsonb','images/arme-kalachnikov-soviet.png','images/arme-kalachnikov-soviet.webp'),
+    ('personnages_donnees','inventory','jsonb','https://raw.githubusercontent.com/FredJ74/res-publica/main/images/calepin-enigme-musee.png','images/calepin-enigme-musee.webp'),
+    ('personnages_donnees','inventory','jsonb','images/calepin-enigme-musee.png','images/calepin-enigme-musee.webp'),
+    ('personnages_donnees','inventory','jsonb','https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-fusil-republic.png','images/arme-fusil-republic.webp'),
+    ('pnj_possessions','objet','jsonb','https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-mitraillette-militaire.png','images/arme-mitraillette-militaire.webp'),
+    ('pnj_possessions','objet','jsonb','https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-pistolet-militaire.png','images/arme-pistolet-militaire.webp')
+  ) AS corrections(table_name,column_name,column_type,ancienne,nouvelle)
+  LOOP
+    IF r.column_type = 'text' THEN
+      EXECUTE format('UPDATE public.%I SET %I = $2 WHERE %I = $1',
+        r.table_name,r.column_name,r.column_name) USING r.ancienne,r.nouvelle;
+    ELSE
+      EXECUTE format('UPDATE public.%I SET %I = replace(%I::text,to_jsonb($1::text)::text,to_jsonb($2::text)::text)::jsonb WHERE strpos(%I::text,to_jsonb($1::text)::text) > 0',
+        r.table_name,r.column_name,r.column_name,r.column_name) USING r.ancienne,r.nouvelle;
+    END IF;
+  END LOOP;
+END
+$images$;
+```
+
+
 ### Baseline — plan préparé, réconciliation différée (Codex, 22/11/2026)
 - **Baseline : plan seulement, ne pas exécuter dans cette mission.** Les rapports de Claude sont consignés dans main aadfc332, notamment le rapport Santé/forêt 0abd7d01 et les cinq migrations Santé 20261122230000 à 20261122234000 (596 tarifs dans le seed courant). Les exports du 21/11 précèdent ces changements et ne représentent pas le schéma actuel ; Une coupe de référence sera choisie après toutes les livraisons de Claude lors de la mission séparée de réconciliation. Recueillir alors les quatre exports canoniques complets (schéma, routines, politiques, configuration), vérifier les empreintes et le registre des migrations avec Claude, sans données personnelles. Comparer les sources au schéma réellement installé, distinguer les migrations déjà archivées des changements manquants et ne jamais réappliquer l’archive atomique du goulag. Régénérer le baseline sur une branche séparée, reconstruire une base PostgreSQL 17 jetable et comparer objets, droits, RLS, fonctions, séquences et paramètres ; jouer les non-régressions Républia/Sovarka et les refus du goulag fermé. Documenter tout écart non résolu, conserver les exports privés et les preuves sans identités. Rebaser sur le main final de Claude, obtenir toute la CI verte avant PR/fusion ; aucun changement de production inclus dans cette réconciliation. Les 5434 attributions manquantes de l’ancien diagnostic ne justifient pas une modification immédiate : elles doivent être reclassées sur la nouvelle coupe.
 - Aucune collecte, requête, migration ou réconciliation exécutée par Codex pendant cette livraison client. Claude reste seul à intervenir sur la base ; aucune activation du goulag.

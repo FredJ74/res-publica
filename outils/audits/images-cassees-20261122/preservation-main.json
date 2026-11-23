@@ -1,0 +1,24 @@
+{
+  "main": "f40e74137b530cc7f2775cef10f1ede2d8b414ec",
+  "fichiers_verifies_en_entier_hors_corrections_images": [
+    "data.js",
+    "plateau-personnage.js",
+    "plateau-actions-illegales-rumeurs.js",
+    "plateau-justice-economie.js",
+    "plateau-assemblee.js",
+    "plateau-rue-centrale.js",
+    "plateau.html",
+    "vercel.json"
+  ],
+  "aucun_seed_image_ou_serveur_modifie": true,
+  "conflits": [
+    {
+      "fichier": "plateau.html",
+      "resolution": "HTML intégral de main, versions des six scripts conservées avec préfixe images ; ajout du résolveur seulement"
+    },
+    {
+      "fichier": "plateau-personnage.js",
+      "resolution": "version de main intégralement reprise ; anciennes cartes postales du stash écartées, recto/verso et nouvelles légendes de Claude conservés ; raccords images seuls réappliqués"
+    }
+  ]
+}

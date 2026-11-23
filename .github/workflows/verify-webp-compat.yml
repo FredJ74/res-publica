@@ -22,7 +22,7 @@ jobs:
           from pathlib import Path
           cfg=json.loads(Path('vercel.json').read_text())
           aliases=[x for x in cfg['rewrites'] if x['source'].endswith('.png')]
-          assert len(aliases)==29, f'29 alias PNG attendus, {len(aliases)} trouves'
+          assert len(aliases)==32, f'32 alias PNG attendus, {len(aliases)} trouves'
           for item in aliases:
               old=Path(item['source'].lstrip('/'))
               new=Path(item['destination'].lstrip('/'))

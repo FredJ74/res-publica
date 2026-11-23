@@ -6296,12 +6296,8 @@ const PRODUITS_MANUFACTURES_USINE = {
     type: 'armoire_souvenirs',
     label: 'Armoire à souvenirs',
     icon: 'ti-archive',
-    // imageUrl : chemin valide par Fred (25 aout 2026), meme convention que les autres visuels
-    // du jeu (dossier images/ a la racine). Asset pas encore depose au moment de ce lot -- le
-    // popup (plateau-personnage.js) n'affiche l'image que si item.imageUrl est renseigne, donc
-    // aucun blocage ni placeholder tant que le fichier n'existe pas physiquement : l'image
-    // apparaitra d'elle-meme des le depot du fichier, sans autre changement de code.
-    imageUrl: 'images/armoire-a-souvenirs.png',
+    // Illustration non produite : aucun appel vers un fichier absent. Voir l’audit des images.
+    imageUrl: null,
     buildingId: 'zone-production',
     pays: 'republic',
     ville: 'ville_a',

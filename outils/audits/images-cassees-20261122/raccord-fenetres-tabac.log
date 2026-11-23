@@ -1,0 +1,23 @@
+✔ aucune référence image littérale absente : code, HTML, CSS et destinations Vercel (2330.92042ms)
+✔ le contrôle refuse une image absente, une casse incorrecte et une cible de réécriture absente (25.413811ms)
+✔ URL encodée et paramètres conservés ; aucun faux appel issu d’un commentaire (0.237308ms)
+✔ les référentiels exécutés couvrent les quatre empires et les noms construits (266.431582ms)
+✔ chemins construits : forêt et toundra présentes, aucun nouveau candidat absent de chantier (77.99626ms)
+✔ neuf cartes postales et trois armes soviétiques : alias exact vers le vrai WebP (0.474707ms)
+✔ anciennes URL GitHub : même illustration, pas de conversion aveugle ni mutation d’objet (1.815748ms)
+✔ noms, descriptions françaises, prix, bonus et recettes inchangés (75.039632ms)
+✔ bug corrigé : l’onglet Inventaire propose « Écrire et envoyer » ; le serveur écrit et envoie la carte (2157.171872ms)
+✔ carte reçue : recto avec l’image et la légende, un clic la retourne sur le message signé (2187.557582ms)
+✔ cigarettes : « Fumer » depuis l’inventaire, Moral recopié du serveur (1664.719168ms)
+✔ légendes : une clé par carte postale existante, seule Krasnov a son texte (2.846804ms)
+✔ Fichiers : deux webp de 800 px de large dans images/ (1.739653ms)
+✔ Écran : inventaire et fiche d'objet trouvent l'image par identité, jamais par nom (3.573149ms)
+✔ Serveur : recettes, objets déposés et rattrapage (0.591462ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 9392.506204

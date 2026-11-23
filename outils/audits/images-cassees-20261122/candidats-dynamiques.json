@@ -1,0 +1,2224 @@
+[
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "capitale",
+    "type": "hangar",
+    "progression": 0,
+    "candidats": [
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "capitale",
+    "type": "hangar",
+    "progression": 1,
+    "candidats": [
+      "images/chantiers/luthecia/fondations.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantiers/luthecia/fondations.webp",
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "capitale",
+    "type": "hangar",
+    "progression": 4,
+    "candidats": [
+      "images/chantiers/luthecia/gros-oeuvre-bas.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantiers/luthecia/gros-oeuvre-bas.webp",
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "capitale",
+    "type": "hangar",
+    "progression": 7,
+    "candidats": [
+      "images/chantiers/luthecia/facade-bas.webp",
+      "images/chantiers/luthecia/gros-oeuvre-bas.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantiers/luthecia/facade-bas.webp",
+      "images/chantiers/luthecia/gros-oeuvre-bas.webp",
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "capitale",
+    "type": "hangar",
+    "progression": null,
+    "candidats": [
+      "images/chantiers/luthecia/final-hangar.webp",
+      "images/hangar-construction-terrain.webp"
+    ],
+    "existants": [
+      "images/chantiers/luthecia/final-hangar.webp",
+      "images/hangar-construction-terrain.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "capitale",
+    "type": "commerce_standard",
+    "progression": 0,
+    "candidats": [
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "capitale",
+    "type": "commerce_standard",
+    "progression": 1,
+    "candidats": [
+      "images/chantiers/luthecia/fondations.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantiers/luthecia/fondations.webp",
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "capitale",
+    "type": "commerce_standard",
+    "progression": 4,
+    "candidats": [
+      "images/chantiers/luthecia/gros-oeuvre-bas.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantiers/luthecia/gros-oeuvre-bas.webp",
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "capitale",
+    "type": "commerce_standard",
+    "progression": 7,
+    "candidats": [
+      "images/chantiers/luthecia/facade-bas.webp",
+      "images/chantiers/luthecia/gros-oeuvre-bas.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantiers/luthecia/facade-bas.webp",
+      "images/chantiers/luthecia/gros-oeuvre-bas.webp",
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "capitale",
+    "type": "commerce_standard",
+    "progression": null,
+    "candidats": [
+      "images/chantiers/luthecia/final-commerce-standard.webp",
+      "images/commerce-standard-construction-terrain.webp"
+    ],
+    "existants": [
+      "images/chantiers/luthecia/final-commerce-standard.webp",
+      "images/commerce-standard-construction-terrain.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "capitale",
+    "type": "commerce_premium",
+    "progression": 0,
+    "candidats": [
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "capitale",
+    "type": "commerce_premium",
+    "progression": 1,
+    "candidats": [
+      "images/chantiers/luthecia/fondations.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantiers/luthecia/fondations.webp",
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "capitale",
+    "type": "commerce_premium",
+    "progression": 4,
+    "candidats": [
+      "images/chantiers/luthecia/gros-oeuvre-bas.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantiers/luthecia/gros-oeuvre-bas.webp",
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "capitale",
+    "type": "commerce_premium",
+    "progression": 7,
+    "candidats": [
+      "images/chantiers/luthecia/facade-bas.webp",
+      "images/chantiers/luthecia/gros-oeuvre-bas.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantiers/luthecia/facade-bas.webp",
+      "images/chantiers/luthecia/gros-oeuvre-bas.webp",
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "capitale",
+    "type": "commerce_premium",
+    "progression": null,
+    "candidats": [
+      "images/chantiers/luthecia/final-commerce-premium.webp",
+      "images/commerce-premium-construction-terrain.webp"
+    ],
+    "existants": [
+      "images/chantiers/luthecia/final-commerce-premium.webp",
+      "images/commerce-premium-construction-terrain.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "capitale",
+    "type": "logement",
+    "progression": 0,
+    "candidats": [
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "capitale",
+    "type": "logement",
+    "progression": 1,
+    "candidats": [
+      "images/chantiers/luthecia/fondations.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantiers/luthecia/fondations.webp",
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "capitale",
+    "type": "logement",
+    "progression": 4,
+    "candidats": [
+      "images/chantiers/luthecia/gros-oeuvre-haut.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantiers/luthecia/gros-oeuvre-haut.webp",
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "capitale",
+    "type": "logement",
+    "progression": 7,
+    "candidats": [
+      "images/chantiers/luthecia/facade-haut.webp",
+      "images/chantiers/luthecia/gros-oeuvre-haut.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantiers/luthecia/facade-haut.webp",
+      "images/chantiers/luthecia/gros-oeuvre-haut.webp",
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "capitale",
+    "type": "logement",
+    "progression": null,
+    "candidats": [
+      "images/chantiers/luthecia/final-logement.webp",
+      "images/commerce-premium-construction-terrain.webp"
+    ],
+    "existants": [
+      "images/chantiers/luthecia/final-logement.webp",
+      "images/commerce-premium-construction-terrain.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "capitale",
+    "type": "building",
+    "progression": 0,
+    "candidats": [
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "capitale",
+    "type": "building",
+    "progression": 1,
+    "candidats": [
+      "images/chantiers/luthecia/fondations.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantiers/luthecia/fondations.webp",
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "capitale",
+    "type": "building",
+    "progression": 4,
+    "candidats": [
+      "images/chantiers/luthecia/gros-oeuvre-haut.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantiers/luthecia/gros-oeuvre-haut.webp",
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "capitale",
+    "type": "building",
+    "progression": 7,
+    "candidats": [
+      "images/chantiers/luthecia/facade-haut.webp",
+      "images/chantiers/luthecia/gros-oeuvre-haut.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantiers/luthecia/facade-haut.webp",
+      "images/chantiers/luthecia/gros-oeuvre-haut.webp",
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "capitale",
+    "type": "building",
+    "progression": null,
+    "candidats": [
+      "images/chantiers/luthecia/final-building.webp",
+      "images/building-construction-terrain.webp"
+    ],
+    "existants": [
+      "images/chantiers/luthecia/final-building.webp",
+      "images/building-construction-terrain.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_a",
+    "type": "hangar",
+    "progression": 0,
+    "candidats": [
+      "images/chantiers/psm/PSM_chantier_demarrage_petit.webp"
+    ],
+    "existants": [
+      "images/chantiers/psm/PSM_chantier_demarrage_petit.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_a",
+    "type": "hangar",
+    "progression": 1,
+    "candidats": [
+      "images/chantiers/psm/PSM_chantier_fondations.webp"
+    ],
+    "existants": [
+      "images/chantiers/psm/PSM_chantier_fondations.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_a",
+    "type": "hangar",
+    "progression": 4,
+    "candidats": [
+      "images/chantiers/psm/PSM_chantier_gros_oeuvre.webp"
+    ],
+    "existants": [
+      "images/chantiers/psm/PSM_chantier_gros_oeuvre.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_a",
+    "type": "hangar",
+    "progression": 7,
+    "candidats": [
+      "images/chantiers/psm/PSM_chantier_facade.webp"
+    ],
+    "existants": [
+      "images/chantiers/psm/PSM_chantier_facade.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_a",
+    "type": "hangar",
+    "progression": null,
+    "candidats": [
+      "images/chantiers/psm/PSM_batiment_hangar.webp"
+    ],
+    "existants": [
+      "images/chantiers/psm/PSM_batiment_hangar.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_a",
+    "type": "commerce_standard",
+    "progression": 0,
+    "candidats": [
+      "images/chantiers/psm/PSM_chantier_demarrage_petit.webp"
+    ],
+    "existants": [
+      "images/chantiers/psm/PSM_chantier_demarrage_petit.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_a",
+    "type": "commerce_standard",
+    "progression": 1,
+    "candidats": [
+      "images/chantiers/psm/PSM_chantier_fondations.webp"
+    ],
+    "existants": [
+      "images/chantiers/psm/PSM_chantier_fondations.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_a",
+    "type": "commerce_standard",
+    "progression": 4,
+    "candidats": [
+      "images/chantiers/psm/PSM_chantier_gros_oeuvre.webp"
+    ],
+    "existants": [
+      "images/chantiers/psm/PSM_chantier_gros_oeuvre.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_a",
+    "type": "commerce_standard",
+    "progression": 7,
+    "candidats": [
+      "images/chantiers/psm/PSM_chantier_facade.webp"
+    ],
+    "existants": [
+      "images/chantiers/psm/PSM_chantier_facade.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_a",
+    "type": "commerce_standard",
+    "progression": null,
+    "candidats": [
+      "images/chantiers/psm/PSM_batiment_commerce_standard.webp"
+    ],
+    "existants": [
+      "images/chantiers/psm/PSM_batiment_commerce_standard.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_a",
+    "type": "commerce_premium",
+    "progression": 0,
+    "candidats": [
+      "images/chantiers/psm/PSM_chantier_demarrage_grand.webp"
+    ],
+    "existants": [
+      "images/chantiers/psm/PSM_chantier_demarrage_grand.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_a",
+    "type": "commerce_premium",
+    "progression": 1,
+    "candidats": [
+      "images/chantiers/psm/PSM_chantier_fondations.webp"
+    ],
+    "existants": [
+      "images/chantiers/psm/PSM_chantier_fondations.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_a",
+    "type": "commerce_premium",
+    "progression": 4,
+    "candidats": [
+      "images/chantiers/psm/PSM_chantier_gros_oeuvre.webp"
+    ],
+    "existants": [
+      "images/chantiers/psm/PSM_chantier_gros_oeuvre.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_a",
+    "type": "commerce_premium",
+    "progression": 7,
+    "candidats": [
+      "images/chantiers/psm/PSM_chantier_facade.webp"
+    ],
+    "existants": [
+      "images/chantiers/psm/PSM_chantier_facade.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_a",
+    "type": "commerce_premium",
+    "progression": null,
+    "candidats": [
+      "images/chantiers/psm/PSM_batiment_commerce_premium.webp"
+    ],
+    "existants": [
+      "images/chantiers/psm/PSM_batiment_commerce_premium.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_a",
+    "type": "logement",
+    "progression": 0,
+    "candidats": [
+      "images/chantiers/psm/PSM_chantier_demarrage_grand.webp"
+    ],
+    "existants": [
+      "images/chantiers/psm/PSM_chantier_demarrage_grand.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_a",
+    "type": "logement",
+    "progression": 1,
+    "candidats": [
+      "images/chantiers/psm/PSM_chantier_fondations.webp"
+    ],
+    "existants": [
+      "images/chantiers/psm/PSM_chantier_fondations.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_a",
+    "type": "logement",
+    "progression": 4,
+    "candidats": [
+      "images/chantiers/psm/PSM_chantier_gros_oeuvre.webp"
+    ],
+    "existants": [
+      "images/chantiers/psm/PSM_chantier_gros_oeuvre.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_a",
+    "type": "logement",
+    "progression": 7,
+    "candidats": [
+      "images/chantiers/psm/PSM_chantier_facade.webp"
+    ],
+    "existants": [
+      "images/chantiers/psm/PSM_chantier_facade.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_a",
+    "type": "logement",
+    "progression": null,
+    "candidats": [
+      "images/chantiers/psm/PSM_batiment_logement.webp"
+    ],
+    "existants": [
+      "images/chantiers/psm/PSM_batiment_logement.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_a",
+    "type": "building",
+    "progression": 0,
+    "candidats": [
+      "images/chantiers/psm/PSM_chantier_demarrage_grand.webp"
+    ],
+    "existants": [
+      "images/chantiers/psm/PSM_chantier_demarrage_grand.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_a",
+    "type": "building",
+    "progression": 1,
+    "candidats": [
+      "images/chantiers/psm/PSM_chantier_fondations.webp"
+    ],
+    "existants": [
+      "images/chantiers/psm/PSM_chantier_fondations.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_a",
+    "type": "building",
+    "progression": 4,
+    "candidats": [
+      "images/chantiers/psm/PSM_chantier_gros_oeuvre.webp"
+    ],
+    "existants": [
+      "images/chantiers/psm/PSM_chantier_gros_oeuvre.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_a",
+    "type": "building",
+    "progression": 7,
+    "candidats": [
+      "images/chantiers/psm/PSM_chantier_facade.webp"
+    ],
+    "existants": [
+      "images/chantiers/psm/PSM_chantier_facade.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_a",
+    "type": "building",
+    "progression": null,
+    "candidats": [
+      "images/chantiers/psm/PSM_batiment_building.webp"
+    ],
+    "existants": [
+      "images/chantiers/psm/PSM_batiment_building.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_b",
+    "type": "hangar",
+    "progression": 0,
+    "candidats": [
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_b",
+    "type": "hangar",
+    "progression": 1,
+    "candidats": [
+      "images/chantiers/montrouge/fondations.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_b",
+    "type": "hangar",
+    "progression": 4,
+    "candidats": [
+      "images/chantiers/montrouge/gros-oeuvre-bas.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_b",
+    "type": "hangar",
+    "progression": 7,
+    "candidats": [
+      "images/chantiers/montrouge/facade-bas.webp",
+      "images/chantiers/montrouge/gros-oeuvre-bas.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_b",
+    "type": "hangar",
+    "progression": null,
+    "candidats": [
+      "images/chantiers/montrouge/final-hangar.webp",
+      "images/hangar-construction-terrain.webp"
+    ],
+    "existants": [
+      "images/hangar-construction-terrain.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_b",
+    "type": "commerce_standard",
+    "progression": 0,
+    "candidats": [
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_b",
+    "type": "commerce_standard",
+    "progression": 1,
+    "candidats": [
+      "images/chantiers/montrouge/fondations.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_b",
+    "type": "commerce_standard",
+    "progression": 4,
+    "candidats": [
+      "images/chantiers/montrouge/gros-oeuvre-bas.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_b",
+    "type": "commerce_standard",
+    "progression": 7,
+    "candidats": [
+      "images/chantiers/montrouge/facade-bas.webp",
+      "images/chantiers/montrouge/gros-oeuvre-bas.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_b",
+    "type": "commerce_standard",
+    "progression": null,
+    "candidats": [
+      "images/chantiers/montrouge/final-commerce-standard.webp",
+      "images/commerce-standard-construction-terrain.webp"
+    ],
+    "existants": [
+      "images/commerce-standard-construction-terrain.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_b",
+    "type": "commerce_premium",
+    "progression": 0,
+    "candidats": [
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_b",
+    "type": "commerce_premium",
+    "progression": 1,
+    "candidats": [
+      "images/chantiers/montrouge/fondations.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_b",
+    "type": "commerce_premium",
+    "progression": 4,
+    "candidats": [
+      "images/chantiers/montrouge/gros-oeuvre-bas.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_b",
+    "type": "commerce_premium",
+    "progression": 7,
+    "candidats": [
+      "images/chantiers/montrouge/facade-bas.webp",
+      "images/chantiers/montrouge/gros-oeuvre-bas.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_b",
+    "type": "commerce_premium",
+    "progression": null,
+    "candidats": [
+      "images/chantiers/montrouge/final-commerce-premium.webp",
+      "images/commerce-premium-construction-terrain.webp"
+    ],
+    "existants": [
+      "images/commerce-premium-construction-terrain.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_b",
+    "type": "logement",
+    "progression": 0,
+    "candidats": [
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_b",
+    "type": "logement",
+    "progression": 1,
+    "candidats": [
+      "images/chantiers/montrouge/fondations.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_b",
+    "type": "logement",
+    "progression": 4,
+    "candidats": [
+      "images/chantiers/montrouge/gros-oeuvre-haut.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_b",
+    "type": "logement",
+    "progression": 7,
+    "candidats": [
+      "images/chantiers/montrouge/facade-haut.webp",
+      "images/chantiers/montrouge/gros-oeuvre-haut.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_b",
+    "type": "logement",
+    "progression": null,
+    "candidats": [
+      "images/chantiers/montrouge/final-logement.webp",
+      "images/commerce-premium-construction-terrain.webp"
+    ],
+    "existants": [
+      "images/commerce-premium-construction-terrain.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_b",
+    "type": "building",
+    "progression": 0,
+    "candidats": [
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_b",
+    "type": "building",
+    "progression": 1,
+    "candidats": [
+      "images/chantiers/montrouge/fondations.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_b",
+    "type": "building",
+    "progression": 4,
+    "candidats": [
+      "images/chantiers/montrouge/gros-oeuvre-haut.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_b",
+    "type": "building",
+    "progression": 7,
+    "candidats": [
+      "images/chantiers/montrouge/facade-haut.webp",
+      "images/chantiers/montrouge/gros-oeuvre-haut.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "republic",
+    "ville": "ville_b",
+    "type": "building",
+    "progression": null,
+    "candidats": [
+      "images/chantiers/montrouge/final-building.webp",
+      "images/building-construction-terrain.webp"
+    ],
+    "existants": [
+      "images/building-construction-terrain.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "capitale",
+    "type": "hangar",
+    "progression": 0,
+    "candidats": [
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "capitale",
+    "type": "hangar",
+    "progression": 1,
+    "candidats": [
+      "images/chantiers/novomirsk/fondations.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "capitale",
+    "type": "hangar",
+    "progression": 4,
+    "candidats": [
+      "images/chantiers/novomirsk/gros-oeuvre-bas.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "capitale",
+    "type": "hangar",
+    "progression": 7,
+    "candidats": [
+      "images/chantiers/novomirsk/facade-bas.webp",
+      "images/chantiers/novomirsk/gros-oeuvre-bas.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "capitale",
+    "type": "hangar",
+    "progression": null,
+    "candidats": [
+      "images/chantiers/novomirsk/final-hangar.webp",
+      "images/hangar-construction-terrain.webp"
+    ],
+    "existants": [
+      "images/hangar-construction-terrain.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "capitale",
+    "type": "commerce_standard",
+    "progression": 0,
+    "candidats": [
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "capitale",
+    "type": "commerce_standard",
+    "progression": 1,
+    "candidats": [
+      "images/chantiers/novomirsk/fondations.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "capitale",
+    "type": "commerce_standard",
+    "progression": 4,
+    "candidats": [
+      "images/chantiers/novomirsk/gros-oeuvre-bas.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "capitale",
+    "type": "commerce_standard",
+    "progression": 7,
+    "candidats": [
+      "images/chantiers/novomirsk/facade-bas.webp",
+      "images/chantiers/novomirsk/gros-oeuvre-bas.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "capitale",
+    "type": "commerce_standard",
+    "progression": null,
+    "candidats": [
+      "images/chantiers/novomirsk/final-commerce-standard.webp",
+      "images/commerce-standard-construction-terrain.webp"
+    ],
+    "existants": [
+      "images/commerce-standard-construction-terrain.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "capitale",
+    "type": "commerce_premium",
+    "progression": 0,
+    "candidats": [
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "capitale",
+    "type": "commerce_premium",
+    "progression": 1,
+    "candidats": [
+      "images/chantiers/novomirsk/fondations.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "capitale",
+    "type": "commerce_premium",
+    "progression": 4,
+    "candidats": [
+      "images/chantiers/novomirsk/gros-oeuvre-bas.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "capitale",
+    "type": "commerce_premium",
+    "progression": 7,
+    "candidats": [
+      "images/chantiers/novomirsk/facade-bas.webp",
+      "images/chantiers/novomirsk/gros-oeuvre-bas.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "capitale",
+    "type": "commerce_premium",
+    "progression": null,
+    "candidats": [
+      "images/chantiers/novomirsk/final-commerce-premium.webp",
+      "images/commerce-premium-construction-terrain.webp"
+    ],
+    "existants": [
+      "images/commerce-premium-construction-terrain.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "capitale",
+    "type": "logement",
+    "progression": 0,
+    "candidats": [
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "capitale",
+    "type": "logement",
+    "progression": 1,
+    "candidats": [
+      "images/chantiers/novomirsk/fondations.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "capitale",
+    "type": "logement",
+    "progression": 4,
+    "candidats": [
+      "images/chantiers/novomirsk/gros-oeuvre-haut.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "capitale",
+    "type": "logement",
+    "progression": 7,
+    "candidats": [
+      "images/chantiers/novomirsk/facade-haut.webp",
+      "images/chantiers/novomirsk/gros-oeuvre-haut.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "capitale",
+    "type": "logement",
+    "progression": null,
+    "candidats": [
+      "images/chantiers/novomirsk/final-logement.webp",
+      "images/commerce-premium-construction-terrain.webp"
+    ],
+    "existants": [
+      "images/commerce-premium-construction-terrain.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "capitale",
+    "type": "building",
+    "progression": 0,
+    "candidats": [
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "capitale",
+    "type": "building",
+    "progression": 1,
+    "candidats": [
+      "images/chantiers/novomirsk/fondations.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "capitale",
+    "type": "building",
+    "progression": 4,
+    "candidats": [
+      "images/chantiers/novomirsk/gros-oeuvre-haut.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "capitale",
+    "type": "building",
+    "progression": 7,
+    "candidats": [
+      "images/chantiers/novomirsk/facade-haut.webp",
+      "images/chantiers/novomirsk/gros-oeuvre-haut.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "capitale",
+    "type": "building",
+    "progression": null,
+    "candidats": [
+      "images/chantiers/novomirsk/final-building.webp",
+      "images/building-construction-terrain.webp"
+    ],
+    "existants": [
+      "images/building-construction-terrain.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_a",
+    "type": "hangar",
+    "progression": 0,
+    "candidats": [
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_a",
+    "type": "hangar",
+    "progression": 1,
+    "candidats": [
+      "images/chantiers/starovka/fondations.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_a",
+    "type": "hangar",
+    "progression": 4,
+    "candidats": [
+      "images/chantiers/starovka/gros-oeuvre-bas.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_a",
+    "type": "hangar",
+    "progression": 7,
+    "candidats": [
+      "images/chantiers/starovka/facade-bas.webp",
+      "images/chantiers/starovka/gros-oeuvre-bas.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_a",
+    "type": "hangar",
+    "progression": null,
+    "candidats": [
+      "images/chantiers/starovka/final-hangar.webp",
+      "images/hangar-construction-terrain.webp"
+    ],
+    "existants": [
+      "images/hangar-construction-terrain.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_a",
+    "type": "commerce_standard",
+    "progression": 0,
+    "candidats": [
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_a",
+    "type": "commerce_standard",
+    "progression": 1,
+    "candidats": [
+      "images/chantiers/starovka/fondations.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_a",
+    "type": "commerce_standard",
+    "progression": 4,
+    "candidats": [
+      "images/chantiers/starovka/gros-oeuvre-bas.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_a",
+    "type": "commerce_standard",
+    "progression": 7,
+    "candidats": [
+      "images/chantiers/starovka/facade-bas.webp",
+      "images/chantiers/starovka/gros-oeuvre-bas.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_a",
+    "type": "commerce_standard",
+    "progression": null,
+    "candidats": [
+      "images/chantiers/starovka/final-commerce-standard.webp",
+      "images/commerce-standard-construction-terrain.webp"
+    ],
+    "existants": [
+      "images/commerce-standard-construction-terrain.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_a",
+    "type": "commerce_premium",
+    "progression": 0,
+    "candidats": [
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_a",
+    "type": "commerce_premium",
+    "progression": 1,
+    "candidats": [
+      "images/chantiers/starovka/fondations.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_a",
+    "type": "commerce_premium",
+    "progression": 4,
+    "candidats": [
+      "images/chantiers/starovka/gros-oeuvre-bas.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_a",
+    "type": "commerce_premium",
+    "progression": 7,
+    "candidats": [
+      "images/chantiers/starovka/facade-bas.webp",
+      "images/chantiers/starovka/gros-oeuvre-bas.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_a",
+    "type": "commerce_premium",
+    "progression": null,
+    "candidats": [
+      "images/chantiers/starovka/final-commerce-premium.webp",
+      "images/commerce-premium-construction-terrain.webp"
+    ],
+    "existants": [
+      "images/commerce-premium-construction-terrain.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_a",
+    "type": "logement",
+    "progression": 0,
+    "candidats": [
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_a",
+    "type": "logement",
+    "progression": 1,
+    "candidats": [
+      "images/chantiers/starovka/fondations.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_a",
+    "type": "logement",
+    "progression": 4,
+    "candidats": [
+      "images/chantiers/starovka/gros-oeuvre-haut.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_a",
+    "type": "logement",
+    "progression": 7,
+    "candidats": [
+      "images/chantiers/starovka/facade-haut.webp",
+      "images/chantiers/starovka/gros-oeuvre-haut.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_a",
+    "type": "logement",
+    "progression": null,
+    "candidats": [
+      "images/chantiers/starovka/final-logement.webp",
+      "images/commerce-premium-construction-terrain.webp"
+    ],
+    "existants": [
+      "images/commerce-premium-construction-terrain.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_a",
+    "type": "building",
+    "progression": 0,
+    "candidats": [
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_a",
+    "type": "building",
+    "progression": 1,
+    "candidats": [
+      "images/chantiers/starovka/fondations.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_a",
+    "type": "building",
+    "progression": 4,
+    "candidats": [
+      "images/chantiers/starovka/gros-oeuvre-haut.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_a",
+    "type": "building",
+    "progression": 7,
+    "candidats": [
+      "images/chantiers/starovka/facade-haut.webp",
+      "images/chantiers/starovka/gros-oeuvre-haut.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_a",
+    "type": "building",
+    "progression": null,
+    "candidats": [
+      "images/chantiers/starovka/final-building.webp",
+      "images/building-construction-terrain.webp"
+    ],
+    "existants": [
+      "images/building-construction-terrain.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_b",
+    "type": "hangar",
+    "progression": 0,
+    "candidats": [
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_b",
+    "type": "hangar",
+    "progression": 1,
+    "candidats": [
+      "images/chantiers/krasnov/fondations.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_b",
+    "type": "hangar",
+    "progression": 4,
+    "candidats": [
+      "images/chantiers/krasnov/gros-oeuvre-bas.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_b",
+    "type": "hangar",
+    "progression": 7,
+    "candidats": [
+      "images/chantiers/krasnov/facade-bas.webp",
+      "images/chantiers/krasnov/gros-oeuvre-bas.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_b",
+    "type": "hangar",
+    "progression": null,
+    "candidats": [
+      "images/chantiers/krasnov/final-hangar.webp",
+      "images/hangar-construction-terrain.webp"
+    ],
+    "existants": [
+      "images/hangar-construction-terrain.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_b",
+    "type": "commerce_standard",
+    "progression": 0,
+    "candidats": [
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_b",
+    "type": "commerce_standard",
+    "progression": 1,
+    "candidats": [
+      "images/chantiers/krasnov/fondations.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_b",
+    "type": "commerce_standard",
+    "progression": 4,
+    "candidats": [
+      "images/chantiers/krasnov/gros-oeuvre-bas.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_b",
+    "type": "commerce_standard",
+    "progression": 7,
+    "candidats": [
+      "images/chantiers/krasnov/facade-bas.webp",
+      "images/chantiers/krasnov/gros-oeuvre-bas.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_b",
+    "type": "commerce_standard",
+    "progression": null,
+    "candidats": [
+      "images/chantiers/krasnov/final-commerce-standard.webp",
+      "images/commerce-standard-construction-terrain.webp"
+    ],
+    "existants": [
+      "images/commerce-standard-construction-terrain.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_b",
+    "type": "commerce_premium",
+    "progression": 0,
+    "candidats": [
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_b",
+    "type": "commerce_premium",
+    "progression": 1,
+    "candidats": [
+      "images/chantiers/krasnov/fondations.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_b",
+    "type": "commerce_premium",
+    "progression": 4,
+    "candidats": [
+      "images/chantiers/krasnov/gros-oeuvre-bas.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_b",
+    "type": "commerce_premium",
+    "progression": 7,
+    "candidats": [
+      "images/chantiers/krasnov/facade-bas.webp",
+      "images/chantiers/krasnov/gros-oeuvre-bas.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_b",
+    "type": "commerce_premium",
+    "progression": null,
+    "candidats": [
+      "images/chantiers/krasnov/final-commerce-premium.webp",
+      "images/commerce-premium-construction-terrain.webp"
+    ],
+    "existants": [
+      "images/commerce-premium-construction-terrain.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_b",
+    "type": "logement",
+    "progression": 0,
+    "candidats": [
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_b",
+    "type": "logement",
+    "progression": 1,
+    "candidats": [
+      "images/chantiers/krasnov/fondations.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_b",
+    "type": "logement",
+    "progression": 4,
+    "candidats": [
+      "images/chantiers/krasnov/gros-oeuvre-haut.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_b",
+    "type": "logement",
+    "progression": 7,
+    "candidats": [
+      "images/chantiers/krasnov/facade-haut.webp",
+      "images/chantiers/krasnov/gros-oeuvre-haut.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_b",
+    "type": "logement",
+    "progression": null,
+    "candidats": [
+      "images/chantiers/krasnov/final-logement.webp",
+      "images/commerce-premium-construction-terrain.webp"
+    ],
+    "existants": [
+      "images/commerce-premium-construction-terrain.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_b",
+    "type": "building",
+    "progression": 0,
+    "candidats": [
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_b",
+    "type": "building",
+    "progression": 1,
+    "candidats": [
+      "images/chantiers/krasnov/fondations.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_b",
+    "type": "building",
+    "progression": 4,
+    "candidats": [
+      "images/chantiers/krasnov/gros-oeuvre-haut.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_b",
+    "type": "building",
+    "progression": 7,
+    "candidats": [
+      "images/chantiers/krasnov/facade-haut.webp",
+      "images/chantiers/krasnov/gros-oeuvre-haut.webp",
+      "images/chantier-en-cours.webp"
+    ],
+    "existants": [
+      "images/chantier-en-cours.webp"
+    ]
+  },
+  {
+    "systeme": "chantier",
+    "pays": "soviet",
+    "ville": "ville_b",
+    "type": "building",
+    "progression": null,
+    "candidats": [
+      "images/chantiers/krasnov/final-building.webp",
+      "images/building-construction-terrain.webp"
+    ],
+    "existants": [
+      "images/building-construction-terrain.webp"
+    ]
+  },
+  {
+    "systeme": "toundra",
+    "destination": "starovka",
+    "jour": 1,
+    "url": "images/Sovarka/Goulag/Sovarka_goulag_toundra_01.webp"
+  },
+  {
+    "systeme": "toundra",
+    "destination": "starovka",
+    "jour": 2,
+    "url": "images/Sovarka/Goulag/Sovarka_goulag_toundra_02.webp"
+  },
+  {
+    "systeme": "toundra",
+    "destination": "starovka",
+    "jour": 3,
+    "url": "images/Sovarka/Goulag/Sovarka_goulag_toundra_03.webp"
+  },
+  {
+    "systeme": "toundra",
+    "destination": "starovka",
+    "jour": 4,
+    "url": "images/Sovarka/Goulag/Sovarka_goulag_toundra_04.webp"
+  },
+  {
+    "systeme": "toundra",
+    "destination": "starovka",
+    "jour": 5,
+    "url": "images/Sovarka/Goulag/Sovarka_goulag_toundra_05.webp"
+  },
+  {
+    "systeme": "toundra",
+    "destination": "starovka",
+    "jour": 6,
+    "url": "images/Sovarka/Goulag/Sovarka_goulag_toundra_06.webp"
+  },
+  {
+    "systeme": "toundra",
+    "destination": "starovka",
+    "jour": 7,
+    "url": "images/Sovarka/Goulag/Sovarka_goulag_toundra_07.webp"
+  },
+  {
+    "systeme": "toundra",
+    "destination": "krasnov",
+    "jour": 1,
+    "url": "images/Sovarka/Goulag/Sovarka_goulag_toundra_01.webp"
+  },
+  {
+    "systeme": "toundra",
+    "destination": "krasnov",
+    "jour": 2,
+    "url": "images/Sovarka/Goulag/Sovarka_goulag_toundra_02.webp"
+  },
+  {
+    "systeme": "toundra",
+    "destination": "krasnov",
+    "jour": 3,
+    "url": "images/Sovarka/Goulag/Sovarka_goulag_toundra_03.webp"
+  },
+  {
+    "systeme": "toundra",
+    "destination": "krasnov",
+    "jour": 4,
+    "url": "images/Sovarka/Goulag/Sovarka_goulag_toundra_04.webp"
+  },
+  {
+    "systeme": "toundra",
+    "destination": "krasnov",
+    "jour": 5,
+    "url": "images/Sovarka/Goulag/Sovarka_goulag_toundra_05.webp"
+  },
+  {
+    "systeme": "toundra",
+    "destination": "krasnov",
+    "jour": 6,
+    "url": "images/Sovarka/Goulag/Sovarka_goulag_toundra_06.webp"
+  },
+  {
+    "systeme": "toundra",
+    "destination": "krasnov",
+    "jour": 7,
+    "url": "images/Sovarka/Goulag/Sovarka_goulag_toundra_07.webp"
+  },
+  {
+    "systeme": "toundra",
+    "destination": "krasnov",
+    "jour": 8,
+    "url": "images/Sovarka/Goulag/Sovarka_goulag_toundra_08.webp"
+  },
+  {
+    "systeme": "toundra",
+    "destination": "krasnov",
+    "jour": 9,
+    "url": "images/Sovarka/Goulag/Sovarka_goulag_toundra_09.webp"
+  },
+  {
+    "systeme": "toundra",
+    "destination": "krasnov",
+    "jour": 10,
+    "url": "images/Sovarka/Goulag/Sovarka_goulag_toundra_10.webp"
+  },
+  {
+    "systeme": "foret",
+    "rencontre": "cf_loup",
+    "url": "images/Sovarka/Krasnov/Krasnov_foret_loup_attaque.webp"
+  },
+  {
+    "systeme": "foret",
+    "rencontre": "cf_meute",
+    "url": "images/Sovarka/Krasnov/Krasnov_foret_meute_loups.webp"
+  },
+  {
+    "systeme": "foret",
+    "rencontre": "cf_ours",
+    "url": "images/Sovarka/Krasnov/Krasnov_foret_ours_attaque.webp"
+  },
+  {
+    "systeme": "foret",
+    "rencontre": "olga",
+    "url": "images/Sovarka/Krasnov/Krasnov_foret_olga_panier.webp"
+  }
+]

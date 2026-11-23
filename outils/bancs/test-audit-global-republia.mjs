@@ -30,7 +30,9 @@ test('audit : les variantes préchargées absentes restent signalées avec un re
  for(const [url,repli]of [['images/attendue.webp',undefined],['images/attendue.webp','images/absente.webp'],['images/attendue.webp','images/BASE.webp'],['images/BASE.webp','images/base.webp'],['images/%xx.png','images/base.webp']])
   assert.equal(verifierImageAvecRepli(url,set,repli).affichage,undefined,'aucune exemption d’une image obligatoire, d’une casse incorrecte ou d’un repli cassé');
  const a=analyser(),attendues=a.anomalies.filter(x=>x.code==='variante_absente_repli_present');
- const manquantes=[2,3].filter(n=>!fs.existsSync(new URL('images/terrains/montrouge/rue-etat-'+n+'.webp',root))).map(n=>'republic.montrouge-vue-11.imagesEtatsTerrains.etat'+n);
+ const declarees=a.rues['montrouge-vue-11'].imagesEtatsTerrains;
+ const manquantes=[2,3].filter(n=>declarees['etat'+n]&&!fs.existsSync(new URL(declarees['etat'+n],root))).map(n=>'republic.montrouge-vue-11.imagesEtatsTerrains.etat'+n);
+ assert.deepEqual(Object.keys(declarees),['ville'],'aucune URL non produite ne doit être préchargée');
  assert.deepEqual(attendues.map(x=>x.scene).sort(),manquantes);
  assert.ok(attendues.every(x=>x.statut==='fichier_absent'&&x.repli==='images/montrouge/montrouge-rue-centre-artisanal-terrains.jpg'));
 });

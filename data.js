@@ -3594,7 +3594,7 @@ const BUILDINGS = {
         name: "Archives Gouvernementales",
         imageBg: "linear-gradient(135deg,#100a08,#1a1208)",
         desc: "Les archives secretes du gouvernement. Dossiers classifies, rapports confidentiels, secrets d'Etat.",
-        imageUrl: "https://images.unsplash.com/photo-1568667256549-094345857aff?w=1200&q=80",
+        imageUrl: null, // Ancienne illustration distante en 404 ; aucun fichier dédié produit.
         persons: [
           {name:'Archiviste Legrand (PNJ)', role:'PNJ - Archiviste en chef', rel:'neutral', job:'archiviste',
            photoUrl:'images/luthecia-palais-gouvernement-archiviste-legrand.webp', photoPos:'50% 15%'}
@@ -3965,7 +3965,7 @@ const BUILDINGS = {
         name: "Salle des Archives",
         imageBg: "linear-gradient(135deg,#0a0808,#120f08)",
         desc: "Les archives de l\'Assemblee Nationale. Le registre officiel des lois y est tenu, sans limite de duree.",
-        imageUrl: "https://images.unsplash.com/photo-1568667256549-094345857aff?w=1200&q=80",
+        imageUrl: null, // Ancienne illustration distante en 404 ; aucun fichier dédié produit.
         persons: [
           {name:'Archiviste Parlementaire (PNJ)', role:'PNJ - Archiviste de l\'Assemblee', rel:'neutral', job:'archiviste', photoUrl:'images/archiviste-parlementaire.webp'}
         ],
@@ -5284,7 +5284,6 @@ const BUILDINGS = {
         name: "Vitrine Principale — Local à louer",
         imageBg: "linear-gradient(135deg,#0a0d10,#12151a)",
         desc: "📋 À LOUER — Emplacement premium en façade. Visibilité maximale. Prix élevé, impact fort sur la réputation de votre organisation.",
-        imageUrl: "https://images.unsplash.com/photo-1567449303078-57ad995bd17f?w=1200&q=80",
         imageUrl: 'images/centre-commercial-republic.webp',
         isLocationRoom: true,
         locationData: { prix: 800, bonusPOP: 10, bonusINF: 5, bonusDIS: 0, label: 'Vitrine Principale', tier: 1 },
@@ -8325,7 +8324,7 @@ const BUILDINGS = {
         name: "Sacristie Administrative",
         imageBg: "linear-gradient(135deg,#080808,#100a08)",
         desc: "La pièce secrète du Grand Prêtre. Archives des confessions. Formulaires rares et tampons bénis.",
-        imageUrl: "https://images.unsplash.com/photo-1568667256549-094345857aff?w=1200&q=80",
+        imageUrl: null, // Ancienne illustration distante en 404 ; aucun fichier dédié produit.
         persons: [
           {name:'Père Ception (PNJ)', role:'Grand Prêtre du Papyrusisme', rel:'neutral', job:'grand_pretre'}
         ],
@@ -9473,7 +9472,7 @@ const ROOM_IMAGES_EMPIRE = {
       'appartements_president': 'images/Sovarka/Novomirsk/novomirsk-palais-presidentiel-appartements.webp',
       'musee_presidentiel': 'images/Sovarka/Novomirsk/novomirsk-palais-presidentiel-musee.webp',
       'salle_reception': 'images/Sovarka/Novomirsk/novomirsk-palais-presidentiel-reception.webp',
-      'bureau_president': 'images/bureau-gouv-sovarka.png'
+      'bureau_president': null // Ancien gabarit masqué ; aucun visuel propre produit.
     },
     'palais-gouvernement': {
       'hall':              'images/hall-parti-sovarka.webp',

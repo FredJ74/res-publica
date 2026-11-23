@@ -1,0 +1,177 @@
+{
+  "illustrations": [
+    {
+      "fichier": "plateau-actions-illegales-rumeurs.js",
+      "chemin_attendu": "images/arme-machette-narco.png",
+      "lieu": "Armurerie d’El Estado",
+      "doit_representer": "Machette",
+      "statut": "image_a_produire"
+    },
+    {
+      "fichier": "plateau-actions-illegales-rumeurs.js",
+      "chemin_attendu": "images/arme-deserteagle-narco.png",
+      "lieu": "Armurerie d’El Estado",
+      "doit_representer": "Desert Eagle",
+      "statut": "image_a_produire"
+    },
+    {
+      "fichier": "plateau-actions-illegales-rumeurs.js",
+      "chemin_attendu": "images/arme-ak47-narco.png",
+      "lieu": "Armurerie d’El Estado",
+      "doit_representer": "AK-47",
+      "statut": "image_a_produire"
+    },
+    {
+      "fichier": "plateau-actions-illegales-rumeurs.js",
+      "chemin_attendu": "images/arme-jambiya-khalija.png",
+      "lieu": "Armurerie d’Al-Khalija",
+      "doit_representer": "Jambiya",
+      "statut": "image_a_produire"
+    },
+    {
+      "fichier": "plateau-actions-illegales-rumeurs.js",
+      "chemin_attendu": "images/arme-pistolet-khalija.png",
+      "lieu": "Armurerie d’Al-Khalija",
+      "doit_representer": "Pistolet doré",
+      "statut": "image_a_produire"
+    },
+    {
+      "fichier": "plateau-actions-illegales-rumeurs.js",
+      "chemin_attendu": "images/arme-fusil-khalija.png",
+      "lieu": "Armurerie d’Al-Khalija",
+      "doit_representer": "Carabine de précision",
+      "statut": "image_a_produire"
+    },
+    {
+      "fichier": "plateau-justice-economie.js",
+      "chemin_attendu": "images/armoire-a-souvenirs.png",
+      "lieu": "Scierie Guy Tarembois / fiche d’objet",
+      "doit_representer": "Armoire à souvenirs",
+      "statut": "image_a_produire"
+    },
+    {
+      "fichier": "plateau-rue-centrale.js",
+      "chemin_attendu": "images/terrains/montrouge/rue-etat-2.webp",
+      "lieu": "Rue des terrains de Montrouge",
+      "doit_representer": "Rue après une réception de chantier",
+      "statut": "etat_optionnel_non_produit_image_initiale_conservee"
+    },
+    {
+      "fichier": "plateau-rue-centrale.js",
+      "chemin_attendu": "images/terrains/montrouge/rue-etat-3.webp",
+      "lieu": "Rue des terrains de Montrouge",
+      "doit_representer": "Rue après réception de tous les chantiers",
+      "statut": "etat_optionnel_non_produit_image_initiale_conservee"
+    },
+    {
+      "fichier": "data.js (commentaire, aucune URL appelée)",
+      "chemin_attendu": "images/port-sainte-marie-port-industriel-box-a-louer.png",
+      "lieu": "Port industriel de Port-Sainte-Marie, Box à louer",
+      "doit_representer": "Rangée de box individuels grillagés",
+      "statut": "piece_sans_illustration_pas_un_appel_404"
+    },
+    {
+      "fichier": "Base : climat_points_eau.image",
+      "chemin_attendu": "images/fontaines/luthecia-fontaine-hotel-de-ville.webp",
+      "lieu": "Luthécia — Hôtel de Ville",
+      "doit_representer": "Fontaine ou point d’eau de ce lieu",
+      "statut": "reserve_au_lot_crue_de_Claude_non_corrige"
+    },
+    {
+      "fichier": "Base : climat_points_eau.image",
+      "chemin_attendu": "images/fontaines/montrouge-fontaine-place-du-rail.webp",
+      "lieu": "Montrouge — Place du Rail",
+      "doit_representer": "Fontaine ou point d’eau de ce lieu",
+      "statut": "reserve_au_lot_crue_de_Claude_non_corrige"
+    },
+    {
+      "fichier": "Base : climat_points_eau.image",
+      "chemin_attendu": "images/fontaines/novomirsk-fontaine-place-peuple.webp",
+      "lieu": "Novomirsk — Place du Peuple",
+      "doit_representer": "Fontaine ou point d’eau de ce lieu",
+      "statut": "reserve_au_lot_crue_de_Claude_non_corrige"
+    },
+    {
+      "fichier": "Base : climat_points_eau.image",
+      "chemin_attendu": "images/fontaines/psm-fontaine-place-armes.webp",
+      "lieu": "Port-Sainte-Marie — Place d’Armes",
+      "doit_representer": "Fontaine ou point d’eau de ce lieu",
+      "statut": "reserve_au_lot_crue_de_Claude_non_corrige"
+    },
+    {
+      "fichier": "Base : climat_points_eau.image",
+      "chemin_attendu": "images/fontaines/starovka-fontaine-mairie.webp",
+      "lieu": "Starovka — Mairie",
+      "doit_representer": "Fontaine ou point d’eau de ce lieu",
+      "statut": "reserve_au_lot_crue_de_Claude_non_corrige"
+    },
+    {
+      "fichier": "data.js",
+      "chemin_attendu": "https://images.unsplash.com/photo-1568667256549-094345857aff?w=1200&q=80",
+      "lieu": "Luthécia — Sacristie administrative du Tabernacle",
+      "doit_representer": "Pièce d’archives, confessions et formulaires du Grand Prêtre",
+      "statut": "ancienne_url_distante_404_aucun_fichier_dedie_identifie"
+    },
+    {
+      "fichier": "data.js",
+      "chemin_attendu": "https://images.unsplash.com/photo-1568667256549-094345857aff?w=1200&q=80",
+      "lieu": "El Estado — Archives de l’Assemblée",
+      "doit_representer": "Archives parlementaires d’El Estado",
+      "statut": "ancienne_url_distante_404_aucun_fichier_dedie_identifie"
+    },
+    {
+      "fichier": "data.js",
+      "chemin_attendu": "https://images.unsplash.com/photo-1568667256549-094345857aff?w=1200&q=80",
+      "lieu": "Al-Khalija — Archives du gouvernement",
+      "doit_representer": "Archives gouvernementales d’Al-Khalija",
+      "statut": "ancienne_url_distante_404_aucun_fichier_dedie_identifie"
+    }
+  ],
+  "anciennes_declarations_sans_consommateur_retirees": [
+    "images/bureau-gouv-sovarka.png",
+    "images/republia-pnj-deputes.png"
+  ],
+  "candidats_chantiers_non_produits": [
+    "images/chantiers/krasnov/facade-bas.webp",
+    "images/chantiers/krasnov/facade-haut.webp",
+    "images/chantiers/krasnov/final-building.webp",
+    "images/chantiers/krasnov/final-commerce-premium.webp",
+    "images/chantiers/krasnov/final-commerce-standard.webp",
+    "images/chantiers/krasnov/final-hangar.webp",
+    "images/chantiers/krasnov/final-logement.webp",
+    "images/chantiers/krasnov/fondations.webp",
+    "images/chantiers/krasnov/gros-oeuvre-bas.webp",
+    "images/chantiers/krasnov/gros-oeuvre-haut.webp",
+    "images/chantiers/montrouge/facade-bas.webp",
+    "images/chantiers/montrouge/facade-haut.webp",
+    "images/chantiers/montrouge/final-building.webp",
+    "images/chantiers/montrouge/final-commerce-premium.webp",
+    "images/chantiers/montrouge/final-commerce-standard.webp",
+    "images/chantiers/montrouge/final-hangar.webp",
+    "images/chantiers/montrouge/final-logement.webp",
+    "images/chantiers/montrouge/fondations.webp",
+    "images/chantiers/montrouge/gros-oeuvre-bas.webp",
+    "images/chantiers/montrouge/gros-oeuvre-haut.webp",
+    "images/chantiers/novomirsk/facade-bas.webp",
+    "images/chantiers/novomirsk/facade-haut.webp",
+    "images/chantiers/novomirsk/final-building.webp",
+    "images/chantiers/novomirsk/final-commerce-premium.webp",
+    "images/chantiers/novomirsk/final-commerce-standard.webp",
+    "images/chantiers/novomirsk/final-hangar.webp",
+    "images/chantiers/novomirsk/final-logement.webp",
+    "images/chantiers/novomirsk/fondations.webp",
+    "images/chantiers/novomirsk/gros-oeuvre-bas.webp",
+    "images/chantiers/novomirsk/gros-oeuvre-haut.webp",
+    "images/chantiers/starovka/facade-bas.webp",
+    "images/chantiers/starovka/facade-haut.webp",
+    "images/chantiers/starovka/final-building.webp",
+    "images/chantiers/starovka/final-commerce-premium.webp",
+    "images/chantiers/starovka/final-commerce-standard.webp",
+    "images/chantiers/starovka/final-hangar.webp",
+    "images/chantiers/starovka/final-logement.webp",
+    "images/chantiers/starovka/fondations.webp",
+    "images/chantiers/starovka/gros-oeuvre-bas.webp",
+    "images/chantiers/starovka/gros-oeuvre-haut.webp"
+  ],
+  "note": "Les quarante candidats de chantier facultatifs disposent tous d’un repli déjà prévu par le moteur. Aucune image de remplacement ajoutée ; les six fichiers de Luthécia livrés par Claude sont présents."
+}

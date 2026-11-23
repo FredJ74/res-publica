@@ -910,7 +910,7 @@ const ARMES_CATALOGUE = {
       icon: 'ti-tools-kitchen-2',
       desc: "L'outil universel. Multi-usages.",
       bonus: { stat: 'VOL', val: 5 },
-      imageUrl: 'images/arme-machette-narco.png'
+      imageUrl: null // Illustration non produite : inventaire IMAGES-MANQUANTES-20261122.json.
     },
     {
       id: 'desert_eagle',
@@ -920,7 +920,7 @@ const ARMES_CATALOGUE = {
       icon: 'ti-crosshair',
       desc: 'El Don lui-même en possède trois.',
       bonus: { stat: 'PER', val: 10 },
-      imageUrl: 'images/arme-deserteagle-narco.png'
+      imageUrl: null // Illustration non produite : inventaire IMAGES-MANQUANTES-20261122.json.
     },
     {
       id: 'ak47',
@@ -930,7 +930,7 @@ const ARMES_CATALOGUE = {
       icon: 'ti-target-arrow',
       desc: "Origine : inconnue. État : parfait.",
       bonus: { stat: 'PER', val: 18 },
-      imageUrl: 'images/arme-ak47-narco.png'
+      imageUrl: null // Illustration non produite : inventaire IMAGES-MANQUANTES-20261122.json.
     }
   ],
   soviet: [
@@ -974,7 +974,7 @@ const ARMES_CATALOGUE = {
       icon: 'ti-tools-kitchen-2',
       desc: 'Lame recourbée, tradition millénaire. Hassan l\'a aiguisée ce matin.',
       bonus: { stat: 'VOL', val: 6 },
-      imageUrl: 'images/arme-jambiya-khalija.png'
+      imageUrl: null // Illustration non produite : inventaire IMAGES-MANQUANTES-20261122.json.
     },
     {
       id: 'pistolet_dore',
@@ -984,7 +984,7 @@ const ARMES_CATALOGUE = {
       icon: 'ti-crosshair',
       desc: 'Serti de nacre. L\'élégance n\'exclut pas l\'efficacité.',
       bonus: { stat: 'PER', val: 9 },
-      imageUrl: 'images/arme-pistolet-khalija.png'
+      imageUrl: null // Illustration non produite : inventaire IMAGES-MANQUANTES-20261122.json.
     },
     {
       id: 'carabine_precision',
@@ -994,7 +994,7 @@ const ARMES_CATALOGUE = {
       icon: 'ti-target-arrow',
       desc: 'Pour la chasse au faucon. Très grands faucons.',
       bonus: { stat: 'PER', val: 17 },
-      imageUrl: 'images/arme-fusil-khalija.png'
+      imageUrl: null // Illustration non produite : inventaire IMAGES-MANQUANTES-20261122.json.
     }
   ]
 };

@@ -1,0 +1,48 @@
+{"viewport":320,"rendus":783,"imagesLocales":78,"images":79,"distantesNonDecodees":1,"pa":70,"arg":200,"saisie":"Brouillon conservé","rpc":0,"largeur":320,"personnage_connecte":false}
+✔ images PSM, portrait du cabinet et retour confirmé, neuf langues, 320px (4923.867468ms)
+{"viewport":390,"rendus":783,"imagesLocales":78,"images":79,"distantesNonDecodees":1,"pa":70,"arg":200,"saisie":"Brouillon conservé","rpc":0,"largeur":390,"personnage_connecte":false}
+✔ images PSM, portrait du cabinet et retour confirmé, neuf langues, 390px (3700.184008ms)
+{"viewport":1280,"rendus":783,"imagesLocales":78,"images":79,"distantesNonDecodees":1,"pa":70,"arg":200,"saisie":"Brouillon conservé","rpc":0,"largeur":1280,"personnage_connecte":false}
+✔ images PSM, portrait du cabinet et retour confirmé, neuf langues, 1280px (3935.059505ms)
+✔ aucune référence image littérale absente : code, HTML, CSS et destinations Vercel (1731.421136ms)
+✔ le contrôle refuse une image absente, une casse incorrecte et une cible de réécriture absente (15.031162ms)
+✔ URL encodée et paramètres conservés ; aucun faux appel issu d’un commentaire (0.215364ms)
+✔ les référentiels exécutés couvrent les quatre empires et les noms construits (303.224983ms)
+✔ chemins construits : forêt et toundra présentes, aucun nouveau candidat absent de chantier (60.000458ms)
+✔ neuf cartes postales et trois armes soviétiques : alias exact vers le vrai WebP (0.416037ms)
+✔ anciennes URL GitHub : même illustration, pas de conversion aveugle ni mutation d’objet (1.717197ms)
+✔ noms, descriptions françaises, prix, bonus et recettes inchangés (58.600178ms)
+✔ plateau-core.js pose l’accesseur window.state juste après « let state » (19.26606ms)
+✔ dans une vraie page : window.state suit « let state », même réassigné ; le module des informateurs lit la bonne pièce (794.766999ms)
+✔ bug corrigé : l’onglet Inventaire propose « Écrire et envoyer » ; le serveur écrit et envoie la carte (2172.673396ms)
+✔ carte reçue : recto avec l’image et la légende, un clic la retourne sur le message signé (2205.980572ms)
+✔ cigarettes : « Fumer » depuis l’inventaire, Moral recopié du serveur (1709.512902ms)
+✔ légendes : une clé par carte postale existante, seule Krasnov a son texte (3.157604ms)
+✔ étiquettes : à vendre, acheté, chantier, à réceptionner, achevé (avec la surface du serveur d’abord) (14.413242ms)
+✔ tant que le serveur n’a pas répondu : seulement ce qui ne change jamais (0.221373ms)
+✔ ligne serveur : data en texte JSON, colonnes proprietaire et niveau_construction en secours (1.518606ms)
+✔ branchements : rue des lots de Luthécia, vue des terrains de PSM et Montrouge, retrait dans une vraie pièce, page (1.065995ms)
+✔ rue en trois états : Luthécia (images livrées) et Montrouge (emplacement prêt, repli) (1.761502ms)
+✔ le catalogue réel des trois villes est examiné, avec images affichables et replis vérifiés (217.629525ms)
+✔ chemins URL : espaces encodés admis, casse et références manquantes refusées (0.368555ms)
+✔ audit : les variantes préchargées absentes restent signalées avec un repli réellement présent (263.279593ms)
+✔ PSM : quatre images locales libres, sans mutation des variantes Luthécia ou des loyers (26.267333ms)
+✔ les avocats de PSM et Montrouge ont une fiche de dialogue (raccordés le 02/11, demande de Fred) (0.714306ms)
+✔ raccordements : profils de dialogue, routes et liens déclaratifs (1112.296244ms)
+✔ directions d’usine #351 : les actes conservent leur ordre de paiement hors du menu (156.273068ms)
+✔ #352 : la salle des ventes de la raffinerie conserve son image locale (112.333321ms)
+✔ les journalistes communs parlent depuis une rédaction, sans ancien hôtel ni fausse enseigne (1.47461ms)
+✔ étape B #350 : aucune ancienne exemption de copie pour la sauvegarde organisations (2.760176ms)
+✔ inventaire des producteurs : le chargeur réutilisé couvre les quatre empires sans mélanger les images (185.424999ms)
+✔ audit : seules les exclusions inconditionnelles du rendu sont reconnues (74.296172ms)
+✔ Fichiers : deux webp de 800 px de large dans images/ (3.860753ms)
+✔ Écran : inventaire et fiche d'objet trouvent l'image par identité, jamais par nom (3.887443ms)
+✔ Serveur : recettes, objets déposés et rattrapage (0.741536ms)
+ℹ tests 37
+ℹ suites 0
+ℹ pass 37
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 25095.080114
