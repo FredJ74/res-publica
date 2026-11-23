@@ -2,7 +2,7 @@
 // « Droit pénal », qui délivre la carrière criminelle, stages chez Pat Hounette ou au siège d'une organisation criminelle).
 // Toutes les décisions sont au serveur : cursus ouverts (universite_mon_etat), inscription (universite_inscrire), étape
 // courante et date d'ouverture (universite_prochaine_etape), lieu, objectif et PA (universite_valider_etape), diplôme
-// (universite_diplomer). Cet écran affiche, rien de plus. Pop-ups cpj-* ; textes français seulement (traductions à venir).
+// (universite_diplomer). Cet écran affiche, rien de plus. Pop-ups cpj-* ; présentation traduite par i18next, sans relancer les actions.
 (function (global) {
 'use strict';
 const T = {
@@ -29,25 +29,80 @@ const T = {
     r_aucun_cursus_en_cours: 'Aucun cursus en cours.', r_acteur_non_authentifie: 'Connexion indisponible.'
   }
 };
-function langue() { try { const l = global.RPI18n && global.RPI18n.language; return (l && T[l]) ? l : 'fr'; } catch (_) { return 'fr'; } }
+function langue() { return global.RPPlateauI18n?.language?.() || global.RPI18nPlateau?.locale?.() || 'fr'; }
 function texte(k, v) {
-  let s = (T[langue()] && T[langue()][k]) || T.fr[k] || k;
+  const fr = T.fr[k] || k;
+  let s = typeof global.i18next?.t === 'function' ? global.i18next.t('university.' + k, { lng: langue(), defaultValue: fr }) : fr;
   if (v) s = s.replace(/\{(\w+)\}/g, (m, n) => (v[n] !== undefined ? String(v[n]) : m));
   return s;
 }
 const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+// Marqueurs de présentation : les bascules ne remplacent pas le formulaire et ne relisent pas la progression.
+function libelle(k, v) {
+  return '<span data-university-key="' + esc(k) + '" data-university-values="' + esc(JSON.stringify(v || {})) + '">' + esc(texte(k, v)) + '</span>';
+}
+function cursusLibelle(c) {
+  const k = 'c_' + c.id;
+  return T.fr[k] === c.libelle ? libelle(k) : esc(c.libelle);
+}
+function rafraichir() {
+  for (const node of global.document?.querySelectorAll('#toast-result [data-university-key], #toast-sub [data-university-key]') || []) {
+    node.textContent = texte(node.getAttribute('data-university-key'));
+    node.setAttribute('dir', langue() === 'ar' ? 'rtl' : 'ltr');
+  }
+  const modal = global.document?.getElementById('modal-postes');
+  const root = global.document?.querySelector('[data-university-root]');
+  if (!root || !modal?.classList.contains('open')) return;
+  root.setAttribute('dir', langue() === 'ar' ? 'rtl' : 'ltr');
+  for (const node of root.querySelectorAll('[data-university-key]')) {
+    let values; try { values = JSON.parse(node.getAttribute('data-university-values') || '{}'); } catch (_) { continue; }
+    node.textContent = texte(node.getAttribute('data-university-key'), values);
+  }
+  const titre = global.document.getElementById('postes-modal-title');
+  if (titre) titre.textContent = texte('titre');
+}
+// Même chargement paresseux de ressource que les guides existants : une requête statique,
+// jamais une porte métier. Le français reste disponible si le catalogue ne charge pas.
+let catalogueDemande = false;
+function chargerCatalogue() {
+  if (catalogueDemande || global.RPUniversityI18n) return;
+  if (!global.document?.head) return;
+  catalogueDemande = true;
+  const script = global.document.createElement('script');
+  script.src = 'i18n/university-resources.js?v=20261123';
+  script.onload = () => { global.RPUniversityI18n?.register(); rafraichir(); };
+  script.onerror = () => {}; // Aucun échec de traduction ne bloque l'université.
+  global.document.head.appendChild(script);
+}
+(global.RP_I18N_CHANGE_CALLBACKS = global.RP_I18N_CHANGE_CALLBACKS || []).push(rafraichir);
+if (global.document?.readyState === 'loading') global.document.addEventListener('DOMContentLoaded', chargerCatalogue, {once:true});
+else chargerCatalogue();
 const un = (r) => (Array.isArray(r) ? r[0] : r);
 async function rpc(fn, params) {
   if (typeof global.sbRpc !== 'function') return null;
   return un(await global.sbRpc(fn, params || {}).catch(() => null));
 }
-function motif(r) { const k = 'r_' + (r && r.raison); return T.fr[k] ? texte(k) : texte('refuse'); }
-function toast(t, b, ok) { if (typeof global.showToast === 'function') global.showToast(t, b, !!ok); }
+function motifCle(r) { const k = 'r_' + (r && r.raison); return T.fr[k] ? k : 'refuse'; }
+function motif(r) { return texte(motifCle(r)); }
+function toast(t, b, ok) {
+  if (typeof global.showToast !== 'function') return;
+  global.showToast(t, b, !!ok);
+  for (const [id, value] of [['toast-result', t], ['toast-sub', b]]) {
+    const node = global.document?.getElementById(id);
+    const key = Object.keys(T.fr).find(k => texte(k) === value);
+    if (!node || !key || node.textContent !== value) continue;
+    const span = global.document.createElement('span');
+    span.setAttribute('data-university-key', key); span.textContent = value;
+    node.replaceChildren(span);
+  }
+  rafraichir();
+}
 function ouvrir(html) {
   const t = global.document.getElementById('postes-modal-title'); if (t) t.textContent = texte('titre');
-  global.document.getElementById('postes-body').innerHTML = '<div class="cpj-dialogue" style="padding:1rem;display:flex;flex-direction:column;gap:.5rem">'
-    + html + '<button class="cpj-touche" onclick="universiteFermer()">' + esc(texte('fermer')) + '</button></div>';
+  global.document.getElementById('postes-body').innerHTML = '<div class="cpj-dialogue" data-university-root style="padding:1rem;display:flex;flex-direction:column;gap:.5rem">'
+    + html + '<button class="cpj-touche" onclick="universiteFermer()">' + libelle('fermer') + '</button></div>';
   global.document.getElementById('modal-postes').classList.add('open');
+  rafraichir();
 }
 function universiteFermer() { const m = global.document.getElementById('modal-postes'); if (m) m.classList.remove('open'); }
 // Noms affichés des lieux (copie d'affichage de data.js ; le serveur compare les identifiants).
@@ -62,33 +117,33 @@ let etapeCourante = null;
 let cursusListe = [];
 async function ouvrirUniversiteFormation() {
   const [s, n] = await Promise.all([rpc('universite_mon_etat'), rpc('universite_prochaine_etape')]);
-  if (!s || !s.ok) { ouvrir('<p class="cpj-note">' + esc(motif(s)) + '</p>'); return; }
-  let html = '<p class="cpj-note">' + esc(texte('intro')) + '</p>';
+  if (!s || !s.ok) { ouvrir('<p class="cpj-note">' + libelle(motifCle(s)) + '</p>'); return; }
+  let html = '<p class="cpj-note">' + libelle('intro') + '</p>';
   if (!s.cursus_actif) {
     if (s.slot_consomme) {
       const c = s.seconde_carriere || {};
-      ouvrir(html + '<p class="cpj-note">' + esc(texte('deja', { carriere: c.libelle || c.carriere || '' })) + '</p>'); return;
+      ouvrir(html + '<p class="cpj-note">' + libelle('deja', { carriere: c.libelle || c.carriere || '' }) + '</p>'); return;
     }
     cursusListe = s.cursus_disponibles || [];
-    if (!cursusListe.length) html += '<p class="cpj-note">' + esc(texte('aucun')) + '</p>';
+    if (!cursusListe.length) html += '<p class="cpj-note">' + libelle('aucun') + '</p>';
     cursusListe.forEach((c, i) => {
-      html += '<p><strong>' + esc(c.libelle) + '</strong><br><span class="cpj-note">' + esc(c.carriere_libelle || '') + ' · '
-        + esc(texte('duree', { semaines: c.semaines_theoriques, limite: 2 * c.semaines_theoriques })) + '</span></p>'
-        + '<button class="cpj-touche cpj-primaire" onclick="universiteInscrire(' + i + ')">' + esc(texte('inscrire')) + '</button>';
+      html += '<p><strong>' + cursusLibelle(c) + '</strong><br><span class="cpj-note">' + esc(c.carriere_libelle || '') + ' · '
+        + libelle('duree', { semaines: c.semaines_theoriques, limite: 2 * c.semaines_theoriques }) + '</span></p>'
+        + '<button class="cpj-touche cpj-primaire" onclick="universiteInscrire(' + i + ')">' + libelle('inscrire') + '</button>';
     });
     ouvrir(html); return;
   }
   const c = s.cursus_actif;
-  html += '<p class="cpj-note">' + esc(texte('progression', { cursus: T.fr['c_' + c.cursus] ? texte('c_' + c.cursus) : c.cursus, faits: c.jalons_accomplis, total: c.jalons_total })) + '</p>';
+  html += '<p class="cpj-note">' + libelle('progression', { cursus: T.fr['c_' + c.cursus] ? texte('c_' + c.cursus) : c.cursus, faits: c.jalons_accomplis, total: c.jalons_total }) + '</p>';
   const e = n && n.ok ? n.etape : null;
   etapeCourante = e;
   if (e) {
-    html += '<p><strong>' + esc(e.libelle) + '</strong></p><p class="cpj-note">' + esc(texte('lieu', { lieu: nomLieu(e) })) + '</p>'
-      + '<p class="cpj-note">' + esc(texte('ouvre', { date: new Date(e.ouvre_le).toLocaleString('fr-FR') })) + '</p>';
-    if (e.ouvert) html += '<button class="cpj-touche cpj-primaire" onclick="universiteEtape()">' + esc(texte(e.genre === 'universite' ? 'suivre' : 'stage')) + '</button>';
+    html += '<p><strong>' + esc(e.libelle) + '</strong></p><p class="cpj-note">' + libelle('lieu', { lieu: nomLieu(e) }) + '</p>'
+      + '<p class="cpj-note">' + libelle('ouvre', { date: new Date(e.ouvre_le).toLocaleString('fr-FR') }) + '</p>';
+    if (e.ouvert) html += '<button class="cpj-touche cpj-primaire" onclick="universiteEtape()">' + libelle(e.genre === 'universite' ? 'suivre' : 'stage') + '</button>';
   } else if (c.diplomable) {
-    html += '<button class="cpj-touche cpj-primaire" onclick="universiteDiplomer()">' + esc(texte('diplomer')) + '</button>';
-  } else html += '<p class="cpj-note">' + esc(texte('attendre')) + '</p>';
+    html += '<button class="cpj-touche cpj-primaire" onclick="universiteDiplomer()">' + libelle('diplomer') + '</button>';
+  } else html += '<p class="cpj-note">' + libelle('attendre') + '</p>';
   ouvrir(html);
 }
 async function universiteInscrire(i) {
@@ -100,9 +155,9 @@ async function universiteInscrire(i) {
 function universiteEtape() {
   const e = etapeCourante; if (!e) return;
   if (e.genre === 'universite') { universiteValider(); return; }
-  ouvrir('<p><strong>' + esc(e.libelle) + '</strong></p><p class="cpj-note">' + esc(texte('mission', { mission: e.action || e.libelle })) + '</p>'
-    + '<button class="cpj-touche cpj-primaire" onclick="universiteValider()">' + esc(texte('effectuer', { mission: e.action || '' })) + '</button>'
-    + '<button class="cpj-touche" onclick="ouvrirUniversiteFormation()">' + esc(texte('retour')) + '</button>');
+  ouvrir('<p><strong>' + esc(e.libelle) + '</strong></p><p class="cpj-note">' + libelle('mission', { mission: e.action || e.libelle }) + '</p>'
+    + '<button class="cpj-touche cpj-primaire" onclick="universiteValider()">' + libelle('effectuer', { mission: e.action || '' }) + '</button>'
+    + '<button class="cpj-touche" onclick="ouvrirUniversiteFormation()">' + libelle('retour') + '</button>');
 }
 async function universiteValider() {
   const e = etapeCourante; if (!e) return;

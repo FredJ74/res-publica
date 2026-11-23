@@ -9,6 +9,16 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Internationalisation de la formation universitaire (Codex, 23/11/2026)
+- Branche `codex/i18n-formation-20261123`, base rebasée `d0f0e127` ; publication PR au premier push. Aucun fichier des zones réservées à Claude, aucune écriture en base ni migration.
+- 41 libellés français inchangés, 328 traductions (8 langues), catalogue `university-resources.js` raccordé au moteur i18next existant. Bascule sans reconstruire le formulaire ni rappeler une RPC. Brotli régénéré et vérifié (87 catalogues, restitution exacte).
+- Relevé demandé : `outils/audits/i18n/ETAT-I18N-20261123.md`, matrices neuf langues/domaines/pays, instantanés avant/après et candidats détaillés. Ces taux sont des preuves statiques partielles, jamais un taux exhaustif du jeu. Le lot universitaire est vérifié séparément dans Chromium.
+- Vérifié localement après rebase : 35 tests ciblés (formation, audit existant, transport Brotli), calendrier 17 cours/7 stages, catalogues 21 missions + 7 médicales ; ancien banc client exécuté dans son environnement `readFile/print` : 63 assertions vertes. Lancer ce dernier directement avec Node échoue déjà par absence de `readFile` ; aucune modification du banc.
+- Recette Chromium simulée : 320/390/1280 px, neuf langues, deux pays, 432 bascules par largeur, état/saisie/PA/argent/position conservés, commandes/paramètres comparés à l’original, zéro requête métier sur bascule, RTL arabe, chargement à froid et repli français. Aucun PJ connecté ni téléphone physique testé.
+- Attention : main `d0f0e127` présente des contrôles rouges préexistants (19 sur 61 exécutions observées, dont infobulles 45216697424). Ne pas corriger les zones Claude pour forcer une fusion ; attendre les contrôles de cette PR et comparer leurs erreurs au témoin main.
+- À poursuivre : CI/PR, rebase final, fusion seulement si les contrôles requis sont verts, Vercel et ressources publiques ; correction isolée du sens de saisie des champs de création de parti si reproduction probante.
+
+
 ### Bloc 4 — lieux de Krasnov (Claude, 23/11/2026) — points 29 à 34 de GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md
 - Branche `claude/bloc4-krasnov-20261123`. Banc : `outils/bancs/banc-bloc4-krasnov-20261123.cjs` (statique + vrai Chromium pour le karaoké).
 - **Migration APPLIQUÉE en production le 23/11/2026** (feu vert de Fred ; contrôlée en lecture : tarif retiré, carnet mis à jour, bureau_1 à bureau_4 à 40 PSK, fantômes retirés, boutique de la station ; goulag false, postes_attribues 6) : `migrations/20261123214000_bloc4_lieux_krasnov.sql` (tarif de l'ordre supprimé `repondre_enigme_krasnov`
