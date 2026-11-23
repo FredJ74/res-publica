@@ -10,12 +10,14 @@ Règles : voir `AGENTS.md`.
 ## En cours
 
 ### Sens de saisie lors de la création d’un parti (Codex, 23/11/2026)
-- Branche `codex/i18n-politique-saisie-20261123`, PR au premier push. Aucune base ni migration, aucun fichier du panneau des organisations/du personnage, aucun texte des zones Claude. Ce lot est distinct de la PR de formation #1183 et de la PR commerce/politique #1132.
+- Branche `codex/i18n-politique-saisie-20261123`, PR #1184 ouverte. Aucune base ni migration, aucun fichier du panneau des organisations/du personnage, aucun texte des zones Claude. Ce lot est distinct de la PR de formation #1183 et de la PR commerce/politique #1132.
 - Défaut reproduit dans Chromium : un champ `dir=auto` contenant un premier caractère arabe conserve un sens RTL en français. Le catalogue existant de création d’organisation applique désormais la langue courante aux deux champs nom/description (LTR hors arabe, RTL arabe), alignement au début, sans reconstruire les nœuds ni toucher aux valeurs/focus/sélection.
 - Aucun libellé ni traduction réécrit : 22 textes français et toutes les traductions existantes conservés. Brotli régénéré, vérifié sans perte.
 - 7 tests verts localement : neuf langues, 320/390/1280 px, reproduction avant correction, champs vides/arabes/mixtes, bascules et nouveaux formulaires, saisies et état inchangés, zéro appel métier ; banc existant : 28 états, 756 bascules, clics/paramètres et conditions identiques. Réponses simulées, aucun PJ ni téléphone physique.
 - Banc `banc-i18n-saisie-parti-20261123.cjs` et workflow dédié. L’ancienne assertion `dir=auto` du banc navigateur est remplacée par la direction attendue dans chaque langue ; les assertions de français, progression, conditions et commandes restent intactes.
-- Livraison conditionnée à CI verte et rebase final sur main ; les contrôles généraux de main `d0f0e127` sont déjà rouges dans des zones Claude, ne pas les modifier pour contourner le blocage.
+- CI dédiée **45221674750 verte, 7/7** sur b70d7def. Preuves : `outils/audits/I18N-SAISIE-PARTI-20261123.md`. Formation et audit global livrés en PR distincte #1183 (CI dédiée 45221147261, 32/32).
+- **Non fusionné, non déployé : contrôles généraux rouges préexistants**, reproduits sur main d0f0e127 (45216697377/45216697281 et ancien raccord cash/statistics). Ne pas modifier les zones Claude ni affaiblir les tests. Vercel n’a pas généré d’aperçu de cette branche ; production READY reste d0f0e127.
+- À la reprise, après correction des contrôles communs : fetch/rebase final, bancs et Brotli, fusion seulement si tout est vert, vérification du commit et des ressources servis. Aucune écriture en base.
 
 
 ### Fiche d'objet unique et panneau de gauche (Claude, 23/11/2026) — points 1, 16 à 20 de GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md
