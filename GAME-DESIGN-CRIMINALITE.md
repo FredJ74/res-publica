@@ -1045,9 +1045,12 @@ quatre bars) ; « Écouter le barman / le patron / la serveuse » gratuit (`ecou
   secrétaires des mairies, de l'Assemblée et de la présidence → lieu ; `entraineur` et dealers → sujet « drogue », `lobbyiste` →
   « politique », `syndicaliste` et délégués du Syndicat national → « syndicat ». Les lieux de soins (dispensaires, cliniques, hôpitaux)
   sont exclus. L'habitué du Bar Sever y figure (généraliste, tout le bar).
-- **Ordre « Acheter une information »** (`informateur_payer`, 0 PA ; la somme, libre dans le barème, est versée hors `payer_ordre`) :
-  affiché seulement dans une pièce où le serveur voit un informateur (`informateurs_ici`). La fenêtre dit qui il est, ce qu'il sait, le
-  barème ; le bouton dit la somme et le palier et reste grisé hors barème. L'habitué garde son ordre « Offrir un verre à l'habitué ».
+- **« Acheter une information » se fait en cliquant sur le PNJ informateur** (Fred, 23/11/2026, mission Novomirsk, bloc 3, points 24
+  et 25 ; ce n'est plus un ordre de pièce, `informateur_payer` et `offrir_verre_habitue_krasnov` ont quitté data.js et `ordres_couts`) :
+  la fiche du PNJ porte le bouton « Acheter une information » seulement si le serveur le voit informateur dans la pièce
+  (`informateurs_ici`) ; l'habitué du Bar Sever, PNJ visible, porte « Lui offrir un verre » (même barème, 7 à 20 PSK). La fiche se ferme
+  et la fenêtre de l'informateur s'ouvre (jamais deux fenêtres superposées) : qui il est, ce qu'il sait, le barème ; le bouton dit la
+  somme et le palier et reste grisé hors barème. La somme est versée par la RPC `informateur_payer`, hors `payer_ordre`.
 - **Traits** (`informateur_traits_interne`) : genre, allure (milieu d'origine), ville de domicile, nationalité, milieu professionnel. Un
   trait n'est donné que s'il est porté par **au moins deux personnages** ; sinon l'informateur dit qu'il ne peut pas décrire la personne.
 - **Lieu** : passages du bâtiment des dernières 24 h (`historique_deplacements`), six au plus, les plus récents ; exclus : quiconque est

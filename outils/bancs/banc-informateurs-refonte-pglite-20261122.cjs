@@ -9,7 +9,13 @@ const MIGRATION = 'migrations/20261122180000_informateurs_refonte.sql';
 
 test('le référentiel de la migration est exactement celui que produit data.js', () => {
   const { lignes } = require(path.join(root, 'outils/generateurs/generer-informateurs-lieux.cjs'));
-  const l = lignes(), sql = lire(MIGRATION);
+  // Renommages de PNJ décidés après la migration (mission Novomirsk, bloc 3, 23/11/2026) : la ligne du référentiel serveur
+  // garde l'ancien nom jusqu'à la migration finale de renommage (liste du rapport du bloc 3) ; l'écran fait le lien
+  // par `aliasInformateur` (data.js). Nouveau nom produit par data.js -> ancien nom encore porté par la migration.
+  const RENOMMAGES_EN_ATTENTE = { 'soviet:ville_b:musee-novomirsk:hall:Zoïa Biletova': ['Hôtesse du musée de Krasnov', 'Accueil du musée'] };
+  const l = lignes().map(x => RENOMMAGES_EN_ATTENTE[x.id]
+    ? Object.assign({}, x, { id: x.id.replace(/[^:]+$/, RENOMMAGES_EN_ATTENTE[x.id][0]), nom: RENOMMAGES_EN_ATTENTE[x.id][0], role: RENOMMAGES_EN_ATTENTE[x.id][1] })
+    : x), sql = lire(MIGRATION);
   const q = (s) => s === null || s === undefined ? 'NULL' : "'" + String(s).replace(/'/g, "''") + "'";
   for (const x of l) assert.ok(sql.includes('(' + [x.id, x.pays, x.ville, x.batiment, x.piece, x.nom, x.role, x.profil, x.sujet].map(q).join(', ') + ')'), x.id);
   assert.equal((sql.match(/^\('/gm) || []).length, l.length, 'aucune ligne en trop');

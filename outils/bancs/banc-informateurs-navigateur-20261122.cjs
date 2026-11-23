@@ -1,6 +1,9 @@
 // Chromium réel : refonte des informateurs (Fred, 19/11/2026 ; étape K du 22/11/2026). Vrais fichiers du jeu
 // (plateau-informateurs.js, plateau-criminalite.js, style.css) ; identité et RPC simulées.
-// Contrôles « comme pour un enfant » : l'ordre n'apparaît que si un informateur est là (lu au serveur, en direct) ; la
+// Mission Novomirsk, bloc 3, points 24 et 25 (23/11/2026) : plus d'ordre de pièce, on clique sur le PNJ informateur ;
+// sa fiche porte « Acheter une information » (« Lui offrir un verre » pour l'habitué du Bar Sever), la fiche se ferme et
+// la fenêtre de l'informateur s'ouvre à sa place (R8 : jamais deux fenêtres superposées).
+// Contrôles « comme pour un enfant » : le bouton n'apparaît que si le serveur dit que ce PNJ est informateur ici ; la
 // fenêtre dit qui il est, ce qu'il sait et le barème ; le bouton dit la somme et le palier et reste grisé hors barème ;
 // la réponse du serveur s'affiche en texte (jamais en HTML) ; un refus est nommé ; l'habitué du Bar Sever a sa fenêtre ;
 // le commissaire paie un informateur depuis la fenêtre des plaintes contre X.
@@ -17,6 +20,7 @@ const ICI_BAR = { ok: true, pays: 'republic', ville: 'capitale', batiment: 'hote
 
 async function avecPage(fn) {
   const page0 = '<!doctype html><meta charset="utf-8"><link rel="stylesheet" href="/style.css">'
+    + '<div id="modal-pnj" class="modal-overlay open"><div id="pnj-actions"><div id="pnj-informateur-zone" data-pnj="Marco (Barman)"></div></div></div>'
     + '<div id="modal-postes" class="modal-overlay"><div class="modal-box"><div id="postes-modal-title"></div><div id="postes-body"></div></div></div>'
     + '<script>let state={char:{name:"Tom"},country:"republic",currentCity:"capitale",currentBuilding:"hotel-republica",currentRoom:"bar"};'
     + 'var BUILDINGS={"hotel-republica":{rooms:{bar:{name:"Bar"},salle:{name:"Salle"}}}};</script>'
@@ -57,17 +61,29 @@ async function avecPage(fn) {
   }
 }
 
-test('ordre « Acheter une information » : seulement si le serveur dit qu’un informateur est là, redessiné en direct', async () => {
+test('bouton « Acheter une information » sur la fiche du PNJ : seulement si le serveur le dit informateur ici', async () => {
   await avecPage(async (page) => {
-    assert.deepEqual(await page.evaluate(() => window.ordresInformateurs()), [], 'pas encore lu : rien');
-    await page.waitForFunction(() => window.__rendus > 0);
-    const o = await page.evaluate(() => window.ordresInformateurs());
-    assert.equal(o.length, 1); assert.equal(o[0].fn, 'informateur_payer'); assert.equal(o[0].label, 'Acheter une information');
-    assert.equal(o[0].pa, 0); assert.equal(o[0].cost, 0);
-    // Pièce sans informateur (ou seulement l'habitué, qui a son ordre propre) : aucun ordre.
-    await page.evaluate(() => { state.currentRoom = 'salle'; window.__ici = Object.assign({}, window.__ici, { piece: 'salle', informateurs: [{ id: 'habitue_krasnov', nom: 'L’habitué', profil: 'generaliste' }] }); window.ordresInformateurs(); });
-    await page.waitForFunction(() => window.__rendus > 1);
-    assert.deepEqual(await page.evaluate(() => window.ordresInformateurs()), []);
+    assert.equal(await page.evaluate(() => typeof window.ordresInformateurs), 'undefined', 'plus d’ordre de pièce (point 24)');
+    assert.equal(await page.evaluate(() => (window.RP_ORDRES_DYNAMIQUES || []).flatMap(f => f('hotel-republica', 'bar', 'capitale') || [])
+      .filter(o => o.fn === 'informateur_payer').length), 0, 'aucune source d’ordres ne propose plus l’achat');
+    await page.evaluate(() => window.informateursBoutonPnj({ name: 'Marco (Barman) (PNJ)', role: 'PNJ - Barman' }));
+    assert.equal((await page.locator('#pnj-informateur-zone button').innerText()).trim(), 'Acheter une information');
+    // PNJ qui n'est pas informateur : zone vide.
+    await page.evaluate(() => { document.getElementById('pnj-informateur-zone').dataset.pnj = 'Gaston'; return window.informateursBoutonPnj({ name: 'Gaston (PNJ)' }); });
+    assert.equal(await page.locator('#pnj-informateur-zone button').count(), 0);
+    // Un joueur n'est jamais informateur.
+    assert.equal(await page.evaluate(() => window.informateurDuPnj({ name: 'Marco (Barman)', isPJ: true }, window.__ici)), null);
+    // Renommé côté écran, ancien nom au serveur : `aliasInformateur` fait le lien.
+    assert.equal(await page.evaluate(() => window.informateurDuPnj({ name: 'Marc Lenouveau (PNJ)', aliasInformateur: 'Marc Hantile' }, window.__ici).id), 'l');
+    // Clic : la fiche se ferme, la fenêtre de cet informateur seul s'ouvre (R8).
+    await page.evaluate(() => { document.getElementById('pnj-informateur-zone').dataset.pnj = 'Marco (Barman)'; return window.informateursBoutonPnj({ name: 'Marco (Barman) (PNJ)' }); });
+    await page.click('#pnj-informateur-zone button');
+    await page.waitForSelector('#info-payer-0');
+    assert.equal(await page.locator('#modal-pnj.open').count(), 0, 'jamais deux fenêtres superposées');
+    assert.equal(await page.locator('#modal-postes.open').count(), 1);
+    assert.equal(await page.locator('#postes-modal-title').innerText(), 'Acheter une information');
+    const txt = await page.locator('#postes-body').innerText();
+    assert.match(txt, /Marco \(Barman\)/); assert.doesNotMatch(txt, /Marc Hantile/);
   });
 });
 
@@ -112,7 +128,7 @@ test('fenêtre : qui, ce qu’il sait, barème ; bouton grisé hors barème ; pa
   });
 });
 
-test('habitué du Bar Sever : sa fenêtre ne montre que lui', async () => {
+test('habitué du Bar Sever : « Lui offrir un verre », sa fenêtre ne montre que lui', async () => {
   await avecPage(async (page) => {
     await page.evaluate(() => { window.__ici = { ok: true, pays: 'soviet', ville: 'ville_b', batiment: 'cafe-tabac-cheminots-montrouge', piece: 'salle',
       bareme: { devise: 'PSK', min: 7, max: 20, paliers: [{ palier: 'flou', min: 7, max: 11 }, { palier: 'correct', min: 12, max: 17 }, { palier: 'premier_choix', min: 18, max: 20 }] },
@@ -123,6 +139,13 @@ test('habitué du Bar Sever : sa fenêtre ne montre que lui', async () => {
     const txt = await page.locator('#postes-body').innerText();
     assert.match(txt, /L’habitué du Bar Sever/); assert.doesNotMatch(txt, /Grigori/);
     assert.equal(await page.locator('#info-payer-0').innerText(), 'Payer 12 PSK');
+    assert.equal(await page.locator('#postes-modal-title').innerText(), 'Lui offrir un verre');
+    assert.match(txt, /Offrez-lui un verre, de 7 à 20 PSK/);
+    // Sur sa fiche : « Lui offrir un verre » (point 25), reconnu par son identifiant de fiche.
+    await page.evaluate(() => { document.getElementById('pnj-informateur-zone').dataset.pnj = 'L’habitué du Bar Sever';
+      return window.informateursBoutonPnj({ name: 'L’habitué du Bar Sever (PNJ)', profilId: 'habitue_krasnov' }); });
+    assert.equal((await page.locator('#pnj-informateur-zone button').innerText()).trim(), 'Lui offrir un verre');
+    assert.equal(await page.locator('#pnj-informateur-zone button').getAttribute('data-informateur'), 'habitue_krasnov');
   });
 });
 

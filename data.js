@@ -12338,9 +12338,11 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
       'Une grande maison de bois brun à l’ombre des bulbes dorés de l’église, bâtie pour un prêtre et sa famille.',
       'Des icônes dans le coin rouge, une longue table faite pour une famille nombreuse, et le batiouchka Kouzma, un peu sourd, qui y vit seul et parle très fort.',
       'images/Sovarka/Krasnov/Krasnov_maison_kouzma_interieur.webp', 'images/Sovarka/Krasnov/Kouzma.webp'],
+    // Mission Novomirsk, bloc 3, point 27 (Fred, 23/11/2026) : Ignat est un FONCTIONNAIRE À LA RETRAITE, jamais un poseur de pièges
+    // (son portrait : lunettes rondes, barbiche, insigne du Parti ; son intérieur : bibliothèque, affiches, veste à médailles).
     ['maison-krasnov-terrains', 'Maison d’Ignat', 'Ignat Lykov', 'Habitant de Krasnov',
-      'Une vieille maison de bois au bord des terrains vagues, des peaux tendues sous l’auvent.',
-      'Des pièges pendus aux poutres, un samovar cabossé et un vieux trappeur taiseux qui vous observe longuement avant de sourire.',
+      'Une vieille maison de bois au bord des terrains vagues, des géraniums rouges aux fenêtres.',
+      'Une bibliothèque vitrée, des affiches du Plan au mur, une veste d’uniforme constellée de médailles et un fonctionnaire à la retraite, lunettes rondes et barbiche, qui vous observe longuement avant de sourire.',
       'images/Sovarka/Krasnov/Krasnov_maison_ignat_interieur.webp', 'images/Sovarka/Krasnov/Ignat.webp']
   ];
   MAISONNETTES_KRASNOV.forEach(m => maison(...m));
@@ -13250,12 +13252,8 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
 // d'informateur), Kalachnikov à Novomirsk ; Ganbaatar Tsybikov, à Starovka, refuse d'en parler.
 (function () {
   const sov = WORLD.soviet || {};
-  const bar = sov.ville_b && sov.ville_b.buildingContext && sov.ville_b.buildingContext['cafe-tabac-cheminots-montrouge'];
-  if (!bar) throw new Error('Krasnov : Bar Sever absent');
-  bar.orders = (bar.orders || []).concat([
-    { fn: 'offrir_verre_habitue_krasnov', label: 'Offrir un verre à l’habitué', pa: 0, cost: 0, type: 'grey', icon: 'ti-glass-full', successRate: 100,
-      desc: 'Un vieil habitué du Bar Sever connaît tout le monde à Krasnov. Il parle à qui le paie, de 7 à 20 PSK : plus la somme est belle, meilleure est l’information.' }
-  ]);
+  // L'ordre « Offrir un verre à l'habitué » est SUPPRIMÉ (mission Novomirsk, bloc 3, point 25, 23/11/2026) : l'habitué
+  // est un PNJ visible du Bar Sever, et le bouton « Lui offrir un verre » est sur sa fiche (bloc BLOC3_PNJ_20261123).
   const arsenal = sov.capitale && sov.capitale.buildingContext && sov.capitale.buildingContext.armurerie;
   if (!arsenal) throw new Error('Novomirsk : Arsenal collectif absent');
   arsenal.orders = (arsenal.orders || []).concat([
@@ -13385,4 +13383,61 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     ctx.roomOverrides = Object.assign({}, ctx.roomOverrides);
     ctx.roomOverrides[piece] = Object.assign({}, ro || {}, { persons: copie });
   }
+})();
+
+// BLOC3_PNJ_20261123 (mission Novomirsk de Fred, 23/11/2026, bloc 3, points 25 à 28 ;
+// GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md). Seule Krasnov change : chaque liste est copiée avant modification
+// (même méthode que les PNJ de Starovka). Fiches de dialogue : api/_pnj-personnalites.js (profilId = clé de fiche).
+//  - Point 25 : l'habitué du Bar Sever devient un PNJ visible (l'homme à la casquette, table de droite de l'image de la
+//    salle) ; c'est un PNJ social (il offre un verre une fois par jour et se souvient du PJ, plateau-social-pnj.js) et
+//    l'informateur « habitue_krasnov » (bouton « Lui offrir un verre » sur sa fiche, plateau-informateurs.js).
+//  - Point 26 : musée (Zoïa Biletova, Arkadi Pamiatnikov), EHPAD (Matveï Starikov, le résident le plus visible de
+//    l'image est un homme), hôpital (Nadejda Oukolova remplace « Infirmiere »). Portraits recadrés au bloc 7.
+//    `aliasInformateur` : ancien nom encore porté par le référentiel serveur informateurs_pnj tant que la migration de
+//    renommage n'est pas appliquée (rapport du bloc 3).
+(function () {
+  const ville = WORLD.soviet && WORLD.soviet.ville_b;
+  if (!ville) throw new Error('Krasnov absente');
+  const dir = 'images/Sovarka/Krasnov/';
+  function personnes(batiment, piece) {
+    const ctx = ville.buildingContext[batiment] = ville.buildingContext[batiment] || {};
+    if (ctx.roomsExtra && ctx.roomsExtra[piece]) {
+      ctx.roomsExtra = Object.assign({}, ctx.roomsExtra);
+      const salle = ctx.roomsExtra[piece] = Object.assign({}, ctx.roomsExtra[piece]);
+      salle.persons = (salle.persons || []).map(p => Object.assign({}, p));
+      return salle.persons;
+    }
+    ctx.roomOverrides = ctx.roomOverrides || {};
+    const ro = ctx.roomOverrides[piece] = Object.assign({}, ctx.roomOverrides[piece] || {});
+    const base = ro.persons || (BUILDINGS[batiment] && BUILDINGS[batiment].rooms && BUILDINGS[batiment].rooms[piece]
+      && BUILDINGS[batiment].rooms[piece].persons) || [];
+    ro.persons = base.map(p => Object.assign({}, p));
+    return ro.persons;
+  }
+  // Renomme un PNJ ; s'il porte déjà son nouveau nom (autre chantier passé avant), complète seulement sa fiche.
+  function renommer(batiment, piece, ancien, nouveau, complement) {
+    const liste = personnes(batiment, piece);
+    const p = liste.find(x => x.name === nouveau + ' (PNJ)') || liste.find(x => x.name === ancien || x.name === ancien + ' (PNJ)');
+    if (!p) throw new Error('PNJ Krasnov absent : ' + ancien + ' (' + batiment + '/' + piece + ')');
+    Object.assign(p, { name: nouveau + ' (PNJ)' }, complement);
+  }
+  function ajouter(batiment, piece, personne) {
+    const liste = personnes(batiment, piece);
+    if (!liste.some(x => x.name === personne.name)) liste.push(personne);
+  }
+  // Point 25 : l'habitué du Bar Sever.
+  ajouter('cafe-tabac-cheminots-montrouge', 'salle', { name: 'L’habitué du Bar Sever (PNJ)', role: 'Habitué du bar', rel: 'friendly',
+    job: 'habitue', profilId: 'habitue_krasnov', nonRecrutable: true,
+    photoUrl: dir + 'Krasnov_portrait_cafe-tabac-cheminots-montrouge_habitue.webp', photoPos: '50% 30%' });
+  // Point 26 : musée de Krasnov (accueil).
+  renommer('musee-novomirsk', 'hall', 'Hôtesse du musée de Krasnov', 'Zoïa Biletova', { profilId: 'zoia_biletova',
+    aliasInformateur: 'Hôtesse du musée de Krasnov', photoUrl: dir + 'krasnov-zoia-biletova-portrait.webp', photoPos: '50% 30%' });
+  renommer('musee-novomirsk', 'hall', 'Guide du musée de Krasnov', 'Arkadi Pamiatnikov', { profilId: 'arkadi_pamiatnikov',
+    photoUrl: dir + 'krasnov-arkadi-pamiatnikov-portrait.webp', photoPos: '50% 30%' });
+  // Point 26 : hôpital municipal de Krasnov.
+  renommer('dispensaire-public-v', 'attente', 'Infirmiere', 'Nadejda Oukolova', { role: 'Soignante', profilId: 'nadejda_oukolova',
+    photoUrl: dir + 'krasnov-nadejda-oukolova-portrait.webp', photoPos: '50% 30%' });
+  ajouter('dispensaire-public-v', 'ehpad', { name: 'Matveï Starikov (PNJ)', role: 'Pensionnaire de l’EHPAD', rel: 'friendly',
+    job: 'pensionnaire', profilId: 'matvei_starikov', nonRecrutable: true,
+    photoUrl: dir + 'krasnov-matvei-starikov-portrait.webp', photoPos: '50% 30%' });
 })();

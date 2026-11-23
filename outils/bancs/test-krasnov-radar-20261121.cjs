@@ -37,7 +37,11 @@ test('Écran : ordre du colonel caché sans le secret, sources raccordées, carn
   vm.runInContext(lire('data.js') + ';globalThis.__W=WORLD;globalThis.__B=BUILDINGS;', ctx);
   const colonel = ctx.__B['station-radar-krasnov'].rooms.salle_ecoute.orders.find(o => o.fn === 'acheter_polonium_colonel');
   assert.ok(colonel && colonel.secret === 'colonel_polonium' && colonel.pa === 2);
-  assert.ok(ctx.__W.soviet.ville_b.buildingContext['cafe-tabac-cheminots-montrouge'].orders.some(o => o.fn === 'offrir_verre_habitue_krasnov' && o.pa === 0 && o.cost === 0));
+  // Bloc 3, point 25 (Fred, 23/11/2026) : l'ordre « Offrir un verre à l'habitué » est supprimé ; l'habitué est un PNJ
+  // visible du Bar Sever, informateur « habitue_krasnov » (bouton « Lui offrir un verre » sur sa fiche).
+  const bar = ctx.__W.soviet.ville_b.buildingContext['cafe-tabac-cheminots-montrouge'];
+  assert.ok(!(bar.orders || []).some(o => o.fn === 'offrir_verre_habitue_krasnov'));
+  assert.ok(bar.roomOverrides.salle.persons.some(p => p.profilId === 'habitue_krasnov'));
   assert.ok(ctx.__W.soviet.capitale.buildingContext.armurerie.orders.some(o => o.fn === 'demander_fournisseur_kalachnikov'));
   assert.ok(ctx.__B['port-starovka'].rooms.quai_principal.orders.some(o => o.fn === 'interroger_ganbaatar_polonium'));
   assert.match(lire('plateau-politique.js'), /\.filter\(o => !o\.secret \|\| \(typeof rpSecretConnu === 'function' && rpSecretConnu\(o\.secret\)\)\)/);
@@ -47,8 +51,9 @@ test('Écran : ordre du colonel caché sans le secret, sources raccordées, carn
   assert.match(s, /bloc\.id = 'inv-secrets'/);
   assert.match(lire('plateau.html'), /<script src="plateau-secrets\.js\?v=/);
   const r = lire('plateau-router.js');
-  for (const fn of ['offrir_verre_habitue_krasnov', 'demander_fournisseur_kalachnikov', 'interroger_ganbaatar_polonium', 'acheter_polonium_colonel'])
+  for (const fn of ['demander_fournisseur_kalachnikov', 'interroger_ganbaatar_polonium', 'acheter_polonium_colonel'])
     assert.ok(r.includes("fn === '" + fn + "'"), fn);
+  assert.ok(!r.includes("fn === 'offrir_verre_habitue_krasnov'"), 'route supprimée avec son ordre (bloc 3)');
 });
 
 test('Barème commun des informateurs (Fred, 19/11) : Sovarka 7-11 / 12-17 / 18-20 PSK, Républia 20-29 / 30-44 / 45-50 FR', () => {

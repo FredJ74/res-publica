@@ -153,7 +153,7 @@
    ],
    "sexe_age_apparents": "homme, ~60 ans, casquette",
    "raccorde": false,
-   "remarque": "à raccorder par Fred"
+   "remarque": "remplacé au bloc 3 par images/Sovarka/Krasnov/Krasnov_portrait_cafe-tabac-cheminots-montrouge_habitue.webp (cadre [1140, 295, 240, 240], agrandi à 512), raccordé (data.js, BLOC3_PNJ_20261123)"
   },
   {
    "fichier": "images/Sovarka/Krasnov/krasnov-grigori-zaitsev-portrait.webp",
@@ -180,8 +180,8 @@
     250
    ],
    "sexe_age_apparents": "femme, ~50 ans",
-   "raccorde": false,
-   "remarque": "portrait existant raccordé à « Hôtesse du musée de Krasnov » : Krasnov_musee_accueil_hotesse.webp"
+   "raccorde": true,
+   "remarque": "portrait existant raccordé à « Hôtesse du musée de Krasnov » : Krasnov_musee_accueil_hotesse.webp ; raccordé au bloc 3 (data.js, BLOC3_PNJ_20261123)"
   },
   {
    "fichier": "images/Sovarka/Krasnov/krasnov-arkadi-pamiatnikov-portrait.webp",
@@ -194,8 +194,8 @@
     280
    ],
    "sexe_age_apparents": "homme, ~75 ans",
-   "raccorde": false,
-   "remarque": "portrait existant raccordé à « Guide du musée de Krasnov » : Krasnov_musee_accueil_guide.webp"
+   "raccorde": true,
+   "remarque": "portrait existant raccordé à « Guide du musée de Krasnov » : Krasnov_musee_accueil_guide.webp ; raccordé au bloc 3 (data.js, BLOC3_PNJ_20261123)"
   },
   {
    "fichier": "images/Sovarka/Krasnov/krasnov-matvei-starikov-portrait.webp",
@@ -208,8 +208,8 @@
     150
    ],
    "sexe_age_apparents": "homme, ~80 ans, casquette",
-   "raccorde": false,
-   "remarque": "cadre source 150 px, agrandi à 256"
+   "raccorde": true,
+   "remarque": "cadre source 150 px, agrandi à 256 ; raccordé au bloc 3 (data.js, BLOC3_PNJ_20261123)"
   },
   {
    "fichier": "images/Sovarka/Krasnov/krasnov-nadejda-oukolova-portrait.webp",
@@ -222,8 +222,8 @@
     160
    ],
    "sexe_age_apparents": "femme, ~30 ans",
-   "raccorde": false,
-   "remarque": "portrait existant raccordé à « Infirmiere (PNJ) » : Krasnov_portrait_dispensaire-public-v_infirmiere.webp"
+   "raccorde": true,
+   "remarque": "portrait existant raccordé à « Infirmiere (PNJ) » : Krasnov_portrait_dispensaire-public-v_infirmiere.webp ; raccordé au bloc 3 (data.js, BLOC3_PNJ_20261123)"
   },
   {
    "fichier": "images/Sovarka/Novomirsk/novo-evgueni-sudakov-portrait.webp",

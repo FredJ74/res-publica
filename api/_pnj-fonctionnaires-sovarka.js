@@ -21,6 +21,8 @@ const NON_FONCTIONNAIRES = new Set([
   'sovarka_timofei_fomine',
   // Habitants des chalets de Starovka (Fred, 18/11/2026)
   'dolgor_tsybikova', 'zorigto_badmaev',
+  // Krasnov (bloc 3, 23/11/2026) : habitants des petites maisons, pensionnaire de l'EHPAD, habitué du Bar Sever
+  'antonina_merkoulova', 'matvei_rybakov', 'ignat_lykov', 'stepan_kouznetsov', 'matvei_starikov', 'habitue_krasnov',
   // Habitués, saltimbanques, revendeurs, artisans et mécaniciens des centres
   'sovarka_ksenia_makarova', 'sovarka_tuya_sanjieva', 'sovarka_varvara_kozlova',
   'sovarka_arkhip_voronine', 'sovarka_altan_namsaraiev', 'sovarka_efim_iakovlev',
