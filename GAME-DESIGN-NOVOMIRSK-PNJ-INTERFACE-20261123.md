@@ -62,6 +62,9 @@ Chaque point porte un banc qui l'empêche de revenir (liste dans RELAIS.md).
 19. **« Mon personnage »** : onglet « Statistiques » **supprimé**. Le profil (Calculateur…) reste dans « Identité »,
     sans les six caractéristiques.
 20. Texte jamais inférieur au texte courant (fiche Identité, onglet Organisations en particulier).
+    *État (23/11/2026, Claude)* : points 1 et 16 à 20 codés sur la branche `claude/fiche-objet-panneau-20261123` (non fusionnée) ;
+    détail, suppressions et redirections (R4), clés i18n pour Codex et bancs dans RELAIS.md. Écart signalé : la table `prets`
+    n'enregistre pas de date d'échéance ; la fenêtre Argent montre la date de signature, la durée et le remboursement quotidien.
 21. **Journal des événements** : bouton « Rapports de combat » **supprimé** (les combats restent dans le fil) ; croix de
     fermeture plus grande, contrastée, vrai bouton ; plus d'entrées ni de sorties de bâtiments.
 22. **Boutons ronds du journal et du chat** : en bas à droite, l'un au-dessus de l'autre (essai).

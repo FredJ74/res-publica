@@ -9,6 +9,64 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Fiche d'objet unique et panneau de gauche (Claude, 23/11/2026) — points 1, 16 à 20 de GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md
+- Branche `claude/fiche-objet-panneau-20261123` (partie de `origin/main` 27449358), **non fusionnée** : poussée pour relecture. Aucune migration, aucune base, aucun goulag ; navigateur seulement.
+- **Point 1 — une seule fiche d'objet** : `ouvrirFicheObjet(idx)` (plateau-personnage.js) réunit toutes les actions des deux anciennes fiches
+  (A = panneau de gauche, B = onglet Inventaire) : consommer/fumer une drogue, œufs, matières brutes, marché de Krasnov, trésor des Tsars, aliment,
+  revêtir, sacs de sable, graisse, renifler, bandelettes, boire, médicament de maladie (B), médicament +20 Santé (B), trousse (B), jumelles (B),
+  ration de combat (B), guide des baies (A), carte postale écrire/envoyer et lire, fumer (tabac-presse), serrures (A), poison (B), explosifs (B),
+  donner (A), montrer (A), abandonner ici (A), détruire (A ; « Jeter » de B = destruction), document officiel et fiche officielle (A), calepin
+  et armoire (routages de A). `ouvrirDetailObjet` et `ouvrirDetailObjetInventaire` sont des alias. La fiche vit dans `#modal-postes`.
+- **Point 16** : panneau de gauche portrait → six caractéristiques → PA/Santé/Moral → **Influence/Popularité/Discrétion** (jauges `hg-jauge-*`,
+  infobulles de plateau-medecin-montrer.js) → Argent → Mes objectifs → Mes employés → Inventaire. « Mes statistiques » supprimé.
+- **Point 17** : clic sur Argent → `ouvrirFenetreArgent()` : liquide, comptes par banque (`sbGetComptesBancaires`), placements actifs avec montant
+  et échéance (`sbGetPlacementsBancaires`, `prochaine_echeance`), prêts en cours (`sbGet('prets', …)`, même lecture que la fiche et les guichets).
+  Aucune RPC nouvelle. **Non lisible** : la table `prets` n'a **pas de date d'échéance** (seulement `created_at`, `duree_jours`, `mensualite`) :
+  la fenêtre affiche « signé le …, pour N jours, remboursement X par jour » sans rien calculer ; la table `prets_bancaires` n'est lue par
+  **aucun** code navigateur (prêts non montrés) ; l'ancien placement de la table `investissements` (legacy) n'est pas montré.
+- **Point 18** : clic sur Inventaire → `ouvrirFenetreInventaire()` (vignettes, Déposer, Détruire, clic → fiche unique, « Retour à l'inventaire »),
+  suivie en direct par `rafraichirFenetreInventaireSiOuverte()` (appelée par `renderInventory` via l'ancien nom `rafraichirOngletInventaireSiOuvert`).
+  Le carnet « Contacts et secrets » et les « Énigmes résolues » s'écrivent dans cette fenêtre (conteneur `#inventaire-panel`).
+- **Point 19** : onglets « Inventaire » et « Statistiques » supprimés de « Mon personnage » (`SELF_ONGLETS = actions, orgas, identite`) ;
+  onglet « Statistiques » et six caractéristiques retirés aussi de la fiche-fenêtre `openCharSheet` ; la répartition du reliquat de création
+  (qui vivait dans l'onglet Statistiques) s'ouvre par le bouton « Points à répartir » du panneau (`ouvrirRepartitionPoints`, ancien nom
+  `ouvrirStatsPerso`). Identité : profil (Calculateur…) gardé, six caractéristiques retirées.
+- **Point 20** : `#self-content` ajouté aux fenêtres du plancher de texte (plateau-texte-minimum.js) : Identité, Organisations et Actions
+  ne descendent plus sous le texte courant.
+- **Suppressions et redirections (R4)** :
+  - onglet « Inventaire » (plateau.html) → `switchSelfTab('inventaire', el)` / `openSelfView('inventaire')` ouvrent la fenêtre Inventaire ;
+    `switchSelfTab('inventaire', null)` (rafraîchissement après une action) redessine la fenêtre si elle est affichée ; les 10 appels du
+    dépôt (plateau-personnage.js ×8, plateau-maladies.js, plateau-divers.js) appellent directement `rafraichirFenetreInventaireSiOuverte` ;
+  - onglet « Statistiques » (vue et fiche-fenêtre) → `switchSelfTab('stats', el)`, `openSelfView('stats')`, `switchCharSheetTab('stats')`
+    → `montrerPanneauPersonnage()` (ferme la vue, ouvre le tiroir mobile, signale la carte du personnage) ;
+  - bouton « Mes statistiques » (`openSelfView('stats')`) → supprimé ; reliquat → bouton « Points à répartir » ;
+  - volet Inventaire du panneau (`toggleInventaire`, `#inv-chevron`, `#inv-items`, `#inv-liquide`, `#inv-banque`) → fenêtre Inventaire et
+    fenêtre Argent ; `toggleInventaire()` reste un alias ; `updateUI` ne suppose plus `#inv-liquide`/`#inv-banque` ; plateau-secrets.js écoute
+    `#hg-panneau-inventaire` ; plateau-enigme-krasnov.js expose `rendreEnigmesResolues` ;
+  - rang d'onglet écrit en dur (`piece-tab[3]` pour Identité, confirmerChangementPhoto) → `SELF_ONGLETS.indexOf('identite')` ;
+  - ancre de l'aide (`api/_aide-themes.js`, inventaire) → `async function ouvrirFicheObjet(` ;
+  - aucun parcours d'accueil, étape de « Mes objectifs », énigme ni migration ne visait ces onglets (recherche faite, banc ci-dessous).
+- **Clés i18n à créer par Codex** (français seulement dans le code, aucun catalogue modifié) : `plateau.pointsToSpend` (« Points à répartir : {n} »),
+  `plateau.influence`, `plateau.popularity`, `plateau.discretion` (noms des jauges), `plateau.moneyTitle` (« Voir tout mon argent »),
+  `inventoryUi.ficheUse` (« Utiliser »), `ficheWithPlayer` (« Avec un joueur présent »), `ficheGetRid` (« Se défaire de l’objet »),
+  `ficheLegal` (« Légal »), `ficheUnregistered` (« Non enregistré »), `ficheSingleUse` (« Usage unique »), `ficheMedicine` (« Prendre le médicament
+  (+20 Santé) »), `ficheFirstAid` (« Soigner avec la trousse »), `ficheObserve` (« Observer (1 PA) »), `ficheRation` (« Manger la ration (+1 PA) »),
+  `fichePoison` (« Empoisonner quelqu’un »), `ficheExplosive` (« Utiliser les explosifs ici »), `ficheEggs` (« Manger 3 œufs »), `ficheShow`
+  (« Montrer à ce joueur »), `ficheBack` (« Retour à l’inventaire »), `ficheClose` (« Fermer ») ; fenêtre Inventaire : `inventoryWindow.title`,
+  `hint`, `objects` (« OBJETS ({u} unités · {l} lignes) »), `empty`, `mission`, `drop` (« Déposer »), `destroy` (« Détruire ») ; fenêtre Argent :
+  `moneyWindow.title` (« Mon argent »), `loading`, `cash`, `bank`, `investments`, `loans`, `noAccount`, `noInvestment`, `noLoan`, `due`
+  (« échéance »), `remaining` (« restant dû »), `signed` (« Signé le {d} pour {n} jours »), `daily` (« remboursement : {m} par jour »),
+  `unpaid`, `unavailable` ; répartition : `pointsWindow.title`, `intro`, `rule`, `done` ; infobulles `medecinMontrer.influence_txt`,
+  `popularite_txt`, `discretion_txt`. Les clés `plateau.myStats`, `plateau.statistics`, `characterSheet.identity|statistics|characteristics`
+  restent aux catalogues sans usage (à retirer par Codex s'il le juge utile).
+- **Bancs ajoutés** : `outils/bancs/banc-fiche-objet-unique-navigateur-20261123.cjs` (Chromium réel : chaque action des deux anciennes fiches
+  atteignable d'un clic, alias, objet de mission, une seule fenêtre, plancher de texte, fenêtre Inventaire, fenêtre Argent et lecture en échec) ;
+  `outils/bancs/banc-renvois-onglets-supprimes-20261123.cjs` (R4 : aucun renvoi vers un onglet, un élément ou une fonction supprimés ; onglets
+  = SELF_ONGLETS ; ordre du panneau ; chaque onclick de plateau.html existe ; parcours d'accueil). Bancs adaptés : mobile-navigateur.cjs (témoin),
+  banc-tabac-presse-navigateur, banc-i18n-panneau-personnel, banc-i18n-fiche-personnage, banc-i18n-inventaire-ui, i18n/banc-navigateur-neuf-langues.
+- **À tester par Fred** : panneau de gauche (deux lignes de jauges, survol = explication) ; clic sur Argent ; clic sur Inventaire → un objet →
+  toutes ses actions → « Retour à l'inventaire » ; « Mon personnage » n'a plus que Actions, Organisations, Identité ; texte lisible partout.
+
 ### Mission « Novomirsk, PNJ, interface et suites des rapports » (Claude, 23/11/2026) — décisions : GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md
 - Branche de travail `claude/novomirsk-pnj-20261123`, partie de `395a0100`. Blocs 0 à 7 poussés sur main un par un dès que leurs bancs et la CI sont verts.
 - **Bloc 0 (consignation)** : décisions écrites dans le document de mission et à la source (NOVOMIRSK : Ignat fonctionnaire à la retraite **jamais trappeur**, Kouzma batiouchka, Matveï/Prokhor Rybakov, gare, renseignement ; HOSPITALISATION : salle d'attente / chambre ; SANTE : paiements en liquide sauf prélèvements automatiques, PNJ des usines non payés ; CRIMINALITE : voler chez un colocataire ; INFORMATEURS : achat en cliquant sur le PNJ ; INTERFACE-ACCUEIL : Inspecter à 0 PA, rébellion et répression à 1 PA).
