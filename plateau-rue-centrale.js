@@ -70,6 +70,9 @@ function noeudDepartRueCentrale(pays, ville) {
 // (voir stylesParDefaut dans afficherNoeudRue). Pour une ville dessinee en vues frontales,
 // "bas" doit etre en bas et "haut" en haut : ces deux constantes evitent de recopier la
 // meme chaine CSS dans chaque noeud, comme cela avait ete fait a la main pour Montrouge.
+// Positions imposées des flèches « avancer » et « droite » dans toutes les rues (Fred, 23/11/2026, point 23).
+const RC_FLECHE_AVANCER_BAS = 'bottom:14px; left:42%; transform:translateX(-50%);';
+const RC_FLECHE_DROITE_BAS = 'bottom:14px; right:14px;';
 const RC_FLECHE_HAUT = 'top:10px; left:50%; transform:translateX(-50%);';
 const RC_FLECHE_BAS  = 'bottom:10px; left:50%; transform:translateX(-50%);';
 
@@ -1929,18 +1932,22 @@ async function afficherNoeudRue(pays, noeudId, depuisNoeudId, positionDejaConfir
   // Position par defaut pour chaque direction, sauf si le noeud definit un
   // "flechesStyle" personnalise (utile quand la disposition standard ne convient
   // pas a une scene precise, ex: flèche "tout droit" en haut plutot qu'au centre).
+  // Toutes les rues (Fred, 23/11/2026, GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md, point 23) : « avancer » (↑) en bas de
+  // l'image, légèrement à gauche du centre ; la flèche latérale (›) tout en bas à droite. Ces deux positions s'imposent
+  // aux réglages particuliers d'une vue (flechesStyle), qui ne valent plus que pour « reculer » et « gauche ».
   const stylesParDefaut = {
     arriere:   'top:10px; left:50%; transform:translateX(-50%);',
     gauche:    'top:50%; left:14px; transform:translateY(-50%);',
-    toutDroit: 'top:50%; left:80%; transform:translate(-50%,-50%);',
-    droite:    'top:50%; right:14px; transform:translateY(-50%);'
+    toutDroit: RC_FLECHE_AVANCER_BAS,
+    droite:    RC_FLECHE_DROITE_BAS
   };
+  const imposees = { toutDroit: RC_FLECHE_AVANCER_BAS, droite: RC_FLECHE_DROITE_BAS };
   const fleches = [
     { dir: 'arriere',   icon: 'ti-arrow-down' },
     { dir: 'gauche',    icon: 'ti-chevron-left'  },
     { dir: 'toutDroit', icon: 'ti-arrow-up'      },
     { dir: 'droite',    icon: 'ti-chevron-right' }
-  ].map(f => ({ ...f, style: noeud.flechesStyle?.[f.dir] || stylesParDefaut[f.dir] }));
+  ].map(f => ({ ...f, style: imposees[f.dir] || noeud.flechesStyle?.[f.dir] || stylesParDefaut[f.dir] }));
   fleches.forEach(f => {
     if (liensActuels[f.dir]) {
       html += '<div class="rc-fleche" style="' + f.style + '" onclick="deplacerRueCentrale(\'' + pays + '\',\'' + f.dir + '\')">' +

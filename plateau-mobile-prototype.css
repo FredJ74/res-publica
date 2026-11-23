@@ -197,21 +197,27 @@
 /* Composant exclusivement mobile : aucune apparition sur le plateau bureau. */
 @media(min-width:1024px){#hg-presences-mobiles{display:none!important}}
 
-/* Raccourcis persistants : journal et chat alignés horizontalement sur mobile.
+/* Raccourcis persistants : journal et chat en bas à droite, l'un au-dessus de l'autre (23/11/2026).
    Leurs gestionnaires historiques et panneaux restent inchangés. */
 @media (max-width:1023px) {
+  /* En bas à droite, l'un au-dessus de l'autre (Fred, 23/11/2026, point 22, essai) : chat en bas, journal au-dessus. */
   #journal-open-btn {
-    bottom:calc(20px + env(safe-area-inset-bottom)) !important;
-    left:20px !important;
+    bottom:calc(82px + env(safe-area-inset-bottom)) !important;
+    right:16px !important;
+    left:auto !important;
     width:48px !important;
     height:48px !important;
   }
   #hg-chat-toggle {
     bottom:calc(20px + env(safe-area-inset-bottom)) !important;
-    left:82px !important;
+    right:16px !important;
+    left:auto !important;
     width:48px !important;
     height:48px !important;
   }
+  /* Les panneaux laissent la colonne des deux boutons libre : rien ne se chevauche. */
+  #journal-store{height:calc(var(--hg-visible,100dvh) - 150px) !important;bottom:auto !important}
+  #chat-piece-panel{left:8px !important;right:76px !important;width:auto !important}
 }
 
 /* Paysage iPhone : réduire les seuls espaces non interactifs, pas l'image,

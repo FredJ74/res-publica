@@ -706,7 +706,7 @@ function enterBuilding(buildingId, skipAutoRoom) {
   }
 
   updateLocationDisplay();
-  addJournalEntry(`Vous entrez dans ${displayName}.`, '');
+  // Plus d'entrées ni de sorties de bâtiments dans le journal (Fred, 23/11/2026, point 21).
 }
 
 // Onglets pieces — fusionne les pieces de base avec d'eventuelles pieces supplementaires
@@ -1872,7 +1872,6 @@ async function sortirBatiment() {
   }
   showVueRue(batimentQuitte,positionSortieConfirmee);
   if (retourVersTerrainsVille && typeof ouvrirTerrainsVille === 'function') ouvrirTerrainsVille(retourVersTerrainsVille);
-  addJournalEntry(`Vous sortez du batiment.`, '');
   }finally{if(sortieBatimentEnCours===contexteSortie)sortieBatimentEnCours=null;}
 }
 

@@ -11,7 +11,7 @@
 <title>Human Gambit — Plateau de Jeu</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Bebas+Neue&family=Crimson+Pro:wght@400;600&family=Great+Vibes&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
-<link rel="stylesheet" href="style.css?v=fenetres-20261122-acces-reserve-lisible-20261113-repertoire-i18n-20261113-ordres-info-tactile-20261113-lisibilite-pnj-20261031-caracs-mobile-l7-20261106-formulaires-20261107-reconnexion-20261108-piece-mobile-20261111-guide-lisible-20261111-questions-journal-images-entieres-20261114-krasnov-accueil-cadrage-20261115-krasnov-accueil-sans-vide-20261115-krasnov-accueil-image-unique-20261115-goulag-20261116-terrains-plan-20261122-interview-accueil-20261122-texte-minimum-20261122-foret-combat-20261122-sante-medecin-20261122-fiche-objet-panneau-20261123">
+<link rel="stylesheet" href="style.css?v=fenetres-20261122-acces-reserve-lisible-20261113-repertoire-i18n-20261113-ordres-info-tactile-20261113-lisibilite-pnj-20261031-caracs-mobile-l7-20261106-formulaires-20261107-reconnexion-20261108-piece-mobile-20261111-guide-lisible-20261111-questions-journal-images-entieres-20261114-krasnov-accueil-cadrage-20261115-krasnov-accueil-sans-vide-20261115-krasnov-accueil-image-unique-20261115-goulag-20261116-terrains-plan-20261122-interview-accueil-20261122-texte-minimum-20261122-foret-combat-20261122-sante-medecin-20261122-fiche-objet-panneau-20261123-bloc2-20261123">
 <style>
 /* Le bandeau de traduction partielle concerne les langues étrangères ; l'interface FR conserve son gabarit initial. */
 html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
@@ -186,7 +186,7 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
   <link rel="stylesheet" href="plateau-interieurs-mobile.css?v=etats-tactiles-r2-20261117">
   <link rel="stylesheet" href="plateau-dialogues-mobile.css?v=dialogues-mobile-20261116">
   <link rel="stylesheet" href="plateau-mobile-refonte-visible.css?v=refonte-identite-visible-r2-20261117">
-  <link rel="stylesheet" href="plateau-mobile-prototype.css?v=ordres-rue-paysage-r2-20261117-bloc1-20261123">
+  <link rel="stylesheet" href="plateau-mobile-prototype.css?v=ordres-rue-paysage-r2-20261117-bloc1-20261123-bloc2-20261123">
   <link rel="stylesheet" href="plateau-mobile-entete-compact.css?v=identite-sortie-r1-20261117">
 </head>
 <body class="plateau-body">
@@ -534,20 +534,20 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
 <!-- JOURNAL FLOTTANT (store) -->
 <!-- Bouton d'ouverture flottant -->
 <button id="journal-open-btn" onclick="toggleJournalStore()" title="Journal des événements" data-i18n-title="plateau.eventJournal"
-  style="position:fixed;bottom:80px;left:20px;z-index:997;width:44px;height:44px;border-radius:50%;background:#1a1408;border:1px solid #8a6a20;color:#C9A84C;cursor:pointer;font-size:1rem;box-shadow:0 2px 8px rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;transition:all .2s">
+  style="position:fixed;bottom:80px;right:20px;z-index:997;width:48px;height:48px;border-radius:50%;background:#1a1408;border:1px solid #8a6a20;color:#C9A84C;cursor:pointer;font-size:1rem;box-shadow:0 2px 8px rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;transition:all .2s">
   <i class="ti ti-news" style="font-size:1rem"></i>
   <span id="journal-badge" style="display:none;position:absolute;top:-4px;right:-4px;width:10px;height:10px;background:#cc2020;border-radius:50%;animation:blink 1.2s ease infinite"></span>
 </button>
 
 <!-- Panneau store journal -->
-<div id="journal-store" style="display:none;position:fixed;top:0;right:0;width:300px;height:100vh;z-index:996;background:#0d0b05;border-left:1px solid #2a2010;box-shadow:-4px 0 20px rgba(0,0,0,.7);flex-direction:column;animation:slideInRight .25s ease">
+<div id="journal-store" style="display:none;position:fixed;top:0;right:0;width:300px;bottom:140px;z-index:996;background:#0d0b05;border-left:1px solid #2a2010;box-shadow:-4px 0 20px rgba(0,0,0,.7);flex-direction:column;animation:slideInRight .25s ease">
   <div style="padding:.5rem .7rem;border-bottom:1px solid #1a1810;background:#0a0805;display:flex;justify-content:space-between;align-items:center;flex-shrink:0">
     <span style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.2em;color:#9a8a50" data-i18n="plateau.eventJournal" data-i18n-uppercase>JOURNAL DES ÉVÉNEMENTS</span>
-    <button onclick="toggleJournalStore()" style="background:none;border:none;color:#6a5a30;cursor:pointer;font-size:1rem;padding:.2rem;transition:color .2s" onmouseover="this.style.color='#C9A84C'" onmouseout="this.style.color='#6a5a30'">
-      <i class="ti ti-x"></i>
+    <button type="button" id="journal-fermer" class="hg-journal-fermer" onclick="toggleJournalStore()" aria-label="Fermer le journal" title="Fermer le journal">
+      <i class="ti ti-x" aria-hidden="true"></i>
     </button>
   </div>
-  <button class="cpj-touche" onclick="ouvrirCalepinCampagne()" data-i18n="plateau.combatReports">Rapports de combat</button>
+  <!-- « Rapports de combat » retiré (Fred, 23/11/2026, point 21) : les combats restent dans le fil ; le calepin reste ouvert par l'ordre calepin_campagne. -->
   <div class="journal" id="journal" style="flex:1;overflow-y:auto;padding:.4rem">
     <div class="journal-entry">
       <span class="journal-time">--/--/---- &middot; --h--</span>
@@ -846,7 +846,7 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
 <script src="plateau-commerce-pj.js?v=24-catalogue-i18n-couinator-20261110-gestion-i18n-20261110-chambres-20261113-ventes-fermees-20261118"></script>
 <script src="plateau-journal-ventes.js?v=20261022-96-i18n-20261111-refresh"></script>
 <script src="plateau-resolution.js?v=3"></script>
-<script src="plateau-rue-centrale.js?v=images-20261122-goulag-20261117-mobile-l3-20261106-mobile-l2-20261106-groupes-fiche-achats-20261030-5-montrouge-tribunal-webp-20261102-position-reprise-angie-restore-city-psm-terrains-onglets-novomirsk-librairie-v6-rue-serveur-novomirsk-entrepot-renseignement-krasnov-entrepot-caserne-novomirsk-vehicules-starovka-port-poissonniere-pharmanov-musee-national-tribunal-palais-presidentiel-20261108-palais-pres-20261108-krasnov-starovka-20261109-sovarka-nuit-20261110-enseigne-residence-20261111-v5-gauche-20261112-logements-marche-20261112-quais-20261112-v5-haut-v6-20261113-quai-hopital-20261113-place-ours-20261114-place-ours-clic-20261114-krasnov-bar-tabac-immeuble-20261114-krasnov-tabac-zones-20261114-reprise-api-retry-20261115-position-autorite-empire-20261115-kouzma-20261115-port-starovka-20261116-portraits-20261116-starovka-chasse-20261117-starovka-route-20261117-verrou-20261117-premiere-rue-sovarka-20261120-images-krasnov-20261121-relance-20261121-panne-20261121-minuteur-20261121-zones-climat-20261121-terrains-plan-20261122"></script>
+<script src="plateau-rue-centrale.js?v=images-20261122-goulag-20261117-mobile-l3-20261106-mobile-l2-20261106-groupes-fiche-achats-20261030-5-montrouge-tribunal-webp-20261102-position-reprise-angie-restore-city-psm-terrains-onglets-novomirsk-librairie-v6-rue-serveur-novomirsk-entrepot-renseignement-krasnov-entrepot-caserne-novomirsk-vehicules-starovka-port-poissonniere-pharmanov-musee-national-tribunal-palais-presidentiel-20261108-palais-pres-20261108-krasnov-starovka-20261109-sovarka-nuit-20261110-enseigne-residence-20261111-v5-gauche-20261112-logements-marche-20261112-quais-20261112-v5-haut-v6-20261113-quai-hopital-20261113-place-ours-20261114-place-ours-clic-20261114-krasnov-bar-tabac-immeuble-20261114-krasnov-tabac-zones-20261114-reprise-api-retry-20261115-position-autorite-empire-20261115-kouzma-20261115-port-starovka-20261116-portraits-20261116-starovka-chasse-20261117-starovka-route-20261117-verrou-20261117-premiere-rue-sovarka-20261120-images-krasnov-20261121-relance-20261121-panne-20261121-minuteur-20261121-zones-climat-20261121-terrains-plan-20261122-bloc2-20261123"></script>
 <script src="plateau-quete-accueil.js?v=33-fiche-20261109"></script>
 <script src="plateau-enigme-portrait.js?v=integration-logements-20261029-jodie-enquete-20261109-musee-depart-20261113-i18n-missions-20261113-musee-valerie-20261116-jodie-courrier-20261116"></script>
 <script src="plateau-logements-montrouge.js?v=4-appartements-20261112"></script>
@@ -871,13 +871,13 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
 <script src="plateau-surveillance.js?v=20261111-3-fouiller-ordre-fouiller-voler-20261111-i18n-equip-20261112-tresor-tsars-20261112-sante-medecin-20261122-ordres-regroupes-20261123-bloc1-20261123"></script>
 <script src="plateau-informatique.js?v=20261111-3-ceder-i18n-equip-20261112"></script>
 <script src="plateau-plan-rues.js?v=plan-rues-i18n-20261113-carrefour-declare-20261113-quai-hopital-20261113-reperes-hors-rue-20261114-place-ours-20261114-place-ours-clic-20261114"></script>
-<script src="plateau-navigation.js?v=goulag-arrestation-20261117-building-categories-i18n-20261116-exit-feedback-i18n-20261116-building-header-i18n-20261116-i18n-refresh-fenetres-20261110-sovarka-nuit-20261110-retablir-p2-20261110-fouiller-voler-20261111-acces-reserve-20261112-desc-sovarka-20261112-volga-ancrage-20261112-appartements-20261112-musee-depart-20261113-krasnov-accueil-cadrage-20261115-krasnov-accueil-sans-vide-20261115-krasnov-accueil-image-unique-20261115-musee-valerie-20261116-ventes-fermees-20261118-chantier-unique-20261121-terrains-plan-20261122"></script>
+<script src="plateau-navigation.js?v=goulag-arrestation-20261117-building-categories-i18n-20261116-exit-feedback-i18n-20261116-building-header-i18n-20261116-i18n-refresh-fenetres-20261110-sovarka-nuit-20261110-retablir-p2-20261110-fouiller-voler-20261111-acces-reserve-20261112-desc-sovarka-20261112-volga-ancrage-20261112-appartements-20261112-musee-depart-20261113-krasnov-accueil-cadrage-20261115-krasnov-accueil-sans-vide-20261115-krasnov-accueil-image-unique-20261115-musee-valerie-20261116-ventes-fermees-20261118-chantier-unique-20261121-terrains-plan-20261122-bloc2-20261123"></script>
 <script src="plateau-images.js?v=20261122"></script>
 <script src="plateau-personnage.js?v=images-20261122-marque-20261122-onglet-871-mobile-l9-20261106-jets-serveur-20261105-vehicules-fiche-20261109-inventaire-i18n-20261110-retablir-p2-20261110-tresor-tsars-20261112-appartements-20261112-heros-boite-20261113-guide-dokladova-20261115-failles-20261117-hotel-tarif-sovarka-20261117-ventes-fermees-20261118-inventaire-direct-20261122-sante-medecin-20261122-sante-suites-20261123-medicaments-usines-20261123-tabac-presse-20261123-fiche-objet-panneau-20261123-bloc1-20261123"></script>
 <script src="plateau-pnj.js?v=social-reponse-directe-20261104-psm-terrains-onglets-novomirsk-librairie-v6-jodie-enquete-20261109-passeur-i18n-20261111-roles-sovarka-20261112-i18n-equip-20261112-heros-boite-20261113-krasnov-referents-20261115-inventaire-direct-20261122-sante-maladies-20261122-sante-medecin-20261122-fiche-objet-panneau-20261123"></script>
 <script src="i18n/dealer-resources.js?v=20261112"></script>
 <script src="plateau-ced.js?v=dealer-i18n-20261112"></script>
-<script src="plateau-multijoueur.js?v=fenetres-20261122-mobile-l9-20261106-surveillance-20261111-guide-musee-guide-fiches-20261111-questions-roles-sovarka-20261112-i18n-equip-20261112-presence-permanente-20261120-informateurs-20261122"></script>
+<script src="plateau-multijoueur.js?v=fenetres-20261122-mobile-l9-20261106-surveillance-20261111-guide-musee-guide-fiches-20261111-questions-roles-sovarka-20261112-i18n-equip-20261112-presence-permanente-20261120-informateurs-20261122-bloc2-20261123"></script>
 <script src="plateau-communication.js?v=repertoire-i18n-20261113-autorite219-20261101-cloture135-20261102-r2-reliquats379-tracts-i18n-20261111-nationalite-20261118-interview-accueil-20261122-inventaire-direct-20261122-sante-suites-20261123-bloc1-20261123"></script>
 <!-- Nationalité, domicile et élections (18/11/2026) : textes en neuf langues, avant plateau-politique.js. -->
 <script src="plateau-nationalite.js?v=nationalite-20261118"></script>
@@ -987,12 +987,12 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
 </div>
 
 <!-- CHAT EN PIECE — fenetre flottante persistante -->
-<button id="hg-chat-toggle" onclick="toggleChatPiece()" style="position:fixed;bottom:20px;left:20px;z-index:998;width:48px;height:48px;border-radius:50%;background:#1a1408;border:1px solid #8a6a20;color:#C9A84C;cursor:pointer;font-size:1.2rem;box-shadow:0 2px 8px rgba(0,0,0,.5)">
+<button id="hg-chat-toggle" onclick="toggleChatPiece()" style="position:fixed;bottom:20px;right:20px;z-index:998;width:48px;height:48px;border-radius:50%;background:#1a1408;border:1px solid #8a6a20;color:#C9A84C;cursor:pointer;font-size:1.2rem;box-shadow:0 2px 8px rgba(0,0,0,.5)">
   <i class="ti ti-message-circle"></i>
   <span id="chat-notif-badge" style="display:none;position:absolute;top:-3px;right:-3px;width:11px;height:11px;background:#cc2020;border-radius:50%;animation:blink 1.2s ease infinite;border:2px solid #1a1408"></span>
 </button>
 
-<div id="chat-piece-panel" style="display:none;position:fixed;bottom:80px;left:20px;z-index:999;width:300px;height:380px;background:#0a0805;border:1px solid #2a2010;border-radius:8px;flex-direction:column;box-shadow:0 4px 16px rgba(0,0,0,.6)">
+<div id="chat-piece-panel" style="display:none;position:fixed;bottom:80px;right:80px;z-index:999;width:300px;height:380px;background:#0a0805;border:1px solid #2a2010;border-radius:8px;flex-direction:column;box-shadow:0 4px 16px rgba(0,0,0,.6)">
   <div style="padding:.5rem .7rem;border-bottom:1px solid #2a2010;display:flex;justify-content:space-between;align-items:center;flex-shrink:0">
     <span style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.08em;color:#C9A84C" data-i18n="plateau.messages" data-i18n-uppercase>MESSAGES</span>
     <button onclick="toggleChatPiece()" style="background:none;border:none;color:#8a8060;cursor:pointer;font-size:.9rem">✕</button>
@@ -1007,6 +1007,9 @@ async function toggleJournalStore() {
   if (window.rpReprendreFenetre?.(store)) return;
   const btn = document.getElementById('journal-open-btn');
   const isOpen = store.style.display === 'flex';
+  // Deux fenêtres ne se chevauchent jamais (Fred, 23/11/2026, R8 et point 22) : ouvrir le journal ferme le chat.
+  const chat = document.getElementById('chat-piece-panel');
+  if (!isOpen && chat && chat.style.display !== 'none' && typeof toggleChatPiece === 'function') toggleChatPiece();
   store.style.display = isOpen ? 'none' : 'flex';
   // Effacer le badge quand on ouvre
   if (!isOpen) {

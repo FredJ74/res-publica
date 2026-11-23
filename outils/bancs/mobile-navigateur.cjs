@@ -26,7 +26,7 @@ async function page(b,o,w,h,ancien=false,options={}) {
  });
  const p=await c.newPage();p.setDefaultTimeout(5000);
  await p.goto(o+'/plateau.html'+(ancien?'?ancien':''));
- if(ancien)await p.addStyleTag({content:lecture('style.css',true).toString()});
+ if(ancien){await p.addStyleTag({content:lecture('style.css',true).toString()});await journalChatTemoin(p);}
  else {
   // Les bancs historiques isolent leurs rendus antérieurs au plancher de texte.
   // Le chargement conjoint est explicite dans les recettes d'intégration actuelles.
@@ -61,4 +61,24 @@ async function jaugesSanteTemoin(p){
  await p.addStyleTag({content:CSS_JAUGES});
 }
 
-module.exports={R,temoin,lecture,preuve,avecJeu,page,jaugesSanteTemoin};
+// Journal et chat (Fred, 23/11/2026, GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md, points 21 et 22) : changement voulu,
+// appliqué au témoin comme les jauges : boutons ronds en bas à droite (l'un au-dessus de l'autre), journal sans « Rapports de
+// combat » et avec sa croix en vrai bouton, panneaux qui laissent les boutons libres. Mêmes balises que plateau.html.
+const JOURNAL_COURANT=htmlCourant.slice(htmlCourant.indexOf('<!-- JOURNAL FLOTTANT (store) -->'),htmlCourant.indexOf('<!-- MODAL PARLER PNJ -->'));
+const ouverture=(html,debut)=>{const i=html.indexOf(debut);return html.slice(i,html.indexOf('>',i)+1);};
+const CHAT_BOUTON=ouverture(htmlCourant,'<button id="hg-chat-toggle"'),CHAT_PANNEAU=ouverture(htmlCourant,'<div id="chat-piece-panel"');
+const CSS_JOURNAL=cssCourant.slice(cssCourant.indexOf('/* JOURNAL ET CHAT (Fred, 23/11/2026'));
+assert.ok(JOURNAL_COURANT.includes('journal-fermer')&&CHAT_BOUTON.includes('right:20px')&&CSS_JOURNAL.includes('.hg-journal-fermer'),'blocs journal et chat introuvables');
+async function journalChatTemoin(p){
+ await p.evaluate(([journal,bouton,panneau])=>{
+  const copie=(el,html)=>{if(!el)return;const t=document.createElement('template');t.innerHTML=html;const n=t.content.firstElementChild;
+   for(const a of [...el.attributes])el.removeAttribute(a.name);for(const a of [...n.attributes])el.setAttribute(a.name,a.value);};
+  const store=document.getElementById('journal-store'),btn=document.getElementById('journal-open-btn');
+  if(store&&btn){const t=document.createElement('template');t.innerHTML=journal;btn.replaceWith(...t.content.querySelectorAll('#journal-open-btn'));
+   document.getElementById('journal-store').replaceWith(t.content.querySelector('#journal-store')||document.createElement('div'));}
+  copie(document.querySelector('button[onclick="toggleChatPiece()"]'),bouton);copie(document.getElementById('chat-piece-panel'),panneau);
+ },[JOURNAL_COURANT,CHAT_BOUTON+'</button>',CHAT_PANNEAU+'</div>']);
+ await p.addStyleTag({content:CSS_JOURNAL});
+}
+
+module.exports={R,temoin,lecture,preuve,avecJeu,page,jaugesSanteTemoin,journalChatTemoin};

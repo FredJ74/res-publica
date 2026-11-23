@@ -2685,3 +2685,9 @@ body.plateau-body .top-right {
   #modal-postes .cpj-enseigne{grid-column:2;max-width:100%;min-width:0}
   #modal-postes .cpj-eteindre{grid-column:3;grid-row:1 / span 2}
 }
+
+/* JOURNAL ET CHAT (Fred, 23/11/2026, GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md, points 21 et 22) : croix de fermeture
+   du journal en vrai bouton, grande et contrastée ; boutons ronds en bas à droite, l'un au-dessus de l'autre (essai). */
+.hg-journal-fermer{display:flex;align-items:center;justify-content:center;width:40px;height:40px;min-width:40px;border-radius:6px;
+  background:#2a1e0a;border:2px solid #C9A84C;color:#f0e2b0;cursor:pointer;font-size:1.35rem;line-height:1;padding:0}
+.hg-journal-fermer:hover,.hg-journal-fermer:focus-visible{background:#C9A84C;color:#1a1408;outline:none}

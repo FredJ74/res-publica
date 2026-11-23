@@ -2067,6 +2067,9 @@ function toggleChatPiece() {
     panel.style.display = 'none';
     if (_chatInterval) { clearInterval(_chatInterval); _chatInterval = null; }
   } else {
+    // Deux fenêtres ne se chevauchent jamais (Fred, 23/11/2026, R8 et point 22) : ouvrir le chat ferme le journal.
+    const journal = document.getElementById('journal-store');
+    if (journal && journal.style.display === 'flex') journal.style.display = 'none';
     panel.style.display = 'flex';
     ouvrirListeConversations();
   }
