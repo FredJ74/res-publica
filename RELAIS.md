@@ -10,7 +10,7 @@ Règles : voir `AGENTS.md`.
 ## En cours
 
 ### Internationalisation de la formation universitaire (Codex, 23/11/2026) — PR #1183
-- Branche `codex/i18n-formation-20261123`, rebasée sans conflit sur **main 30d715d2**. Aucun fichier des zones réservées à Claude, aucune écriture en base ni migration. PR #1184 distincte pour le sens de saisie des partis ; PR #1132 non reprise.
+- Branche `codex/i18n-formation-20261123`, rebasée sans conflit sur **main 4291ec9f**. Aucun fichier des zones réservées à Claude, aucune écriture en base ni migration. PR #1184 distincte pour le sens de saisie des partis ; PR #1132 non reprise.
 - **Codé et publié, non fusionné** : 51 textes français couverts : 41 originaux strictement conservés et dix références réelles ; 368 traductions étrangères nouvelles et 40 réutilisées ; `plateau-universite.js` et nouveau catalogue `university-resources.js`, moteur i18next existant. Rafraîchissement passif sans reconstruction ni RPC ; Brotli régénéré et vérifié (87 catalogues sans perte).
 - Audit : `outils/audits/i18n/ETAT-I18N-20261123.md`, matrices neuf langues/domaines/pays, instantanés avant/après, candidats détaillés, clés incomplètes et tables locales. Taux statiques partiels, jamais un pourcentage exhaustif du jeu. 514 clés locales avec absence directe, dont 449 sans ressource alternative reconnue : candidats à vérifier, pas preuves d’affichage.
 - **CI dédiée 45223825553 verte, 32/32 tests** sur 80b89c03. Local : 35 tests formation/audit/transport, 63 assertions du banc universitaire historique, calendrier 17 cours/7 stages et catalogues 21 missions + 7 médicales. Le banc historique s’exécute avec son lanceur `readFile/print`, pas directement avec Node.
@@ -24,6 +24,10 @@ Règles : voir `AGENTS.md`.
 
 - **Correction avant fusion** : le catalogue réel (lecture seule, transaction annulée, aucune donnée de PJ) emploie cinq intitulés longs. Ils sont désormais traduits ; cinq familles de carrières réutilisent `creation.careers` sans modifier le catalogue commun. Progression conservée sous son identifiant brut pour éviter la langue figée. Banc renforcé : **6/6 tests**, 648 bascules par largeur, français réel exact, ressources manquantes et intitulés personnalisés préservés. Référence `FORMATION-CATALOGUE-20261123.json` ; quatre cursus fermés restent fermés.
 
+
+- Rebase sur **4291ec9f** : deux conflits d’insertion dans RELAIS seulement, résolus en conservant intégralement les sections Claude et en réinsérant la section Codex. Aucun conflit de code ni catalogue partagé ; contrôles ciblés et compression vérifiés avant publication.
+
+- Signalement Fred sur Bernard : journal main **45270169896** lu ; 12/13, échec d’accessibilité du bouton Envoyer à 390 px, pas une preuve d’instabilité Chromium. Les trois bancs ne couvrent pas Bernard/Sovarka/domicile Krasnov → Vera/forum Sovarka. Aucun lien causal établi, aucune correction du parcours réservé ; détail `outils/audits/i18n/INTERVIEW-ACCUEIL-VERIFICATION-20261123.md`.
 
 ### Bloc 4 — lieux de Krasnov (Claude, 23/11/2026) — points 29 à 34 de GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md
 - Branche `claude/bloc4-krasnov-20261123`. Banc : `outils/bancs/banc-bloc4-krasnov-20261123.cjs` (statique + vrai Chromium pour le karaoké).

@@ -11828,6 +11828,54 @@
     "statut": "analyse-statique-a-verifier-au-rendu"
   },
   {
+    "fichier": "plateau-hymne-tracteur.js",
+    "ligne": 26,
+    "cle_locale": "titre",
+    "fr": "Hymne au Tracteur",
+    "langues_absentes_de_la_table": [
+      "zh-TW",
+      "pt-BR"
+    ],
+    "langues_sans_ressource_alternative": [
+      "zh-TW",
+      "pt-BR"
+    ],
+    "ressources_alternatives": [],
+    "statut": "analyse-statique-a-verifier-au-rendu"
+  },
+  {
+    "fichier": "plateau-hymne-tracteur.js",
+    "ligne": 26,
+    "cle_locale": "passer",
+    "fr": "Passer",
+    "langues_absentes_de_la_table": [
+      "zh-TW",
+      "pt-BR"
+    ],
+    "langues_sans_ressource_alternative": [
+      "zh-TW",
+      "pt-BR"
+    ],
+    "ressources_alternatives": [],
+    "statut": "analyse-statique-a-verifier-au-rendu"
+  },
+  {
+    "fichier": "plateau-hymne-tracteur.js",
+    "ligne": 26,
+    "cle_locale": "fermer",
+    "fr": "Amen",
+    "langues_absentes_de_la_table": [
+      "zh-TW",
+      "pt-BR"
+    ],
+    "langues_sans_ressource_alternative": [
+      "zh-TW",
+      "pt-BR"
+    ],
+    "ressources_alternatives": [],
+    "statut": "analyse-statique-a-verifier-au-rendu"
+  },
+  {
     "fichier": "plateau-maladies.js",
     "ligne": 8,
     "cle_locale": "n_mst",
@@ -12109,7 +12157,7 @@
   },
   {
     "fichier": "plateau-personnage.js",
-    "ligne": 3982,
+    "ligne": 4023,
     "cle_locale": "legende_carte_krasnov_place_ours",
     "fr": "Krasnov, capitale de l’ours",
     "langues_absentes_de_la_table": [
@@ -12137,7 +12185,35 @@
   },
   {
     "fichier": "plateau-personnage.js",
-    "ligne": 3982,
+    "ligne": 4023,
+    "cle_locale": "legende_carte_starovka_hiver",
+    "fr": "",
+    "langues_absentes_de_la_table": [
+      "en",
+      "es",
+      "zh-TW",
+      "ru",
+      "ko",
+      "ar",
+      "pt-BR",
+      "de"
+    ],
+    "langues_sans_ressource_alternative": [
+      "en",
+      "es",
+      "zh-TW",
+      "ru",
+      "ko",
+      "ar",
+      "pt-BR",
+      "de"
+    ],
+    "ressources_alternatives": [],
+    "statut": "analyse-statique-a-verifier-au-rendu"
+  },
+  {
+    "fichier": "plateau-personnage.js",
+    "ligne": 4023,
     "cle_locale": "legende_carte_psm_notre_dame_mer",
     "fr": "",
     "langues_absentes_de_la_table": [
@@ -12165,7 +12241,7 @@
   },
   {
     "fichier": "plateau-personnage.js",
-    "ligne": 3982,
+    "ligne": 4023,
     "cle_locale": "legende_carte_psm_touristique",
     "fr": "",
     "langues_absentes_de_la_table": [
@@ -12193,7 +12269,7 @@
   },
   {
     "fichier": "plateau-personnage.js",
-    "ligne": 3982,
+    "ligne": 4023,
     "cle_locale": "legende_carte_psm_culture_marine",
     "fr": "",
     "langues_absentes_de_la_table": [
@@ -12221,7 +12297,7 @@
   },
   {
     "fichier": "plateau-personnage.js",
-    "ligne": 3982,
+    "ligne": 4023,
     "cle_locale": "legende_carte_montrouge_place_rail",
     "fr": "",
     "langues_absentes_de_la_table": [
@@ -12249,7 +12325,7 @@
   },
   {
     "fichier": "plateau-personnage.js",
-    "ligne": 3982,
+    "ligne": 4023,
     "cle_locale": "legende_carte_montrouge_touristique",
     "fr": "",
     "langues_absentes_de_la_table": [
@@ -12277,7 +12353,7 @@
   },
   {
     "fichier": "plateau-personnage.js",
-    "ligne": 3982,
+    "ligne": 4023,
     "cle_locale": "legende_carte_montrouge_musee_rail",
     "fr": "",
     "langues_absentes_de_la_table": [
@@ -12305,7 +12381,7 @@
   },
   {
     "fichier": "plateau-personnage.js",
-    "ligne": 3982,
+    "ligne": 4023,
     "cle_locale": "legende_carte_luthecia_institutions",
     "fr": "",
     "langues_absentes_de_la_table": [
@@ -12333,7 +12409,7 @@
   },
   {
     "fichier": "plateau-personnage.js",
-    "ligne": 3982,
+    "ligne": 4023,
     "cle_locale": "legende_carte_luthecia_internationale",
     "fr": "",
     "langues_absentes_de_la_table": [
@@ -12361,7 +12437,7 @@
   },
   {
     "fichier": "plateau-personnage.js",
-    "ligne": 3982,
+    "ligne": 4023,
     "cle_locale": "legende_carte_luthecia_culture",
     "fr": "",
     "langues_absentes_de_la_table": [
@@ -12389,7 +12465,7 @@
   },
   {
     "fichier": "plateau-personnage.js",
-    "ligne": 3982,
+    "ligne": 4023,
     "cle_locale": "ecrire_titre",
     "fr": "Écrire et envoyer",
     "langues_absentes_de_la_table": [
@@ -12413,7 +12489,7 @@
   },
   {
     "fichier": "plateau-personnage.js",
-    "ligne": 3982,
+    "ligne": 4023,
     "cle_locale": "recto",
     "fr": "Recto",
     "langues_absentes_de_la_table": [
@@ -12441,7 +12517,7 @@
   },
   {
     "fichier": "plateau-personnage.js",
-    "ligne": 3982,
+    "ligne": 4023,
     "cle_locale": "destinataire",
     "fr": "Destinataire",
     "langues_absentes_de_la_table": [
@@ -12469,7 +12545,7 @@
   },
   {
     "fichier": "plateau-personnage.js",
-    "ligne": 3982,
+    "ligne": 4023,
     "cle_locale": "choisir",
     "fr": "— Choisir un personnage —",
     "langues_absentes_de_la_table": [
@@ -12497,7 +12573,7 @@
   },
   {
     "fichier": "plateau-personnage.js",
-    "ligne": 3982,
+    "ligne": 4023,
     "cle_locale": "placeholder",
     "fr": "Écrivez votre message ici...",
     "langues_absentes_de_la_table": [
@@ -12525,7 +12601,7 @@
   },
   {
     "fichier": "plateau-personnage.js",
-    "ligne": 3982,
+    "ligne": 4023,
     "cle_locale": "envoyer",
     "fr": "Envoyer",
     "langues_absentes_de_la_table": [
@@ -12549,7 +12625,7 @@
   },
   {
     "fichier": "plateau-personnage.js",
-    "ligne": 3982,
+    "ligne": 4023,
     "cle_locale": "visuel_a_venir",
     "fr": "Visuel à venir",
     "langues_absentes_de_la_table": [
@@ -12577,7 +12653,7 @@
   },
   {
     "fichier": "plateau-personnage.js",
-    "ligne": 3982,
+    "ligne": 4023,
     "cle_locale": "retourner",
     "fr": "Retourner la carte",
     "langues_absentes_de_la_table": [
@@ -12605,7 +12681,7 @@
   },
   {
     "fichier": "plateau-personnage.js",
-    "ligne": 3982,
+    "ligne": 4023,
     "cle_locale": "retourner_aide",
     "fr": "Cliquez sur la carte pour la retourner.",
     "langues_absentes_de_la_table": [
@@ -12633,7 +12709,7 @@
   },
   {
     "fichier": "plateau-personnage.js",
-    "ligne": 3982,
+    "ligne": 4023,
     "cle_locale": "de",
     "fr": "De :",
     "langues_absentes_de_la_table": [
@@ -12657,7 +12733,7 @@
   },
   {
     "fichier": "plateau-personnage.js",
-    "ligne": 3982,
+    "ligne": 4023,
     "cle_locale": "a",
     "fr": "À :",
     "langues_absentes_de_la_table": [
@@ -12681,7 +12757,7 @@
   },
   {
     "fichier": "plateau-personnage.js",
-    "ligne": 3982,
+    "ligne": 4023,
     "cle_locale": "signature",
     "fr": "— {auteur}",
     "langues_absentes_de_la_table": [
@@ -12709,7 +12785,7 @@
   },
   {
     "fichier": "plateau-personnage.js",
-    "ligne": 3982,
+    "ligne": 4023,
     "cle_locale": "lecture",
     "fr": "Carte postale",
     "langues_absentes_de_la_table": [
@@ -12733,7 +12809,7 @@
   },
   {
     "fichier": "plateau-personnage.js",
-    "ligne": 3982,
+    "ligne": 4023,
     "cle_locale": "envoyee_titre",
     "fr": "Carte envoyée",
     "langues_absentes_de_la_table": [
@@ -12761,7 +12837,7 @@
   },
   {
     "fichier": "plateau-personnage.js",
-    "ligne": 3982,
+    "ligne": 4023,
     "cle_locale": "envoyee",
     "fr": "Votre carte postale part pour {dest}.",
     "langues_absentes_de_la_table": [
@@ -12789,7 +12865,7 @@
   },
   {
     "fichier": "plateau-personnage.js",
-    "ligne": 3982,
+    "ligne": 4023,
     "cle_locale": "envoyee_journal",
     "fr": "Vous avez envoyé une carte postale à {dest}.",
     "langues_absentes_de_la_table": [
@@ -12817,7 +12893,7 @@
   },
   {
     "fichier": "plateau-personnage.js",
-    "ligne": 3982,
+    "ligne": 4023,
     "cle_locale": "echec_titre",
     "fr": "Envoi refusé",
     "langues_absentes_de_la_table": [
@@ -12845,7 +12921,7 @@
   },
   {
     "fichier": "plateau-personnage.js",
-    "ligne": 3982,
+    "ligne": 4023,
     "cle_locale": "manque_dest",
     "fr": "Choisissez un personnage destinataire.",
     "langues_absentes_de_la_table": [
@@ -12873,7 +12949,7 @@
   },
   {
     "fichier": "plateau-personnage.js",
-    "ligne": 3982,
+    "ligne": 4023,
     "cle_locale": "manque_msg",
     "fr": "Écrivez un message avant d’envoyer.",
     "langues_absentes_de_la_table": [
@@ -12901,7 +12977,7 @@
   },
   {
     "fichier": "plateau-personnage.js",
-    "ligne": 3982,
+    "ligne": 4023,
     "cle_locale": "r_message_vide",
     "fr": "Écrivez un message avant d’envoyer.",
     "langues_absentes_de_la_table": [
@@ -12929,7 +13005,7 @@
   },
   {
     "fichier": "plateau-personnage.js",
-    "ligne": 3982,
+    "ligne": 4023,
     "cle_locale": "r_message_trop_long",
     "fr": "Le message est trop long ({max} caractères au plus).",
     "langues_absentes_de_la_table": [
@@ -12957,7 +13033,7 @@
   },
   {
     "fichier": "plateau-personnage.js",
-    "ligne": 3982,
+    "ligne": 4023,
     "cle_locale": "r_carte_deja_ecrite",
     "fr": "Cette carte est déjà écrite : une carte ne s’écrit qu’une fois.",
     "langues_absentes_de_la_table": [
@@ -12985,7 +13061,7 @@
   },
   {
     "fichier": "plateau-personnage.js",
-    "ligne": 3982,
+    "ligne": 4023,
     "cle_locale": "r_pas_une_carte_postale",
     "fr": "Cet objet n’est pas une carte postale.",
     "langues_absentes_de_la_table": [
@@ -13013,7 +13089,7 @@
   },
   {
     "fichier": "plateau-personnage.js",
-    "ligne": 3982,
+    "ligne": 4023,
     "cle_locale": "r_destinataire_plein",
     "fr": "L’inventaire de {dest} est plein : la carte ne peut pas lui parvenir.",
     "langues_absentes_de_la_table": [
@@ -13041,7 +13117,7 @@
   },
   {
     "fichier": "plateau-personnage.js",
-    "ligne": 3982,
+    "ligne": 4023,
     "cle_locale": "fumer",
     "fr": "Fumer",
     "langues_absentes_de_la_table": [
@@ -13065,7 +13141,7 @@
   },
   {
     "fichier": "plateau-personnage.js",
-    "ligne": 3982,
+    "ligne": 4023,
     "cle_locale": "fume_titre",
     "fr": "Une papirossy",
     "langues_absentes_de_la_table": [
@@ -13093,7 +13169,7 @@
   },
   {
     "fichier": "plateau-personnage.js",
-    "ligne": 3982,
+    "ligne": 4023,
     "cle_locale": "fume",
     "fr": "Vous fumez une papirossy en regardant passer les tracteurs. +{gain} Moral.",
     "langues_absentes_de_la_table": [
@@ -13121,7 +13197,7 @@
   },
   {
     "fichier": "plateau-personnage.js",
-    "ligne": 3982,
+    "ligne": 4023,
     "cle_locale": "fume_journal",
     "fr": "Vous avez fumé une cigarette papirossy. +{gain} Moral.",
     "langues_absentes_de_la_table": [
