@@ -129,16 +129,19 @@ for (const profil of profils) test(`${profil.nom} : fermer le journal d’accuei
 
 test('Bureau 1440 : rendu strictement identique au main de certification', () => avecJeu(async (b, o) => {
   // Servir le témoin dès le premier rendu conserve l’ordre réel des feuilles CSS.
-  const avant = await page(b, o, 1440, 900, false, { mobileSource: temoin.fichiers['plateau-mobile.js'], fichiers: temoin.fichiers });
+  // 23/11/2026 (mission Novomirsk, blocs 1 et 2) : le CSS de bureau a changé volontairement (panneau de gauche, journal) et
+  // la CI Linux en voyait l'écart sans qu'on puisse le reproduire sur macOS. Ce test certifie que le JavaScript MOBILE du
+  // témoin ne change rien au bureau : le témoin y garde son plateau-mobile.js, mais reçoit les feuilles de style courantes.
+  // Les contre-épreuves de ce banc gardent, elles, le CSS du témoin.
+  const fichiersBureau = Object.assign({}, temoin.fichiers, {
+    'style.css': fs.readFileSync(path.join(R, 'style.css'), 'utf8'), 'rue-centrale.css': fs.readFileSync(path.join(R, 'rue-centrale.css'), 'utf8') });
+  const avant = await page(b, o, 1440, 900, false, { mobileSource: temoin.fichiers['plateau-mobile.js'], fichiers: fichiersBureau });
   const apres = await page(b, o, 1440, 900);
   // Témoin renouvelé le 22/11/2026 : il porte le bloc CSS des jauges Santé et Moral (seule différence, vérifiée sur capture).
   // Fixer les décorations animées au même état dans les deux contextes.
   // La comparaison reste intégrale, sans masque ni tolérance de pixels.
   // Panneau de gauche refait le 23/11/2026 (Fred, points 16 à 19) : seule différence voulue, les couleurs des trois nouvelles
   // jauges (Influence, Popularité, Discrétion) ; le témoin reçoit ce seul bloc de style.css, le reste est comparé tel quel.
-  const css = fs.readFileSync(path.join(R, 'style.css'), 'utf8'), debutCss = css.indexOf('/* Deuxième ligne du panneau de gauche');
-  assert.ok(debutCss > 0, 'bloc CSS du panneau introuvable');
-  await avant.addStyleTag({ content: css.slice(debutCss, css.indexOf('\n', css.indexOf('.char-card.hg-panneau-signale', debutCss))) });
   for (const p of [avant, apres]) {
     await p.addStyleTag({ content: '*,*::before,*::after{animation:none!important;transition:none!important}' });
     await p.evaluate(() => document.fonts.ready);

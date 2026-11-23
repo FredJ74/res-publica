@@ -190,7 +190,7 @@ att('et l ordre lui-meme a quitte le canon',
     sansCommentaires(donnees).indexOf("fn:'annuler_poursuites'") < 0);
 // ET CE QUI LE REMPLACE EST BIEN UN ECRAN DE PARQUET, pas un second chemin ministeriel.
 att('le Ministre ne garde que la nomination du Procureur',
-    donnees.indexOf("procureur:   { label: 'Procureur de la Republique', nommePar: 'min_just'") >= 0);
+    donnees.indexOf("procureur:   { label: 'Procureur de la République', nommePar: 'min_just'") >= 0);
 
 print('');
 if (ko === 0) print('LES ' + attendus + ' EPREUVES SONT VERTES.');
