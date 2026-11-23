@@ -1180,17 +1180,22 @@ function openPnjModal(encodedPnj, options = null) {
       }
     }).catch(() => {});
   }
-  document.getElementById('pnj-actions').innerHTML = actionBtns +
+  // LA CONVERSATION D'ABORD (Fred, 24/11/2026, Kouzma Lapchine) : la boite de question etait
+  // posee APRES tous les boutons. Chez un PNJ riche en actions (le Batiouchka et ses sept
+  // boutons), elle tombait sous le bord de la fenetre et le joueur croyait ne pas pouvoir lui
+  // parler. Elle est desormais placee juste sous la replique du PNJ, avant les actions.
+  const nomPourInvite = String(pnj.name || '').replace(/\s*\(PNJ\)\s*$/i, '').trim().replace(/[&<>"']/g, '');
+  document.getElementById('pnj-actions').innerHTML =
     (isPJ
-      ? '<div style="margin-top:.6rem;font-size:.7rem;color:#6a5a30;font-style:italic">C\'est un vrai joueur — utilisez "Parler" (chat en temps réel) ou le mail (asynchrone). L\'IA ne répond jamais à sa place.</div>'
-      : '<div id="pnj-zone-question" style="display:flex;gap:.4rem;margin-top:.5rem">' +
+      ? actionBtns + '<div style="margin-top:.6rem;font-size:.7rem;color:#6a5a30;font-style:italic">C\'est un vrai joueur — utilisez "Parler" (chat en temps réel) ou le mail (asynchrone). L\'IA ne répond jamais à sa place.</div>'
+      : '<div id="pnj-zone-question" style="display:flex;gap:.4rem;margin:.2rem 0 .7rem">' +
         // UN VRAI TEXTAREA (12 octobre 2026) : l'ancien <input type="text"> d'une seule ligne
         // tronquait visuellement toute question un peu longue. Trois lignes visibles,
         // redimensionnable verticalement, retour a la ligne automatique. `handlePnjKey` est
         // conserve tel quel -- Entree envoie, Maj+Entree passe a la ligne (voir la fonction).
-        '<textarea id="pnj-question-libre" rows="3" style="flex:1;min-height:3.6rem;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;line-height:1.45;outline:none;resize:vertical;white-space:pre-wrap;overflow-wrap:break-word" placeholder="Posez votre question..." onkeydown="handlePnjKey(event)"></textarea>' +
+        '<textarea id="pnj-question-libre" rows="3" style="flex:1;min-height:3.6rem;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;line-height:1.45;outline:none;resize:vertical;white-space:pre-wrap;overflow-wrap:break-word" placeholder="' + (nomPourInvite ? 'Parler à ' + nomPourInvite + '…' : 'Posez votre question...') + '" onkeydown="handlePnjKey(event)"></textarea>' +
         '<button onclick="envoyerQuestion()" style="align-self:stretch;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer"><i class="ti ti-send" style="font-size:.8rem"></i></button>' +
-        '</div>');
+        '</div>' + actionBtns);
 
   if (!isPJ && typeof informateursBoutonPnj === 'function') informateursBoutonPnj(pnj).catch(() => {});
   // Stocker l'enc pour envoyerQuestion

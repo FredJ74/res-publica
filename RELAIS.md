@@ -1172,6 +1172,8 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 
 ## Derniers chantiers
 
+- **Parler en premier, PR à venir** (Claude, 24/11/2026, branche `claude/parler-en-premier-20261124`) : dans la fiche d'un PNJ, la boîte de conversation passe juste sous sa réplique, avant tous les boutons (`plateau-pnj.js`) ; invite « Parler à <nom>… ». Signalé par Fred sur Kouzma Lapchine, dont les sept boutons repoussaient la boîte hors de la fenêtre. Banc `banc-dialogue-pnj-republia.js` vert (43/43). À tester : ouvrir la fiche de Kouzma à la Grange Sainte.
+
 - **Relevés images, PR #1181** (Codex, 23/11/2026) : objets sans illustration, quatre icônes prévues, noms fragiles et références détaillées dans `outils/audits/images-cassees-20261122/*20261123*`. Aucun fichier du jeu ni image renommé ; SQL de renommage **NON APPLIQUÉ**, gardé ci-dessus pour le futur chantier. Résultats de CI et commit de fusion : [PR #1181](https://github.com/FredJ74/res-publica/pull/1181).
 
 - **22/11/2026 — livraison client Codex** : logo Human Gambit **#1177** (`9566f062`), accueil du guide en neuf langues **#1178** (`d1a2c899`), fenêtres sans chevauchement et fronton commercial mobile **#1179** (`5f137b44`), garde client anti-débit du goulag **#1176**. Les trois premières diffusions Vercel et leurs ressources publiques sont vérifiées ; CI et preuve de diffusion du dernier correctif sont tenues dans [la PR #1176](https://github.com/FredJ74/res-publica/pull/1176). Détails et étapes intermédiaires archivés ci-dessous ; preuves versionnées dans `outils/audits/`. Aucun accès à la base, aucune migration rejouée, aucun verrou levé. Recettes Chromium/WebKit avec données fictives ; aucun PJ connecté ni téléphone physique.
