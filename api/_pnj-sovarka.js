@@ -63,7 +63,16 @@ function deriverProfilsSovarka(tous) {
     if (COMPLEMENTS[ligne.id]) profil.caractere = [profil.caractere, COMPLEMENTS[ligne.id]].filter(Boolean).join('\n');
     derives[ligne.id] = profil;
   }
+  // Redirections (Fred, 23/11/2026, points 42 et 44) : les identifiants de profil des anciens noms de Novomirsk restent
+  // servis, avec la fiche du nouveau nom (rien ne casse pour une relation ou un lien enregistrés sous l'ancien identifiant).
+  for (const [ancien, nouveau] of Object.entries(ALIAS_PROFILS_SOVARKA)) {
+    if (!Object.prototype.hasOwnProperty.call(tous, ancien) && !derives[ancien]) derives[ancien] = derives[nouveau] || tous[nouveau];
+  }
   return derives;
 }
+const ALIAS_PROFILS_SOVARKA = {
+  sovarka_secretaire_municipal_arseni_krylov: 'sovarka_valentina_petchatkina',
+  sovarka_archiviste_municipale: 'sovarka_ksenia_arkhipova'
+};
 
 export { deriverProfilsSovarka };

@@ -11116,13 +11116,30 @@ const PNJ_SOVARKA = {
     'Brigitte Menottes (PNJ)': 'Bronislava Jarova (PNJ)',
     'Romain Castel': 'Rostislav Censurov',
     'Venerable Maitre Duval': 'Vénérable Maître Dimitri Compassov',
-    'Secretaire Municipal Petit': 'Secrétaire municipal Arseni Krylov',
+    // Point 42 (Fred, 23/11/2026) : la secrétaire municipale est une femme (le PNJ suit l'image).
+    'Secretaire Municipal Petit': ['Valentina Petchatkina', 'Secrétaire municipale'],
     'Le Maire (PNJ)': ['Le Maire (PNJ)', 'Maire de Novomirsk'],
     'Le Maire de Luthecia (PNJ)': 'Le Maire de Novomirsk (PNJ)',
     'Jean Registre (PNJ)': ['Ivan Tarassov (PNJ)', 'Responsable électoral de Novomirsk'],
-    // Point 42 (Fred, 23/11/2026, « le PNJ suit l'image ») : l'archiviste du décor est une femme brune à lunettes ;
-    // libellé de fonction en attendant le choix d'un prénom (propositions dans RELAIS.md). Ancien nom : Kirill Poliakov.
-    'Christophe Bouquin (PNJ)': ['Archiviste municipale (PNJ)', 'Archiviste municipale'],
+    // Point 42 (Fred, 23/11/2026, « le PNJ suit l'image ») : l'archiviste du décor est une femme brune à lunettes.
+    // Ancien nom : Kirill Poliakov, puis « Archiviste municipale » (libellé provisoire).
+    'Christophe Bouquin (PNJ)': ['Ksenia Arkhipova (PNJ)', 'Archiviste municipale'],
+    // Points 42 et 44 (noms validés par Fred le 23/11/2026, GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md).
+    'Tenancier de Buvette (PNJ)': ['Zinaïda Kvassova (PNJ)', 'Tenancière de la buvette'],
+    'Porte-parole presidentiel (PNJ)': 'Rodion Glasnov (PNJ)',
+    'Garde Republicain (PNJ)': 'Timour Stoïkov (PNJ)',
+    'Infirmière de Novomirsk (PNJ)': 'Ekaterina Bintova (PNJ)',
+    'Médecin de garde de Novomirsk (PNJ)': 'Docteur Lev Poulsov (PNJ)',
+    'Frere Gardien': 'Gavriil Zamkov',
+    'Hotesse Objets Trouves (PNJ)': 'Varvara Nakhodkina (PNJ)',
+    'Correspondant Local (PNJ)': 'Efim Zametkov (PNJ)',
+    'Bookmaker Officiel (PNJ)': 'Arkadi Stavkov (PNJ)',
+    'Vendeuse du Dynamo (PNJ)': 'Alla Charfova (PNJ)',
+    'Ouvrier typographe (PNJ)': 'Platon Chriftov (PNJ)',
+    "Hôtesse d'Accueil (PNJ)": 'Elvira Priomova (PNJ)',
+    'Agent de Sécurité (PNJ)': 'Gleb Okhranov (PNJ)',
+    'Armurier Militaire (PNJ)': 'Sergent Bogdan Zatvorov (PNJ)',
+    'Archiviste Militaire (PNJ)': 'Lieutenant Nestor Medalev (PNJ)',
     'Inspecteur Prosper Tampon (PNJ)': 'Inspecteur Prokhor Rybakov (PNJ)',
     'Francisca Brel': 'Ksenia Makarova',
     'Edgar Simore': 'Arkhip Voronine',
@@ -13351,24 +13368,24 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     ['dispensaire-public', 'ehpad_tilleuls', 'Matveï Tcherkassov (PNJ)', 'novo-matvei-tcherkassov-portrait.webp'],
     ['dispensaire-public', 'ehpad_tilleuls', 'Nikolaï Zakharov (PNJ)', 'novo-nikolai-zakharov-portrait.webp'],
     ['dispensaire-public', 'ehpad_tilleuls', 'Evgueni Sudakov (PNJ)', 'novo-evgueni-sudakov-portrait.webp'],
-    ['dispensaire-public', 'salle_attente', 'Infirmière de Novomirsk (PNJ)', 'novo-infirmiere-hopital-portrait.webp'],
-    ['dispensaire-public', 'salle_attente', 'Médecin de garde de Novomirsk (PNJ)', 'novo-medecin-de-garde-portrait.webp'],
-    ['palais-ambassades-novomirsk', 'accueil_ambassades_novomirsk', "Hôtesse d'Accueil (PNJ)", 'novo-hotesse-ambassades-portrait.webp'],
-    ['palais-ambassades-novomirsk', 'accueil_ambassades_novomirsk', 'Agent de Sécurité (PNJ)', 'novo-agent-securite-ambassades-portrait.webp'],
+    ['dispensaire-public', 'salle_attente', 'Ekaterina Bintova (PNJ)', 'novo-infirmiere-hopital-portrait.webp'],
+    ['dispensaire-public', 'salle_attente', 'Docteur Lev Poulsov (PNJ)', 'novo-medecin-de-garde-portrait.webp'],
+    ['palais-ambassades-novomirsk', 'accueil_ambassades_novomirsk', 'Elvira Priomova (PNJ)', 'novo-hotesse-ambassades-portrait.webp'],
+    ['palais-ambassades-novomirsk', 'accueil_ambassades_novomirsk', 'Gleb Okhranov (PNJ)', 'novo-agent-securite-ambassades-portrait.webp'],
     ['caserne-militaire', 'quartier_troupes', 'Caporal Dimitri Loguinov (PNJ)', 'novo-dimitri-loguinov-portrait.webp'],
     ['caserne-militaire', 'quartier_troupes', 'Soldat Sacha Iline (PNJ)', 'planche4-case1.webp'],
     ['caserne-militaire', 'corps_garde', 'Adjudant Piotr Antipov (PNJ)', 'novo-piotr-antipov-portrait.webp'],
     ['caserne-militaire', 'infirmerie', 'Infirmière Olga Komarova (PNJ)', 'novo-olga-komarova-portrait.webp'],
     ['caserne-militaire', 'salle_commandement', 'Commandant Igor Saveliev', 'novo-igor-saveliev-portrait.webp'],
-    ['caserne-militaire', 'armurerie_militaire', 'Armurier Militaire (PNJ)', 'novo-armurier-militaire-portrait.webp'],
+    ['caserne-militaire', 'armurerie_militaire', 'Sergent Bogdan Zatvorov (PNJ)', 'novo-armurier-militaire-portrait.webp'],
     ['caserne-militaire', 'refectoire', 'Caporal Vassili Kachaev', 'novo-vassili-kachaev-portrait.webp'],
     ['salon-coiffure-novomirsk', 'salon_coiffure', 'Ludmila Egorova (PNJ)', 'novo-ludmila-egorova-portrait.webp'],
-    ['mairie-capitale', 'hall_mairie', 'Hotesse Objets Trouves (PNJ)', 'novo-hotesse-objets-trouves-portrait.webp'],
-    ['mairie-capitale', 'salle_archives', 'Archiviste municipale (PNJ)', 'novo-archiviste-municipale-portrait.webp'],
+    ['mairie-capitale', 'hall_mairie', 'Varvara Nakhodkina (PNJ)', 'novo-hotesse-objets-trouves-portrait.webp'],
+    ['mairie-capitale', 'salle_archives', 'Ksenia Arkhipova (PNJ)', 'novo-archiviste-municipale-portrait.webp'],
     ['mairie-capitale', 'salle_elections', 'Ivan Tarassov (PNJ)', 'novo-ivan-tarassov-portrait.webp'],
     ['palais-presidentiel', 'accueil_elysee', 'Konstantin Lvovitch Orlov (PNJ)', 'novo-konstantin-orlov-portrait.webp'],
     ['palais-gouvernement', 'archives_gouv', 'Archiviste Foma Beliaïev (PNJ)', 'novo-foma-beliaiev-portrait.webp'],
-    ['palais-gouvernement', 'hall', 'Garde du Peuple (PNJ)', 'planche4-case7.webp'],
+    ['palais-gouvernement', 'hall', 'Timour Stoïkov (PNJ)', 'planche4-case7.webp'],
     ['tribunal', 'greffe', 'Greffier Semion Golovine', 'novo-semion-golovine-portrait.webp'],
     ['clinique-privee', 'reception_clinique', 'Docteur Stakhanov (PNJ)', 'novo-docteur-stakhanov-portrait.webp'],
     ['commissariat', 'prison', 'Gardien Stepan Kalinine', 'planche4-case6.webp'],
@@ -13378,13 +13395,13 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     ['centre-affaires', 'hall', 'Pietr Kastanov (PNJ)', 'novo-pietr-kastanov-portrait.webp'],
     ['stade', 'terrain', 'Commentateur Sportif (PNJ)', 'planche3-case7.webp'],
     ['stade', 'vestiaires', 'Entraineur Adjoint du Dynamo (PNJ)', 'novo-entraineur-adjoint-dynamo-portrait.webp'],
-    ['stade', 'guichet_paris', 'Bookmaker Officiel (PNJ)', 'novo-bookmaker-officiel-portrait.webp'],
-    ['stade', 'boutique', 'Vendeuse du Dynamo (PNJ)', 'novo-vendeuse-dynamo-portrait.webp'],
-    ['imprimerie-librairie', 'atelier', 'Ouvrier typographe (PNJ)', 'Novo_typographe_portrait.webp'],
+    ['stade', 'guichet_paris', 'Arkadi Stavkov (PNJ)', 'novo-bookmaker-officiel-portrait.webp'],
+    ['stade', 'boutique', 'Alla Charfova (PNJ)', 'novo-vendeuse-dynamo-portrait.webp'],
+    ['imprimerie-librairie', 'atelier', 'Platon Chriftov (PNJ)', 'Novo_typographe_portrait.webp'],
     ['pharmacie-officielle-novomirsk', 'comptoir_pharmacie', 'Valentina Pilioulkina (PNJ)', 'novo-valentina-pilioulkina-portrait.webp'],
     ['poissonniere-novomirsk', 'etal_poissonniere', 'Galina Karpova (PNJ)', 'novo-galina-karpova-portrait.webp'],
     ['loge-maconnique', 'portail', 'Camarade Grand Maître (PNJ)', 'planche5-case1.webp'],
-    ['loge-maconnique', 'hall_loge', 'Frere Gardien', 'planche5-case2.webp'],
+    ['loge-maconnique', 'hall_loge', 'Gavriil Zamkov', 'planche5-case2.webp'],
     ['loge-maconnique', 'bureau_venerable', 'Vénérable Maître Dimitri Compassov', 'planche5-case4.webp'],
     // Bloc 6 (point 39) : la nef de Novomirsk (Novomirsk_cathedrale_accueil.webp) ne montre personne ; les deux portraits
     // sont repris des cases 6 et 7 de la planche 5, en 512 × 512, sous leur nom définitif.
@@ -13481,4 +13498,31 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
   ajouter('dispensaire-public-v', 'ehpad', { name: 'Matveï Starikov (PNJ)', role: 'Pensionnaire de l’EHPAD', rel: 'friendly',
     job: 'pensionnaire', profilId: 'matvei_starikov', nonRecrutable: true,
     photoUrl: dir + 'krasnov-matvei-starikov-portrait.webp', photoPos: '50% 30%' });
+})();
+
+// RENOMMAGES DES POINTS 42 ET 44 (Fred, 23/11/2026) : chaque PNJ renommé à Novomirsk garde son ancien nom en
+// `ancienNom` et en `aliasInformateur` (plateau-informateurs.js le rapproche du référentiel informateurs_pnj tant que la
+// migration 20261123230000 n'y a pas posé le nouveau nom ; ensuite le nom affiché suffit). Fiches de dialogue : les
+// identifiants de profil des anciens noms restent servis (api/_pnj-sovarka.js, ALIAS_PROFILS_SOVARKA).
+const RENOMMAGES_PNJ_NOVOMIRSK_20261123 = {
+  'Zinaïda Kvassova (PNJ)': 'Tenancier de Buvette', 'Valentina Petchatkina': 'Secrétaire municipal Arseni Krylov',
+  'Ksenia Arkhipova (PNJ)': 'Archiviste municipale', 'Rodion Glasnov (PNJ)': 'Porte-parole presidentiel',
+  'Timour Stoïkov (PNJ)': 'Garde du Peuple', 'Ekaterina Bintova (PNJ)': 'Infirmière de Novomirsk',
+  'Docteur Lev Poulsov (PNJ)': 'Médecin de garde de Novomirsk', 'Gavriil Zamkov': 'Frere Gardien',
+  'Varvara Nakhodkina (PNJ)': 'Hotesse Objets Trouves', 'Efim Zametkov (PNJ)': 'Correspondant Local',
+  'Arkadi Stavkov (PNJ)': 'Bookmaker Officiel', 'Alla Charfova (PNJ)': 'Vendeuse du Dynamo',
+  'Platon Chriftov (PNJ)': 'Ouvrier typographe', 'Elvira Priomova (PNJ)': "Hôtesse d'Accueil",
+  'Gleb Okhranov (PNJ)': 'Agent de Sécurité', 'Sergent Bogdan Zatvorov (PNJ)': 'Armurier Militaire',
+  'Lieutenant Nestor Medalev (PNJ)': 'Archiviste Militaire'
+};
+(function () {
+  const salles = (WORLD.soviet && WORLD.soviet.capitale && WORLD.soviet.capitale.buildingContext) || {};
+  for (const ctx of Object.values(salles)) {
+    const listes = [ctx.persons || []].concat(Object.values(ctx.roomOverrides || {}).map(r => r.persons || []))
+      .concat(Object.values(ctx.roomsExtra || {}).map(r => r.persons || []));
+    for (const liste of listes) for (const p of liste) {
+      const ancien = p && RENOMMAGES_PNJ_NOVOMIRSK_20261123[p.name];
+      if (ancien) { p.ancienNom = ancien; p.aliasInformateur = ancien; }
+    }
+  }
 })();

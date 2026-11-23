@@ -4348,7 +4348,7 @@ export const SCENES_PNJ = {
     "batiment": "Palais du Gouvernement de Sovarka",
     "piece": "Hall d'entree",
     "personnes": [
-      "Garde du Peuple",
+      "Timour Stoïkov",
       "Secrétaire Tamara Volkova"
     ]
   },
@@ -4551,8 +4551,8 @@ export const SCENES_PNJ = {
     "batiment": "Hôpital public de Novomirsk",
     "piece": "Accueil",
     "personnes": [
-      "Infirmière de Novomirsk",
-      "Médecin de garde de Novomirsk"
+      "Ekaterina Bintova",
+      "Docteur Lev Poulsov"
     ]
   },
   "[\"soviet\",\"capitale\",\"dispensaire-public\",\"ehpad_tilleuls\"]": {
@@ -4638,7 +4638,7 @@ export const SCENES_PNJ = {
     "batiment": "Cercle des Camarades",
     "piece": "Hall d'accueil",
     "personnes": [
-      "Frere Gardien"
+      "Gavriil Zamkov"
     ]
   },
   "[\"soviet\",\"capitale\",\"loge-maconnique\",\"bureau_venerable\"]": {
@@ -4698,8 +4698,8 @@ export const SCENES_PNJ = {
     "batiment": "Mairie de Novomirsk",
     "piece": "Hall d'accueil",
     "personnes": [
-      "Secrétaire municipal Arseni Krylov",
-      "Hotesse Objets Trouves"
+      "Valentina Petchatkina",
+      "Varvara Nakhodkina"
     ]
   },
   "[\"soviet\",\"capitale\",\"mairie-capitale\",\"bureau_maire\"]": {
@@ -4733,7 +4733,7 @@ export const SCENES_PNJ = {
     "batiment": "Mairie de Novomirsk",
     "piece": "Salle des Archives",
     "personnes": [
-      "Archiviste municipale"
+      "Ksenia Arkhipova"
     ]
   },
   "[\"soviet\",\"capitale\",\"mairie-capitale\",\"salle_partis\"]": {
@@ -5007,7 +5007,7 @@ export const SCENES_PNJ = {
     "batiment": "Stade du Dynamo de Novomirsk",
     "piece": "Buvette des tribunes",
     "personnes": [
-      "Tenancier de Buvette"
+      "Zinaïda Kvassova"
     ]
   },
   "[\"soviet\",\"capitale\",\"stade\",\"guichet_paris\"]": {
@@ -5016,7 +5016,7 @@ export const SCENES_PNJ = {
     "batiment": "Stade du Dynamo de Novomirsk",
     "piece": "Bookmaker du Dynamo",
     "personnes": [
-      "Bookmaker Officiel"
+      "Arkadi Stavkov"
     ]
   },
   "[\"soviet\",\"capitale\",\"stade\",\"siege_supporters\"]": {
@@ -5041,7 +5041,7 @@ export const SCENES_PNJ = {
     "batiment": "Stade du Dynamo de Novomirsk",
     "piece": "Boutique officielle du Dynamo",
     "personnes": [
-      "Vendeuse du Dynamo"
+      "Alla Charfova"
     ]
   },
   "[\"soviet\",\"capitale\",\"imprimerie-librairie\",\"accueil_imprimerie\"]": {
@@ -5059,7 +5059,7 @@ export const SCENES_PNJ = {
     "batiment": "Librairie du Peuple",
     "piece": "Atelier d'Imprimerie",
     "personnes": [
-      "Ouvrier typographe"
+      "Platon Chriftov"
     ]
   },
   "[\"soviet\",\"capitale\",\"capitaine-sauvage\",\"salle_principale\"]": {
@@ -5124,8 +5124,8 @@ export const SCENES_PNJ = {
     "batiment": "Palais des Ambassades",
     "piece": "Accueil du Palais des Ambassades",
     "personnes": [
-      "Hôtesse d'Accueil",
-      "Agent de Sécurité"
+      "Elvira Priomova",
+      "Gleb Okhranov"
     ]
   },
   "[\"soviet\",\"capitale\",\"palais-ambassades-novomirsk\",\"bureau_republia_novomirsk\"]": {
@@ -5330,7 +5330,7 @@ export const SCENES_PNJ = {
     "batiment": "Caserne centrale de Novomirsk",
     "piece": "Armurerie Militaire",
     "personnes": [
-      "Armurier Militaire"
+      "Sergent Bogdan Zatvorov"
     ]
   },
   "[\"soviet\",\"capitale\",\"caserne-militaire\",\"refectoire\"]": {
@@ -5348,7 +5348,7 @@ export const SCENES_PNJ = {
     "batiment": "Caserne centrale de Novomirsk",
     "piece": "Salle des Faits d'Armes",
     "personnes": [
-      "Archiviste Militaire"
+      "Lieutenant Nestor Medalev"
     ]
   },
   "[\"soviet\",\"capitale\",\"caserne-militaire\",\"quartier_troupes\"]": {

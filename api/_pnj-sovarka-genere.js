@@ -3,10 +3,98 @@ export const PNJ_SOVARKA_RENOMMES = [
  {
   "ville": "Novomirsk",
   "ancien": "Garde Republicain",
-  "nouveau": "Garde du Peuple",
+  "nouveau": "Timour Stoïkov",
   "role": null,
-  "id": "sovarka_garde_du_peuple",
+  "id": "sovarka_timour_stoikov",
   "source": "garde_republicain"
+ },
+ {
+  "ville": "Novomirsk",
+  "ancien": "Agent de Sécurité",
+  "nouveau": "Gleb Okhranov",
+  "role": null,
+  "id": "sovarka_gleb_okhranov",
+  "source": "agent_de_securite"
+ },
+ {
+  "ville": "Novomirsk",
+  "ancien": "Archiviste Militaire",
+  "nouveau": "Lieutenant Nestor Medalev",
+  "role": null,
+  "id": "sovarka_lieutenant_nestor_medalev",
+  "source": "archiviste_militaire"
+ },
+ {
+  "ville": "Novomirsk",
+  "ancien": "Armurier Militaire",
+  "nouveau": "Sergent Bogdan Zatvorov",
+  "role": null,
+  "id": "sovarka_sergent_bogdan_zatvorov",
+  "source": "armurier_militaire"
+ },
+ {
+  "ville": "Novomirsk",
+  "ancien": "Bookmaker Officiel",
+  "nouveau": "Arkadi Stavkov",
+  "role": null,
+  "id": "sovarka_arkadi_stavkov",
+  "source": "bookmaker_officiel"
+ },
+ {
+  "ville": "Novomirsk",
+  "ancien": "Correspondant Local",
+  "nouveau": "Efim Zametkov",
+  "role": null,
+  "id": "sovarka_efim_zametkov",
+  "source": "correspondant_local"
+ },
+ {
+  "ville": "Novomirsk",
+  "ancien": "Frere Gardien",
+  "nouveau": "Gavriil Zamkov",
+  "role": null,
+  "id": "sovarka_gavriil_zamkov",
+  "source": "frere_gardien"
+ },
+ {
+  "ville": "Novomirsk",
+  "ancien": "Hôtesse d'Accueil",
+  "nouveau": "Elvira Priomova",
+  "role": null,
+  "id": "sovarka_elvira_priomova",
+  "source": "hotesse_d_accueil"
+ },
+ {
+  "ville": "Novomirsk",
+  "ancien": "Hotesse Objets Trouves",
+  "nouveau": "Varvara Nakhodkina",
+  "role": null,
+  "id": "sovarka_varvara_nakhodkina",
+  "source": "hotesse_objets_trouves"
+ },
+ {
+  "ville": "Novomirsk",
+  "ancien": "Ouvrier typographe",
+  "nouveau": "Platon Chriftov",
+  "role": null,
+  "id": "sovarka_platon_chriftov",
+  "source": "ouvrier_typographe"
+ },
+ {
+  "ville": "Novomirsk",
+  "ancien": "Porte-parole presidentiel",
+  "nouveau": "Rodion Glasnov",
+  "role": null,
+  "id": "sovarka_rodion_glasnov",
+  "source": "porte_parole_presidentiel"
+ },
+ {
+  "ville": "Novomirsk",
+  "ancien": "Tenancier de Buvette",
+  "nouveau": "Zinaïda Kvassova",
+  "role": "Tenancière de la buvette",
+  "id": "sovarka_zinaida_kvassova",
+  "source": "tenancier_de_buvette"
  },
  {
   "ville": "Novomirsk",
@@ -283,9 +371,9 @@ export const PNJ_SOVARKA_RENOMMES = [
  {
   "ville": "Novomirsk",
   "ancien": "Secretaire Municipal Petit",
-  "nouveau": "Secrétaire municipal Arseni Krylov",
-  "role": null,
-  "id": "sovarka_secretaire_municipal_arseni_krylov",
+  "nouveau": "Valentina Petchatkina",
+  "role": "Secrétaire municipale",
+  "id": "sovarka_valentina_petchatkina",
   "source": "secretaire_municipal_petit"
  },
  {
@@ -307,10 +395,34 @@ export const PNJ_SOVARKA_RENOMMES = [
  {
   "ville": "Novomirsk",
   "ancien": "Christophe Bouquin",
-  "nouveau": "Archiviste municipale",
+  "nouveau": "Ksenia Arkhipova",
   "role": "Archiviste municipale",
-  "id": "sovarka_archiviste_municipale",
+  "id": "sovarka_ksenia_arkhipova",
   "source": "christophe_bouquin"
+ },
+ {
+  "ville": "Novomirsk",
+  "ancien": "Infirmière de Novomirsk",
+  "nouveau": "Ekaterina Bintova",
+  "role": null,
+  "id": "sovarka_ekaterina_bintova",
+  "source": "infirmiere_de_novomirsk"
+ },
+ {
+  "ville": "Novomirsk",
+  "ancien": "Médecin de garde de Novomirsk",
+  "nouveau": "Docteur Lev Poulsov",
+  "role": null,
+  "id": "sovarka_docteur_lev_poulsov",
+  "source": "medecin_de_garde_de_novomirsk"
+ },
+ {
+  "ville": "Novomirsk",
+  "ancien": "Vendeuse du Dynamo",
+  "nouveau": "Alla Charfova",
+  "role": null,
+  "id": "sovarka_alla_charfova",
+  "source": "vendeuse_du_dynamo"
  },
  {
   "ville": "Novomirsk",

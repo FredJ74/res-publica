@@ -180,13 +180,22 @@ Chaque point porte un banc qui l'empêche de revenir (liste dans RELAIS.md).
     gauche) et l'agent de gauche ; dortoir de la caserne, le soldat assis à droite pour Dimitri Loguinov ; salon de
     coiffure, la coiffeuse brune pour Ludmila Egorova.
 42. **Le PNJ suit l'image** : « Tenancier de Buvette » (stade Dynamo) devient une tenancière ; le secrétaire municipal
-    Arseni Krylov devient une femme ; Kirill Poliakov (archives de la mairie) devient une femme. Prénoms féminins
-    proposés par Claude, **non appliqués** : en attendant, libellé de fonction.
+    Arseni Krylov devient une femme ; Kirill Poliakov (archives de la mairie) devient une femme. **Noms choisis par Fred
+    (23/11/2026)** : tenancière de la buvette du Dynamo **Zinaïda Kvassova** ; secrétaire municipale **Valentina
+    Petchatkina** ; archiviste municipale **Ksenia Arkhipova** (les propositions de Claude ne sont pas retenues).
 43. **Six planches de portraits** (grille 3 × 3) : attribuées d'après la liste réelle des PNJ de Novomirsk encore sans
     portrait, pas d'après les intitulés supposés. Cases sans PNJ → `images/Sovarka/Novomirsk/reserve-portraits/`, non
     raccordées (dont 1-1 et 1-2).
-44. Noms génériques : de vrais noms sovarkiens sont **proposés**, non appliqués (pas de noms français suivis de
-    « -ov »/« -ova »).
+44. Noms génériques : de vrais noms sovarkiens (pas de noms français suivis de « -ov »/« -ova »). **Validés par Fred
+    (23/11/2026)** : porte-parole présidentiel **Rodion Glasnov** ; Garde du Peuple **Timour Stoïkov** ; infirmière
+    **Ekaterina Bintova** ; médecin de garde **Docteur Lev Poulsov** ; Frère Gardien **Gavriil Zamkov** ; hôtesse des
+    objets trouvés **Varvara Nakhodkina** ; correspondant local **Efim Zametkov** ; bookmaker **Arkadi Stavkov** ;
+    vendeuse du Dynamo **Alla Charfova** ; ouvrier typographe **Platon Chriftov** ; hôtesse d'accueil des Ambassades
+    **Elvira Priomova** ; agent de sécurité des Ambassades **Gleb Okhranov** ; armurier militaire **Sergent Bogdan
+    Zatvorov** ; archiviste militaire **Lieutenant Nestor Medalev**. Le Président, le Maire et les journalistes
+    accrédités restent génériques. Base : seuls les 7 informateurs relevés en lecture sont renommés par la migration
+    `20261123230000_renommages_pnj_finale` ; les anciens noms restent en `aliasInformateur` côté client. Banc :
+    `outils/bancs/banc-renommages-pnj-novomirsk-20261123.cjs`.
 45. Doublon « Le Maire » / « Le Maire de Novomirsk » : celui qui n'est pas utilisé est supprimé avec redirection.
 46. Relevé seulement des images à remplacer (Cercle des Camarades, rédaction de La Voix de Sovarka, amphithéâtre).
 47. Krasnov et Starovka : liste des PNJ sans portrait, recadrable ou absent.
