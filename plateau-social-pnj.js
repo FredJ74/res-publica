@@ -35,8 +35,54 @@ const RP_SOCIAL_LIEUX = {
   // relation tenue, aucune interpellation automatique (migration 20261115120500).
   'ville_b|kolkhoze-spirituel|grange_sainte':     'kouzma_lapchine',
   'ville_b|maison-krasnov-eglise|piece_maison':   'kouzma_lapchine',
-  'ville_b|maison-krasnov-bleue|piece_maison':    'praskovia_pakhomova'
+  'ville_b|maison-krasnov-bleue|piece_maison':    'praskovia_pakhomova',
+  // Mission Novomirsk, bloc 3, point 26 (Fred, 23/11/2026) : habitants des petites maisons et résident de l'EHPAD de
+  // Krasnov, PNJ sociaux (relation tenue, règle de jalon inatteignable : migration 20261123210000). Clés à quatre
+  // parties (pays en tête) : l'EHPAD du gabarit existe aussi à Montrouge, en Républia.
+  'soviet|ville_b|maison-krasnov|piece_maison':          'stepan_kouznetsov',
+  'soviet|ville_b|maison-krasnov-bureaux|piece_maison':  'antonina_merkoulova',
+  'soviet|ville_b|maison-krasnov-rouge|piece_maison':    'matvei_rybakov',
+  'soviet|ville_b|maison-krasnov-terrains|piece_maison': 'ignat_lykov',
+  'soviet|ville_a|maison-starovka|piece_maison':         'dolgor_tsybikova',
+  'soviet|ville_b|dispensaire-public-v|ehpad':           'matvei_starikov'
 };
+
+// L'HABITUÉ DU BAR SEVER (bloc 3, point 25) : PNJ social à part. À l'entrée, le SERVEUR décide s'il offre le verre du
+// jour (une fois par jour et par PJ, le verre compte dans la Santé) ou s'il accueille le PJ en se souvenant de lui
+// (habitue_krasnov_accueillir, migration 20261123210000). Ce fichier ne dit que les phrases.
+const RP_HABITUE_KRASNOV = { pays: 'soviet', ville: 'ville_b', batiment: 'cafe-tabac-cheminots-montrouge', piece: 'salle',
+  pnj: 'L’habitué du Bar Sever' };
+// Conclusion exacte décidée par Fred (point 25).
+const RP_HABITUE_CONCLUSION = 'Ce verre m’a donné soif ! Et je ne dis pas ça pour que tu m’en offres un en retour, mais je ne te dirais pas non si tu le fais.';
+const RP_HABITUE_TEXTES = {
+  verreInconnu: 'Hé, toi ! Oui, toi, le nouveau. Au Bar Sever, on ne laisse personne boire seul. Grigori, un verre pour mon ami ! Na zdorovie !',
+  verreConnu: 'Te revoilà, {nom} ! Je me souviens de toi, va. Grigori, la même chose pour mon ami ! Na zdorovie !',
+  souvenir: 'Ah, {nom} ! Encore toi ! Ton verre, tu l’as déjà eu aujourd’hui, camarade. Mais assieds-toi, on causera.',
+  journalVerre: 'L’habitué du Bar Sever vous offre un verre.',
+  journalSouvenir: 'L’habitué du Bar Sever vous reconnaît.'
+};
+function habitueTexte(cle, v) {
+  return String(RP_HABITUE_TEXTES[cle] || '').replace(/\{(\w+)\}/g, (m, k) => (v && k in v) ? String(v[k]) : m);
+}
+async function habitueKrasnovEntree(buildingId, roomId) {
+  if (typeof sbRpc !== 'function') return;
+  const brut = await sbRpc('habitue_krasnov_accueillir', {}).catch(function () { return null; });
+  const r = Array.isArray(brut) ? brut[0] : brut;
+  if (!r || r.ok !== true || !r.mode) return;
+  if (state.currentBuilding !== buildingId || state.currentRoom !== roomId) return;
+  // Le verre est déjà bu au serveur : la Santé affichée suit la sienne.
+  if (r.mode === 'verre' && typeof r.sante === 'number') {
+    state.hp = r.sante;
+    if (typeof sbFicheBaseAdopter === 'function') sbFicheBaseAdopter({ hp: r.sante });
+    if (typeof updateUI === 'function') updateUI();
+  }
+  const nom = r.nom || (state.char && state.char.name) || '';
+  const texte = r.mode === 'verre'
+    ? habitueTexte(r.connu ? 'verreConnu' : 'verreInconnu', { nom }) + '\n\n' + RP_HABITUE_CONCLUSION
+    : habitueTexte('souvenir', { nom });
+  if (!socialOuvrirFiche(RP_HABITUE_KRASNOV.pnj, buildingId, roomId, texte)) return;
+  if (typeof addJournalEntry === 'function') addJournalEntry(habitueTexte(r.mode === 'verre' ? 'journalVerre' : 'journalSouvenir'), 'event-info');
+}
 
 // Ce que chaque jalon dit, et de qui. Le SERVEUR decide QUAND ; ce fichier sait
 // QUOI. C'est la separation qui permet d'ajouter les sept autres PNJ sociaux sans
@@ -83,7 +129,9 @@ function socialGenreJoueur() {
 }
 
 function socialPnjDuLieu(ville, buildingId, roomId) {
-  return RP_SOCIAL_LIEUX[[ville, buildingId, roomId].join('|')] || null;
+  const pays = (typeof state !== 'undefined' && state) ? state.country : null;
+  return RP_SOCIAL_LIEUX[[pays, ville, buildingId, roomId].join('|')]
+    || RP_SOCIAL_LIEUX[[ville, buildingId, roomId].join('|')] || null;
 }
 
 // ---------------------------------------------------------------------------
@@ -93,6 +141,10 @@ function socialPnjDuLieu(ville, buildingId, roomId) {
 // comparaisons de chaines, aucun appel reseau.
 async function pnjSocialEntreeZone(buildingId, roomId) {
   if (typeof state === 'undefined' || !state.char) return;
+  const h = RP_HABITUE_KRASNOV;
+  if (state.country === h.pays && state.currentCity === h.ville && buildingId === h.batiment && roomId === h.piece) {
+    return habitueKrasnovEntree(buildingId, roomId);
+  }
   const pnjId = socialPnjDuLieu(state.currentCity, buildingId, roomId);
   if (!pnjId) return;
   if (typeof sbPnjSocialEntrer !== 'function') return;
@@ -116,20 +168,30 @@ async function pnjSocialEntreeZone(buildingId, roomId) {
 // piece actuelle, pas reconstruite a partir d'un nom ou d'un portrait.
 function socialAfficherJalon(jalon, buildingId, roomId) {
   const j = RP_SOCIAL_JALONS[jalon];
-  if (!j || typeof openPnjModal !== 'function' || typeof encodePnjSafe !== 'function') return;
-  if (state.currentBuilding !== buildingId || state.currentRoom !== roomId) return;
-  const ctx = (typeof getBuildingContext === 'function') ? getBuildingContext(buildingId) : null;
-  const salle = ctx?.roomsExtra?.[roomId] || BUILDINGS?.[buildingId]?.rooms?.[roomId];
-  const pnj = (salle?.persons || []).find(p =>
-    String(p.name || '').replace(/\s*\(PNJ\)\s*$/i, '').trim() === j.pnj);
-  if (!pnj) return; // Aucun dialogue si ce PNJ n'est plus reellement dans la piece.
-
+  if (!j) return;
   const texte = j.texte((state.char && state.char.name) || '');
-  openPnjModal(encodePnjSafe(pnj), {initialSpeech: texte});
+  if (!socialOuvrirFiche(j.pnj, buildingId, roomId, texte)) return;
 
   if (typeof addJournalEntry === 'function') {
     addJournalEntry(j.pnj + ' vous adresse la parole.', 'event-info');
   }
+}
+
+// Ouvre la fiche ordinaire d'un PNJ réellement présent dans la pièce, sa première phrase déjà dite. La liste des
+// personnes est celle qu'affiche la pièce (surcharge de ville, pièce ajoutée, gabarit) ; rien si le PNJ n'y est plus.
+function socialOuvrirFiche(nomPnj, buildingId, roomId, texte) {
+  if (typeof openPnjModal !== 'function' || typeof encodePnjSafe !== 'function') return false;
+  if (state.currentBuilding !== buildingId || state.currentRoom !== roomId) return false;
+  const ctx = (typeof getBuildingContext === 'function') ? getBuildingContext(buildingId) : null;
+  const premiere = Object.keys(BUILDINGS?.[buildingId]?.rooms || {})[0] === roomId;
+  const ro = ctx?.roomOverrides?.[roomId];
+  const liste = (ro && ro.persons && ro.persons.length) ? ro.persons
+    : (premiere && ctx?.persons && ctx.persons.length) ? ctx.persons
+    : (ctx?.roomsExtra?.[roomId] || BUILDINGS?.[buildingId]?.rooms?.[roomId] || {}).persons || [];
+  const pnj = liste.find(p => String(p.name || '').replace(/\s*\(PNJ\)\s*$/i, '').trim() === nomPnj);
+  if (!pnj) return false; // Aucun dialogue si ce PNJ n'est plus reellement dans la piece.
+  openPnjModal(encodePnjSafe(pnj), {initialSpeech: texte});
+  return true;
 }
 
 // ---------------------------------------------------------------------------
@@ -164,5 +226,6 @@ const RP_SOCIAL_JALONS_PAR_PNJ = (function () {
   const t = {};
   Object.keys(RP_SOCIAL_LIEUX).forEach(function (k) { t[RP_SOCIAL_LIEUX[k]] = true; });
   t.jodie_moitout = true; // marché et rédaction : une seule relation serveur
+  t.habitue_krasnov = true; // Bar Sever (bloc 3, point 25) : entrée gérée à part, conversations comptées comme les autres
   return t;
 })();

@@ -126,6 +126,32 @@ $images$;
 - Client du bloc 1 : onglet Organisations (pays, aide Sovarka), nationalité dans l'Identité, Santé/Moral visibles en mobile, sous-titre « RES PUBLICA » retiré, taxi du QHS masqué tant que le goulag est fermé, Inspecter à 0 PA (fouille 1 PA), portrait de Vera Pravdina, reversement nocturne des entrepôts dans `api/cron-minuit.js`. Fiche d'objet unique et panneau de gauche (points 1, 16 à 20) fusionnés depuis `claude/fiche-objet-panneau-20261123` ; la fiche ouverte par le portrait perd aussi l'onglet Statistiques (validé par Fred le 23/11).
 - Renommages de PNJ touchant la base (informateurs : tenancière de la buvette du Dynamo, secrétaire municipale, etc.) : libellés actuels conservés ; **une seule migration finale** regroupera tous les renommages (Fred, 23/11).
 
+- **Bloc 3 (points 24 à 28, sous-agent de Claude, branche `claude/bloc3-pnj-20261123`)** — migration **NON APPLIQUÉE**
+  `20261123210000_bloc3_pnj_habitue_sociaux` (tarifs des deux ordres supprimés ; verre du jour de l'habitué, table `pnj_verres_offerts`,
+  réglages MJ `habitue_krasnov_verres_par_jour` / `habitue_krasnov_accueil_heures` dans `sante_parametres`, RPC
+  `habitue_krasnov_accueillir` ; sept PNJ sociaux ; Matveï Rybakov référent).
+  - 24 : « Acheter une information » sur la fiche du PNJ informateur (plateau-informateurs.js `informateursBoutonPnj`, zone
+    `#pnj-informateur-zone` de plateau-pnj.js) ; source d'ordres dynamique et route `informateur_payer` supprimées.
+  - 25 : l'habitué du Bar Sever, PNJ visible (portrait 512 px recadré dans `Krasnov_bar_sever_salle.webp`) et social ; entrée gérée par
+    plateau-social-pnj.js (conclusion exacte de Fred) ; ordre et route « Offrir un verre à l'habitué » supprimés.
+  - 26 : fiches DeepSeek (api/_pnj-personnalites.js, bloc « FICHES DU BLOC 3 ») ; Zoïa Biletova, Arkadi Pamiatnikov, Matveï Starikov,
+    Nadejda Oukolova raccordés (bloc `BLOC3_PNJ_20261123` de data.js) ; tous les PNJ visibles de Sovarka ont une fiche.
+  - 27 et 28 : Ignat fonctionnaire à la retraite, Kouzma batiouchka (entrées obsolètes « trappeur » et « sonneur » retirées du
+    catalogue des descriptions de Sovarka) ; Matveï Rybakov référent chasse et bûcheronnage, frère aîné de Prokhor.
+  - **Renommage base à regrouper** : `informateurs_pnj` id `soviet:ville_b:musee-novomirsk:hall:Hôtesse du musée de Krasnov` →
+    `soviet:ville_b:musee-novomirsk:hall:Zoïa Biletova`, nom → `Zoïa Biletova` (l'écran fait le lien par `aliasInformateur` d'ici là ;
+    banc pglite tenu par `RENOMMAGES_EN_ATTENTE`).
+  - **Clés i18n pour Codex** (français seulement) : boutons « Acheter une information », « Lui offrir un verre » ; refus
+    `ecoute_payante` (plateau-core.js) « Ici, ça se paie » / « Ici, les informations se paient : cliquez sur le barman et choisissez
+    « Acheter une information ». » ; fenêtre « Offrez-lui
+    un verre, de {min} à {max} {cur} : plus le verre est beau, plus il en dit. » ; phrases de l'habitué (`RP_HABITUE_TEXTES` et
+    conclusion de plateau-social-pnj.js) ; rôle « Pensionnaire de l’EHPAD » ; descriptions de la maison d'Ignat (« Une vieille maison de
+    bois au bord des terrains vagues, des géraniums rouges aux fenêtres. », « Une bibliothèque vitrée, des affiches du Plan au mur, une
+    veste d’uniforme constellée de médailles et un fonctionnaire à la retraite, lunettes rondes et barbiche, qui vous observe longuement
+    avant de sourire. »).
+  - Bancs : `test-bloc3-pnj-sovarka-20261123.mjs` (relevé des PNJ de Sovarka sans fiche, R4 des deux ordres, habitué, trappeur/sonneur,
+    Rybakov), `banc-informateurs-navigateur-20261122.cjs` (bouton sur la fiche, R8), `test-krasnov-radar-20261121.cjs`.
+
 ### Correctif `window.state` (Claude, 23/11/2026, commit `f40e7413`) — ligne manquante de la mission précédente
 - `plateau-core.js` déclare `let state` : `window.state` restait vide, donc tous les modules qui lisaient `global.state` (informateurs, accueil, médecin, secrets, énigme de Krasnov, événements du personnage) voyaient un état vide (« Personne ici ne vend d'informations »). Un accesseur `Object.defineProperty(window, 'state', …)` placé juste après la déclaration suit la variable, réassignations comprises.
 - Bancs : `outils/bancs/banc-state-window-20261123.cjs` (vrai Chromium, vrai `let`) et `banc-informateurs-navigateur-20261122.cjs` (désormais en `let state` : bloqué sans le correctif, 5/5 avec). CI de main verte (55/55, Cohérence client 45147773673).

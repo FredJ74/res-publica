@@ -579,8 +579,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'changer_domicile')       { changerDomicile(state.country, state.currentCity); return; }
   if (fn === 'escort_piege')           { doEscortPiege(pa, cost); return; }
   // Informateurs recrutes et taupe SUPPRIMES (refonte du 22/11/2026) : leurs ordres ont quitte data.js.
-  // « Acheter une information » : informateur present dans la piece, paye selon le bareme commun.
-  if (fn === 'informateur_payer')      { ouvrirInformateursIci(); return; }
+  // « Acheter une information » n'est plus un ordre de piece (mission Novomirsk, bloc 3, point 24, 23/11/2026) : on clique
+  // sur le PNJ informateur, et sa fiche porte le bouton (plateau-informateurs.js, informateursBoutonPnj).
   if (fn === 'taxi_qhs')               { doTaxiSpecial('qhs', pa, cost); return; }
   if (fn === 'renseignement_transport_intl') { ouvrirRenseignementMireilleGuichet(); return; }
   if (fn === 'prendre_bus_taxi')       { ouvrirModalTransport('bus'); return; }
@@ -598,7 +598,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'acheter_ghb')            { doAcheterPoisonObjet('ghb', pa, cost); return; }
   if (fn === 'acheter_polonium')       { doAcheterPoisonObjet('polonium', pa, cost); return; }
   // Lot de Krasnov, point 8 (20/11/2026) : contacts et secrets, polonium du colonel Voronov.
-  if (fn === 'offrir_verre_habitue_krasnov') { ouvrirInformateursIci('habitue_krasnov'); return; }
+  // « Offrir un verre à l'habitué » SUPPRIME (bloc 3, point 25) : bouton « Lui offrir un verre » sur la fiche de l'habitué.
   if (fn === 'demander_fournisseur_kalachnikov') { ecouterSourceSecret('kalachnikov'); return; }
   if (fn === 'interroger_ganbaatar_polonium') { ganbaatarPolonium(); return; }
   if (fn === 'acheter_polonium_colonel') { acheterPoloniumColonel(); return; }
@@ -759,7 +759,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'consulter_dossiers_gouv') { doConsulterDossiersGouv(pa, cost); return; }
   // Route 'recruter_info' SUPPRIMEE le 8 septembre 2026, meme cas exactement : doRecruterInfo()
   // n'existe nulle part, aucun ordre ne declare ce fn. Depuis le 22/11/2026 on ne recrute plus d'informateur :
-  // on paie un informateur present (« Acheter une information », plateau-informateurs.js).
+  // on paie un informateur present en cliquant sur lui (« Acheter une information », plateau-informateurs.js).
   if (fn === 'mobiliser_police') { doMobiliserPolice(fn); return; }
   if (fn === 'mobiliser_armee') { doMobiliserArmee(pa, cost); return; }
   if (fn === 'etat_urgence') { doEtatUrgence(pa, cost); return; }

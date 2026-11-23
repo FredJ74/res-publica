@@ -6728,7 +6728,7 @@ export const SCENES_PNJ = {
     "batiment": "Hôpital municipal de Krasnov",
     "piece": "Salle d'attente",
     "personnes": [
-      "Infirmiere"
+      "Nadejda Oukolova"
     ]
   },
   "[\"soviet\",\"ville_b\",\"dispensaire-public-v\",\"ehpad\"]": {
@@ -6736,7 +6736,9 @@ export const SCENES_PNJ = {
     "ville": "Krasnov",
     "batiment": "Hôpital municipal de Krasnov",
     "piece": "EHPAD de Krasnov",
-    "personnes": []
+    "personnes": [
+      "Matveï Starikov"
+    ]
   },
   "[\"soviet\",\"ville_b\",\"dispensaire-public-v\",\"chambre\"]": {
     "pays": "Sovarka",
@@ -7372,8 +7374,8 @@ export const SCENES_PNJ = {
     "batiment": "Musée de Krasnov",
     "piece": "Accueil du musée de Krasnov",
     "personnes": [
-      "Hôtesse du musée de Krasnov",
-      "Guide du musée de Krasnov",
+      "Zoïa Biletova",
+      "Arkadi Pamiatnikov",
       "Directeur du musée de Krasnov"
     ]
   },
@@ -7418,7 +7420,8 @@ export const SCENES_PNJ = {
     "batiment": "Bar Sever",
     "piece": "Salle",
     "personnes": [
-      "Grigori Zaitsev"
+      "Grigori Zaitsev",
+      "L’habitué du Bar Sever"
     ]
   },
   "[\"soviet\",\"ville_b\",\"station-radar-krasnov\",\"salle_ecoute\"]": {
