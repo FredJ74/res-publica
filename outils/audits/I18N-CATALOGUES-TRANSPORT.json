@@ -678,10 +678,10 @@
     {
       "source": "i18n/university-resources.js",
       "packed": "i18n/packed/university-resources.js.br",
-      "sourceBytes": 23450,
-      "packedBytes": 6184,
-      "sourceSha256": "74ceeae99d9cb6994fe3caf0053e7f6f177588a645d198af18654e7ca40ee7d3",
-      "packedSha256": "3d759f2acd5e8b663ae4be2a07c1d30fbe783333c6345c90bb278877540a4be6"
+      "sourceBytes": 27395,
+      "packedBytes": 6638,
+      "sourceSha256": "1de5cf4356a40eca8cc976dc96a030c9df4a981035bae2efcb102193e11c0a09",
+      "packedSha256": "62542bfc8982e2a26f2e22014315bae05922ae73ac71375a023878a5d8386cd1"
     },
     {
       "source": "i18n/vehicle-garage-resources.js",

@@ -44,6 +44,10 @@
     "r_aucun_cursus_en_cours": "Aucun cursus en cours.",
     "r_acteur_non_authentifie": "Connexion indisponible."
   },
-  "cles": 41,
-  "traductions_etrangeres": 328
+  "cles": 46,
+  "traductions_etrangeres": 368,
+  "cles_originales": 41,
+  "textes_francais_couverts": 51,
+  "libelles_carrieres_reutilises": 5,
+  "references_catalogue": "FORMATION-CATALOGUE-20261123.json"
 }

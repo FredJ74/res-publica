@@ -1,0 +1,62 @@
+{
+  "date": "2026-11-23",
+  "source": "Catalogue Supabase, BEGIN READ ONLY ; SELECT limité à cinq cursus et familles ; ROLLBACK. Aucune donnée de personnage.",
+  "ecriture": false,
+  "cursus": [
+    {
+      "id": "univ_affaires",
+      "libelle": "Économie et affaires — seconde carrière",
+      "carriere": "business",
+      "carriere_libelle": "Affaires — Homme d'affaires / Lobbyiste",
+      "semaines_theoriques": 8,
+      "cout_pa": 0,
+      "cout_fr": 0,
+      "ouvert": false,
+      "lecture_seule": "on"
+    },
+    {
+      "id": "univ_armee",
+      "libelle": "Formation militaire — seconde carrière",
+      "carriere": "officer",
+      "carriere_libelle": "Armée — Officier supérieur / Mercenaire",
+      "semaines_theoriques": 8,
+      "cout_pa": 0,
+      "cout_fr": 0,
+      "ouvert": false,
+      "lecture_seule": "on"
+    },
+    {
+      "id": "univ_droit_penal",
+      "libelle": "Droit pénal — seconde carrière",
+      "carriere": "criminal_c",
+      "carriere_libelle": "Crime organisé — Criminel organisé",
+      "semaines_theoriques": 8,
+      "cout_pa": 0,
+      "cout_fr": 0,
+      "ouvert": true,
+      "lecture_seule": "on"
+    },
+    {
+      "id": "univ_justice",
+      "libelle": "Droit et justice — seconde carrière",
+      "carriere": "magistrat",
+      "carriere_libelle": "Justice — Magistrat / Avocat",
+      "semaines_theoriques": 8,
+      "cout_pa": 0,
+      "cout_fr": 0,
+      "ouvert": false,
+      "lecture_seule": "on"
+    },
+    {
+      "id": "univ_medecin",
+      "libelle": "Médecine — seconde carrière",
+      "carriere": "doctor",
+      "carriere_libelle": "Professions intellectuelles — Médecin / Universitaire",
+      "semaines_theoriques": 8,
+      "cout_pa": 0,
+      "cout_fr": 0,
+      "ouvert": false,
+      "lecture_seule": "on"
+    }
+  ]
+}

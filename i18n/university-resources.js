@@ -42,7 +42,12 @@ const words={
     "c_univ_justice": "Droit et justice",
     "c_univ_armee": "Formation militaire",
     "r_aucun_cursus_en_cours": "Aucun cursus en cours.",
-    "r_acteur_non_authentifie": "Connexion indisponible."
+    "r_acteur_non_authentifie": "Connexion indisponible.",
+    "catalogue_univ_affaires": "Économie et affaires — seconde carrière",
+    "catalogue_univ_armee": "Formation militaire — seconde carrière",
+    "catalogue_univ_droit_penal": "Droit pénal — seconde carrière",
+    "catalogue_univ_justice": "Droit et justice — seconde carrière",
+    "catalogue_univ_medecin": "Médecine — seconde carrière"
   },
   "en": {
     "titre": "University — second career",
@@ -85,7 +90,12 @@ const words={
     "c_univ_justice": "Law and justice",
     "c_univ_armee": "Military training",
     "r_aucun_cursus_en_cours": "No course in progress.",
-    "r_acteur_non_authentifie": "Connection unavailable."
+    "r_acteur_non_authentifie": "Connection unavailable.",
+    "catalogue_univ_affaires": "Economics and business — second career",
+    "catalogue_univ_armee": "Military training — second career",
+    "catalogue_univ_droit_penal": "Criminal law — second career",
+    "catalogue_univ_justice": "Law and justice — second career",
+    "catalogue_univ_medecin": "Medicine — second career"
   },
   "es": {
     "titre": "Universidad — segunda carrera",
@@ -128,7 +138,12 @@ const words={
     "c_univ_justice": "Derecho y justicia",
     "c_univ_armee": "Formación militar",
     "r_aucun_cursus_en_cours": "No hay ninguna formación en curso.",
-    "r_acteur_non_authentifie": "Conexión no disponible."
+    "r_acteur_non_authentifie": "Conexión no disponible.",
+    "catalogue_univ_affaires": "Economía y negocios — segunda carrera",
+    "catalogue_univ_armee": "Formación militar — segunda carrera",
+    "catalogue_univ_droit_penal": "Derecho penal — segunda carrera",
+    "catalogue_univ_justice": "Derecho y justicia — segunda carrera",
+    "catalogue_univ_medecin": "Medicina — segunda carrera"
   },
   "zh-TW": {
     "titre": "大學——第二職業",
@@ -171,7 +186,12 @@ const words={
     "c_univ_justice": "法律與司法",
     "c_univ_armee": "軍事訓練",
     "r_aucun_cursus_en_cours": "目前沒有正在修讀的課程。",
-    "r_acteur_non_authentifie": "無法連線。"
+    "r_acteur_non_authentifie": "無法連線。",
+    "catalogue_univ_affaires": "經濟與商業 — 第二職業",
+    "catalogue_univ_armee": "軍事訓練 — 第二職業",
+    "catalogue_univ_droit_penal": "刑法 — 第二職業",
+    "catalogue_univ_justice": "法律與司法 — 第二職業",
+    "catalogue_univ_medecin": "醫學 — 第二職業"
   },
   "ru": {
     "titre": "Университет — вторая профессия",
@@ -214,7 +234,12 @@ const words={
     "c_univ_justice": "Право и правосудие",
     "c_univ_armee": "Военная подготовка",
     "r_aucun_cursus_en_cours": "Нет текущей учебной программы.",
-    "r_acteur_non_authentifie": "Соединение недоступно."
+    "r_acteur_non_authentifie": "Соединение недоступно.",
+    "catalogue_univ_affaires": "Экономика и бизнес — вторая профессия",
+    "catalogue_univ_armee": "Военная подготовка — вторая профессия",
+    "catalogue_univ_droit_penal": "Уголовное право — вторая профессия",
+    "catalogue_univ_justice": "Право и правосудие — вторая профессия",
+    "catalogue_univ_medecin": "Медицина — вторая профессия"
   },
   "ko": {
     "titre": "대학교 — 두 번째 직업",
@@ -257,7 +282,12 @@ const words={
     "c_univ_justice": "법과 사법",
     "c_univ_armee": "군사 교육",
     "r_aucun_cursus_en_cours": "진행 중인 교육과정이 없습니다.",
-    "r_acteur_non_authentifie": "연결할 수 없습니다."
+    "r_acteur_non_authentifie": "연결할 수 없습니다.",
+    "catalogue_univ_affaires": "경제와 비즈니스 — 두 번째 직업",
+    "catalogue_univ_armee": "군사 교육 — 두 번째 직업",
+    "catalogue_univ_droit_penal": "형법 — 두 번째 직업",
+    "catalogue_univ_justice": "법과 사법 — 두 번째 직업",
+    "catalogue_univ_medecin": "의학 — 두 번째 직업"
   },
   "ar": {
     "titre": "الجامعة — مهنة ثانية",
@@ -300,7 +330,12 @@ const words={
     "c_univ_justice": "القانون والعدالة",
     "c_univ_armee": "التدريب العسكري",
     "r_aucun_cursus_en_cours": "لا يوجد مسار دراسي قيد المتابعة.",
-    "r_acteur_non_authentifie": "الاتصال غير متاح."
+    "r_acteur_non_authentifie": "الاتصال غير متاح.",
+    "catalogue_univ_affaires": "الاقتصاد والأعمال — مهنة ثانية",
+    "catalogue_univ_armee": "التدريب العسكري — مهنة ثانية",
+    "catalogue_univ_droit_penal": "القانون الجنائي — مهنة ثانية",
+    "catalogue_univ_justice": "القانون والعدالة — مهنة ثانية",
+    "catalogue_univ_medecin": "الطب — مهنة ثانية"
   },
   "pt-BR": {
     "titre": "Universidade — segunda carreira",
@@ -343,7 +378,12 @@ const words={
     "c_univ_justice": "Direito e justiça",
     "c_univ_armee": "Formação militar",
     "r_aucun_cursus_en_cours": "Nenhum curso em andamento.",
-    "r_acteur_non_authentifie": "Conexão indisponível."
+    "r_acteur_non_authentifie": "Conexão indisponível.",
+    "catalogue_univ_affaires": "Economia e negócios — segunda carreira",
+    "catalogue_univ_armee": "Formação militar — segunda carreira",
+    "catalogue_univ_droit_penal": "Direito penal — segunda carreira",
+    "catalogue_univ_justice": "Direito e justiça — segunda carreira",
+    "catalogue_univ_medecin": "Medicina — segunda carreira"
   },
   "de": {
     "titre": "Universität — zweiter Beruf",
@@ -386,7 +426,34 @@ const words={
     "c_univ_justice": "Recht und Justiz",
     "c_univ_armee": "Militärische Ausbildung",
     "r_aucun_cursus_en_cours": "Kein laufender Studiengang.",
-    "r_acteur_non_authentifie": "Verbindung nicht verfügbar."
+    "r_acteur_non_authentifie": "Verbindung nicht verfügbar.",
+    "catalogue_univ_affaires": "Wirtschaft und Geschäftswesen — Zweitberuf",
+    "catalogue_univ_armee": "Militärische Ausbildung — Zweitberuf",
+    "catalogue_univ_droit_penal": "Strafrecht — Zweitberuf",
+    "catalogue_univ_justice": "Recht und Justiz — Zweitberuf",
+    "catalogue_univ_medecin": "Medizin — Zweitberuf"
+  }
+};
+const careers={
+  "business": {
+    "key": "creation.careers.business.name",
+    "fr": "Affaires — Homme d'affaires / Lobbyiste"
+  },
+  "officer": {
+    "key": "creation.careers.officer.name",
+    "fr": "Armée — Officier supérieur / Mercenaire"
+  },
+  "criminal_c": {
+    "key": "creation.careers.criminal_c.name",
+    "fr": "Crime organisé — Criminel organisé"
+  },
+  "magistrat": {
+    "key": "creation.careers.magistrat.name",
+    "fr": "Justice — Magistrat / Avocat"
+  },
+  "doctor": {
+    "key": "creation.careers.doctor.name",
+    "fr": "Professions intellectuelles — Médecin / Universitaire"
   }
 };
 function register(){
@@ -396,7 +463,7 @@ function register(){
   if(global.i18next?.isInitialized)global.i18next.addResourceBundle(lang,'translation',{university:values},true,true);
  }
 }
-global.RPUniversityI18n=Object.freeze({words,register});
+global.RPUniversityI18n=Object.freeze({words,careers,register});
 register();
 if(global.i18next&&!global.i18next.isInitialized)global.i18next.on?.('initialized',register);
 })(window);

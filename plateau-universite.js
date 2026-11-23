@@ -31,9 +31,15 @@ const T = {
 };
 function langue() { return global.RPPlateauI18n?.language?.() || global.RPI18nPlateau?.locale?.() || 'fr'; }
 function texte(k, v) {
-  const fr = T.fr[k] || k;
+  const fr = T.fr[k] || global.RPUniversityI18n?.words?.fr?.[k] || k;
   let s = typeof global.i18next?.t === 'function' ? global.i18next.t('university.' + k, { lng: langue(), defaultValue: fr }) : fr;
-  if (v) s = s.replace(/\{(\w+)\}/g, (m, n) => (v[n] !== undefined ? String(v[n]) : m));
+  if (v) {
+    const valeurs = { ...v };
+    // Garder les identifiants bruts dans les marqueurs, pas la langue de l'ouverture.
+    if (k === 'progression' && T.fr['c_' + valeurs.cursus]) valeurs.cursus = texte('c_' + valeurs.cursus);
+    if (k === 'deja') valeurs.carriere = carriereTexte(valeurs.carriereId, valeurs.carriere);
+    s = s.replace(/\{(\w+)\}/g, (m, n) => (valeurs[n] !== undefined ? String(valeurs[n]) : m));
+  }
   return s;
 }
 const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -41,9 +47,26 @@ const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</
 function libelle(k, v) {
   return '<span data-university-key="' + esc(k) + '" data-university-values="' + esc(JSON.stringify(v || {})) + '">' + esc(texte(k, v)) + '</span>';
 }
+function carriereTexte(id, fr) {
+  const reference = global.RPUniversityI18n?.careers?.[id];
+  if (langue() === 'fr' || !reference || reference.fr !== fr) return fr;
+  // Réutiliser les traductions existantes ; le repli conserve le français reçu, accents compris.
+  const valeur = global.i18next?.getResource?.(langue(), 'translation', reference.key);
+  return typeof valeur === 'string' && valeur.trim() ? valeur : fr;
+}
+function referenceTexte(type, id, fr) {
+  if (typeof fr !== 'string') return fr;
+  if (type === 'carriere') return carriereTexte(id, fr);
+  const court = 'c_' + id, catalogue = 'catalogue_' + id;
+  if (T.fr[court] === fr) return texte(court);
+  if (global.RPUniversityI18n?.words?.fr?.[catalogue] === fr) return texte(catalogue);
+  return fr;
+}
+function referenceLibelle(type, id, fr) {
+  return '<span data-university-reference="' + esc(type) + '" data-university-reference-id="' + esc(id) + '" data-university-reference-fr="' + esc(fr) + '">' + esc(referenceTexte(type, id, fr)) + '</span>';
+}
 function cursusLibelle(c) {
-  const k = 'c_' + c.id;
-  return T.fr[k] === c.libelle ? libelle(k) : esc(c.libelle);
+  return referenceLibelle('cursus', c.id, c.libelle);
 }
 function rafraichir() {
   for (const node of global.document?.querySelectorAll('#toast-result [data-university-key], #toast-sub [data-university-key]') || []) {
@@ -57,6 +80,9 @@ function rafraichir() {
   for (const node of root.querySelectorAll('[data-university-key]')) {
     let values; try { values = JSON.parse(node.getAttribute('data-university-values') || '{}'); } catch (_) { continue; }
     node.textContent = texte(node.getAttribute('data-university-key'), values);
+  }
+  for (const node of root.querySelectorAll('[data-university-reference]')) {
+    node.textContent = referenceTexte(node.getAttribute('data-university-reference'), node.getAttribute('data-university-reference-id'), node.getAttribute('data-university-reference-fr'));
   }
   const titre = global.document.getElementById('postes-modal-title');
   if (titre) titre.textContent = texte('titre');
@@ -122,19 +148,19 @@ async function ouvrirUniversiteFormation() {
   if (!s.cursus_actif) {
     if (s.slot_consomme) {
       const c = s.seconde_carriere || {};
-      ouvrir(html + '<p class="cpj-note">' + libelle('deja', { carriere: c.libelle || c.carriere || '' }) + '</p>'); return;
+      ouvrir(html + '<p class="cpj-note">' + libelle('deja', { carriere: c.libelle || c.carriere || '', carriereId: c.carriere }) + '</p>'); return;
     }
     cursusListe = s.cursus_disponibles || [];
     if (!cursusListe.length) html += '<p class="cpj-note">' + libelle('aucun') + '</p>';
     cursusListe.forEach((c, i) => {
-      html += '<p><strong>' + cursusLibelle(c) + '</strong><br><span class="cpj-note">' + esc(c.carriere_libelle || '') + ' · '
+      html += '<p><strong>' + cursusLibelle(c) + '</strong><br><span class="cpj-note">' + referenceLibelle('carriere', c.carriere, c.carriere_libelle || '') + ' · '
         + libelle('duree', { semaines: c.semaines_theoriques, limite: 2 * c.semaines_theoriques }) + '</span></p>'
         + '<button class="cpj-touche cpj-primaire" onclick="universiteInscrire(' + i + ')">' + libelle('inscrire') + '</button>';
     });
     ouvrir(html); return;
   }
   const c = s.cursus_actif;
-  html += '<p class="cpj-note">' + libelle('progression', { cursus: T.fr['c_' + c.cursus] ? texte('c_' + c.cursus) : c.cursus, faits: c.jalons_accomplis, total: c.jalons_total }) + '</p>';
+  html += '<p class="cpj-note">' + libelle('progression', { cursus: c.cursus, faits: c.jalons_accomplis, total: c.jalons_total }) + '</p>';
   const e = n && n.ok ? n.etape : null;
   etapeCourante = e;
   if (e) {
