@@ -2133,7 +2133,7 @@ function applyCharToState(char) {
   const archEl = document.getElementById('char-arch-left');
   if (archEl) {
     const dom = state.domicile;
-    const domPays = dom?.country ? nomPaysAffiche(dom.country) : '';
+    const domPays = dom?.country ? (typeof nomPaysAffiche === 'function' ? nomPaysAffiche(dom.country) : (COUNTRIES?.[dom.country]?.n || '')) : '';
     const domVille = dom?.country && dom?.city ? (WORLD?.[dom.country]?.[dom.city]?.name || '') : '';
     const domStr = [domPays, domVille].filter(Boolean).join(' - ');
     archEl.textContent = [state.poste?.name, domStr].filter(Boolean).join(' · ');

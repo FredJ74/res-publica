@@ -28,7 +28,9 @@ test('toutes les pieces declarees des douze villes gardent leurs ordres, couts, 
     for(const [pieceId,piece] of Object.entries({...b.rooms,...local?.roomsExtra})){
      const surcharge=local?.roomOverrides?.[pieceId];
      const historique=[...(piece.orders||[]),...(local?.orders||[])]
-       .filter(o=>!(surcharge?.excludeOrders||[]).includes(o.fn)).concat(surcharge?.orders||[]);
+       .filter(o=>!(surcharge?.excludeOrders||[]).includes(o.fn))
+       // Goulag fermé (sovarka_goulag_ouvert() = false, mission Novomirsk du 23/11/2026, point 5) : masquerSiGoulagFerme s'ajoute aux exclusions.
+       .filter(o=>!(surcharge?.masquerSiGoulagFerme||[]).includes(o.fn)).concat(surcharge?.orders||[]);
      const actuel=ordresDeclaresDeLaPiece(piece,local,pieceId);
      if(JSON.stringify(actuel)!==JSON.stringify(historique))throw Error('Divergence '+pays+'/'+ville+'/'+id+'/'+pieceId);
      for(const o of actuel){

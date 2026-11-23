@@ -1,4 +1,5 @@
 // Chromium réel : pays d'un poste (Fred, 22/11/2026, GAME-DESIGN-INTERFACE-ACCUEIL-20261122.md, partie B, points 15-16).
+// Intitulés accentués depuis le 23/11/2026 (mission Novomirsk, point 3).
 // Vrais fichiers du jeu (data.js, plateau-organisations-quetes.js, plateau-politique.js, plateau-personnage.js, style.css) ;
 // lectures Supabase simulées avec les lignes de production du 22/11 au soir : postes_attribues n'a qu'une ligne pour
 // Arnie (republic_min_def_national), sa fiche dit country = soviet (il est à Krasnov), poste = {"id":"min_def"} sans pays.
@@ -19,7 +20,7 @@ const REGISTRE = [
   { id: 'soviet_min_def_national', country: 'soviet', poste_id: 'min_def', city: null, titulaire: 'Sasha', depuis: '2026-11-01T10:00:00Z' },
 ];
 const FICHES = [
-  { name: 'Arnie', country: 'soviet', nationalite: 'republic', poste: { id: 'min_def', city: null, name: 'Ministre de la Defense' } },
+  { name: 'Arnie', country: 'soviet', nationalite: 'republic', poste: { id: 'min_def', city: null, name: 'Ministre de la Défense' } },
   { name: 'Jean Jaaj', country: 'republic', nationalite: 'republic', poste: { id: 'min_fin', city: null, name: 'Ministre des Finances' } },
   { name: 'Ben', country: 'republic', nationalite: 'republic', poste: { id: 'capitaine_port', city: null, name: 'Commandant du Port' } },
   { name: 'Lina', country: 'soviet', nationalite: 'republic', poste: { id: 'maire_adjoint', city: 'capitale', name: 'Maire Adjoint' } },
@@ -38,7 +39,7 @@ async function avecPage(fn) {
     + '<div id="modal-postes" class="modal-overlay"><div class="modal-box"><div id="postes-modal-title"></div><div id="postes-body"></div></div></div>'
     + '<div id="vue-self"><div id="self-content"></div></div>'
     + '<script>var state={char:{name:"Arnie",country:"soviet"},country:"soviet",currentCity:"ville_b",currentBuilding:"mairie",currentRoom:"accueil_mairie",'
-    + 'poste:{id:"min_def",city:null,name:"Ministre de la Defense"},arg:0,liquide:0,pa:20};'
+    + 'poste:{id:"min_def",city:null,name:"Ministre de la Défense"},arg:0,liquide:0,pa:20};'
     // escapeHtmlText vit dans forum.js (non chargé ici) : même fonction, recopiée.
     + 'function escapeHtmlText(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/\'/g,"&#39;");}</script>'
     + FICHIERS.filter(f => f.endsWith('.js')).map(f => '<script src="' + f + '"></script>').join('');
@@ -101,7 +102,7 @@ test('organigramme national : Arnie à Krasnov n’est pas ministre de Sovarka, 
     await page.evaluate(() => { state.country = 'republic'; });
     o = await lignes(page, 'afficherOrganigrammeMairieNational');
     assert.match(o.titre, /Organigramme national — Republia/);
-    assert.match(ligneDe(o, 'Ministre de la Defense'), /Arnie/);
+    assert.match(ligneDe(o, 'Ministre de la Défense'), /Arnie/);
     assert.match(ligneDe(o, 'Ministre des Finances'), /Jean Jaaj/);
     assert.match(ligneDe(o, 'Président'), /Moustafa Kheimal/);
     assert.doesNotMatch(o.lignes.join('\n'), /Sasha/, 'Sasha, ministre soviétique présent à Luthécia, n’y figure pas');
@@ -112,7 +113,7 @@ test('organigramme national : mêmes résultats quand Arnie rentre à Luthécia'
   await avecPage(async (page) => {
     await page.evaluate(() => { state.country = 'republic'; state.char.country = 'republic'; state.currentCity = 'capitale'; });
     let o = await lignes(page, 'afficherOrganigrammeMairieNational');
-    assert.match(ligneDe(o, 'Ministre de la Defense'), /Arnie ✦/);
+    assert.match(ligneDe(o, 'Ministre de la Défense'), /Arnie ✦/);
     await page.evaluate(() => { state.country = 'soviet'; state.currentCity = 'ville_b'; });
     o = await lignes(page, 'afficherOrganigrammeMairieNational');
     assert.match(ligneDe(o, 'Ministre de la Défense de la Patrie'), /Sasha/);
@@ -143,7 +144,7 @@ test('organigramme du Palais (ouvrirOrganigramme et écran des postes) : registr
     assert.match(o.lignes.join('\n'), /Sasha/);
     await page.evaluate(() => { state.country = 'republic'; state.currentCity = 'capitale'; });
     o = await lignes(page, 'ouvrirEcranPostes');
-    assert.match(o.lignes.join('\n'), /Ministre de la Defense\s*Occupé par Arnie/);
+    assert.match(o.lignes.join('\n'), /Ministre de la Défense\s*Occupé par Arnie/);
     assert.doesNotMatch(o.lignes.join('\n'), /Occupé par Sasha/);
   });
 });
@@ -164,7 +165,7 @@ test('règle unique du navigateur et ordres réservés : aucun pouvoir à l’é
 test('panneau du personnage : le poste d’Arnie reste celui de Républia, le pays est nommé quand il voyage', async () => {
   await avecPage(async (page) => {
     await page.evaluate(() => chargerRegistrePostes(true));
-    assert.equal(await page.evaluate(() => libellePosteJoueur()), 'Ministre de la Defense — Republia');
+    assert.equal(await page.evaluate(() => libellePosteJoueur()), 'Ministre de la Défense — Republia');
     await page.evaluate(() => {
       // Dépendances périphériques de la fiche (banque, fortune, textes riches) : neutres, mêmes noms.
       window.sbRpc = async () => null;
@@ -173,10 +174,10 @@ test('panneau du personnage : le poste d’Arnie reste celui de Républia, le pa
       switchSelfTab('identite', null);
     });
     const fiche = await page.evaluate(() => document.getElementById('self-content').innerText);
-    assert.match(fiche, /Ministre de la Defense — Republia/);
+    assert.match(fiche, /Ministre de la Défense — Republia/);
     assert.doesNotMatch(fiche, /de la Patrie/);
     await page.evaluate(() => { state.country = 'republic'; state.char.country = 'republic'; });
-    assert.equal(await page.evaluate(() => libellePosteJoueur()), 'Ministre de la Defense');
+    assert.equal(await page.evaluate(() => libellePosteJoueur()), 'Ministre de la Défense');
     // Liste des PJ : rangé avec les républicains, poste attesté, pays nommé pour Sasha rangé ailleurs.
     assert.equal(await page.evaluate(() => libellePostePJ({ name: 'Sasha', poste: { id: 'min_def' } }, 'republic')), 'Ministre de la Défense de la Patrie (Sovarka)');
     assert.equal(await page.evaluate(() => libellePostePJ({ name: 'Ben', poste: { id: 'directeur_entrepot' } }, 'republic')), '', 'poste non attesté : rien');

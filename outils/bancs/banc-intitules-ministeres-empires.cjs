@@ -1,4 +1,5 @@
 // Vérifie que le pays d'un poste ne suit pas les voyages du personnage.
+// Intitulés accentués depuis le 23/11/2026 (Fred, GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md, point 3).
 // node --test outils/bancs/banc-intitules-ministeres-empires.cjs
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -11,12 +12,12 @@ const start = core.indexOf('function applyCharToState(char) {');
 const end = core.indexOf('function construireMapComptesBancaires', start);
 assert.ok(start >= 0 && end > start);
 const offices = {
-  min_int: ["Ministre de l'Interieur", 'Ministre de la Sécurité du Peuple'],
+  min_int: ["Ministre de l'Intérieur", 'Ministre de la Sécurité du Peuple'],
   min_fin: ['Ministre des Finances', "Ministre de l'Économie collective"],
   min_just: ['Ministre de la Justice', 'Ministre de la Justice prolétarienne'],
-  min_def: ['Ministre de la Defense', 'Ministre de la Défense de la Patrie'],
+  min_def: ['Ministre de la Défense', 'Ministre de la Défense de la Patrie'],
   min_info: ["Ministre de l'Information", 'Ministre de la Vérité officielle'],
-  min_ae: ['Ministre des Affaires Etrangeres', "Ministre de l'Amitié entre les Peuples"]
+  min_ae: ['Ministre des Affaires Étrangères', "Ministre de l'Amitié entre les Peuples"]
 };
 function jeu() {
   const nodes = new Map();
@@ -61,5 +62,5 @@ test('le pays explicitement associé au mandat prévaut sur la domiciliation',()
   j.state.domicile={country:'soviet'};
   j.applyCharToState({name:'PJ',country:'soviet',
     poste:{id:'min_def',country:'republic',name:'Ministre de la Défense de la Patrie'}});
-  assert.equal(j.state.poste.name,'Ministre de la Defense');
+  assert.equal(j.state.poste.name,'Ministre de la Défense');
 });

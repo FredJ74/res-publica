@@ -22,19 +22,22 @@ test('les en-têtes de plateau ont un fallback français sans modifier leurs com
 });
 
 test('les panneaux statiques portent des clés de localisation sans modifier les handlers',()=>{
- for(const key of ['money','cash','bank','cityMap','peoplePresent','combatReports','newMessage']) {
+ // 23/11/2026 (mission Novomirsk, points 16 à 21) : liquide et banque quittent le panneau (fenêtre « Mon argent »), le bouton
+ // « Rapports de combat » quitte le journal (le calepin s'ouvre par l'ordre calepin_campagne) ; onglets Inventaire et Statistiques
+ // supprimés de « Mon personnage » (l'inventaire s'ouvre en fenêtre depuis le panneau).
+ for(const key of ['money','cityMap','peoplePresent','newMessage']) {
   assert.ok(plateau.includes('data-i18n="plateau.'+key+'"'),'clé absente '+key);
  }
- assert.match(plateau,/onclick="ouvrirCalepinCampagne\(\)"/);
+ assert.doesNotMatch(plateau,/onclick="ouvrirCalepinCampagne\(\)"/);
  assert.match(plateau,/id="action-context-bat"/);
 });
 
 test('navigation principale, forum et courrier gardent leurs clés et événements',()=>{
- for(const key of ['personalActions','inventory','organizations','identity','statistics','help','forum','mailbox','financeManagement','characterSheet']) {
+ for(const key of ['personalActions','inventory','organizations','identity','help','forum','mailbox','financeManagement','characterSheet']) {
   assert.ok(plateau.includes('data-i18n="plateau.'+key+'"'),key);
  }
  assert.match(plateau,/onclick="switchSelfTab\('actions',this\)"/);
- assert.match(plateau,/onclick="switchSelfTab\('inventaire',this\)"/);
+ assert.doesNotMatch(plateau,/onclick="switchSelfTab\('inventaire',this\)"/);
  assert.match(plateau,/id="pnj-modal-title"/);
 });
 

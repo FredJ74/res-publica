@@ -3,6 +3,7 @@
 // à côté de « Se cacher » (retiré de la fiche personnelle) et de « Désinstaller du matériel » ; « Voler quelqu'un » en sort.
 // Regroupement (Fred, 22/11/2026, soir, GAME-DESIGN-INTERFACE-ACCUEIL-20261122.md, point 17) : « Inspecter la pièce » ouvre
 // une fenêtre à trois volets (installé / fouiller / désinstaller) ; le bouton « Désinstaller du matériel » disparaît.
+// 23/11/2026 (mission Novomirsk) : ouvrir la fenêtre coûte 0 PA, la fouille 1 PA, « Voler (2 PA) » affiche son coût.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -27,7 +28,9 @@ test('pièce : deux ordres verts en bas de liste — Inspecter la pièce (fenêt
   assert.equal(JSON.stringify(o.map(x => x.fn)), JSON.stringify(['inspecter_piece', 'se_cacher']));
   assert.equal(JSON.stringify(o.map(x => x.label)), JSON.stringify(['Inspecter la pièce', 'Se cacher']));
   assert.ok(o.every(x => x.type === 'legal' && x.basDeListe === true));
-  assert.equal(o[0].pa, 1, 'tarif d’ordres_couts inchangé (la fouille, seule action payante de la fenêtre)');
+  // Ouvrir la fenêtre ne coûte rien (Fred, 23/11/2026, GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md) ; la fouille garde 1 PA.
+  assert.equal(o[0].pa, 0, 'ouvrir « Inspecter la pièce » : 0 PA');
+  assert.match(lire('plateau-surveillance.js'), /const TARIF_FOUILLE = \{ fn: 'inspecter_piece', label: 'Fouiller les lieux', pa: 1, cost: 0 \};/);
   assert.equal(ctx.ordresFouillerVoler(null, null).length, 0);
   // Rue : « Inspecter les lieux », caméras seulement, au même endroit.
   assert.match(ctx.ordreFouillerVolerRueHtml(), /class="action-btn legal" data-fn="inspecter_piece" onclick="ouvrirFenetreInspecter\(\)"/);
@@ -73,7 +76,7 @@ test('fenêtre d’inspection : trois volets ; « Voler » en face du matériel 
   let [titre, h] = html.pop();
   assert.equal(titre, 'Inspecter la pièce');
   for (const v of ['Ce qui est installé ici', 'Fouiller les lieux', 'Désinstaller']) assert.ok(h.includes('>' + v + '</button>'), v);
-  assert.match(h, /Ordinateur de Tom <span class="cpj-note">\(à quelqu’un d’autre\)<\/span><\/span><button type="button" class="cpj-touche" data-voler="e1">Voler<\/button>/);
+  assert.match(h, /Ordinateur de Tom <span class="cpj-note">\(à quelqu’un d’autre\)<\/span><\/span><button type="button" class="cpj-touche" data-voler="e1">Voler \(2 PA\)<\/button>/, '« Voler (2 PA) » : coût affiché (23/11/2026)');
   assert.doesNotMatch(h, /data-voler="e2"/, 'pas de « Voler » pour son propre matériel');
   assert.doesNotMatch(h, /data-desinstaller/, 'pas de désinstallation dans le premier volet');
   ctx.inspectionOnglet('desinstaller');

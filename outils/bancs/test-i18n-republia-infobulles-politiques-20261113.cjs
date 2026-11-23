@@ -41,7 +41,8 @@ test('141 descriptions du catalogue Républia : françaises exactes et réelleme
  // 162 → 163 le 21/11 (lot de Krasnov, point 6) : « Organiser un boycott » n'est plus affiché en Sovarka.
  // 163 → 162 le 22/11 (refonte des informateurs) : les ordres d'informateurs recrutés de la loge et « Recruter un informateur » sont retirés.
  // 162 → 164 le 22/11 au soir (Santé, Suites, point 1) : « boissons et en-cas » (bar de l'hôtel, buvettes de stade) ne s'affiche qu'en Républia (« zakouski » en Sovarka).
- assert.equal(spec.length,164,'inventaire réel après séparation du goulag de Sovarka et du QHS républicain');
+ // 164 → 165 le 23/11 (mission Novomirsk, point 5) : « Taxi vers le QHS » masqué en Sovarka tant que le goulag est fermé, sa description ne s'affiche plus qu'en Républia.
+ assert.equal(spec.length,165,'inventaire réel après séparation du goulag de Sovarka et du QHS républicain');
  const rows=setup('republic','fr').RP_INFOBULLES_REPUBLIA;
  assert.equal(rows.length,141);
  // Lignes livrées dont l'ordre est supprimé (criminalité lot 7, 20/11 : le temps ne s'achète pas) : gardées au catalogue.
