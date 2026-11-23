@@ -97,7 +97,11 @@ test('fiche unique : chaque action des deux anciennes fiches est atteignable d�
 
 test('anciens noms : ouvrirDetailObjet et ouvrirDetailObjetInventaire ouvrent la même fiche ; routages calepin et armoire', async () => avecJeu(async (b, o) => {
   const p = await preparer(b, o, [{ name: 'Fiole', type: 'poison', desc: 'Un liquide trouble.' }]);
-  const rendu = async f => { await p.evaluate(f); await p.waitForSelector('#modal-postes.open .hg-fiche-objet'); return p.locator('#postes-body').innerHTML(); };
+  // Fenêtre vidée et fermée avant chaque ouverture : sinon l'attente peut lire la fiche précédente, encore ouverte.
+  const rendu = async f => { await p.evaluate(() => { document.getElementById('modal-postes').classList.remove('open'); document.getElementById('postes-body').innerHTML = ''; }); await p.evaluate(f); await p.waitForSelector('#modal-postes.open .hg-fiche-objet');
+    // Texte et actions, pas le HTML brut : le module « texte minimum » retouche les styles juste après l'ouverture.
+    return p.evaluate(() => JSON.stringify({ texte: document.getElementById('postes-body').textContent,
+      actions: [...document.querySelectorAll('#postes-body [onclick]')].map(e => e.getAttribute('onclick')) })); };
   const a = await rendu(() => ouvrirDetailObjet(0));
   const b2 = await rendu(() => ouvrirDetailObjetInventaire(0));
   const c = await rendu(() => ouvrirFicheObjet(0));
