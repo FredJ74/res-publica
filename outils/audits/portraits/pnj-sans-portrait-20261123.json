@@ -3,9 +3,9 @@
   "note": "Une ligne par apparition dans une pièce (un même PNJ peut figurer dans plusieurs pièces). PNJ du serveur (informateurs, agents, soldats) et PNJ ajoutés dynamiquement par les modules non compris.",
   "totaux": {
     "apparitions_pnj": 939,
-    "avec_portrait": 507,
-    "sans_portrait": 432,
-    "pnj_distincts_sans_portrait": 422,
+    "avec_portrait": 509,
+    "sans_portrait": 430,
+    "pnj_distincts_sans_portrait": 420,
     "par_ville": {
       "Al Khalija / Al Madina": 48,
       "Al Khalija / Al-Petrol": 33,
@@ -24,7 +24,7 @@
       "Républia / Quartier Haute Securite": 4,
       "Sovarka / Garnison du Peuple": 8,
       "Sovarka / Krasnov": 2,
-      "Sovarka / Novomirsk": 40,
+      "Sovarka / Novomirsk": 38,
       "Sovarka / Starovka": 4
     }
   },
@@ -1451,7 +1451,7 @@
         },
         "Caserne centrale de Novomirsk [caserne-militaire]": {
           "Salle des Faits d'Armes [salle_faits_armes]": [
-            "Archiviste Militaire (PNJ) — PNJ - Gardien de la memoire"
+            "Lieutenant Nestor Medalev (PNJ) — PNJ - Gardien de la memoire"
           ]
         },
         "Centre artisanal de Novomirsk [centre-artisanal]": {
@@ -1463,7 +1463,7 @@
         },
         "Centre d'affaires de Novomirsk [centre-affaires]": {
           "La Tribune de Republia — Antenne Locale [tribune_republia]": [
-            "Correspondant Local (PNJ) — PNJ - Journaliste"
+            "Efim Zametkov (PNJ) — PNJ - Journaliste"
           ]
         },
         "Commissariat du Peuple [commissariat]": {
@@ -1481,12 +1481,6 @@
             "Sergueï Zaptchastov (PNJ) — Garagiste"
           ]
         },
-        "Hall Principal [centre-multinodal-luthecia]": {
-          "Hall Principal [hall_gare]": [
-            "Agente Nadejda (PNJ) — Agente de contrôle",
-            "Camarade Horaire (PNJ) — Chef de gare"
-          ]
-        },
         "La Voix de Sovarka [la-tribune]": {
           "Accueil [accueil_tribune]": [
             "Vera Pravdina (PNJ) — Journaliste de La Voix de Sovarka"
@@ -1500,7 +1494,7 @@
             "Le Maire de Novomirsk (PNJ) — Maire de la Capitale"
           ],
           "Hall d'accueil [hall_mairie]": [
-            "Secrétaire municipal Arseni Krylov — PNJ - Secretariat general"
+            "Valentina Petchatkina — Secrétaire municipale"
           ]
         },
         "Palais des Ambassades [palais-ambassades-novomirsk]": {
@@ -1550,7 +1544,7 @@
             "Nadejda Lebedeva (PNJ) — PNJ - Secretaire general de la presidence"
           ],
           "Salle de Presse [salle_presse_elysee]": [
-            "Porte-parole presidentiel (PNJ) — PNJ - Porte-parole de la presidence"
+            "Rodion Glasnov (PNJ) — PNJ - Porte-parole de la presidence"
           ],
           "Salle de restaurant [salle_reception]": [
             "Anatoli Sokolov (PNJ) — PNJ - Chef du protocole presidentiel"
@@ -1558,7 +1552,7 @@
         },
         "Stade du Dynamo de Novomirsk [stade]": {
           "Buvette des tribunes [buvette]": [
-            "Tenancier de Buvette (PNJ) — PNJ - Buvette"
+            "Zinaïda Kvassova (PNJ) — Tenancière de la buvette"
           ],
           "Club des supporters du Dynamo [siege_supporters]": [
             "Meneur des Supporters (PNJ) — PNJ - Chef de Tribune"

@@ -21,9 +21,12 @@ test('le référentiel de la migration est exactement celui que produit data.js'
   // acceptée si un fragment de outils/migrations-finales/ la pose (SET id = '<nouvel id>' ... nom = '<nouveau nom>').
   const dossier = path.join(root, 'outils/migrations-finales');
   const fragments = fs.existsSync(dossier) ? fs.readdirSync(dossier).filter(f => f.endsWith('.sql')).map(f => fs.readFileSync(path.join(dossier, f), 'utf8')).join('\n') : '';
+  // … ou la migration finale des renommages (points 26, 37, 42 et 44, noms validés par Fred le 23/11/2026).
+  const finale = 'migrations/20261123230000_renommages_pnj_finale.sql';
+  const tousFragments = fragments + (fs.existsSync(path.join(root, finale)) ? '\n' + lire(finale) : '');
   for (const x of l) {
     const ligne = '(' + [x.id, x.pays, x.ville, x.batiment, x.piece, x.nom, x.role, x.profil, x.sujet].map(q).join(', ') + ')';
-    const enAttente = fragments.includes('SET id = ' + q(x.id)) && fragments.includes('nom = ' + q(x.nom)) && (x.piece === null || fragments.includes(q(x.piece)) || fragments.includes(':' + x.piece + ':'));
+    const enAttente = tousFragments.includes('SET id = ' + q(x.id)) && tousFragments.includes('nom = ' + q(x.nom)) && (x.piece === null || tousFragments.includes(q(x.piece)) || tousFragments.includes(':' + x.piece + ':'));
     assert.ok(sql.includes(ligne) || enAttente, x.id);
   }
   assert.equal((sql.match(/^\('/gm) || []).length, l.length, 'aucune ligne en trop');

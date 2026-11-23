@@ -10,7 +10,7 @@ test('Novomirsk : le maire est dans son bureau, plus de doublon dans le hall', (
   const ro = c.__W.soviet.capitale.buildingContext['mairie-capitale'].roomOverrides;
   const noms = piece => (ro[piece]?.persons || []).map(p => p.name);
   assert.ok(!noms('hall_mairie').some(n => /^Le Maire/.test(n)), 'hall : ' + JSON.stringify(noms('hall_mairie')));
-  assert.ok(noms('hall_mairie').includes('Secrétaire municipal Arseni Krylov'), 'le secrétariat reste au hall');
+  assert.ok(noms('hall_mairie').includes('Valentina Petchatkina'), 'le secrétariat reste au hall');
   assert.equal(JSON.stringify(noms('bureau_maire')), JSON.stringify(['Le Maire de Novomirsk (PNJ)']));
   // Gabarit et Républia intacts.
   assert.ok(c.__B['mairie-capitale'].rooms.hall_mairie.persons.some(p => p.name === 'Le Maire (PNJ)'));
