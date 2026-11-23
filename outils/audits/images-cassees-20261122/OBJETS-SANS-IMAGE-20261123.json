@@ -6088,5 +6088,2244 @@
       "migrations/20261118041000_starovka_train_syndicat_kolkhoze.sql",
       "migrations/20261120170000_crim_decisions_fred.sql"
     ]
-  }
+  },
+  "modeles_commerciaux_parametrables": [
+    {
+      "identifiant": "accessoire-automobile",
+      "nom_fr": "Accessoire automobile",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "pieces-accessoires",
+      "obtention": "Garage automobile",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Aucun antecedent.",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 39
+        }
+      ]
+    },
+    {
+      "identifiant": "accessoire-d-arme",
+      "nom_fr": "Accessoire d'arme",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "accessoires-armes",
+      "obtention": "Armurerie",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Aucun antecedent.",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 40
+        }
+      ]
+    },
+    {
+      "identifiant": "accessoire-de-mode",
+      "nom_fr": "Accessoire de mode",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "bijoux-accessoires",
+      "obtention": "Bien-être & mode",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Aucun antecedent.",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 41
+        }
+      ]
+    },
+    {
+      "identifiant": "accessoire-militaire",
+      "nom_fr": "Accessoire militaire",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "vetements-militaires",
+      "obtention": "Vêtements",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Aucun antecedent.",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 42
+        }
+      ]
+    },
+    {
+      "identifiant": "accessoire-pour-animal",
+      "nom_fr": "Accessoire pour animal",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "animaux",
+      "obtention": "Commerce non alimentaire",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Aucun antecedent.",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 43
+        }
+      ]
+    },
+    {
+      "identifiant": "accessoire-vestimentaire",
+      "nom_fr": "Accessoire vestimentaire",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "vetements-civils",
+      "obtention": "Vêtements",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": null,
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 44
+        }
+      ]
+    },
+    {
+      "identifiant": "affiche",
+      "nom_fr": "Affiche",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "edition-papeterie",
+      "obtention": "Arts & culture",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Aucun antecedent.",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 46
+        }
+      ]
+    },
+    {
+      "identifiant": "aliment-brut",
+      "nom_fr": "Aliment brut",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "produits-frais",
+      "obtention": "Commerce alimentaire",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Raccorde aux 5 matieres alimentaires uniquement pour que la fiche sache repondre. Ce n'est PAS un produit commercial : les ressources restent des intrants (GD3).",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 47
+        }
+      ]
+    },
+    {
+      "identifiant": "aliment-prepare",
+      "nom_fr": "Aliment préparé",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "produits-transformes",
+      "obtention": "Commerce alimentaire",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Aucun antecedent. Regle deja arbitree : minimum 2 matieres premieres, a porter par le gabarit (L6).",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 48
+        }
+      ]
+    },
+    {
+      "identifiant": "animal-de-compagnie",
+      "nom_fr": "Animal de compagnie",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "animaux",
+      "obtention": "Commerce non alimentaire",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Aucun antecedent.",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 49
+        }
+      ]
+    },
+    {
+      "identifiant": "appareil-de-communication",
+      "nom_fr": "Appareil de communication",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "communication",
+      "obtention": "Électronique & informatique",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "La capacite militaire est portee par la VARIANTE, jamais par le generique.",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 50
+        }
+      ]
+    },
+    {
+      "identifiant": "appareil-electronique",
+      "nom_fr": "Appareil électronique",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "electronique",
+      "obtention": "Électronique & informatique",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Aucun antecedent.",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 51
+        }
+      ]
+    },
+    {
+      "identifiant": "arme-blanche",
+      "nom_fr": "Arme blanche",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "armes",
+      "obtention": "Armurerie",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": null,
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 52
+        }
+      ]
+    },
+    {
+      "identifiant": "arme-de-poing",
+      "nom_fr": "Arme de poing",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "armes",
+      "obtention": "Armurerie",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": null,
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 53
+        }
+      ]
+    },
+    {
+      "identifiant": "arme-longue",
+      "nom_fr": "Arme longue",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "armes",
+      "obtention": "Armurerie",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": null,
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 54
+        }
+      ]
+    },
+    {
+      "identifiant": "article-de-supporter",
+      "nom_fr": "Article de supporter",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "souvenirs-collections",
+      "obtention": "Commerce non alimentaire, Sport & loisirs",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": null,
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 55
+        }
+      ]
+    },
+    {
+      "identifiant": "article-du-quotidien",
+      "nom_fr": "Article du quotidien",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "articles-quotidien",
+      "obtention": "Commerce non alimentaire",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Generique de repli : aucun effet, aucune capacite empruntee a un autre generique.",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 56
+        }
+      ]
+    },
+    {
+      "identifiant": "bas",
+      "nom_fr": "Bas",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "vetements-civils",
+      "obtention": "Vêtements",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Aucun antecedent.",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 57
+        }
+      ]
+    },
+    {
+      "identifiant": "bijou",
+      "nom_fr": "Bijou",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "bijoux-accessoires",
+      "obtention": "Bien-être & mode",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Aucun antecedent.",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 58
+        }
+      ]
+    },
+    {
+      "identifiant": "boisson",
+      "nom_fr": "Boisson",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "boissons",
+      "obtention": "Bar & restauration, Commerce alimentaire",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Au comptoir elle ne produit aucun objet ; en epicerie une bouteille en produirait un. Le generique est le meme : la difference releve du mode de commercialisation (L5).",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 59
+        }
+      ]
+    },
+    {
+      "identifiant": "camera-de-surveillance",
+      "nom_fr": "Caméra de surveillance",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "electronique",
+      "obtention": "Électronique & informatique",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Aucun antecedent.",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 60
+        }
+      ]
+    },
+    {
+      "identifiant": "carte-postale",
+      "nom_fr": "Carte postale",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "souvenirs-collections",
+      "obtention": "Commerce non alimentaire",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Individualisation necessaire a son contenu (etat vierge/ecrite, auteur, message, destinataire initial).",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 61
+        }
+      ]
+    },
+    {
+      "identifiant": "chaussures",
+      "nom_fr": "Chaussures",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "vetements-civils",
+      "obtention": "Vêtements",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Aucun antecedent.",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 62
+        }
+      ]
+    },
+    {
+      "identifiant": "console-de-jeu",
+      "nom_fr": "Console de jeu",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "jeux-electroniques",
+      "obtention": "Électronique & informatique",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Aucun antecedent.",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 64
+        }
+      ]
+    },
+    {
+      "identifiant": "costume-complet",
+      "nom_fr": "Costume complet",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "vetements-civils",
+      "obtention": "Vêtements",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Aucun antecedent.",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 65
+        }
+      ]
+    },
+    {
+      "identifiant": "decoration-murale",
+      "nom_fr": "Décoration murale",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "decoration",
+      "obtention": "Maison & décoration",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Aucun antecedent.",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 66
+        }
+      ]
+    },
+    {
+      "identifiant": "encas",
+      "nom_fr": "Encas",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "restauration",
+      "obtention": "Bar & restauration",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Consomme sur place aujourd'hui : c'est le mode de commercialisation actuel, pas une propriete du generique.",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 68
+        }
+      ]
+    },
+    {
+      "identifiant": "encas-a-emporter",
+      "nom_fr": "Encas à emporter",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "produits-transformes",
+      "obtention": "Bar & restauration, Commerce alimentaire",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "A la fois marchandise et consommable : c'est ce que la suppression de la « nature » exclusive permet de representer.",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 69
+        }
+      ]
+    },
+    {
+      "identifiant": "equipement-de-plein-air",
+      "nom_fr": "Équipement de plein air",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "plein-air",
+      "obtention": "Sport & loisirs",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": null,
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 70
+        }
+      ]
+    },
+    {
+      "identifiant": "equipement-de-protection-professionnelle",
+      "nom_fr": "Équipement de protection professionnelle",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "securite-travail",
+      "obtention": "Bricolage & outillage",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Aucun antecedent.",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 71
+        }
+      ]
+    },
+    {
+      "identifiant": "equipement-domestique",
+      "nom_fr": "Équipement domestique",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "equipement-domestique",
+      "obtention": "Maison & décoration",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Aucun antecedent.",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 72
+        }
+      ]
+    },
+    {
+      "identifiant": "equipement-professionnel",
+      "nom_fr": "Équipement professionnel",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "outillage",
+      "obtention": "Bricolage & outillage",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Aucun antecedent.",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 73
+        }
+      ]
+    },
+    {
+      "identifiant": "equipement-sportif",
+      "nom_fr": "Équipement sportif",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "sport",
+      "obtention": "Sport & loisirs",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Aucun antecedent.",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 74
+        }
+      ]
+    },
+    {
+      "identifiant": "explosif",
+      "nom_fr": "Explosif",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "accessoires-armes",
+      "obtention": "Armurerie",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": null,
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 75
+        }
+      ]
+    },
+    {
+      "identifiant": "fourniture-de-bricolage",
+      "nom_fr": "Fourniture de bricolage",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "materiaux-fournitures",
+      "obtention": "Bricolage & outillage",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Aucun antecedent.",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 76
+        }
+      ]
+    },
+    {
+      "identifiant": "haut",
+      "nom_fr": "Haut",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "vetements-civils",
+      "obtention": "Vêtements",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Le +1 ENT d'un tee-shirt historique reste une propriete de CET objet, jamais du generique.",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 77
+        }
+      ]
+    },
+    {
+      "identifiant": "imprime",
+      "nom_fr": "Imprimé",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "edition-papeterie",
+      "obtention": "Arts & culture",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": null,
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 81
+        }
+      ]
+    },
+    {
+      "identifiant": "instrument-de-musique",
+      "nom_fr": "Instrument de musique",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "musique-audiovisuel",
+      "obtention": "Arts & culture",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Aucun antecedent.",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 83
+        }
+      ]
+    },
+    {
+      "identifiant": "jeu",
+      "nom_fr": "Jeu",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "jeux-jouets",
+      "obtention": "Sport & loisirs",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Aucun antecedent.",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 84
+        }
+      ]
+    },
+    {
+      "identifiant": "jeu-video",
+      "nom_fr": "Jeu vidéo",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "jeux-electroniques",
+      "obtention": "Électronique & informatique",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Aucun antecedent.",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 85
+        }
+      ]
+    },
+    {
+      "identifiant": "jouet",
+      "nom_fr": "Jouet",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "jeux-jouets",
+      "obtention": "Sport & loisirs",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Aucun antecedent.",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 86
+        }
+      ]
+    },
+    {
+      "identifiant": "livre",
+      "nom_fr": "Livre",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "edition-papeterie",
+      "obtention": "Arts & culture",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Aucun antecedent : le « Livre publie » historique est une fonction sans appelant.",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 87
+        }
+      ]
+    },
+    {
+      "identifiant": "luminaire",
+      "nom_fr": "Luminaire",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "equipement-domestique",
+      "obtention": "Maison & décoration",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Aucun antecedent.",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 88
+        }
+      ]
+    },
+    {
+      "identifiant": "materiau-de-construction",
+      "nom_fr": "Matériau de construction",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "materiaux-fournitures",
+      "obtention": "Bricolage & outillage",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Aucun antecedent : bois/minerai/metal restent des intrants (GD3).",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 89
+        }
+      ]
+    },
+    {
+      "identifiant": "materiel-de-premiers-secours",
+      "nom_fr": "Matériel de premiers secours",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "soins-premiers-secours",
+      "obtention": "Pharmacie",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": null,
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 90
+        }
+      ]
+    },
+    {
+      "identifiant": "medicament",
+      "nom_fr": "Médicament",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "medicaments",
+      "obtention": "Pharmacie",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Aucun antecedent : la ressource historique `medicaments` est un intrant, pas ce generique (GD3).",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 91
+        }
+      ]
+    },
+    {
+      "identifiant": "menu-gastronomique",
+      "nom_fr": "Menu gastronomique",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "restauration",
+      "obtention": "Bar & restauration",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": null,
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 92
+        }
+      ]
+    },
+    {
+      "identifiant": "meuble-de-prestige",
+      "nom_fr": "Meuble de prestige",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "mobilier",
+      "obtention": "Maison & décoration",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Aucun antecedent.",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 93
+        }
+      ]
+    },
+    {
+      "identifiant": "meuble-de-rangement",
+      "nom_fr": "Meuble de rangement",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "mobilier",
+      "obtention": "Maison & décoration",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Seul generique de mobilier ayant un antecedent. Aucun bonus de mobilier n'est invente.",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 94
+        }
+      ]
+    },
+    {
+      "identifiant": "meuble-de-repos",
+      "nom_fr": "Meuble de repos",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "mobilier",
+      "obtention": "Maison & décoration",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Aucun antecedent. Les bonus de sommeil restent portes par les logements/baux.",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 95
+        }
+      ]
+    },
+    {
+      "identifiant": "objet-de-collection",
+      "nom_fr": "Objet de collection",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "souvenirs-collections",
+      "obtention": "Commerce non alimentaire",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Aucun antecedent. La famille « Collection » de Sport & loisirs est absorbee ici.",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 96
+        }
+      ]
+    },
+    {
+      "identifiant": "objet-decoratif",
+      "nom_fr": "Objet décoratif",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "decoration",
+      "obtention": "Maison & décoration",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Aucun antecedent.",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 97
+        }
+      ]
+    },
+    {
+      "identifiant": "oeuvre-d-art",
+      "nom_fr": "Œuvre d'art",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "arts",
+      "obtention": "Arts & culture",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Aucun antecedent : la table oeuvres est vide et ses RPC sont sans appelant.",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 98
+        }
+      ]
+    },
+    {
+      "identifiant": "ordinateur-complet",
+      "nom_fr": "Ordinateur complet",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "informatique",
+      "obtention": "Électronique & informatique",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Aucun antecedent.",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 99
+        }
+      ]
+    },
+    {
+      "identifiant": "outil-a-main",
+      "nom_fr": "Outil à main",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "outillage",
+      "obtention": "Bricolage & outillage",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Aucun antecedent.",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 100
+        }
+      ]
+    },
+    {
+      "identifiant": "outil-electrique",
+      "nom_fr": "Outil électrique",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "outillage",
+      "obtention": "Bricolage & outillage",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Aucun antecedent.",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 101
+        }
+      ]
+    },
+    {
+      "identifiant": "peripherique-informatique",
+      "nom_fr": "Périphérique informatique",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "informatique",
+      "obtention": "Électronique & informatique",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Aucun antecedent.",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 102
+        }
+      ]
+    },
+    {
+      "identifiant": "piece-automobile",
+      "nom_fr": "Pièce automobile",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "pieces-accessoires",
+      "obtention": "Garage automobile",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Aucun antecedent.",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 103
+        }
+      ]
+    },
+    {
+      "identifiant": "plat-elabore",
+      "nom_fr": "Plat élaboré",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "restauration",
+      "obtention": "Bar & restauration",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": null,
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 105
+        }
+      ]
+    },
+    {
+      "identifiant": "plat-simple",
+      "nom_fr": "Plat simple",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "restauration",
+      "obtention": "Bar & restauration",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": null,
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 106
+        }
+      ]
+    },
+    {
+      "identifiant": "produit-cosmetique",
+      "nom_fr": "Produit cosmétique",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "coiffure-esthetique",
+      "obtention": "Bien-être & mode",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Aucun antecedent.",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 107
+        }
+      ]
+    },
+    {
+      "identifiant": "produit-d-entretien-automobile",
+      "nom_fr": "Produit d'entretien automobile",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "entretien",
+      "obtention": "Garage automobile",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Aucun antecedent.",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 108
+        }
+      ]
+    },
+    {
+      "identifiant": "produit-de-sante",
+      "nom_fr": "Produit de santé",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "produits-sante",
+      "obtention": "Pharmacie",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Aucun antecedent : la ressource historique `desinfectant` est un intrant.",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 109
+        }
+      ]
+    },
+    {
+      "identifiant": "protection-corporelle",
+      "nom_fr": "Protection corporelle",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "protection",
+      "obtention": "Armurerie, Sport & loisirs",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": null,
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 110
+        }
+      ]
+    },
+    {
+      "identifiant": "souvenir",
+      "nom_fr": "Souvenir",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "souvenirs-collections",
+      "obtention": "Commerce non alimentaire",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": null,
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 114
+        }
+      ]
+    },
+    {
+      "identifiant": "support-culturel",
+      "nom_fr": "Support culturel",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "musique-audiovisuel",
+      "obtention": "Arts & culture",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Aucun antecedent.",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 116
+        }
+      ]
+    },
+    {
+      "identifiant": "tente",
+      "nom_fr": "Tente",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "plein-air",
+      "obtention": "Sport & loisirs",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Agit depuis l'inventaire du porteur : elle n'est installee nulle part aujourd'hui.",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 118
+        }
+      ]
+    },
+    {
+      "identifiant": "tenue-militaire",
+      "nom_fr": "Tenue militaire",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "vetements-militaires",
+      "obtention": "Vêtements",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": null,
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 119
+        }
+      ]
+    },
+    {
+      "identifiant": "vegetal",
+      "nom_fr": "Végétal",
+      "pays": [
+        "commun_non_restreint"
+      ],
+      "categorie": "fleurs-vegetaux",
+      "obtention": "Commerce non alimentaire",
+      "image_declaree": null,
+      "affichage_actuel": "Icône Tabler garantie par le noyau de plateau-objets.js ; image éventuelle d’une référence ou d’un exemplaire non vérifiée par l’export du 22/11",
+      "statut": "modèle générique sans illustration propre ; ne pas déduire que chaque exemplaire est sans image",
+      "jouabilite": "déclaration de catalogue ; achat/fabrication non certifiés pour chaque commerce",
+      "note_source": "Aucun antecedent.",
+      "sources": [
+        {
+          "fichier": "baseline/seeds/92_mixte/catalogue_generiques.sql",
+          "ligne": 120
+        }
+      ]
+    }
+  ],
+  "services_catalogue_exclus": [
+    {
+      "identifiant": "activite-sportive",
+      "nom_fr": "Activité sportive",
+      "raison": "service, pas un objet à illustrer dans l’inventaire",
+      "source": "baseline/seeds/92_mixte/catalogue_generiques.sql:45"
+    },
+    {
+      "identifiant": "coiffure",
+      "nom_fr": "Coiffure",
+      "raison": "service, pas un objet à illustrer dans l’inventaire",
+      "source": "baseline/seeds/92_mixte/catalogue_generiques.sql:63"
+    },
+    {
+      "identifiant": "deux-roues",
+      "nom_fr": "Deux-roues",
+      "raison": "véhicule localisé, hors inventaire",
+      "source": "baseline/seeds/92_mixte/catalogue_generiques.sql:67"
+    },
+    {
+      "identifiant": "hebergement-prestige",
+      "nom_fr": "Hébergement prestige",
+      "raison": "service, pas un objet à illustrer dans l’inventaire",
+      "source": "baseline/seeds/92_mixte/catalogue_generiques.sql:78"
+    },
+    {
+      "identifiant": "hebergement-standard",
+      "nom_fr": "Hébergement standard",
+      "raison": "service, pas un objet à illustrer dans l’inventaire",
+      "source": "baseline/seeds/92_mixte/catalogue_generiques.sql:79"
+    },
+    {
+      "identifiant": "hebergement-superieur",
+      "nom_fr": "Hébergement supérieur",
+      "raison": "service, pas un objet à illustrer dans l’inventaire",
+      "source": "baseline/seeds/92_mixte/catalogue_generiques.sql:80"
+    },
+    {
+      "identifiant": "installation-de-piece",
+      "nom_fr": "Installation de pièce/accessoire",
+      "raison": "service, pas un objet à illustrer dans l’inventaire",
+      "source": "baseline/seeds/92_mixte/catalogue_generiques.sql:82"
+    },
+    {
+      "identifiant": "piercing",
+      "nom_fr": "Piercing",
+      "raison": "service, pas un objet à illustrer dans l’inventaire",
+      "source": "baseline/seeds/92_mixte/catalogue_generiques.sql:104"
+    },
+    {
+      "identifiant": "reparation",
+      "nom_fr": "Réparation",
+      "raison": "service, pas un objet à illustrer dans l’inventaire",
+      "source": "baseline/seeds/92_mixte/catalogue_generiques.sql:111"
+    },
+    {
+      "identifiant": "soin-esthetique",
+      "nom_fr": "Soin esthétique",
+      "raison": "service, pas un objet à illustrer dans l’inventaire",
+      "source": "baseline/seeds/92_mixte/catalogue_generiques.sql:112"
+    },
+    {
+      "identifiant": "soin-pharmaceutique",
+      "nom_fr": "Soin pharmaceutique",
+      "raison": "service, pas un objet à illustrer dans l’inventaire",
+      "source": "baseline/seeds/92_mixte/catalogue_generiques.sql:113"
+    },
+    {
+      "identifiant": "spectacle",
+      "nom_fr": "Spectacle",
+      "raison": "service, pas un objet à illustrer dans l’inventaire",
+      "source": "baseline/seeds/92_mixte/catalogue_generiques.sql:115"
+    },
+    {
+      "identifiant": "tatouage",
+      "nom_fr": "Tatouage",
+      "raison": "service, pas un objet à illustrer dans l’inventaire",
+      "source": "baseline/seeds/92_mixte/catalogue_generiques.sql:117"
+    },
+    {
+      "identifiant": "vehicule-utilitaire",
+      "nom_fr": "Véhicule utilitaire",
+      "raison": "véhicule localisé, hors inventaire",
+      "source": "baseline/seeds/92_mixte/catalogue_generiques.sql:121"
+    },
+    {
+      "identifiant": "voiture",
+      "nom_fr": "Voiture",
+      "raison": "véhicule localisé, hors inventaire",
+      "source": "baseline/seeds/92_mixte/catalogue_generiques.sql:122"
+    }
+  ],
+  "variantes_commerciales": [
+    {
+      "id": "appareil-de-communication--militaire",
+      "generique_id": "appareil-de-communication",
+      "cle": "militaire",
+      "libelle": "Radio de campagne",
+      "regime": "reglemente",
+      "surcharges": null,
+      "capacites": [
+        "transmettre_ordre_collectif_a_distance"
+      ],
+      "note": "Exigee des DEUX cotes de la chaine de commandement (militaire_ordre_collectif, refus radio_manquante).",
+      "_source": "baseline/seeds/92_mixte/catalogue_variantes.sql",
+      "_ligne": 41
+    },
+    {
+      "id": "encas-a-emporter--militaire",
+      "generique_id": "encas-a-emporter",
+      "cle": "militaire",
+      "libelle": "Ration de combat",
+      "regime": "reglemente",
+      "surcharges": null,
+      "capacites": [
+        "nourrir_soldat_pnj"
+      ],
+      "note": "Consommable par le PJ ou distribuable a des soldats PNJ menes.",
+      "_source": "baseline/seeds/92_mixte/catalogue_variantes.sql",
+      "_ligne": 42
+    },
+    {
+      "id": "equipement-de-plein-air--militaire",
+      "generique_id": "equipement-de-plein-air",
+      "cle": "militaire",
+      "libelle": "Jumelles",
+      "regime": "reglemente",
+      "surcharges": null,
+      "capacites": [
+        "observer_secteur"
+      ],
+      "note": "Ordre « Observer » a 1 PA via militaire_observer. Le chemin passif d'entree de zone est actuellement casse (anomalie documentee, non corrigee ici).",
+      "_source": "baseline/seeds/92_mixte/catalogue_variantes.sql",
+      "_ligne": 43
+    },
+    {
+      "id": "materiel-de-premiers-secours--militaire",
+      "generique_id": "materiel-de-premiers-secours",
+      "cle": "militaire",
+      "libelle": "Trousse de premiers secours",
+      "regime": "reglemente",
+      "surcharges": null,
+      "capacites": [
+        "soigner_co_present"
+      ],
+      "note": "Usage unique. Co-presence stricte exigee si la cible n'est pas soi.",
+      "_source": "baseline/seeds/92_mixte/catalogue_variantes.sql",
+      "_ligne": 44
+    },
+    {
+      "id": "protection-corporelle--militaire",
+      "generique_id": "protection-corporelle",
+      "cle": "militaire",
+      "libelle": "Gilet pare-balles réglementaire",
+      "regime": "reglemente",
+      "surcharges": null,
+      "capacites": [
+        "absorber_tir_en_bataille"
+      ],
+      "note": "Une seule chance, definitive : un gilet fragilise reste inerte, aucun code ne le repare.",
+      "_source": "baseline/seeds/92_mixte/catalogue_variantes.sql",
+      "_ligne": 45
+    },
+    {
+      "id": "tente--militaire",
+      "generique_id": "tente",
+      "cle": "militaire",
+      "libelle": "Tente de campagne",
+      "regime": "reglemente",
+      "surcharges": null,
+      "capacites": [
+        "abriter_bivouac",
+        "reposer_section"
+      ],
+      "note": "Abrite 13 personnes, leader compris. Non consommee, aucune usure.",
+      "_source": "baseline/seeds/92_mixte/catalogue_variantes.sql",
+      "_ligne": 46
+    }
+  ],
+  "comptages_modeles_commerciaux": {
+    "generiques_declares": 84,
+    "modeles_physiques_a_verifier": 69,
+    "services_ou_vehicules_exclus": 15,
+    "par_pays": {
+      "commun_non_restreint": 69
+    },
+    "par_categorie": {
+      "pieces-accessoires": 2,
+      "accessoires-armes": 2,
+      "bijoux-accessoires": 2,
+      "vetements-militaires": 2,
+      "animaux": 2,
+      "vetements-civils": 5,
+      "edition-papeterie": 3,
+      "produits-frais": 1,
+      "produits-transformes": 2,
+      "communication": 1,
+      "electronique": 2,
+      "armes": 3,
+      "souvenirs-collections": 4,
+      "articles-quotidien": 1,
+      "boissons": 1,
+      "jeux-electroniques": 2,
+      "decoration": 2,
+      "restauration": 4,
+      "plein-air": 2,
+      "securite-travail": 1,
+      "equipement-domestique": 2,
+      "outillage": 3,
+      "sport": 1,
+      "materiaux-fournitures": 2,
+      "musique-audiovisuel": 2,
+      "jeux-jouets": 2,
+      "soins-premiers-secours": 1,
+      "medicaments": 1,
+      "mobilier": 3,
+      "arts": 1,
+      "informatique": 2,
+      "coiffure-esthetique": 1,
+      "entretien": 1,
+      "produits-sante": 1,
+      "protection": 1,
+      "fleurs-vegetaux": 1
+    },
+    "variantes_de_forme": 6,
+    "addition_aux_172": "Ne pas additionner aux déclarations concrètes : un générique peut être réalisé par plusieurs recettes déjà comptées et une référence peut fournir sa propre image."
+  },
+  "rattachements_types_commerces": [
+    {
+      "generique_id": "accessoire-automobile",
+      "type_id": "garage-automobile",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 39
+    },
+    {
+      "generique_id": "accessoire-d-arme",
+      "type_id": "armurerie",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 40
+    },
+    {
+      "generique_id": "accessoire-de-mode",
+      "type_id": "bien-etre-mode",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 41
+    },
+    {
+      "generique_id": "accessoire-militaire",
+      "type_id": "vetements",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 42
+    },
+    {
+      "generique_id": "accessoire-pour-animal",
+      "type_id": "commerce-non-alimentaire",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 43
+    },
+    {
+      "generique_id": "accessoire-vestimentaire",
+      "type_id": "vetements",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 44
+    },
+    {
+      "generique_id": "activite-sportive",
+      "type_id": "sport-loisirs",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 45
+    },
+    {
+      "generique_id": "affiche",
+      "type_id": "arts-culture",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 46
+    },
+    {
+      "generique_id": "aliment-brut",
+      "type_id": "commerce-alimentaire",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 47
+    },
+    {
+      "generique_id": "aliment-prepare",
+      "type_id": "commerce-alimentaire",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 48
+    },
+    {
+      "generique_id": "animal-de-compagnie",
+      "type_id": "commerce-non-alimentaire",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 49
+    },
+    {
+      "generique_id": "appareil-de-communication",
+      "type_id": "electronique-informatique",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 50
+    },
+    {
+      "generique_id": "appareil-electronique",
+      "type_id": "electronique-informatique",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 51
+    },
+    {
+      "generique_id": "arme-blanche",
+      "type_id": "armurerie",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 52
+    },
+    {
+      "generique_id": "arme-de-poing",
+      "type_id": "armurerie",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 53
+    },
+    {
+      "generique_id": "arme-longue",
+      "type_id": "armurerie",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 54
+    },
+    {
+      "generique_id": "article-de-supporter",
+      "type_id": "commerce-non-alimentaire",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 55
+    },
+    {
+      "generique_id": "article-de-supporter",
+      "type_id": "sport-loisirs",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 56
+    },
+    {
+      "generique_id": "article-du-quotidien",
+      "type_id": "commerce-non-alimentaire",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 57
+    },
+    {
+      "generique_id": "bas",
+      "type_id": "vetements",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 58
+    },
+    {
+      "generique_id": "bijou",
+      "type_id": "bien-etre-mode",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 59
+    },
+    {
+      "generique_id": "boisson",
+      "type_id": "bar-restauration",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 60
+    },
+    {
+      "generique_id": "boisson",
+      "type_id": "commerce-alimentaire",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 61
+    },
+    {
+      "generique_id": "camera-de-surveillance",
+      "type_id": "electronique-informatique",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 62
+    },
+    {
+      "generique_id": "carte-postale",
+      "type_id": "commerce-non-alimentaire",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 63
+    },
+    {
+      "generique_id": "chaussures",
+      "type_id": "vetements",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 64
+    },
+    {
+      "generique_id": "coiffure",
+      "type_id": "bien-etre-mode",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 65
+    },
+    {
+      "generique_id": "console-de-jeu",
+      "type_id": "electronique-informatique",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 66
+    },
+    {
+      "generique_id": "costume-complet",
+      "type_id": "vetements",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 67
+    },
+    {
+      "generique_id": "decoration-murale",
+      "type_id": "maison-decoration",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 68
+    },
+    {
+      "generique_id": "deux-roues",
+      "type_id": "garage-automobile",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 69
+    },
+    {
+      "generique_id": "encas",
+      "type_id": "bar-restauration",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 70
+    },
+    {
+      "generique_id": "encas-a-emporter",
+      "type_id": "bar-restauration",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 71
+    },
+    {
+      "generique_id": "encas-a-emporter",
+      "type_id": "commerce-alimentaire",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 72
+    },
+    {
+      "generique_id": "equipement-de-plein-air",
+      "type_id": "sport-loisirs",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 73
+    },
+    {
+      "generique_id": "equipement-de-protection-professionnelle",
+      "type_id": "bricolage-outillage",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 74
+    },
+    {
+      "generique_id": "equipement-domestique",
+      "type_id": "maison-decoration",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 75
+    },
+    {
+      "generique_id": "equipement-professionnel",
+      "type_id": "bricolage-outillage",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 76
+    },
+    {
+      "generique_id": "equipement-sportif",
+      "type_id": "sport-loisirs",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 77
+    },
+    {
+      "generique_id": "explosif",
+      "type_id": "armurerie",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 78
+    },
+    {
+      "generique_id": "fourniture-de-bricolage",
+      "type_id": "bricolage-outillage",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 79
+    },
+    {
+      "generique_id": "haut",
+      "type_id": "vetements",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 80
+    },
+    {
+      "generique_id": "hebergement-prestige",
+      "type_id": "hotellerie-hebergement",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 81
+    },
+    {
+      "generique_id": "hebergement-standard",
+      "type_id": "hotellerie-hebergement",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 82
+    },
+    {
+      "generique_id": "hebergement-superieur",
+      "type_id": "hotellerie-hebergement",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 83
+    },
+    {
+      "generique_id": "imprime",
+      "type_id": "arts-culture",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 84
+    },
+    {
+      "generique_id": "installation-de-piece",
+      "type_id": "garage-automobile",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 85
+    },
+    {
+      "generique_id": "instrument-de-musique",
+      "type_id": "arts-culture",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 86
+    },
+    {
+      "generique_id": "jeu",
+      "type_id": "sport-loisirs",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 87
+    },
+    {
+      "generique_id": "jeu-video",
+      "type_id": "electronique-informatique",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 88
+    },
+    {
+      "generique_id": "jouet",
+      "type_id": "sport-loisirs",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 89
+    },
+    {
+      "generique_id": "livre",
+      "type_id": "arts-culture",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 90
+    },
+    {
+      "generique_id": "luminaire",
+      "type_id": "maison-decoration",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 91
+    },
+    {
+      "generique_id": "materiau-de-construction",
+      "type_id": "bricolage-outillage",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 92
+    },
+    {
+      "generique_id": "materiel-de-premiers-secours",
+      "type_id": "pharmacie",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 93
+    },
+    {
+      "generique_id": "medicament",
+      "type_id": "pharmacie",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 94
+    },
+    {
+      "generique_id": "menu-gastronomique",
+      "type_id": "bar-restauration",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 95
+    },
+    {
+      "generique_id": "meuble-de-prestige",
+      "type_id": "maison-decoration",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 96
+    },
+    {
+      "generique_id": "meuble-de-rangement",
+      "type_id": "maison-decoration",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 97
+    },
+    {
+      "generique_id": "meuble-de-repos",
+      "type_id": "maison-decoration",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 98
+    },
+    {
+      "generique_id": "objet-de-collection",
+      "type_id": "commerce-non-alimentaire",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 99
+    },
+    {
+      "generique_id": "objet-decoratif",
+      "type_id": "maison-decoration",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 100
+    },
+    {
+      "generique_id": "oeuvre-d-art",
+      "type_id": "arts-culture",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 101
+    },
+    {
+      "generique_id": "ordinateur-complet",
+      "type_id": "electronique-informatique",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 102
+    },
+    {
+      "generique_id": "outil-a-main",
+      "type_id": "bricolage-outillage",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 103
+    },
+    {
+      "generique_id": "outil-electrique",
+      "type_id": "bricolage-outillage",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 104
+    },
+    {
+      "generique_id": "peripherique-informatique",
+      "type_id": "electronique-informatique",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 105
+    },
+    {
+      "generique_id": "piece-automobile",
+      "type_id": "garage-automobile",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 106
+    },
+    {
+      "generique_id": "piercing",
+      "type_id": "bien-etre-mode",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 107
+    },
+    {
+      "generique_id": "plat-elabore",
+      "type_id": "bar-restauration",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 108
+    },
+    {
+      "generique_id": "plat-simple",
+      "type_id": "bar-restauration",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 109
+    },
+    {
+      "generique_id": "produit-cosmetique",
+      "type_id": "bien-etre-mode",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 110
+    },
+    {
+      "generique_id": "produit-d-entretien-automobile",
+      "type_id": "garage-automobile",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 111
+    },
+    {
+      "generique_id": "produit-de-sante",
+      "type_id": "pharmacie",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 112
+    },
+    {
+      "generique_id": "protection-corporelle",
+      "type_id": "armurerie",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 113
+    },
+    {
+      "generique_id": "protection-corporelle",
+      "type_id": "sport-loisirs",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 114
+    },
+    {
+      "generique_id": "reparation",
+      "type_id": "garage-automobile",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 115
+    },
+    {
+      "generique_id": "soin-esthetique",
+      "type_id": "bien-etre-mode",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 116
+    },
+    {
+      "generique_id": "soin-pharmaceutique",
+      "type_id": "pharmacie",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 117
+    },
+    {
+      "generique_id": "souvenir",
+      "type_id": "commerce-non-alimentaire",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 118
+    },
+    {
+      "generique_id": "spectacle",
+      "type_id": "arts-culture",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 119
+    },
+    {
+      "generique_id": "support-culturel",
+      "type_id": "arts-culture",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 120
+    },
+    {
+      "generique_id": "tatouage",
+      "type_id": "bien-etre-mode",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 121
+    },
+    {
+      "generique_id": "tente",
+      "type_id": "sport-loisirs",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 122
+    },
+    {
+      "generique_id": "tenue-militaire",
+      "type_id": "vetements",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 123
+    },
+    {
+      "generique_id": "vegetal",
+      "type_id": "commerce-non-alimentaire",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 124
+    },
+    {
+      "generique_id": "vehicule-utilitaire",
+      "type_id": "garage-automobile",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 125
+    },
+    {
+      "generique_id": "voiture",
+      "type_id": "garage-automobile",
+      "_source": "baseline/seeds/92_mixte/catalogue_generique_type.sql",
+      "_ligne": 126
+    }
+  ],
+  "types_commerce": [
+    {
+      "id": "armurerie",
+      "libelle": "Armurerie",
+      "ordre": 1,
+      "_source": "baseline/seeds/92_mixte/catalogue_types.sql",
+      "_ligne": 45
+    },
+    {
+      "id": "arts-culture",
+      "libelle": "Arts & culture",
+      "ordre": 2,
+      "_source": "baseline/seeds/92_mixte/catalogue_types.sql",
+      "_ligne": 46
+    },
+    {
+      "id": "bar-restauration",
+      "libelle": "Bar & restauration",
+      "ordre": 3,
+      "_source": "baseline/seeds/92_mixte/catalogue_types.sql",
+      "_ligne": 47
+    },
+    {
+      "id": "bien-etre-mode",
+      "libelle": "Bien-être & mode",
+      "ordre": 4,
+      "_source": "baseline/seeds/92_mixte/catalogue_types.sql",
+      "_ligne": 48
+    },
+    {
+      "id": "bricolage-outillage",
+      "libelle": "Bricolage & outillage",
+      "ordre": 5,
+      "_source": "baseline/seeds/92_mixte/catalogue_types.sql",
+      "_ligne": 49
+    },
+    {
+      "id": "commerce-alimentaire",
+      "libelle": "Commerce alimentaire",
+      "ordre": 6,
+      "_source": "baseline/seeds/92_mixte/catalogue_types.sql",
+      "_ligne": 50
+    },
+    {
+      "id": "commerce-non-alimentaire",
+      "libelle": "Commerce non alimentaire",
+      "ordre": 7,
+      "_source": "baseline/seeds/92_mixte/catalogue_types.sql",
+      "_ligne": 51
+    },
+    {
+      "id": "electronique-informatique",
+      "libelle": "Électronique & informatique",
+      "ordre": 8,
+      "_source": "baseline/seeds/92_mixte/catalogue_types.sql",
+      "_ligne": 52
+    },
+    {
+      "id": "garage-automobile",
+      "libelle": "Garage automobile",
+      "ordre": 9,
+      "_source": "baseline/seeds/92_mixte/catalogue_types.sql",
+      "_ligne": 53
+    },
+    {
+      "id": "hotellerie-hebergement",
+      "libelle": "Hôtellerie & hébergement",
+      "ordre": 10,
+      "_source": "baseline/seeds/92_mixte/catalogue_types.sql",
+      "_ligne": 54
+    },
+    {
+      "id": "maison-decoration",
+      "libelle": "Maison & décoration",
+      "ordre": 11,
+      "_source": "baseline/seeds/92_mixte/catalogue_types.sql",
+      "_ligne": 55
+    },
+    {
+      "id": "pharmacie",
+      "libelle": "Pharmacie",
+      "ordre": 12,
+      "_source": "baseline/seeds/92_mixte/catalogue_types.sql",
+      "_ligne": 56
+    },
+    {
+      "id": "sport-loisirs",
+      "libelle": "Sport & loisirs",
+      "ordre": 13,
+      "_source": "baseline/seeds/92_mixte/catalogue_types.sql",
+      "_ligne": 57
+    },
+    {
+      "id": "vetements",
+      "libelle": "Vêtements",
+      "ordre": 14,
+      "_source": "baseline/seeds/92_mixte/catalogue_types.sql",
+      "_ligne": 58
+    }
+  ]
 }
