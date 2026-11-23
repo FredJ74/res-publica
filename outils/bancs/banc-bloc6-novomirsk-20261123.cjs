@@ -90,7 +90,7 @@ test('église de Novomirsk : portraits du Pontife et de Frère Kolkhoze (512 × 
   }
 });
 
-// ── Renommages liés à la base (dernier commit du bloc 6 ; SQL : outils/migrations-finales/renommages-bloc6-20261123.sql) ──
+// ── Renommages liés à la base (dernier commit du bloc 6 ; SQL : migrations/20261123230000_renommages_pnj_finale.sql, appliquée le 23/11/2026) ──
 test('gare : Vassili Sukhoï au hall principal, Lioudmila Proverkina aux douanes avec Prokhor Rybakov, portraits raccordés', () => {
   const G = 'centre-multinodal-luthecia', D = 'images/Sovarka/Novomirsk/';
   const hall = piece(G, 'hall_gare'), douanes = piece(G, 'hall_douanes');
@@ -125,8 +125,8 @@ test('référentiel des informateurs : les deux PNJ renommés sont posés par le
   const ids = lignes().map(x => x.id).filter(id => id.startsWith('soviet:capitale:centre-multinodal-luthecia:'));
   assert.deepEqual(ids, ['soviet:capitale:centre-multinodal-luthecia:hall_douanes:Lioudmila Proverkina',
                          'soviet:capitale:centre-multinodal-luthecia:hall_gare:Vassili Sukhoï']);
-  const sql = lire('outils/migrations-finales/renommages-bloc6-20261123.sql');
-  assert.match(sql, /^-- NON APPLIQUÉE/);
+  const sql = lire('migrations/20261123230000_renommages_pnj_finale.sql');
+  assert.match(sql, /^-- (NON )?APPLIQUÉE/m);
   for (const id of ids) assert.ok(sql.includes("SET id = '" + id + "'"), id);
   assert.match(sql, /WHERE id = 'soviet:capitale:centre-multinodal-luthecia:hall_gare:Camarade Horaire'/);
   assert.match(sql, /WHERE id = 'soviet:capitale:centre-multinodal-luthecia:hall_gare:Agente Nadejda'/);

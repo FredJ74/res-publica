@@ -2276,7 +2276,7 @@ const WORLD = {
           // Bloc 6 (Fred, 23/11/2026, point 37) : « Camarade Horaire » devient Vassili Sukhoï (graphie VOULUE, clin d'œil à
           // l'avion : ne jamais écrire « Soukhoï »), chef de gare au hall principal ; « Agente Nadejda » devient Lioudmila
           // Proverkina, agente de contrôle, déplacée au hall des douanes (le doublon « Nadejda Contrôle », jamais affiché,
-          // est fondu en elle). Noms liés à informateurs_pnj : outils/migrations-finales/renommages-bloc6-20261123.sql.
+          // est fondu en elle). Noms liés à informateurs_pnj : migrations/20261123230000_renommages_pnj_finale.sql.
           desc: "Trans-Urals Express, taxis verts collectifs, bus du Parti. Sous la grande horloge, le chef de gare Vassili Sukhoï consulte sa montre à gousset : les trains arrivent à l'heure, c'est obligatoire.",
           persons: [{"name": "Vassili Sukhoï (PNJ)", "role": "Chef de gare", "rel": "neutral", "job": "chef_gare"}],
           // La caserne de Sovarka est en ville (vues 11 et 12) : pas de taxi vers une caserne hors ville.
