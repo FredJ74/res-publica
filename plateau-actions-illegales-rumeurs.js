@@ -3459,9 +3459,18 @@ const PRODUITS_MARCHE = {
   carte_krasnov_place_ours: {
     id: 'carte_krasnov_place_ours', label: 'Carte postale — Krasnov, la place de l\'Ours', familleProduitMarche: 'carte_postale',
     desc: 'La statue de l\'Ours, ses bancs et la mairie, sous la pluie d\'automne. À écrire et à envoyer.',
-    categorie: 'objet', image: 'images/Sovarka/Krasnov/Krasnov_place_ours.webp', icon: 'ti-mail',
+    // Image de la carte « Краснов, столица медведя » (Fred, 23/11/2026, GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md, point 35).
+    categorie: 'objet', image: 'images/Sovarka/Krasnov/krasnov-carte-postale-capitale-ours.webp', icon: 'ti-mail',
     materiaux: { bois: 1 }, pa: 1, portions: 16,
     typesAutorises: ['tabac-presse'], paysAutorises: ['soviet'], villesAutorisees: ['ville_b'], buildingsAutorises: ['tabac-presse-krasnov']
+  },
+  // Carte postale de Starovka (triptyque « Привет из Старовки! »), vendue au magasin du kolkhoze (Fred, 23/11/2026, point 35).
+  carte_starovka_hiver: {
+    id: 'carte_starovka_hiver', label: 'Carte postale — Salut de Starovka', familleProduitMarche: 'carte_postale',
+    desc: 'Un éleveur en parka de fourrure, un match de football sur la glace devant les rennes, et les derricks sous l\'aurore boréale. À écrire et à envoyer.',
+    categorie: 'objet', image: 'images/Sovarka/Starovka/starovka-carte-postale-hivernale.webp', icon: 'ti-mail',
+    materiaux: { bois: 1 }, pa: 1, portions: 16,
+    typesAutorises: ['tabac-presse'], paysAutorises: ['soviet'], villesAutorisees: ['ville_a'], buildingsAutorises: ['magasin-kolkhoze-starovka']
   },
   revue_chasse_peche_tracteurs: {
     id: 'revue_chasse_peche_tracteurs', label: 'Revue « Chasse, Pêche & Tracteurs »', familleProduitMarche: 'integration_locale',

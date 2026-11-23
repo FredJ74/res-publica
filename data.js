@@ -11216,6 +11216,16 @@ function slugPnjSovarka(nom) {
 }
 
 
+// Point 45 (Fred, 23/11/2026, GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md) : doublon « Le Maire (PNJ) » / « Le Maire de
+// Novomirsk (PNJ) ». Le maire de Novomirsk est celui de son bureau (bureau_maire, fiche « Le Maire de Novomirsk » des
+// scènes générées) ; « Le Maire (PNJ) » du hall n'était que l'héritage du gabarit de Luthécia : il est retiré du hall de
+// Novomirsk. Redirection : parler au maire se fait dans son bureau. Aucune donnée serveur ne le nommait à Novomirsk
+// (cycles_electoraux soviet_maire_capitale : eluId nul le 23/11/2026 ; « Le Maire (PNJ) » reste l'élu générique de cron-minuit).
+{
+  const hall = WORLD.soviet.capitale.buildingContext['mairie-capitale'].roomOverrides.hall_mairie;
+  if (hall && Array.isArray(hall.persons)) hall.persons = hall.persons.filter(p => p && p.name !== 'Le Maire (PNJ)');
+}
+
 // Énigme du trésor des Tsars (Fred, 12/11/2026) : Evgueni Sudakov, le vieux pêcheur rival des Karpov, rejoint
 // les trois pensionnaires de l'EHPAD de Novomirsk (APRÈS leur renommage sovarkien, qui ne le concerne pas).
 {
