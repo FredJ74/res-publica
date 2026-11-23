@@ -87,5 +87,6 @@
   "previsualisations_des_branches": 0,
   "ecritures_base": 0,
   "fusion": false,
-  "motif_non_fusion": "CI générale rouge ; zones réservées à Claude, aucune dérogation demandée."
+  "motif_non_fusion": "CI générale rouge ; zones réservées à Claude, aucune dérogation demandée.",
+  "phase": "Historique initial avant rebase sur main 14d0716e ; nouvelles exécutions sur les PR"
 }
