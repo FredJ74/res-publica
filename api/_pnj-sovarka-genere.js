@@ -307,9 +307,9 @@ export const PNJ_SOVARKA_RENOMMES = [
  {
   "ville": "Novomirsk",
   "ancien": "Christophe Bouquin",
-  "nouveau": "Kirill Poliakov",
-  "role": null,
-  "id": "sovarka_kirill_poliakov",
+  "nouveau": "Archiviste municipale",
+  "role": "Archiviste municipale",
+  "id": "sovarka_archiviste_municipale",
   "source": "christophe_bouquin"
  },
  {

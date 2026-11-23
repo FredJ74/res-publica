@@ -1,0 +1,1622 @@
+{
+  "genere_par": "outils/bancs/banc-pnj-sans-portrait-20261123.cjs",
+  "note": "Une ligne par apparition dans une pièce (un même PNJ peut figurer dans plusieurs pièces). PNJ du serveur (informateurs, agents, soldats) et PNJ ajoutés dynamiquement par les modules non compris.",
+  "totaux": {
+    "apparitions_pnj": 936,
+    "avec_portrait": 499,
+    "sans_portrait": 437,
+    "pnj_distincts_sans_portrait": 427,
+    "par_ville": {
+      "Al Khalija / Al Madina": 48,
+      "Al Khalija / Al-Petrol": 33,
+      "Al Khalija / Forteresse Royale": 6,
+      "Al Khalija / Oasis City": 33,
+      "Al Khalija / Prison Royale": 4,
+      "El Estado / Ciudad Roja": 48,
+      "El Estado / Cuartel General": 6,
+      "El Estado / Prison Central": 4,
+      "El Estado / Puerto Negro": 33,
+      "El Estado / Villa Sangre": 33,
+      "Républia / Caserne Militaire de Republia": 6,
+      "Républia / Luthécia": 54,
+      "Républia / Montrouge": 37,
+      "Républia / Port-Sainte-Marie": 29,
+      "Républia / Quartier Haute Securite": 4,
+      "Sovarka / Garnison du Peuple": 8,
+      "Sovarka / Krasnov": 3,
+      "Sovarka / Novomirsk": 44,
+      "Sovarka / Starovka": 4
+    }
+  },
+  "sans_portrait": {
+    "Al Khalija": {
+      "Al Madina": {
+        "Agence Bancaire Al-Zafar [banque-nationale]": {
+          "Accueil [accueil_banque]": [
+            "Agent Bancaire (PNJ) — Agent"
+          ]
+        },
+        "Arsenaux Royaux [armurerie]": {
+          "Magasin [magasin]": [
+            "Gardien Al-Arsenal (PNJ) — Responsable Arsenal"
+          ]
+        },
+        "Banque Privée Al-Baraka [banque-privee]": {
+          "Bureau prive [bureau_prive]": [
+            "Cheikh Al-Discret (PNJ) — Directeur privé"
+          ]
+        },
+        "Centre Artisanal [centre-artisanal]": {
+          "Travées [travees]": [
+            "Céd' Labone — Dealer",
+            "Henrico Stot — Sécurité",
+            "Sabri Coledur — Mécanicien"
+          ]
+        },
+        "Centre Commercial [centre-commercial]": {
+          "Hall d'Entrée [hall]": [
+            "Edgar Simore — Magicien saltimbanque",
+            "Francisca Brel — Voleuse"
+          ]
+        },
+        "Centre d'Affaires [centre-affaires]": {
+          "Hall d'Entrée [hall]": [
+            "Harry Cover — Détective privé",
+            "Moshe Maychan — Assassin"
+          ],
+          "La Tribune de Republia — Antenne Locale [tribune_republia]": [
+            "Correspondant Local (PNJ) — PNJ - Journaliste"
+          ]
+        },
+        "Centre Médical de l'Oasis [dispensaire-public]": {
+          "Salle d'attente [salle_attente]": [
+            "Médecin Al-Zafar (PNJ) — Médecin"
+          ]
+        },
+        "Cercle des Sages [loge-maconnique]": {
+          "Bureau du Venerable Maitre [bureau_venerable]": [
+            "Venerable Maitre Duval — PNJ - Chef de la Loge"
+          ],
+          "Hall d'accueil [hall_loge]": [
+            "Frere Gardien — PNJ - Membre de la Loge"
+          ],
+          "Portail de la Loge [portail]": [
+            "Sage Al-Ancien (PNJ) — Président du Cercle"
+          ]
+        },
+        "Chambre Municipale Royale [mairie-capitale]": {
+          "Bureau du Maire [bureau_maire]": [
+            "Le Maire de Luthecia (PNJ) — Maire de la Capitale"
+          ],
+          "Hall d'accueil [hall_mairie]": [
+            "Le Maire (PNJ) — Maire de Luthecia"
+          ],
+          "Salle des Elections [salle_elections]": [
+            "Jean Registre (PNJ) — Responsable électoral de Luthécia"
+          ]
+        },
+        "Clinique Royale [clinique-privee]": {
+          "Reception [reception_clinique]": [
+            "Docteur Al-Soin (PNJ) — Médecin Royal"
+          ]
+        },
+        "Gazette de l'Oasis [la-tribune]": {
+          "Accueil [accueil_tribune]": [
+            "Journaliste Local (PNJ) — Journaliste"
+          ],
+          "Redaction [redaction]": [
+            "Marie Leblanc — Journaliste d'investigation",
+            "Romain Castel — PNJ - Redacteur en chef"
+          ]
+        },
+        "Hall Principal [centre-multinodal-luthecia]": {
+          "Hall des Douanes [hall_douanes]": [
+            "Inspecteur Prosper Tampon (PNJ) — Inspecteur des douanes"
+          ],
+          "Hall Principal [hall_gare]": [
+            "Chambellan Al-Transit (PNJ) — Directeur du Hub",
+            "Yasmine Embarquement (PNJ) — Hôtesse royale"
+          ]
+        },
+        "Hôtel Al-Nour Palace [hotel-republica]": {
+          "Grand Hall Al-Nour [accueil]": [
+            "Hassan Marchandage (PNJ) — Concierge Royal",
+            "Yasmine Épices (PNJ) — Hôtesse"
+          ]
+        },
+        "La Pâtisserie Sacrée [patisserie-sacree]": {
+          "Salle de Dégustation Divine [salle_degustation]": [
+            "Grand Confiseur Abdul Loukoum (PNJ) — Grand Prêtre du Loukoumisme",
+            "Novice Baklava (PNJ) — PNJ - Enfant de chœur en formation"
+          ]
+        },
+        "Office Notarial [office-notarial]": {
+          "Accueil [accueil_notaire]": [
+            "Alain Dex (PNJ) — Secrétaire",
+            "Claire Delhune (PNJ) — Clerc de notaire"
+          ],
+          "Archives Notariales [archives_notariales]": [
+            "Archiviste Notarial (PNJ) — PNJ - Gardien des Archives"
+          ],
+          "Bureau des Contrats [bureau_contrats]": [
+            "Notaire Fontenelle (PNJ) — Notaire Officiel"
+          ],
+          "Bureau des Successions [bureau_successions]": [
+            "Claire Delhune (PNJ) — Clerc de notaire"
+          ]
+        },
+        "Palais Royal Al-Qasr [palais-presidentiel]": {
+          "Bureau du Sheikh [bureau_president]": [
+            "Le Président (PNJ) — PNJ - Président de la République"
+          ]
+        },
+        "Poste de Sécurité Royal [commissariat]": {
+          "Accueil [accueil_police]": [
+            "Garde Al-Vigilant (PNJ) — Chef de poste"
+          ]
+        },
+        "Souk de l'Oasis [marche]": {
+          "Etals du marche [marche_ext]": [
+            "Marchand Al-Zafar (PNJ) — Marchand"
+          ]
+        },
+        "Stade Municipal [stade]": {
+          "Buvette [buvette]": [
+            "Tenancier de Buvette (PNJ) — PNJ - Buvette"
+          ],
+          "Guichet de Paris [guichet_paris]": [
+            "Bookmaker Officiel (PNJ) — PNJ - Paris Sportifs"
+          ],
+          "Siege des Supporters [siege_supporters]": [
+            "Meneur des Supporters (PNJ) — PNJ - Chef de Tribune"
+          ],
+          "Terrain [terrain]": [
+            "Commentateur Sportif (PNJ) — PNJ - Commentateur",
+            "Entraineur Local (PNJ) — PNJ - Entraineur"
+          ],
+          "Vestiaires [vestiaires]": [
+            "Entraineur Local (PNJ) — PNJ - Entraineur"
+          ]
+        },
+        "Tribunal de la Charia [tribunal]": {
+          "Greffe de la Charia [greffe]": [
+            "Greffier Petit — PNJ - Greffe"
+          ],
+          "Salle d'Audience de la Charia [salle_audience]": [
+            "Cheikh Al-Verdict (PNJ) — Grand Juge",
+            "Conseiller Juridique (PNJ) — Conseiller"
+          ]
+        },
+        "Université Royale [universite]": {
+          "Amphitheatre [amphi]": [
+            "Assistante Al-Studieuse (PNJ) — Assistante",
+            "Professeur Al-Savoir (PNJ) — Doyen"
+          ]
+        }
+      },
+      "Al-Petrol": {
+        "Banque Locale [banque-locale]": {
+          "Guichet [guichet]": [
+            "Guichetier (PNJ) — Employe bancaire"
+          ]
+        },
+        "Banque Pétrolière Al-Nour [banque-nationale]": {
+          "Accueil [accueil_banque]": [
+            "Directeur Pétrolier (PNJ) — Directeur"
+          ]
+        },
+        "Centre Artisanal [centre-artisanal]": {
+          "Travées [travees]": [
+            "Céd' Labone — Dealer",
+            "Henrico Stot — Sécurité",
+            "Sabri Coledur — Mécanicien"
+          ]
+        },
+        "Centre Commercial [centre-commercial]": {
+          "Hall d'Entrée [hall]": [
+            "Edgar Simore — Magicien saltimbanque",
+            "Francisca Brel — Voleuse"
+          ]
+        },
+        "Centre d'Affaires [centre-affaires]": {
+          "Hall d'Entrée [hall]": [
+            "Harry Cover — Détective privé",
+            "Moshe Maychan — Assassin"
+          ],
+          "La Tribune de Republia — Antenne Locale [tribune_republia]": [
+            "Correspondant Local (PNJ) — PNJ - Journaliste"
+          ]
+        },
+        "Centre Multinodal de Montrouge [centre-multinodal-montrouge]": {
+          "Hall de la Gare [hall_gare_montrouge]": [
+            "Chef de Gare Syndiqué (PNJ) — Chef de gare",
+            "Délégué Syndical (PNJ) — Délégué permanent"
+          ]
+        },
+        "Commissariat Local [commissariat-local]": {
+          "Accueil [accueil_loc]": [
+            "Brigadier Local (PNJ) — Officier de garde"
+          ]
+        },
+        "Dispensaire du Port [dispensaire-public]": {
+          "Salle d'attente [salle_attente]": [
+            "Médecin du Port (PNJ) — Médecin"
+          ]
+        },
+        "Dispensaire Public [dispensaire-public-v]": {
+          "Salle d'attente [attente]": [
+            "Infirmiere (PNJ) — Soignante"
+          ]
+        },
+        "Garde Portuaire Royale [commissariat]": {
+          "Accueil [accueil_police]": [
+            "Garde Portuaire (PNJ) — Garde"
+          ]
+        },
+        "Hotel des Mineurs [hotel-mineur]": {
+          "Hall [hall_mineur]": [
+            "Receptionniste (PNJ) — Accueil"
+          ]
+        },
+        "Hôtel du Port Al-Nour [hotel-republica]": {
+          "Accueil [accueil]": [
+            "Gérant Al-Nour (PNJ) — Gérant"
+          ]
+        },
+        "Journal Pétrolier [la-tribune]": {
+          "Accueil [accueil_tribune]": [
+            "Journaliste Pétrole (PNJ) — Journaliste"
+          ],
+          "Redaction [redaction]": [
+            "Marie Leblanc — Journaliste d'investigation",
+            "Romain Castel — PNJ - Redacteur en chef"
+          ]
+        },
+        "Mairie [mairie]": {
+          "Accueil [accueil_mairie]": [
+            "Secretaire Municipal — PNJ - Administration"
+          ],
+          "Bureau du Maire [bureau_maire_local]": [
+            "Le Maire (PNJ) — Maire de la ville"
+          ]
+        },
+        "Siege Syndical [siege-syndical]": {
+          "Bureau syndical [bureau_syndical]": [
+            "Delegue Morel (PNJ) — Secretaire general du syndicat"
+          ]
+        },
+        "Souk du Port [marche]": {
+          "Etals du marche [marche_ext]": [
+            "Marchand du Port (PNJ) — Marchand"
+          ]
+        },
+        "Stade Municipal [stade]": {
+          "Buvette [buvette]": [
+            "Tenancier de Buvette (PNJ) — PNJ - Buvette"
+          ],
+          "Guichet de Paris [guichet_paris]": [
+            "Bookmaker Officiel (PNJ) — PNJ - Paris Sportifs"
+          ],
+          "Siege des Supporters [siege_supporters]": [
+            "Meneur des Supporters (PNJ) — PNJ - Chef de Tribune"
+          ],
+          "Terrain [terrain]": [
+            "Commentateur Sportif (PNJ) — PNJ - Commentateur",
+            "Entraineur Local (PNJ) — PNJ - Entraineur"
+          ],
+          "Vestiaires [vestiaires]": [
+            "Entraineur Local (PNJ) — PNJ - Entraineur"
+          ]
+        },
+        "Tribunal Municipal [tribunal-local]": {
+          "Salle d'audience [salle_audience_locale]": [
+            "Juge Local (PNJ) — President du Tribunal Municipal"
+          ]
+        },
+        "Usine Principale [usine-principale]": {
+          "Direction [direction_usine]": [
+            "Directeur Fabre (PNJ) — Directeur usine"
+          ]
+        }
+      },
+      "Forteresse Royale": {
+        "Caserne Militaire de Republia [caserne-militaire]": {
+          "Armurerie Militaire [armurerie_militaire]": [
+            "Armurier Militaire (PNJ) — PNJ - Sergent armurier"
+          ],
+          "Infirmerie [infirmerie]": [
+            "Ève Toahémarch (PNJ) — PNJ - Infirmière militaire"
+          ],
+          "Quartier des Troupes [quartier_troupes]": [
+            "Caporal Lefebvre (PNJ) — PNJ - Soldat",
+            "Soldat Nguyen (PNJ) — PNJ - Soldat"
+          ],
+          "Salle de Commandement [salle_commandement]": [
+            "Commandant Tom Hawak — PNJ - Commandant de la Caserne"
+          ],
+          "Salle des Faits d'Armes [salle_faits_armes]": [
+            "Archiviste Militaire (PNJ) — PNJ - Gardien de la memoire"
+          ]
+        }
+      },
+      "Oasis City": {
+        "Banque Locale [banque-locale]": {
+          "Guichet [guichet]": [
+            "Guichetier (PNJ) — Employe bancaire"
+          ]
+        },
+        "Caravanserail Al-Baraka [hotel-republica]": {
+          "Accueil [accueil]": [
+            "Maitre Caravanserail (PNJ) — Gérant"
+          ]
+        },
+        "Centre Artisanal [centre-artisanal]": {
+          "Travées [travees]": [
+            "Céd' Labone — Dealer",
+            "Henrico Stot — Sécurité",
+            "Sabri Coledur — Mécanicien"
+          ]
+        },
+        "Centre Commercial [centre-commercial]": {
+          "Hall d'Entrée [hall]": [
+            "Edgar Simore — Magicien saltimbanque",
+            "Francisca Brel — Voleuse"
+          ]
+        },
+        "Centre d'Affaires [centre-affaires]": {
+          "Hall d'Entrée [hall]": [
+            "Harry Cover — Détective privé",
+            "Moshe Maychan — Assassin"
+          ],
+          "La Tribune de Republia — Antenne Locale [tribune_republia]": [
+            "Correspondant Local (PNJ) — PNJ - Journaliste"
+          ]
+        },
+        "Centre Multinodal de Montrouge [centre-multinodal-montrouge]": {
+          "Hall de la Gare [hall_gare_montrouge]": [
+            "Chef de Gare Syndiqué (PNJ) — Chef de gare",
+            "Délégué Syndical (PNJ) — Délégué permanent"
+          ]
+        },
+        "Commissariat Local [commissariat-local]": {
+          "Accueil [accueil_loc]": [
+            "Brigadier Local (PNJ) — Officier de garde"
+          ]
+        },
+        "Dispensaire Public [dispensaire-public-v]": {
+          "Salle d'attente [attente]": [
+            "Infirmiere (PNJ) — Soignante"
+          ]
+        },
+        "Garde de l'Oasis [commissariat]": {
+          "Accueil [accueil_police]": [
+            "Capitaine Oasis (PNJ) — Capitaine"
+          ]
+        },
+        "Hotel des Mineurs [hotel-mineur]": {
+          "Hall [hall_mineur]": [
+            "Receptionniste (PNJ) — Accueil"
+          ]
+        },
+        "Le Heraut du Desert [la-tribune]": {
+          "Accueil [accueil_tribune]": [
+            "Heraut Ambulant (PNJ) — Héraut"
+          ],
+          "Redaction [redaction]": [
+            "Marie Leblanc — Journaliste d'investigation",
+            "Romain Castel — PNJ - Redacteur en chef"
+          ]
+        },
+        "Mairie [mairie]": {
+          "Accueil [accueil_mairie]": [
+            "Secretaire Municipal — PNJ - Administration"
+          ],
+          "Bureau du Maire [bureau_maire_local]": [
+            "Le Maire (PNJ) — Maire de la ville"
+          ]
+        },
+        "Maison de Change du Desert [banque-nationale]": {
+          "Accueil [accueil_banque]": [
+            "Changeur du Desert (PNJ) — Changeur"
+          ]
+        },
+        "Siege Syndical [siege-syndical]": {
+          "Bureau syndical [bureau_syndical]": [
+            "Delegue Morel (PNJ) — Secretaire general du syndicat"
+          ]
+        },
+        "Souk de l'Oasis [marche]": {
+          "Etals du marche [marche_ext]": [
+            "Marchand de l'Oasis (PNJ) — Marchand"
+          ]
+        },
+        "Stade Municipal [stade]": {
+          "Buvette [buvette]": [
+            "Tenancier de Buvette (PNJ) — PNJ - Buvette"
+          ],
+          "Guichet de Paris [guichet_paris]": [
+            "Bookmaker Officiel (PNJ) — PNJ - Paris Sportifs"
+          ],
+          "Siege des Supporters [siege_supporters]": [
+            "Meneur des Supporters (PNJ) — PNJ - Chef de Tribune"
+          ],
+          "Terrain [terrain]": [
+            "Commentateur Sportif (PNJ) — PNJ - Commentateur",
+            "Entraineur Local (PNJ) — PNJ - Entraineur"
+          ],
+          "Vestiaires [vestiaires]": [
+            "Entraineur Local (PNJ) — PNJ - Entraineur"
+          ]
+        },
+        "Tente de Soins [dispensaire-public]": {
+          "Salle d'attente [salle_attente]": [
+            "Guerisseuse Oasis (PNJ) — Guérisseuse"
+          ]
+        },
+        "Tribunal Municipal [tribunal-local]": {
+          "Salle d'audience [salle_audience_locale]": [
+            "Juge Local (PNJ) — President du Tribunal Municipal"
+          ]
+        },
+        "Usine Principale [usine-principale]": {
+          "Direction [direction_usine]": [
+            "Directeur Fabre (PNJ) — Directeur usine"
+          ]
+        }
+      },
+      "Prison Royale": {
+        "Quartier Haute Securite [qhs-prison]": {
+          "Cellules [cellules_qhs]": [
+            "Jean Terre (PNJ) — PNJ - Gardien de couloir",
+            "Patrick Coule (PNJ) — PNJ - Gardien de couloir"
+          ],
+          "Entree Securisee [entree_qhs]": [
+            "Dominique Cruel (PNJ) — PNJ - Directeur du QHS",
+            "Philippe Cognedur (PNJ) — PNJ - Gardien Chef"
+          ]
+        }
+      }
+    },
+    "El Estado": {
+      "Ciudad Roja": {
+        "Alcaldia de Ciudad Roja [mairie-capitale]": {
+          "Bureau du Maire [bureau_maire]": [
+            "Le Maire de Luthecia (PNJ) — Maire de la Capitale"
+          ],
+          "Hall d'accueil [hall_mairie]": [
+            "Le Maire (PNJ) — Maire de Luthecia"
+          ],
+          "Salle des Elections [salle_elections]": [
+            "Jean Registre (PNJ) — Responsable électoral de Luthécia"
+          ]
+        },
+        "Armería Gordito [armurerie]": {
+          "Magasin [magasin]": [
+            "Paco Gatillo (PNJ) — Armurier"
+          ]
+        },
+        "Banco Privado Offshore [banque-privee]": {
+          "Bureau prive [bureau_prive]": [
+            "Señor Offshore (PNJ) — Directeur"
+          ]
+        },
+        "Casa del Generalissimo [palais-presidentiel]": {
+          "Bureau du President [bureau_president]": [
+            "Le Président (PNJ) — PNJ - Président de la République"
+          ]
+        },
+        "Centre Artisanal [centre-artisanal]": {
+          "Travées [travees]": [
+            "Céd' Labone — Dealer",
+            "Henrico Stot — Sécurité",
+            "Sabri Coledur — Mécanicien"
+          ]
+        },
+        "Centre Commercial [centre-commercial]": {
+          "Hall d'Entrée [hall]": [
+            "Edgar Simore — Magicien saltimbanque",
+            "Francisca Brel — Voleuse"
+          ]
+        },
+        "Centre d'Affaires [centre-affaires]": {
+          "Hall d'Entrée [hall]": [
+            "Harry Cover — Détective privé",
+            "Moshe Maychan — Assassin"
+          ],
+          "La Tribune de Republia — Antenne Locale [tribune_republia]": [
+            "Correspondant Local (PNJ) — PNJ - Journaliste"
+          ]
+        },
+        "Clínica Privada [clinique-privee]": {
+          "Reception [reception_clinique]": [
+            "Doctor Silencioso (PNJ) — Médecin"
+          ]
+        },
+        "Club de los Elegidos [loge-maconnique]": {
+          "Bureau du Venerable Maitre [bureau_venerable]": [
+            "Venerable Maitre Duval — PNJ - Chef de la Loge"
+          ],
+          "Hall d'accueil [hall_loge]": [
+            "Frere Gardien — PNJ - Membre de la Loge"
+          ],
+          "Portail de la Loge [portail]": [
+            "El Gran Maestro (PNJ) — Grand Maître"
+          ]
+        },
+        "Hall Principal [centre-multinodal-luthecia]": {
+          "Hall des Douanes [hall_douanes]": [
+            "Inspecteur Prosper Tampon (PNJ) — Inspecteur des douanes"
+          ],
+          "Hall Principal [hall_gare]": [
+            "Carlos Retraso (PNJ) — Chef de gare",
+            "Juanita Soborno (PNJ) — Agente de sécurité"
+          ]
+        },
+        "Hôtel El Cartel [hotel-republica]": {
+          "Accueil [accueil]": [
+            "Lola Discreta (PNJ) — Informatrice double jeu",
+            "Lupe Cantina (PNJ) — Serveuse armée",
+            "Pedro Tequila (PNJ) — Barman"
+          ]
+        },
+        "Imprenta Local [la-tribune]": {
+          "Accueil [accueil_tribune]": [
+            "Impresor Manchado (PNJ) — Imprimeur"
+          ],
+          "Redaction [redaction]": [
+            "Marie Leblanc — Journaliste d'investigation",
+            "Romain Castel — PNJ - Redacteur en chef"
+          ]
+        },
+        "Le Laboratoire de Prière [laboratoire-priere]": {
+          "Salle de Communion [salle_communion]": [
+            "Hermano Poudre (PNJ) — PNJ - Enfant de chœur très énergique",
+            "Padre Cocaïno (PNJ) — Grand Prêtre du Cocaïsme"
+          ]
+        },
+        "Mercado del Puerto [marche]": {
+          "Etals du marche [marche_ext]": [
+            "Pescadora Carmen (PNJ) — Poissonnière"
+          ]
+        },
+        "Office Notarial [office-notarial]": {
+          "Accueil [accueil_notaire]": [
+            "Alain Dex (PNJ) — Secrétaire",
+            "Claire Delhune (PNJ) — Clerc de notaire"
+          ],
+          "Archives Notariales [archives_notariales]": [
+            "Archiviste Notarial (PNJ) — PNJ - Gardien des Archives"
+          ],
+          "Bureau des Contrats [bureau_contrats]": [
+            "Notaire Fontenelle (PNJ) — Notaire Officiel"
+          ],
+          "Bureau des Successions [bureau_successions]": [
+            "Claire Delhune (PNJ) — Clerc de notaire"
+          ]
+        },
+        "Puesto de Policía [commissariat]": {
+          "Accueil [accueil_police]": [
+            "Sargento Siesta (PNJ) — Sergent"
+          ]
+        },
+        "Puesto Médico [dispensaire-public]": {
+          "Salle d'attente [salle_attente]": [
+            "Médico Rural (PNJ) — Médecin"
+          ]
+        },
+        "Stade Municipal [stade]": {
+          "Buvette [buvette]": [
+            "Tenancier de Buvette (PNJ) — PNJ - Buvette"
+          ],
+          "Guichet de Paris [guichet_paris]": [
+            "Bookmaker Officiel (PNJ) — PNJ - Paris Sportifs"
+          ],
+          "Siege des Supporters [siege_supporters]": [
+            "Meneur des Supporters (PNJ) — PNJ - Chef de Tribune"
+          ],
+          "Terrain [terrain]": [
+            "Commentateur Sportif (PNJ) — PNJ - Commentateur",
+            "Entraineur Local (PNJ) — PNJ - Entraineur"
+          ],
+          "Vestiaires [vestiaires]": [
+            "Entraineur Local (PNJ) — PNJ - Entraineur"
+          ]
+        },
+        "Sucursal Bancaria [banque-nationale]": {
+          "Accueil [accueil_banque]": [
+            "Cajero Nervioso (PNJ) — Caissier"
+          ]
+        },
+        "Tribunal de Ciudad Roja [tribunal]": {
+          "Greffe [greffe]": [
+            "Greffier Petit — PNJ - Greffe"
+          ],
+          "Salle d'audience [salle_audience]": [
+            "Abogado Turbio (PNJ) — Avocat véreux",
+            "El Juez Manchado (PNJ) — Juge en chef"
+          ]
+        },
+        "Universidad del Partido [universite]": {
+          "Amphitheatre [amphi]": [
+            "Profesor Obediente (PNJ) — Doyen"
+          ]
+        }
+      },
+      "Cuartel General": {
+        "Caserne Militaire de Republia [caserne-militaire]": {
+          "Armurerie Militaire [armurerie_militaire]": [
+            "Armurier Militaire (PNJ) — PNJ - Sergent armurier"
+          ],
+          "Infirmerie [infirmerie]": [
+            "Ève Toahémarch (PNJ) — PNJ - Infirmière militaire"
+          ],
+          "Quartier des Troupes [quartier_troupes]": [
+            "Caporal Lefebvre (PNJ) — PNJ - Soldat",
+            "Soldat Nguyen (PNJ) — PNJ - Soldat"
+          ],
+          "Salle de Commandement [salle_commandement]": [
+            "Commandant Tom Hawak — PNJ - Commandant de la Caserne"
+          ],
+          "Salle des Faits d'Armes [salle_faits_armes]": [
+            "Archiviste Militaire (PNJ) — PNJ - Gardien de la memoire"
+          ]
+        }
+      },
+      "Prison Central": {
+        "Quartier Haute Securite [qhs-prison]": {
+          "Cellules [cellules_qhs]": [
+            "Jean Terre (PNJ) — PNJ - Gardien de couloir",
+            "Patrick Coule (PNJ) — PNJ - Gardien de couloir"
+          ],
+          "Entree Securisee [entree_qhs]": [
+            "Dominique Cruel (PNJ) — PNJ - Directeur du QHS",
+            "Philippe Cognedur (PNJ) — PNJ - Gardien Chef"
+          ]
+        }
+      },
+      "Puerto Negro": {
+        "Banque Locale [banque-locale]": {
+          "Guichet [guichet]": [
+            "Guichetier (PNJ) — Employe bancaire"
+          ]
+        },
+        "Caja de Cambio [banque-nationale]": {
+          "Accueil [accueil_banque]": [
+            "Cambista Discreto (PNJ) — Changeur"
+          ]
+        },
+        "Centre Artisanal [centre-artisanal]": {
+          "Travées [travees]": [
+            "Céd' Labone — Dealer",
+            "Henrico Stot — Sécurité",
+            "Sabri Coledur — Mécanicien"
+          ]
+        },
+        "Centre Commercial [centre-commercial]": {
+          "Hall d'Entrée [hall]": [
+            "Edgar Simore — Magicien saltimbanque",
+            "Francisca Brel — Voleuse"
+          ]
+        },
+        "Centre d'Affaires [centre-affaires]": {
+          "Hall d'Entrée [hall]": [
+            "Harry Cover — Détective privé",
+            "Moshe Maychan — Assassin"
+          ],
+          "La Tribune de Republia — Antenne Locale [tribune_republia]": [
+            "Correspondant Local (PNJ) — PNJ - Journaliste"
+          ]
+        },
+        "Centre Multinodal de Montrouge [centre-multinodal-montrouge]": {
+          "Hall de la Gare [hall_gare_montrouge]": [
+            "Chef de Gare Syndiqué (PNJ) — Chef de gare",
+            "Délégué Syndical (PNJ) — Délégué permanent"
+          ]
+        },
+        "Clinica de Montana [dispensaire-public]": {
+          "Salle d'attente [salle_attente]": [
+            "Medico de Altura (PNJ) — Médecin"
+          ]
+        },
+        "Commissariat Local [commissariat-local]": {
+          "Accueil [accueil_loc]": [
+            "Brigadier Local (PNJ) — Officier de garde"
+          ]
+        },
+        "Dispensaire Public [dispensaire-public-v]": {
+          "Salle d'attente [attente]": [
+            "Infirmiere (PNJ) — Soignante"
+          ]
+        },
+        "Hotel des Mineurs [hotel-mineur]": {
+          "Hall [hall_mineur]": [
+            "Receptionniste (PNJ) — Accueil"
+          ]
+        },
+        "Mairie [mairie]": {
+          "Accueil [accueil_mairie]": [
+            "Secretaire Municipal — PNJ - Administration"
+          ],
+          "Bureau du Maire [bureau_maire_local]": [
+            "Le Maire (PNJ) — Maire de la ville"
+          ]
+        },
+        "Mercado de Contrabando [marche]": {
+          "Etals du marche [marche_ext]": [
+            "Vendedora de Paso (PNJ) — Marchande"
+          ]
+        },
+        "Posada de la Frontera [hotel-republica]": {
+          "Accueil [accueil]": [
+            "Posadero Silencioso (PNJ) — Gérant"
+          ]
+        },
+        "Puesto Fronterizo [commissariat]": {
+          "Accueil [accueil_police]": [
+            "Cabo Vista Larga (PNJ) — Chef de poste"
+          ]
+        },
+        "Radio Contrabando [la-tribune]": {
+          "Accueil [accueil_tribune]": [
+            "Locutor Fantasma (PNJ) — Animateur"
+          ],
+          "Redaction [redaction]": [
+            "Marie Leblanc — Journaliste d'investigation",
+            "Romain Castel — PNJ - Redacteur en chef"
+          ]
+        },
+        "Siege Syndical [siege-syndical]": {
+          "Bureau syndical [bureau_syndical]": [
+            "Delegue Morel (PNJ) — Secretaire general du syndicat"
+          ]
+        },
+        "Stade Municipal [stade]": {
+          "Buvette [buvette]": [
+            "Tenancier de Buvette (PNJ) — PNJ - Buvette"
+          ],
+          "Guichet de Paris [guichet_paris]": [
+            "Bookmaker Officiel (PNJ) — PNJ - Paris Sportifs"
+          ],
+          "Siege des Supporters [siege_supporters]": [
+            "Meneur des Supporters (PNJ) — PNJ - Chef de Tribune"
+          ],
+          "Terrain [terrain]": [
+            "Commentateur Sportif (PNJ) — PNJ - Commentateur",
+            "Entraineur Local (PNJ) — PNJ - Entraineur"
+          ],
+          "Vestiaires [vestiaires]": [
+            "Entraineur Local (PNJ) — PNJ - Entraineur"
+          ]
+        },
+        "Tribunal Municipal [tribunal-local]": {
+          "Salle d'audience [salle_audience_locale]": [
+            "Juge Local (PNJ) — President du Tribunal Municipal"
+          ]
+        },
+        "Usine Principale [usine-principale]": {
+          "Direction [direction_usine]": [
+            "Directeur Fabre (PNJ) — Directeur usine"
+          ]
+        }
+      },
+      "Villa Sangre": {
+        "Banque Locale [banque-locale]": {
+          "Guichet [guichet]": [
+            "Guichetier (PNJ) — Employe bancaire"
+          ]
+        },
+        "Caja Rural [banque-nationale]": {
+          "Accueil [accueil_banque]": [
+            "Tesorero Local (PNJ) — Trésorier"
+          ]
+        },
+        "Centre Artisanal [centre-artisanal]": {
+          "Travées [travees]": [
+            "Céd' Labone — Dealer",
+            "Henrico Stot — Sécurité",
+            "Sabri Coledur — Mécanicien"
+          ]
+        },
+        "Centre Commercial [centre-commercial]": {
+          "Hall d'Entrée [hall]": [
+            "Edgar Simore — Magicien saltimbanque",
+            "Francisca Brel — Voleuse"
+          ]
+        },
+        "Centre d'Affaires [centre-affaires]": {
+          "Hall d'Entrée [hall]": [
+            "Harry Cover — Détective privé",
+            "Moshe Maychan — Assassin"
+          ],
+          "La Tribune de Republia — Antenne Locale [tribune_republia]": [
+            "Correspondant Local (PNJ) — PNJ - Journaliste"
+          ]
+        },
+        "Centre Multinodal de Montrouge [centre-multinodal-montrouge]": {
+          "Hall de la Gare [hall_gare_montrouge]": [
+            "Chef de Gare Syndiqué (PNJ) — Chef de gare",
+            "Délégué Syndical (PNJ) — Délégué permanent"
+          ]
+        },
+        "Clínica de Campaña [dispensaire-public]": {
+          "Salle d'attente [salle_attente]": [
+            "Curandero (PNJ) — Guérisseur"
+          ]
+        },
+        "Commissariat Local [commissariat-local]": {
+          "Accueil [accueil_loc]": [
+            "Brigadier Local (PNJ) — Officier de garde"
+          ]
+        },
+        "Control Militar [commissariat]": {
+          "Accueil [accueil_police]": [
+            "Teniente Bruto (PNJ) — Lieutenant"
+          ]
+        },
+        "Dispensaire Public [dispensaire-public-v]": {
+          "Salle d'attente [attente]": [
+            "Infirmiere (PNJ) — Soignante"
+          ]
+        },
+        "Hoja Clandestina [la-tribune]": {
+          "Accueil [accueil_tribune]": [
+            "Redactor Anónimo (PNJ) — Rédacteur"
+          ],
+          "Redaction [redaction]": [
+            "Marie Leblanc — Journaliste d'investigation",
+            "Romain Castel — PNJ - Redacteur en chef"
+          ]
+        },
+        "Hotel des Mineurs [hotel-mineur]": {
+          "Hall [hall_mineur]": [
+            "Receptionniste (PNJ) — Accueil"
+          ]
+        },
+        "Mairie [mairie]": {
+          "Accueil [accueil_mairie]": [
+            "Secretaire Municipal — PNJ - Administration"
+          ],
+          "Bureau du Maire [bureau_maire_local]": [
+            "Le Maire (PNJ) — Maire de la ville"
+          ]
+        },
+        "Refugio de la Selva [hotel-republica]": {
+          "Accueil [accueil]": [
+            "Jefe Selva (PNJ) — Gérant"
+          ]
+        },
+        "Siege Syndical [siege-syndical]": {
+          "Bureau syndical [bureau_syndical]": [
+            "Delegue Morel (PNJ) — Secretaire general du syndicat"
+          ]
+        },
+        "Stade Municipal [stade]": {
+          "Buvette [buvette]": [
+            "Tenancier de Buvette (PNJ) — PNJ - Buvette"
+          ],
+          "Guichet de Paris [guichet_paris]": [
+            "Bookmaker Officiel (PNJ) — PNJ - Paris Sportifs"
+          ],
+          "Siege des Supporters [siege_supporters]": [
+            "Meneur des Supporters (PNJ) — PNJ - Chef de Tribune"
+          ],
+          "Terrain [terrain]": [
+            "Commentateur Sportif (PNJ) — PNJ - Commentateur",
+            "Entraineur Local (PNJ) — PNJ - Entraineur"
+          ],
+          "Vestiaires [vestiaires]": [
+            "Entraineur Local (PNJ) — PNJ - Entraineur"
+          ]
+        },
+        "Tianguis de la Selva [marche]": {
+          "Etals du marche [marche_ext]": [
+            "Vendedor Selva (PNJ) — Vendeur"
+          ]
+        },
+        "Tribunal Municipal [tribunal-local]": {
+          "Salle d'audience [salle_audience_locale]": [
+            "Juge Local (PNJ) — President du Tribunal Municipal"
+          ]
+        },
+        "Usine Principale [usine-principale]": {
+          "Direction [direction_usine]": [
+            "Directeur Fabre (PNJ) — Directeur usine"
+          ]
+        }
+      }
+    },
+    "Républia": {
+      "Caserne Militaire de Republia": {
+        "Caserne Militaire de Republia [caserne-militaire]": {
+          "Armurerie Militaire [armurerie_militaire]": [
+            "Armurier Militaire (PNJ) — PNJ - Sergent armurier"
+          ],
+          "Infirmerie [infirmerie]": [
+            "Ève Toahémarch (PNJ) — PNJ - Infirmière militaire"
+          ],
+          "Quartier des Troupes [quartier_troupes]": [
+            "Caporal Lefebvre (PNJ) — PNJ - Soldat",
+            "Soldat Nguyen (PNJ) — PNJ - Soldat"
+          ],
+          "Salle de Commandement [salle_commandement]": [
+            "Commandant Tom Hawak — PNJ - Commandant de la Caserne"
+          ],
+          "Salle des Faits d'Armes [salle_faits_armes]": [
+            "Archiviste Militaire (PNJ) — PNJ - Gardien de la memoire"
+          ]
+        }
+      },
+      "Luthécia": {
+        "Armurerie Martinon [armurerie]": {
+          "Magasin [magasin]": [
+            "Roger Détente (PNJ) — Armurier",
+            "Simone Calibre (PNJ) — Assistante"
+          ]
+        },
+        "Centre Artisanal [centre-artisanal]": {
+          "Travées [travees]": [
+            "Céd' Labone — Dealer",
+            "Henrico Stot — Sécurité",
+            "Sabri Coledur — Mécanicien"
+          ]
+        },
+        "Centre Commercial [centre-commercial]": {
+          "Hall d'Entrée [hall]": [
+            "Edgar Simore — Magicien saltimbanque",
+            "Francisca Brel — Voleuse"
+          ]
+        },
+        "Centre d'Affaires [centre-affaires]": {
+          "Grobras Sécurité [grobras_securite]": [
+            "Gaston Grobras (PNJ) — Directeur d'agence de sécurité",
+            "Sandra Pelle (PNJ) — Secrétaire de Grobras Sécurité"
+          ],
+          "Hall d'Entrée [hall]": [
+            "Harry Cover — Détective privé",
+            "Moshe Maychan — Assassin"
+          ],
+          "La Tribune de Republia — Antenne Locale [tribune_republia]": [
+            "Correspondant Local (PNJ) — PNJ - Journaliste"
+          ]
+        },
+        "Centre Multinodal de Luthecia [centre-multinodal-luthecia]": {
+          "Hall des Douanes [hall_douanes]": [
+            "Inspecteur Prosper Tampon (PNJ) — Inspecteur des douanes"
+          ],
+          "Hall Principal [hall_gare]": [
+            "Gaston Retard (PNJ) — Chef de gare",
+            "Mireille Guichet (PNJ) — Hôtesse d'accueil"
+          ]
+        },
+        "Clinique Privée Saint-Luc [clinique-privee]": {
+          "Reception [reception_clinique]": [
+            "Docteur Bistouri (PNJ) — Chirurgien",
+            "Sophie Stiquay (PNJ) — Infirmière"
+          ]
+        },
+        "Dispensaire Public de Luthecia [dispensaire-public]": {
+          "Salle d'attente [salle_attente]": [
+            "Anne Tibiotique (PNJ) — Infirmière",
+            "Docteur Aspirine (PNJ) — Généraliste"
+          ]
+        },
+        "Entrepôt Logistique de Luthécia [entrepot-logistique-luthecia]": {
+          "Bureau de Direction [bureau_direction]": [
+            "Marcel Silo (PNJ) — Directeur de l'Entrepôt Logistique"
+          ]
+        },
+        "Hotel de Ville de Luthecia [mairie-capitale]": {
+          "Bureau du Maire Adjoint [bureau_maire_adjoint]": [
+            "Le Maire Adjoint de Luthecia (PNJ) — Personnel permanent de la mairie"
+          ],
+          "Bureau du Maire [bureau_maire]": [
+            "Le Maire de Luthecia (PNJ) — Personnel permanent de la mairie"
+          ],
+          "Salle des Elections [salle_elections]": [
+            "Jean Registre (PNJ) — Responsable électoral de Luthécia"
+          ]
+        },
+        "Hôtel-Restaurant La Républia [hotel-republica]": {
+          "Accueil [accueil]": [
+            "Isidore Trébien (PNJ) — Bagagiste",
+            "Nathalie Ondor (PNJ) — Réceptionniste"
+          ],
+          "Bar [bar]": [
+            "L'hôte de l'agence — Agence Roxane Velours",
+            "L'hôtesse de l'agence — Agence Roxane Velours"
+          ]
+        },
+        "L'Autruche Entravée [la-tribune]": {
+          "Redaction [redaction]": [
+            "Marie Leblanc — Journaliste d'investigation",
+            "Romain Castel — PNJ - Redacteur en chef"
+          ]
+        },
+        "Le Tabernacle des Impôts [tabernacle-impots]": {
+          "Nef des Formulaires [nef_principale]": [
+            "Enfant de chœur Lacroix (PNJ) — PNJ - Distributeur de formulaires",
+            "Père Ception (PNJ) — Grand Prêtre du Papyrusisme"
+          ],
+          "Sacristie Administrative [sacristie]": [
+            "Père Ception (PNJ) — Grand Prêtre du Papyrusisme"
+          ]
+        },
+        "Loge Maçonnique de Luthecia [loge-maconnique]": {
+          "Bureau du Venerable Maitre [bureau_venerable]": [
+            "Venerable Maitre Duval — PNJ - Chef de la Loge"
+          ],
+          "Hall d'accueil [hall_loge]": [
+            "Frere Gardien — PNJ - Membre de la Loge"
+          ],
+          "Portail de la Loge [portail]": [
+            "Frère Jacques D'Equerre (PNJ) — Grand Maître",
+            "Frère Maurice Compas (PNJ) — Trésorier"
+          ]
+        },
+        "Office Notarial — Maître Dubois & Associés [office-notarial]": {
+          "Accueil [accueil_notaire]": [
+            "Alain Dex (PNJ) — Secrétaire",
+            "Claire Delhune (PNJ) — Clerc de notaire"
+          ],
+          "Archives Notariales [archives_notariales]": [
+            "Archiviste Notarial (PNJ) — PNJ - Gardien des Archives"
+          ],
+          "Bureau des Contrats [bureau_contrats]": [
+            "Notaire Fontenelle (PNJ) — Notaire Officiel"
+          ],
+          "Bureau des Successions [bureau_successions]": [
+            "Claire Delhune (PNJ) — Clerc de notaire"
+          ]
+        },
+        "Palais de l'Elysee de Republia [palais-presidentiel]": {
+          "Bureau du President [bureau_president]": [
+            "Le Président (PNJ) — PNJ - Président de la République"
+          ]
+        },
+        "Quartier des Ambassades [quartier-ambassades]": {
+          "Accueil du Quartier des Ambassades [accueil_ambassades]": [
+            "Agent de Sécurité (PNJ) — PNJ - Sécurité",
+            "Hôtesse d'Accueil (PNJ) — PNJ - Accueil"
+          ],
+          "Ambassade d'Al-Khalija [bureau_al_khalija]": [
+            "Mohamed Al-Mansoori (PNJ) — Ambassadeur d'Al-Khalija"
+          ],
+          "Ambassade d'El Estado [bureau_el_estado]": [
+            "Guillermo Vasquez (PNJ) — Ambassadeur d'El Estado"
+          ],
+          "Ambassade de Sovarka [bureau_sovarka]": [
+            "Valery Antonov (PNJ) — Ambassadeur de Sovarka"
+          ]
+        },
+        "Tribunal de Luthecia [tribunal]": {
+          "Greffe [greffe]": [
+            "Greffier Petit — PNJ - Greffe"
+          ],
+          "Salle d'audience [salle_audience]": [
+            "Honoré Cozetoujours (PNJ) — Président du Tribunal",
+            "Maître Plaidoyer (PNJ) — Avocat commis d'office",
+            "Procureur Saad — Procureur de la République"
+          ]
+        },
+        "Université de Luthecia [universite]": {
+          "Amphitheatre [amphi]": [
+            "Assistante Mémoire (PNJ) — Assistante",
+            "Professeur Charabia (PNJ) — Doyen"
+          ]
+        },
+        "Usine Pharmaceutique Impériale de Républia [usine-pharmaceutique-luthecia]": {
+          "Bureau de Direction [bureau_direction]": [
+            "Bernard Piluler (PNJ) — Directeur de l'Usine Pharmaceutique"
+          ]
+        }
+      },
+      "Montrouge": {
+        "Banque Cheminote de Montrouge [banque-locale]": {
+          "Bureau du Directeur [bureau_directeur]": [
+            "Robert Pelisson (PNJ) — Directeur de la Banque Cheminote de Montrouge"
+          ],
+          "Guichet [guichet]": [
+            "Guichetier (PNJ) — Employe bancaire"
+          ]
+        },
+        "Banque Ouvrière de Montrouge [banque-nationale]": {
+          "Accueil [accueil_banque]": [
+            "Hubert Billet (PNJ) — Directeur"
+          ]
+        },
+        "Centre artisanal de Montrouge [centre-artisanal]": {
+          "Travées [travees]": [
+            "Bruno Ducoron — Sécurité",
+            "Gilles Bielle — Mécanicien",
+            "Jojo Laferraille — Dealer"
+          ]
+        },
+        "Centre commercial de Montrouge [centre-commercial]": {
+          "Hall d'Entrée [hall]": [
+            "Bastien Jacquemont (PNJ) — Agent de sécurité privée"
+          ]
+        },
+        "Centre d'affaires de Montrouge [centre-affaires]": {
+          "Hall d'Entrée [hall]": [
+            "Jeanne Terril (PNJ) — Hôtesse d'accueil"
+          ],
+          "La Tribune de Republia — Antenne Locale [tribune_republia]": [
+            "Arthur Lutte (PNJ) — Journaliste — correspondant de La Tribune de Républia"
+          ]
+        },
+        "Commissariat de Montrouge [commissariat-local]": {
+          "Accueil [accueil_loc]": [
+            "Brigadier Local (PNJ) — Officier de garde"
+          ],
+          "Bureau du Commissaire [bureau_commissaire]": [
+            "Gabriel Pelletier (PNJ) — Commissaire adjoint — référent police"
+          ]
+        },
+        "Commissariat de Montrouge [commissariat]": {
+          "Accueil [accueil_police]": [
+            "Commissaire Charbon (PNJ) — Commissaire local"
+          ]
+        },
+        "Dispensaire de Montrouge [dispensaire-public]": {
+          "Salle d'attente [salle_attente]": [
+            "Docteur Silicose (PNJ) — Médecin du travail"
+          ]
+        },
+        "Église Progressiste de Montrouge [eglise-montrouge]": {
+          "Nef [salle]": [
+            "Abbé Tonnière (PNJ) — Prêtre de Montrouge"
+          ]
+        },
+        "Entrepôt logistique de Montrouge [entrepot-logistique-montrouge]": {
+          "Bureau de Direction [bureau_direction]": [
+            "Norbert Charton (PNJ) — Directeur de l'Entrepôt Logistique"
+          ]
+        },
+        "Gare de Montrouge [centre-multinodal-montrouge]": {
+          "Hall de la Gare [hall_gare_montrouge]": [
+            "Chef de Gare Syndiqué (PNJ) — Chef de gare",
+            "Délégué Syndical (PNJ) — Délégué permanent"
+          ]
+        },
+        "Hôpital de Montrouge [dispensaire-public-v]": {
+          "Salle d'attente [attente]": [
+            "Agnès Thésie (PNJ) — Infirmière"
+          ]
+        },
+        "Hôtel de Ville de Montrouge [mairie]": {
+          "Accueil [accueil_mairie]": [
+            "Secretaire Municipal — PNJ - Administration"
+          ],
+          "Bureau du Maire [bureau_maire_local]": [
+            "Le Maire (PNJ) — Maire de la ville"
+          ],
+          "Salle des Archives [salle_archives]": [
+            "Archiviste Municipal (PNJ) — PNJ - Archives"
+          ],
+          "Salle des Élections [salle_elections]": [
+            "Patricia Vapeur (PNJ) — Responsable électorale de Montrouge"
+          ]
+        },
+        "Hôtel des Mineurs [hotel-republica]": {
+          "Accueil [accueil]": [
+            "Fernand Poussière (PNJ) — Gérant"
+          ]
+        },
+        "Jardins ouvriers [jardins-ouvriers-montrouge]": {
+          "Parcelles [salle]": [
+            "Marcel Demine (PNJ) — Cheminot retraité, jardinier"
+          ]
+        },
+        "Le Cheminot Informé (LCI) [la-tribune]": {
+          "Accueil [accueil_tribune]": [
+            "Rédacteur Calame (PNJ) — Rédacteur en chef"
+          ]
+        },
+        "Loge maçonnique de Montrouge [loge-maconnique]": {
+          "Bureau du Venerable Maitre [bureau_venerable]": [
+            "Vénérable Maître Augustin Grisou — PNJ - Chef de la Loge"
+          ],
+          "Hall d'accueil [hall_loge]": [
+            "Frère Lampiste — PNJ - Membre de la Loge"
+          ],
+          "Portail de la Loge [portail]": [
+            "Le Portier — PNJ - Gardien de la Loge"
+          ]
+        },
+        "Marché de Montrouge [marche]": {
+          "Etals du marche [marche_ext]": [
+            "Josette Betterave (PNJ) — Marchande"
+          ]
+        },
+        "Raffinerie de Montrouge [raffinerie-montrouge]": {
+          "Bureau de Direction [bureau_direction]": [
+            "Gustave Baril (PNJ) — Directeur de la Raffinerie"
+          ]
+        },
+        "Services Sociaux de Montrouge [services-sociaux-montrouge]": {
+          "Bureau de l’assistante sociale [bureau_assistante_sociale]": [
+            "Edwige Jacquard (PNJ) — Assistante sociale"
+          ]
+        },
+        "Siege Syndical [siege-syndical]": {
+          "Bureau syndical [bureau_syndical]": [
+            "Delegue Morel (PNJ) — Secretaire general du syndicat"
+          ]
+        },
+        "Stade Marcel Cazenave [stade]": {
+          "Buvette [buvette]": [
+            "Tenancier de Buvette (PNJ) — PNJ - Buvette"
+          ],
+          "Guichet de Paris [guichet_paris]": [
+            "Bookmaker Officiel (PNJ) — PNJ - Paris Sportifs"
+          ],
+          "Siège des Supporters — Union Cheminote de Montrouge [siege_supporters]": [
+            "Lucas Ténaire (PNJ) — Chef des Supporters — Cheminot syndicaliste"
+          ]
+        },
+        "Tribunal Municipal [tribunal-local]": {
+          "Salle d'audience [salle_audience_locale]": [
+            "Maître Henri Nossant (PNJ) — Avocat commis d'office"
+          ]
+        },
+        "Usine Principale [usine-principale]": {
+          "Direction [direction_usine]": [
+            "Directeur Fabre (PNJ) — Directeur usine"
+          ]
+        }
+      },
+      "Port-Sainte-Marie": {
+        "Banque Locale de Port-Sainte-Marie [banque-nationale]": {
+          "Accueil [accueil_banque]": [
+            "Gérard Liasse (PNJ) — Directeur local"
+          ]
+        },
+        "Banque Locale [banque-locale]": {
+          "Guichet [guichet]": [
+            "Guichetier (PNJ) — Employe bancaire"
+          ]
+        },
+        "Centre Artisanal [centre-artisanal]": {
+          "Travées [travees]": [
+            "Erwan Kerdan — Mécanicien",
+            "Maël Strom — Sécurité",
+            "Ronan Lafourgue — Dealer"
+          ]
+        },
+        "Centre Commercial [centre-commercial]": {
+          "Hall d'Entrée [hall]": [
+            "Cédric Legoff (PNJ) — Agent de sécurité privée"
+          ]
+        },
+        "Centre d'Affaires [centre-affaires]": {
+          "Hall d'Entrée [hall]": [
+            "Edith Legall (PNJ) — Hôtesse d'accueil"
+          ],
+          "La Tribune de Republia — Antenne Locale [tribune_republia]": [
+            "Annie Houininon (PNJ) — Journaliste — correspondant de La Tribune de Républia"
+          ]
+        },
+        "Centre Multinodal de Port-Sainte-Marie [centre-multinodal-port-sainte-marie]": {
+          "Hall de la Gare [hall_gare_psm]": [
+            "Chef de Gare Local (PNJ) — Chef de gare"
+          ]
+        },
+        "Commissariat de Port-Sainte-Marie [commissariat]": {
+          "Accueil [accueil_police]": [
+            "Inspecteur Morue (PNJ) — Inspecteur local"
+          ]
+        },
+        "Dispensaire de Port-Sainte-Marie [dispensaire-public]": {
+          "Salle d'attente [salle_attente]": [
+            "Docteur Iodé (PNJ) — Médecin itinérant"
+          ]
+        },
+        "Dispensaire Public [dispensaire-public-v]": {
+          "Salle d'attente [attente]": [
+            "Betty Dine (PNJ) — Infirmière"
+          ]
+        },
+        "Entrepôt Logistique de Sainte-Marie [entrepot-logistique-psm]": {
+          "Bureau de Direction [bureau_direction]": [
+            "Yvon Paletier (PNJ) — Directeur de l'Entrepôt Logistique"
+          ]
+        },
+        "Hôtel de Ville de Port-Sainte-Marie [mairie]": {
+          "Accueil [accueil_mairie]": [
+            "Secretaire Municipal — PNJ - Administration"
+          ],
+          "Bureau du Maire [bureau_maire_local]": [
+            "Le Maire (PNJ) — Maire de la ville"
+          ],
+          "Salle des Élections [salle_elections]": [
+            "Loïc Legall (PNJ) — Responsable électoral de Port-Sainte-Marie"
+          ]
+        },
+        "Hôtel du Port [hotel-republica]": {
+          "Accueil [accueil]": [
+            "Raymond Ancre (PNJ) — Gérant"
+          ]
+        },
+        "Imprimerie-Librairie Gutenberg [la-tribune]": {
+          "Accueil [accueil_tribune]": [
+            "Gustave Encre (PNJ) — Imprimeur"
+          ],
+          "Redaction [redaction]": [
+            "Marie Leblanc — Journaliste d'investigation",
+            "Romain Castel — PNJ - Redacteur en chef"
+          ]
+        },
+        "Imprimerie-Librairie Gutenberg [imprimerie-librairie]": {
+          "Atelier d'Imprimerie [atelier]": [
+            "Ouvrier typographe (PNJ) — PNJ - Typographe"
+          ]
+        },
+        "Notre-Dame de la Mer & Cimetière Marin [notre-dame-mer]": {
+          "Nef [nef]": [
+            "Père Iscope (PNJ) — Prêtre de Port-Sainte-Marie"
+          ]
+        },
+        "Pôle Tabac & Alcools Sainte-Mariannaise [pole-tabac-alcools-psm]": {
+          "Bureau de Direction [bureau_direction]": [
+            "Fernand Cendrier (PNJ) — Directeur du Pôle Tabac & Alcools"
+          ]
+        },
+        "Port Industriel de Port-Sainte-Marie [port-sainte-marie]": {
+          "Bureau Syndical des Dockers [bureau_syndical_dockers]": [
+            "Dédé le Docker (PNJ) — Docker syndiqué"
+          ],
+          "Quai Principal [quai_principal]": [
+            "Alain Bordage (PNJ) — Employé de la compagnie maritime"
+          ]
+        },
+        "Stade de La Brise Mariannaise [stade]": {
+          "Buvette et Magasin — La Brise Mariannaise [buvette]": [
+            "Tenancier de Buvette (PNJ) — PNJ - Buvette"
+          ],
+          "Guichet des Paris — La Brise Mariannaise [guichet_paris]": [
+            "Bookmaker Officiel (PNJ) — PNJ - Paris Sportifs"
+          ],
+          "Siège des Supporters — La Brise Mariannaise [siege_supporters]": [
+            "Pascal Hamar (PNJ) — Chef des Supporters — Négociant en poisson"
+          ]
+        },
+        "Tribunal Municipal [tribunal-local]": {
+          "Salle d'audience [salle_audience_locale]": [
+            "Maître Ali Bihanbéton (PNJ) — Avocat commis d'office"
+          ]
+        }
+      },
+      "Quartier Haute Securite": {
+        "Quartier Haute Securite [qhs-prison]": {
+          "Cellules [cellules_qhs]": [
+            "Jean Terre (PNJ) — PNJ - Gardien de couloir",
+            "Patrick Coule (PNJ) — PNJ - Gardien de couloir"
+          ],
+          "Entree Securisee [entree_qhs]": [
+            "Dominique Cruel (PNJ) — PNJ - Directeur du QHS",
+            "Philippe Cognedur (PNJ) — PNJ - Gardien Chef"
+          ]
+        }
+      }
+    },
+    "Sovarka": {
+      "Garnison du Peuple": {
+        "Caserne Militaire de Republia [caserne-militaire]": {
+          "Armurerie Militaire [armurerie_militaire]": [
+            "Armurier Militaire (PNJ) — PNJ - Sergent armurier"
+          ],
+          "Corps de Garde [corps_garde]": [
+            "Adjudant Piotr Antipov (PNJ) — PNJ - Aide de camp"
+          ],
+          "Infirmerie [infirmerie]": [
+            "Infirmière Olga Komarova (PNJ) — PNJ - Infirmière militaire"
+          ],
+          "Quartier des Troupes [quartier_troupes]": [
+            "Caporal Dimitri Loguinov (PNJ) — PNJ - Soldat",
+            "Soldat Sacha Iline (PNJ) — PNJ - Soldat"
+          ],
+          "Réfectoire [refectoire]": [
+            "Caporal Vassili Kachaev — Cuisinier de compagnie"
+          ],
+          "Salle de Commandement [salle_commandement]": [
+            "Commandant Igor Saveliev — PNJ - Commandant de la Caserne"
+          ],
+          "Salle des Faits d'Armes [salle_faits_armes]": [
+            "Archiviste Militaire (PNJ) — PNJ - Gardien de la memoire"
+          ]
+        }
+      },
+      "Krasnov": {
+        "Banque Locale [banque-locale]": {
+          "Guichet [guichet]": [
+            "Guichetier (PNJ) — Employe bancaire"
+          ]
+        },
+        "Centre d'affaires de Krasnov [centre-affaires]": {
+          "La Voix de Sovarka — Antenne de Krasnov [tribune_republia]": [
+            "Anatoli Kolosov (PNJ) — Journaliste — correspondant de La Voix de Sovarka"
+          ]
+        },
+        "Musée de Krasnov [musee-novomirsk]": {
+          "Accueil du musée de Krasnov [hall]": [
+            "Directeur du musée de Krasnov (PNJ) — Directeur du musée"
+          ]
+        }
+      },
+      "Novomirsk": {
+        "Caisse Collective Spéciale [banque-privee]": {
+          "Bureau prive [bureau_prive]": [
+            "Camarade Privilège (PNJ) — Directeur"
+          ]
+        },
+        "Caisse d'État de Stalinova [banque-nationale]": {
+          "Accueil [accueil_banque]": [
+            "Caissier Méticuleux (PNJ) — Caissier"
+          ]
+        },
+        "Caserne centrale de Novomirsk [caserne-militaire]": {
+          "Salle des Faits d'Armes [salle_faits_armes]": [
+            "Archiviste Militaire (PNJ) — PNJ - Gardien de la memoire"
+          ]
+        },
+        "Centre artisanal de Novomirsk [centre-artisanal]": {
+          "Accueil du centre artisanal [travees]": [
+            "Genrikh Vlassov — Sécurité",
+            "Kolia Titov — Dealer",
+            "Sava Goussev — Mécanicien"
+          ]
+        },
+        "Centre d'affaires de Novomirsk [centre-affaires]": {
+          "La Tribune de Republia — Antenne Locale [tribune_republia]": [
+            "Correspondant Local (PNJ) — PNJ - Journaliste"
+          ]
+        },
+        "Commissariat du Peuple [commissariat]": {
+          "Cellules de garde a vue [prison]": [
+            "Timofeï Fomine (PNJ) — Detenu"
+          ]
+        },
+        "Direction du Renseignement de Sovarka [siege-renseignement]": {
+          "Accueil [accueil_renseignement]": [
+            "Elena Diamentevia (PNJ) — Agente d’accueil de la Direction du Renseignement",
+            "Sergent Viktor Muetov (PNJ) — Planton de la Direction du Renseignement"
+          ]
+        },
+        "Entrepôt Logistique de Novomirsk [entrepot-logistique-novomirsk]": {
+          "Bureau de Direction [bureau_direction]": [
+            "Boris Stockov (PNJ) — Directeur de l'Entrepôt Logistique"
+          ]
+        },
+        "Garage de Novomirsk [garage-novomirsk]": {
+          "Atelier [atelier_garage]": [
+            "Sergueï Zaptchastov (PNJ) — Garagiste"
+          ]
+        },
+        "Hall Principal [centre-multinodal-luthecia]": {
+          "Hall des Douanes [hall_douanes]": [
+            "Inspecteur Prokhor Rybakov (PNJ) — Inspecteur des douanes"
+          ],
+          "Hall Principal [hall_gare]": [
+            "Agente Nadejda (PNJ) — Agente de contrôle",
+            "Camarade Horaire (PNJ) — Chef de gare"
+          ]
+        },
+        "La Voix de Sovarka [la-tribune]": {
+          "Accueil [accueil_tribune]": [
+            "Vera Pravdina (PNJ) — Journaliste de La Voix de Sovarka"
+          ],
+          "Redaction [redaction]": [
+            "Rostislav Censurov — PNJ - Redacteur en chef"
+          ]
+        },
+        "Mairie de Novomirsk [mairie-capitale]": {
+          "Bureau du Maire [bureau_maire]": [
+            "Le Maire de Novomirsk (PNJ) — Maire de la Capitale"
+          ],
+          "Hall d'accueil [hall_mairie]": [
+            "Le Maire (PNJ) — Maire de Novomirsk",
+            "Secrétaire municipal Arseni Krylov — PNJ - Secretariat general"
+          ]
+        },
+        "Palais des Ambassades [palais-ambassades-novomirsk]": {
+          "Ambassade d'Al-Khalija [bureau_khalija_novomirsk]": [
+            "Cheikh Rachid Al-Diplomi (PNJ) — Ambassadeur d'Al-Khalija"
+          ],
+          "Ambassade d'El Estado [bureau_estado_novomirsk]": [
+            "Don Esteban Cortesano (PNJ) — Ambassadeur d'El Estado"
+          ],
+          "Ambassade de Républia [bureau_republia_novomirsk]": [
+            "Hubert de La Courtoisie (PNJ) — Ambassadeur de Républia"
+          ]
+        },
+        "Palais du Gouvernement de Sovarka [palais-gouvernement]": {
+          "Bureau - Ministre de l'Amitié entre les Peuples [bureau_min_ae]": [
+            "Evgueni Gromov (PNJ) — PNJ - Ministre de l'Amitié entre les Peuples"
+          ],
+          "Bureau - Ministre de l'Économie collective [bureau_min_fin]": [
+            "Stanislav Roublov (PNJ) — PNJ - Ministre de l'Économie collective"
+          ],
+          "Bureau - Ministre de la Défense de la Patrie [bureau_min_def]": [
+            "Rodion Tankov (PNJ) — PNJ - Ministre de la Défense de la Patrie"
+          ],
+          "Bureau - Ministre de la Justice prolétarienne [bureau_min_just]": [
+            "Galina Sergueïeva (PNJ) — PNJ - Ministre de la Justice prolétarienne"
+          ],
+          "Bureau - Ministre de la Sécurité du Peuple [bureau_min_int]": [
+            "Gleb Nikitine (PNJ) — PNJ - Ministre de la Sécurité du Peuple"
+          ],
+          "Bureau - Ministre de la Vérité officielle [bureau_min_info]": [
+            "Zinaïda Propagandova (PNJ) — PNJ - Ministre de la Vérité officielle"
+          ],
+          "Bureau du Président du Conseil du Peuple [bureaux]": [
+            "Oleg Morozov (PNJ) — PNJ - Chef de cabinet du Président du Conseil du Peuple"
+          ],
+          "Hall d'entree [hall]": [
+            "Secrétaire Tamara Volkova — PNJ - Accueil officiel"
+          ],
+          "Salle de Presse [salle_presse]": [
+            "Journalistes accrédités (PNJ) — PNJ - Presse nationale accréditée",
+            "Raïssa Communiqueva (PNJ) — PNJ - Porte-parole du Conseil du Peuple"
+          ]
+        },
+        "Palais présidentiel [palais-presidentiel]": {
+          "Bureau du President [bureau_president]": [
+            "Le Président (PNJ) — PNJ - Président de Sovarka",
+            "Nadejda Lebedeva (PNJ) — PNJ - Secretaire general de la presidence"
+          ],
+          "Salle de Presse [salle_presse_elysee]": [
+            "Porte-parole presidentiel (PNJ) — PNJ - Porte-parole de la presidence"
+          ],
+          "Salle de restaurant [salle_reception]": [
+            "Anatoli Sokolov (PNJ) — PNJ - Chef du protocole presidentiel"
+          ]
+        },
+        "Stade du Dynamo de Novomirsk [stade]": {
+          "Buvette des tribunes [buvette]": [
+            "Tenancier de Buvette (PNJ) — PNJ - Buvette"
+          ],
+          "Club des supporters du Dynamo [siege_supporters]": [
+            "Meneur des Supporters (PNJ) — PNJ - Chef de Tribune"
+          ],
+          "Terrain — Dynamo de Novomirsk [terrain]": [
+            "Entraineur Local (PNJ) — PNJ - Entraineur"
+          ]
+        },
+        "Tribunal Populaire [tribunal]": {
+          "Salle d'audience [salle_audience]": [
+            "Camarade Juge Pravdine (PNJ) — Juge Populaire"
+          ]
+        },
+        "Université du Parti [universite]": {
+          "Amphitheatre [amphi]": [
+            "Assistante Propagande (PNJ) — Assistante",
+            "Professeur Dialectique (PNJ) — Doyen"
+          ]
+        },
+        "Usine pharmaceutique Pharmanov [usine-pharmaceutique-luthecia]": {
+          "Bureau de Direction [bureau_direction]": [
+            "Boris Kovaliov (PNJ) — Directeur de l'usine Pharmanov"
+          ]
+        }
+      },
+      "Starovka": {
+        "Banque Locale [banque-locale]": {
+          "Guichet [guichet]": [
+            "Guichetier (PNJ) — Employe bancaire"
+          ]
+        },
+        "Centre Commercial [centre-commercial]": {
+          "Hall d'Entrée [hall]": [
+            "Altan Namsaraïev — Magicien saltimbanque",
+            "Tuya Sanjieva — Voleuse"
+          ]
+        },
+        "Centre d'affaires de Starovka [centre-affaires]": {
+          "La Tribune de Republia — Antenne Locale [tribune_republia]": [
+            "Correspondant Local (PNJ) — PNJ - Journaliste"
+          ]
+        }
+      }
+    }
+  }
+}
