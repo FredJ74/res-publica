@@ -1,4 +1,6 @@
-# Contrôle général : six échecs préexistants sur main
+# Historique — six échecs préexistants sur main
+
+**Actualisation : ces six échecs sont corrigés par Claude sur main a0aba273 ; CI générale 45250421305 verte. Les deux branches sont rebasées sans conflit et leurs contrôles sont relancés. Le relevé ci-dessous conserve le diagnostic initial sur 14d0716e.**
 
 Témoin distant **main 14d0716e**, exécution **45222382938** : **449/455 bancs réussis, six échecs** (étape « Bancs JavaScript, transports simulés »). Les premiers blocages sur d0f0e127 ont été corrigés par Claude ; le présent relevé remplace ce diagnostic initial.
 
