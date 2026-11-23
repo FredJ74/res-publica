@@ -4734,7 +4734,7 @@ export const SCENES_PNJ = {
     "batiment": "Mairie de Novomirsk",
     "piece": "Salle des Archives",
     "personnes": [
-      "Kirill Poliakov"
+      "Archiviste municipale"
     ]
   },
   "[\"soviet\",\"capitale\",\"mairie-capitale\",\"salle_partis\"]": {

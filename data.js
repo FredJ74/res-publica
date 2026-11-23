@@ -11105,7 +11105,9 @@ const PNJ_SOVARKA = {
     'Le Maire (PNJ)': ['Le Maire (PNJ)', 'Maire de Novomirsk'],
     'Le Maire de Luthecia (PNJ)': 'Le Maire de Novomirsk (PNJ)',
     'Jean Registre (PNJ)': ['Ivan Tarassov (PNJ)', 'Responsable électoral de Novomirsk'],
-    'Christophe Bouquin (PNJ)': 'Kirill Poliakov (PNJ)',
+    // Point 42 (Fred, 23/11/2026, « le PNJ suit l'image ») : l'archiviste du décor est une femme brune à lunettes ;
+    // libellé de fonction en attendant le choix d'un prénom (propositions dans RELAIS.md). Ancien nom : Kirill Poliakov.
+    'Christophe Bouquin (PNJ)': ['Archiviste municipale (PNJ)', 'Archiviste municipale'],
     'Inspecteur Prosper Tampon (PNJ)': 'Inspecteur Prokhor Rybakov (PNJ)',
     'Francisca Brel': 'Ksenia Makarova',
     'Edgar Simore': 'Arkhip Voronine',
@@ -13263,5 +13265,82 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
         ro.orders = (ro.orders || []).concat(herites.map(o => Object.assign({}, o, { desc: o.desc.replace(/\ben-cas\b/g, 'zakouski') })));
       }
     }
+  }
+})();
+
+// PORTRAITS_PNJ_NOVOMIRSK_20261123 (mission Novomirsk de Fred, 23/11/2026, bloc 7, points 41 à 43)
+// Portraits recadrés dans l'image de la pièce du PNJ (point 41) ou découpés dans les planches de portraits
+// (point 43, cases planche<N>-case<M>). Seule Novomirsk change : la liste effective de la pièce est copiée dans
+// roomOverrides de la capitale ; le gabarit partagé (BUILDINGS), la Garnison du Peuple et les autres empires
+// restent intacts. Aucun nom, rôle ni ordre modifié ici (seul renommage : l'archiviste municipale, dans PNJ_SOVARKA).
+// Relevé et cadres : outils/audits/portraits/portraits-pnj-novomirsk-20261123.json.
+(function () {
+  const D = 'images/Sovarka/Novomirsk/';
+  const portraits = [
+    ['dispensaire-public', 'ehpad_tilleuls', 'Antonina Doubrova (PNJ)', 'novo-antonina-doubrova-portrait.webp'],
+    ['dispensaire-public', 'ehpad_tilleuls', 'Matveï Tcherkassov (PNJ)', 'novo-matvei-tcherkassov-portrait.webp'],
+    ['dispensaire-public', 'ehpad_tilleuls', 'Nikolaï Zakharov (PNJ)', 'novo-nikolai-zakharov-portrait.webp'],
+    ['dispensaire-public', 'ehpad_tilleuls', 'Evgueni Sudakov (PNJ)', 'novo-evgueni-sudakov-portrait.webp'],
+    ['dispensaire-public', 'salle_attente', 'Infirmière de Novomirsk (PNJ)', 'novo-infirmiere-hopital-portrait.webp'],
+    ['dispensaire-public', 'salle_attente', 'Médecin de garde de Novomirsk (PNJ)', 'novo-medecin-de-garde-portrait.webp'],
+    ['palais-ambassades-novomirsk', 'accueil_ambassades_novomirsk', "Hôtesse d'Accueil (PNJ)", 'novo-hotesse-ambassades-portrait.webp'],
+    ['palais-ambassades-novomirsk', 'accueil_ambassades_novomirsk', 'Agent de Sécurité (PNJ)', 'novo-agent-securite-ambassades-portrait.webp'],
+    ['caserne-militaire', 'quartier_troupes', 'Caporal Dimitri Loguinov (PNJ)', 'novo-dimitri-loguinov-portrait.webp'],
+    ['caserne-militaire', 'quartier_troupes', 'Soldat Sacha Iline (PNJ)', 'planche4-case1.webp'],
+    ['caserne-militaire', 'corps_garde', 'Adjudant Piotr Antipov (PNJ)', 'novo-piotr-antipov-portrait.webp'],
+    ['caserne-militaire', 'infirmerie', 'Infirmière Olga Komarova (PNJ)', 'novo-olga-komarova-portrait.webp'],
+    ['caserne-militaire', 'salle_commandement', 'Commandant Igor Saveliev', 'novo-igor-saveliev-portrait.webp'],
+    ['caserne-militaire', 'armurerie_militaire', 'Armurier Militaire (PNJ)', 'novo-armurier-militaire-portrait.webp'],
+    ['caserne-militaire', 'refectoire', 'Caporal Vassili Kachaev', 'novo-vassili-kachaev-portrait.webp'],
+    ['salon-coiffure-novomirsk', 'salon_coiffure', 'Ludmila Egorova (PNJ)', 'novo-ludmila-egorova-portrait.webp'],
+    ['mairie-capitale', 'hall_mairie', 'Hotesse Objets Trouves (PNJ)', 'novo-hotesse-objets-trouves-portrait.webp'],
+    ['mairie-capitale', 'salle_archives', 'Archiviste municipale (PNJ)', 'novo-archiviste-municipale-portrait.webp'],
+    ['mairie-capitale', 'salle_elections', 'Ivan Tarassov (PNJ)', 'novo-ivan-tarassov-portrait.webp'],
+    ['palais-presidentiel', 'accueil_elysee', 'Konstantin Lvovitch Orlov (PNJ)', 'novo-konstantin-orlov-portrait.webp'],
+    ['palais-gouvernement', 'archives_gouv', 'Archiviste Foma Beliaïev (PNJ)', 'novo-foma-beliaiev-portrait.webp'],
+    ['palais-gouvernement', 'hall', 'Garde du Peuple (PNJ)', 'planche4-case7.webp'],
+    ['tribunal', 'greffe', 'Greffier Semion Golovine', 'novo-semion-golovine-portrait.webp'],
+    ['clinique-privee', 'reception_clinique', 'Docteur Stakhanov (PNJ)', 'novo-docteur-stakhanov-portrait.webp'],
+    ['commissariat', 'prison', 'Gardien Stepan Kalinine', 'planche4-case6.webp'],
+    ['armurerie', 'magasin', 'Camarade Kalachnikov (PNJ)', 'novo-camarade-kalachnikov-portrait.webp'],
+    ['marche', 'marche_ext', 'Distributeur Équitable (PNJ)', 'novo-distributeur-equitable-portrait.webp'],
+    ['centre-affaires', 'hall', 'Valery Burov (PNJ)', 'novo-valery-burov-portrait.webp'],
+    ['centre-affaires', 'hall', 'Pietr Kastanov (PNJ)', 'novo-pietr-kastanov-portrait.webp'],
+    ['stade', 'terrain', 'Commentateur Sportif (PNJ)', 'planche3-case7.webp'],
+    ['stade', 'vestiaires', 'Entraineur Adjoint du Dynamo (PNJ)', 'novo-entraineur-adjoint-dynamo-portrait.webp'],
+    ['stade', 'guichet_paris', 'Bookmaker Officiel (PNJ)', 'novo-bookmaker-officiel-portrait.webp'],
+    ['stade', 'boutique', 'Vendeuse du Dynamo (PNJ)', 'novo-vendeuse-dynamo-portrait.webp'],
+    ['imprimerie-librairie', 'atelier', 'Ouvrier typographe (PNJ)', 'Novo_typographe_portrait.webp'],
+    ['pharmacie-officielle-novomirsk', 'comptoir_pharmacie', 'Valentina Pilioulkina (PNJ)', 'novo-valentina-pilioulkina-portrait.webp'],
+    ['poissonniere-novomirsk', 'etal_poissonniere', 'Galina Karpova (PNJ)', 'novo-galina-karpova-portrait.webp'],
+    ['loge-maconnique', 'portail', 'Camarade Grand Maître (PNJ)', 'planche5-case1.webp'],
+    ['loge-maconnique', 'hall_loge', 'Frere Gardien', 'planche5-case2.webp'],
+    ['loge-maconnique', 'bureau_venerable', 'Vénérable Maître Dimitri Compassov', 'planche5-case4.webp'],
+    ['kolkhoze-spirituel', 'grange_sainte', 'Camarade Pontife Tractorenko (PNJ)', 'planche5-case6.webp'],
+    ['kolkhoze-spirituel', 'grange_sainte', 'Frère Kolkhoze (PNJ)', 'planche5-case7.webp'],
+    ['la-tribune', 'redaction', 'Macha Scoopova', 'planche6-case1.webp'],
+  ];
+  const cite = WORLD.soviet.capitale;
+  cite.buildingContext = cite.buildingContext || {};
+  for (const [batiment, piece, nom, fichier] of portraits) {
+    const b = BUILDINGS[batiment];
+    if (!b || !(cite.buildings || []).includes(batiment)) throw new Error('Portrait Novomirsk : bâtiment absent ' + batiment);
+    const ctx = cite.buildingContext[batiment] = cite.buildingContext[batiment] || {};
+    const ro = ctx.roomOverrides && ctx.roomOverrides[piece];
+    const extra = ctx.roomsExtra && ctx.roomsExtra[piece];
+    const premiere = Object.keys(b.rooms || {})[0] === piece;
+    const liste = (ro && ro.personsVides) ? []
+      : (ro && ro.persons && ro.persons.length) ? ro.persons
+      : (premiere && ctx.persons && ctx.persons.length) ? ctx.persons
+      : ((b.rooms && b.rooms[piece]) || extra || {}).persons || [];
+    if (!liste.some(p => p.name === nom)) throw new Error('Portrait Novomirsk : PNJ absent ' + nom + ' (' + batiment + '/' + piece + ') parmi ' + liste.map(p => p.name).join(', '));
+    const copie = liste.map(p => p.name === nom ? Object.assign({}, p, { photoUrl: D + fichier, photoPos: '50% 30%' }) : Object.assign({}, p));
+    if (!(ro && ro.persons && ro.persons.length) && extra && extra.persons === liste) {
+      ctx.roomsExtra = Object.assign({}, ctx.roomsExtra);
+      ctx.roomsExtra[piece] = Object.assign({}, extra, { persons: copie });
+      continue;
+    }
+    ctx.roomOverrides = Object.assign({}, ctx.roomOverrides);
+    ctx.roomOverrides[piece] = Object.assign({}, ro || {}, { persons: copie });
   }
 })();

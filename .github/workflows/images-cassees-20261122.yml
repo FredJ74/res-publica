@@ -17,6 +17,8 @@ jobs:
       - run: npm ci --prefix outils/vercel
       - name: Références réelles et contre-épreuves de fichier absent
         run: node --test outils/bancs/banc-images-references-20261122.cjs
+      - name: Portraits de PNJ raccordés et relevé des PNJ sans portrait (mission Novomirsk, point 40)
+        run: node outils/bancs/banc-pnj-sans-portrait-20261123.cjs
       - name: Collecte de base sans écriture ni connexion implicite
         run: python3 outils/bancs/test-images-base-lecture-seule-20261122.py
       - name: Navigateur Chromium

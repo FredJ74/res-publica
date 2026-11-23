@@ -1,0 +1,1236 @@
+{
+ "genere_par": "mission Novomirsk du 23/11/2026, bloc 7 (Claude)",
+ "regle_taille": "carré ; 512 px si le cadre source fait au moins 512 px, sinon côté du cadre (256 au minimum, agrandi)",
+ "portraits": [
+  {
+   "fichier": "images/Sovarka/Novomirsk/novo-vassili-sukhoi-portrait.webp",
+   "pnj": "Vassili Sukhoï (actuel « Camarade Horaire »), chef de gare",
+   "source": "fourni : Le chef de gare et l’heure des trains.png",
+   "cadre_x_y_largeur_hauteur": [
+    355,
+    300,
+    460,
+    460
+   ],
+   "sexe_age_apparents": "homme, ~60 ans",
+   "raccorde": false,
+   "remarque": "à raccorder par Fred"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/novo-gare-hall-chef-de-gare.webp",
+   "pnj": "Illustration du hall de la gare (chef de gare)",
+   "source": "fourni : Le chef de gare et l’heure des trains.png",
+   "cadre_x_y_largeur_hauteur": "image entière",
+   "sexe_age_apparents": "-",
+   "raccorde": false,
+   "remarque": "image entière"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/novo-lioudmila-proverkina-portrait.webp",
+   "pnj": "Lioudmila Proverkina (actuelle « Agente Nadejda »), agente de contrôle",
+   "source": "fourni : Contrôle douanier sous la neige.png",
+   "cadre_x_y_largeur_hauteur": [
+    1165,
+    330,
+    440,
+    440
+   ],
+   "sexe_age_apparents": "femme, ~45 ans",
+   "raccorde": false,
+   "remarque": "à raccorder par Fred"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/novo-prokhor-rybakov-portrait.webp",
+   "pnj": "Inspecteur Prokhor Rybakov",
+   "source": "fourni : Contrôle douanier sous la neige.png",
+   "cadre_x_y_largeur_hauteur": [
+    1035,
+    420,
+    200,
+    200
+   ],
+   "sexe_age_apparents": "homme, ~35-40 ans (visage baissé sous la visière)",
+   "raccorde": false,
+   "remarque": "à raccorder par Fred ; cadre source 200 px, agrandi à 256"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/novo-gare-hall-douanes.webp",
+   "pnj": "Image de pièce : hall des douanes",
+   "source": "fourni : Contrôle douanier sous la neige.png",
+   "cadre_x_y_largeur_hauteur": "image entière",
+   "sexe_age_apparents": "-",
+   "raccorde": false,
+   "remarque": "image entière"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/novo-gare-zone-embarquement.webp",
+   "pnj": "Image de pièce : zone d’embarquement",
+   "source": "fourni : Aéroport soviétique sous la neige.png",
+   "cadre_x_y_largeur_hauteur": "image entière",
+   "sexe_age_apparents": "-",
+   "raccorde": false,
+   "remarque": "image entière"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/novo-viktor-muetov-portrait.webp",
+   "pnj": "Sergent Viktor Muetov",
+   "source": "images/Sovarka/Novomirsk/Novomirsk_renseignement_accueil.webp",
+   "cadre_x_y_largeur_hauteur": [
+    185,
+    325,
+    240,
+    240
+   ],
+   "sexe_age_apparents": "homme, ~30 ans",
+   "raccorde": false,
+   "remarque": "à raccorder par Fred"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/novo-elena-diamentevia-portrait.webp",
+   "pnj": "Elena Diamentevia",
+   "source": "images/Sovarka/Novomirsk/Novomirsk_renseignement_accueil.webp",
+   "cadre_x_y_largeur_hauteur": [
+    975,
+    360,
+    300,
+    300
+   ],
+   "sexe_age_apparents": "femme, ~35 ans",
+   "raccorde": false,
+   "remarque": "à raccorder par Fred"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/novo-tamara-naouchnikova-portrait.webp",
+   "pnj": "Tamara Naouchnikova, opératrice d’écoute",
+   "source": "images/Sovarka/Novomirsk/Novomirsk_renseignement_ecoutes.webp",
+   "cadre_x_y_largeur_hauteur": [
+    800,
+    270,
+    280,
+    280
+   ],
+   "sexe_age_apparents": "femme, ~30 ans (profil, casque)",
+   "raccorde": false,
+   "remarque": "à raccorder par Fred"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/novo-oleg-doprossov-portrait.webp",
+   "pnj": "Colonel Oleg Doprossov",
+   "source": "images/Sovarka/Novomirsk/Novomirsk_renseignement_interrogatoire.webp",
+   "cadre_x_y_largeur_hauteur": [
+    380,
+    170,
+    280,
+    280
+   ],
+   "sexe_age_apparents": "homme, ~45-50 ans",
+   "raccorde": false,
+   "remarque": "à raccorder par Fred"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/novo-fiodor-koulakov-portrait.webp",
+   "pnj": "Fiodor Koulakov",
+   "source": "images/Sovarka/Novomirsk/Novomirsk_renseignement_interrogatoire.webp",
+   "cadre_x_y_largeur_hauteur": [
+    1190,
+    180,
+    290,
+    290
+   ],
+   "sexe_age_apparents": "homme, ~40-45 ans, chauve, colosse",
+   "raccorde": false,
+   "remarque": "à raccorder par Fred"
+  },
+  {
+   "fichier": "images/Sovarka/Krasnov/krasnov-habitue-bar-sever-portrait.webp",
+   "pnj": "L’habitué du Bar Sever",
+   "source": "images/Sovarka/Krasnov/Krasnov_bar_sever_salle.webp",
+   "cadre_x_y_largeur_hauteur": [
+    1150,
+    312,
+    230,
+    230
+   ],
+   "sexe_age_apparents": "homme, ~60 ans, casquette",
+   "raccorde": false,
+   "remarque": "à raccorder par Fred"
+  },
+  {
+   "fichier": "images/Sovarka/Krasnov/krasnov-grigori-zaitsev-portrait.webp",
+   "pnj": "Grigori Zaitsev",
+   "source": "images/Sovarka/Krasnov/Krasnov_bar_sever_salle.webp",
+   "cadre_x_y_largeur_hauteur": [
+    215,
+    228,
+    210,
+    210
+   ],
+   "sexe_age_apparents": "homme, ~55 ans, moustache",
+   "raccorde": false,
+   "remarque": "même cadrage que le portrait déjà raccordé Krasnov_portrait_cafe-tabac-cheminots-montrouge_grigori-zaitsev.webp"
+  },
+  {
+   "fichier": "images/Sovarka/Krasnov/krasnov-zoia-biletova-portrait.webp",
+   "pnj": "Zoïa Biletova, hôtesse du musée",
+   "source": "images/Sovarka/Krasnov/Krasnov_musee_accueil.webp",
+   "cadre_x_y_largeur_hauteur": [
+    220,
+    395,
+    250,
+    250
+   ],
+   "sexe_age_apparents": "femme, ~50 ans",
+   "raccorde": false,
+   "remarque": "portrait existant raccordé à « Hôtesse du musée de Krasnov » : Krasnov_musee_accueil_hotesse.webp"
+  },
+  {
+   "fichier": "images/Sovarka/Krasnov/krasnov-arkadi-pamiatnikov-portrait.webp",
+   "pnj": "Arkadi Pamiatnikov, guide du musée",
+   "source": "images/Sovarka/Krasnov/Krasnov_musee_accueil.webp",
+   "cadre_x_y_largeur_hauteur": [
+    770,
+    330,
+    280,
+    280
+   ],
+   "sexe_age_apparents": "homme, ~75 ans",
+   "raccorde": false,
+   "remarque": "portrait existant raccordé à « Guide du musée de Krasnov » : Krasnov_musee_accueil_guide.webp"
+  },
+  {
+   "fichier": "images/Sovarka/Krasnov/krasnov-matvei-starikov-portrait.webp",
+   "pnj": "Matveï Starikov (résident le plus visible : un homme)",
+   "source": "images/Sovarka/Krasnov/Krasnov_hopital_EPHAD.webp",
+   "cadre_x_y_largeur_hauteur": [
+    230,
+    212,
+    150,
+    150
+   ],
+   "sexe_age_apparents": "homme, ~80 ans, casquette",
+   "raccorde": false,
+   "remarque": "cadre source 150 px, agrandi à 256"
+  },
+  {
+   "fichier": "images/Sovarka/Krasnov/krasnov-nadejda-oukolova-portrait.webp",
+   "pnj": "Nadejda Oukolova, infirmière",
+   "source": "images/Sovarka/Krasnov/Krasnov_hopital_accueil.webp",
+   "cadre_x_y_largeur_hauteur": [
+    132,
+    208,
+    160,
+    160
+   ],
+   "sexe_age_apparents": "femme, ~30 ans",
+   "raccorde": false,
+   "remarque": "portrait existant raccordé à « Infirmiere (PNJ) » : Krasnov_portrait_dispensaire-public-v_infirmiere.webp"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/novo-evgueni-sudakov-portrait.webp",
+   "pnj": "Evgueni Sudakov",
+   "source": "images/Sovarka/Novomirsk/Novomirsk_hopital_EPHAD.webp",
+   "cadre_x_y_largeur_hauteur": [
+    412,
+    272,
+    165,
+    165
+   ],
+   "sexe_age_apparents": "homme, ~80 ans, casquette, de profil à la fenêtre",
+   "raccorde": true,
+   "remarque": ""
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/novo-matvei-tcherkassov-portrait.webp",
+   "pnj": "Matveï Tcherkassov",
+   "source": "images/Sovarka/Novomirsk/Novomirsk_hopital_EPHAD.webp",
+   "cadre_x_y_largeur_hauteur": [
+    1370,
+    320,
+    300,
+    300
+   ],
+   "sexe_age_apparents": "homme, ~80 ans, barbe blanche, lit le journal",
+   "raccorde": true,
+   "remarque": ""
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/novo-nikolai-zakharov-portrait.webp",
+   "pnj": "Nikolaï Zakharov",
+   "source": "images/Sovarka/Novomirsk/Novomirsk_hopital_EPHAD.webp",
+   "cadre_x_y_largeur_hauteur": [
+    1045,
+    298,
+    115,
+    115
+   ],
+   "sexe_age_apparents": "homme, ~80 ans, alité au fond",
+   "raccorde": true,
+   "remarque": "cadre source 115 px, agrandi à 256"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/novo-antonina-doubrova-portrait.webp",
+   "pnj": "Antonina Doubrova",
+   "source": "images/Sovarka/Novomirsk/Novomirsk_hopital_EPHAD.webp",
+   "cadre_x_y_largeur_hauteur": [
+    305,
+    318,
+    230,
+    230
+   ],
+   "sexe_age_apparents": "femme, ~85 ans, tricote",
+   "raccorde": true,
+   "remarque": ""
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/novo-hotesse-ambassades-portrait.webp",
+   "pnj": "Hôtesse d'Accueil (Palais des Ambassades)",
+   "source": "images/Sovarka/Novomirsk/Novomirsk_Palais des Ambassades_hall.webp",
+   "cadre_x_y_largeur_hauteur": [
+    262,
+    352,
+    260,
+    260
+   ],
+   "sexe_age_apparents": "femme, ~30 ans",
+   "raccorde": true,
+   "remarque": ""
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/novo-agent-securite-ambassades-portrait.webp",
+   "pnj": "Agent de Sécurité (Palais des Ambassades)",
+   "source": "images/Sovarka/Novomirsk/Novomirsk_Palais des Ambassades_hall.webp",
+   "cadre_x_y_largeur_hauteur": [
+    0,
+    270,
+    280,
+    280
+   ],
+   "sexe_age_apparents": "homme, ~40 ans",
+   "raccorde": true,
+   "remarque": "visage légèrement décentré (bord gauche de l’image)"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/novo-dimitri-loguinov-portrait.webp",
+   "pnj": "Caporal Dimitri Loguinov",
+   "source": "images/Sovarka/Novomirsk/Novomirsk_caserne_dortoir.webp",
+   "cadre_x_y_largeur_hauteur": [
+    1315,
+    418,
+    240,
+    240
+   ],
+   "sexe_age_apparents": "homme, ~25 ans",
+   "raccorde": true,
+   "remarque": ""
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/novo-ludmila-egorova-portrait.webp",
+   "pnj": "Ludmila Egorova",
+   "source": "images/Sovarka/Novomirsk/Novomirsk_salon_coiffure.webp",
+   "cadre_x_y_largeur_hauteur": [
+    268,
+    312,
+    260,
+    260
+   ],
+   "sexe_age_apparents": "femme, ~40 ans, brune",
+   "raccorde": true,
+   "remarque": ""
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/novo-tenanciere-buvette-dynamo-portrait.webp",
+   "pnj": "Tenancier de Buvette (stade Dynamo) → tenancière",
+   "source": "images/Sovarka/Novomirsk/Novomirsk.stade.buvette.webp",
+   "cadre_x_y_largeur_hauteur": [
+    505,
+    268,
+    240,
+    240
+   ],
+   "sexe_age_apparents": "femme, ~50 ans",
+   "raccorde": false,
+   "remarque": "R6 : non raccordé, le nom est la clé de l’informateur en base"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/novo-secretaire-municipale-portrait.webp",
+   "pnj": "Secrétaire municipal Arseni Krylov → secrétaire municipale (brune à lunettes, à gauche du comptoir)",
+   "source": "images/Sovarka/Novomirsk/Novomirsk_mairie_hall.webp",
+   "cadre_x_y_largeur_hauteur": [
+    665,
+    440,
+    140,
+    140
+   ],
+   "sexe_age_apparents": "femme, ~35 ans",
+   "raccorde": false,
+   "remarque": "R6 : non raccordé, le nom est la clé de l’informateur en base ; cadre source 140 px"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/novo-hotesse-objets-trouves-portrait.webp",
+   "pnj": "Hotesse Objets Trouves (rousse, à droite du comptoir)",
+   "source": "images/Sovarka/Novomirsk/Novomirsk_mairie_hall.webp",
+   "cadre_x_y_largeur_hauteur": [
+    845,
+    442,
+    140,
+    140
+   ],
+   "sexe_age_apparents": "femme, ~30 ans",
+   "raccorde": true,
+   "remarque": "cadre source 140 px"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/novo-archiviste-municipale-portrait.webp",
+   "pnj": "Kirill Poliakov → « Archiviste municipale (PNJ) »",
+   "source": "images/Sovarka/Novomirsk/Novomirsk_mairie_archives.webp",
+   "cadre_x_y_largeur_hauteur": [
+    300,
+    362,
+    280,
+    280
+   ],
+   "sexe_age_apparents": "femme, ~30 ans, brune à lunettes, veste bordeaux",
+   "raccorde": true,
+   "remarque": "renommée sous libellé de fonction"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/novo-konstantin-orlov-portrait.webp",
+   "pnj": "Konstantin Lvovitch Orlov",
+   "source": "images/Sovarka/Novomirsk/novomirsk-palais-presidentiel-hall.webp",
+   "cadre_x_y_largeur_hauteur": [
+    1313,
+    357,
+    300,
+    300
+   ],
+   "sexe_age_apparents": "homme, ~55 ans",
+   "raccorde": true,
+   "remarque": ""
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/novo-foma-beliaiev-portrait.webp",
+   "pnj": "Archiviste Foma Beliaïev",
+   "source": "images/Sovarka/Novomirsk/Novomirsk_palais_gouvernement_archives.webp",
+   "cadre_x_y_largeur_hauteur": [
+    355,
+    330,
+    430,
+    430
+   ],
+   "sexe_age_apparents": "homme, ~70 ans, uniforme",
+   "raccorde": true,
+   "remarque": ""
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/novo-semion-golovine-portrait.webp",
+   "pnj": "Greffier Semion Golovine",
+   "source": "images/Sovarka/Novomirsk/Novomirsk_tribunal_greffe.webp",
+   "cadre_x_y_largeur_hauteur": [
+    748,
+    405,
+    150,
+    150
+   ],
+   "sexe_age_apparents": "homme, ~55 ans, lunettes",
+   "raccorde": true,
+   "remarque": "cadre source 150 px"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/novo-docteur-stakhanov-portrait.webp",
+   "pnj": "Docteur Stakhanov",
+   "source": "images/Sovarka/Novomirsk/Novomirsk_clinique_accueil.webp",
+   "cadre_x_y_largeur_hauteur": [
+    791,
+    165,
+    290,
+    290
+   ],
+   "sexe_age_apparents": "homme, ~55 ans",
+   "raccorde": true,
+   "remarque": ""
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/novo-infirmiere-hopital-portrait.webp",
+   "pnj": "Infirmière de Novomirsk",
+   "source": "images/Sovarka/Novomirsk/Novomirsk_hopital_acceuil.webp",
+   "cadre_x_y_largeur_hauteur": [
+    1064,
+    552,
+    170,
+    170
+   ],
+   "sexe_age_apparents": "femme, ~30 ans",
+   "raccorde": true,
+   "remarque": "cadre source 170 px"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/novo-medecin-de-garde-portrait.webp",
+   "pnj": "Médecin de garde de Novomirsk",
+   "source": "images/Sovarka/Novomirsk/Novomirsk_hopital_acceuil.webp",
+   "cadre_x_y_largeur_hauteur": [
+    700,
+    492,
+    165,
+    165
+   ],
+   "sexe_age_apparents": "homme, ~50 ans",
+   "raccorde": true,
+   "remarque": "cadre source 165 px"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/novo-camarade-kalachnikov-portrait.webp",
+   "pnj": "Camarade Kalachnikov",
+   "source": "images/Sovarka/Novomirsk/Novomirsk_armurerie.webp",
+   "cadre_x_y_largeur_hauteur": [
+    587,
+    200,
+    330,
+    330
+   ],
+   "sexe_age_apparents": "homme, ~40 ans",
+   "raccorde": true,
+   "remarque": ""
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/novo-ivan-tarassov-portrait.webp",
+   "pnj": "Ivan Tarassov",
+   "source": "images/Sovarka/Novomirsk/Novomirsk_mairie_salle_elections.webp",
+   "cadre_x_y_largeur_hauteur": [
+    379,
+    462,
+    150,
+    150
+   ],
+   "sexe_age_apparents": "homme, ~30 ans, officier en casquette, de profil",
+   "raccorde": true,
+   "remarque": "la femme au dossier derrière la table de la commission pourrait aussi être la responsable électorale (choix à confirmer)"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/novo-valery-burov-portrait.webp",
+   "pnj": "Valery Burov",
+   "source": "images/Sovarka/Novomirsk/Novomirsk_centre_affaires_hall.webp",
+   "cadre_x_y_largeur_hauteur": [
+    573,
+    385,
+    160,
+    160
+   ],
+   "sexe_age_apparents": "homme, ~35 ans",
+   "raccorde": true,
+   "remarque": "cadre source 160 px"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/novo-pietr-kastanov-portrait.webp",
+   "pnj": "Pietr Kastanov",
+   "source": "images/Sovarka/Novomirsk/Novomirsk_centre_affaires_hall.webp",
+   "cadre_x_y_largeur_hauteur": [
+    72,
+    205,
+    260,
+    260
+   ],
+   "sexe_age_apparents": "homme, ~45 ans, chauve",
+   "raccorde": true,
+   "remarque": ""
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/novo-entraineur-adjoint-dynamo-portrait.webp",
+   "pnj": "Entraineur Adjoint du Dynamo",
+   "source": "images/Sovarka/Novomirsk/Novomirsk.stade.vestiaire.webp",
+   "cadre_x_y_largeur_hauteur": [
+    771,
+    225,
+    340,
+    340
+   ],
+   "sexe_age_apparents": "homme, ~40 ans",
+   "raccorde": true,
+   "remarque": ""
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/novo-bookmaker-officiel-portrait.webp",
+   "pnj": "Bookmaker Officiel",
+   "source": "images/Sovarka/Novomirsk/Novomirsk.stade.bookmaker.webp",
+   "cadre_x_y_largeur_hauteur": [
+    598,
+    360,
+    360,
+    360
+   ],
+   "sexe_age_apparents": "homme, ~45 ans",
+   "raccorde": true,
+   "remarque": ""
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/novo-vendeuse-dynamo-portrait.webp",
+   "pnj": "Vendeuse du Dynamo",
+   "source": "images/Sovarka/Novomirsk/Novomirsk.stade.boutique.webp",
+   "cadre_x_y_largeur_hauteur": [
+    1046,
+    365,
+    290,
+    290
+   ],
+   "sexe_age_apparents": "femme, ~30 ans",
+   "raccorde": true,
+   "remarque": ""
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/novo-piotr-antipov-portrait.webp",
+   "pnj": "Adjudant Piotr Antipov",
+   "source": "images/Sovarka/Novomirsk/Novomirsk_caserne_hall.webp",
+   "cadre_x_y_largeur_hauteur": [
+    1080,
+    200,
+    420,
+    420
+   ],
+   "sexe_age_apparents": "homme, ~45 ans, moustache",
+   "raccorde": true,
+   "remarque": ""
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/novo-olga-komarova-portrait.webp",
+   "pnj": "Infirmière Olga Komarova",
+   "source": "images/Sovarka/Novomirsk/Novomirsk_caserne_infirmerie.webp",
+   "cadre_x_y_largeur_hauteur": [
+    198,
+    20,
+    460,
+    460
+   ],
+   "sexe_age_apparents": "femme, ~55 ans",
+   "raccorde": true,
+   "remarque": ""
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/novo-igor-saveliev-portrait.webp",
+   "pnj": "Commandant Igor Saveliev",
+   "source": "images/Sovarka/Novomirsk/Novomirsk_caserne_salle_commandement.webp",
+   "cadre_x_y_largeur_hauteur": [
+    807,
+    170,
+    380,
+    380
+   ],
+   "sexe_age_apparents": "homme, ~50 ans, penché sur la carte",
+   "raccorde": true,
+   "remarque": ""
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/novo-armurier-militaire-portrait.webp",
+   "pnj": "Armurier Militaire",
+   "source": "images/Sovarka/Novomirsk/Novomirsk_caserne_armurerie.webp",
+   "cadre_x_y_largeur_hauteur": [
+    435,
+    280,
+    300,
+    300
+   ],
+   "sexe_age_apparents": "homme, ~50 ans, moustache",
+   "raccorde": true,
+   "remarque": ""
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/novo-vassili-kachaev-portrait.webp",
+   "pnj": "Caporal Vassili Kachaev",
+   "source": "images/Sovarka/Novomirsk/Novomirsk_caserne_refectoire.webp",
+   "cadre_x_y_largeur_hauteur": [
+    893,
+    250,
+    220,
+    220
+   ],
+   "sexe_age_apparents": "homme, ~25 ans, cuisinier",
+   "raccorde": true,
+   "remarque": ""
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/novo-valentina-pilioulkina-portrait.webp",
+   "pnj": "Valentina Pilioulkina",
+   "source": "images/Sovarka/Novomirsk/Novomirsk_pharmacie.webp",
+   "cadre_x_y_largeur_hauteur": [
+    521,
+    190,
+    420,
+    420
+   ],
+   "sexe_age_apparents": "femme, ~55 ans",
+   "raccorde": true,
+   "remarque": ""
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/novo-galina-karpova-portrait.webp",
+   "pnj": "Galina Karpova",
+   "source": "images/Sovarka/Novomirsk/Novomirsk_poissonniere.webp",
+   "cadre_x_y_largeur_hauteur": [
+    561,
+    40,
+    560,
+    560
+   ],
+   "sexe_age_apparents": "femme, ~45 ans, fichu",
+   "raccorde": true,
+   "remarque": ""
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/novo-distributeur-equitable-portrait.webp",
+   "pnj": "Distributeur Équitable (boucher de l’étal de droite)",
+   "source": "images/Sovarka/Novomirsk/Novomirsk_marche.webp",
+   "cadre_x_y_largeur_hauteur": [
+    1368,
+    410,
+    200,
+    200
+   ],
+   "sexe_age_apparents": "homme, ~50 ans, casquette, visage baissé",
+   "raccorde": true,
+   "remarque": "qualité moyenne ; cadre source 200 px"
+  }
+ ],
+ "planches": [
+  {
+   "fichier": "images/Sovarka/Novomirsk/planche3-case7.webp",
+   "pnj": "Commentateur Sportif (stade Dynamo)",
+   "source": "fourni : Image ChatGPT 23 nov. 2026, 01_23_53-3.png",
+   "cadre_x_y_largeur_hauteur": [
+    10,
+    840,
+    402,
+    402
+   ],
+   "sexe_age_apparents": "homme, ~40 ans, carnet et crayon, tribunes",
+   "raccorde": true,
+   "remarque": ""
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/planche4-case1.webp",
+   "pnj": "Soldat Sacha Iline",
+   "source": "fourni : Image ChatGPT 23 nov. 2026, 01_23_54-4.png",
+   "cadre_x_y_largeur_hauteur": [
+    10,
+    10,
+    402,
+    402
+   ],
+   "sexe_age_apparents": "homme, ~20 ans, chapka, dortoir",
+   "raccorde": true,
+   "remarque": ""
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/planche4-case6.webp",
+   "pnj": "Gardien Stepan Kalinine (geôles du commissariat)",
+   "source": "fourni : Image ChatGPT 23 nov. 2026, 01_23_54-4.png",
+   "cadre_x_y_largeur_hauteur": [
+    841,
+    425,
+    402,
+    402
+   ],
+   "sexe_age_apparents": "homme, ~55 ans, moustache, uniforme de police",
+   "raccorde": true,
+   "remarque": ""
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/planche4-case7.webp",
+   "pnj": "Garde du Peuple (hall du Palais du Gouvernement)",
+   "source": "fourni : Image ChatGPT 23 nov. 2026, 01_23_54-4.png",
+   "cadre_x_y_largeur_hauteur": [
+    10,
+    840,
+    402,
+    402
+   ],
+   "sexe_age_apparents": "homme, ~40 ans, chapka, capote",
+   "raccorde": true,
+   "remarque": ""
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/planche5-case1.webp",
+   "pnj": "Camarade Grand Maître (Cercle des Camarades)",
+   "source": "fourni : Image ChatGPT 23 nov. 2026, 01_23_55-5.png",
+   "cadre_x_y_largeur_hauteur": [
+    10,
+    10,
+    402,
+    402
+   ],
+   "sexe_age_apparents": "homme, ~60 ans, barbe, décorations",
+   "raccorde": true,
+   "remarque": ""
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/planche5-case2.webp",
+   "pnj": "Frere Gardien (Cercle des Camarades)",
+   "source": "fourni : Image ChatGPT 23 nov. 2026, 01_23_55-5.png",
+   "cadre_x_y_largeur_hauteur": [
+    426,
+    10,
+    402,
+    402
+   ],
+   "sexe_age_apparents": "homme, ~50 ans, aiguillettes, masse",
+   "raccorde": true,
+   "remarque": ""
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/planche5-case4.webp",
+   "pnj": "Vénérable Maître Dimitri Compassov (Cercle des Camarades)",
+   "source": "fourni : Image ChatGPT 23 nov. 2026, 01_23_55-5.png",
+   "cadre_x_y_largeur_hauteur": [
+    10,
+    425,
+    402,
+    402
+   ],
+   "sexe_age_apparents": "homme, ~55 ans, lunettes, médailles",
+   "raccorde": true,
+   "remarque": "case intitulée « Camarade Trésorier » par ChatGPT : seul PNJ du Cercle restant, rôle voisin"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/planche5-case6.webp",
+   "pnj": "Camarade Pontife Tractorenko",
+   "source": "fourni : Image ChatGPT 23 nov. 2026, 01_23_55-5.png",
+   "cadre_x_y_largeur_hauteur": [
+    841,
+    425,
+    402,
+    402
+   ],
+   "sexe_age_apparents": "homme, ~60 ans, mitre",
+   "raccorde": true,
+   "remarque": ""
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/planche5-case7.webp",
+   "pnj": "Frère Kolkhoze",
+   "source": "fourni : Image ChatGPT 23 nov. 2026, 01_23_55-5.png",
+   "cadre_x_y_largeur_hauteur": [
+    10,
+    840,
+    402,
+    402
+   ],
+   "sexe_age_apparents": "homme, ~35 ans, barbu, bure",
+   "raccorde": true,
+   "remarque": "R6 : rôle « Enfant de chœur laborieux » alors que l’image montre un adulte"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/planche6-case1.webp",
+   "pnj": "Macha Scoopova (rédaction de La Voix de Sovarka)",
+   "source": "fourni : Image ChatGPT 23 nov. 2026, 01_23_55-6.png",
+   "cadre_x_y_largeur_hauteur": [
+    10,
+    10,
+    402,
+    402
+   ],
+   "sexe_age_apparents": "femme, ~40 ans, carré brun, feuillets et stylo",
+   "raccorde": true,
+   "remarque": ""
+  }
+ ],
+ "reserve": [
+  {
+   "fichier": "images/Sovarka/Novomirsk/reserve-portraits/planche1-case1.webp",
+   "source": "fourni : Image ChatGPT 23 nov. 2026, 01_23_52-1.png",
+   "cadre_x_y_largeur_hauteur": [
+    10,
+    10,
+    402,
+    402
+   ],
+   "description": "homme ~55 ans, chapka, uniforme bleu (chef de gare) — réserve d’office"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/reserve-portraits/planche1-case2.webp",
+   "source": "fourni : Image ChatGPT 23 nov. 2026, 01_23_52-1.png",
+   "cadre_x_y_largeur_hauteur": [
+    426,
+    10,
+    402,
+    402
+   ],
+   "description": "femme ~35 ans, uniforme, pince à billets (contrôleuse) — réserve d’office"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/reserve-portraits/planche1-case3.webp",
+   "source": "fourni : Image ChatGPT 23 nov. 2026, 01_23_52-1.png",
+   "cadre_x_y_largeur_hauteur": [
+    841,
+    10,
+    402,
+    402
+   ],
+   "description": "homme ~45 ans, bonnet, écharpe, veste usée (portefaix)"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/reserve-portraits/planche1-case4.webp",
+   "source": "fourni : Image ChatGPT 23 nov. 2026, 01_23_52-1.png",
+   "cadre_x_y_largeur_hauteur": [
+    10,
+    425,
+    402,
+    402
+   ],
+   "description": "femme ~30 ans, tresses, col roulé (employée des quais)"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/reserve-portraits/planche1-case5.webp",
+   "source": "fourni : Image ChatGPT 23 nov. 2026, 01_23_52-1.png",
+   "cadre_x_y_largeur_hauteur": [
+    426,
+    425,
+    402,
+    402
+   ],
+   "description": "femme ~50 ans, fichu fleuri, tablier (marchande)"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/reserve-portraits/planche1-case6.webp",
+   "source": "fourni : Image ChatGPT 23 nov. 2026, 01_23_52-1.png",
+   "cadre_x_y_largeur_hauteur": [
+    841,
+    425,
+    402,
+    402
+   ],
+   "description": "homme ~50 ans, dégarni, tablier taché (boucher)"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/reserve-portraits/planche1-case7.webp",
+   "source": "fourni : Image ChatGPT 23 nov. 2026, 01_23_52-1.png",
+   "cadre_x_y_largeur_hauteur": [
+    10,
+    840,
+    402,
+    402
+   ],
+   "description": "femme ~35 ans, tresses rousses, tablier, poissons (poissonnière)"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/reserve-portraits/planche1-case8.webp",
+   "source": "fourni : Image ChatGPT 23 nov. 2026, 01_23_52-1.png",
+   "cadre_x_y_largeur_hauteur": [
+    426,
+    840,
+    402,
+    402
+   ],
+   "description": "femme ~50 ans, lunettes, blouse blanche (pharmacienne)"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/reserve-portraits/planche1-case9.webp",
+   "source": "fourni : Image ChatGPT 23 nov. 2026, 01_23_52-1.png",
+   "cadre_x_y_largeur_hauteur": [
+    841,
+    840,
+    402,
+    402
+   ],
+   "description": "femme ~28 ans, rousse, blouse blanche (préparatrice)"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/reserve-portraits/planche2-case1.webp",
+   "source": "fourni : Image ChatGPT 23 nov. 2026, 01_23_52-2.png",
+   "cadre_x_y_largeur_hauteur": [
+    10,
+    10,
+    402,
+    402
+   ],
+   "description": "femme ~50 ans, veste bordeaux (secrétaire de mairie)"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/reserve-portraits/planche2-case2.webp",
+   "source": "fourni : Image ChatGPT 23 nov. 2026, 01_23_52-2.png",
+   "cadre_x_y_largeur_hauteur": [
+    426,
+    10,
+    402,
+    402
+   ],
+   "description": "homme ~45 ans, costume gris (maire adjoint)"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/reserve-portraits/planche2-case3.webp",
+   "source": "fourni : Image ChatGPT 23 nov. 2026, 01_23_52-2.png",
+   "cadre_x_y_largeur_hauteur": [
+    841,
+    10,
+    402,
+    402
+   ],
+   "description": "femme ~45 ans, blonde, tailleur sombre (élections)"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/reserve-portraits/planche2-case4.webp",
+   "source": "fourni : Image ChatGPT 23 nov. 2026, 01_23_52-2.png",
+   "cadre_x_y_largeur_hauteur": [
+    10,
+    425,
+    402,
+    402
+   ],
+   "description": "femme ~60 ans, lunettes, gilet (archiviste)"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/reserve-portraits/planche2-case5.webp",
+   "source": "fourni : Image ChatGPT 23 nov. 2026, 01_23_52-2.png",
+   "cadre_x_y_largeur_hauteur": [
+    426,
+    425,
+    402,
+    402
+   ],
+   "description": "homme ~35 ans, veste, insigne (agent des partis)"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/reserve-portraits/planche2-case6.webp",
+   "source": "fourni : Image ChatGPT 23 nov. 2026, 01_23_52-2.png",
+   "cadre_x_y_largeur_hauteur": [
+    841,
+    425,
+    402,
+    402
+   ],
+   "description": "homme ~65 ans, moustache, écharpe (notaire)"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/reserve-portraits/planche2-case7.webp",
+   "source": "fourni : Image ChatGPT 23 nov. 2026, 01_23_52-2.png",
+   "cadre_x_y_largeur_hauteur": [
+    10,
+    840,
+    402,
+    402
+   ],
+   "description": "femme ~35 ans, gilet, chemisier (clerc)"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/reserve-portraits/planche2-case8.webp",
+   "source": "fourni : Image ChatGPT 23 nov. 2026, 01_23_52-2.png",
+   "cadre_x_y_largeur_hauteur": [
+    426,
+    840,
+    402,
+    402
+   ],
+   "description": "femme ~40 ans, carré noir, dossier (successions)"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/reserve-portraits/planche2-case9.webp",
+   "source": "fourni : Image ChatGPT 23 nov. 2026, 01_23_52-2.png",
+   "cadre_x_y_largeur_hauteur": [
+    841,
+    840,
+    402,
+    402
+   ],
+   "description": "homme ~25 ans, blond, costume (secrétaire des entreprises)"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/reserve-portraits/planche3-case1.webp",
+   "source": "fourni : Image ChatGPT 23 nov. 2026, 01_23_53-3.png",
+   "cadre_x_y_largeur_hauteur": [
+    10,
+    10,
+    402,
+    402
+   ],
+   "description": "femme ~30 ans, cheveux bouclés, coiffe, blouse (infirmière)"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/reserve-portraits/planche3-case2.webp",
+   "source": "fourni : Image ChatGPT 23 nov. 2026, 01_23_53-3.png",
+   "cadre_x_y_largeur_hauteur": [
+    426,
+    10,
+    402,
+    402
+   ],
+   "description": "homme ~60 ans, lunettes, blouse (médecin hospitalier)"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/reserve-portraits/planche3-case3.webp",
+   "source": "fourni : Image ChatGPT 23 nov. 2026, 01_23_53-3.png",
+   "cadre_x_y_largeur_hauteur": [
+    841,
+    10,
+    402,
+    402
+   ],
+   "description": "femme ~45 ans, blouse beige (aide-soignante)"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/reserve-portraits/planche3-case4.webp",
+   "source": "fourni : Image ChatGPT 23 nov. 2026, 01_23_53-3.png",
+   "cadre_x_y_largeur_hauteur": [
+    10,
+    425,
+    402,
+    402
+   ],
+   "description": "femme ~30 ans, carré brun, tunique crème (réceptionniste)"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/reserve-portraits/planche3-case5.webp",
+   "source": "fourni : Image ChatGPT 23 nov. 2026, 01_23_53-3.png",
+   "cadre_x_y_largeur_hauteur": [
+    426,
+    425,
+    402,
+    402
+   ],
+   "description": "homme ~45 ans, blouse, cravate (médecin de clinique)"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/reserve-portraits/planche3-case6.webp",
+   "source": "fourni : Image ChatGPT 23 nov. 2026, 01_23_53-3.png",
+   "cadre_x_y_largeur_hauteur": [
+    841,
+    425,
+    402,
+    402
+   ],
+   "description": "femme ~35 ans, coiffe, queue de cheval (soignante)"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/reserve-portraits/planche3-case8.webp",
+   "source": "fourni : Image ChatGPT 23 nov. 2026, 01_23_53-3.png",
+   "cadre_x_y_largeur_hauteur": [
+    426,
+    840,
+    402,
+    402
+   ],
+   "description": "femme ~30 ans, bonnet, écharpe rayée (vendeuse)"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/reserve-portraits/planche3-case9.webp",
+   "source": "fourni : Image ChatGPT 23 nov. 2026, 01_23_53-3.png",
+   "cadre_x_y_largeur_hauteur": [
+    841,
+    840,
+    402,
+    402
+   ],
+   "description": "homme ~50 ans, moustache, casquette, tablier (barman)"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/reserve-portraits/planche4-case2.webp",
+   "source": "fourni : Image ChatGPT 23 nov. 2026, 01_23_54-4.png",
+   "cadre_x_y_largeur_hauteur": [
+    426,
+    10,
+    402,
+    402
+   ],
+   "description": "homme ~45 ans, cheveux ras, veste matelassée (sergent instructeur)"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/reserve-portraits/planche4-case3.webp",
+   "source": "fourni : Image ChatGPT 23 nov. 2026, 01_23_54-4.png",
+   "cadre_x_y_largeur_hauteur": [
+    841,
+    10,
+    402,
+    402
+   ],
+   "description": "femme ~55 ans, trousseau de clés (intendante)"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/reserve-portraits/planche4-case4.webp",
+   "source": "fourni : Image ChatGPT 23 nov. 2026, 01_23_54-4.png",
+   "cadre_x_y_largeur_hauteur": [
+    10,
+    425,
+    402,
+    402
+   ],
+   "description": "homme ~45 ans, moustache, blouse sous la capote (médecin militaire)"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/reserve-portraits/planche4-case5.webp",
+   "source": "fourni : Image ChatGPT 23 nov. 2026, 01_23_54-4.png",
+   "cadre_x_y_largeur_hauteur": [
+    426,
+    425,
+    402,
+    402
+   ],
+   "description": "femme ~30 ans, casque et micro (standardiste)"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/reserve-portraits/planche4-case8.webp",
+   "source": "fourni : Image ChatGPT 23 nov. 2026, 01_23_54-4.png",
+   "cadre_x_y_largeur_hauteur": [
+    426,
+    840,
+    402,
+    402
+   ],
+   "description": "femme ~35 ans, capote à col de fourrure (garde)"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/reserve-portraits/planche4-case9.webp",
+   "source": "fourni : Image ChatGPT 23 nov. 2026, 01_23_54-4.png",
+   "cadre_x_y_largeur_hauteur": [
+    841,
+    840,
+    402,
+    402
+   ],
+   "description": "femme ~50 ans, couloir de cellules (geôlière)"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/reserve-portraits/planche5-case3.webp",
+   "source": "fourni : Image ChatGPT 23 nov. 2026, 01_23_55-5.png",
+   "cadre_x_y_largeur_hauteur": [
+    841,
+    10,
+    402,
+    402
+   ],
+   "description": "femme ~40 ans, étole aux épis (orateur)"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/reserve-portraits/planche5-case5.webp",
+   "source": "fourni : Image ChatGPT 23 nov. 2026, 01_23_55-5.png",
+   "cadre_x_y_largeur_hauteur": [
+    426,
+    425,
+    402,
+    402
+   ],
+   "description": "femme ~35 ans, aiguillettes, masse (huissier)"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/reserve-portraits/planche5-case8.webp",
+   "source": "fourni : Image ChatGPT 23 nov. 2026, 01_23_55-5.png",
+   "cadre_x_y_largeur_hauteur": [
+    426,
+    840,
+    402,
+    402
+   ],
+   "description": "femme ~35 ans, fichu, livre (chantre)"
+  },
+  {
+   "fichier": "images/Sovarka/Novomirsk/reserve-portraits/planche5-case9.webp",
+   "source": "fourni : Image ChatGPT 23 nov. 2026, 01_23_55-5.png",
+   "cadre_x_y_largeur_hauteur": [
+    841,
+    840,
+    402,
+    402
+   ],
+   "description": "homme ~35 ans, barbe, chasuble aux épis (diacre)"
+  }
+ ],
+ "portrait_reutilise": {
+  "pnj": "Ouvrier typographe (atelier de l’imprimerie)",
+  "fichier": "images/Sovarka/Novomirsk/Novo_typographe_portrait.webp",
+  "remarque": "portrait déclaré dans data.js mais effacé par le renommage sovarkien (entrée nulle de PNJ_SOVARKA_GENERIQUES) ; rétabli par le bloc PORTRAITS_PNJ_NOVOMIRSK_20261123"
+ }
+}
