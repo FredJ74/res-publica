@@ -54,7 +54,12 @@ test(process.env.RP_I18N_KRASNOV_BASELINE ? 'descriptions Sovarka : dix absences
     'La forêt se referme. Les fougères montent aux genoux, et des empreintes larges comme une assiette marquent l’humus.',
     'Un sentier à peine tracé sous les feuilles mortes. Au loin, une odeur de feu de bois et de soupe aux choux.'
   ];
-  attendues = attendues.concat(FORET_SANTE_EN_ATTENTE);
+  // Mission Novomirsk, bloc 3, point 27 (Fred, 23/11/2026) : Ignat Lykov est fonctionnaire à la retraite ; nouvelle
+  // description de sa pièce en français seulement, traductions à ajouter par Codex (RELAIS.md).
+  const BLOC3_EN_ATTENTE = [
+    'Une bibliothèque vitrée, des affiches du Plan au mur, une veste d’uniforme constellée de médailles et un fonctionnaire à la retraite, lunettes rondes et barbiche, qui vous observe longuement avant de sourire.'
+  ];
+  attendues = attendues.concat(FORET_SANTE_EN_ATTENTE, BLOC3_EN_ATTENTE);
   // « Aucune nouvelle lacune » : une lacune antérieure comblée depuis par un autre lot (15/11) est bienvenue.
   assert.deepEqual(manquantes.filter(d => !attendues.includes(d)), []);
 });
