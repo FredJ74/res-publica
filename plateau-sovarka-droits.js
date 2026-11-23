@@ -397,6 +397,10 @@ function sovarkaPrechargerTerrain(buildingId) {
 //    commerce ouvert garde ses propres ordres, ordresCommerceDuLocal).
 // L'état vient du serveur (sovarka_droits_lire) ; tant qu'il n'est pas lu, rien ne change à l'écran.
 const SOV_LOCAL_DEMANDER = 'Demander ce local à la mairie';
+// Texte exact de Fred (23/11/2026). Français seulement pour l'instant : les huit autres langues sont à faire par Codex
+// (catalogue i18n/sovarka-droits-resources.js, clé freeBox), qui remplacera ce repli.
+const SOV_LOCAL_LIBRE = "Ce local est libre. En Sovarka, les commerces appartiennent à l'État. Pour exploiter ce local, adressez une demande à la mairie de {ville}. Le maire examine les demandes deux fois par mois. Si la vôtre est acceptée, vous recevrez un courrier et signerez l'attribution chez le notaire.";
+const sovLocalLibre = ville => (sovT('freeBox', { ville }) || '').replace(/^freeBox$/, '') || SOV_LOCAL_LIBRE.replace('{ville}', ville);
 let sovLocalLectureEnCours = false, sovLocalDerniereLecture = 0;
 function sovLocalIci(buildingId, roomId, ville) {
   if (typeof state === 'undefined' || state.country !== 'soviet' || !sovarkaDroitsCache) return null;
@@ -428,13 +432,13 @@ function ordresLocalSovarka(buildingId, roomId, ville) {
   const masque = ['gerer_local', 'installer_equipements', 'commerce_pj'];
   if (!sovLibre(loc)) return [{ invisible: true, masque: masque.concat(['sovarka_demande_location']), masqueTout: ['installer_equipements'] }];
   return [{ fn: 'sovarka_demande_location', label: SOV_LOCAL_DEMANDER, pa: 1, cost: 0, type: 'legal', icon: 'ti-mail', successRate: 100,
-    desc: sovT('freeBox', { ville: sovVille(ville) }), masque, masqueTout: ['installer_equipements'] }];
+    desc: sovLocalLibre(sovVille(ville)), masque, masqueTout: ['installer_equipements'] }];
 }
 // Encadré au-dessus des ordres (registre RP_ENCADRES_PIECE, lu par renderRoomActions).
 function encadreLocalSovarka(buildingId, roomId, ville) {
   const loc = sovLocalIci(buildingId, roomId, ville);
   if (!loc) return '';
-  const texte = sovLibre(loc) ? sovT('freeBox', { ville: sovEsc(sovVille(ville)) })
+  const texte = sovLibre(loc) ? sovLocalLibre(sovEsc(sovVille(ville)))
     : loc.exploitant ? sovT('exploitedBy', { nom: sovEsc(loc.exploitant) }) : sovT('reservedSign');
   return '<div class="sov-encadre-local" data-sov-local="' + (sovLibre(loc) ? 'libre' : 'attribue') + '">' + texte + '</div>';
 }

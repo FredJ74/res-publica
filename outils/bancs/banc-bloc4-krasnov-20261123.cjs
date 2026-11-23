@@ -102,7 +102,8 @@ test('31 : locaux libres de Sovarka — encadré exact, demande à 1 PA, ordres 
   const cat = {}; vm.runInNewContext(lire('i18n/sovarka-droits-resources.js'), cat);
   const freeBox = cat.RPSovarkaDroitsI18n;
   const encadre = "Ce local est libre. En Sovarka, les commerces appartiennent à l'État. Pour exploiter ce local, adressez une demande à la mairie de {ville}. Le maire examine les demandes deux fois par mois. Si la vôtre est acceptée, vous recevrez un courrier et signerez l'attribution chez le notaire.";
-  assert.equal(freeBox.text('freeBox'), encadre);
+  // Texte exact dans le module (repli français ; clé freeBox du catalogue à créer par Codex dans les neuf langues).
+  assert.ok(lire('plateau-sovarka-droits.js').includes('const SOV_LOCAL_LIBRE = "' + encadre + '";'));
   assert.equal(freeBox.text('exploitedBy', { nom: 'Ivan' }), 'Ce local est exploité par Ivan.');
   // Source d'ordres : vrai code du module, état serveur simulé.
   const src = lire('plateau-sovarka-droits.js');
@@ -130,7 +131,7 @@ test('31 : locaux libres de Sovarka — encadré exact, demande à 1 PA, ordres 
   // Le rendu applique `masqueTout`, remonte l'ordre en tête et affiche les encadrés.
   const pol = lire('plateau-politique.js');
   assert.match(pol, /dynOrders = dynOrders\.filter\(d => !d\.invisible && !dynMasqueTout\.includes\(d\.fn\)\);/);
-  assert.match(pol, /\.sort\(\(x, y\) => \(y\.enTete === true\) - \(x\.enTete === true\)\)/);
+  assert.match(pol, /allOrders\.sort\(\(x, y\) => \(y\.enTete === true\) - \(x\.enTete === true\)\);/);
   assert.match(pol, /document\.getElementById\('actions-row-bat'\)\.innerHTML = encadres \+ \(/);
   // « Ce commerce » n'existe plus dans les locaux propres à Sovarka ; plus de « Demande de location » comme libellé.
   const data = lire('data.js');

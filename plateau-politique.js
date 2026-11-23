@@ -4050,10 +4050,10 @@ function renderRoomActions(room, buildingId, roomId) {
     .filter(o => o.fn !== 'gerer_commerce' || (typeof commerceDroitsPiece === 'function' && commerceDroitsPiece(buildingId, roomId)))
     .filter(o => !dynOrders.some(d => d.fn === o.fn))
     .concat(dynOrders.filter(d => !d.basDeListe))
-    // Ordre « en tête » (point 31 : « Gérer mon local » pour l'exploitant) : remonté en premier, mis en évidence.
-    .sort((x, y) => (y.enTete === true) - (x.enTete === true))
     // Ordres universels de piece places tout en bas (« Fouiller les lieux », decision de Fred, 11/11/2026).
     .concat(dynOrders.filter(d => d.basDeListe));
+  // Ordre « en tête » (point 31, 23/11/2026 : « Gérer mon local » pour l'exploitant) : remonté en premier (tri stable).
+  allOrders.sort((x, y) => (y.enTete === true) - (x.enTete === true));
 
   const achatTerrainBloqueParIntrus = /^terrain-a-batir-[1-5]$/.test(buildingId) && roomId === 'terrain' &&
     typeof getTerrainState === 'function' &&

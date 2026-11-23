@@ -27,7 +27,8 @@ Règles : voir `AGENTS.md`.
 - **Pour Codex (textes français nouveaux ou changés, autres langues à faire)** :
   - `i18n/orders-resources.js` : `orders.sovarka_demande_location` passe en français à « Demander ce local à la mairie » (autres langues :
     encore « Demande de location ») ;
-  - `i18n/sovarka-droits-resources.js` : nouvelle clé `freeBox` (encadré du local libre, texte exact de Fred) ;
+  - encadré du local libre (texte exact de Fred) : constante française `SOV_LOCAL_LIBRE` de `plateau-sovarka-droits.js` ; créer la clé `freeBox`
+    (variable `{ville}`) dans les neuf langues de `i18n/sovarka-droits-resources.js`, que le module lit en priorité ;
   - infobulles de Sovarka (déjà dans `ATTENTE_CODEX` du banc des infobulles) : « Arkadi Pamiatnikov, le guide du musée, présente cette salle. » et la
     description des bureaux de Krasnov (40 PSK) ;
   - textes de `plateau-guide-arkadi.js` (six récits d'Arkadi, section de l'énigme) et de `plateau-enigme-krasnov.js` (carnet), français seul ;

@@ -2634,7 +2634,7 @@ async function transfertCliniqueServeur(patient, roomIdCible, dejaAttribuee) {
   // Tarif du pays (Fred, 23/11/2026, point 30) : 400 PSK en Sovarka (ordres_couts_pays), jamais « 1000 FR » en dur.
   const tarif = typeof tarifOrdrePays === 'function' ? tarifOrdrePays('transfert_clinique_privee', state.country) : null;
   const montant = tarif ? tarif.cost : 1000;
-  const sigle = state.country === 'soviet' ? 'PSK' : (COUNTRIES?.[state.country]?.cur || 'FR');
+  const sigle = state.country === 'soviet' ? 'PSK' : ((typeof COUNTRIES !== 'undefined' && COUNTRIES[state.country]?.cur) || 'FR');
   addJournalEntry('Transfert vers une clinique privée (-' + montant + ' ' + sigle + ').', 'event-good');
 }
 
