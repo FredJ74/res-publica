@@ -19,7 +19,7 @@ WHERE c.table_schema='public' AND t.table_type='BASE TABLE'
 AND (c.data_type IN ('text','character varying','json','jsonb','ARRAY')
  OR c.column_name ~* '(image|photo|portrait|avatar|illustration)')
 GROUP BY c.table_name ORDER BY c.table_name;"""
-MOTIF = r'''((?:https?://|/?images/)[^[:space:]"'<>\\]*?\.(?:webp|png|jpe?g|gif|svg|avif|ico)(?:\?[^[:space:]"'<>\\]*)?)'''
+MOTIF = r'''([^[:space:]"'<>\\]+?\.(?:webp|png|jpe?g|gif|svg|avif|ico)(?:\?[^[:space:]"'<>\\]*)?)'''
 # Une colonne image_path peut contenir seulement « dossier/fichier.webp »
 # (stockage Supabase), et un avatar peut être une URL sans extension.
 MOTIF_COLONNE_IMAGE = r'''(https?://[^[:space:]"'<>\\]+|[^[:space:]"'<>\\]+\.(?:webp|png|jpe?g|gif|svg|avif|ico)(?:\?[^[:space:]"'<>\\]*)?)'''

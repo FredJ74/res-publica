@@ -17,6 +17,13 @@ jobs:
       - run: npm ci --prefix outils/vercel
       - name: Références réelles et contre-épreuves de fichier absent
         run: node --test outils/bancs/banc-images-references-20261122.cjs
+      - name: Collecte de base sans écriture ni connexion implicite
+        run: python3 outils/bancs/test-images-base-lecture-seule-20261122.py
+      - name: Navigateur Chromium
+        run: |
+          npm ci --prefix outils/e2e
+          npx --prefix outils/e2e playwright install --with-deps chromium
+          node --test outils/bancs/banc-images-navigateur-20261122.cjs
       - name: SQL en attente, PostgreSQL isolé uniquement
         run: |
           npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund --prefix "$RUNNER_TEMP/pglite" @electric-sql/pglite@0.5.15

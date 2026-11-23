@@ -42,7 +42,8 @@ test('branchements : rue des lots de Luthécia, vue des terrains de PSM et Montr
 });
 test('rue en trois états : Luthécia (images livrées) et Montrouge (emplacement prêt, repli)', () => {
   assert.match(rue, /imagesEtatsTerrains: \{ ville: 'capitale', etat2: 'images\/terrains\/luthecia\/rue-etat-2\.webp', etat3: 'images\/terrains\/luthecia\/rue-etat-3\.webp' \}/);
-  assert.match(rue, /imagesEtatsTerrains: \{ ville: 'ville_b', etat2: 'images\/terrains\/montrouge\/rue-etat-2\.webp', etat3: 'images\/terrains\/montrouge\/rue-etat-3\.webp' \}/);
+  assert.match(rue, /imagesEtatsTerrains: \{ ville: 'ville_b' \}/);
+  assert.doesNotMatch(rue, /etat[23]: 'images\/terrains\/montrouge\/rue-etat-[23]\.webp'/, 'ne pas précharger de fichier non produit');
   for (const f of ['images/terrains/luthecia/rue-etat-2.webp', 'images/terrains/luthecia/rue-etat-3.webp'])
     assert.equal(fs.readFileSync(path.join(root, f)).slice(8, 12).toString(), 'WEBP', f);
 });

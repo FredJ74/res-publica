@@ -6,11 +6,16 @@ const ROOT=path.resolve(__dirname,'../..');
 const acorn=require('../vercel/node_modules/acorn');
 const EXT='(?:webp|png|jpe?g|gif|svg|avif|ico)';
 function extraire(texte){
-  return [...texte.matchAll(new RegExp('(?:https?://[^\\s"\'`<>\\\\]*?|/?images/)[^\\s"\'`<>\\\\(){}$]*?\\.'+EXT+'(?:[?#][^\\s"\'`<>\\\\()]*)?','gi'))].map(m=>m[0]);
+  const urls=[...texte.matchAll(new RegExp('(?:https?://[^\\s"\'`<>\\\\]*?|/?images/)[^\\s"\'`<>\\\\(){}$]*?\\.'+EXT+'(?:[?#][^\\s"\'`<>\\\\()]*)?','gi'))].map(m=>m[0]);
+  // Une image peut aussi être rangée hors de images/ (HTML, CSS ou HTML dans une chaîne JS).
+  const ajouter=url=>{if(!/^(?:https?:|data:|\/?images\/)/i.test(url)&&new RegExp('\\.'+EXT+'(?:[?#].*)?$','i').test(url))urls.push(url);};
+  for(const m of texte.matchAll(/\b(?:src|href|poster)\s*=\s*["']([^"']+)["']/gi))ajouter(m[1]);
+  for(const m of texte.matchAll(/url\(\s*["']?([^\s"')]+)["']?\s*\)/gi))ajouter(m[1]);
+  return urls;
 }
 function scanner(root=ROOT){
   const fichiers=cp.execFileSync('git',['ls-files','-z'],{cwd:root}).toString().split('\0').filter(Boolean);
-  const references=[],dynamiques=[];
+  const references=[],dynamiques=[],suivis=new Set(fichiers);
   function ajouter(texte,fichier,ligne){for(const url of extraire(texte))references.push({fichier,ligne,url});}
   for(const fichier of fichiers){
     if(!/\.(?:js|mjs|cjs|html|css|json)$/.test(fichier)||/^(?:\.|outils\/|historique\/|baseline\/|Blender\/|referentiel-game-design\/)/.test(fichier))continue;
@@ -23,7 +28,7 @@ function scanner(root=ROOT){
       const ast=acorn.parse(texte,{ecmaVersion:'latest',sourceType:'module',locations:true});
       const visiter=n=>{if(!n||typeof n!=='object')return;
         if(n.type==='Literal'&&typeof n.value==='string')ajouter(n.value,fichier,n.loc.start.line);
-        if(n.type==='Property'&&/^(?:image(?:Url|GrosPlan)?|photoUrl|photo_url|portrait|vignette|avatar)$/.test(n.key.name||n.key.value||'')&&typeof n.value.value==='string'&&/^https?:/.test(n.value.value)&&!extraire(n.value.value).length)
+        if(n.type==='Property'&&/^(?:image(?:Url|GrosPlan)?|photoUrl|photo_url|portrait|vignette|avatar)$/.test(n.key.name||n.key.value||'')&&typeof n.value.value==='string'&&(/^https?:/.test(n.value.value)||new RegExp('\\.'+EXT+'(?:[?#].*)?$','i').test(n.value.value))&&!extraire(n.value.value).length)
           references.push({fichier,ligne:n.loc.start.line,url:n.value.value});
         if(n.type==='BinaryExpression'&&n.operator==='+'&&n.left.type==='Literal'&&typeof n.left.value==='string'&&n.left.value.startsWith('images/'))
           dynamiques.push({fichier,ligne:n.loc.start.line,expression:texte.slice(n.start,n.end)});
@@ -41,7 +46,7 @@ function scanner(root=ROOT){
     const externe=/^https?:/.test(url)&&!/^https?:\/\/(?:www\.)?human-gambit\.com\//.test(url);
     let local=externe?null:decodeURIComponent(url.replace(/^https?:\/\/(?:www\.)?human-gambit\.com\//,'').split(/[?#]/)[0]).replace(/^\//,'');
     const rewrite=local&&rewrites.get('/'+local);if(rewrite)local=decodeURIComponent(rewrite.slice(1));
-    return{url,local,rewrite:rewrite||null,externe,existe:local?fs.existsSync(path.join(root,local)):null};
+    return{url,local,rewrite:rewrite||null,externe,existe:local?suivis.has(local)&&fs.existsSync(path.join(root,local)):null};
   });
   return{references,urls,dynamiques,compteurs:{fichiers:new Set(references.map(x=>x.fichier)).size,references:references.length,urls:urls.length,locales:urls.filter(x=>!x.externe).length,externes:urls.filter(x=>x.externe).length},absentes:urls.filter(x=>x.existe===false)};
 }

@@ -14,14 +14,29 @@ test('le contrôle refuse une image absente, une casse incorrecte et une cible d
  cp.execFileSync('git',['init','-q'],{cwd:d});cp.execFileSync('git',['add','.'],{cwd:d});
  const r=scanner(d);assert.deepEqual(r.absentes.map(x=>x.local).sort(),['images/cible.webp','images/cible.webp','images/manquante.png','images/photo.webp'].sort());
  assert.ok(!r.references.some(x=>x.url.includes('commentaire')));
+ fs.writeFileSync(path.join(d,'images','non-suivie.webp'),'fixture');fs.appendFileSync(path.join(d,'test.js'),"const oubliee='images/non-suivie.webp';");
+ assert.ok(scanner(d).absentes.some(x=>x.url==='images/non-suivie.webp'),'un fichier non ajouté à Git ne sera pas déployé');
  }finally{fs.rmSync(d,{recursive:true,force:true});}
 });
 test('URL encodée et paramètres conservés ; aucun faux appel issu d’un commentaire',()=>{
  assert.deepEqual(extraire('url("images/Salle%20presse.webp?v=2")'),['images/Salle%20presse.webp?v=2']);
+ assert.deepEqual(extraire('<img src="icones/portrait.svg">'),['icones/portrait.svg']);
+ assert.deepEqual(extraire('background:url(logos/logo.webp)'),['logos/logo.webp']);
 });
 test('les référentiels exécutés couvrent les quatre empires et les noms construits',()=>{
  const p=parcourirLieux();assert.equal(p.lieux.length,4);assert.ok(p.references.length>3000);
  for(const r of p.references)if(r.url.startsWith('images/'))assert.ok(fs.existsSync(path.join(ROOT,decodeURIComponent(r.url.split(/[?#]/)[0]))),r.localisation+' : '+r.url);
+});
+test('chemins construits : forêt et toundra présentes, aucun nouveau candidat absent de chantier',()=>{
+ const {inventorier}=require('../images/auditer-candidats-images.cjs');
+ const connus=new Set(JSON.parse(lire('outils/audits/images-cassees-20261122/IMAGES-MANQUANTES-20261122.json')).candidats_chantiers_non_produits);
+ const suivis=new Set(cp.execFileSync('git',['ls-files','-z'],{cwd:ROOT}).toString().split('\0'));
+ for(const r of inventorier()){
+  if(r.url)assert.ok(suivis.has(r.url)&&fs.existsSync(path.join(ROOT,r.url)),r.systeme+' : '+r.url);
+  if(r.candidats){assert.ok(r.existants.some(u=>suivis.has(u)),'aucune illustration affichable : '+JSON.stringify(r));
+   for(const u of r.candidats)if(!suivis.has(u)||!fs.existsSync(path.join(ROOT,u)))assert.ok(connus.has(u),'nouveau chemin construit absent : '+u);
+  }
+ }
 });
 test('neuf cartes postales et trois armes soviétiques : alias exact vers le vrai WebP',()=>{
  const v=JSON.parse(lire('vercel.json')).rewrites;

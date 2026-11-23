@@ -1,0 +1,9 @@
+{
+  "fonction": "public.transport_effectuer(text,text,text,uuid)",
+  "lecture_seule": true,
+  "sha256_definition": "a8f1b70c3374a9a27323cdda2f9dd953059004e915f6ff522d0b35f8a634456a",
+  "destination": "bâtiment centre-multinodal de la ville cible selon navigation_lieux_regles",
+  "ancienne_rue_effacee": true,
+  "modification_fonction": false,
+  "voyage_reel_execute": false
+}
