@@ -18,6 +18,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      # acorn (banc-interview-accueil-antennes) vient d'outils/e2e, comme dans interview-accueil-20261122.yml.
+      - run: npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
       - name: Navigateur (en-cas / zakouski, repas, forêt, tracts, antenne, objectif) — syntaxe et bancs client
         run: |
           for f in data.js plateau-personnage.js plateau-sovarka-provinces.js plateau-communication.js plateau-politique.js plateau-justice-economie.js plateau-criminalite.js plateau-actions-illegales-rumeurs.js admin-maladies.js; do node --check "$f"; done
