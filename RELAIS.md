@@ -133,7 +133,7 @@ $images$;
   - Renommages liés à la base dans le **dernier commit** de la branche, SQL à fusionner dans la migration finale : `outils/migrations-finales/renommages-bloc6-20261123.sql` (« Camarade Horaire » → **Vassili Sukhoï**, graphie voulue ; « Agente Nadejda » → **Lioudmila Proverkina**, déplacée au hall des douanes ; doublon « Nadejda Contrôle », jamais affiché, fondu dans Lioudmila). Tant que ce SQL n'est pas appliqué, le client renommé et `informateurs_pnj` divergent : fusionner le commit et appliquer le SQL ensemble.
   - Pour Codex (traductions, `i18n/sovarka-descriptions-resources.js`) : descriptions françaises nouvelles du hall des douanes, du hall principal et de la salle d'interrogatoire de Novomirsk, listées dans `outils/bancs/test-i18n-sovarka-descriptions-20261112.mjs` (`BLOC6_NOVOMIRSK_EN_ATTENTE`) ; les anciennes lignes (« Camarade Horaire veille », « miroir sans tain ») deviennent inutiles à Novomirsk.
 
-- **Bloc 3 (points 24 à 28, sous-agent de Claude, branche `claude/bloc3-pnj-20261123`)** — migration **NON APPLIQUÉE**
+- **Bloc 3 (points 24 à 28, sous-agent de Claude, branche `claude/bloc3-pnj-20261123`)** — migration **APPLIQUÉE en production le 23/11/2026** (feu vert de Fred), contrôlée en lecture (tarifs retirés, table avec RLS, réglages, 7 PNJ sociaux, référent, droits authenticated seuls ; goulag false, postes_attribues 6) :
   `20261123211000_bloc3_pnj_habitue_sociaux` (tarifs des deux ordres supprimés ; verre du jour de l'habitué, table `pnj_verres_offerts`,
   réglages MJ `habitue_krasnov_verres_par_jour` / `habitue_krasnov_accueil_heures` dans `sante_parametres`, RPC
   `habitue_krasnov_accueillir` ; sept PNJ sociaux ; Matveï Rybakov référent).
