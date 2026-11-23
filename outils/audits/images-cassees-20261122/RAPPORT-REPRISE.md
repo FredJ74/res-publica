@@ -1,6 +1,6 @@
 # Chasse aux images cassées — reprise du 23 novembre 2026
 
-Base finale du rebase : `e9f496cae3cc99d34dabff62bd5134050e25a0a7`. Branche `codex/images-cassees-20261122`, PR #1180 existante. Aucune écriture en production, aucune migration appliquée, aucun seed modifié.
+Base finale du rebase : `f40e74137b530cc7f2775cef10f1ede2d8b414ec`. Branche `codex/images-cassees-20261122`, PR #1180 existante. Aucune écriture en production, aucune migration appliquée, aucun seed modifié.
 
 ## État avant modification
 
@@ -34,13 +34,14 @@ Commits de main depuis la base initiale :
 - `d8e6d4733bfd` — Fusion : mission « Suites de Santé, interface et accueil » (sept migrations appliquées)
 - `b882274ed07d` — Relevé du point 22 (pièces à plus de 6 ordres) conservé dans le dépôt
 - `032ed96630b6` — CI : historique complet pour le banc des missions (sante-suites) ; phrases de carte postale retirées documentées avec leur provenance
-- `e9f496cae3cc` — installation d’acorn dans la CI Santé par Claude ; repris au dernier rebase, sans correctif étranger de Codex.
+- `e9f496cae3cc` — installation d’acorn dans la CI Santé par Claude ; repris sans correctif étranger de Codex.
+- `f40e74137b53` — window.state suit let state ; nouveaux correctifs de Claude conservés, aucun fichier de ce lot réécrit.
 
 ## Résolution des conflits
 
 - `plateau.html` : version intégrale de main, avec tous les scripts et suffixes de version de Claude ; préfixe de cache images ajouté à six scripts et chargement de `plateau-images.js` avant les consommateurs.
 - `plateau-personnage.js`, à la restauration du travail non commis : version de main reprise ; les cartes postales recto/verso, légendes, filtrage des destinataires, médecine, repas et registre des postes de Claude sont conservés. Seuls les appels de résolution des images sont réappliqués.
-- Second rebase sur `e9f496ca` : aucun conflit. Les huit fichiers de production modifiés sont comparés en entier à main après application des seules transformations images autorisées (`preservation-main.json`). Aucun fichier image, seed, API ou mécanique métier modifié.
+- Rebases supplémentaires sur `e9f496ca`, puis `f40e7413` (synchronisation window.state de Claude) : aucun conflit. Les huit fichiers de production modifiés sont comparés en entier à main après application des seules transformations images autorisées (`preservation-main.json`). Aucun fichier image, seed, API ou mécanique métier modifié.
 
 ## Corrections du premier commit 94bdb49f (réappliquées après rebase)
 
