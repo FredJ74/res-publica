@@ -1,0 +1,27 @@
+name: Création de parti — sens de saisie dans neuf langues
+on:
+  pull_request:
+    paths: ['i18n/organization-creation-resources.js', 'i18n/packed/organization-creation-resources.js.br', 'outils/bancs/banc-i18n-saisie-parti-20261123.cjs', 'outils/bancs/banc-i18n-creation-organisation*.cjs', '.github/workflows/i18n-saisie-parti-20261123.yml']
+  push:
+    branches: [main]
+    paths: ['i18n/organization-creation-resources.js', 'i18n/packed/organization-creation-resources.js.br', 'outils/bancs/banc-i18n-saisie-parti-20261123.cjs', 'outils/bancs/banc-i18n-creation-organisation*.cjs', '.github/workflows/i18n-saisie-parti-20261123.yml']
+permissions:
+  contents: read
+jobs:
+  saisie:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      NODE_PATH: outils/e2e/node_modules
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci --ignore-scripts --prefix outils/audits/i18n-global
+      - run: npm ci --prefix outils/e2e
+      - run: npx --prefix outils/e2e playwright install --with-deps chromium
+      - run: node outils/generateurs/compresser-catalogues-i18n.cjs --check
+      - run: node --test outils/bancs/banc-i18n-saisie-parti-20261123.cjs outils/bancs/banc-i18n-creation-organisation-20261114.cjs outils/bancs/banc-i18n-creation-organisation-navigateur-20261114.cjs

@@ -9,6 +9,15 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Sens de saisie lors de la création d’un parti (Codex, 23/11/2026)
+- Branche `codex/i18n-politique-saisie-20261123`, PR au premier push. Aucune base ni migration, aucun fichier du panneau des organisations/du personnage, aucun texte des zones Claude. Ce lot est distinct de la PR de formation #1183 et de la PR commerce/politique #1132.
+- Défaut reproduit dans Chromium : un champ `dir=auto` contenant un premier caractère arabe conserve un sens RTL en français. Le catalogue existant de création d’organisation applique désormais la langue courante aux deux champs nom/description (LTR hors arabe, RTL arabe), alignement au début, sans reconstruire les nœuds ni toucher aux valeurs/focus/sélection.
+- Aucun libellé ni traduction réécrit : 22 textes français et toutes les traductions existantes conservés. Brotli régénéré, vérifié sans perte.
+- 7 tests verts localement : neuf langues, 320/390/1280 px, reproduction avant correction, champs vides/arabes/mixtes, bascules et nouveaux formulaires, saisies et état inchangés, zéro appel métier ; banc existant : 28 états, 756 bascules, clics/paramètres et conditions identiques. Réponses simulées, aucun PJ ni téléphone physique.
+- Banc `banc-i18n-saisie-parti-20261123.cjs` et workflow dédié. L’ancienne assertion `dir=auto` du banc navigateur est remplacée par la direction attendue dans chaque langue ; les assertions de français, progression, conditions et commandes restent intactes.
+- Livraison conditionnée à CI verte et rebase final sur main ; les contrôles généraux de main `d0f0e127` sont déjà rouges dans des zones Claude, ne pas les modifier pour contourner le blocage.
+
+
 ### Fiche d'objet unique et panneau de gauche (Claude, 23/11/2026) — points 1, 16 à 20 de GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md
 - Branche `claude/fiche-objet-panneau-20261123` (partie de `origin/main` 27449358), **fusionnée dans le bloc 1 de la mission Novomirsk**. Aucune migration, aucune base, aucun goulag ; navigateur seulement.
 - **Point 1 — une seule fiche d'objet** : `ouvrirFicheObjet(idx)` (plateau-personnage.js) réunit toutes les actions des deux anciennes fiches
