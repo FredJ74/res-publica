@@ -1,0 +1,91 @@
+{
+  "main": "d0f0e127f6f249537d9f3380d5085a3289fa006f",
+  "formation_commit": "c16bd7298e0f61fd759eb718573597cb8745b22f",
+  "formation_ci": {
+    "run": 45221147261,
+    "tests": 32,
+    "succes": true
+  },
+  "saisie_commit": "b70d7def35746b9b6e18ae52303a8550264d6924",
+  "saisie_ci": {
+    "run": 45221674750,
+    "tests": 7,
+    "succes": true
+  },
+  "comparaisons": [
+    {
+      "controle": "Banc général : tarifs, fiche d’objet, descriptions communes",
+      "main_run": 45216697377,
+      "pr1183_run": 45221146900,
+      "resultat": "echec_preexistant_non_corrige_dans_ce_lot",
+      "fichiers_inchanges": [
+        {
+          "fichier": "baseline/seeds/95_a-regenerer/ordres_couts.sql",
+          "sha256_main_et_branche": "09c956ec8627281fbbf1ea5883a7040b4af3b3a0fed37a03f42590bfda7d4b49",
+          "identiques": true
+        },
+        {
+          "fichier": "plateau-personnage.js",
+          "sha256_main_et_branche": "ae8735fcf69fe685b6cb420d34bfedfe3fee7d61853bee3c1130ba8ef4278fc0",
+          "identiques": true
+        },
+        {
+          "fichier": "data.js",
+          "sha256_main_et_branche": "13d26399cfeb88f9d3297b7f50bb4a6f7adc51f073b34fd9c660164ce39229ad",
+          "identiques": true
+        }
+      ]
+    },
+    {
+      "controle": "Descriptions des ordres multi-empires",
+      "main_run": 45216697281,
+      "pr1183_run": 45221146908,
+      "resultat": "echec_preexistant_non_corrige_dans_ce_lot",
+      "fichiers_inchanges": [
+        {
+          "fichier": "data.js",
+          "sha256_main_et_branche": "13d26399cfeb88f9d3297b7f50bb4a6f7adc51f073b34fd9c660164ce39229ad",
+          "identiques": true
+        },
+        {
+          "fichier": "i18n/orders-resources.js",
+          "sha256_main_et_branche": "3136b94b8a1031e26716a89d08e6040633d632c2e22af7fbe8a910baf396ab68",
+          "identiques": true
+        }
+      ]
+    },
+    {
+      "controle": "Anciennes clés du panneau personnel (workflow PR seulement ; témoin main rejoué localement)",
+      "main_run": null,
+      "pr1183_run": 45221146924,
+      "resultat": "echec_preexistant_non_corrige_dans_ce_lot",
+      "fichiers_inchanges": [
+        {
+          "fichier": "plateau.html",
+          "sha256_main_et_branche": "5663f783d91fb9c635c98a2220d9c509c21f6693cbbd323719d3ef53a3899897",
+          "identiques": true
+        },
+        {
+          "fichier": "i18n/plateau-init.js",
+          "sha256_main_et_branche": "0fbd1edb1d94a175168e068c72991b5dc4b86e7d400202c20a6c6bcfc20bb160",
+          "identiques": true
+        },
+        {
+          "fichier": "outils/bancs/banc-i18n-plateau-wiring.cjs",
+          "sha256_main_et_branche": "028f4d537319fd4c02d4ddddebb48dc10694b350f69be0218e25bbcf044e3c6c",
+          "identiques": true
+        }
+      ]
+    }
+  ],
+  "vercel_production": {
+    "deployment": "dpl_6w4msZ18wAvT8qd9t78LTBDozCHP",
+    "commit": "d0f0e127f6f249537d9f3380d5085a3289fa006f",
+    "state": "READY",
+    "lots_inclus": false
+  },
+  "previsualisations_des_branches": 0,
+  "ecritures_base": 0,
+  "fusion": false,
+  "motif_non_fusion": "CI générale rouge ; zones réservées à Claude, aucune dérogation demandée."
+}
