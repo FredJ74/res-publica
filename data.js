@@ -2277,6 +2277,7 @@ const WORLD = {
           persons: [{"name": "Camarade Horaire (PNJ)", "role": "Chef de gare", "rel": "neutral", "job": "chef_gare"}, {"name": "Agente Nadejda (PNJ)", "role": "Agente de contrôle", "rel": "neutral", "job": "securite"}],
           // La caserne de Sovarka est en ville (vues 11 et 12) : pas de taxi vers une caserne hors ville.
           // Le taxi du QHS mène au goulag : masqué tant que le goulag est verrouillé (le serveur refuse aussi, goulag_ferme).
+          // Images, description des douanes et PNJ des douanes : bloc GARE_NOVOMIRSK_BLOC6 plus bas (avant le renommage sovarkien).
           roomOverrides: { hall_gare: { excludeOrders: ['taxi_caserne'], masquerSiGoulagFerme: ['taxi_qhs'] } },
           rooms: {
           'hall_gare': {
@@ -2389,8 +2390,10 @@ const WORLD = {
           // ordres, aux PNJ, aux permissions et aux autres empires.
           roomOverrides: {
             accueil_renseignement: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_renseignement_accueil.webp' },
+            // Bloc 6 (Fred, 23/11/2026, point 38) : Tamara Naouchnikova, opératrice d'écoute (la femme au casque de l'image).
             salle_ecoutes: {
               imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_renseignement_ecoutes.webp',
+              persons: [{name: 'Tamara Naouchnikova (PNJ)', role: 'Opératrice de la salle des écoutes', rel: 'neutral', job: 'operatrice_ecoutes'}],
               excludeOrders: ['renseignement_militaire'],
               orders: [{
                 fn: 'voler_archives_ecoute', label: 'Voler un rapport dans les archives',
@@ -2399,8 +2402,16 @@ const WORLD = {
               }, { fn: 'consulter_archives_ecoute', label: 'Consulter les archives (habilitation)', pa: 1, cost: 0, type: 'legal', icon: 'ti-search', successRate: 100,
           desc: 'Réservé aux personnages habilités par le ministre de la Sécurité du Peuple : chercher un nom de personnage dans les archives de ce centre (30 derniers jours). Les communications trouvées arrivent dans votre courrier.' }]
             },
+            // Bloc 6 (Fred, 23/11/2026, point 38) : description réécrite d'après l'image (cave de pierre, chaînes, chaise de
+            // contention ; AUCUN miroir sans tain). Le Colonel Oleg Doprossov (officier en noir) et Fiodor Koulakov (colosse
+            // au tablier) : comiques mais pas ridicules.
             salle_interrogatoire_renseignement: {
               imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_renseignement_interrogatoire.webp',
+              desc: "Une cave de pierre sous la Direction, aux murs suintants. Des chaînes et un crochet pendent du plafond, des sangles de cuir sont alignées au mur, et une chaise de contention trône sous une lampe crue. Sur la table, des dossiers bien rangés : ici, tout se fait dans les règles.",
+              persons: [
+                {name: 'Colonel Oleg Doprossov (PNJ)', role: "Officier chargé des interrogatoires", rel: 'neutral', job: 'officier_interrogatoire'},
+                {name: 'Fiodor Koulakov (PNJ)', role: "Auxiliaire de la salle d'interrogatoire", rel: 'neutral', job: 'auxiliaire_interrogatoire'}
+              ],
               // Voleur d'archives arrete a Novomirsk : detenu ici jusqu'a son interrogatoire (Fred, 13/11/2026).
               // Ministre de la Defense ou de la Securite du Peuple ; le serveur verifie (renseignement_interroger).
               excludeOrders: ['interroger_renseignement'],
@@ -11174,6 +11185,18 @@ function slugPnjSovarka(nom) {
     .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
     .toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
 }
+// GARE_NOVOMIRSK_BLOC6 (Fred, 23/11/2026, point 37) : images propres à la gare de Novomirsk (hall principal = « Le chef de
+// gare et l'heure des trains » ; hall des douanes = « Contrôle douanier sous la neige » ; zone d'embarquement = « Aéroport
+// soviétique sous la neige ») et description des douanes (celle du gabarit nomme l'inspecteur de Républia). Posé AVANT le
+// renommage sovarkien ci-dessous, qui renomme l'inspecteur du gabarit en Prokhor Rybakov.
+{
+  const ro = WORLD.soviet.capitale.buildingContext['centre-multinodal-luthecia'].roomOverrides;
+  const D = 'images/Sovarka/Novomirsk/';
+  ro.hall_gare = Object.assign({}, ro.hall_gare, { imageUrl: D + 'novo-gare-hall-chef-de-gare.webp' });
+  ro.hall_douanes = Object.assign({}, ro.hall_douanes, { imageUrl: D + 'novo-gare-hall-douanes.webp',
+    desc: "Le contrôle douanier de la gare, sous la verrière. « La frontière est sous clé », proclame la banderole. Au portique, un soldat et son berger allemand ; aux tables de fouille, l'inspecteur Prokhor Rybakov examine à la loupe un bocal de cornichons. Tout est enregistré en triple." });
+  ro.zone_embarquement = Object.assign({}, ro.zone_embarquement, { imageUrl: D + 'novo-gare-zone-embarquement.webp' });
+}
 // Meme resolution que personnesNormalesDeLaPiece (plateau-multijoueur.js) : surcharge de ville,
 // puis contexte de la premiere piece, puis PNJ du gabarit. Le resultat est pose en surcharge.
 {
@@ -13316,8 +13339,17 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     ['loge-maconnique', 'portail', 'Camarade Grand Maître (PNJ)', 'planche5-case1.webp'],
     ['loge-maconnique', 'hall_loge', 'Frere Gardien', 'planche5-case2.webp'],
     ['loge-maconnique', 'bureau_venerable', 'Vénérable Maître Dimitri Compassov', 'planche5-case4.webp'],
-    ['kolkhoze-spirituel', 'grange_sainte', 'Camarade Pontife Tractorenko (PNJ)', 'planche5-case6.webp'],
-    ['kolkhoze-spirituel', 'grange_sainte', 'Frère Kolkhoze (PNJ)', 'planche5-case7.webp'],
+    // Bloc 6 (point 39) : la nef de Novomirsk (Novomirsk_cathedrale_accueil.webp) ne montre personne ; les deux portraits
+    // sont repris des cases 6 et 7 de la planche 5, en 512 × 512, sous leur nom définitif.
+    ['kolkhoze-spirituel', 'grange_sainte', 'Camarade Pontife Tractorenko (PNJ)', 'novo-pontife-tractorenko-portrait.webp'],
+    ['kolkhoze-spirituel', 'grange_sainte', 'Frère Kolkhoze (PNJ)', 'novo-frere-kolkhoze-portrait.webp'],
+    // Bloc 6 (points 37 et 38) : gare et Direction du Renseignement.
+    ['centre-multinodal-luthecia', 'hall_douanes', 'Inspecteur Prokhor Rybakov (PNJ)', 'novo-prokhor-rybakov-portrait.webp'],
+    ['siege-renseignement', 'accueil_renseignement', 'Sergent Viktor Muetov (PNJ)', 'novo-viktor-muetov-portrait.webp'],
+    ['siege-renseignement', 'accueil_renseignement', 'Elena Diamentevia (PNJ)', 'novo-elena-diamentevia-portrait.webp'],
+    ['siege-renseignement', 'salle_ecoutes', 'Tamara Naouchnikova (PNJ)', 'novo-tamara-naouchnikova-portrait.webp'],
+    ['siege-renseignement', 'salle_interrogatoire_renseignement', 'Colonel Oleg Doprossov (PNJ)', 'novo-oleg-doprossov-portrait.webp'],
+    ['siege-renseignement', 'salle_interrogatoire_renseignement', 'Fiodor Koulakov (PNJ)', 'novo-fiodor-koulakov-portrait.webp'],
     ['la-tribune', 'redaction', 'Macha Scoopova', 'planche6-case1.webp'],
   ];
   const cite = WORLD.soviet.capitale;
