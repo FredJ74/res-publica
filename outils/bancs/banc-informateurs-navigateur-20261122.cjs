@@ -18,7 +18,7 @@ const ICI_BAR = { ok: true, pays: 'republic', ville: 'capitale', batiment: 'hote
 async function avecPage(fn) {
   const page0 = '<!doctype html><meta charset="utf-8"><link rel="stylesheet" href="/style.css">'
     + '<div id="modal-postes" class="modal-overlay"><div class="modal-box"><div id="postes-modal-title"></div><div id="postes-body"></div></div></div>'
-    + '<script>var state={char:{name:"Tom"},country:"republic",currentCity:"capitale",currentBuilding:"hotel-republica",currentRoom:"bar"};'
+    + '<script>let state={char:{name:"Tom"},country:"republic",currentCity:"capitale",currentBuilding:"hotel-republica",currentRoom:"bar"};'
     + 'var BUILDINGS={"hotel-republica":{rooms:{bar:{name:"Bar"},salle:{name:"Salle"}}}};</script>'
     + FICHIERS.filter(f => f.endsWith('.js')).map(f => '<script src="' + f + '"></script>').join('');
   const serveur = http.createServer((req, res) => {

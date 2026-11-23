@@ -602,6 +602,9 @@ let state = {
   tracesEnquete: [],
   dernierDormir: 0
 };
+// « let state » n'est pas une propriété de window : plusieurs modules (informateurs, accueil, médecin, secrets, énigme de
+// Krasnov, événements) lisent window.state. Cet accesseur leur donne toujours l'objet courant (Fred, 23/11/2026).
+try { Object.defineProperty(window, 'state', { get() { return state; }, set(v) { state = v; }, configurable: true }); } catch (e) {}
 
 // =====================
 // INIT

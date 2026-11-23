@@ -1,10 +1,10 @@
 name: "Informateurs (refonte, étape K) — barème commun, PNJ des lieux, commissaire"
 on:
   pull_request:
-    paths: [plateau-informateurs.js, plateau-criminalite.js, plateau-secrets.js, plateau-router.js, data.js, plateau.html, 'migrations/20261122180000_informateurs_refonte.sql', 'outils/bancs/*informateurs*', 'outils/bancs/fixtures/informateurs-*', 'outils/generateurs/generer-informateurs-lieux.cjs', .github/workflows/informateurs-20261122.yml]
+    paths: [plateau-informateurs.js, plateau-core.js, 'outils/bancs/banc-state-window-*', plateau-criminalite.js, plateau-secrets.js, plateau-router.js, data.js, plateau.html, 'migrations/20261122180000_informateurs_refonte.sql', 'outils/bancs/*informateurs*', 'outils/bancs/fixtures/informateurs-*', 'outils/generateurs/generer-informateurs-lieux.cjs', .github/workflows/informateurs-20261122.yml]
   push:
     branches: [main, 'claude/**']
-    paths: [plateau-informateurs.js, plateau-criminalite.js, plateau-secrets.js, plateau-router.js, data.js, plateau.html, 'migrations/20261122180000_informateurs_refonte.sql', 'outils/bancs/*informateurs*', 'outils/bancs/fixtures/informateurs-*', 'outils/generateurs/generer-informateurs-lieux.cjs', .github/workflows/informateurs-20261122.yml]
+    paths: [plateau-informateurs.js, plateau-core.js, 'outils/bancs/banc-state-window-*', plateau-criminalite.js, plateau-secrets.js, plateau-router.js, data.js, plateau.html, 'migrations/20261122180000_informateurs_refonte.sql', 'outils/bancs/*informateurs*', 'outils/bancs/fixtures/informateurs-*', 'outils/generateurs/generer-informateurs-lieux.cjs', .github/workflows/informateurs-20261122.yml]
 permissions:
   contents: read
 jobs:
@@ -29,4 +29,4 @@ jobs:
       - name: Chromium réel
         env:
           HG_CHROMIUM: /usr/bin/google-chrome
-        run: node --test outils/bancs/banc-informateurs-navigateur-20261122.cjs
+        run: node --test --test-concurrency=1 outils/bancs/banc-informateurs-navigateur-20261122.cjs outils/bancs/banc-state-window-20261123.cjs

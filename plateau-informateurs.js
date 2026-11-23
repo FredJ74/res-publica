@@ -43,7 +43,8 @@ const TXT_INFORMATEURS = {
 };
 function t(cle, v) { return String(TXT_INFORMATEURS[cle] ?? cle).replace(/\{(\w+)\}/g, (m, k) => (v && k in v) ? String(v[k]) : m); }
 function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
-const st = () => global.state || {};
+// state est déclaré par « let » dans plateau-core.js : il n'est PAS sur window, on le lit par son nom (portée globale).
+const st = () => (typeof state !== 'undefined' && state) || global.state || {};
 const cle = () => [st().country, st().currentCity, st().currentBuilding, st().currentRoom].join('/');
 
 // Présents de la pièce, relus au serveur (cache court par pièce : la liste change quand on change de pièce).
