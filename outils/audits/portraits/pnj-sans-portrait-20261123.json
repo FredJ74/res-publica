@@ -2,10 +2,10 @@
   "genere_par": "outils/bancs/banc-pnj-sans-portrait-20261123.cjs",
   "note": "Une ligne par apparition dans une pièce (un même PNJ peut figurer dans plusieurs pièces). PNJ du serveur (informateurs, agents, soldats) et PNJ ajoutés dynamiquement par les modules non compris.",
   "totaux": {
-    "apparitions_pnj": 935,
-    "avec_portrait": 499,
-    "sans_portrait": 436,
-    "pnj_distincts_sans_portrait": 426,
+    "apparitions_pnj": 938,
+    "avec_portrait": 505,
+    "sans_portrait": 433,
+    "pnj_distincts_sans_portrait": 423,
     "par_ville": {
       "Al Khalija / Al Madina": 48,
       "Al Khalija / Al-Petrol": 33,
@@ -24,7 +24,7 @@
       "Républia / Quartier Haute Securite": 4,
       "Sovarka / Garnison du Peuple": 8,
       "Sovarka / Krasnov": 3,
-      "Sovarka / Novomirsk": 43,
+      "Sovarka / Novomirsk": 40,
       "Sovarka / Starovka": 4
     }
   },
@@ -1476,12 +1476,6 @@
             "Timofeï Fomine (PNJ) — Detenu"
           ]
         },
-        "Direction du Renseignement de Sovarka [siege-renseignement]": {
-          "Accueil [accueil_renseignement]": [
-            "Elena Diamentevia (PNJ) — Agente d’accueil de la Direction du Renseignement",
-            "Sergent Viktor Muetov (PNJ) — Planton de la Direction du Renseignement"
-          ]
-        },
         "Entrepôt Logistique de Novomirsk [entrepot-logistique-novomirsk]": {
           "Bureau de Direction [bureau_direction]": [
             "Boris Stockov (PNJ) — Directeur de l'Entrepôt Logistique"
@@ -1493,9 +1487,6 @@
           ]
         },
         "Hall Principal [centre-multinodal-luthecia]": {
-          "Hall des Douanes [hall_douanes]": [
-            "Inspecteur Prokhor Rybakov (PNJ) — Inspecteur des douanes"
-          ],
           "Hall Principal [hall_gare]": [
             "Agente Nadejda (PNJ) — Agente de contrôle",
             "Camarade Horaire (PNJ) — Chef de gare"
