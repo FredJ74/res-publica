@@ -5,10 +5,47 @@ const IMAGES_OBJETS_PAR_IDENTITE = {
   masque_carnaval: 'images/objet-masque-carnaval.webp', masque_carnaval_habillement: 'images/objet-masque-carnaval.webp',
   tenue_ninja: 'images/objet-tenue-ninja.webp', tenue_ninja_marche: 'images/objet-tenue-ninja.webp', tenue_ninja_militaire: 'images/objet-tenue-ninja.webp'
 };
+// ICÔNES ET NOMS DE L'INVENTAIRE (Fred, 23/11/2026, GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md, point 36) : les 18 icônes
+// de « icones-inventaire » ; une matière stockée sous sa clé (laitages, cereales…) s'affiche sous son nom propre
+// (RESSOURCES_ECONOMIE) ; une carte postale montre sa propre illustration (catalogue PRODUITS_MARCHE). Affichage seulement :
+// le serveur garde ses clés (name / stackKey), rien n'est réécrit dans les inventaires.
+const DOSSIER_ICONES_INVENTAIRE = 'images/icones-inventaire/';
+const ICONES_INVENTAIRE_PAR_CLE = {
+  alcool: 'icone-alcool', bouteille_eau: 'icone-bouteille-eau', carburant: 'icone-carburant', cereales: 'icone-cereales',
+  dent_ours: 'icone-dent-ours', laitages: 'icone-laitages', medicaments: 'icone-medicaments', oeufs: 'icone-oeufs',
+  petrole: 'icone-petrole', poisson: 'icone-poisson', produits_exotiques: 'icone-produits-exotiques', viande: 'icone-viande',
+  graisse_ours: 'icone-bocal-graisse-ours', groupe_electrogene: 'icone-groupe-electrogene', tract: 'icone-tracts'
+};
+function iconeInventaireObjet(item) {
+  const nom = String(item.name || '');
+  let f = ICONES_INVENTAIRE_PAR_CLE[item.stackKey] || ICONES_INVENTAIRE_PAR_CLE[item.graisse] || ICONES_INVENTAIRE_PAR_CLE[item.type]
+    || (/^[a-z_]+$/.test(nom) ? ICONES_INVENTAIRE_PAR_CLE[nom] : '');
+  if (!f && /^Revolver \.38/.test(nom)) f = 'icone-revolver-38';
+  if (!f && /^Extrait de casier judiciaire/.test(nom)) f = 'icone-extrait-casier-judiciaire';
+  if (!f && /^Extrait de domiciliation/.test(nom)) f = 'icone-extrait-domiciliation';
+  return f ? DOSSIER_ICONES_INVENTAIRE + f + '.webp' : '';
+}
+function carteModeleObjet(item) {
+  const cat = typeof PRODUITS_MARCHE !== 'undefined' ? PRODUITS_MARCHE : null;
+  if (!cat) return null;
+  for (const k of [item.modele, item.recette_id, item.type]) if (k && cat[k]?.familleProduitMarche === 'carte_postale') return cat[k];
+  return null;
+}
+function nomObjetAffiche(item) {
+  if (!item) return '';
+  const nom = String(item.name || '');
+  const ressources = typeof RESSOURCES_ECONOMIE !== 'undefined' ? RESSOURCES_ECONOMIE : null;
+  if (ressources && /^[a-z_]+$/.test(nom) && ressources[nom]?.label) return ressources[nom].label;
+  if (nom === 'bouteille_eau') return 'Bouteille d’eau';
+  return nom;
+}
 function imageUrlObjet(item) {
   if (!item) return '';
-  if (item.imageUrl) return typeof imagePubliqueUrl === 'function' ? imagePubliqueUrl(item.imageUrl) : item.imageUrl;
-  return IMAGES_OBJETS_PAR_IDENTITE[item.recette_id] || IMAGES_OBJETS_PAR_IDENTITE[item.generique_id] || IMAGES_OBJETS_PAR_IDENTITE[item.type] || '';
+  const carte = carteModeleObjet(item);
+  const brute = (carte && carte.image) || item.imageUrl;
+  if (brute) return typeof imagePubliqueUrl === 'function' ? imagePubliqueUrl(brute) : brute;
+  return IMAGES_OBJETS_PAR_IDENTITE[item.recette_id] || IMAGES_OBJETS_PAR_IDENTITE[item.generique_id] || IMAGES_OBJETS_PAR_IDENTITE[item.type]
+    || iconeInventaireObjet(item) || '';
 }
 // =====================
 // PLATEAU-PERSONNAGE.JS
@@ -3408,7 +3445,7 @@ async function ouvrirFicheObjet(idx) {
     return;
   }
 
-  const nomAffiche = (typeof nomObjetMaladie === 'function' && nomObjetMaladie(item)) || (typeof herosObjetTexte === 'function' ? herosObjetTexte(item, 'name') : item.name);
+  const nomAffiche = (typeof nomObjetMaladie === 'function' && nomObjetMaladie(item)) || (typeof nomObjetAffiche === 'function' ? nomObjetAffiche({ ...item, name: typeof herosObjetTexte === 'function' ? herosObjetTexte(item, 'name') : item.name }) : (typeof herosObjetTexte === 'function' ? herosObjetTexte(item, 'name') : item.name));
   document.getElementById('postes-modal-title').textContent = nomAffiche;
   const corps = document.getElementById('postes-body');
   const jeton = ++RP_FICHE_OBJET_JETON;
@@ -3599,7 +3636,7 @@ function htmlFenetreInventaire() {
     items.forEach((item, i) => {
       const imageObjet = (typeof imageUrlObjet === 'function') ? imageUrlObjet(item) : item.imageUrl;
       const qte = Number(item.quantite ?? item.qty);
-      const nom = ((typeof nomObjetMaladie === 'function' && nomObjetMaladie(item)) || (typeof herosObjetTexte === 'function' ? herosObjetTexte(item, 'name') : item.name) || '');
+      const nom = ((typeof nomObjetMaladie === 'function' && nomObjetMaladie(item)) || (typeof nomObjetAffiche === 'function' ? nomObjetAffiche({ ...item, name: typeof herosObjetTexte === 'function' ? herosObjetTexte(item, 'name') : item.name }) : (typeof herosObjetTexte === 'function' ? herosObjetTexte(item, 'name') : item.name)) || '');
       const protege = typeof colisSecretProtege === 'function' && colisSecretProtege(item);
       html += '<div class="hg-inventaire-ligne" role="button" tabindex="0" style="display:flex;align-items:center;gap:.6rem;padding:.55rem .3rem;border-bottom:1px solid #2a2418;cursor:pointer" onclick="ouvrirFicheObjet(' + i + ')" onkeydown="if(event.key===\'Enter\')ouvrirFicheObjet(' + i + ')">';
       if (imageObjet && imageObjet.length > 5) {
@@ -3981,6 +4018,7 @@ function ouvrirPopupArmoireSouvenirs(idx, tab) {
 // n'a pas donné leur texte (valeur vide).
 const TEXTES_CARTE_POSTALE = { fr: {
   legende_carte_krasnov_place_ours: 'Krasnov, capitale de l’ours',
+  legende_carte_starovka_hiver: '',
   legende_carte_psm_notre_dame_mer: '', legende_carte_psm_touristique: '', legende_carte_psm_culture_marine: '',
   legende_carte_montrouge_place_rail: '', legende_carte_montrouge_touristique: '', legende_carte_montrouge_musee_rail: '',
   legende_carte_luthecia_institutions: '', legende_carte_luthecia_internationale: '', legende_carte_luthecia_culture: '',
