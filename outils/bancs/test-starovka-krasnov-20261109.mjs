@@ -38,8 +38,13 @@ test('Starovka et Krasnov : chaque façade de rue ouvre un bâtiment de la ville
 test('Bureaux de province : plus de location privée au guichet, demande à la mairie', () => {
   const ctx = charger();
   for (const ville of ['ville_a', 'ville_b']) {
-    const fns = vm.runInContext(`['bureau_prestige','bureau_standard','open_space'].map(p =>
-      ordresDeclaresDeLaPiece(BUILDINGS['centre-affaires'].rooms[p], WORLD.soviet['${ville}'].buildingContext['centre-affaires'], p).map(o => o.fn))`, ctx);
+    // Krasnov (bloc 4, point 32, 23/11/2026) : les trois locaux du gabarit sont exclus, les quatre bureaux (roomsExtra) se
+    // demandent à la mairie ; on vérifie donc les pièces réellement visitables de chaque ville.
+    const fns = vm.runInContext(`(() => { const c = WORLD.soviet['${ville}'].buildingContext['centre-affaires'];
+      const pieces = ['bureau_prestige','bureau_standard','open_space'].filter(p => !(c.roomsExclues || []).includes(p))
+        .map(p => [p, BUILDINGS['centre-affaires'].rooms[p]]).concat(Object.entries(c.roomsExtra || {}).filter(([p]) => /^bureau_/.test(p)));
+      return pieces.map(([p, r]) => ordresDeclaresDeLaPiece(r, c, p).map(o => o.fn)); })()`, ctx);
+    assert.ok(fns.length >= 3, ville + ' : bureaux introuvables');
     for (const liste of fns) {
       assert.ok(!liste.includes('louer_local'), ville + ' : guichet encore ouvert');
       assert.equal(liste.filter(f => f === 'sovarka_demande_location').length, 1, ville + ' : demande de location absente ou doublée');

@@ -8,7 +8,8 @@ const ctx = vm.createContext({});
 vm.runInContext(lire('data.js'), ctx);
 for (const [ville, bat] of [['capitale', 'dispensaire-public'], ['ville_a', 'dispensaire-public-v'], ['ville_b', 'dispensaire-public-v']]) {
   const ch = vm.runInContext(`WORLD.soviet.${ville}.buildingContext['${bat}'].roomsExtra.chambre`, ctx);
-  assert.equal(JSON.stringify(ch.orders.map(o => o.fn)), '["dormir","repas_hopital","transfert_clinique_privee"]', ville); // + transfert (uniformisation du 14/11)
+  // + transfert (uniformisation du 14/11) ; Krasnov : « Sortir de l'hôpital » dans la chambre (bloc 4, point 30, 23/11/2026).
+  assert.equal(JSON.stringify(ch.orders.map(o => o.fn)), ville === 'ville_b' ? '["dormir","repas_hopital","transfert_clinique_privee","sortie_hopital"]' : '["dormir","repas_hopital","transfert_clinique_privee"]', ville);
   assert.equal(ch.orders.find(o => o.fn === 'dormir').pa, 0, 'Dormir sans PA : le patient arrive à 0 PA');
   assert.ok(fs.existsSync(new URL('../../' + ch.imageUrl, import.meta.url)), ville + ' image');
 }
