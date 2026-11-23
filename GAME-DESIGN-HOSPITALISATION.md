@@ -96,3 +96,11 @@ Le soin `soins_discrets` en clinique privée est une prestation confidentielle :
 ## Avertissement avant 0 PA : durée annoncée (Fred, 14/11/2026)
 
 - La fenêtre de confirmation affichée avant un ordre qui laisserait le PJ à 0 PA précise désormais qu'il sera transféré à l'hôpital **et immobilisé 2 à 3 jours**. Texte traduit dans les 9 langues (`i18n/room-actions-resources.js`), libellé de l'ordre dans la langue du joueur. Vérifié sur mobile (pop-up au premier plan, boutons de 44 px).
+
+## Salle d'attente et chambre séparées (Fred, 23/11/2026)
+
+Décisions complètes : `GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md`. Point 30.
+- **Salle d'attente = visiteurs** : centre antipoison, soin standard, fournir des ressources médicales, inspecter, se cacher.
+- **Chambre = hospitalisés** : dormir, repas, transfert en clinique privée, sortir. Le transfert, le repas et la sortie ne sont plus dans la salle d'attente.
+- **Transfert en clinique privée à 0 PA** (écran et serveur), tarif du pays affiché et prélevé depuis la chambre (Sovarka : 400 PSK, au lieu de « 1000 FR »).
+- « Salle bondée. Patience requise. » est supprimé.

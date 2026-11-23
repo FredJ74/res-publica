@@ -63,3 +63,11 @@ traduction listées pour Codex dans RELAIS.md.
 - Migrations écrites à partir des définitions de PRODUCTION (pg_get_functiondef), éprouvées sur PGlite, annoncées une par une
   juste avant le lancement pour validation à l'écran ; une validation expirée : une seule ligne « migration X en attente », arrêt.
 - Rien du goulag (sovarka_goulag_*, configuration active=false conservée).
+
+## Suites du 23/11/2026 (Fred)
+
+Décisions complètes : `GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md`.
+- **Inspecter la pièce** : ouvrir la fenêtre coûte **0 PA** (écran et serveur) ; chaque option intérieure affiche son tarif sur son bouton (point 10).
+- **Rébellion et répression : 1 PA chacune** (point 12).
+- La ligne `desinstaller_materiel` est retirée de `ordres_couts` (point 13).
+- Panneau de gauche, fenêtre Argent, fenêtre Inventaire, suppression des onglets Inventaire et Statistiques de « Mon personnage », journal sans « Rapports de combat » (points 16 à 23).

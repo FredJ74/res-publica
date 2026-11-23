@@ -1039,7 +1039,7 @@ Fred constate un « mur de boutons » à la caserne, alors qu'elle doit retrouve
 
 - Décision de Fred : chaque maisonnette en bois visible dans les vues de rue de Krasnov est cliquable et abrite **un habitant**, sur le modèle de la maison de Stepan (service du jour, repas, lit, trinquer). Migration `20261114180001_krasnov_maisonnettes` (fichier renommé le 15/11 : horodatage en double).
 - Cinq maisons repérées par Claude : maison bleue en face du centre d'affaires (`krasnov-rue-bureaux`), maison rouge et maison bleue de la rue descendante, maison brune près de l'église, maison au bord droit des terrains.
-- Habitants proposés par Claude, **validés par Fred (15/11/2026, 0 h 52)** : Antonina Merkoulova (couturière retraitée), Matveï Rybakov (ancien bûcheron), Praskovia Pakhomova (apicultrice), Kouzma Lapchine (ancien sonneur de cloches), Ignat Lykov (vieux trappeur). Services tirés parmi les matières existantes (bois, fruits et légumes, laitages, textile, viande, alcool, carburant, plantes, céréales, poisson). Images d'intérieur à venir.
+- Habitants proposés par Claude, **validés par Fred (15/11/2026, 0 h 52)** : Antonina Merkoulova (couturière retraitée), Matveï Rybakov (ancien bûcheron), Praskovia Pakhomova (apicultrice), Kouzma Lapchine (**batiouchka** depuis le 15/11, un peu sourd, parle fort ; plus « ancien sonneur de cloches »), Ignat Lykov (**fonctionnaire à la retraite, jamais trappeur** — Fred, 23/11/2026). Services tirés parmi les matières existantes (bois, fruits et légumes, laitages, textile, viande, alcool, carburant, plantes, céréales, poisson). Images d'intérieur à venir.
 
 ## Tabac/Presse de Krasnov : quatre articles (Fred, 14/11/2026)
 - Demande de Fred (21 h 52) : « 4 articles, à ta convenance ». Choix de Claude, sur la règle des commerces (2 familles, 4 articles en freemium) :
@@ -1202,3 +1202,18 @@ Usines d'État de Sovarka : 25 matières par chaîne et par nuit → 50 produits
 **Pénurie de médicaments en Républia, cause trouvée** : l'usine de Luthécia ne recevait des plantes que par 20 % des **livraisons** de l'entrepôt de la ville ; les trois entrepôts étant pleins de plantes (300), ils ne recevaient plus rien, l'usine restait vide et ne produisait plus (0 médicament dans les trois entrepôts au 15/11). Correctif : quand il manque le volume du jour, une usine de Républia le prend dans l'entrepôt de sa ville, sans paiement, comme la redirection ; plus une dotation unique remettant chaque entrepôt de Républia à 100 médicaments.
 
 **Points laissés à Fred** : les volumes ci-dessus ; la décision 4 pour un directeur PJ (aujourd'hui, la nuit applique toujours la priorité « usines puis contrats ») ; l'intérêt d'un contrat de carburant pour la Républia, dont Montrouge ne couvre pas les besoins (sujet distinct, après Starovka).
+
+### Novomirsk, PNJ, interface (Fred, 23/11/2026)
+
+Décisions complètes : `GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md`. Corrections à la source :
+- **Ignat Lykov** : fonctionnaire à la retraite, **jamais trappeur**. **Kouzma Lapchine** : batiouchka, plus sonneur de cloches.
+- **Matveï Rybakov** : référent chasse et bûcheronnage de Krasnov, frère aîné de **Prokhor Rybakov** (douanes de Novomirsk) :
+  « mon frère, il fouille des valises toute la journée ».
+- **Gare** : « Camarade Horaire » → **Vassili Sukhoï** (graphie voulue, ne pas écrire Soukhoï), chef de gare au hall principal ;
+  « Agente Nadejda » → **Lioudmila Proverkina**, agente de contrôle, au hall des douanes. « Taxi vers le QHS » masqué tant que
+  le goulag est verrouillé.
+- **Renseignement** : Tamara Naouchnikova (écoutes), Colonel Oleg Doprossov et Fiodor Koulakov (interrogatoire).
+- **Musée de Krasnov** : plus de directeur ; le guide Arkadi Pamiatnikov juge l'énigme ; hôtesse Zoïa Biletova.
+- **Hôpital de Krasnov** : infirmière Nadejda Oukolova. **EHPAD de Krasnov** : un résident social (Matriona Starikova ou Matveï Starikov).
+- **Bar Sever** : Grigori Zaitsev (patron) et l'habitué (PNJ social qui offre un verre une fois par jour).
+- **Centre d'affaires de Krasnov** : 4 bureaux dans `sovarka_locaux`, plafond 40 PSK/jour, demande à la mairie.

@@ -21,3 +21,7 @@ Avant de coder, vérifie dans le dépôt ce qui existe déjà de ces règles, et
 Note de Claude (21/11) : l'habitué du Bar Sever de Krasnov (#1169, lot de Krasnov point 8) applique déjà le barème commun (fonction serveur `informateur_palier_interne`). Il devra rejoindre le profil « généraliste » lors de la refonte, en gardant sa piste vers le colonel Voronov au premier choix.
 
 Note de Claude (22/11) : consigne codée (étape K, branche `claude/informateurs-refonte-20261122`, migration `20261122180000_informateurs_refonte`, non appliquée) et fondue dans GAME-DESIGN-CRIMINALITE.md, section « Barème commun des informateurs » → « Refonte des informateurs ».
+
+### Acheter une information en cliquant sur le PNJ (Fred, 23/11/2026)
+
+Décisions complètes : `GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md`. Point 24. Pour **tous** les informateurs, l'achat se fait en cliquant sur le PNJ (« Acheter une information ») ; l'ordre de pièce « Acheter une information » disparaît. L'habitué du Bar Sever (point 25) offre un verre une fois par jour ; le bouton « Lui offrir un verre » (7 à 20 PSK) déclenche l'information ; l'ordre « Offrir un verre à l'habitué » disparaît.

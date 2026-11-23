@@ -105,3 +105,11 @@ navigateur. Toutes les valeurs chiffrées vont dans une table de paramètres ré
 12. Commissaire et informateurs : inchangé.
 13. Objectif obj_informateur remplacé par « Acheter 5 informations à des informateurs différents ».
 14. Inchangés : « (en fuite) » en minuscules, gilet qui laisse au moins 1 PA, patient reconduit en cellule compté « bâtiment ».
+
+## Suites du rapport du 23/11 — paiements, usines (Fred, 23/11/2026)
+
+Décisions complètes : `GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md`. Points 6 à 9.
+- **Tous les paiements du jeu se font en liquide.** Seuls les **prélèvements automatiques** (`taxe_fonciere_prelever`, `cotisation_renouveler`) gardent l'ordre « liquide, puis banque » : le joueur n'est pas là pour sortir son argent, et un prélèvement manqué ferait perdre un bien ou une adhésion sans qu'il ait pu agir.
+- Le reversement de l'excédent des entrepôts tourne à minuit.
+- Les usines pharmaceutiques (Républia et Novomirsk) reçoivent une dotation initiale de plantes (modèle : entrepôts de province, 07/11).
+- **Les PNJ des usines ne sont pas payés** : seuls les PNJ des chantiers de construction consomment l'argent de la caisse.

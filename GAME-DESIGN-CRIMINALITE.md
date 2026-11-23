@@ -1068,3 +1068,7 @@ quatre bars) ; « Écouter le barman / le patron / la serveuse » gratuit (`ecou
   atteignable ; Khalija et Narcoméria n'ont pas de barème (aucun informateur proposé) ; le blocus syndical ne bloque pas « Acheter une
   information » (le paiement ne passe pas par `payer_ordre`).
 
+
+## Voler le matériel d'un colocataire (Fred, 23/11/2026)
+
+Décisions complètes : `GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md`. Point 11. « Voler » reste proposé en face du matériel d'autrui, **même chez soi** : le matériel d'un colocataire ne lui appartient pas, c'est un vol avec sa trace. La victime l'apprend par le **journal des événements**, jamais par courrier (R9).

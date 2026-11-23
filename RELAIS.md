@@ -9,6 +9,15 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Mission « Novomirsk, PNJ, interface et suites des rapports » (Claude, 23/11/2026) — décisions : GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md
+- Branche de travail `claude/novomirsk-pnj-20261123`, partie de `395a0100`. Blocs 0 à 7 poussés sur main un par un dès que leurs bancs et la CI sont verts.
+- **Bloc 0 (consignation)** : décisions écrites dans le document de mission et à la source (NOVOMIRSK : Ignat fonctionnaire à la retraite **jamais trappeur**, Kouzma batiouchka, Matveï/Prokhor Rybakov, gare, renseignement ; HOSPITALISATION : salle d'attente / chambre ; SANTE : paiements en liquide sauf prélèvements automatiques, PNJ des usines non payés ; CRIMINALITE : voler chez un colocataire ; INFORMATEURS : achat en cliquant sur le PNJ ; INTERFACE-ACCUEIL : Inspecter à 0 PA, rébellion et répression à 1 PA).
+- Fichiers fournis trouvés dans `~/Downloads` (le Bureau est inaccessible à Claude).
+
+### Correctif `window.state` (Claude, 23/11/2026, commit `f40e7413`) — ligne manquante de la mission précédente
+- `plateau-core.js` déclare `let state` : `window.state` restait vide, donc tous les modules qui lisaient `global.state` (informateurs, accueil, médecin, secrets, énigme de Krasnov, événements du personnage) voyaient un état vide (« Personne ici ne vend d'informations »). Un accesseur `Object.defineProperty(window, 'state', …)` placé juste après la déclaration suit la variable, réassignations comprises.
+- Bancs : `outils/bancs/banc-state-window-20261123.cjs` (vrai Chromium, vrai `let`) et `banc-informateurs-navigateur-20261122.cjs` (désormais en `let state` : bloqué sans le correctif, 5/5 avec). CI de main verte (55/55, Cohérence client 45147773673).
+
 ### Images — SQL NON APPLIQUÉ, à reprendre lors de la réconciliation (Codex, 23/11/2026)
 - Livraison client : branche `codex/images-cassees-20261122`, **PR #1180**, rebases sur `032ed966`, `e9f496ca` puis `f40e7413` (correctifs CI Santé et window.state de Claude repris tels quels). Aucun autre chantier lancé, aucun accès en écriture à la base, aucun seed ni fichier image modifié. Le goulag reste hors périmètre.
 - Relevé des 22 commits / 119 fichiers arrivés sur main, chevauchements et PR ouvertes : `outils/audits/images-cassees-20261122/reprise-etape1.json`. Conflits HTML et cartes postales résolus en conservant main puis en réappliquant les seuls raccords images ; preuve de conservation intégrale des huit fichiers : `preservation-main.json`.
