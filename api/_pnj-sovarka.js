@@ -43,6 +43,13 @@ function convertir(texte, paires) {
   return t.replace(/(\d) FR\b/g, '$1 PSK');
 }
 
+// Compléments propres à un PNJ de Sovarka, ajoutés au caractère dérivé (décisions de Fred).
+// Bloc 3, point 28 (23/11/2026) : Prokhor Rybakov est le frère cadet de Matveï Rybakov, référent chasse et bûcheronnage
+// de Krasnov, qui le taquine (« mon frère, il fouille des valises toute la journée »).
+const COMPLEMENTS = {
+  sovarka_inspecteur_prokhor_rybakov: "TON FRÈRE AÎNÉ, Matveï Rybakov, est un ancien bûcheron de Krasnov, le référent de la ville pour la chasse et le bûcheronnage. Il se moque de ton métier (« mon frère, il fouille des valises toute la journée ») ; tu lèves les yeux au ciel, mais tu l'aimes bien."
+};
+
 function deriverProfilsSovarka(tous) {
   const derives = {};
   for (const ligne of PNJ_SOVARKA_RENOMMES) {
@@ -53,6 +60,7 @@ function deriverProfilsSovarka(tous) {
     const profil = JSON.parse(JSON.stringify(source), (k, val) => convertir(val, paires));
     profil.nom = ligne.nouveau;
     profil.pays = 'soviet';
+    if (COMPLEMENTS[ligne.id]) profil.caractere = [profil.caractere, COMPLEMENTS[ligne.id]].filter(Boolean).join('\n');
     derives[ligne.id] = profil;
   }
   return derives;

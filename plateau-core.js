@@ -3269,6 +3269,12 @@ function signalerRefusCout(resultat) {
     globalThis.RPI18nPlateau?.markToast?.("toastBodies.b595a8f29", "Votre personnage n'est pas chargé : cette action n'a pas été enregistrée. Rechargez la page.", undefined, "Personnage non chargé");
     return;
   }
+  // Informateurs (refonte du 22/11/2026 ; bloc 3 de la mission Novomirsk, 23/11/2026) : là où se tient un barman
+  // informateur, écouter les rumeurs se paie ; l'achat se fait en cliquant sur lui (plus d'ordre de pièce).
+  if (r.raison === 'ecoute_payante') {
+    showToast('Ici, ça se paie', 'Ici, les informations se paient : cliquez sur le barman et choisissez « Acheter une information ».', false);
+    return;
+  }
   if (r.raison === 'blocus_syndical') {
     showToast('Bloqué', 'Un blocus syndical rend les démarches de ce bâtiment inaccessibles.', false);
     globalThis.RPI18nPlateau?.markToast?.("toastBodies.be775e43e", 'Un blocus syndical rend les démarches de ce bâtiment inaccessibles.', undefined, "Bloqué");

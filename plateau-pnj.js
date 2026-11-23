@@ -1163,6 +1163,12 @@ function openPnjModal(encodedPnj, options = null) {
       && pnj.name?.replace(' (PNJ)', '').trim() === cedNomDealer()) {
     actionBtns += '<button class="pnj-action-btn" onclick="ouvrirAchatCed()">Voir la marchandise</button>';
   }
+  // Mission Novomirsk, bloc 3, points 24 et 25 (Fred, 23/11/2026) : acheter une information se fait ICI, sur la fiche du
+  // PNJ informateur (plus d'ordre de pièce). Le serveur dit qui est informateur dans la pièce (plateau-informateurs.js) ;
+  // la zone reste vide pour tous les autres. L'habitué du Bar Sever y reçoit « Lui offrir un verre ».
+  if (!isPJ && typeof informateursBoutonPnj === 'function') {
+    actionBtns += '<div id="pnj-informateur-zone" data-pnj="' + String(pnj.name || '').replace(/\s*\(PNJ\)\s*$/i, '').trim().replace(/[&<>"']/g, '') + '"></div>';
+  }
   actionBtns += '<div id="quete-action-zone"></div>';
   // Verifier de facon non bloquante si ce PNJ correspond a une quete active
   if (!isPJ && typeof getQueteActivePourPnj === 'function') {
@@ -1186,6 +1192,7 @@ function openPnjModal(encodedPnj, options = null) {
         '<button onclick="envoyerQuestion()" style="align-self:stretch;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer"><i class="ti ti-send" style="font-size:.8rem"></i></button>' +
         '</div>');
 
+  if (!isPJ && typeof informateursBoutonPnj === 'function') informateursBoutonPnj(pnj).catch(() => {});
   // Stocker l'enc pour envoyerQuestion
   state._currentPnjEnc = enc;
   if (!gammaCible && typeof actualiserCibleCombatPnj==='function') actualiserCibleCombatPnj(pnj).catch(()=>{});
@@ -1266,6 +1273,8 @@ const PNJ_REFERENTS = ['marc_hantile', 'martial_bouterin', 'gaspard_ferriere',
   'gretta_delieu',
   // Krasnov (Fred, 15/11/2026) : référent religion et référente kolkhoze, aussi PNJ sociaux.
   'kouzma_lapchine', 'praskovia_pakhomova',
+  // Krasnov (Fred, 23/11/2026, bloc 3, point 28) : Matveï Rybakov, référent chasse et bûcheronnage, aussi PNJ social.
+  'matvei_rybakov',
   // Starovka (Fred, 18/11/2026) : PNJ en poste et référents désignés (GAME-DESIGN-NOVOMIRSK.md).
   'sayana_tsydypova', 'tsyren_dorji_bazarov', 'munko_tsybenov', 'dugar_tsyrempilov', 'lieutenant_tsyden_zhalsaraev',
   'erdem_gombozhapov', 'arseni_ledokolov', 'stepan_vetrov', 'batzorig_dorjiev', 'damdin_mazoutov', 'dashi_burilov',

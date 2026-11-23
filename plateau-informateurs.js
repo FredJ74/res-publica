@@ -5,12 +5,18 @@
 // Le serveur décide tout : qui est présent (informateurs_ici, référentiel informateurs_pnj), le palier selon la somme
 // (Républia 20-29 / 30-44 / 45-50 FR, Sovarka 7-11 / 12-17 / 18-20 PSK), le débit (l'argent disparaît du jeu) et le texte de
 // la réponse (jamais un nom, seulement des traits). Cet écran affiche, rien de plus. Textes : français seulement.
+// MISSION NOVOMIRSK, BLOC 3, POINT 24 (Fred, 23/11/2026) : on achète une information EN CLIQUANT SUR LE PNJ. L'ordre de
+// pièce « Acheter une information » (source dynamique informateur_payer) a disparu : la fiche du PNJ (plateau-pnj.js,
+// openPnjModal) porte le bouton « Acheter une information » quand le serveur dit que ce PNJ est un informateur présent, et
+// « Lui offrir un verre » pour l'habitué du Bar Sever (point 25 ; l'ordre « Offrir un verre à l'habitué » a disparu aussi).
 (function (global) {
 'use strict';
 const TXT_INFORMATEURS = {
-  ordre: 'Acheter une information',
-  ordreDesc: 'Quelqu’un ici sait des choses. Payez-le : il répond toujours, et plus la somme est belle, meilleure est l’information. Il ne donne jamais de nom.',
+  bouton: 'Acheter une information',
+  boutonHabitue: 'Lui offrir un verre',
   titre: 'Acheter une information',
+  titreHabitue: 'Lui offrir un verre',
+  habitueNote: 'Offrez-lui un verre, de {min} à {max} {cur} : plus le verre est beau, plus il en dit.',
   chargement: 'Un instant…',
   personne: 'Personne ici ne vend d’informations.',
   qui: 'À qui voulez-vous parler ?',
@@ -49,7 +55,6 @@ const cle = () => [st().country, st().currentCity, st().currentBuilding, st().cu
 
 // Présents de la pièce, relus au serveur (cache court par pièce : la liste change quand on change de pièce).
 const cache = new Map();
-let enLecture = null;
 async function lireIci(force) {
   const k = cle(), c = cache.get(k);
   if (!force && c && Date.now() - c.le < 60000) return c.v;
@@ -69,22 +74,36 @@ function redessiner() {
   if (room) global.renderRoomActions(room, b, r);
 }
 
-// Source d'ordres dynamique : « Acheter une information » quand un informateur se tient dans la pièce. L'habitué du Bar
-// Sever garde son ordre propre (« Offrir un verre à l’habitué »), qui ouvre la même fenêtre.
-function ordresInformateurs() {
-  const k = cle(), c = cache.get(k);
-  if (!c || Date.now() - c.le >= 60000) {
-    if (!enLecture) enLecture = lireIci(true).then(v => { if (v && cle() === k) redessiner(); }).finally(() => { enLecture = null; });
-    if (!c) return [];
-  }
-  const liste = (c.v.informateurs || []).filter(i => i.id !== 'habitue_krasnov');
-  if (!liste.length) return [];
-  return [{ fn: 'informateur_payer', label: 'Acheter une information', pa: 0, cost: 0, type: 'grey', icon: 'ti-coins', successRate: 100,
-    desc: 'Quelqu’un ici sait des choses. Payez-le : il répond toujours, et plus la somme est belle, meilleure est l’information. Il ne donne jamais de nom.' }];
+// Point 24 : plus d'ordre de pièce. Le PNJ cliqué est-il un informateur présent ? Le serveur le dit (informateurs_ici) ;
+// on rapproche par le nom affiché (le référentiel est généré depuis les personnes visibles de data.js), ou par
+// `aliasInformateur` quand le PNJ vient d'être renommé et que le référentiel serveur porte encore l'ancien nom.
+const nomCourt = (n) => String(n || '').replace(/\s*\(PNJ\)\s*$/i, '').trim();
+function informateurDuPnj(pnj, ici) {
+  if (!pnj || pnj.isPJ || !ici || !Array.isArray(ici.informateurs)) return null;
+  if (pnj.profilId === 'habitue_krasnov') return ici.informateurs.find(i => i.id === 'habitue_krasnov') || null;
+  const noms = [nomCourt(pnj.name), nomCourt(pnj.aliasInformateur)].filter(Boolean);
+  return ici.informateurs.find(i => i.id !== 'habitue_krasnov' && noms.includes(nomCourt(i.nom))) || null;
 }
-if (global.window) {
-  global.RP_ORDRES_DYNAMIQUES = global.RP_ORDRES_DYNAMIQUES || [];
-  if (!global.RP_ORDRES_DYNAMIQUES.includes(ordresInformateurs)) global.RP_ORDRES_DYNAMIQUES.push(ordresInformateurs);
+// Remplit la zone de la fiche (#pnj-informateur-zone) : un seul bouton, seulement si le serveur confirme. Rien sinon.
+async function informateursBoutonPnj(pnj) {
+  const zone = () => global.document.getElementById('pnj-informateur-zone');
+  if (!zone() || !pnj || pnj.isPJ) return;
+  const k = cle(), c = cache.get(k);
+  const ici = (c && Date.now() - c.le < 60000) ? c.v : await lireIci(true);
+  const z = zone();
+  // La fiche a pu changer de PNJ (ou le joueur de pièce) pendant la lecture : on n'écrit que dans la bonne.
+  if (!z || cle() !== k || (z.dataset.pnj && z.dataset.pnj !== nomCourt(pnj.name).replace(/[&<>"']/g, ''))) return;
+  const i = informateurDuPnj(pnj, ici);
+  if (!i) { z.innerHTML = ''; return; }
+  const habitue = i.id === 'habitue_krasnov';
+  z.innerHTML = '<button class="pnj-action-btn" data-informateur="' + esc(i.id) + '" onclick="informateurDepuisPnj(this.dataset.informateur)">'
+    + '<i class="ti ' + (habitue ? 'ti-glass-full' : 'ti-coins') + '" style="font-size:.85rem"></i> '
+    + esc(t(habitue ? 'boutonHabitue' : 'bouton')) + '</button>';
+}
+// R8 : jamais deux fenêtres superposées — la fiche du PNJ se ferme, la fenêtre de l'informateur s'ouvre à sa place.
+function informateurDepuisPnj(id) {
+  global.document.getElementById('modal-pnj')?.classList.remove('open');
+  return ouvrirInformateursIci(id);
 }
 
 function modale(titre, html) {
@@ -101,12 +120,14 @@ function profilTexte(i) { return i.profil === 'sujet' ? t('profil_sujet_' + i.su
 
 let dernierIci = null, paiementEnCours = false;
 async function ouvrirInformateursIci(focus) {
-  modale(t('titre'), '<div class="cpj-dialogue"><p class="cpj-note">' + esc(t('chargement')) + '</p></div>');
+  global.document.getElementById('modal-pnj')?.classList.remove('open');
+  const titre = focus === 'habitue_krasnov' ? t('titreHabitue') : t('titre');
+  modale(titre, '<div class="cpj-dialogue"><p class="cpj-note">' + esc(t('chargement')) + '</p></div>');
   const v = await lireIci(true);
   dernierIci = v;
   const liste = (v?.informateurs || []).filter(i => focus ? i.id === focus : i.id !== 'habitue_krasnov');
   if (!v || !v.bareme || !liste.length) {
-    modale(t('titre'), '<div class="cpj-dialogue"><p class="cpj-note">' + esc(t('personne')) + '</p>'
+    modale(titre, '<div class="cpj-dialogue"><p class="cpj-note">' + esc(t('personne')) + '</p>'
       + '<button class="cpj-touche" onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')">' + esc(t('fermer')) + '</button></div>');
     return;
   }
@@ -114,6 +135,7 @@ async function ouvrirInformateursIci(focus) {
   const correct = (b.paliers || []).find(p => p.palier === 'correct') || { min: b.min };
   let html = '<div class="cpj-dialogue">';
   if (liste.length > 1) html += '<p class="cpj-note">' + esc(t('qui')) + '</p>';
+  if (focus === 'habitue_krasnov') html += '<p class="cpj-note">' + esc(t('habitueNote', { min: b.min, max: b.max, cur })) + '</p>';
   html += '<p class="cpj-note">' + esc(t('bareme', { min: b.min, max: b.max, cur })) + '</p><ul class="cpj-note" style="margin:.2rem 0 .6rem 1rem">'
     + (b.paliers || []).map(p => '<li>' + esc(t('palierLigne', { min: p.min, max: p.max, cur, libelle: t('palier_' + p.palier) })) + '</li>').join('') + '</ul>'
     + '<p class="cpj-note">' + esc(t('disparait')) + '</p>';
@@ -127,7 +149,7 @@ async function ouvrirInformateursIci(focus) {
       + '<p class="cpj-note" id="info-palier-' + n + '"></p></div>';
   });
   html += '</div>';
-  modale(t('titre'), html);
+  modale(titre, html);
   dernierIci._liste = liste;
   liste.forEach((i, n) => majBouton(n));
 }
@@ -191,6 +213,8 @@ global.TXT_INFORMATEURS = TXT_INFORMATEURS;
 global.ouvrirInformateursIci = ouvrirInformateursIci;
 global.informateurMajBouton = majBouton;
 global.informateurPayer = payer;
-global.ordresInformateurs = ordresInformateurs;
+global.informateurDuPnj = informateurDuPnj;
+global.informateursBoutonPnj = informateursBoutonPnj;
+global.informateurDepuisPnj = informateurDepuisPnj;
 global.informateursFermer = fermer;
 })(typeof window !== 'undefined' ? window : globalThis);
