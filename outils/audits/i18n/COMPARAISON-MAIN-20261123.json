@@ -1,0 +1,174 @@
+{
+  "main": "14d0716e27c91e07b16910b8dfc231cd64af9e2b",
+  "main_run": 45222382938,
+  "bancs_main": 455,
+  "reussis_main": 449,
+  "echecs_main": 6,
+  "fichiers": [
+    {
+      "fichier": "outils/bancs/banc-cycle-plaintes.js",
+      "sha256_main_et_branches": "071ee0d0858a254b0601d5e814eceee31c94aa768b663f930786eae6f2138afc",
+      "branches": {
+        "codex/i18n-formation-20261123": "identique",
+        "codex/i18n-politique-saisie-20261123": "identique"
+      }
+    },
+    {
+      "fichier": "outils/bancs/banc-groupes-bataille-client.cjs",
+      "sha256_main_et_branches": "ced504ad647c22867f39fb1f67e6ff379aeba3ddfd9927976affb763b6dee44d",
+      "branches": {
+        "codex/i18n-formation-20261123": "identique",
+        "codex/i18n-politique-saisie-20261123": "identique"
+      }
+    },
+    {
+      "fichier": "outils/bancs/banc-mobile-certification.cjs",
+      "sha256_main_et_branches": "0e394828f12daaacd2be615c92334133a9116855fbc9b8cb3e7a34fb80ff8600",
+      "branches": {
+        "codex/i18n-formation-20261123": "identique",
+        "codex/i18n-politique-saisie-20261123": "identique"
+      }
+    },
+    {
+      "fichier": "outils/bancs/banc-nominations-municipales.cjs",
+      "sha256_main_et_branches": "3bd6a9fcba3dc100f78e3a6416d8c4e75ac5e21445d19038692c6005f716e479",
+      "branches": {
+        "codex/i18n-formation-20261123": "identique",
+        "codex/i18n-politique-saisie-20261123": "identique"
+      }
+    },
+    {
+      "fichier": "outils/bancs/banc-parquet-client.js",
+      "sha256_main_et_branches": "6eacfc2cec8b822bae7e3c1864d971dad2724581e60527d6ccec1bd7298801c9",
+      "branches": {
+        "codex/i18n-formation-20261123": "identique",
+        "codex/i18n-politique-saisie-20261123": "identique"
+      }
+    },
+    {
+      "fichier": "outils/bancs/banc-sorties-batiments.cjs",
+      "sha256_main_et_branches": "16260cca4c4bc618df62d44661624d466cedcf39a984af560de57fe8a0bcb00e",
+      "branches": {
+        "codex/i18n-formation-20261123": "identique",
+        "codex/i18n-politique-saisie-20261123": "identique"
+      }
+    },
+    {
+      "fichier": "plateau.html",
+      "sha256_main_et_branches": "a733863df1279c3052da450494fc20c36912503267989725cad6e8b68dd322a9",
+      "branches": {
+        "codex/i18n-formation-20261123": "identique",
+        "codex/i18n-politique-saisie-20261123": "identique"
+      }
+    },
+    {
+      "fichier": "style.css",
+      "sha256_main_et_branches": "5e6cd72e98b84bd5ef9857e0cd9b361da2b9357d04800d7a79170f75d7206543",
+      "branches": {
+        "codex/i18n-formation-20261123": "identique",
+        "codex/i18n-politique-saisie-20261123": "identique"
+      }
+    },
+    {
+      "fichier": "data.js",
+      "sha256_main_et_branches": "13d26399cfeb88f9d3297b7f50bb4a6f7adc51f073b34fd9c660164ce39229ad",
+      "branches": {
+        "codex/i18n-formation-20261123": "identique",
+        "codex/i18n-politique-saisie-20261123": "identique"
+      }
+    },
+    {
+      "fichier": "supabase.js",
+      "sha256_main_et_branches": "442d05568a98f3583303e097a4b8a049f8c4b3e9b3f6f273bbca0781f007ae78",
+      "branches": {
+        "codex/i18n-formation-20261123": "identique",
+        "codex/i18n-politique-saisie-20261123": "identique"
+      }
+    },
+    {
+      "fichier": "plateau-core.js",
+      "sha256_main_et_branches": "769809d67534f88beccc2789d07af6f606a1b7451bdd5386c85b723d455347b6",
+      "branches": {
+        "codex/i18n-formation-20261123": "identique",
+        "codex/i18n-politique-saisie-20261123": "identique"
+      }
+    },
+    {
+      "fichier": "plateau-organisations-quetes.js",
+      "sha256_main_et_branches": "9adeae8914fca50d7bf8d657735145b4541c616f8b8d4b8006103260f8aa1ed6",
+      "branches": {
+        "codex/i18n-formation-20261123": "identique",
+        "codex/i18n-politique-saisie-20261123": "identique"
+      }
+    },
+    {
+      "fichier": "plateau-justice-economie.js",
+      "sha256_main_et_branches": "f65d0f0721b9e2638877f27924c7255d7d3f13793e6914a3d56556d0ba704430",
+      "branches": {
+        "codex/i18n-formation-20261123": "identique",
+        "codex/i18n-politique-saisie-20261123": "identique"
+      }
+    },
+    {
+      "fichier": "plateau-navigation.js",
+      "sha256_main_et_branches": "6487112370b71bedad1098f9dff9d69371a36554c512700f36e6573bfa39c4a3",
+      "branches": {
+        "codex/i18n-formation-20261123": "identique",
+        "codex/i18n-politique-saisie-20261123": "identique"
+      }
+    }
+  ],
+  "ecritures_base_de_jeu": 0,
+  "lots_fusionnes": false,
+  "comparaison_complete": [
+    {
+      "perimetre": "main",
+      "run": 45222382938,
+      "commit": "14d0716e27c91e07b16910b8dfc231cd64af9e2b",
+      "reussis": 449,
+      "total": 455,
+      "echecs": 6,
+      "bancs_en_echec": [
+        "banc-cycle-plaintes.js",
+        "banc-groupes-bataille-client.cjs",
+        "banc-mobile-certification.cjs",
+        "banc-nominations-municipales.cjs",
+        "banc-parquet-client.js",
+        "banc-sorties-batiments.cjs"
+      ]
+    },
+    {
+      "perimetre": "PR #1183",
+      "run": 45223825981,
+      "commit": "80b89c035daca549630449a27887c2ebda892a28",
+      "reussis": 450,
+      "total": 456,
+      "echecs": 6,
+      "bancs_en_echec": [
+        "banc-cycle-plaintes.js",
+        "banc-groupes-bataille-client.cjs",
+        "banc-mobile-certification.cjs",
+        "banc-nominations-municipales.cjs",
+        "banc-parquet-client.js",
+        "banc-sorties-batiments.cjs"
+      ]
+    },
+    {
+      "perimetre": "PR #1184",
+      "run": 45223911404,
+      "commit": "82b052883f04c59610b8afffa4af7437e501e3de",
+      "reussis": 450,
+      "total": 456,
+      "echecs": 6,
+      "bancs_en_echec": [
+        "banc-cycle-plaintes.js",
+        "banc-groupes-bataille-client.cjs",
+        "banc-mobile-certification.cjs",
+        "banc-nominations-municipales.cjs",
+        "banc-parquet-client.js",
+        "banc-sorties-batiments.cjs"
+      ]
+    }
+  ],
+  "regressions_supplementaires_observees": 0
+}
