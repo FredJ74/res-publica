@@ -5186,14 +5186,19 @@ export const SCENES_PNJ = {
     "ville": "Novomirsk",
     "batiment": "Direction du Renseignement de Sovarka",
     "piece": "Salle des Écoutes",
-    "personnes": []
+    "personnes": [
+      "Tamara Naouchnikova"
+    ]
   },
   "[\"soviet\",\"capitale\",\"siege-renseignement\",\"salle_interrogatoire_renseignement\"]": {
     "pays": "Sovarka",
     "ville": "Novomirsk",
     "batiment": "Direction du Renseignement de Sovarka",
     "piece": "Salle d'Interrogatoire",
-    "personnes": []
+    "personnes": [
+      "Colonel Oleg Doprossov",
+      "Fiodor Koulakov"
+    ]
   },
   "[\"soviet\",\"capitale\",\"pavillon-ambassadeurs-novomirsk\",\"hall_pavillon\"]": {
     "pays": "Sovarka",

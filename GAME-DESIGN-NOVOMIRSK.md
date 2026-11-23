@@ -1211,8 +1211,14 @@ Décisions complètes : `GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md`. Corre
   « mon frère, il fouille des valises toute la journée ».
 - **Gare** : « Camarade Horaire » → **Vassili Sukhoï** (graphie voulue, ne pas écrire Soukhoï), chef de gare au hall principal ;
   « Agente Nadejda » → **Lioudmila Proverkina**, agente de contrôle, au hall des douanes. « Taxi vers le QHS » masqué tant que
-  le goulag est verrouillé.
+  le goulag est verrouillé. Le doublon « Nadejda Contrôle » (jamais affiché) est fondu dans Lioudmila Proverkina. L'inspecteur
+  **Prokhor Rybakov** reste aux douanes (loupe, bocal de cornichons), frère cadet de Matveï, parti réussir dans l'administration ;
+  il demande des nouvelles de son frère aux PJ venus de Krasnov. Images : hall principal = « Le chef de gare et l'heure des
+  trains », hall des douanes = « Contrôle douanier sous la neige », zone d'embarquement = « Aéroport soviétique sous la neige ».
 - **Renseignement** : Tamara Naouchnikova (écoutes), Colonel Oleg Doprossov et Fiodor Koulakov (interrogatoire).
+  La salle d'interrogatoire est une cave de pierre (chaînes, crochet, sangles, chaise de contention) : **aucun miroir sans tain**.
+- **Église (Kolkhoze spirituel)** : la nef de Novomirsk ne montre personne ; les portraits du Camarade Pontife Tractorenko et de
+  Frère Kolkhoze viennent de la planche 5 (`novo-pontife-tractorenko-portrait.webp`, `novo-frere-kolkhoze-portrait.webp`).
 - **Musée de Krasnov** : plus de directeur ; le guide Arkadi Pamiatnikov juge l'énigme ; hôtesse Zoïa Biletova.
 - **Hôpital de Krasnov** : infirmière Nadejda Oukolova. **EHPAD de Krasnov** : un résident social (Matriona Starikova ou Matveï Starikov).
 - **Bar Sever** : Grigori Zaitsev (patron) et l'habitué (PNJ social qui offre un verre une fois par jour).
