@@ -77,7 +77,7 @@ test('point 2 : ordres du marché de Krasnov, routeur, script chargé, portrait 
   assert.equal(ro.orders.map(o => o.fn).join(), 'marche_krasnov');
   assert.match(lire('plateau-router.js'), /if \(fn === 'marche_krasnov'\) \{ if \(typeof ouvrirMarcheKrasnov === 'function'\) ouvrirMarcheKrasnov\(\); return; \}/);
   assert.match(lire('plateau.html'), /<script src="plateau-marche-krasnov\.js\?v=krasnov-marche-20261122"><\/script>/);
-  assert.equal((lire('plateau-personnage.js').match(/boutonMangerProduitMarche\(item,/g) || []).length, 2, 'bouton « Manger » dans les deux fiches d’objet');
+  assert.equal((lire('plateau-personnage.js').match(/boutonMangerProduitMarche\(item,/g) || []).length, 1, 'bouton « Manger » dans la fiche d’objet unique (Fred, 23/11/2026, point 1)');
 });
 
 test('point 2 : la chemise de bûcheron ne donne +1 ENT à Krasnov que revêtue, et pas avec la tenue ninja ou le gilet', () => {

@@ -120,7 +120,7 @@ test('écran : textes en neuf langues, ordres de Tatiana, branchements', () => {
   assert.equal(c.ordresTresorTsars('capitaine-sauvage', 'salle_principale').length, 0, 'le Capitaine Sauvage de PSM n’est pas concerné');
   assert.match(lire('plateau-router.js'), /fn === 'tresor_ecouter_guide'/);
   assert.match(lire('plateau-surveillance.js'), /tresorTsarsApresFouille\(r\)/);
-  assert.equal((lire('plateau-personnage.js').match(/boutonsTresorTsarsObjet\(item/g) || []).length, 2);
+  assert.equal((lire('plateau-personnage.js').match(/boutonsTresorTsarsObjet\(item/g) || []).length, 1);   // fiche d'objet unique (23/11/2026)
   const html = lire('plateau.html');
   assert.ok(html.includes('plateau-enigme-tresor-tsars.js') && html.includes('i18n/tresor-tsars-resources.js'));
 });

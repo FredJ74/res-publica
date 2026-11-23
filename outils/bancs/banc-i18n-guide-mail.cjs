@@ -38,7 +38,8 @@ test('les neuf onglets du guide gardent leur section et leur handler historique'
 });
 
 test('inventaire, rue et courriel ajoutent seulement une clé texte',()=>{
- for(const key of ['noItems','streetHint','recipient'])
+ // « Aucun objet » (plateau.noItems) vivait dans le volet Inventaire du panneau, devenu une fenêtre (Fred, 23/11/2026, point 18).
+ for(const key of ['streetHint','recipient'])
   assert.ok(markup.includes('data-i18n="plateau.'+key+'"'),key);
  // Le titre de la carte évolue en fonction de la ville ; seul son bouton
  // d'ouverture reste un libellé statique pouvant être localisé sans risque.

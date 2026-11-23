@@ -100,7 +100,7 @@ async function run(){
       expectedSleepButton:window.RP_I18N_RESOURCES?.[language]?.translation?.characterSheet?.sleepNow,
       sheetUnknown:window.RPCharacterSheetI18n?.label('unknown','Nom personnel inchangé'),
       // Panneau personnel du vrai HTML, pas seulement le dictionnaire.
-      panelLabels:Object.fromEntries(['myStats','myGoals','myEmployees','inventory'].map(key=>{
+      panelLabels:Object.fromEntries(['myGoals','myEmployees','inventory'].map(key=>{
         const el=document.querySelector('[data-i18n="plateau.'+key+'"]');
         const expected=window.RP_I18N_RESOURCES?.[language]?.translation?.plateau?.[key];
         return [key,{visible:el?.textContent?.trim(),expected,
@@ -108,7 +108,8 @@ async function run(){
           dir:el?.getAttribute('dir')||null}];
       })),
       panelHandlers:{
-        stats:document.querySelector('[data-i18n="plateau.myStats"]')?.closest('button')?.getAttribute('onclick'),
+        // « Mes statistiques » supprimé (Fred, 23/11/2026, point 16) : le bouton ne doit plus exister.
+        stats:document.querySelector('[data-i18n="plateau.myStats"]')?.closest('button')?.getAttribute('onclick')??null,
         goals:document.querySelector('[data-i18n="plateau.myGoals"]')?.closest('button')?.getAttribute('onclick'),
         employees:document.querySelector('[data-i18n="plateau.myEmployees"]')?.parentElement?.getAttribute('onclick'),
         inventory:document.querySelector('.panel-title [data-i18n="plateau.inventory"]')?.parentElement?.getAttribute('onclick')
@@ -145,12 +146,11 @@ async function run(){
        language+': texte vraiment affiché dans le panneau '+key);
      assert.equal(entry.dir,language==='ar'?'rtl':null,language+': direction localisée '+key);
    }
-   assert.ok(state.panelLabels.myStats.icon?.includes('ti-chart-bar'));
    assert.ok(state.panelLabels.myGoals.icon?.includes('ti-target'));
-   assert.equal(state.panelHandlers.stats,"openSelfView('stats')");
+   assert.equal(state.panelHandlers.stats,null);
    assert.equal(state.panelHandlers.goals,'afficherObjectifsSecrets()');
    assert.equal(state.panelHandlers.employees,"toggleSection('employes-panel','emp-chevron')");
-   assert.equal(state.panelHandlers.inventory,'toggleInventaire()');
+   assert.equal(state.panelHandlers.inventory,'ouvrirFenetreInventaire()');
    assert.equal(state.toolbarDir,null,language+': barre globale non inversée');
    checks++;
    // Le navigateur réel résout aussi les nouveaux catalogues du Conseil

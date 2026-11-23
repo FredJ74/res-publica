@@ -30,7 +30,9 @@ const CODE = [
   extraire('plateau-divers.js', ['PLAFOND_INVENTAIRE_EMPILABLE', 'capaciteInventaire', 'adopterCapaciteInventaire', 'placeInventaireLibre', 'getTotalInventaire',
     'MOTIFS_SORTIE_INVENTAIRE', 'signatureObjetInventaire', 'removeFromInventory', 'texteInventaire', 'messageRefusSortieInventaire',
     'rafraichirOngletInventaireSiOuvert', 'renderInventory']),
-  extraire('plateau-personnage.js', ['switchSelfTab', 'RP_FENETRE_QUANTITE', 'echapperTexteInventaire', 'fermerFenetreQuantite', 'ouvrirFenetreQuantite',
+  // L'onglet Inventaire de la fiche est devenu la fenêtre Inventaire du panneau de gauche (Fred, 23/11/2026, point 18).
+  extraire('plateau-personnage.js', ['fermerFenetreCommune', 'fermerPanneauMobile', 'echapperFenetrePanneau', 'htmlFenetreInventaire', 'ouvrirFenetreInventaire',
+    'fenetreInventaireAffichee', 'rafraichirFenetreInventaireSiOuverte', 'RP_FENETRE_QUANTITE', 'echapperTexteInventaire', 'fermerFenetreQuantite', 'ouvrirFenetreQuantite',
     'validerFenetreQuantite', 'quantiteDetenueInventaire', 'jeterObjetInventaire', 'deposerObjetInventaire', 'chargerObjetsAbandonnesDansPiece',
     'ramasserObjetAbandonne', 'ramasserObjetAbandonneQuantite', 'donnerObjetQuantite', 'confirmerDonObjetQuantite']),
   extraire('plateau-pnj.js', ['ouvrirDonPnjChoix', 'ouvrirDonObjetJoueurModal']),
@@ -178,7 +180,7 @@ async function avecDeuxJoueurs(fn) {
       await page.addScriptTag({ content: CODE });
       await page.addScriptTag({ content: lire('plateau-multijoueur.js') });
       await page.addScriptTag({ content: lire('plateau-temps-reel.js') });
-      await page.evaluate(async () => { switchSelfTab('inventaire', null); renderInventory(); await verifierObjetsRecus(); await chargerVraisJoueursPresents(); await chargerObjetsAbandonnesDansPiece(); });
+      await page.evaluate(async () => { renderInventory(); await verifierObjetsRecus(); await chargerVraisJoueursPresents(); await chargerObjetsAbandonnesDansPiece(); });
       pages[nom] = page; S.pages[nom] = page;
     }
     await fn(pages, S);
@@ -188,7 +190,12 @@ async function avecDeuxJoueurs(fn) {
   }
 }
 const texte = (page, sel) => page.evaluate(s => Array.from(document.querySelectorAll(s)).map(e => e.innerText.replace(/\s+/g, ' ').trim()).join(' | '), sel);
-const ongletBois = page => page.evaluate(() => (Array.from(document.querySelectorAll('#self-content .hg-inventaire-nom')).map(e => e.textContent).find(t => /^Bois/.test(t)) || ''));
+// Ce que montre la fenêtre Inventaire : affichée, on la lit ; sinon on lit le rendu qu'elle afficherait à l'ouverture.
+const ongletBois = page => page.evaluate(() => {
+  let racine = fenetreInventaireAffichee() ? document.getElementById('postes-body') : null;
+  if (!racine) { racine = document.createElement('div'); racine.innerHTML = htmlFenetreInventaire(); }
+  return Array.from(racine.querySelectorAll('.hg-inventaire-nom')).map(e => e.textContent).find(t => /^Bois/.test(t)) || '';
+});
 const solTexte = page => texte(page, '.objet-abandonne-card .person-name');
 async function attendre(f, msg, delai = 4000) {
   const t0 = Date.now(); let v;
@@ -201,7 +208,7 @@ test('Tom Tom dépose 10 bois depuis sa fiche : son stock baisse aussitôt, la p
     const tom = P['Tom Tom'], arnie = P['Arnie'];
     assert.equal(await ongletBois(tom), 'Bois × 30');
     // Le bouton « Déposer » de la fiche ouvre la fenêtre de quantité (plus une unité par clic).
-    await tom.evaluate(() => Array.from(document.querySelectorAll('#self-content button')).find(b => b.textContent === 'Déposer').click());
+    await tom.evaluate(() => { ouvrirFenetreInventaire(); Array.from(document.querySelectorAll('.hg-inventaire-ligne')).find(l => /Bois/.test(l.textContent)).querySelector('.hg-inventaire-deposer').click(); });
     assert.match(await texte(tom, '#postes-body'), /Vous avez 30 × Bois\. Combien voulez-vous en déposer ici \?/);
     assert.match(await texte(tom, '#postes-body'), /Tout \(30\)/);
     await tom.fill('#hg-quantite', '31'); await tom.click('#hg-quantite-ok');

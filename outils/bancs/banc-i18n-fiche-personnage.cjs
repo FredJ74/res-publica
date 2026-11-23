@@ -34,7 +34,10 @@ test('fiche personnage : 22 titres traduits dans neuf langues',()=>{
    const origin=win.RP_I18N_RESOURCES.fr.translation.characterSheet[key];
    assert.equal(win.RPCharacterSheetI18n.label(key,origin),labels[key]
      .replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),locale+': texte');
-   assert.ok(section.includes("rpCharSheetLabel('"+key+"'"),locale+': intégration '+key);
+   // identity, statistics, characteristics : titres des onglets et des six caractéristiques retirés de la fiche
+   // (Fred, 23/11/2026, point 19) ; les clés restent au catalogue sans usage dans la fiche.
+   if(['identity','statistics','characteristics'].includes(key))assert.ok(!section.includes("rpCharSheetLabel('"+key+"'"),locale+': retiré '+key);
+   else assert.ok(section.includes("rpCharSheetLabel('"+key+"'"),locale+': intégration '+key);
   }
  }
 });
@@ -71,8 +74,11 @@ test('actions personnelles : 15 boutons et états actifs, libellé historique co
   assert.ok(personal.includes(invariant),invariant);
  }
 });
-test('la fiche garde ses onglets, calculs, droits et erreurs de lecture distincts',()=>{
- for(const call of ["switchCharSheetTab('identite')","switchCharSheetTab('stats')",
+// Onglet « Statistiques » et six caractéristiques retirés de la fiche (Fred, 23/11/2026, point 19) : il ne reste que
+// l'identité, sans barre d'onglets ; switchCharSheetTab('stats') mène au panneau de gauche.
+test('la fiche garde ses calculs, droits et erreurs de lecture distincts',()=>{
+ assert.ok(!section.includes("switchCharSheetTab('stats')")&&!section.includes('genererStatsHtml()'),'onglet Statistiques retiré');
+ for(const call of [
   "sbRpc('hotel_reservations_lire', {})", "sbGetPretsEnCours(char.name)",
   "resumeFortune().comptes","totalComptesBancaires()","state.liquide",
   "pretsEnCours.length === 0","listeHotelBrute === null","groupesHotel.length === 0",
@@ -128,15 +134,14 @@ test('rendu complet de la fiche PJ en neuf langues sur des valeurs identiques et
   vm.runInContext(code,sandbox,{filename:'openCharSheet'});
   await vm.runInContext('openCharSheet()',sandbox);
   const labels=win.RP_I18N_RESOURCES[locale].translation.characterSheet;
-  for(const key of ['identity','statistics','resources','cash','bank','hotelReservations','noReservedNights','noItems']){
+  for(const key of ['resources','cash','bank','hotelReservations','noReservedNights','noItems']){
    const translated=win.RPCharacterSheetI18n.label(key,win.RP_I18N_RESOURCES.fr.translation.characterSheet[key]);
    assert.ok(rendered.includes(translated),locale+': visible '+key);
   }
   assert.ok(rendered.includes('Testeur'),locale+': identité PJ non traduite');
   assert.ok(rendered.includes('150')&&rendered.includes('123'),locale+': valeurs liquidités et banque identiques');
-  assert.ok(rendered.includes("switchCharSheetTab('identite')"),locale+': bouton identité');
-  assert.ok(rendered.includes("switchCharSheetTab('stats')"),locale+': bouton statistiques');
-  assert.ok(rendered.includes('STATISTIC_TABLE'),locale+': moteur statistique conservé');
+  assert.ok(!rendered.includes("switchCharSheetTab('stats')"),locale+': plus de bouton statistiques');
+  assert.ok(!rendered.includes('STATISTIC_TABLE'),locale+': plus de tableau statistique dans la fiche');
   // Contre-épreuve : serveur indisponible, ne jamais présenter ce résultat
   // comme une liste de réservations vide ou effacer un droit déjà payé.
   fixture.sbRpc=async()=>null;

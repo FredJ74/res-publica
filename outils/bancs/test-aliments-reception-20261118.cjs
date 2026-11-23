@@ -35,5 +35,5 @@ test('écran : bandelettes et refus dans les neuf langues', () => {
   assert.equal(ctx.nomObjetMaladie({ type: 'bandelette_reactive' }), 'شرائط كاشفة');
   assert.match(ctx.boutonBandelettes({ type: 'bandelette_reactive', qty: 3 }, ''), /deposerBandelettes\(3\)/);
   assert.match(lire('plateau-maladies.js'), /'pharmacie_bandelettes_acheter'/);
-  assert.match(lire('plateau-personnage.js'), /boutonBandelettes\(item, 'flex:1/);
+  assert.match(lire('plateau-personnage.js'), /boutonBandelettes\(item, S\)/);
 });
