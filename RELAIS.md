@@ -9,6 +9,53 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Images — relevés et plan de renommage NON APPLIQUÉ (Codex, 23/11/2026)
+- Branche `codex/images-releves-20261123`, issue de main `395a0100`. Contrôle périodique `45154775033` : **succès**. Aucun fichier d’exécution, image ou seed modifié ; aucune connexion ni écriture en base, aucun SQL exécuté.
+- Livrables : `outils/audits/images-cassees-20261122/OBJETS-SANS-IMAGE-20261123.json` et `.md` (172 déclarations, 20 familles calculées séparées), `NOMS-FRAGILES-20261123.md` et `.json` (500 chemins, références détaillées). Les quatre ressources laitages/cereales/medicaments/produits_exotiques sont marquées « icône prévue » ; ne pas attribuer arbitrairement les quatorze autres icônes de Claude.
+- **Limite de base** : relevé de chemins du 22/11, pas un inventaire exhaustif des objets dépourvus de champ image. Aucune actualisation distante dans cette mission.
+- **NON APPLIQUÉ** : `migrations/20261123170047_plan_renommage_images_non_appliquee.sql`, 12 remplacements exacts, cinq tables. Les futurs noms n’existent pas encore ; verrou serveur dans le fichier pour refuser toute application prématurée. À réserver à un chantier ultérieur de renommage coordonné, après vérification des URL et nouvel état de la base. La CLI Supabase indisponible dans cet environnement n’a pas été utilisée pour contacter une base.
+- Résultat de livraison et CI : [PR #1181](https://github.com/FredJ74/res-publica/pull/1181). Rebase sur `27449358` : toutes les nouvelles décisions de Claude conservées ; seul conflit d’insertion dans RELAIS résolu en gardant les deux sections. Les relevés décrivent les fichiers d’exécution de `395a0100`, inchangés dans ce nouveau main documentaire.
+
+```sql
+-- NON APPLIQUÉE — plan de renommage des images, 23/11/2026.
+-- Aucun fichier renommé. Ne pas exécuter avant livraison et contrôle des nouvelles URL.
+-- Inventaire source du 22/11 : 12 occurrences ; recompter sur la base actuelle avant application.
+-- Chaînes entières uniquement ; aucun texte narratif, quantité, PA ou règle de jeu modifié.
+-- Le verrou explicite protège contre une application avant le futur chantier coordonné.
+DO $images$
+DECLARE r record;
+BEGIN
+  IF current_setting('human_gambit.renommage_images_valide', true) IS DISTINCT FROM 'oui' THEN
+    RAISE EXCEPTION 'NON APPLIQUÉE : renommage des fichiers et contrôle public préalables requis';
+  END IF;
+  FOR r IN SELECT * FROM (VALUES
+    ('personnages_donnees','inventory','jsonb','images/Sovarka/Krasnov/Krasnov_place_ours.webp','images/sovarka/krasnov/krasnov-place-ours.webp'),
+    ('recettes_commerce','image','text','images/Sovarka/Krasnov/Krasnov_place_ours.webp','images/sovarka/krasnov/krasnov-place-ours.webp'),
+    ('climat_points_eau','image','text','images/Sovarka/Krasnov/Krasnov_place_ours_fontaine.webp','images/sovarka/krasnov/krasnov-place-ours-fontaine.webp'),
+    ('camions_militaires','image_url','text','images/Sovarka/Novomirsk/Novomirsk_camion_NAZ66_interieur.webp','images/sovarka/novomirsk/novomirsk-camion-naz66-interieur.webp'),
+    ('escorts_catalogue','portrait','text','images/Sovarka/Novomirsk/Sovarka_escort_Boris_Kostof.webp','images/sovarka/novomirsk/sovarka-escort-boris-kostof.webp'),
+    ('escorts_catalogue','vignette','text','images/Sovarka/Novomirsk/Sovarka_escort_Boris_Kostof_vignette.webp','images/sovarka/novomirsk/sovarka-escort-boris-kostof-vignette.webp'),
+    ('escorts_catalogue','portrait','text','images/Sovarka/Novomirsk/Sovarka_escort_Ludmilla_Bonaskova.webp','images/sovarka/novomirsk/sovarka-escort-ludmilla-bonaskova.webp'),
+    ('escorts_catalogue','vignette','text','images/Sovarka/Novomirsk/Sovarka_escort_Ludmilla_Bonaskova_vignette.webp','images/sovarka/novomirsk/sovarka-escort-ludmilla-bonaskova-vignette.webp'),
+    ('escorts_catalogue','portrait','text','images/personnages/Clinique_escort_Boris.webp','images/personnages/clinique-escort-boris.webp'),
+    ('escorts_catalogue','vignette','text','images/personnages/Clinique_escort_Boris_vignette.webp','images/personnages/clinique-escort-boris-vignette.webp'),
+    ('escorts_catalogue','portrait','text','images/personnages/Clinique_escort_Irina.webp','images/personnages/clinique-escort-irina.webp'),
+    ('escorts_catalogue','vignette','text','images/personnages/Clinique_escort_Irina_vignette.webp','images/personnages/clinique-escort-irina-vignette.webp')
+  ) AS corrections(table_name, column_name, column_type, ancienne, nouvelle)
+  LOOP
+    IF r.column_type = 'text' THEN
+      EXECUTE format('UPDATE public.%I SET %I = $2 WHERE %I = $1',
+        r.table_name, r.column_name, r.column_name) USING r.ancienne, r.nouvelle;
+    ELSE
+      EXECUTE format('UPDATE public.%I SET %I = replace(%I::text,to_jsonb($1::text)::text,to_jsonb($2::text)::text)::jsonb WHERE strpos(%I::text,to_jsonb($1::text)::text) > 0',
+        r.table_name, r.column_name, r.column_name, r.column_name) USING r.ancienne, r.nouvelle;
+    END IF;
+  END LOOP;
+END
+$images$;
+```
+
+
 ### Mission « Novomirsk, PNJ, interface et suites des rapports » (Claude, 23/11/2026) — décisions : GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md
 - Branche de travail `claude/novomirsk-pnj-20261123`, partie de `395a0100`. Blocs 0 à 7 poussés sur main un par un dès que leurs bancs et la CI sont verts.
 - **Bloc 0 (consignation)** : décisions écrites dans le document de mission et à la source (NOVOMIRSK : Ignat fonctionnaire à la retraite **jamais trappeur**, Kouzma batiouchka, Matveï/Prokhor Rybakov, gare, renseignement ; HOSPITALISATION : salle d'attente / chambre ; SANTE : paiements en liquide sauf prélèvements automatiques, PNJ des usines non payés ; CRIMINALITE : voler chez un colocataire ; INFORMATEURS : achat en cliquant sur le PNJ ; INTERFACE-ACCUEIL : Inspecter à 0 PA, rébellion et répression à 1 PA).
@@ -995,6 +1042,8 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 - Aide HRP (PR #720) : **non certifiés** — réponses réelles DeepSeek dans les neuf langues, recette authentifiée, essais iPhone/Android. Sur téléphone : questions PA/but, fr→en→ko→fr, arabe RTL, clavier IME.
 
 ## Derniers chantiers
+
+- **Relevés images, PR #1181** (Codex, 23/11/2026) : objets sans illustration, quatre icônes prévues, noms fragiles et références détaillées dans `outils/audits/images-cassees-20261122/*20261123*`. Aucun fichier du jeu ni image renommé ; SQL de renommage **NON APPLIQUÉ**, gardé ci-dessus pour le futur chantier. Résultats de CI et commit de fusion : [PR #1181](https://github.com/FredJ74/res-publica/pull/1181).
 
 - **22/11/2026 — livraison client Codex** : logo Human Gambit **#1177** (`9566f062`), accueil du guide en neuf langues **#1178** (`d1a2c899`), fenêtres sans chevauchement et fronton commercial mobile **#1179** (`5f137b44`), garde client anti-débit du goulag **#1176**. Les trois premières diffusions Vercel et leurs ressources publiques sont vérifiées ; CI et preuve de diffusion du dernier correctif sont tenues dans [la PR #1176](https://github.com/FredJ74/res-publica/pull/1176). Détails et étapes intermédiaires archivés ci-dessous ; preuves versionnées dans `outils/audits/`. Aucun accès à la base, aucune migration rejouée, aucun verrou levé. Recettes Chromium/WebKit avec données fictives ; aucun PJ connecté ni téléphone physique.
 - **Criminalité — correctifs du 20/11 (Claude, 20/11/2026)** (branche `claude/criminalite-correctifs-20261120`, fusionnée) : demande de Fred. Plus de +15 de carrière criminelle au marché noir (migration `20261120130000`) ; discrétion (migration `20261120140000_crim_discretion`) : rapports de combat sans nom de masqué (« Individu masqué n°X », numéro commun avec `crim_presents`), tables `batailles*` retirées de la lecture directe, fiche d'un masqué sans Parler / Rejoindre / courrier, ville / bâtiment / pièce des autres joueurs à NULL dans la vue `personnages` (politique `personnages_lecture` réduite à sa ligne), annuaire sans ville. Banc `test-crim-discretion-20261120.cjs`. Écrire à un masqué par son vrai nom reste permis (décision de Fred) ; une demande de groupe à un chef caché ou masqué répond comme s'il était absent (migration `20261120150000`, plus d'indice de position) ; le courrier ne lit aucune position. Reste : indices de lieu, voir « Chantier à part » dans « En cours ».

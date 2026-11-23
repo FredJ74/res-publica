@@ -1,0 +1,19 @@
+{
+  "date": "2026-11-23",
+  "controle_periodique_45154775033": "success",
+  "objets": 172,
+  "familles_dynamiques": 20,
+  "fragiles": 500,
+  "references_par_type": {
+    "code / test / gabarit": 620,
+    "preuve / documentation": 2597,
+    "SQL historique / seed": 12
+  },
+  "base_occurrences_22nov": 12,
+  "syntaxe_sql": "pglast : parse uniquement, aucune exécution",
+  "idempotence_et_chaines_entieres": "simulation en mémoire, succès",
+  "cibles_actuelles_et_noms_proposes": "présence et unicité contrôlées",
+  "aucun_renommage": true,
+  "aucun_sql_execute": true,
+  "garde_images": "8/8 tests réussis"
+}
