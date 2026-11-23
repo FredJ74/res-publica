@@ -1,4 +1,5 @@
--- NON APPLIQUÉE — migration finale des renommages de PNJ qui touchent la base (Fred, 23/11/2026 : une seule migration
+-- APPLIQUÉE en production le 23/11/2026 (feu vert de Fred, une transaction ; contrôlée en lecture : 7 nouveaux noms, aucun
+-- ancien libellé en Sovarka, Républia intacte). Migration finale des renommages de PNJ qui touchent la base (Fred, 23/11/2026 : une seule migration
 -- pour tous les renommages). Mission « Novomirsk, PNJ, interface » (GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md,
 -- points 26, 37, 42 et 44 ; noms validés par Fred le 23/11/2026). À appliquer avec le client qui porte les nouveaux noms
 -- (commit ea108d73 intégré et renommages des points 42 et 44 dans data.js) : sinon le serveur ne reconnaît plus ces PNJ

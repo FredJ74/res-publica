@@ -92,7 +92,7 @@ test('point 42 : trois PNJ au féminin, fiches au féminin ; anciens identifiant
 
 test('base : la migration finale renomme exactement les 7 lignes d\'informateurs relevées, et seulement elles', () => {
   const sql = lire('migrations/20261123230000_renommages_pnj_finale.sql');
-  assert.match(sql, /^-- NON APPLIQUÉE|^-- Migration finale/m);
+  assert.match(sql, /^-- (NON )?APPLIQUÉE/m);
   const updates = sql.match(/^UPDATE public\.informateurs_pnj/mg) || [];
   assert.equal(updates.length, 7);
   for (const [ville, bat, piece, nouveau, ancien, enBase] of RENOMMAGES) {
