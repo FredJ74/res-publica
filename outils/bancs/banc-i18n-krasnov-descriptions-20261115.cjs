@@ -6,7 +6,10 @@ const original=f=>execFileSync('git',['show',base+':'+f],{cwd:root,encoding:'utf
 const rows=s=>[...s.matchAll(/^\s*\[("[^\n]+")\],?$/gm)].map(m=>JSON.parse('['+m[1]+']'));
 function api(source,language='fr',country='soviet',enabled=true){const c={state:{country},RP_I18N_GAME_ENABLED:enabled,RPPlateauI18n:{language:()=>language}};c.window=c;vm.createContext(c);vm.runInContext(source,c);return c.RPSovarkaDescI18n;}
 test('Krasnov : dix ajouts, neuf langues, français exact et toutes les anciennes traductions conservées',()=>{
- const before=rows(original('i18n/sovarka-descriptions-resources.js')),after=rows(read('i18n/sovarka-descriptions-resources.js'));
+ // Mission Novomirsk, bloc 3, point 27 (Fred, 23/11/2026) : deux descriptions périmées retirées du catalogue (Ignat est
+ // fonctionnaire à la retraite, Kouzma le batiouchka) ; elles n'étaient plus affichées. Toutes les autres restent.
+ const RETIREES=['Des pièges pendus aux poutres','Des icônes dans le coin rouge, une cloche miniature'];
+ const before=rows(original('i18n/sovarka-descriptions-resources.js')).filter(r=>!RETIREES.some(d=>r[0].startsWith(d))),after=rows(read('i18n/sovarka-descriptions-resources.js'));
  // Lots suivants permis à la suite (15/11 : quatre descriptions de Krasnov par Claude) : ces dix lignes restent en place.
  assert.ok(after.length>=before.length+10);assert.deepEqual(after.slice(0,before.length),before);
  assert.deepEqual(after.slice(before.length,before.length+10).map(r=>r[0]),sources);assert.equal(new Set(after.map(r=>r[0])).size,after.length);
