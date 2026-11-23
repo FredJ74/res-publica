@@ -17,7 +17,15 @@ test('le référentiel de la migration est exactement celui que produit data.js'
     ? Object.assign({}, x, { id: x.id.replace(/[^:]+$/, RENOMMAGES_EN_ATTENTE[x.id][0]), nom: RENOMMAGES_EN_ATTENTE[x.id][0], role: RENOMMAGES_EN_ATTENTE[x.id][1] })
     : x), sql = lire(MIGRATION);
   const q = (s) => s === null || s === undefined ? 'NULL' : "'" + String(s).replace(/'/g, "''") + "'";
-  for (const x of l) assert.ok(sql.includes('(' + [x.id, x.pays, x.ville, x.batiment, x.piece, x.nom, x.role, x.profil, x.sujet].map(q).join(', ') + ')'), x.id);
+  // Renommages de PNJ en attente de la migration finale unique (Fred, 23/11/2026) : une ligne renommée dans data.js est
+  // acceptée si un fragment de outils/migrations-finales/ la pose (SET id = '<nouvel id>' ... nom = '<nouveau nom>').
+  const dossier = path.join(root, 'outils/migrations-finales');
+  const fragments = fs.existsSync(dossier) ? fs.readdirSync(dossier).filter(f => f.endsWith('.sql')).map(f => fs.readFileSync(path.join(dossier, f), 'utf8')).join('\n') : '';
+  for (const x of l) {
+    const ligne = '(' + [x.id, x.pays, x.ville, x.batiment, x.piece, x.nom, x.role, x.profil, x.sujet].map(q).join(', ') + ')';
+    const enAttente = fragments.includes('SET id = ' + q(x.id)) && fragments.includes('nom = ' + q(x.nom)) && (x.piece === null || fragments.includes(q(x.piece)) || fragments.includes(':' + x.piece + ':'));
+    assert.ok(sql.includes(ligne) || enAttente, x.id);
+  }
   assert.equal((sql.match(/^\('/gm) || []).length, l.length, 'aucune ligne en trop');
   const profils = new Set(l.map(x => x.profil));
   assert.deepEqual([...profils].sort(), ['generaliste', 'lieu', 'sujet']);

@@ -2273,8 +2273,12 @@ const WORLD = {
         },
                 'centre-multinodal-luthecia': {
           name: "Hall Principal",
-          desc: "Trans-Urals Express, taxis verts collectifs, bus du Parti. Camarade Horaire veille. Les trains arrivent à l'heure, c'est obligatoire.",
-          persons: [{"name": "Camarade Horaire (PNJ)", "role": "Chef de gare", "rel": "neutral", "job": "chef_gare"}, {"name": "Agente Nadejda (PNJ)", "role": "Agente de contrôle", "rel": "neutral", "job": "securite"}],
+          // Bloc 6 (Fred, 23/11/2026, point 37) : « Camarade Horaire » devient Vassili Sukhoï (graphie VOULUE, clin d'œil à
+          // l'avion : ne jamais écrire « Soukhoï »), chef de gare au hall principal ; « Agente Nadejda » devient Lioudmila
+          // Proverkina, agente de contrôle, déplacée au hall des douanes (le doublon « Nadejda Contrôle », jamais affiché,
+          // est fondu en elle). Noms liés à informateurs_pnj : outils/migrations-finales/renommages-bloc6-20261123.sql.
+          desc: "Trans-Urals Express, taxis verts collectifs, bus du Parti. Sous la grande horloge, le chef de gare Vassili Sukhoï consulte sa montre à gousset : les trains arrivent à l'heure, c'est obligatoire.",
+          persons: [{"name": "Vassili Sukhoï (PNJ)", "role": "Chef de gare", "rel": "neutral", "job": "chef_gare"}],
           // La caserne de Sovarka est en ville (vues 11 et 12) : pas de taxi vers une caserne hors ville.
           // Le taxi du QHS mène au goulag : masqué tant que le goulag est verrouillé (le serveur refuse aussi, goulag_ferme).
           // Images, description des douanes et PNJ des douanes : bloc GARE_NOVOMIRSK_BLOC6 plus bas (avant le renommage sovarkien).
@@ -2282,13 +2286,13 @@ const WORLD = {
           rooms: {
           'hall_gare': {
             name: "Hall Principal — Gare Centrale du Peuple",
-            desc: "Trans-Urals Express, taxis verts collectifs, bus du Parti. Camarade Horaire veille. Les trains arrivent à l'heure, c'est obligatoire.",
-            persons: [{"name": "Camarade Horaire (PNJ)", "role": "Chef de gare", "rel": "neutral", "job": "chef_gare"}, {"name": "Agente Nadejda (PNJ)", "role": "Agente de contrôle", "rel": "neutral", "job": "securite"}]
+            desc: "Trans-Urals Express, taxis verts collectifs, bus du Parti. Sous la grande horloge, le chef de gare Vassili Sukhoï consulte sa montre à gousset : les trains arrivent à l'heure, c'est obligatoire.",
+            persons: [{"name": "Vassili Sukhoï (PNJ)", "role": "Chef de gare", "rel": "neutral", "job": "chef_gare"}]
           },
           'hall_douanes': {
             name: "Contrôle des Camarades",
-            desc: "Le contrôle douanier de Sovarka. Nadejda Contrôle fouille votre bagage méthodiquement. Tout est enregistré en triple.",
-            persons: [{"name": "Nadejda Contrôle (PNJ)", "role": "Inspectrice des douanes", "rel": "neutral", "job": "douanier"}]
+            desc: "Le contrôle douanier de la gare, sous la verrière. « La frontière est sous clé », proclame la banderole. Au comptoir, l'agente Lioudmila Proverkina tamponne les passeports ; aux tables de fouille, l'inspecteur Prokhor Rybakov examine à la loupe un bocal de cornichons. Tout est enregistré en triple.",
+            persons: [{"name": "Lioudmila Proverkina (PNJ)", "role": "Agente de contrôle", "rel": "neutral", "job": "securite"}, {"name": "Inspecteur Prokhor Rybakov (PNJ)", "role": "Inspecteur des douanes", "rel": "neutral", "job": "douanier"}]
           },
           'zone_embarquement': {
             name: "Zone de Départ Collectif",
@@ -11193,8 +11197,11 @@ function slugPnjSovarka(nom) {
   const ro = WORLD.soviet.capitale.buildingContext['centre-multinodal-luthecia'].roomOverrides;
   const D = 'images/Sovarka/Novomirsk/';
   ro.hall_gare = Object.assign({}, ro.hall_gare, { imageUrl: D + 'novo-gare-hall-chef-de-gare.webp' });
+  // Lioudmila Proverkina (ex-« Agente Nadejda ») rejoint l'inspecteur du gabarit, renommé Prokhor Rybakov ci-dessous.
   ro.hall_douanes = Object.assign({}, ro.hall_douanes, { imageUrl: D + 'novo-gare-hall-douanes.webp',
-    desc: "Le contrôle douanier de la gare, sous la verrière. « La frontière est sous clé », proclame la banderole. Au portique, un soldat et son berger allemand ; aux tables de fouille, l'inspecteur Prokhor Rybakov examine à la loupe un bocal de cornichons. Tout est enregistré en triple." });
+    persons: [{name: 'Lioudmila Proverkina (PNJ)', role: 'Agente de contrôle', rel: 'neutral', job: 'securite'},
+              {name: 'Inspecteur Prosper Tampon (PNJ)', role: 'Inspecteur des douanes', rel: 'neutral', job: 'douanier'}],
+    desc: "Le contrôle douanier de la gare, sous la verrière. « La frontière est sous clé », proclame la banderole. Au comptoir, l'agente Lioudmila Proverkina tamponne les passeports ; aux tables de fouille, l'inspecteur Prokhor Rybakov examine à la loupe un bocal de cornichons. Tout est enregistré en triple." });
   ro.zone_embarquement = Object.assign({}, ro.zone_embarquement, { imageUrl: D + 'novo-gare-zone-embarquement.webp' });
 }
 // Meme resolution que personnesNormalesDeLaPiece (plateau-multijoueur.js) : surcharge de ville,
@@ -13384,6 +13391,8 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     ['kolkhoze-spirituel', 'grange_sainte', 'Camarade Pontife Tractorenko (PNJ)', 'novo-pontife-tractorenko-portrait.webp'],
     ['kolkhoze-spirituel', 'grange_sainte', 'Frère Kolkhoze (PNJ)', 'novo-frere-kolkhoze-portrait.webp'],
     // Bloc 6 (points 37 et 38) : gare et Direction du Renseignement.
+    ['centre-multinodal-luthecia', 'hall_gare', 'Vassili Sukhoï (PNJ)', 'novo-vassili-sukhoi-portrait.webp'],
+    ['centre-multinodal-luthecia', 'hall_douanes', 'Lioudmila Proverkina (PNJ)', 'novo-lioudmila-proverkina-portrait.webp'],
     ['centre-multinodal-luthecia', 'hall_douanes', 'Inspecteur Prokhor Rybakov (PNJ)', 'novo-prokhor-rybakov-portrait.webp'],
     ['siege-renseignement', 'accueil_renseignement', 'Sergent Viktor Muetov (PNJ)', 'novo-viktor-muetov-portrait.webp'],
     ['siege-renseignement', 'accueil_renseignement', 'Elena Diamentevia (PNJ)', 'novo-elena-diamentevia-portrait.webp'],

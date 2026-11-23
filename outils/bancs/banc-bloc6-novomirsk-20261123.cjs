@@ -22,7 +22,7 @@ function charger() {
     const premiere = Object.keys(BUILDINGS[b].rooms || {})[0] === r;
     return JSON.parse(JSON.stringify({ persons: personnesNormalesDeLaPiece(b, r), imageUrl: ro.imageUrl || room.imageUrl || null,
       desc: ro.desc || ((premiere && c.desc) ? c.desc : (room.desc || '')) })); };`, ctx);
-  return ctx.__piece;
+  return (b, r) => JSON.parse(JSON.stringify(ctx.__piece(b, r)));   // objets du domaine du banc (deepEqual strict)
 }
 const piece = charger();
 const pnj = lire('api/_pnj-personnalites.js');
@@ -88,4 +88,48 @@ test('église de Novomirsk : portraits du Pontife et de Frère Kolkhoze (512 × 
     assert.equal(b.readUInt16LE(i + 14) & 0x3fff, 512); assert.equal(b.readUInt16LE(i + 16) & 0x3fff, 512);
     assert.match(fiche(id), /trait:/);
   }
+});
+
+// ── Renommages liés à la base (dernier commit du bloc 6 ; SQL : outils/migrations-finales/renommages-bloc6-20261123.sql) ──
+test('gare : Vassili Sukhoï au hall principal, Lioudmila Proverkina aux douanes avec Prokhor Rybakov, portraits raccordés', () => {
+  const G = 'centre-multinodal-luthecia', D = 'images/Sovarka/Novomirsk/';
+  const hall = piece(G, 'hall_gare'), douanes = piece(G, 'hall_douanes');
+  assert.deepEqual(hall.persons.map(p => p.name), ['Vassili Sukhoï (PNJ)']);
+  assert.equal(hall.persons[0].job, 'chef_gare');
+  assert.deepEqual(douanes.persons.map(p => p.name), ['Lioudmila Proverkina (PNJ)', 'Inspecteur Prokhor Rybakov (PNJ)']);
+  assert.equal(douanes.persons[0].role, 'Agente de contrôle');
+  assert.equal(photo(hall, 'Vassili Sukhoï (PNJ)'), D + 'novo-vassili-sukhoi-portrait.webp');
+  assert.equal(photo(douanes, 'Lioudmila Proverkina (PNJ)'), D + 'novo-lioudmila-proverkina-portrait.webp');
+  assert.match(hall.desc, /Vassili Sukhoï/);
+  assert.match(douanes.desc, /Lioudmila Proverkina/);
+  fiche('vassili_sukhoi'); fiche('lioudmila_proverkina');
+});
+
+test('anciens noms disparus du jeu (R4) et graphie « Sukhoï » jamais « corrigée »', () => {
+  const fichiers = ['data.js', 'plateau-core.js', 'api/_pnj-personnalites.js', 'api/_pnj-scenes-generes.js', 'api/_pnj-sovarka-genere.js'];
+  for (const f of fichiers) {
+    const s = lire(f);
+    for (const ancien of ['Camarade Horaire', 'Agente Nadejda', 'Nadejda Contrôle']) {
+      // Seules mentions admises : les commentaires qui retracent le renommage (« ex-« Agente Nadejda » »).
+      const hors = s.split('\n').filter(l => l.includes(ancien) && !/^\s*\/\//.test(l));
+      assert.deepEqual(hors, [], ancien + ' encore dans ' + f);
+    }
+    assert.ok(!/Soukho/.test(s.split('\n').filter(l => !/^\s*\/\//.test(l)).join('\n')), '« Soukhoï » dans ' + f + ' : la graphie voulue est « Sukhoï »');
+  }
+  assert.ok(lire('plateau-core.js').includes("'Vassili Sukhoï': { trait:"));
+  assert.ok(lire('plateau-core.js').includes("'Lioudmila Proverkina': { trait:"));
+});
+
+test('référentiel des informateurs : les deux PNJ renommés sont posés par le fragment SQL de la migration finale', () => {
+  const { lignes } = require(path.join(root, 'outils/generateurs/generer-informateurs-lieux.cjs'));
+  const ids = lignes().map(x => x.id).filter(id => id.startsWith('soviet:capitale:centre-multinodal-luthecia:'));
+  assert.deepEqual(ids, ['soviet:capitale:centre-multinodal-luthecia:hall_douanes:Lioudmila Proverkina',
+                         'soviet:capitale:centre-multinodal-luthecia:hall_gare:Vassili Sukhoï']);
+  const sql = lire('outils/migrations-finales/renommages-bloc6-20261123.sql');
+  assert.match(sql, /^-- NON APPLIQUÉE/);
+  for (const id of ids) assert.ok(sql.includes("SET id = '" + id + "'"), id);
+  assert.match(sql, /WHERE id = 'soviet:capitale:centre-multinodal-luthecia:hall_gare:Camarade Horaire'/);
+  assert.match(sql, /WHERE id = 'soviet:capitale:centre-multinodal-luthecia:hall_gare:Agente Nadejda'/);
+  assert.match(sql, /piece = 'hall_douanes'/);
+  assert.ok(!fs.readdirSync(path.join(root, 'migrations')).some(f => /bloc6/.test(f)), 'pas de migration autonome du bloc 6');
 });
