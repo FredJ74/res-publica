@@ -8,8 +8,10 @@ CI dédiée **45221674750 : succès, 7/7 tests**. Chromium : 320, 390 et 1280 px
 
 Les essais utilisent des réponses simulées : pas de PJ connecté, de téléphone physique ou de recette réelle en production. Aucun fichier du panneau des organisations/personnage n’a été édité. Aucun fichier des zones Claude ni de la PR #1132 modifié.
 
-**Non fusionné, non déployé** : le CI général de main d0f0e127 est déjà rouge (45216697377 et 45216697281), et l’ancien banc de raccord du panneau réclame cash/statistics désormais absents de main. Les mêmes erreurs bloquent #1183 et #1184. Elles concernent les tarifs, descriptions, fiche/panneau de personnage : ces zones sont réservées à Claude. Aucun banc n’est assoupli pour forcer la fusion.
+**Historique initial avant rebase** : le CI général de main d0f0e127 était rouge (45216697377 et 45216697281), et l’ancien banc de raccord du panneau réclame cash/statistics désormais absents de main. Les mêmes erreurs bloquent #1183 et #1184. Elles concernent les tarifs, descriptions, fiche/panneau de personnage : ces zones sont réservées à Claude. Aucun banc n’est assoupli pour forcer la fusion.
 
 Vercel : aucun déploiement de cette branche trouvé ; production READY sur d0f0e127, dpl_6w4msZ18wAvT8qd9t78LTBDozCHP. Le nouveau correctif n’est donc pas présenté comme vérifié en production.
 
 Reprise : après correction des contrôles communs par le chantier responsable, fetch/rebase sur main, conserver les fichiers interdits de main, régénérer/vérifier Brotli si le catalogue change, rejouer les bancs, fusionner si CI entièrement verte, puis vérifier commit et ressources effectivement servis. Rien à appliquer en base.
+
+Actualisation : rebase sans conflit sur main **14d0716e**, après les corrections communes de Claude. Recette locale rejouée : **10/10** tests saisie/transport. CI dédiée **45223029458 verte** ; contrôle complet et livraison suivis dans #1184. Les erreurs initiales ci-dessus sont historiques, pas un diagnostic des nouvelles exécutions.
