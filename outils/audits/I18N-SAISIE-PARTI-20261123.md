@@ -26,3 +26,7 @@ Actualisation : rebase sans conflit sur main **14d0716e**, après les correction
 Bancs en échec : `banc-cycle-plaintes.js`, `banc-groupes-bataille-client.cjs`, `banc-mobile-certification.cjs`, `banc-nominations-municipales.cjs`, `banc-parquet-client.js`, `banc-sorties-batiments.cjs`. Ils concernent le registre des postes, le journal, les pixels du plateau et la navigation du chantier parallèle. Aucun banc ni fichier responsable n’est modifié dans les lots. Empreintes et résultats dans `I18N-SAISIE-PARTI-20261123-CI.json`.
 
 **Non fusionné, non déployé : batterie générale rouge.** Vercel production READY sur 14d0716e (`dpl_E2rUtNMfgsgqknvZyXhGKJktCK7B`), sans ces lots. Les anciennes erreurs de d0f0e127 sont historiques ; ce sont désormais ces six écarts qui bloquent. Après correction par le chantier responsable, rebase et contrôles complets avant fusion. Aucun contournement, aucune écriture en base.
+
+## Reprise après correction des six bancs
+
+Main **a0aba273** intègre les corrections de Claude ; CI générale **45250421305 verte**. Rebase de la branche sans conflit, aucun fichier de Claude modifié. **10/10** tests locaux saisie/transport passent sur cette base. Les erreurs sur 14d0716e décrites plus haut sont historiques. La CI complète est relancée avant fusion, suivie sur #1184 ; aucun nouveau texte, aucune mécanique ni base modifiés.
