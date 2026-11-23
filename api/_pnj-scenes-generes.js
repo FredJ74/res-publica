@@ -4771,8 +4771,7 @@ export const SCENES_PNJ = {
     "batiment": "Hall Principal",
     "piece": "Hall Principal",
     "personnes": [
-      "Camarade Horaire",
-      "Agente Nadejda"
+      "Vassili Sukhoï"
     ]
   },
   "[\"soviet\",\"capitale\",\"centre-multinodal-luthecia\",\"hall_douanes\"]": {
@@ -4781,6 +4780,7 @@ export const SCENES_PNJ = {
     "batiment": "Hall Principal",
     "piece": "Hall des Douanes",
     "personnes": [
+      "Lioudmila Proverkina",
       "Inspecteur Prokhor Rybakov"
     ]
   },
