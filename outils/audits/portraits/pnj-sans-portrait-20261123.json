@@ -2,10 +2,10 @@
   "genere_par": "outils/bancs/banc-pnj-sans-portrait-20261123.cjs",
   "note": "Une ligne par apparition dans une pièce (un même PNJ peut figurer dans plusieurs pièces). PNJ du serveur (informateurs, agents, soldats) et PNJ ajoutés dynamiquement par les modules non compris.",
   "totaux": {
-    "apparitions_pnj": 940,
+    "apparitions_pnj": 939,
     "avec_portrait": 507,
-    "sans_portrait": 433,
-    "pnj_distincts_sans_portrait": 423,
+    "sans_portrait": 432,
+    "pnj_distincts_sans_portrait": 422,
     "par_ville": {
       "Al Khalija / Al Madina": 48,
       "Al Khalija / Al-Petrol": 33,
@@ -23,7 +23,7 @@
       "Républia / Port-Sainte-Marie": 29,
       "Républia / Quartier Haute Securite": 4,
       "Sovarka / Garnison du Peuple": 8,
-      "Sovarka / Krasnov": 3,
+      "Sovarka / Krasnov": 2,
       "Sovarka / Novomirsk": 40,
       "Sovarka / Starovka": 4
     }
@@ -1435,11 +1435,6 @@
         "Centre d'affaires de Krasnov [centre-affaires]": {
           "La Voix de Sovarka — Antenne de Krasnov [tribune_republia]": [
             "Anatoli Kolosov (PNJ) — Journaliste — correspondant de La Voix de Sovarka"
-          ]
-        },
-        "Musée de Krasnov [musee-novomirsk]": {
-          "Accueil du musée de Krasnov [hall]": [
-            "Directeur du musée de Krasnov (PNJ) — Directeur du musée"
           ]
         }
       },

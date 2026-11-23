@@ -1,10 +1,13 @@
 // ÉCOLE ET ÉNIGME DE KRASNOV (lot de Krasnov, point 7 ; Fred, 20/11/2026 ; migration 20261121060000).
 // Le serveur décide de tout (krasnov_ecole_agir) : stage de survie, guide au musée avec sa feuille volante, réponse à
-// l'énigme donnée au directeur du musée. L'écran affiche la fenêtre d'ouverture (générique, même formule pour chaque ville),
+// l'énigme donnée au guide du musée, Arkadi Pamiatnikov (le directeur est supprimé : Fred, 23/11/2026, point 29). L'écran affiche la fenêtre d'ouverture (générique, même formule pour chaque ville),
 // la liste des énigmes résolues dans l'inventaire et la réplique des habitués du Bar Sever.
 (function (global) {
 'use strict';
 const NOMS_ENIGMES = { krasnov: 'L’énigme de Krasnov' };
+// Carnet de l'énigme (Fred, 23/11/2026, point 29) : à qui donner sa solution.
+const CARNET_ENIGMES = { Krasnov: 'Soumettez votre solution au guide du musée.' };
+const GUIDE_KRASNOV = 'Arkadi Pamiatnikov';
 
 function echapper(t) { return String(t ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 
@@ -29,6 +32,7 @@ function ouvrirPopupEnigme(ville) {
   global.document.getElementById('postes-body').innerHTML = '<div style="padding:1.2rem;text-align:center">'
     + '<div style="font-family:Bebas Neue,sans-serif;font-size:1.3rem;letter-spacing:.08em;color:#c9a84c;margin-bottom:.6rem">'
     + echapper('Ici commence l’énigme de ' + ville + ' : saurez-vous la résoudre… ?') + '</div>'
+    + (CARNET_ENIGMES[ville] ? '<p class="cpj-note">' + echapper(CARNET_ENIGMES[ville]) + '</p>' : '')
     + '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')" class="cpj-touche" style="margin-top:.6rem">OK</button></div>';
   global.document.getElementById('modal-postes').classList.add('open');
 }
@@ -51,13 +55,10 @@ async function acheterGuide() {
   if (v.premiere_feuille && !v.resolue) ouvrirPopupEnigme('Krasnov');
 }
 
+// Ancienne fenêtre du directeur (supprimé le 23/11/2026) : la réponse se donne au guide, dans sa fenêtre.
 function ouvrirReponse() {
-  global.document.getElementById('postes-modal-title').textContent = 'Directeur du musée de Krasnov';
-  global.document.getElementById('postes-body').innerHTML = '<div style="padding:1rem">'
-    + '<div style="font-size:.82rem;color:#8a8060;margin-bottom:.6rem">« Alors, quel est cet ingrédient effacé de la recette ? »</div>'
-    + '<input id="enigme-krasnov-reponse" type="text" maxlength="80" class="cpj-champ" style="width:100%" dir="auto">'
-    + '<button onclick="soumettreEnigmeKrasnov()" class="cpj-touche" style="width:100%;margin-top:.6rem">Répondre</button></div>';
-  global.document.getElementById('modal-postes').classList.add('open');
+  if (typeof global.arkadiEcouterGuide === 'function') global.arkadiEcouterGuide();
+  else global.showToast('Krasnov', CARNET_ENIGMES.Krasnov, false);
 }
 
 async function soumettre() {
@@ -66,8 +67,8 @@ async function soumettre() {
   const v = await agir('repondre_enigme', texte);
   if (!v) return;
   global.document.getElementById('modal-postes')?.classList.remove('open');
-  if (!v.resolue) { global.showToast('Directeur du musée de Krasnov', '« Non… ce n’est pas cela. Relisez bien la feuille. »', false); return; }
-  global.showToast('Directeur du musée de Krasnov', '« La graisse d’ours… Alors notre organisation n’a plus lieu d’exister. Allez l’annoncer à l’institutrice. »', true, true);
+  if (!v.resolue) { global.showToast(GUIDE_KRASNOV, '« Non… ce n’est pas cela. Relisez bien la feuille. »', false); return; }
+  global.showToast(GUIDE_KRASNOV, '« La graisse d’ours… Alors notre organisation n’a plus lieu d’exister. Allez l’annoncer à l’institutrice. »', true, true);
   if (typeof global.addJournalEntry === 'function') global.addJournalEntry('Énigme de Krasnov résolue : ' + (v.distinction || 'distinction obtenue') + '.', 'event-good');
   await chargerEnigmes();
 }

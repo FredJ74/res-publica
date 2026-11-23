@@ -502,6 +502,11 @@ async function doPrier(pa, cost) {
     modifierIP(3);
     state.moral = Math.min(100, state.moral + 2);
     updateUI();
+    // Églises de la Sainte-Moisson-Commune (Fred, 23/11/2026, point 33) : karaoké de l'hymne au Tracteur, puis
+    // exclamation du religieux du lieu, puis le résultat ci-dessous. L'ordre et ses effets ne changent pas.
+    if (pays === 'soviet' && state.currentBuilding === 'kolkhoze-spirituel' && typeof jouerHymneTracteur === 'function') {
+      try { await jouerHymneTracteur(); } catch (e) { /* l'animation ne doit jamais bloquer le résultat */ }
+    }
   }
   const msgs = {
     republic: 'Vous remplissez un formulaire en 12 exemplaires. La grâce administrative vous envahit. +3 IP +2 Moral.',

@@ -132,6 +132,21 @@ Chaque point porte un banc qui l'empêche de revenir (liste dans RELAIS.md).
     une **adaptation rimée** au ton de cantique pompeux ; en arabe, l'étoile va de droite à gauche.
 34. **Groupe électrogène** : la station-service de Krasnov ouvre la boutique « Équipements contre les intempéries ».
 
+**Mise en œuvre du bloc 4 (Claude, 23/11/2026, branche `claude/bloc4-krasnov-20261123`, banc
+`outils/bancs/banc-bloc4-krasnov-20261123.cjs`, migration `20261123214000_bloc4_lieux_krasnov`, non appliquée) :**
+- 29 : « Écouter le guide » (même ordre et même tarif que celui d'Ilia, `plateau-guide-arkadi.js`) dans l'accueil et les cinq
+  salles ; la fenêtre d'Arkadi porte, pour qui a la feuille volante, le champ « Le dire à Arkadi » (RPC `krasnov_ecole_agir`,
+  action `repondre_enigme`, inchangée). Les questions payantes au guide restent propres à Novomirsk ; la conversation libre
+  passe par la fiche DeepSeek d'Arkadi (bloc 3).
+- 30 : à Krasnov seulement (voir `GAME-DESIGN-HOSPITALISATION.md`).
+- 31 : encadré au-dessus des ordres de tout local de `sovarka_locaux` (centres, immeubles collectifs, locaux de Starovka) ;
+  l'ordre `sovarka_demande_location` s'appelle désormais « Demander ce local à la mairie » partout.
+- 32 : loyer de départ 40 PSK (égal au plafond, comme les box des centres commerciaux de Krasnov) ; le maire le fixe.
+- 33 : karaoké `plateau-hymne-tracteur.js`, branché sur l'ordre « prier » des églises de la Sainte-Moisson-Commune
+  (`kolkhoze-spirituel`) ; paiement avant le chant, résultat après, serveur inchangé.
+- 34 : groupe électrogène seul (les bidons restent à l'ordre propre de la station) ; l'image fournie n'a pas été utilisée
+  (les objets d'inventaire n'ont pas d'image).
+
 ## Bloc 5 — contenus
 
 35. **Cartes postales** : Krasnov, la carte en vente (`carte_krasnov_place_ours`) utilise l'image « Краснов, столица

@@ -14,9 +14,13 @@ for (const [pays, ville, bat] of villes) {
   const ch = vm.runInContext(`WORLD.${pays}.${ville}.buildingContext?.['${bat}']?.roomsExtra?.chambre`, ctx);
   assert.ok(ch, `${pays} ${ville} : chambre absente`);
   assert.equal(ch.name, "Chambre d'hôpital");
-  assert.deepEqual(Array.from(ch.orders, o => [o.fn, o.pa, o.cost]),
+  // Krasnov (Fred, 23/11/2026, point 30) : la chambre des hospitalisés porte aussi « Sortir de l'hôpital ».
+  const krasnov = pays === 'soviet' && ville === 'ville_b';
+  const ordres = krasnov ? ch.orders.slice(0, 3) : ch.orders;
+  assert.deepEqual(Array.from(ordres, o => [o.fn, o.pa, o.cost]),
     [['dormir', 0, 0], ['repas_hopital', 1, 0], ['transfert_clinique_privee', 0, 1000]], `${pays} ${ville}`);
-  assert.equal(JSON.stringify(ch.orders), reference, `${pays} ${ville} : mêmes ordres et mêmes textes partout`);
+  if (krasnov) assert.deepEqual(Array.from(ch.orders.slice(3), o => o.fn), ['sortie_hopital']);
+  assert.equal(JSON.stringify(ordres), reference, `${pays} ${ville} : mêmes ordres et mêmes textes partout`);
   assert.ok(fs.existsSync(new URL('../../' + ch.imageUrl, import.meta.url)), `${pays} ${ville} : image ${ch.imageUrl}`);
 }
 // Textes repris du socle, déjà traduits.

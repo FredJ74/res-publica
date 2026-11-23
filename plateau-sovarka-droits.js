@@ -361,8 +361,8 @@ function sovarkaPiecesImmeuble(buildingId) {
     name: x.label, desc: sovT('roomDesc') + ' ' + (x.exploitant ? sovT('roomExploited', { nom: x.exploitant }) : sovT('roomAttributed')),
     imageBg: fond, isLocationRoom: true, persons: [],
     locationData: { prix: x.loyer, bonusPOP: 0, bonusINF: 0, bonusDIS: 0, label: x.label },
+    // « Ce commerce » supprimé (Fred, 23/11/2026, point 31) : la boutique ouverte a ses propres ordres (ordresCommerceDuLocal).
     orders: [
-      { fn: 'commerce_pj', label: 'Ce commerce', pa: 0, cost: 0, type: 'legal', icon: 'ti-building-store', successRate: 100, desc: sovT('orderShopDesc') },
       { fn: 'gerer_local', label: 'Gérer mon local', pa: 1, cost: 0, type: 'legal', icon: 'ti-settings', successRate: 100 }
     ]
   }]);
@@ -384,4 +384,67 @@ function sovarkaPiecesImmeuble(buildingId) {
 function sovarkaPrechargerTerrain(buildingId) {
   if (typeof state === 'undefined' || state.country !== 'soviet' || !/^terrain-a-batir-/.test(buildingId || '')) return;
   sovLire().then(l => { if (l && typeof rafraichirPiecesDynamiques === 'function') rafraichirPiecesDynamiques(buildingId); });
+}
+
+// ----------------------------------------------------------------------------- Locaux de l'État dans la pièce
+// Point 31 (Fred, 23/11/2026 ; GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md) : dans un local de Sovarka
+// (sovarka_locaux, hors commerces des PNJ), l'écran dit d'abord à qui il est.
+//  - Libre : encadré explicatif + « Demander ce local à la mairie — 1 PA » (même ordre et même tarif que l'ancienne
+//    « Demande de location » : sovarka_demande_location, payée par le serveur).
+//  - Attribué : « Ce local est exploité par [nom] » ; la demande disparaît.
+//  - « Gérer mon local » et « Équipements et serrure » sont masqués à qui n'exploite pas le local ; pour l'exploitant,
+//    « Gérer mon local » passe en tête et en évidence. L'ancien bouton « Ce commerce » est supprimé (la boutique d'un
+//    commerce ouvert garde ses propres ordres, ordresCommerceDuLocal).
+// L'état vient du serveur (sovarka_droits_lire) ; tant qu'il n'est pas lu, rien ne change à l'écran.
+const SOV_LOCAL_DEMANDER = 'Demander ce local à la mairie';
+// Texte exact de Fred (23/11/2026). Français seulement pour l'instant : les huit autres langues sont à faire par Codex
+// (catalogue i18n/sovarka-droits-resources.js, clé freeBox), qui remplacera ce repli.
+const SOV_LOCAL_LIBRE = "Ce local est libre. En Sovarka, les commerces appartiennent à l'État. Pour exploiter ce local, adressez une demande à la mairie de {ville}. Le maire examine les demandes deux fois par mois. Si la vôtre est acceptée, vous recevrez un courrier et signerez l'attribution chez le notaire.";
+const sovLocalLibre = ville => (sovT('freeBox', { ville }) || '').replace(/^freeBox$/, '') || SOV_LOCAL_LIBRE.replace('{ville}', ville);
+let sovLocalLectureEnCours = false, sovLocalDerniereLecture = 0;
+function sovLocalIci(buildingId, roomId, ville) {
+  if (typeof state === 'undefined' || state.country !== 'soviet' || !sovarkaDroitsCache) return null;
+  return (sovarkaDroitsCache.locaux || []).find(x => x.ville === ville && x.batiment === buildingId && x.piece === roomId && x.origine !== 'pnj') || null;
+}
+function sovLocalRedessiner(buildingId, roomId) {
+  if (state.currentBuilding !== buildingId || state.currentRoom !== roomId || typeof renderRoomActions !== 'function') return;
+  const room = BUILDINGS?.[buildingId]?.rooms?.[roomId]
+    || (typeof getBuildingContext === 'function' ? getBuildingContext(buildingId)?.roomsExtra?.[roomId] : null);
+  if (room) renderRoomActions(room, buildingId, roomId);
+}
+function ordresLocalSovarka(buildingId, roomId, ville) {
+  if (typeof state === 'undefined' || state.country !== 'soviet') return [];
+  if (!sovarkaDroitsCache) {
+    // Une lecture à la fois, et pas plus d'une tentative par minute si le serveur ne répond pas.
+    if (!sovLocalLectureEnCours && typeof sbRpcVerdict === 'function' && Date.now() - sovLocalDerniereLecture > 60000) {
+      sovLocalLectureEnCours = true;
+      sovLocalDerniereLecture = Date.now();
+      sovLire().then(l => { if (l) sovLocalRedessiner(buildingId, roomId); }).finally(() => { sovLocalLectureEnCours = false; });
+    }
+    return [];
+  }
+  const loc = sovLocalIci(buildingId, roomId, ville);
+  if (!loc) return [];
+  if (loc.exploitant && loc.exploitant === sovarkaDroitsCache.moi) {
+    return [{ fn: 'gerer_local', label: 'Gérer mon local', i18nKey: 'variant.local_manage', pa: 1, cost: 0, type: 'legal', icon: 'ti-settings',
+      successRate: 100, enTete: true, masque: ['commerce_pj', 'sovarka_demande_location'] }];
+  }
+  const masque = ['gerer_local', 'installer_equipements', 'commerce_pj'];
+  if (!sovLibre(loc)) return [{ invisible: true, masque: masque.concat(['sovarka_demande_location']), masqueTout: ['installer_equipements'] }];
+  return [{ fn: 'sovarka_demande_location', label: SOV_LOCAL_DEMANDER, pa: 1, cost: 0, type: 'legal', icon: 'ti-mail', successRate: 100,
+    desc: sovLocalLibre(sovVille(ville)), masque, masqueTout: ['installer_equipements'] }];
+}
+// Encadré au-dessus des ordres (registre RP_ENCADRES_PIECE, lu par renderRoomActions).
+function encadreLocalSovarka(buildingId, roomId, ville) {
+  const loc = sovLocalIci(buildingId, roomId, ville);
+  if (!loc) return '';
+  const texte = sovLibre(loc) ? sovLocalLibre(sovEsc(sovVille(ville)))
+    : loc.exploitant ? sovT('exploitedBy', { nom: sovEsc(loc.exploitant) }) : sovT('reservedSign');
+  return '<div class="sov-encadre-local" data-sov-local="' + (sovLibre(loc) ? 'libre' : 'attribue') + '">' + texte + '</div>';
+}
+if (typeof window !== 'undefined') {
+  window.RP_ORDRES_DYNAMIQUES = window.RP_ORDRES_DYNAMIQUES || [];
+  if (!window.RP_ORDRES_DYNAMIQUES.includes(ordresLocalSovarka)) window.RP_ORDRES_DYNAMIQUES.push(ordresLocalSovarka);
+  window.RP_ENCADRES_PIECE = window.RP_ENCADRES_PIECE || [];
+  if (!window.RP_ENCADRES_PIECE.includes(encadreLocalSovarka)) window.RP_ENCADRES_PIECE.push(encadreLocalSovarka);
 }

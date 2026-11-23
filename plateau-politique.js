@@ -4015,8 +4015,12 @@ function renderRoomActions(room, buildingId, roomId) {
   // militaire ni pour aucune autre source existante.
   const dynMasque = [];
   dynOrders.forEach(d => { (d.masque || []).forEach(fn => dynMasque.push(fn)); });
+  // `masqueTout` (Fred, 23/11/2026, point 31) masque aussi l'ordre quand une AUTRE source dynamique le fournit
+  // (« Équipements et serrure », plateau-equipements.js, dans un local de Sovarka que l'on n'exploite pas).
+  const dynMasqueTout = [];
+  dynOrders.forEach(d => { (d.masqueTout || []).forEach(fn => { dynMasqueTout.push(fn); dynMasque.push(fn); }); });
   // Conserver les masques, sans afficher de bouton pour les sentinelles.
-  dynOrders = dynOrders.filter(d => !d.invisible);
+  dynOrders = dynOrders.filter(d => !d.invisible && !dynMasqueTout.includes(d.fn));
 
   // Plus d'ordres communs ici — se_cacher/blocus/incendier sont dans la fiche personnage
   const allOrders = ordresDeclares
@@ -4048,6 +4052,8 @@ function renderRoomActions(room, buildingId, roomId) {
     .concat(dynOrders.filter(d => !d.basDeListe))
     // Ordres universels de piece places tout en bas (« Fouiller les lieux », decision de Fred, 11/11/2026).
     .concat(dynOrders.filter(d => d.basDeListe));
+  // Ordre « en tête » (point 31, 23/11/2026 : « Gérer mon local » pour l'exploitant) : remonté en premier (tri stable).
+  allOrders.sort((x, y) => (y.enTete === true) - (x.enTete === true));
 
   const achatTerrainBloqueParIntrus = /^terrain-a-batir-[1-5]$/.test(buildingId) && roomId === 'terrain' &&
     typeof getTerrainState === 'function' &&
@@ -4505,7 +4511,7 @@ function renderRoomActions(room, buildingId, roomId) {
     // Les descriptions métier peuvent contenir des guillemets droits : ne pas tronquer title.
     // Les messages bloqués ont déjà été échappés dans tooltipFinal ; ne pas les doubler.
     const tooltipAttribut = tooltipFinal === tooltip ? tooltipFinal.replace(/"/g, '&quot;') : tooltipFinal;
-    return '<button class="action-btn ' + o.type + blockedCls + '" onclick="' + onclickFn.replace(/"/g, '&quot;') + '" title="' + tooltipAttribut + '"' + tipAttr + '><i class="ti ' + o.icon + '" style="font-size:.82rem"></i> ' + libelleMarque + ' <span class="pa-cost">' + coutJoint + '</span>' + gainBadge + '</button>';
+    return '<button class="action-btn ' + o.type + blockedCls + (o.enTete === true ? ' action-en-tete' : '') + '" onclick="' + onclickFn.replace(/"/g, '&quot;') + '" title="' + tooltipAttribut + '"' + tipAttr + '><i class="ti ' + o.icon + '" style="font-size:.82rem"></i> ' + libelleMarque + ' <span class="pa-cost">' + coutJoint + '</span>' + gainBadge + '</button>';
   });
 
   // #57 — groupes de commandes des cinq terrains, sans fabriquer de nouveaux handlers.
@@ -4718,8 +4724,12 @@ function renderRoomActions(room, buildingId, roomId) {
 
   // Actualisation du seul texte des boutons, sans rejouer les sources dynamiques.
   window.RPOrderI18n?.registerRenderedOrders?.(ordresTerrainLuthecia);
-  document.getElementById('actions-row-bat').innerHTML = boutonsOrganises.join('') ||
-    '<div style="font-size:.75rem;color:#9a8a68;font-style:italic;padding:.3rem">Aucune action disponible ici.</div>';
+  // Encadrés d'information au-dessus des ordres (registre RP_ENCADRES_PIECE ; point 31 : local libre ou exploité en
+  // Sovarka). Une source défaillante n'emporte jamais les ordres.
+  const encadres = ((typeof window !== 'undefined' && Array.isArray(window.RP_ENCADRES_PIECE)) ? window.RP_ENCADRES_PIECE : [])
+    .map(f => { try { return f(buildingId, roomId, state.currentCity) || ''; } catch (e) { return ''; } }).join('');
+  document.getElementById('actions-row-bat').innerHTML = encadres + (boutonsOrganises.join('') ||
+    '<div style="font-size:.75rem;color:#9a8a68;font-style:italic;padding:.3rem">Aucune action disponible ici.</div>');
   window.RPOrderI18n?.bindVisibleLabels?.(document.getElementById('actions-row-bat'));
 }
 
