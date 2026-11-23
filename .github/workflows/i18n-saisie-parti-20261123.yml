@@ -24,4 +24,8 @@ jobs:
       - run: npm ci --prefix outils/e2e
       - run: npx --prefix outils/e2e playwright install --with-deps chromium
       - run: node outils/generateurs/compresser-catalogues-i18n.cjs --check
-      - run: node --test outils/bancs/banc-i18n-saisie-parti-20261123.cjs outils/bancs/banc-i18n-creation-organisation-20261114.cjs outils/bancs/banc-i18n-creation-organisation-navigateur-20261114.cjs
+      - name: Chromium neuf langues et formulaires existants
+        run: |
+          export CHROMIUM_PATH="$(node -p "require('./outils/e2e/node_modules/playwright').chromium.executablePath()")"
+          export HG_CHROMIUM="$CHROMIUM_PATH"
+          node --test outils/bancs/banc-i18n-saisie-parti-20261123.cjs outils/bancs/banc-i18n-creation-organisation-20261114.cjs outils/bancs/banc-i18n-creation-organisation-navigateur-20261114.cjs
