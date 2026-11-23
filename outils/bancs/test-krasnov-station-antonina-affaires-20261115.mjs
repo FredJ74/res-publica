@@ -18,8 +18,9 @@ test('quatre bureaux de taille/catégorie et loyer égaux, vues alternées',()=>
  for(let i=1;i<=4;i++){
    const r=rooms['bureau_'+i];
    assert.equal(r.isLocationRoom,true);
-   assert.equal(r.locationData.prix,500);
-   assert.equal(r.orders.some(o=>o.fn==='louer_local'),true);
+   assert.equal(r.locationData.prix,40); // plafond de loyer (Fred, 23/11/2026, point 32)
+   assert.equal(r.orders.some(o=>o.fn==='louer_local'),false);
+   assert.equal(r.orders.some(o=>o.fn==='sovarka_demande_location'),true);
    assert.equal(r.orders.some(o=>o.fn==='gerer_local'),true);
    assert.equal(r.orders.some(o=>o.fn==='installer_equipements'),true);
    assert.match(r.imageUrl,i<=2?/bureau_maison_bleue/:/bureau_hopital/);
@@ -39,7 +40,7 @@ test('station, maison, images et portraits WebP',()=>{
   assert.equal(bytes.toString('ascii',0,4),'RIFF',p);
   assert.equal(bytes.toString('ascii',8,12),'WEBP',p);
  }
- assert.equal(b['station-service-krasnov'].rooms.boutique_station.orders.length,2);
+ assert.equal(b['station-service-krasnov'].rooms.boutique_station.orders.length,3); // + boutique climat (23/11, point 34)
  assert.equal(b['maison-krasnov-bureaux'].rooms.piece_maison.orders.length,3);
 });
 test('migration portée sur la seule ville de Krasnov, et originaux supprimés',()=>{

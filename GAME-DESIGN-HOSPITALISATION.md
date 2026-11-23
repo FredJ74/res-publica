@@ -104,3 +104,4 @@ Décisions complètes : `GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md`. Point
 - **Chambre = hospitalisés** : dormir, repas, transfert en clinique privée, sortir. Le transfert, le repas et la sortie ne sont plus dans la salle d'attente.
 - **Transfert en clinique privée à 0 PA** (écran et serveur), tarif du pays affiché et prélevé depuis la chambre (Sovarka : 400 PSK, au lieu de « 1000 FR »).
 - « Salle bondée. Patience requise. » est supprimé.
+- **Mis en œuvre à l'hôpital de Krasnov** (bloc 4, `data.js`, banc `outils/bancs/banc-bloc4-krasnov-20261123.cjs`) : salle d'attente sans transfert, repas ni sortie ; chambre avec Dormir, repas, transfert (0 PA, tarif de la table MJ `ordres_couts_pays`, affiché sur le bouton et dans le journal) et « Sortir de l'hôpital ». Les autres hôpitaux (Starovka, Novomirsk, Républia) gardent leur salle d'attente actuelle : à étendre si Fred le confirme.

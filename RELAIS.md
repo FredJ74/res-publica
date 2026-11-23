@@ -9,6 +9,34 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Bloc 4 — lieux de Krasnov (Claude, 23/11/2026) — points 29 à 34 de GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md
+- Branche `claude/bloc4-krasnov-20261123`. Banc : `outils/bancs/banc-bloc4-krasnov-20261123.cjs` (statique + vrai Chromium pour le karaoké).
+- **Migration écrite, NON APPLIQUÉE** : `migrations/20261123214000_bloc4_lieux_krasnov.sql` (tarif de l'ordre supprimé `repondre_enigme_krasnov`
+  retiré d'`ordres_couts` ; carnet sur la feuille volante ; quatre bureaux du centre d'affaires de Krasnov dans `sovarka_locaux`, plafond 40 PSK,
+  trois locaux fantômes retirés ; boutique climat de la station-service de Krasnov).
+- **29 Musée** : directeur supprimé (PNJ, fiche DeepSeek, ordre, scènes générées) ; « Écouter le guide » (`ilia_ecouter_guide`, routé vers
+  `arkadiEcouterGuide` à Krasnov, `plateau-guide-arkadi.js`) dans l'accueil et les cinq salles ; la réponse à l'énigme se donne dans la fenêtre
+  d'Arkadi (même RPC). Seeds `ordres_couts` régénérés, listes en dur des recettes 219 mises à jour (594 lignes).
+- **30 Hôpital** (Krasnov seulement) : salle d'attente sans transfert/repas/sortie ; chambre avec « Sortir de l'hôpital » ; journal du transfert au
+  tarif du pays (plus de « -1000 FR » en dur).
+- **31 Locaux** : source d'ordres dynamique + encadré (`RP_ENCADRES_PIECE`, nouveau registre lu par `renderRoomActions`) ; `masqueTout` et `enTete`
+  ajoutés au registre des ordres dynamiques ; « Ce commerce » retiré des locaux propres à Sovarka.
+- **32 Centre d'affaires** : « Demander ce local à la mairie » au lieu de « Louer ce bureau (500 PSK/jour) » ; plus de surcharges fantômes à Krasnov.
+- **33 Hymne au Tracteur** : `plateau-hymne-tracteur.js`, paroles dans les neuf langues (exception voulue par Fred), mouvement réduit respecté.
+- **34** : boutique « Équipements contre les intempéries » à la station-service de Krasnov (groupe électrogène).
+- **Pour Codex (textes français nouveaux ou changés, autres langues à faire)** :
+  - `i18n/orders-resources.js` : `orders.sovarka_demande_location` passe en français à « Demander ce local à la mairie » (autres langues :
+    encore « Demande de location ») ;
+  - encadré du local libre (texte exact de Fred) : constante française `SOV_LOCAL_LIBRE` de `plateau-sovarka-droits.js` ; créer la clé `freeBox`
+    (variable `{ville}`) dans les neuf langues de `i18n/sovarka-droits-resources.js`, que le module lit en priorité ;
+  - infobulles de Sovarka (déjà dans `ATTENTE_CODEX` du banc des infobulles) : « Arkadi Pamiatnikov, le guide du musée, présente cette salle. » et la
+    description des bureaux de Krasnov (40 PSK) ;
+  - textes de `plateau-guide-arkadi.js` (six récits d'Arkadi, section de l'énigme) et de `plateau-enigme-krasnov.js` (carnet), français seul ;
+  - `plateau-hymne-tracteur.js` est déjà en neuf langues (à relire par un locuteur si possible).
+- **Pour le bloc 3** : la fiche DeepSeek d'Arkadi Pamiatnikov doit reprendre le rôle du directeur dans l'énigme (membre de la petite
+  organisation avec Alevtina ; il encourage à chercher, invite à lui donner la solution dans sa fenêtre « Écouter le guide », ne donne jamais la
+  solution ; consterné par la graisse d'ours, il envoie le PJ l'annoncer à l'institutrice).
+
 ### Fiche d'objet unique et panneau de gauche (Claude, 23/11/2026) — points 1, 16 à 20 de GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md
 - Branche `claude/fiche-objet-panneau-20261123` (partie de `origin/main` 27449358), **fusionnée dans le bloc 1 de la mission Novomirsk**. Aucune migration, aucune base, aucun goulag ; navigateur seulement.
 - **Point 1 — une seule fiche d'objet** : `ouvrirFicheObjet(idx)` (plateau-personnage.js) réunit toutes les actions des deux anciennes fiches

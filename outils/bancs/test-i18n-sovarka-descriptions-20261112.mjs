@@ -65,7 +65,9 @@ test(process.env.RP_I18N_KRASNOV_BASELINE ? 'descriptions Sovarka : dix absences
   const BLOC3_EN_ATTENTE = [
     'Une bibliothèque vitrée, des affiches du Plan au mur, une veste d’uniforme constellée de médailles et un fonctionnaire à la retraite, lunettes rondes et barbiche, qui vous observe longuement avant de sourire.'
   ];
-  attendues = attendues.concat(FORET_SANTE_EN_ATTENTE, BLOC6_NOVOMIRSK_EN_ATTENTE, BLOC3_EN_ATTENTE);
+  // Bloc 4 (Fred, 23/11/2026, point 30) : salle d'attente de l'hôpital de Krasnov, française seulement, traduction par Codex.
+  const BLOC4_EN_ATTENTE = ["La salle d'attente de l'hôpital municipal : bancs de bois, poêle en fonte et affiches sur l'hygiène. On y vient en visiteur ; les patients hospitalisés restent dans leur chambre."];
+  attendues = attendues.concat(FORET_SANTE_EN_ATTENTE, BLOC6_NOVOMIRSK_EN_ATTENTE, BLOC3_EN_ATTENTE, BLOC4_EN_ATTENTE);
   // « Aucune nouvelle lacune » : une lacune antérieure comblée depuis par un autre lot (15/11) est bienvenue.
   assert.deepEqual(manquantes.filter(d => !attendues.includes(d)), []);
 });

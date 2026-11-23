@@ -12,11 +12,12 @@ assert.deepEqual(Array.from(Object.keys(c.roomsExtra)),expected.slice(1));
 assert.equal(c.roomsExclues.length,13);
 assert.ok(!c.roomsExclues.includes('hall'));
 assert.equal(c.roomOverrides.hall.name,'Accueil du musée de Krasnov');
-assert.equal(c.roomOverrides.hall.persons.length,3); // hôtesse, guide, directeur du musée (énigme de Krasnov, 21/11)
+assert.equal(c.roomOverrides.hall.persons.length,2); // hôtesse et guide (directeur du musée supprimé : Fred, 23/11/2026, point 29)
 assert.deepEqual(Array.from(c.roomOverrides.hall.excludeOrders),['ilia_ecouter_guide']);
-assert.equal(c.roomOverrides.hall.orders.length,2); // guide des baies et réponse à l'énigme (21/11)
-// Directeur du musée (énigme de Krasnov, 21/11) : pas encore de portrait, Fred le fournira.
-for(const p of c.roomOverrides.hall.persons.filter(p=>p.profilId!=='directeur_musee_krasnov'))assert.ok(p.photoUrl.includes('Krasnov_musee_accueil_'));
+assert.equal(c.roomOverrides.hall.orders.length,2); // « Écouter le guide » (Arkadi) et guide des baies (23/11 : plus d'ordre de réponse au directeur)
+assert.ok(!c.roomOverrides.hall.persons.some(p=>/directeur/i.test(p.name+' '+(p.profilId||''))),'directeur du musée supprimé (23/11)');
+// Bloc 3 (23/11/2026) : Zoïa Biletova et Arkadi Pamiatnikov reçoivent leurs portraits recadrés.
+for(const p of c.roomOverrides.hall.persons)assert.ok(/Krasnov_musee_accueil_|krasnov-(zoia-biletova|arkadi-pamiatnikov)-portrait/.test(p.photoUrl),p.photoUrl);
 const paths=[
  c.roomOverrides.hall.imageUrl,...Object.values(c.roomsExtra).map(r=>r.imageUrl),
  ...c.roomOverrides.hall.persons.filter(p=>p.photoUrl).map(p=>p.photoUrl)
@@ -28,7 +29,7 @@ for(const path of paths){
  assert.equal(buf.toString('ascii',8,12),'WEBP',path);
 }
 for(const r of Object.values(c.roomsExtra)){
- assert.equal(r.orders.length,0);
+ assert.deepEqual(Array.from(r.orders,o=>o.fn),['ilia_ecouter_guide']); // « Écouter le guide » : Arkadi présente la salle (23/11)
  assert.ok(r.desc.length>50);
 }
 assert.ok(source.rooms.salle_origines);

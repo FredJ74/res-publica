@@ -13,8 +13,9 @@ test('École : stage de survie (3 PA, 25 PSK à la mairie, +4 VOL 24 h), ordres 
   assert.strictEqual(JSON.stringify(ctx.__o(ctx.__B.universite.rooms.amphi, k.universite, 'amphi').map(o => o.fn)), JSON.stringify(['stage_survie_foret']));
   assert.ok(!ctx.__o(ctx.__B.universite.rooms.salle_reunion, k.universite, 'salle_reunion').some(o => o.fn === 'recruter_etud'));
   const hall = k['musee-novomirsk'].roomOverrides.hall;
-  assert.strictEqual(JSON.stringify(hall.orders.map(o => o.fn)), JSON.stringify(['acheter_guide_baies_musee', 'repondre_enigme_krasnov']));
-  assert.ok(hall.persons.some(p => p.profilId === 'directeur_musee_krasnov'));
+  // Point 29 (23/11/2026) : plus de directeur ni d'ordre « Soumettre la solution de l'énigme au directeur ».
+  assert.strictEqual(JSON.stringify(hall.orders.map(o => o.fn)), JSON.stringify(['ilia_ecouter_guide', 'acheter_guide_baies_musee']));
+  assert.ok(!hall.persons.some(p => p.profilId === 'directeur_musee_krasnov'));
 });
 
 test('Guide : une lecture par semaine, vendu au musée avec sa feuille, plus au marché', () => {
@@ -37,11 +38,12 @@ test('Énigme : feuille requise, réponse « graisse d’ours », résolution at
   assert.match(m, /À Krasnov, on a les plus belles femmes du pays !/);
 });
 
-test('Chaîne de dialogues : institutrice, apicultrice, batiouchka, marchande, directeur', () => {
+test('Chaîne de dialogues : institutrice, apicultrice, batiouchka, marchande (le directeur est supprimé le 23/11)', () => {
   const p = lire('api/_pnj-personnalites.js');
   assert.match(p, /il ne reste plus qu'une chose à espérer : que l'on puisse continuer à manger du miel/);
   assert.match(p, /il est revenu des bois le visage lacéré, avec dix bocaux/);
   assert.match(p, /se serait évité bien de la peine en allant simplement au marché/);
-  assert.match(p, /'directeur_musee_krasnov':/);
+  assert.doesNotMatch(p, /'directeur_musee_krasnov':/);
+  assert.match(p, /avec Arkadi Pamiatnikov, le vieux guide du musée/);
   assert.match(lire('api/_pnj-profils.js'), /un ours tue en donne dix pots/);
 });

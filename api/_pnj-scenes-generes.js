@@ -7379,8 +7379,7 @@ export const SCENES_PNJ = {
     "piece": "Accueil du musée de Krasnov",
     "personnes": [
       "Zoïa Biletova",
-      "Arkadi Pamiatnikov",
-      "Directeur du musée de Krasnov"
+      "Arkadi Pamiatnikov"
     ]
   },
   "[\"soviet\",\"ville_b\",\"musee-novomirsk\",\"faune_sauvage\"]": {
