@@ -3753,8 +3753,9 @@ function ouvrirPopupArmoireSouvenirs(idx, tab) {
   const estProprietaire = item.proprietaire === state.char?.name;
 
   let html = '<div style="padding:1rem">';
-  if (imageUrlObjet(item)) {
-    html += '<img src="' + imageUrlObjet(item) + '" style="width:100%;border-radius:4px;margin-bottom:.8rem;max-height:220px;object-fit:cover"/>';
+  const imageArmoire = (typeof imageUrlObjet === 'function') ? imageUrlObjet(item) : item.imageUrl;
+  if (imageArmoire) {
+    html += '<img src="' + imageArmoire + '" style="width:100%;border-radius:4px;margin-bottom:.8rem;max-height:220px;object-fit:cover"/>';
   }
   html += '<div style="font-family:Playfair Display,serif;font-size:1rem;color:#E8C97A;margin-bottom:.3rem">Armoire à souvenirs — ' + (liste ? liste.nom : ('Collection n°' + item.listeId)) + '</div>';
   // Lien contextuel vers les regles (lot du 25 aout 2026) : reutilise le systeme de navigation
@@ -4419,9 +4420,10 @@ function ouvrirDetailObjet(idx) {
 
   document.getElementById('postes-modal-title').textContent = item.name;
   let html = '<div style="padding:0">';
-  if (imageUrlObjet(item)) {
+  const imageDetail = (typeof imageUrlObjet === 'function') ? imageUrlObjet(item) : item.imageUrl;
+  if (imageDetail) {
     html += '<div style="width:100%;height:200px;overflow:hidden;background:#0a0805">';
-    html += '<img src="' + imageUrlObjet(item) + '" style="width:100%;height:100%;object-fit:cover;opacity:.9"/>';
+    html += '<img src="' + imageDetail + '" style="width:100%;height:100%;object-fit:cover;opacity:.9"/>';
     html += '</div>';
   }
   html += '<div style="padding:1rem">';
