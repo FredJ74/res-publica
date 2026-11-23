@@ -11425,7 +11425,7 @@ function slugPnjSovarka(nom) {
         // « Demande de location » (décision de Fred, 06/11/2026) : une lettre à la mairie qui décrit
         // le local ; elle rejoint les dossiers commerciaux du maire, avec le nom du demandeur.
         ajouter(surcharge(ville, batiment, piece), [
-          ordre('sovarka_demande_location', 'Demande de location', 1, 'ti-mail',
+          ordre('sovarka_demande_location', 'Demander ce local à la mairie', 1, 'ti-mail',
             'Écrire à la mairie pour demander ce local. Votre lettre rejoint les dossiers du maire, qui attribue les locaux ; l\'attribution se signe ensuite chez le notaire.')
         ], ['louer_local']);
       }
@@ -11484,7 +11484,7 @@ function slugPnjSovarka(nom) {
   // même cheminement que les Galeries ; loyer 150 PSK/jour fixé par le serveur (sovarka_locaux).
   // On garde « Gérer mon local » et les équipements : siège d'association, matériel.
   const ordresBureau = () => [
-    {fn:'sovarka_demande_location', label:'Demande de location', pa:1, cost:0, type:'legal', icon:'ti-mail', successRate:100,
+    {fn:'sovarka_demande_location', label:'Demander ce local à la mairie', pa:1, cost:0, type:'legal', icon:'ti-mail', successRate:100,
      desc:"Écrire à la mairie pour demander ce bureau (150 PSK/jour). Votre lettre rejoint les dossiers du maire, qui attribue les locaux ; l'attribution se signe ensuite chez le notaire."},
     ...modele.orders.filter(o => o.fn !== 'louer_local').map(o => ({...o}))
   ];
@@ -11641,6 +11641,27 @@ function CHAMBRE_HOPITAL_ORDRES_SOVARKA() { return CHAMBRE_HOPITAL_ORDRES(); }
   }
 })();
 
+// HÔPITAL DE KRASNOV : SALLE D'ATTENTE ET CHAMBRE SÉPARÉES (Fred, 23/11/2026, point 30 ;
+// GAME-DESIGN-HOSPITALISATION.md). Salle d'attente = visiteurs (centre antipoison, soin standard, fournir des
+// ressources médicales ; « Inspecter » et « Se cacher » sont des actions de pièce communes). Chambre = hospitalisés :
+// dormir, repas, transfert en clinique privée (0 PA, tarif du pays lu dans ordres_couts_pays : 400 PSK en Sovarka,
+// affiché sur le bouton), sortir. « Salle bondée. Patience requise. » est supprimé.
+(function () {
+  const ORDRES_RESERVES_AUX_HOSPITALISES = ['transfert_clinique_privee', 'repas_hopital', 'sortie_hopital'];
+  const cite = WORLD.soviet && WORLD.soviet.ville_b;
+  const hopital = cite && cite.buildingContext && cite.buildingContext['dispensaire-public-v'];
+  if (!hopital || !hopital.roomsExtra || !hopital.roomsExtra.chambre) throw new Error("Pièces de l'hôpital de Krasnov absentes");
+  hopital.roomOverrides = hopital.roomOverrides || {};
+  const attente = hopital.roomOverrides.attente = hopital.roomOverrides.attente || {};
+  attente.desc = "La salle d'attente de l'hôpital municipal : bancs de bois, poêle en fonte et affiches sur l'hygiène. On y vient en visiteur ; les patients hospitalisés restent dans leur chambre.";
+  attente.excludeOrders = Array.from(new Set((attente.excludeOrders || []).concat(ORDRES_RESERVES_AUX_HOSPITALISES)));
+  attente.orders = (attente.orders || []).filter(o => !ORDRES_RESERVES_AUX_HOSPITALISES.includes(o.fn));
+  const sortie = (BUILDINGS['dispensaire-public-v'].rooms.attente.orders || []).find(o => o.fn === 'sortie_hopital');
+  const chambre = hopital.roomsExtra.chambre;
+  // Le montant du socle (1000 FR) est remplacé à l'écran par le tarif national (tarifOrdrePays, montantDansTexte) et le sigle du pays.
+  chambre.orders = CHAMBRE_HOPITAL_ORDRES().concat(sortie ? [Object.assign({}, sortie)] : []);
+})();
+
 // CHAMBRES D'HÔPITAL DE LUTHÉCIA ET DE PORT-SAINTE-MARIE (Fred, 14/11/2026) : même pièce que Montrouge et
 // Sovarka (migration 20261114130000). Image provisoire de Montrouge, en attendant celles de Fred.
 (function () {
@@ -11725,14 +11746,16 @@ function CHAMBRE_HOPITAL_ORDRES_SOVARKA() { return CHAMBRE_HOPITAL_ORDRES(); }
   // Bureaux des centres d'affaires de province : attribués par la mairie comme les locaux des centres
   // (Fred, 06 et 07/11/2026 ; migration 20261109003000, plafonds 100 / 50 / 20 PSK à valider).
   const plafonds = { bureau_prestige: 100, bureau_standard: 50, open_space: 20 };
-  for (const ville of Object.keys(cites)) {
+  // Krasnov n'a plus ces trois bureaux du gabarit (quatre bureaux à la place, 15/11/2026) : ses trois « locaux fantômes »
+  // sont retirés (Fred, 23/11/2026, point 32 ; migration 20261123214000).
+  for (const ville of Object.keys(cites).filter(v => v !== 'ville_b')) {
     const ctx = contexte(ville, 'centre-affaires');
     if (!ctx) continue;
     for (const [id, plafond] of Object.entries(plafonds)) {
       const p = piece(ctx, id);
       p.excludeOrders = Array.from(new Set((p.excludeOrders || []).concat(['louer_local'])));
       p.orders = (p.orders || []).filter(o => o.fn !== 'sovarka_demande_location').concat([
-        { fn: 'sovarka_demande_location', label: 'Demande de location', pa: 1, cost: 0, type: 'legal', icon: 'ti-mail', successRate: 100,
+        { fn: 'sovarka_demande_location', label: 'Demander ce local à la mairie', pa: 1, cost: 0, type: 'legal', icon: 'ti-mail', successRate: 100,
           desc: 'Écrire à la mairie pour demander ce bureau (loyer fixé par le maire, ' + plafond + ' PSK par jour au plus). Votre lettre rejoint les dossiers du maire ; l\'attribution se signe ensuite chez le notaire.' }]);
     }
   }
@@ -11752,10 +11775,14 @@ function CHAMBRE_HOPITAL_ORDRES_SOVARKA() { return CHAMBRE_HOPITAL_ORDRES(); }
         imageUrl: maisonBleue
           ? 'images/Sovarka/Krasnov/Krasnov_centre_affaires_bureau_maison_bleue.webp'
           : 'images/Sovarka/Krasnov/Krasnov_centre_affaires_bureau_hopital.webp',
-        locationData: {...standard.locationData,label:'Bureau '+n},
+        locationData: {...standard.locationData,prix:40,label:'Bureau '+n},
         persons: [],
+        // Point 32 (Fred, 23/11/2026) : demande à la mairie au lieu de « Louer ce bureau (500 PSK/jour) » ; bureaux déclarés
+        // dans sovarka_locaux, plafond de loyer 40 PSK par jour (migration 20261123214000 ; le maire fixe le loyer).
         orders: standard.orders.map(o => o.fn==='louer_local'
-          ? {...o,label:'Louer ce bureau (500 PSK/jour)'} : {...o})
+          ? {fn:'sovarka_demande_location', label:'Demander ce local à la mairie', pa:1, cost:0, type:'legal', icon:'ti-mail', successRate:100,
+             desc:"Écrire à la mairie pour demander ce bureau (loyer fixé par le maire, 40 PSK par jour au plus). Votre lettre rejoint les dossiers du maire ; l'attribution se signe ensuite chez le notaire."}
+          : {...o})
       }];
     }));
   }
@@ -12085,6 +12112,10 @@ function CHAMBRE_HOPITAL_ORDRES_SOVARKA() { return CHAMBRE_HOPITAL_ORDRES(); }
   // Krasnov : musée provincial autonome dans le gabarit partagé de Novomirsk.
   // Les neuf anciennes salles de portraits sont remplacées UNIQUEMENT ici par cinq
   // salles documentaires. Aucun ordre serveur (dont le trésor des Tsars) n'est touché.
+  // Point 29 (Fred, 23/11/2026) : le guide Arkadi Pamiatnikov présente chaque salle (« Écouter le guide », même ordre
+  // et même tarif que celui d'Ilia Krioukov à Novomirsk ; le routeur choisit le guide selon la ville, plateau-guide-arkadi.js).
+  const ECOUTER_ARKADI = () => ({ fn: 'ilia_ecouter_guide', label: 'Écouter le guide', pa: 0, cost: 0, type: 'legal', icon: 'ti-microphone-2', successRate: 100,
+    desc: 'Arkadi Pamiatnikov, le guide du musée, présente cette salle.' });
   const musee = contexte('ville_b', 'musee-novomirsk');
   Object.assign(musee, {
     name: 'Musée de Krasnov',
@@ -12099,36 +12130,36 @@ function CHAMBRE_HOPITAL_ORDRES_SOVARKA() { return CHAMBRE_HOPITAL_ORDRES(); }
         name: 'Faune sauvage de Krasnov',
         imageUrl: 'images/Sovarka/Krasnov/Krasnov_musee_faune_sauvage.webp',
         desc: 'Un ours brun immense dressé sur ses pattes, puis un loup, un lynx, un aigle et un glouton naturalisés dans leurs milieux.',
-        persons: [], orders: []
+        persons: [], orders: [ECOUTER_ARKADI()]
       },
       flore_sauvage: {
         name: 'Flore sauvage de Krasnov',
         imageUrl: 'images/Sovarka/Krasnov/Krasnov_musee_flore_sauvage.webp',
         desc: 'Myrtilles, canneberges, droséras, fougères, essences locales et une mare reconstituée au milieu des bouleaux.',
-        persons: [], orders: []
+        persons: [], orders: [ECOUTER_ARKADI()]
       },
       exploitation_bois: {
         name: 'Le bois et les bûcherons de Krasnov',
         imageUrl: 'images/Sovarka/Krasnov/Krasnov_musee_exploitation_bois.webp',
         desc: 'Essences forestières, usages du bois, vie des bûcherons et savoirs traditionnels sur la coupe selon les phases de la Lune.',
-        persons: [], orders: []
+        persons: [], orders: [ECOUTER_ARKADI()]
       },
       kolkhozes: {
         name: 'Kolkhozes et économie collective',
         imageUrl: 'images/Sovarka/Krasnov/Krasnov_musee_kolkhozes.webp',
         desc: 'Maquette, outils et panneaux expliquent la mutualisation des terres, du matériel, des récoltes et l’organisation du travail collectif.',
-        persons: [], orders: []
+        persons: [], orders: [ECOUTER_ARKADI()]
       },
       ecoute_spatiale: {
         name: 'Krasnov à l’écoute de l’espace',
         imageUrl: 'images/Sovarka/Krasnov/Krasnov_musee_ecoute_spatiale.webp',
         desc: 'Grandes paraboles, antennes, représentation de la Terre et propagation d’ondes venues de l’espace : une science impressionnante et mystérieuse.',
-        persons: [], orders: []
+        persons: [], orders: [ECOUTER_ARKADI()]
       }
     }
   });
   // Les portraits sont des recadrages du décor central ; aucun personnage inventé
-  // dans les images des cinq salles. L'écoute du guide d'Ilia est propre à Novomirsk.
+  // dans les images des cinq salles. Ilia guide Novomirsk ; à Krasnov, c'est Arkadi (point 29, 23/11/2026).
   Object.assign(piece(musee, 'hall'), {
     name: 'Accueil du musée de Krasnov',
     imageUrl: 'images/Sovarka/Krasnov/Krasnov_musee_accueil.webp',
@@ -12140,15 +12171,15 @@ function CHAMBRE_HOPITAL_ORDRES_SOVARKA() { return CHAMBRE_HOPITAL_ORDRES(); }
     ],
     excludeOrders: ['ilia_ecouter_guide'],
     // Lot de Krasnov, point 7 (Fred, 20/11/2026) : le guide des baies se vend au musée (prix provisoire), avec sa feuille
-    // volante ; la réponse à l'énigme se donne au directeur du musée.
+    // volante. Point 29 (Fred, 23/11/2026) : plus de directeur du musée ; l'ordre « Soumettre la solution de l'énigme au
+    // directeur » est supprimé. La réponse se donne au guide Arkadi Pamiatnikov, dans sa fenêtre (« Écouter le guide ») ;
+    // le serveur juge toujours (krasnov_ecole_agir, action repondre_enigme).
     orders: [
+      ECOUTER_ARKADI(),
       { fn: 'acheter_guide_baies_musee', label: 'Acheter le guide des baies sauvages', pa: 0, cost: 10, type: 'legal', icon: 'ti-book', successRate: 100,
-        desc: 'Le guide des baies sauvages de Krasnov (lecture une fois par semaine : +1 INT pendant 24 h). Une feuille volante est glissée dedans.' },
-      { fn: 'repondre_enigme_krasnov', label: 'Soumettre la solution de l’énigme au directeur', pa: 0, cost: 0, type: 'legal', icon: 'ti-bulb', successRate: 100,
-        desc: 'Vous croyez avoir trouvé l’ingrédient effacé de la feuille volante ? Le directeur du musée vous écoute.' }
+        desc: 'Le guide des baies sauvages de Krasnov (lecture une fois par semaine : +1 INT pendant 24 h). Une feuille volante est glissée dedans.' }
     ]
   });
-  piece(musee, 'hall').persons.push({ name: 'Directeur du musée de Krasnov (PNJ)', role: 'Directeur du musée', rel: 'neutral', job: 'conservateur', profilId: 'directeur_musee_krasnov' });
   Object.assign(contexte('ville_b', 'cafe-tabac-cheminots-montrouge'), { name: 'Bar Sever', desc: 'Le bar-tabac de Krasnov (« Бар Север ») : vodka, cigarettes, journaux du Parti et le match à la radio.' });
   Object.assign(piece(contexte('ville_b', 'cafe-tabac-cheminots-montrouge'), 'salle'), { persons: [pnj('Grigori Zaitsev', 'Patron du bar', 'serveur')] });
   Object.assign(piece(contexte('ville_b', 'cafe-tabac-cheminots-montrouge'), 'salle'), { imageUrl: 'images/Sovarka/Krasnov/Krasnov_bar_sever_salle.webp' });
@@ -12171,9 +12202,9 @@ BUILDINGS['locaux-starovka'] = {
     desc: 'Un local vide, des étagères, un comptoir et un poêle. Le loyer est fixé par le maire.',
     persons: [],
     orders: [
-      { fn: 'sovarka_demande_location', label: 'Demande de location', pa: 1, cost: 0, type: 'legal', icon: 'ti-mail', successRate: 100,
-        desc: 'Écrire à la mairie pour demander ce local (loyer fixé par le maire, 30 PSK par jour au plus). Votre lettre rejoint les dossiers du maire ; l\'attribution se signe ensuite chez le notaire.' },
-      { fn: 'commerce_pj', label: 'Ce commerce', pa: 0, cost: 0, type: 'legal', icon: 'ti-building-store', successRate: 100, desc: 'Gérer votre commerce, ou visiter la boutique du commerçant.' }
+      { fn: 'sovarka_demande_location', label: 'Demander ce local à la mairie', pa: 1, cost: 0, type: 'legal', icon: 'ti-mail', successRate: 100,
+        desc: 'Écrire à la mairie pour demander ce local (loyer fixé par le maire, 30 PSK par jour au plus). Votre lettre rejoint les dossiers du maire ; l\'attribution se signe ensuite chez le notaire.' }
+      // « Ce commerce » supprimé (Fred, 23/11/2026, point 31) : la boutique ouverte a ses propres ordres (ordresCommerceDuLocal).
     ]
   }]))
 };
@@ -12362,7 +12393,7 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
       rooms: { [pieceId]: {
         name: pieceNom, imageBg: 'linear-gradient(135deg,#141210,#1e1a16)', desc: pieceDesc, persons: [],
         orders: [
-          { fn: 'sovarka_demande_location', label: 'Demande de location', pa: 1, cost: 0, type: 'legal', icon: 'ti-mail', successRate: 100,
+          { fn: 'sovarka_demande_location', label: 'Demander ce local à la mairie', pa: 1, cost: 0, type: 'legal', icon: 'ti-mail', successRate: 100,
             desc: 'Écrire à la mairie pour obtenir le droit d’exploiter ce local (loyer fixé par le maire, ' + plafond + ' PSK par jour au plus). L’attribution se signe ensuite chez le notaire.' },
           { fn: 'commerce_pj', label: 'Ce commerce', pa: 0, cost: 0, type: 'legal', icon: 'ti-building-store', successRate: 100, desc: 'Gérer votre commerce, ou visiter la boutique du commerçant.' }
         ]
@@ -13190,7 +13221,8 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     ctx.roomOverrides[piece].orders = (ctx.roomOverrides[piece].orders || []).concat([ordre]);
   }
   // Sacs de sable retirés (Fred, 22/11/2026) : la boutique Chasse et Pêche de PSM, qui ne vendait qu'eux, n'a plus cet ordre.
-  for (const [bat, piece] of [['marche-psm', 'etals'], ['garage-novomirsk', 'atelier_garage']]) {
+  // Station-service de Krasnov (Fred, 23/11/2026, point 34) : groupe électrogène, même boutique (migration 20261123214000).
+  for (const [bat, piece] of [['marche-psm', 'etals'], ['garage-novomirsk', 'atelier_garage'], ['station-service-krasnov', 'boutique_station']]) {
     const room = BUILDINGS[bat] && BUILDINGS[bat].rooms && BUILDINGS[bat].rooms[piece];
     if (room) room.orders = (room.orders || []).concat([ordre]);
   }

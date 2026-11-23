@@ -3191,7 +3191,7 @@
       "acheter_vipere": "Acheter une Vipère des sables",
       "orga_benediction": "Ceremonie de benediction",
       "sovarka_reunion_evenement": "Organiser un événement",
-      "sovarka_demande_location": "Demande de location"
+      "sovarka_demande_location": "Demander ce local à la mairie"
     },
     "en": {
       "recruter_douanier": "Recruit a customs officer",

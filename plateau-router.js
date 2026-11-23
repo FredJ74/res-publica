@@ -536,6 +536,9 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   // GUIDE DU MUSEE DE NOVOMIRSK (11/11/2026) : presentation fixe, gratuite, aucun debit ni tirage.
   if (fn === 'ecouter_guide_musee' && typeof ouvrirGuideMusee === 'function') { ouvrirGuideMusee(); return; }
   // ÉNIGME DU TRÉSOR DES TSARS (12/11/2026) : ordres gratuits, tout est décidé par le serveur.
+  // Musée de Krasnov (point 29, 23/11/2026) : même ordre « Écouter le guide », c'est Arkadi Pamiatnikov qui parle.
+  if (fn === 'ilia_ecouter_guide' && state.country === 'soviet' && state.currentCity === 'ville_b'
+    && typeof arkadiEcouterGuide === 'function') { arkadiEcouterGuide(); return; }
   if (fn === 'ilia_ecouter_guide' && typeof iliaEcouterGuide === 'function') { iliaEcouterGuide(false); return; }
   if (fn === 'tresor_ecouter_guide' && typeof iliaEcouterGuide === 'function') { iliaEcouterGuide(true); return; }
   if (fn === 'enigme1_parler_valerie' && typeof enigme1ParlerValerie === 'function') { enigme1ParlerValerie(); return; }
@@ -605,6 +608,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   // Lot de Krasnov, point 7 (20/11/2026) : école et énigme.
   if (fn === 'stage_survie_foret') { doStageSurvieForet(); return; }
   if (fn === 'acheter_guide_baies_musee') { doAcheterGuideMusee(); return; }
+  // Ancien ordre « Soumettre la solution de l'énigme au directeur » (supprimé le 23/11/2026, point 29) : un écran resté
+  // ouvert est redirigé vers la fenêtre du guide Arkadi, où la réponse se donne désormais.
   if (fn === 'repondre_enigme_krasnov') { doRepondreEnigmeKrasnov(); return; }
   if (fn === 'acheter_vipere')         { doAcheterPoisonObjet('vipere', pa, cost); return; }
   // Doublon supprime (audit du 9 septembre 2026) : cette seconde route 'assassiner' etait

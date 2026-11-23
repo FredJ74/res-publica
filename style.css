@@ -2691,3 +2691,9 @@ body.plateau-body .top-right {
 .hg-journal-fermer{display:flex;align-items:center;justify-content:center;width:40px;height:40px;min-width:40px;border-radius:6px;
   background:#2a1e0a;border:2px solid #C9A84C;color:#f0e2b0;cursor:pointer;font-size:1.35rem;line-height:1;padding:0}
 .hg-journal-fermer:hover,.hg-journal-fermer:focus-visible{background:#C9A84C;color:#1a1408;outline:none}
+
+/* LOCAUX DE SOVARKA (Fred, 23/11/2026, point 31) : encadré « Ce local est libre… » ou « exploité par… » au-dessus des
+   ordres, au corps du texte courant ; « Gérer mon local » mis en évidence pour l’exploitant. */
+#actions-row-bat .sov-encadre-local{flex:1 1 100%;width:100%;box-sizing:border-box;border:1px solid #a98d56;border-radius:6px;
+  background:#1b2531;color:#ecd8ac;padding:.7rem .8rem;margin:0 0 .5rem;line-height:1.45;font-size:1rem}
+#actions-row-bat .action-btn.action-en-tete{border-color:#C9A84C;box-shadow:0 0 0 2px #C9A84C inset;color:#f0e2b0;font-weight:600}

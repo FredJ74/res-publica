@@ -453,7 +453,6 @@ INSERT INTO public.ordres_couts (fn,pa,cost) VALUES
   ('repartition_budget_local',2,0),
   ('repas_clinique',1,30),
   ('repas_hopital',1,0),
-  ('repondre_enigme_krasnov',0,0),
   ('reposer_section',0,0),
   ('reserver_chambre_hotel',0,60),
   ('reserver_chambre_hotel',0,80),

@@ -90,6 +90,7 @@ const texts={
     "already": "Vous avez déjà une demande en cours à la mairie de {ville} : « {projet} » — {statut}.",
     "oneAtTime": "Une seule demande à la fois par ville. Vous pouvez la retirer à l’accueil de la mairie.",
     "exploitedBy": "Ce local est exploité par {nom}.",
+    "freeBox": "Ce local est libre. En Sovarka, les commerces appartiennent à l'État. Pour exploiter ce local, adressez une demande à la mairie de {ville}. Le maire examine les demandes deux fois par mois. Si la vôtre est acceptée, vous recevrez un courrier et signerez l'attribution chez le notaire.",
     "reservedSign": "Ce local est déjà attribué, en attente de signature chez le notaire.",
     "lAttn": "À l’attention du Maire",
     "lTownHall": "Mairie de {ville}",

@@ -2631,7 +2631,11 @@ async function transfertCliniqueServeur(patient, roomIdCible, dejaAttribuee) {
   state.hospitalisation.lieu = 'clinique';
   if (typeof adopterPositionServeurRelue === 'function') await adopterPositionServeurRelue();
   showToast('Transfert effectué', 'Vous êtes désormais pris(e) en charge en clinique privée. Convalescence plus rapide.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b663b2074", 'Vous êtes désormais pris(e) en charge en clinique privée. Convalescence plus rapide.', undefined, 'Transfert effectué');
-  addJournalEntry('Transfert vers une clinique privée (-1000 FR).', 'event-good');
+  // Tarif du pays (Fred, 23/11/2026, point 30) : 400 PSK en Sovarka (ordres_couts_pays), jamais « 1000 FR » en dur.
+  const tarif = typeof tarifOrdrePays === 'function' ? tarifOrdrePays('transfert_clinique_privee', state.country) : null;
+  const montant = tarif ? tarif.cost : 1000;
+  const sigle = state.country === 'soviet' ? 'PSK' : (COUNTRIES?.[state.country]?.cur || 'FR');
+  addJournalEntry('Transfert vers une clinique privée (-' + montant + ' ' + sigle + ').', 'event-good');
 }
 
 // Liberation de la chambre a la fin REELLE de l'hospitalisation uniquement -- appelee depuis

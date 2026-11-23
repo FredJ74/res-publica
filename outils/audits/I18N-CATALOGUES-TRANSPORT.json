@@ -342,10 +342,10 @@
     {
       "source": "i18n/orders-resources.js",
       "packed": "i18n/packed/orders-resources.js.br",
-      "sourceBytes": 252097,
-      "packedBytes": 49201,
-      "sourceSha256": "3136b94b8a1031e26716a89d08e6040633d632c2e22af7fbe8a910baf396ab68",
-      "packedSha256": "ca402ccee10c8cc168399405f2e5a951a8af283fc6d452c65ea92c7428aff639"
+      "sourceBytes": 252108,
+      "packedBytes": 49182,
+      "sourceSha256": "5196aa5ad593ab126e9ca48f811a07d1eec6761d388b48e08e5412e97fb41475",
+      "packedSha256": "667311fa26d7530ccc79cf5c304380134039c620e176b62c5a4403a367ac8067"
     },
     {
       "source": "i18n/organization-admissions-resources.js",
@@ -550,10 +550,10 @@
     {
       "source": "i18n/sovarka-droits-resources.js",
       "packed": "i18n/packed/sovarka-droits-resources.js.br",
-      "sourceBytes": 95371,
-      "packedBytes": 22908,
-      "sourceSha256": "a3acbecc723d3755716cda7385deb4b19061fe3a0880d81e4c0d1b512924360b",
-      "packedSha256": "fe50678a9f139099a6811ccaee1f4c61e7f7154cddc17a12223fdd8c4ad7cf40"
+      "sourceBytes": 95679,
+      "packedBytes": 22979,
+      "sourceSha256": "d959a839e7067a0040f12b3ba4fcb5b6067b6d61e855bdbcb7496b8440d5e1ae",
+      "packedSha256": "67bd6dbb022d367fb44a28bec6a6a565286978a4076c1c8c5c8b41dc99f7d9f2"
     },
     {
       "source": "i18n/sovarka-heros-boite-resources.js",

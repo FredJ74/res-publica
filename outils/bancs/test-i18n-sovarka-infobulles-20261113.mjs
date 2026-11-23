@@ -73,7 +73,10 @@ test('toute description et mention « Bientôt » propre à Sovarka affichée pa
     // École et énigme de Krasnov (lot de Krasnov, point 7, 21/11/2026).
     'Une journée avec l’institutrice Alevtina Gramotova pour apprendre à survivre dans la forêt de Krasnov : +4 VOL pendant 24 h. Les 25 PSK sont versés à la mairie.',
     'Le guide des baies sauvages de Krasnov (lecture une fois par semaine : +1 INT pendant 24 h). Une feuille volante est glissée dedans.',
-    'Vous croyez avoir trouvé l’ingrédient effacé de la feuille volante ? Le directeur du musée vous écoute.',
+    // Lieux de Krasnov (bloc 4, 23/11/2026) : guide Arkadi du musée (l'ordre de réponse au directeur est supprimé) et bureaux
+    // du centre d'affaires attribués par la mairie (plafond 40 PSK).
+    'Arkadi Pamiatnikov, le guide du musée, présente cette salle.',
+    "Écrire à la mairie pour demander ce bureau (loyer fixé par le maire, 40 PSK par jour au plus). Votre lettre rejoint les dossiers du maire ; l'attribution se signe ensuite chez le notaire.",
     // Marché unique de Krasnov (lot de Krasnov, point 2, 22/11/2026).
     'Une seule fenêtre pour tout le marché : acheter, revendre (prix de vente moins 30 %, arrondi) et fabriquer avec le stock du marché (15 PSK par PA).',
     // Santé (consommation, 22/11/2026) : « Se nourrir » prend l'effet d'un sandwich au barème du serveur.
