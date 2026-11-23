@@ -54,7 +54,13 @@ test(process.env.RP_I18N_KRASNOV_BASELINE ? 'descriptions Sovarka : dix absences
     'La forêt se referme. Les fougères montent aux genoux, et des empreintes larges comme une assiette marquent l’humus.',
     'Un sentier à peine tracé sous les feuilles mortes. Au loin, une odeur de feu de bois et de soupe aux choux.'
   ];
-  attendues = attendues.concat(FORET_SANTE_EN_ATTENTE);
+  // Bloc 6 (Fred, 23/11/2026, points 37 et 38) : gare et salle d'interrogatoire de Novomirsk réécrites d'après les images,
+  // en français seulement ; traductions à ajouter par Codex (RELAIS.md).
+  const BLOC6_NOVOMIRSK_EN_ATTENTE = [
+    "Le contrôle douanier de la gare, sous la verrière. « La frontière est sous clé », proclame la banderole. Au portique, un soldat et son berger allemand ; aux tables de fouille, l'inspecteur Prokhor Rybakov examine à la loupe un bocal de cornichons. Tout est enregistré en triple.",
+    "Une cave de pierre sous la Direction, aux murs suintants. Des chaînes et un crochet pendent du plafond, des sangles de cuir sont alignées au mur, et une chaise de contention trône sous une lampe crue. Sur la table, des dossiers bien rangés : ici, tout se fait dans les règles."
+  ];
+  attendues = attendues.concat(FORET_SANTE_EN_ATTENTE, BLOC6_NOVOMIRSK_EN_ATTENTE);
   // « Aucune nouvelle lacune » : une lacune antérieure comblée depuis par un autre lot (15/11) est bienvenue.
   assert.deepEqual(manquantes.filter(d => !attendues.includes(d)), []);
 });

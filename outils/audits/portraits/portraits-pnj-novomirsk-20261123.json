@@ -22,8 +22,8 @@
    "source": "fourni : Le chef de gare et l’heure des trains.png",
    "cadre_x_y_largeur_hauteur": "image entière",
    "sexe_age_apparents": "-",
-   "raccorde": false,
-   "remarque": "image entière"
+   "raccorde": true,
+   "remarque": "raccordé au bloc 6 (23/11/2026)"
   },
   {
    "fichier": "images/Sovarka/Novomirsk/novo-lioudmila-proverkina-portrait.webp",
@@ -50,8 +50,8 @@
     200
    ],
    "sexe_age_apparents": "homme, ~35-40 ans (visage baissé sous la visière)",
-   "raccorde": false,
-   "remarque": "à raccorder par Fred ; cadre source 200 px, agrandi à 256"
+   "raccorde": true,
+   "remarque": "raccordé au bloc 6 (23/11/2026)"
   },
   {
    "fichier": "images/Sovarka/Novomirsk/novo-gare-hall-douanes.webp",
@@ -59,8 +59,8 @@
    "source": "fourni : Contrôle douanier sous la neige.png",
    "cadre_x_y_largeur_hauteur": "image entière",
    "sexe_age_apparents": "-",
-   "raccorde": false,
-   "remarque": "image entière"
+   "raccorde": true,
+   "remarque": "raccordé au bloc 6 (23/11/2026)"
   },
   {
    "fichier": "images/Sovarka/Novomirsk/novo-gare-zone-embarquement.webp",
@@ -68,8 +68,8 @@
    "source": "fourni : Aéroport soviétique sous la neige.png",
    "cadre_x_y_largeur_hauteur": "image entière",
    "sexe_age_apparents": "-",
-   "raccorde": false,
-   "remarque": "image entière"
+   "raccorde": true,
+   "remarque": "raccordé au bloc 6 (23/11/2026)"
   },
   {
    "fichier": "images/Sovarka/Novomirsk/novo-viktor-muetov-portrait.webp",
@@ -82,8 +82,8 @@
     240
    ],
    "sexe_age_apparents": "homme, ~30 ans",
-   "raccorde": false,
-   "remarque": "à raccorder par Fred"
+   "raccorde": true,
+   "remarque": "raccordé au bloc 6 (23/11/2026)"
   },
   {
    "fichier": "images/Sovarka/Novomirsk/novo-elena-diamentevia-portrait.webp",
@@ -96,8 +96,8 @@
     300
    ],
    "sexe_age_apparents": "femme, ~35 ans",
-   "raccorde": false,
-   "remarque": "à raccorder par Fred"
+   "raccorde": true,
+   "remarque": "raccordé au bloc 6 (23/11/2026)"
   },
   {
    "fichier": "images/Sovarka/Novomirsk/novo-tamara-naouchnikova-portrait.webp",
@@ -110,8 +110,8 @@
     280
    ],
    "sexe_age_apparents": "femme, ~30 ans (profil, casque)",
-   "raccorde": false,
-   "remarque": "à raccorder par Fred"
+   "raccorde": true,
+   "remarque": "raccordé au bloc 6 (23/11/2026)"
   },
   {
    "fichier": "images/Sovarka/Novomirsk/novo-oleg-doprossov-portrait.webp",
@@ -124,8 +124,8 @@
     280
    ],
    "sexe_age_apparents": "homme, ~45-50 ans",
-   "raccorde": false,
-   "remarque": "à raccorder par Fred"
+   "raccorde": true,
+   "remarque": "raccordé au bloc 6 (23/11/2026)"
   },
   {
    "fichier": "images/Sovarka/Novomirsk/novo-fiodor-koulakov-portrait.webp",
@@ -138,8 +138,8 @@
     290
    ],
    "sexe_age_apparents": "homme, ~40-45 ans, chauve, colosse",
-   "raccorde": false,
-   "remarque": "à raccorder par Fred"
+   "raccorde": true,
+   "remarque": "raccordé au bloc 6 (23/11/2026)"
   },
   {
    "fichier": "images/Sovarka/Krasnov/krasnov-habitue-bar-sever-portrait.webp",
