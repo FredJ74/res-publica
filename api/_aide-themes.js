@@ -69,7 +69,7 @@ export const AIDE_REFERENCES = Object.freeze({
   sommeil: [{fichier:'GAME-DESIGN-HOSPITALISATION.md',ancre:'hospitalisation'},{fichier:'plateau-personnage.js',ancre:"sbRpc('pa_repos_nocturne'"}],
   emploi: [{fichier:'GAME-DESIGN-BNE.md',ancre:'Le Bureau ne recrute pas lui-même.'},{fichier:'plateau-justice-economie.js',ancre:"sbRpcVerdict('bne_postes_a_pourvoir'"}],
   commerce: [{fichier:'GAME-DESIGN-TRADING.md',ancre:'international, pas encore ouvert'},{fichier:'plateau-commerce-pj.js',ancre:'Gérer mon commerce'},{fichier:'GAME-DESIGN-FONDS-MURS.md',ancre:'fonds'}],
-  inventaire: [{fichier:'plateau-personnage.js',ancre:'async function ouvrirDetailObjetInventaire('},{fichier:'plateau-personnage.js',ancre:'async function donnerObjetAJoueur('}],
+  inventaire: [{fichier:'plateau-personnage.js',ancre:'async function ouvrirFicheObjet('},{fichier:'plateau-personnage.js',ancre:'async function donnerObjetAJoueur('}],
   organisations: [{fichier:'plateau-organisations-quetes.js',ancre:'function ouvrirTableauOrganisations('}],
   forums: [{fichier:'GAME-DESIGN-FORUMS.md',ancre:'la ville où se trouve réellement le PJ'},{fichier:'GAME-DESIGN-FORUMS.md',ancre:'membre'}]
 });

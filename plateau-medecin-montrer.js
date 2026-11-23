@@ -14,7 +14,11 @@
   const doc = global.document;
   // Clés de traduction pour Codex : medecinMontrer.* (français seulement ici).
   const FR = {
-    sante: 'Santé', moral: 'Moral',
+    sante: 'Santé', moral: 'Moral', influence: 'Influence', popularite: 'Popularité', discretion: 'Discrétion',
+    // Deuxième ligne du panneau de gauche (Fred, 23/11/2026, point 16) ; descriptions reprises de l'ancien onglet Statistiques.
+    influence_txt: 'Influence {n} / 100 : votre poids politique et votre réseau.',
+    popularite_txt: 'Popularité {n} / 100 : le soutien que vous accorde la population.',
+    discretion_txt: 'Discrétion {n} / 100 : votre capacité à agir sans être remarqué.',
     sante_haut: 'Santé {n} : vous êtes en pleine forme ; sous les coups, vous perdez moins de PA.',
     sante_bien: 'Santé {n} : vous perdez un peu moins de PA sous les coups. Mangez, dormez dans un lit ou consultez un médecin pour la garder.',
     sante_moyen: 'Santé {n} : vous encaissez les coups normalement. Mangez, dormez dans un lit ou consultez un médecin.',
@@ -115,19 +119,23 @@
     if (n < paliers.moral_seuil_bas) return t('moral_bas', { n, mult: paliers.moral_mult_bas === 0.5 ? 'la moitié' : '×' + nombreFr(paliers.moral_mult_bas) });
     return t('moral_moyen', { n, haut: paliers.moral_seuil_haut });
   }
+  // Chaque jauge recopie une case de l'état du serveur (updateUI, plateau-core.js).
+  const SOURCES_JAUGES = { sante: 'r-hp', moral: 'r-moral', influence: 'r-inf', popularite: 'r-pop', discretion: 'r-dis' };
   function valeurJauge(cle) {
-    const brut = doc && doc.getElementById(cle === 'sante' ? 'r-hp' : 'r-moral');
+    const brut = doc && doc.getElementById(SOURCES_JAUGES[cle] || 'r-moral');
     const n = Number(String(brut && brut.textContent || '').trim());
     return Number.isFinite(n) && String(brut && brut.textContent || '').trim() !== '' ? Math.max(0, Math.min(100, Math.round(n))) : null;
   }
   function texteJauge(cle) {
     const n = valeurJauge(cle);
     if (n == null) return '';
-    return cle === 'sante' ? texteSante(n) : texteMoral(n);
+    if (cle === 'sante') return texteSante(n);
+    if (cle === 'moral') return texteMoral(n);
+    return t(cle + '_txt', { n });
   }
   function majJauges() {
     if (!doc) return;
-    ['sante', 'moral'].forEach(cle => {
+    Object.keys(SOURCES_JAUGES).forEach(cle => {
       const n = valeurJauge(cle);
       const val = doc.getElementById('hg-jauge-' + cle + '-val'), barre = doc.getElementById('hg-jauge-' + cle + '-barre');
       const boite = doc.getElementById('hg-jauge-' + cle);
@@ -155,7 +163,7 @@
   function cacherBulle() { const b = doc && doc.getElementById('hg-jauge-bulle'); if (b) b.hidden = true; }
   function brancherJauges() {
     if (!doc) return;
-    ['r-hp', 'r-moral'].forEach(id => { const el = doc.getElementById(id); if (el) new MutationObserver(majJauges).observe(el, { childList: true, characterData: true, subtree: true }); });
+    Object.values(SOURCES_JAUGES).forEach(id => { const el = doc.getElementById(id); if (el) new MutationObserver(majJauges).observe(el, { childList: true, characterData: true, subtree: true }); });
     doc.querySelectorAll('.hg-jauge[data-jauge]').forEach(boite => {
       boite.addEventListener('mouseenter', () => montrerBulle(boite));
       boite.addEventListener('mouseleave', cacherBulle);

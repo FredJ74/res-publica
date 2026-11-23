@@ -22,14 +22,17 @@ test('panneau personnel : quatre titres et neuf langues sans clé manquante',()=
       assert.ok(typeof labels[k]==='string'&&labels[k].trim(),locale+': '+k);
   }
 });
-test('boutons et chevrons inchangés, seule portion de texte balisée',()=>{
-  for(const [fn,key] of [["openSelfView('stats')","myStats"],["afficherObjectifsSecrets()","myGoals"],["toggleSection('employes-panel','emp-chevron')","myEmployees"],["toggleInventaire()","inventory"]]){
+// Panneau de gauche refait (Fred, 23/11/2026, points 16 à 19) : « Mes statistiques » supprimé, Inventaire devenu une
+// fenêtre (ouvrirFenetreInventaire) ; titres toujours balisés. La clé plateau.myStats reste au catalogue, sans usage.
+test('boutons inchangés, seule portion de texte balisée',()=>{
+  for(const [fn,key] of [["afficherObjectifsSecrets()","myGoals"],["toggleSection('employes-panel','emp-chevron')","myEmployees"],["ouvrirFenetreInventaire()","inventory"],["ouvrirFenetreArgent()","money"]]){
     const pos=html.indexOf('onclick="'+fn+'"');
     assert.notEqual(pos,-1,fn);
     const nearby=html.slice(pos,pos+650);
     assert.ok(nearby.includes('data-i18n="plateau.'+key+'"'),key);
   }
   assert.ok(html.includes('id="emp-chevron"'));
-  assert.ok(html.includes('id="inv-chevron"'));
+  assert.ok(!html.includes('id="inv-chevron"'));
+  assert.ok(!html.includes("openSelfView('stats')"));
   assert.ok(html.includes('data-i18n="plateau.myGoals">Mes Objectifs 🎯</span>'));
 });

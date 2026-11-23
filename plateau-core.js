@@ -3018,9 +3018,18 @@ function updateUI() {
     indicesBar.title = 'Indices de ' + (COUNTRIES[pays]?.n || 'Republia') + ' — cliquer pour details';
   }
 
-  // Inventaire
-  document.getElementById('inv-liquide').textContent = state.liquide.toLocaleString('fr-FR') + ' ' + cur;
-  document.getElementById('inv-banque').textContent  = totalComptesBancaires().toLocaleString('fr-FR') + ' ' + cur;
+  // Inventaire. L'ancien volet du panneau de gauche (liquide, banque, objets) est devenu les fenêtres « Argent » et
+  // « Inventaire » (Fred, 23/11/2026, points 17 et 18) : ces cases n'existent plus que dans d'anciens écrans.
+  const invLiquide = document.getElementById('inv-liquide'), invBanque = document.getElementById('inv-banque');
+  if (invLiquide) invLiquide.textContent = (state.liquide || 0).toLocaleString('fr-FR') + ' ' + cur;
+  if (invBanque) invBanque.textContent = totalComptesBancaires().toLocaleString('fr-FR') + ' ' + cur;
+  // Reliquat de création : bouton « Points à répartir » du panneau de gauche (point 19), visible s'il en reste.
+  const boutonPoints = document.getElementById('hg-points-a-repartir');
+  if (boutonPoints) {
+    const reste = Number(state.char?.freePtsRestants) || 0;
+    boutonPoints.hidden = reste <= 0;
+    const n = document.getElementById('hg-points-a-repartir-n'); if (n) n.textContent = String(reste);
+  }
   if (typeof renderInventory === 'function') renderInventory();
   // Hospitalisation à 0 PA (01/11/2026) : décidée par le serveur ; l'écran va la relire.
   if (typeof surveillerHospitalisationServeur === 'function') surveillerHospitalisationServeur();

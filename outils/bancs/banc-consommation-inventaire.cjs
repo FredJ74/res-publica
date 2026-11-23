@@ -17,7 +17,8 @@ function plateau(rpc){
   document:{getElementById:()=>({classList:{remove(){}}})},
   showToast:(...a)=>appels.push(['toast',...a]),addJournalEntry:(...a)=>appels.push(['journal',...a]),
   renderInventory:()=>appels.push(['inventaire']),updateUI:()=>appels.push(['ui']),
-  switchSelfTab:()=>appels.push(['onglet']),messageRefusSortieInventaire:String});
+  // L'onglet Inventaire est devenu la fenêtre Inventaire (Fred, 23/11/2026, point 18) : même rafraîchissement.
+  switchSelfTab:()=>appels.push(['onglet']),rafraichirFenetreInventaireSiOuverte:()=>appels.push(['onglet']),messageRefusSortieInventaire:String});
  vm.runInContext(bloc('plateau-divers.js','const MOTIFS_SORTIE_INVENTAIRE =','// Message unique des refus de sortie'),ctx);
  vm.runInContext(bloc('plateau-personnage.js','let consommationAlimentEnCours =','// ====================='),ctx);
  return {ctx,appels,inventory};

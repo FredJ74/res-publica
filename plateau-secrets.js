@@ -101,7 +101,8 @@ global.ecouterSourceSecret = ecouterSource;
 global.ganbaatarPolonium = ganbaatarPolonium;
 global.acheterPoloniumColonel = acheterPoloniumColonel;
 
-// Chargement dès que le personnage est connu, puis à chaque ouverture de l'inventaire.
+// Chargement dès que le personnage est connu, puis à chaque ouverture de l'inventaire (fenêtre Inventaire du panneau de
+// gauche depuis le 23/11/2026, point 18 : elle appelle aussi rendreCarnetSecrets elle-même).
 const attente = global.setInterval(() => { if (global.state?.char?.name) { global.clearInterval(attente); chargerSecrets(); } }, 1500);
-global.document?.addEventListener('click', e => { if (e.target && e.target.closest && e.target.closest('#inv-chevron, .inv-toggle')) rendreCarnet(); });
+global.document?.addEventListener('click', e => { if (e.target && e.target.closest && e.target.closest('#hg-panneau-inventaire, .inv-toggle')) rendreCarnet(); });
 })(typeof window !== 'undefined' ? window : globalThis);

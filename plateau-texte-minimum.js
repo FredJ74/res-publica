@@ -23,7 +23,10 @@ const PLANCHER_REM = 0.95;
 const FENETRES = [
   '.modal-overlay', '.modal-box', '[role="dialog"]', '[role="alertdialog"]', '[aria-modal="true"]', 'dialog',
   '#journal-store', '.journal', '#result-toast', '.rc-tooltip', '.building-hover-tooltip', '#climat-explication',
-  '.rp-order-info-dialog', '.cpj-dialogue', '.cpj-note', '#climat-alerte'
+  '.rp-order-info-dialog', '.cpj-dialogue', '.cpj-note', '#climat-alerte',
+  // « Mon personnage » (vue plein cadre, onglets Actions, Organisations, Identité) : Fred, 23/11/2026, point 20 — texte
+  // jamais inférieur au texte courant, en particulier dans la fiche Identité et l'onglet Organisations.
+  '#self-content'
 ].join(',');
 // Jamais touchés : forum, plan de la ville, pictogrammes, dessins.
 const EXCLUS = '#modal-forum, .modal-fullscreen, #minimap-ville-body, [data-texte-libre], svg, canvas';

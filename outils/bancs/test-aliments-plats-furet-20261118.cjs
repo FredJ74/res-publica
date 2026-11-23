@@ -26,7 +26,7 @@ test('écran : ordre chez Chasse et Pêche seulement, bouton Renifler, neuf lang
   assert.equal((data.match(/\{fn:'acheter_furet'/g) || []).length, 2);
   assert.match(data, /chasse\.roomOverrides\.magasin\.orders = \(chasse\.roomOverrides\.magasin\.orders \|\| \[\]\)\.concat/);
   assert.match(lire('plateau-router.js'), /fn === 'acheter_furet'.*ouvrirFuret\(\)/);
-  assert.match(lire('plateau-personnage.js'), /boutonRenifler\(item, idx, 'flex:1/);
+  assert.match(lire('plateau-personnage.js'), /boutonRenifler\(item, idx, S\)/);
   const ctx = { console, setTimeout: () => 0, setInterval: () => 0, Date, Math, JSON, Set, Map, Number, String, Object, Array,
     showToast: () => {}, RPPlateauI18n: { language: () => 'de' }, document: undefined };
   ctx.window = ctx; ctx.globalThis = ctx;

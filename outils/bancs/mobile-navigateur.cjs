@@ -40,13 +40,24 @@ async function page(b,o,w,h,ancien=false,options={}) {
 // Jauges Santé et Moral à côté des PA (Fred, 22/11/2026, GAME-DESIGN-SANTE-20261122.md, point 14) : changement voulu du
 // panneau « Mon personnage », appliqué aussi au témoin (même bloc HTML que plateau.html, même bloc CSS que style.css) pour
 // que la comparaison au pixel continue de porter sur tout le reste.
+// Panneau de gauche refait (Fred, 23/11/2026, GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md, points 16 à 19) : deuxième
+// ligne de jauges, Argent cliquable, plus de « Mes statistiques », Inventaire devenu une fenêtre. Le témoin reçoit les
+// deux blocs courants (jauges → objectifs, puis titre Inventaire) à la place des siens.
 const htmlCourant=fs.readFileSync(path.join(R,'plateau.html'),'utf8'),cssCourant=fs.readFileSync(path.join(R,'style.css'),'utf8');
-const BLOC_JAUGES=htmlCourant.slice(htmlCourant.indexOf("<!-- PA et Argent sous l'avatar -->"),htmlCourant.indexOf('<!-- BOUTON STATS -->'));
+const BLOC_JAUGES=htmlCourant.slice(htmlCourant.indexOf('<!-- Ligne 1 : PA, Santé, Moral -->'),htmlCourant.indexOf('<!-- LOCATION — masqué'));
+const debutInv=htmlCourant.indexOf('<!-- INVENTAIRE (point 18)');
+const BLOC_INVENTAIRE=htmlCourant.slice(debutInv,htmlCourant.indexOf('</div>',htmlCourant.indexOf('id="hg-panneau-inventaire"'))+6);
 const CSS_JAUGES=cssCourant.slice(cssCourant.indexOf('/* SANTÉ ET MORAL, MÉDECIN, MONTRER UN OBJET'));
-assert.ok(BLOC_JAUGES.includes('hg-jauge-sante')&&CSS_JAUGES.includes('.hg-jauge{'),'bloc des jauges introuvable');
+assert.ok(BLOC_JAUGES.includes('hg-jauge-sante')&&BLOC_JAUGES.includes('hg-jauge-influence')&&CSS_JAUGES.includes('.hg-jauge{'),'bloc des jauges introuvable');
+assert.ok(debutInv>0&&BLOC_INVENTAIRE.includes('ouvrirFenetreInventaire()'),'bloc Inventaire introuvable');
 async function jaugesSanteTemoin(p){
- await p.evaluate(html=>{const rang=document.getElementById('r-pa').parentElement.parentElement;if(document.getElementById('hg-jauge-sante'))return;
-  const t=document.createElement('template');t.innerHTML=html;rang.replaceWith(t.content);},BLOC_JAUGES);
+ await p.evaluate(([html,inv])=>{if(document.getElementById('hg-jauge-sante'))return;
+  const rang=document.getElementById('r-pa').parentElement.parentElement,fin=document.getElementById('loc-city');
+  while(rang.nextSibling&&rang.nextSibling!==fin)rang.nextSibling.remove();
+  const t=document.createElement('template');t.innerHTML=html;rang.replaceWith(t.content);
+  const panneau=document.getElementById('inventaire-panel'),titre=panneau&&panneau.previousElementSibling;
+  if(panneau&&titre){const t2=document.createElement('template');t2.innerHTML=inv;titre.replaceWith(t2.content);panneau.remove();}
+ },[BLOC_JAUGES,BLOC_INVENTAIRE]);
  await p.addStyleTag({content:CSS_JAUGES});
 }
 

@@ -22,7 +22,9 @@ function extraire(fichier, noms) {
 const CODE = [
   extraire('plateau-divers.js', ['MOTIFS_SORTIE_INVENTAIRE', 'signatureObjetInventaire', 'removeFromInventory', 'texteInventaire', 'messageRefusSortieInventaire']),
   extraire('plateau-personnage.js', ['TEXTES_CARTE_POSTALE', 'texteCartePostale', 'legendeCartePostale', 'rectoCartePostaleHtml', 'boutonsTabacPresseObjet',
-    'fumerTabacEnCours', 'fumerTabac', 'ouvrirEcrireCartePostale', 'fermerModalCartePostale', 'envoyerCartePostale', 'lireCartePostale', 'ouvrirDetailObjet'])
+    'fumerTabacEnCours', 'fumerTabac', 'ouvrirEcrireCartePostale', 'fermerModalCartePostale', 'envoyerCartePostale', 'lireCartePostale', 'ouvrirDetailObjet',
+    // Fiche d'objet unique (Fred, 23/11/2026, point 1) : ouvrirDetailObjet est désormais un alias de ouvrirFicheObjet.
+    'STYLE_ACTION_FICHE', 'STYLE_DANGER_FICHE', 'RP_FICHE_OBJET_JETON', 'fermerFenetreCommune', 'ouvrirFicheObjet'])
 ].join('\n');
 
 const CARTE = { id: 'carte_krasnov_place_ours_1', type: 'carte_krasnov_place_ours', modele: 'carte_krasnov_place_ours', name: 'Carte postale — Krasnov, la place de l\'Ours',

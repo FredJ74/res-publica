@@ -2642,6 +2642,22 @@ body.plateau-body .top-right {
 .hg-jauge-barre{height:100%;width:0;background:#c06060;border-radius:2px}
 #hg-jauge-moral .hg-jauge-barre{background:#6080c0}
 .hg-jauge-basse{border-color:#8a3a2a}
+/* Deuxième ligne du panneau de gauche (Fred, 23/11/2026, point 16) : Influence, Popularité, Discrétion. */
+#hg-jauge-influence .hg-jauge-nom{color:#8aa0e0}
+#hg-jauge-influence .hg-jauge-val{color:#b8c8f8}
+#hg-jauge-influence .hg-jauge-barre{background:#4a6aaa}
+#hg-jauge-popularite .hg-jauge-nom{color:#d09a7a}
+#hg-jauge-popularite .hg-jauge-val{color:#f0c0a0}
+#hg-jauge-popularite .hg-jauge-barre{background:#aa6a4a}
+#hg-jauge-discretion .hg-jauge-nom{color:#b88ad0}
+#hg-jauge-discretion .hg-jauge-val{color:#dcc0f0}
+#hg-jauge-discretion .hg-jauge-barre{background:#8a4aaa}
+#hg-jauge-influence.hg-jauge-basse,#hg-jauge-popularite.hg-jauge-basse,#hg-jauge-discretion.hg-jauge-basse{border-color:#2a1a08}
+.hg-panneau-argent:hover,.hg-panneau-argent:focus-visible,.hg-panneau-inventaire:hover,.hg-panneau-inventaire:focus-visible{border-color:#a98d56;outline:none}
+.hg-panneau-bouton{width:100%;margin:.3rem 0 .1rem;font-family:'Bebas Neue',sans-serif;letter-spacing:.08em;padding:.35rem .5rem;
+  border:1px solid #a98d56;background:#344354;color:#e5c477;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem}
+.hg-panneau-bouton[hidden]{display:none}
+.char-card.hg-panneau-signale{outline:2px solid #e5c477;outline-offset:2px;transition:outline-color .3s}
 .hg-jauge-bulle{position:fixed;z-index:9500;max-width:300px;padding:.6rem .75rem;background:#202a36;color:#e2e9f1;border:1px solid #a98d56;
   border-radius:6px;font-size:1rem;line-height:1.45;box-shadow:0 6px 18px rgba(0,0,0,.45);pointer-events:none}
 .hg-jauge-bulle[hidden]{display:none}

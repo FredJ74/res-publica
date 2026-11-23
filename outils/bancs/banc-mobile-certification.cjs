@@ -134,6 +134,11 @@ test('Bureau 1440 : rendu strictement identique au main de certification', () =>
   // Témoin renouvelé le 22/11/2026 : il porte le bloc CSS des jauges Santé et Moral (seule différence, vérifiée sur capture).
   // Fixer les décorations animées au même état dans les deux contextes.
   // La comparaison reste intégrale, sans masque ni tolérance de pixels.
+  // Panneau de gauche refait le 23/11/2026 (Fred, points 16 à 19) : seule différence voulue, les couleurs des trois nouvelles
+  // jauges (Influence, Popularité, Discrétion) ; le témoin reçoit ce seul bloc de style.css, le reste est comparé tel quel.
+  const css = fs.readFileSync(path.join(R, 'style.css'), 'utf8'), debutCss = css.indexOf('/* Deuxième ligne du panneau de gauche');
+  assert.ok(debutCss > 0, 'bloc CSS du panneau introuvable');
+  await avant.addStyleTag({ content: css.slice(debutCss, css.indexOf('\n', css.indexOf('.char-card.hg-panneau-signale', debutCss))) });
   for (const p of [avant, apres]) {
     await p.addStyleTag({ content: '*,*::before,*::after{animation:none!important;transition:none!important}' });
     await p.evaluate(() => document.fonts.ready);
