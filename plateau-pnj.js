@@ -137,12 +137,36 @@ async function attribuerPointReliquat(stat) {
   if (typeof ouvrirStatsPerso === 'function') ouvrirStatsPerso();
 }
 
-function ouvrirStatsPerso() {
+// Points à répartir (Fred, 23/11/2026, point 19) : l'onglet « Statistiques » est supprimé ; la répartition du reliquat,
+// qui y vivait, s'ouvre depuis le bouton « Points à répartir » du panneau de gauche, dans la fenêtre commune.
+// Clés i18n proposées pour Codex : plateau.pointsToSpend*, français seulement ici.
+function ouvrirRepartitionPoints() {
+  if (typeof fermerPanneauMobile === 'function') fermerPanneauMobile();
   const char = state.char;
-  document.getElementById('postes-modal-title').textContent = 'Statistiques — ' + (char?.name || 'Mon Personnage');
-  document.getElementById('postes-body').innerHTML = genererStatsHtml();
+  const persoStats = char?.stats || {};
+  const freePts = char?.freePtsRestants || 0;
+  const noms = { INT: 'Intelligence', CHA: 'Charisme', VOL: 'Volonté', PER: 'Perception', DUP: 'Duplicité', ENT: 'Entregent' };
+  document.getElementById('postes-modal-title').textContent = 'Points à répartir';
+  let html = '<div class="cpj-dialogue hg-repartition-points" style="padding:1rem">';
+  if (freePts > 0) {
+    html += '<p style="margin:0 0 .6rem;line-height:1.5">Il vous reste <strong>' + freePts + ' point(s)</strong> de votre création. Chaque clic ajoute 1 point à une caractéristique, pour toujours, sans coût en PA.</p>';
+    html += '<p class="cpj-note" style="font-size:1rem">Au-delà de 12, un niveau coûte 2 points. Maximum : 16.</p>';
+    html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(9rem,1fr));gap:.5rem;margin-top:.6rem">';
+    Object.keys(noms).forEach(k => {
+      const val = persoStats[k] || 0, plafond = val >= 16;
+      html += '<button class="cpj-touche' + (plafond ? '' : ' cpj-primaire') + '" onclick="attribuerPointReliquat(\'' + k + '\')"' + (plafond ? ' disabled' : '') + '>'
+        + noms[k] + ' : ' + val + (plafond ? ' (max)' : ' → +1') + '</button>';
+    });
+    html += '</div>';
+  } else {
+    html += '<p style="margin:0 0 .6rem;line-height:1.5">Tous vos points de création sont répartis.</p>';
+  }
+  html += '<div style="margin-top:1rem"><button class="cpj-touche" onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')">Fermer</button></div></div>';
+  document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
+// Ancien nom (rappelé par attribuerPointReliquat) : même fenêtre.
+function ouvrirStatsPerso() { ouvrirRepartitionPoints(); }
 
 function getPnjAvatar(pnj, empireColor) {
   if (['squatter_cool','squatter_agr'].includes(pnj.terrainPnjId || pnj.id) && pnj.photoUrl) {

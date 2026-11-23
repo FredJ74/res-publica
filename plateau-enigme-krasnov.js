@@ -106,6 +106,8 @@ global.doAcheterGuideMusee = acheterGuide;
 global.doRepondreEnigmeKrasnov = ouvrirReponse;
 global.soumettreEnigmeKrasnov = soumettre;
 global.chargerEnigmesResolues = chargerEnigmes;
+// Fenêtre Inventaire du panneau de gauche (Fred, 23/11/2026, point 18) : les énigmes s'y écrivent à l'ouverture.
+global.rendreEnigmesResolues = rendreEnigmes;
 const attente = global.setInterval(() => { if (global.state?.char?.name) { global.clearInterval(attente); chargerEnigmes(); } }, 1500);
 global.setInterval(habituesBarSever, 2000);
 })(typeof window !== 'undefined' ? window : globalThis);

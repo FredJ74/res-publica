@@ -404,7 +404,7 @@ async function prendreMedicament(medicament) {
   global.document.getElementById('modal-postes')?.classList.remove('open');
   global.showToast(nomMedicament(medicament), texteMaladie(medicament === 'antidote' ? 'takenAntidote' : 'taken'), true);
   await rafraichirMaladies();
-  if (typeof global.switchSelfTab === 'function') { try { global.switchSelfTab('inventaire', null); } catch (_) {} }
+  if (typeof global.rafraichirFenetreInventaireSiOuverte === 'function') { try { global.rafraichirFenetreInventaireSiOuverte(); } catch (_) {} }
 }
 // Bouton du détail d'un objet (plateau-personnage.js) pour un médicament de maladie.
 function boutonMedicamentMaladie(item, style) {

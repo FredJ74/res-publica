@@ -70,20 +70,8 @@ async function openCharSheet() {
         ${char.motto ? `<div style="font-size:.75rem;color:#5a5040;margin-top:.3rem;font-style:italic">"${char.motto}"</div>` : ''}
       </div>
     </div>
-    <div style="display:flex;gap:.4rem;padding:.6rem 1rem;border-bottom:1px solid #1a1810">
-      <button id="cs-tab-btn-identite" onclick="switchCharSheetTab('identite')" style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.35rem .8rem;border:1px solid #8a6a20;background:#1a1408;color:#C9A84C;cursor:pointer">${rpCharSheetLabel('identity','Identité')}</button>
-      <button id="cs-tab-btn-stats" onclick="switchCharSheetTab('stats')" style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.35rem .8rem;border:1px solid #4a3a20;background:#12100a;color:#c0a060;cursor:pointer">${rpCharSheetLabel('statistics','Statistiques')}</button>
-    </div>
     <div id="cs-tab-identite">
     <div class="char-sheet-grid">
-      <div class="cs-section">
-        <div class="cs-title">${rpCharSheetLabel('characteristics','Caracteristiques')}</div>
-        ${STAT_DEFS.map(({k,n,i}) => `
-          <div class="cs-stat-row">
-            <span class="cs-stat-name"><i class="ti ${i}" style="font-size:.75rem;vertical-align:-1px"></i> ${n}</span>
-            <span class="cs-stat-val">${char.stats?.[k]||8}</span>
-          </div>`).join('')}
-      </div>
       <div class="cs-section">
         <div class="cs-title">${rpCharSheetLabel('resources','Ressources')}</div>
         <div class="cs-stat-row"><span class="cs-stat-name">${rpCharSheetLabel('totalMoney','Argent total')}</span><span class="cs-stat-val">${((Number(state.liquide)||0) + (typeof resumeFortune === 'function' ? Number(resumeFortune().comptes)||0 : Number(totalComptesBancaires())||0)).toLocaleString('fr-FR')} ${co?.cur||'FR'}</span></div>
@@ -143,22 +131,21 @@ async function openCharSheet() {
             </div>`).join('')}
     </div>
     </div>
-    <div id="cs-tab-stats" style="display:none">${genererStatsHtml()}</div>
   `;
 
   document.getElementById('modal-char').classList.add('open');
 }
 
+// Fiche du personnage (fenêtre) : l'onglet « Statistiques » et les six caractéristiques sont retirés (Fred,
+// 23/11/2026, point 19) ; ils vivent dans le panneau de gauche. L'ancien nom reste : « stats » y mène.
 function switchCharSheetTab(tab) {
-  document.getElementById('cs-tab-identite').style.display = tab === 'identite' ? '' : 'none';
-  document.getElementById('cs-tab-stats').style.display = tab === 'stats' ? '' : 'none';
-  const btnIdentite = document.getElementById('cs-tab-btn-identite');
-  const btnStats = document.getElementById('cs-tab-btn-stats');
-  const actif = 'border:1px solid #8a6a20;background:#1a1408;color:#C9A84C;cursor:pointer';
-  const inactif = 'border:1px solid #4a3a20;background:#12100a;color:#c0a060;cursor:pointer';
-  const base = "font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.35rem .8rem;";
-  if (btnIdentite) btnIdentite.style.cssText = base + (tab === 'identite' ? actif : inactif);
-  if (btnStats) btnStats.style.cssText = base + (tab === 'stats' ? actif : inactif);
+  if (tab === 'stats') {
+    if (typeof closeCharSheet === 'function') closeCharSheet();
+    if (typeof montrerPanneauPersonnage === 'function') montrerPanneauPersonnage();
+    return;
+  }
+  const identite = document.getElementById('cs-tab-identite');
+  if (identite) identite.style.display = '';
 }
 function closeCharSheet() {
   document.getElementById('modal-char').classList.remove('open');
@@ -409,9 +396,17 @@ ARMOIRE À SOUVENIRS
 // contenant que le tableau des caracteristiques. Deux portes, deux experiences, et la seconde ne
 // menait jamais a la securisation du compte -- precisement ce qu'un joueur doit pouvoir trouver.
 // Le raccourci ouvre desormais CETTE fiche, directement sur l'onglet qu'il promet.
-const SELF_ONGLETS = ['actions', 'inventaire', 'orgas', 'identite', 'stats'];
+// Onglets « Inventaire » et « Statistiques » supprimés (Fred, 23/11/2026, points 18 et 19) : l'inventaire est une
+// fenêtre du panneau de gauche (ouvrirFenetreInventaire), les statistiques sont dans le panneau de gauche. Une
+// ancienne porte vers ces onglets (écran resté ouvert, autre module) y mène : SELF_ONGLETS_REDIRIGES.
+const SELF_ONGLETS = ['actions', 'orgas', 'identite'];
+const SELF_ONGLETS_REDIRIGES = {
+  inventaire: () => { if (typeof ouvrirFenetreInventaire === 'function') ouvrirFenetreInventaire(); },
+  stats: () => { if (typeof montrerPanneauPersonnage === 'function') montrerPanneauPersonnage(); }
+};
 
 function openSelfView(ongletInitial) {
+  if (SELF_ONGLETS_REDIRIGES[ongletInitial]) { SELF_ONGLETS_REDIRIGES[ongletInitial](); return; }
   if (typeof state !== 'undefined' && state.char?.queteAccueil?.etape === 'attente_fiche_personnage' && typeof queteAccueilSurbrillance === 'function') {
     queteAccueilSurbrillance('.sortir-btn', 15000);
   }
@@ -457,7 +452,15 @@ function calculerSalaireDormir() {
 }
 
 function switchSelfTab(tab, el) {
-  if (typeof window !== 'undefined') window._ongletSelfActif = tab;   // suivi en direct (rafraichirOngletInventaireSiOuvert)
+  // Onglet supprimé : un clic sur un ancien onglet (el fourni) ouvre sa nouvelle place ; un simple rafraîchissement
+  // (el absent, après une action sur un objet) redessine la fenêtre Inventaire si elle est affichée, sans rien ouvrir.
+  if (tab === 'inventaire') {
+    if (el) SELF_ONGLETS_REDIRIGES.inventaire();
+    else if (typeof rafraichirFenetreInventaireSiOuverte === 'function') rafraichirFenetreInventaireSiOuverte();
+    return;
+  }
+  if (tab === 'stats') { if (el) SELF_ONGLETS_REDIRIGES.stats(); return; }
+  if (typeof window !== 'undefined') window._ongletSelfActif = tab;
   if (el) {
     document.querySelectorAll('#vue-self .piece-tab').forEach(t => t.classList.remove('active'));
     el.classList.add('active');
@@ -616,71 +619,6 @@ function switchSelfTab(tab, el) {
     html += '</div>';
     content.innerHTML = html;
 
-  } else if (tab === 'inventaire') {
-    const items = state.inventory || [];
-    let html = '<div style="padding:1.2rem;max-width:600px">';
-
-    // Argent
-    html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.8rem;margin-bottom:.6rem">';
-    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.15em;color:#8a6a20;margin-bottom:.5rem">FINANCES</div>';
-    // Meme source que la vue generale (resumeFortune, plateau-core.js) : les deux ecrans ne
-    // peuvent plus diverger en silence. Les placements manquaient ici alors qu'ils comptent
-    // dans la fortune -- un joueur qui en detenait voyait un total inexplicable.
-    const f = (typeof resumeFortune === 'function') ? resumeFortune()
-            : { liquide: state.liquide||0, comptes: totalComptesBancaires(), placements: 0,
-                poches: (state.liquide||0) + totalComptesBancaires(), arg: state.arg||0, ecart: 0 };
-    html += '<div class="hg-finances-grille" style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem">';
-    html += '<div style="padding:.5rem;background:#0a0805"><div style="font-size:.68rem;color:#9a8a68">Liquide</div><div style="font-family:Bebas Neue,sans-serif;font-size:1.1rem;color:#C9A84C">' + f.liquide.toLocaleString('fr-FR') + ' ' + cur + '</div></div>';
-    html += '<div style="padding:.5rem;background:#0a0805"><div style="font-size:.68rem;color:#9a8a68">En banque</div><div style="font-family:Bebas Neue,sans-serif;font-size:1.1rem;color:#C9A84C">' + f.comptes.toLocaleString('fr-FR') + ' ' + cur + '</div></div>';
-    if (f.placements > 0) {
-      html += '<div style="padding:.5rem;background:#0a0805"><div style="font-size:.68rem;color:#9a8a68">Placements</div><div style="font-family:Bebas Neue,sans-serif;font-size:1.1rem;color:#C9A84C">' + f.placements.toLocaleString('fr-FR') + ' ' + cur + '</div></div>';
-    }
-    html += '<div style="padding:.5rem;background:#0a0805"><div style="font-size:.68rem;color:#9a8a68">Total</div><div style="font-family:Bebas Neue,sans-serif;font-size:1.1rem;color:#C9A84C">' + f.poches.toLocaleString('fr-FR') + ' ' + cur + '</div></div>';
-    html += '</div>';
-    if (f.ecart !== 0) {
-      // On n'arbitre PAS : on montre l'ecart la ou le joueur le constate, au lieu de laisser deux
-      // chiffres se contredire sans explication.
-      html += '<div style="margin-top:.5rem;padding:.5rem;border:1px solid #6a4a20;background:#151005;font-size:.72rem;color:#cc9a44">'
-           + 'La vue générale annonce <strong>' + f.arg.toLocaleString('fr-FR') + ' ' + cur + '</strong>, '
-           + 'soit ' + Math.abs(f.ecart).toLocaleString('fr-FR') + ' ' + cur + ' de '
-           + (f.ecart > 0 ? 'plus' : 'moins') + ' que le détail ci-dessus. '
-           + 'Votre fiche n\'est pas synchronisée avec le serveur — rechargez la page.</div>';
-    }
-    html += '</div>';
-
-    // Objets
-    html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.8rem">';
-    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.15em;color:#8a6a20;margin-bottom:.5rem">OBJETS (' + items.reduce((n, item) => n + (Number(item.quantite ?? item.qty) > 0 ? Number(item.quantite ?? item.qty) : 1), 0) + ' unités · ' + items.length + ' lignes)</div>';
-    if (items.length === 0) {
-      html += '<div style="font-size:.8rem;color:#9a8a68;font-style:italic">Aucun objet en votre possession.</div>';
-    } else {
-      items.forEach((item, i) => {
-        const imageObjet = (typeof imageUrlObjet === 'function') ? imageUrlObjet(item) : item.imageUrl;
-        const hasImage = imageObjet && imageObjet.length > 5;
-        html += '<div class="hg-inventaire-ligne" style="display:flex;align-items:center;gap:.5rem;padding:.5rem .3rem;border-bottom:1px solid #1a1810;cursor:pointer" onclick="ouvrirDetailObjet(' + i + ')">';
-        // Miniature ou icone
-        if (hasImage) {
-          html += '<div style="width:44px;height:44px;flex-shrink:0;overflow:hidden;border:1px solid #2a2010;background:#0a0805">';
-          html += '<img loading="lazy" decoding="async" src="' + imageObjet + '" style="width:100%;height:100%;object-fit:cover;opacity:.85"/>';
-          html += '</div>';
-        } else {
-          html += '<div style="width:44px;height:44px;flex-shrink:0;background:#0a0805;border:1px solid #2a2010;display:flex;align-items:center;justify-content:center">';
-          html += '<i class="ti ' + (item.icon||'ti-package') + '" style="font-size:1.1rem;color:#8a6a20"></i>';
-          html += '</div>';
-        }
-        html += '<div style="flex:1;min-width:0">';
-        html += '<div class="hg-inventaire-nom" style="font-size:.8rem;color:#c0b090;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + ((typeof nomObjetMaladie === 'function' && nomObjetMaladie(item)) || item.name) + ((Number(item.quantite ?? item.qty) > 1) ? ' × ' + Number(item.quantite ?? item.qty) : '') + '</div>';
-        html += '<div style="font-size:.85rem;color:#9a8a68">' + (item.legal !== undefined ? (item.legal ? 'Légal' : 'Non enregistré') : '') + (item.usageUnique ? ' · Usage unique' : '') + '</div>';
-        html += '</div>';
-        html += '<button onclick="event.stopPropagation();jeterObjetInventaire(' + i + ')" style="font-size:.85rem;color:#a0905a;background:transparent;border:none;cursor:pointer;padding:.2rem .4rem;flex-shrink:0">Déposer</button>';
-        html += '<button onclick="event.stopPropagation();dropItem(' + i + ')" style="font-size:.85rem;color:#cc5540;background:transparent;border:none;cursor:pointer;padding:.2rem .4rem;flex-shrink:0">Détruire</button>';
-        html += '</div>';
-      });
-    }
-    html += '</div>';
-    html += '</div>';
-    content.innerHTML = html;
-
   } else if (tab === 'orgas') {
     content.innerHTML = '<div style="padding:.8rem 1rem">' + renderOngletOrgas() + '</div>';
     globalThis.RPI18nPlateau?.apply(content);
@@ -703,15 +641,7 @@ function switchSelfTab(tab, el) {
     if (char?.motto) html += '<div style="font-size:.72rem;color:#5a5040;margin-top:.3rem;font-style:italic">"' + char.motto + '"</div>';
     html += '</div></div>';
 
-    // Stats
-    html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.3rem;margin-bottom:.8rem">';
-    STAT_DEFS.forEach(s => {
-      html += '<div style="text-align:center;padding:.4rem;background:#0f0d05;border:1px solid #1a1810">';
-      html += '<div style="font-size:.8rem;color:#9a8a68;text-transform:uppercase">' + s.k + '</div>';
-      html += '<div style="font-family:Bebas Neue,sans-serif;font-size:1.2rem;color:#C9A84C">' + (char?.stats?.[s.k]||8) + '</div>';
-      html += '</div>';
-    });
-    html += '</div>';
+    // Les six caractéristiques ne sont plus ici (Fred, 23/11/2026, point 19) : elles sont dans le panneau de gauche.
 
     if (char?.bio) html += '<div style="font-size:.82rem;color:#8a8060;font-style:italic;line-height:1.7;padding:.8rem;background:#0f0d05;border:1px solid #1a1810">' + char.bio + '</div>';
 
@@ -770,8 +700,6 @@ function switchSelfTab(tab, el) {
 
     html += '</div>';
     content.innerHTML = html;
-  } else if (tab === 'stats') {
-    content.innerHTML = genererStatsHtml();
   }
 }
 
@@ -1228,7 +1156,7 @@ async function confirmerChangementPhoto() {
   _photoTemp = null;
   showToast('Photo mise à jour', 'Votre nouvelle photo de profil est enregistrée.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.be7a04f8b", 'Votre nouvelle photo de profil est enregistrée.', undefined, 'Photo mise à jour');
   // Rafraîchir l'affichage de la fiche
-  switchSelfTab('identite', document.querySelectorAll('#vue-self .piece-tab')[3] || null);
+  switchSelfTab('identite', document.querySelectorAll('#vue-self .piece-tab')[SELF_ONGLETS.indexOf('identite')] || null);
 }
 
 // =====================
@@ -3415,7 +3343,7 @@ async function doSesoigner() {
   state.hp = Math.min(100, state.hp + 20);
   updateUI();
   showToast('Soins', '+20 Sante. ' + (state.inventory.filter(i=>i.type==='medicament').length) + ' medicament(s) restant(s).', true);
-  switchSelfTab('inventaire', null);
+  rafraichirFenetreInventaireSiOuverte();
 }
 
 // Second bouton "Jeter", atteint depuis l'AUTRE popup de detail d'objet (ouvrirDetailObjet).
@@ -3429,15 +3357,28 @@ async function dropItem(index) {
   const r = await removeFromInventory(index, 'detruire');
   if (!r.ok) { showToast('Impossible', messageRefusSortieInventaire(r.raison), false); return; }
   showToast('Objet jete', item.name + ' retire de votre inventaire.', false);
-  switchSelfTab('inventaire', null);
+  rafraichirFenetreInventaireSiOuverte();
 }
 
 
 // =====================
-// DETAIL D'UN OBJET D'INVENTAIRE (clic) + GESTION (donner/jeter/abandonner/supprimer)
+// UNE SEULE FICHE D'OBJET (Fred, 23/11/2026, GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md, point 1)
 // =====================
-async function ouvrirDetailObjetInventaire(idx) {
-  const item = state.inventory[idx];
+// Il existait deux fenêtres de détail : celle de l'inventaire du panneau de gauche (ouvrirDetailObjetInventaire) et
+// celle de l'onglet Inventaire de « Mon personnage » (ouvrirDetailObjet). Chacune avait des actions que l'autre n'avait
+// pas (carte postale, médicament, trousse, jumelles, poison, explosifs…). Elles sont réunies ici : toutes les actions des
+// deux fiches, et rien d'autre. Les deux anciens noms restent des alias (écrans restés ouverts, autres modules).
+// La fiche vit dans la fenêtre commune #modal-postes, comme la fenêtre Inventaire (point 18) : une seule fenêtre visible
+// à la fois ; « Retour à l'inventaire » remplace la fiche par la liste.
+// Clés i18n proposées pour Codex (français seulement ici) : inventoryUi.ficheUse, ficheWithPlayer, ficheGetRid,
+// ficheBack, ficheLegal, ficheUnregistered, ficheSingleUse, ficheUseMedicine, ficheObserve, ficheRation, ficheHeal,
+// ficheUseItem, ficheClose, ficheDestroy.
+const STYLE_ACTION_FICHE = 'font-family:Bebas Neue,sans-serif;font-size:1rem;letter-spacing:.06em;padding:.5rem .8rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer;text-align:left';
+const STYLE_DANGER_FICHE = 'font-family:Bebas Neue,sans-serif;font-size:1rem;letter-spacing:.06em;padding:.5rem .8rem;border:1px solid #8a3a2a;background:transparent;color:#e07a5a;cursor:pointer;text-align:left';
+let RP_FICHE_OBJET_JETON = 0;
+function fermerFenetreCommune() { document.getElementById('modal-postes')?.classList.remove('open'); }
+async function ouvrirFicheObjet(idx) {
+  const item = (state.inventory || [])[idx];
   if (!item) return;
 
   if (item.calepinEnigme1 && typeof enigme1AfficherCalepin === 'function') {
@@ -3446,151 +3387,350 @@ async function ouvrirDetailObjetInventaire(idx) {
   }
 
   // Armoire a souvenirs (lot du 25 aout 2026) : popup entierement dediee (image, collection,
-  // progression, facture), meme routage precoce que le calepin d'enquete ci-dessus -- jamais la
-  // popup generique desc+boutons plus bas, qui ne convient pas a un objet individualise a cette
-  // richesse de metadonnees.
+  // progression, facture), meme routage precoce que le calepin d'enquete ci-dessus.
   if (item.type === 'armoire_souvenirs' && typeof ouvrirPopupArmoireSouvenirs === 'function') {
     ouvrirPopupArmoireSouvenirs(idx, 'contenu');
     return;
   }
 
-  document.getElementById('postes-modal-title').textContent = (typeof nomObjetMaladie === 'function' && nomObjetMaladie(item)) || (typeof herosObjetTexte === 'function' ? herosObjetTexte(item, 'name') : item.name);
-  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic"><span data-i18n="inventoryUi.loading">Chargement...</span></div>';
+  const nomAffiche = (typeof nomObjetMaladie === 'function' && nomObjetMaladie(item)) || (typeof herosObjetTexte === 'function' ? herosObjetTexte(item, 'name') : item.name);
+  document.getElementById('postes-modal-title').textContent = nomAffiche;
+  const corps = document.getElementById('postes-body');
+  const jeton = ++RP_FICHE_OBJET_JETON;
+  corps.innerHTML = '<div id="hg-fiche-chargement" data-jeton="' + jeton + '" style="padding:1rem;color:#8a8060;font-style:italic"><span data-i18n="inventoryUi.loading">Chargement...</span></div>';
   document.getElementById('modal-postes').classList.add('open');
-  if (typeof window !== 'undefined') window.RPI18nPlateau?.apply?.(document.getElementById('postes-body'));
+  if (typeof window !== 'undefined') window.RPI18nPlateau?.apply?.(corps);
 
-  const legal = item.legal === false ? '<span style="color:#cc4444;font-size:.72rem" data-i18n="inventoryUi.illegalObject"> ⚠ Objet illégal / compromettant</span>' : '';
+  const legal = item.legal === false ? '<span style="color:#cc4444" data-i18n="inventoryUi.illegalObject"> ⚠ Objet illégal / compromettant</span>' : '';
   // Médaille de Héros du Travail (13/11/2026) : la plaque gravée.
   const imageSrc = ((typeof imageUrlObjet === 'function') ? imageUrlObjet(item) : item.imageUrl) || (item.generique_id === 'medaille_heros_travail' && /^images\/[\w.-]+\.webp$/.test(item.image || '') ? item.image : '');
   const imageHtml = imageSrc
-    ? '<img src="' + imageSrc + '" style="width:100%;border-radius:4px;margin-bottom:.8rem;max-height:220px;object-fit:cover"/>'
+    ? '<img src="' + imageSrc + '" alt="" style="width:100%;border-radius:4px;margin-bottom:.8rem;max-height:220px;object-fit:cover"/>'
     : '';
 
-  // Charger les vrais joueurs presents pour l'option "donner"
+  // Les vrais joueurs présents, pour « Donner » et « Montrer ». Un masque inconnu n'a pas de vrai nom.
   let joueursPresents = [];
   if (typeof sbGetPresencesInRoom === 'function' && state.currentBuilding && state.currentRoom) {
     try {
       const presents = await sbGetPresencesInRoom(state.country, state.currentCity, state.currentBuilding, state.currentRoom);
-      // Un masque inconnu n'a pas de vrai nom : on ne peut rien lui donner par cette liste.
       joueursPresents = (presents || []).filter(p => p.name !== state.char?.name && !(p.masque && p.mon_groupe !== true));
     } catch(e) {}
   }
+  // L'inventaire a pu changer pendant la lecture : on ne dessine pas la fiche d'un autre objet.
+  if ((state.inventory || [])[idx] !== item) {
+    if (document.getElementById('hg-fiche-chargement')?.dataset.jeton === String(jeton)) {
+      if (typeof ouvrirFenetreInventaire === 'function') ouvrirFenetreInventaire(); else fermerFenetreCommune();
+    }
+    return;
+  }
 
-  // FICHE OFFICIELLE (referentiel L2). Bloc en LECTURE SEULE insere entre la
-  // presentation RP (nom + description, au-dessus) et les boutons d'action (en
-  // dessous) : aucun clic existant n'est deplace ni detourne.
-  // En cas d'echec d'appel, sbObjetFicheOfficielle rend null et l'on n'affiche RIEN
-  // plutot qu'une fiche devinee -- un echec de transport n'est pas un refus metier.
+  // FICHE OFFICIELLE (referentiel L2), en lecture seule ; en cas d'echec on n'affiche rien plutot qu'une fiche devinee.
   let ficheHtml = '';
   if (typeof sbObjetFicheOfficielle === 'function' && typeof ficheOfficielleHtml === 'function') {
     const fiche = await sbObjetFicheOfficielle(item);
     if (fiche) ficheHtml = ficheOfficielleHtml(fiche);
   }
-
-  // UN DOCUMENT OFFICIEL SE LIT (13 octobre 2026). Extrait de casier, copie de dossier, extrait
-  // de domiciliation : le contenu est FIGE dans l'objet au moment de la delivrance, et c'est
-  // celui-la qui s'affiche -- jamais une relecture de la base, sans quoi un extrait date ne
-  // vaudrait rien. Le rendu est entierement delegue a `documentOfficielHtml`, qui ne decide rien
-  // non plus : elle met en page ce que le greffe a ecrit.
-  //
-  // ET IL NE DIT PAS S'IL EST AUTHENTIQUE, parce que l'objet ne le sait pas : la provenance vit
-  // dans `documents_officiels`, une table sans aucun droit client. Un faux casier s'affiche donc
-  // exactement comme un vrai -- c'est la regle.
+  // UN DOCUMENT OFFICIEL SE LIT (13 octobre 2026) : contenu fige dans l'objet a la delivrance ; il ne dit pas s'il est
+  // authentique (la provenance vit dans `documents_officiels`, sans droit client).
   let documentHtml = '';
   if (item.type === 'document_officiel' && typeof documentOfficielHtml === 'function') {
     documentHtml = documentOfficielHtml(item);
   }
 
-  let html = '<div style="padding:1rem">';
+  const S = STYLE_ACTION_FICHE, D = STYLE_DANGER_FICHE;
+  const titreSection = t => '<div style="font-family:Bebas Neue,sans-serif;letter-spacing:.12em;color:#C9A84C;margin:.9rem 0 .4rem">' + t + '</div>';
+  let html = '<div class="cpj-dialogue hg-fiche-objet" style="padding:1rem">';
   html += imageHtml;
-  html += '<div style="font-size:.85rem;color:#a0a080;line-height:1.6;margin-bottom:.8rem">' + ((typeof texteTresorTsarsObjet === 'function' && texteTresorTsarsObjet(item)) || (typeof herosObjetTexte === 'function' ? herosObjetTexte(item, 'desc') : item.desc) || '') + legal + '</div>';
+  html += '<div style="color:#c0b090;line-height:1.6;margin-bottom:.6rem">' + ((typeof texteTresorTsarsObjet === 'function' && texteTresorTsarsObjet(item)) || (typeof herosObjetTexte === 'function' ? herosObjetTexte(item, 'desc') : item.desc) || '') + legal + '</div>';
+  // Ligne d'état reprise de l'ancienne fiche de l'onglet Inventaire : légal ou non, usage unique.
+  html += '<div class="hg-fiche-etat" style="color:#9a8a68;margin-bottom:.6rem">' + (item.legal === false ? 'Non enregistré' : 'Légal') + (item.usageUnique ? ' · Usage unique' : '') + '</div>';
   if (documentHtml) html += documentHtml + '<div style="height:.8rem"></div>';
   if (ficheHtml) html += ficheHtml + '<div style="height:.8rem"></div>';
 
-  html += '<div style="display:flex;flex-direction:column;gap:.4rem">';
-
-  // Aliment a emporter (Lot 3, 23 aout 2026) : bouton Consommer, toujours affiche independamment
-  // de la protection "objet de quete" (manger son propre repas n'est jamais un transfert).
-  // AUCUN indice de fraicheur/age ici (peremption volontairement invisible avant consommation,
-  // regle de design validee) -- le libelle reste neutre, identique quel que soit l'etat reel.
+  // ── 1. Utiliser l'objet ───────────────────────────────────────────────────────────────────────────────────────
+  let usage = '';
   // Brume et Estadine (2 novembre 2026) : consommer est legal ; seuls l'achat et le transport ne le sont pas.
   if (item.type === 'drogue') {
-    html += '<button onclick="consommerDrogue(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer"><i class="ti ' + (item.drogue === 'estadine' ? 'ti-snowflake' : 'ti-cloud') + '"></i> ' + (item.drogue === 'estadine' ? '<span data-i18n="inventoryUi.consume">Consommer</span>' : '<span data-i18n="inventoryUi.smoke">Fumer</span>') + '</button>';
+    usage += '<button class="hg-fiche-drogue" onclick="consommerDrogue(' + idx + ')" style="' + S + '"><i class="ti ' + (item.drogue === 'estadine' ? 'ti-snowflake' : 'ti-cloud') + '"></i> ' + (item.drogue === 'estadine' ? '<span data-i18n="inventoryUi.consume">Consommer</span>' : '<span data-i18n="inventoryUi.smoke">Fumer</span>') + '</button>';
   }
   // Œufs de Sovarka (10/11/2026) : toujours par 3, mangés d'un coup, sans PA (+2 PA au prochain sommeil).
   if (item.stackKey === 'oeufs' && typeof mangerOeufs === 'function') {
-    html += '<button onclick="mangerOeufs()" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer"><i class="ti ti-egg"></i> Manger 3 œufs</button>';
+    usage += '<button class="hg-fiche-oeufs" onclick="mangerOeufs()" style="' + S + '"><i class="ti ti-egg"></i> Manger 3 œufs</button>';
   }
   // Viande et laitages bruts (Fred, 18/11/2026) : +1 PA au prochain sommeil.
-  if (typeof boutonMangerMatiereBrute === 'function') html += boutonMangerMatiereBrute(item, 'font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
-  // Marché de Krasnov (lot de Krasnov, point 2, 22/11/2026) : pain noir, goulash, fruits et légumes.
-  if (typeof boutonMangerProduitMarche === 'function') html += boutonMangerProduitMarche(item, 'font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
+  if (typeof boutonMangerMatiereBrute === 'function') usage += boutonMangerMatiereBrute(item, S);
+  // Marché de Krasnov (22/11/2026) : pain noir, goulash, fruits et légumes.
+  if (typeof boutonMangerProduitMarche === 'function') usage += boutonMangerProduitMarche(item, S);
   // Énigme du trésor des Tsars (12/11/2026) : lire le livre, manger un gâteau.
-  if (typeof boutonsTresorTsarsObjet === 'function') html += boutonsTresorTsarsObjet(item, 'font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
+  if (typeof boutonsTresorTsarsObjet === 'function') usage += boutonsTresorTsarsObjet(item, S);
+  // Aliment a emporter (Lot 3, 23 aout 2026) : aucun indice de fraicheur avant consommation.
   if (item.familleProduitMarche === 'aliment' || (item.generique_id === 'encas-a-emporter' && item.recette_id)) {
-    html += '<button onclick="consommerAliment(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer"><i class="ti ti-meat"></i> <span data-i18n="inventoryUi.consume">Consommer</span></button>';
+    usage += '<button class="hg-fiche-aliment" onclick="consommerAliment(' + idx + ')" style="' + S + '"><i class="ti ti-meat"></i> <span data-i18n="inventoryUi.consume">Consommer</span></button>';
   }
-
+  if (typeof boutonRevetir === 'function') usage += boutonRevetir(item, idx, S);
+  if (typeof boutonPoserSacs === 'function') usage += boutonPoserSacs(item, S);
+  if (typeof boutonDeposerGraisse === 'function') usage += boutonDeposerGraisse(item, S);
+  if (typeof boutonRenifler === 'function') usage += boutonRenifler(item, idx, S);
+  if (typeof boutonBandelettes === 'function') usage += boutonBandelettes(item, S);
   // Boissons (Fred, 18/11/2026) : bouton Boire, étiquette alcoolisée ou non tranchée par le serveur.
-  if (typeof boutonRevetir === 'function') html += boutonRevetir(item, idx, 'font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
-  if (typeof boutonPoserSacs === 'function') html += boutonPoserSacs(item, 'font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
-  if (typeof boutonDeposerGraisse === 'function') html += boutonDeposerGraisse(item, 'font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
-  if (typeof boutonRenifler === 'function') html += boutonRenifler(item, idx, 'font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
-  if (typeof boutonBandelettes === 'function') html += boutonBandelettes(item, 'font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
-  if (typeof boutonBoire === 'function') html += boutonBoire(item, idx, 'font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
-
-  // Guide des baies sauvages de Krasnov (Fred, 15/11/2026) : se lit partout, 2 PA, +1 INT 24 h, sans cumul ; reste dans l'inventaire.
+  if (typeof boutonBoire === 'function') usage += boutonBoire(item, idx, S);
+  // Médicament d'une maladie (plateau-maladies.js) : le serveur choisit l'effet.
+  if (item.type === 'medicament_maladie' && typeof boutonMedicamentMaladie === 'function') usage += boutonMedicamentMaladie(item, S);
+  // Médicament ordinaire : +20 Santé (doSesoigner).
+  if (item.type === 'medicament') {
+    usage += '<button class="hg-fiche-medicament" onclick="fermerFenetreCommune();doSesoigner()" style="' + S + '"><i class="ti ti-pill"></i> Prendre le médicament (+20 Santé)</button>';
+  }
+  // Trousse de premiers secours (18 septembre 2026) : cible et gain décidés par le serveur ; la fenêtre de choix
+  // remplace la fiche dans la même fenêtre.
+  if (item.produitMilitaire === 'trousse_secours') {
+    usage += '<button class="hg-fiche-trousse" onclick="ouvrirSoinTrousse()" style="' + S + '"><i class="ti ti-first-aid-kit"></i> Soigner avec la trousse</button>';
+  }
+  // Jumelles — « Observer » (1 PA) : le serveur ne renvoie que du renseignement dégradé.
+  if (item.produitMilitaire === 'jumelles') {
+    usage += '<button class="hg-fiche-jumelles" onclick="fermerFenetreCommune();doObserverJumelles()" style="' + S + '"><i class="ti ti-binoculars"></i> Observer (1 PA)</button>';
+  }
+  // Ration de combat (23 septembre 2026) : +1 PA, décidé par le serveur.
+  if (item.produitMilitaire === 'ration_combat') {
+    usage += '<button class="hg-fiche-ration" onclick="fermerFenetreCommune();doConsommerRationCombat()" style="' + S + '"><i class="ti ti-tools-kitchen-2"></i> Manger la ration (+1 PA)</button>';
+  }
+  // Guide des baies sauvages de Krasnov (Fred, 15/11/2026) : 2 PA, +1 INT 24 h, sans cumul ; reste dans l'inventaire.
   if (item.type === 'guide_baies_krasnov' && typeof lireGuideBaies === 'function') {
-    html += '<button onclick="lireGuideBaies()" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer"><i class="ti ti-book-2"></i> <span data-i18n="inventoryUi.read">Lire</span> (2 PA)</button>';
+    usage += '<button class="hg-fiche-guide-baies" onclick="lireGuideBaies()" style="' + S + '"><i class="ti ti-book-2"></i> <span data-i18n="inventoryUi.read">Lire</span> (2 PA)</button>';
   }
-  // Carte postale (Lot 4, 23 aout 2026) : bouton toujours affiche independamment de la
-  // protection "objet de quete" (ni un transfert entre joueurs, ni un abandon). etatCarte
-  // 'vierge' -> ouvre la composition ; 'ecrite' -> ouvre la lecture (jamais l'inverse, une carte
-  // ecrite ne redevient jamais vierge -- point 14 du cahier des charges).
-  if (item.familleProduitMarche === 'carte_postale') {
-    if (item.etatCarte === 'vierge') {
-      html += '<button onclick="ouvrirEcrireCartePostale(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer"><i class="ti ti-feather"></i> <span data-i18n="inventoryUi.writeSend">Écrire et envoyer</span></button>';
-    } else if (item.etatCarte === 'ecrite') {
-      html += '<button onclick="lireCartePostale(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer"><i class="ti ti-mail-opened"></i> <span data-i18n="inventoryUi.read">Lire</span></button>';
-    }
-  }
-  // Cigarettes du tabac-presse (Fred, 22/11/2026, point 27) : bouton commun aux deux fenêtres de détail.
-  if (item.familleProduitMarche === 'tabac' && typeof boutonsTabacPresseObjet === 'function') html += boutonsTabacPresseObjet(item, idx, 'font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
-
+  // Carte postale (vierge : écrire et envoyer ; écrite : lire) et cigarettes du tabac-presse : boutons communs.
+  if (typeof boutonsTabacPresseObjet === 'function') usage += boutonsTabacPresseObjet(item, idx, S);
   // Serrures (04/11/2026, issue #434) : poser le bloc, utiliser la cle, tailler une cle vierge.
-  // Les boutons Donner / Jeter ci-dessous restent : une cle est un objet transmissible.
   if (['serrure_cle', 'cle_serrure', 'cle_vierge'].includes(item.type) && typeof ouvrirSerrureObjet === 'function') {
-    html += '<button class="cpj-touche cpj-primaire" onclick="ouvrirSerrureObjet(' + idx + ')"><i class="ti ' +
+    usage += '<button class="cpj-touche cpj-primaire hg-fiche-serrure" onclick="ouvrirSerrureObjet(' + idx + ')"><i class="ti ' +
       (item.type === 'serrure_cle' ? 'ti-lock' : 'ti-key') + '"></i> ' +
       ({ serrure_cle: '<span data-i18n="inventoryUi.install">Installer</span>', cle_serrure: '<span data-i18n="inventoryUi.lockToggle">Fermer ou ouvrir</span>', cle_vierge: '<span data-i18n="inventoryUi.copyKey">Faire un double</span>' })[item.type] + '</button>';
   }
+  // Poison et explosifs : la fenêtre de choix (plateau-criminalite.js) remplace la fiche dans la même fenêtre.
+  if (item.type === 'poison') {
+    usage += '<button class="hg-fiche-poison" onclick="ouvrirModalEmpoisonner()" style="' + D + '"><i class="ti ti-flask"></i> Empoisonner quelqu’un</button>';
+  }
+  if (item.type === 'explosif') {
+    usage += '<button class="hg-fiche-explosif" onclick="doUtiliserExplosifs()" style="' + D + '"><i class="ti ti-bomb"></i> Utiliser les explosifs ici</button>';
+  }
+  if (usage) html += titreSection('Utiliser') + '<div style="display:flex;flex-direction:column;gap:.4rem">' + usage + '</div>';
 
+  // ── 2. Avec un joueur présent ─────────────────────────────────────────────────────────────────────────────────
   const protege = typeof colisSecretProtege === 'function' && colisSecretProtege(item);
-  if (protege) {
-    html += '<div style="font-size:.78rem;color:#6a5a30;font-style:italic"><i class="ti ti-lock"></i> <span data-i18n="inventoryUi.protectedDetails">Indispensable à une mission en cours — ne peut être ni donné à un autre joueur, ni abandonné, ni détruit.</span></div>';
-    // Montrer ne fait rien changer de main (Fred, 22/11/2026, point 22) : permis même pour un objet de mission.
-    if (joueursPresents.length > 0 && typeof hgMontrerDepuisFiche === 'function') {
-      html += '<select id="montrer-objet-cible" class="cpj-champ" style="width:100%">';
-      joueursPresents.forEach(p => { const n = String(p.name || '').replace(/[&<>"']/g, ''); html += '<option value="' + n + '">' + n + '</option>'; });
-      html += '</select><button class="cpj-touche hg-montrer-fiche" onclick="hgMontrerDepuisFiche(' + idx + ')"><i class="ti ti-eye"></i> Montrer à ce joueur</button>';
-    }
-  } else {
-    if (joueursPresents.length > 0) {
-      html += '<select id="donner-objet-cible" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none">';
-      joueursPresents.forEach(p => { html += '<option value="' + p.name + '">' + p.name + '</option>'; });
-      html += '</select>';
-      html += '<button onclick="donnerObjetAJoueur(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #4a6aaa;background:transparent;color:#6a8aca;cursor:pointer"><i class="ti ti-gift"></i> <span data-i18n="inventoryUi.givePlayer">Donner a ce joueur</span></button>';
-      // « Montrer un objet » (Fred, 22/11/2026, point 22) : même joueur choisi ci-dessus ; rien ne change de main.
-      if (typeof hgMontrerDepuisFiche === 'function') html += '<button class="hg-montrer-fiche" onclick="hgMontrerDepuisFiche(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #4a6aaa;background:transparent;color:#6a8aca;cursor:pointer"><i class="ti ti-eye"></i> Montrer à ce joueur</button>';
-    }
-
-    html += '<button onclick="jeterObjetInventaire(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #8a6a30;background:transparent;color:#a0905a;cursor:pointer"><i class="ti ti-map-pin"></i> <span data-i18n="inventoryUi.dropHere">Abandonner ici (visible par les autres joueurs)</span></button>';
-    html += '<button onclick="supprimerItemInventaire(' + idx + ');document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a2a20;background:transparent;color:#cc4444;cursor:pointer"><i class="ti ti-x"></i> <span data-i18n="inventoryUi.deleteForever">Supprimer (destruction definitive)</span></button>';
+  const nomPropre = n => String(n || '').replace(/[&<>"']/g, '');
+  if (joueursPresents.length > 0) {
+    html += titreSection('Avec un joueur présent') + '<div style="display:flex;flex-direction:column;gap:.4rem">';
+    // Le même choix sert à « Donner » et à « Montrer » ; l'identifiant historique reste celui que lit chaque action.
+    const idChoix = protege ? 'montrer-objet-cible' : 'donner-objet-cible';
+    html += '<select id="' + idChoix + '" class="cpj-champ" style="width:100%;font-size:1rem">';
+    joueursPresents.forEach(p => { const n = nomPropre(p.name); html += '<option value="' + n + '">' + n + '</option>'; });
+    html += '</select>';
+    if (!protege) html += '<button class="cpj-touche hg-fiche-donner" onclick="donnerObjetAJoueur(' + idx + ')"><i class="ti ti-gift"></i> <span data-i18n="inventoryUi.givePlayer">Donner a ce joueur</span></button>';
+    // « Montrer un objet » (Fred, 22/11/2026, point 22) : rien ne change de main, permis même pour un objet de mission.
+    if (typeof hgMontrerDepuisFiche === 'function') html += '<button class="cpj-touche hg-montrer-fiche" onclick="hgMontrerDepuisFiche(' + idx + ')"><i class="ti ti-eye"></i> Montrer à ce joueur</button>';
+    html += '</div>';
   }
 
-  html += '</div></div>';
-  document.getElementById('postes-body').innerHTML = html;
-  if (typeof window !== 'undefined') window.RPI18nPlateau?.apply?.(document.getElementById('postes-body'));
+  // ── 3. Se défaire de l'objet ──────────────────────────────────────────────────────────────────────────────────
+  if (protege) {
+    html += '<div style="color:#b09a60;font-style:italic;margin-top:.8rem"><i class="ti ti-lock"></i> <span data-i18n="inventoryUi.protectedDetails">Indispensable à une mission en cours — ne peut être ni donné à un autre joueur, ni abandonné, ni détruit.</span></div>';
+  } else {
+    html += titreSection('Se défaire de l’objet') + '<div style="display:flex;flex-direction:column;gap:.4rem">';
+    html += '<button class="cpj-touche hg-fiche-deposer" onclick="jeterObjetInventaire(' + idx + ')"><i class="ti ti-map-pin"></i> <span data-i18n="inventoryUi.dropHere">Abandonner ici (visible par les autres joueurs)</span></button>';
+    html += '<button class="cpj-touche hg-fiche-detruire" onclick="fermerFenetreCommune();supprimerItemInventaire(' + idx + ')" style="color:#e07a5a;border-color:#8a3a2a"><i class="ti ti-x"></i> <span data-i18n="inventoryUi.deleteForever">Supprimer (destruction definitive)</span></button>';
+    html += '</div>';
+  }
+
+  // ── Bas de fenêtre : revenir à la liste, ou fermer ────────────────────────────────────────────────────────────
+  html += '<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:1rem;padding-top:.8rem;border-top:1px solid #3a2a10">';
+  if (typeof ouvrirFenetreInventaire === 'function') html += '<button class="cpj-touche hg-fiche-retour" onclick="ouvrirFenetreInventaire()"><i class="ti ti-arrow-left"></i> Retour à l’inventaire</button>';
+  html += '<button class="cpj-touche hg-fiche-fermer" onclick="fermerFenetreCommune()">Fermer</button>';
+  html += '</div>';
+  html += '</div>';
+  // Une autre fenêtre a pris la place pendant la lecture : on ne l'écrase pas.
+  const attente = document.getElementById('hg-fiche-chargement');
+  if (!attente || attente.dataset.jeton !== String(jeton)) return;
+  corps.innerHTML = html;
+  if (typeof window !== 'undefined') window.RPI18nPlateau?.apply?.(corps);
+}
+// Anciens noms (point 1) : même fiche, quel que soit l'appelant.
+async function ouvrirDetailObjetInventaire(idx) { return ouvrirFicheObjet(idx); }
+function ouvrirDetailObjet(idx) { return ouvrirFicheObjet(idx); }
+
+// =====================
+// PANNEAU DE GAUCHE : FENÊTRES « INVENTAIRE » ET « ARGENT » (Fred, 23/11/2026, points 16 à 18)
+// =====================
+// L'onglet « Inventaire » de « Mon personnage » est supprimé : sa présentation (vignettes, Déposer, Détruire) vit
+// désormais dans la fenêtre Inventaire, ouverte d'un clic sur « Inventaire » dans le panneau de gauche. Un clic sur un
+// objet ouvre la fiche unique (ouvrirFicheObjet), dans la même fenêtre. Le bloc « Finances » de l'ancien onglet
+// passe dans la fenêtre « Argent » (patrimoine).
+// Clés i18n proposées pour Codex (français seulement ici) : plateau.inventoryWindow*, plateau.moneyWindow*.
+
+// Sur téléphone, le panneau de gauche est un tiroir : il se referme avant qu'une fenêtre s'ouvre (jamais deux à la fois).
+function fermerPanneauMobile() {
+  if (typeof document === 'undefined' || !document.body?.dataset?.mobilePanel) return;
+  document.getElementById('hg-mobile-fond')?.click();
+}
+function echapperFenetrePanneau(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]); }
+
+function htmlFenetreInventaire() {
+  const items = state.inventory || [];
+  const unites = items.reduce((n, item) => n + (Number(item.quantite ?? item.qty) > 0 ? Number(item.quantite ?? item.qty) : 1), 0);
+  let html = '<div class="cpj-dialogue hg-fenetre-inventaire" style="padding:1rem">';
+  html += '<p class="cpj-note" style="font-size:1rem">Touchez un objet pour voir sa fiche et tout ce que vous pouvez en faire.</p>';
+  html += '<div style="font-family:Bebas Neue,sans-serif;letter-spacing:.12em;color:#C9A84C;margin:.4rem 0">OBJETS (' + unites + ' unités · ' + items.length + ' lignes)</div>';
+  if (items.length === 0) {
+    html += '<div class="hg-inventaire-vide" style="color:#9a8a68;font-style:italic">Aucun objet en votre possession.</div>';
+  } else {
+    items.forEach((item, i) => {
+      const imageObjet = (typeof imageUrlObjet === 'function') ? imageUrlObjet(item) : item.imageUrl;
+      const qte = Number(item.quantite ?? item.qty);
+      const nom = ((typeof nomObjetMaladie === 'function' && nomObjetMaladie(item)) || (typeof herosObjetTexte === 'function' ? herosObjetTexte(item, 'name') : item.name) || '');
+      const protege = typeof colisSecretProtege === 'function' && colisSecretProtege(item);
+      html += '<div class="hg-inventaire-ligne" role="button" tabindex="0" style="display:flex;align-items:center;gap:.6rem;padding:.55rem .3rem;border-bottom:1px solid #2a2418;cursor:pointer" onclick="ouvrirFicheObjet(' + i + ')" onkeydown="if(event.key===\'Enter\')ouvrirFicheObjet(' + i + ')">';
+      if (imageObjet && imageObjet.length > 5) {
+        html += '<div style="width:48px;height:48px;flex-shrink:0;overflow:hidden;border:1px solid #3a2a10;background:#0a0805"><img loading="lazy" decoding="async" alt="" src="' + imageObjet + '" style="width:100%;height:100%;object-fit:cover"/></div>';
+      } else {
+        html += '<div style="width:48px;height:48px;flex-shrink:0;background:#0a0805;border:1px solid #3a2a10;display:flex;align-items:center;justify-content:center"><i class="ti ' + (item.icon || 'ti-package') + '" style="font-size:1.3rem;color:#C9A84C"></i></div>';
+      }
+      html += '<div style="flex:1;min-width:0">';
+      html += '<div class="hg-inventaire-nom" style="color:#e2d6b0;overflow-wrap:anywhere">' + echapperFenetrePanneau(nom) + (qte > 1 ? ' × ' + qte : '') + (typeof badgeRevetu === 'function' ? badgeRevetu(item) : '') + '</div>';
+      html += '<div style="color:#9a8a68">' + (item.legal === false ? '⚠ Non enregistré' : 'Légal') + (item.usageUnique ? ' · Usage unique' : '') + '</div>';
+      html += '</div>';
+      if (protege) {
+        html += '<span title="Indispensable à une mission en cours" style="flex-shrink:0;color:#b09a60;padding:.2rem .4rem"><i class="ti ti-lock"></i> Mission</span>';
+      } else {
+        html += '<button class="cpj-touche hg-inventaire-deposer" onclick="event.stopPropagation();jeterObjetInventaire(' + i + ')" style="flex-shrink:0">Déposer</button>';
+        html += '<button class="cpj-touche hg-inventaire-detruire" onclick="event.stopPropagation();supprimerItemInventaire(' + i + ')" style="flex-shrink:0;color:#e07a5a;border-color:#8a3a2a">Détruire</button>';
+      }
+      html += '</div>';
+    });
+  }
+  // Carnet « Contacts et secrets » (plateau-secrets.js) et « Énigmes résolues » (plateau-enigme-krasnov.js) : ils
+  // s'écrivaient sous l'inventaire du panneau de gauche ; ils s'écrivent désormais ici, dans le même conteneur.
+  html += '<div id="inventaire-panel" class="hg-inventaire-annexes" style="margin-top:.8rem"></div>';
+  html += '<div style="margin-top:1rem"><button class="cpj-touche hg-inventaire-fermer" onclick="fermerFenetreCommune()">Fermer</button></div>';
+  html += '</div>';
+  return html;
+}
+function ouvrirFenetreInventaire() {
+  fermerPanneauMobile();
+  document.getElementById('postes-modal-title').textContent = 'Inventaire';
+  const corps = document.getElementById('postes-body');
+  corps.innerHTML = htmlFenetreInventaire();
+  document.getElementById('modal-postes').classList.add('open');
+  if (typeof rendreCarnetSecrets === 'function') { try { rendreCarnetSecrets(); } catch (_) {} }
+  if (typeof rendreEnigmesResolues === 'function') { try { rendreEnigmesResolues(); } catch (_) {} }
+  if (typeof window !== 'undefined') window.RPI18nPlateau?.apply?.(corps);
+}
+// La fenêtre suit l'inventaire en direct (comme l'ancien onglet) : tout rendu d'inventaire la redessine si elle est
+// affichée, et seulement elle (jamais une fiche ou une fenêtre de quantité ouverte à sa place).
+function fenetreInventaireAffichee() {
+  if (typeof document === 'undefined') return false;
+  return !!document.querySelector('#modal-postes.open #postes-body > .hg-fenetre-inventaire');
+}
+function rafraichirFenetreInventaireSiOuverte() {
+  if (!fenetreInventaireAffichee()) return;
+  const corps = document.getElementById('postes-body');
+  const defilement = document.querySelector('#modal-postes .modal-box')?.scrollTop || 0;
+  corps.innerHTML = htmlFenetreInventaire();
+  if (typeof rendreCarnetSecrets === 'function') { try { rendreCarnetSecrets(); } catch (_) {} }
+  if (typeof rendreEnigmesResolues === 'function') { try { rendreEnigmesResolues(); } catch (_) {} }
+  if (typeof window !== 'undefined') window.RPI18nPlateau?.apply?.(corps);
+  const boite = document.querySelector('#modal-postes .modal-box'); if (boite) boite.scrollTop = defilement;
+}
+
+// Point 19 : l'onglet « Statistiques » est supprimé ; les six caractéristiques, PA, Santé, Moral, Influence,
+// Popularité et Discrétion sont dans le panneau de gauche. Toute ancienne porte vers l'onglet y mène.
+function montrerPanneauPersonnage() {
+  if (typeof document === 'undefined') return;
+  if (document.getElementById('vue-self')?.classList.contains('active') && typeof closeSelfView === 'function') closeSelfView();
+  const bouton = document.querySelector('[data-hg-panneau="personnage"]');
+  if (bouton && bouton.getClientRects().length && document.body.dataset.mobilePanel !== 'personnage') bouton.click();
+  const carte = document.querySelector('#left .char-card');
+  if (!carte) return;
+  if (typeof carte.scrollIntoView === 'function') carte.scrollIntoView({ block: 'start' });
+  carte.classList.add('hg-panneau-signale');
+  setTimeout(() => carte.classList.remove('hg-panneau-signale'), 2500);
+}
+
+// ── Point 17 : fenêtre « Argent » (patrimoine) ──────────────────────────────────────────────────────────────────
+// Lit les mêmes données que les guichets de banque, sans aucune fonction serveur nouvelle : comptes_bancaires
+// (sbGetComptesBancaires), placements_bancaires (sbGetPlacementsBancaires), prets en cours (table prets, lecture
+// des guichets et de openCharSheet). Une lecture qui échoue est dite « indisponible », jamais affichée comme vide.
+const NOMS_BANQUES_PATRIMOINE = { nationale: 'Banque nationale', helvetia: 'Banque Helvetia', privee: 'Banque Helvetia' };
+function nomBanquePatrimoine(cle) {
+  const k = String(cle || '');
+  return NOMS_BANQUES_PATRIMOINE[k] || (k ? 'Banque ' + k.charAt(0).toUpperCase() + k.slice(1) : 'Banque');
+}
+function datePatrimoine(v) {
+  if (!v) return '—';
+  const d = new Date(v);
+  return isNaN(d.getTime()) ? '—' : d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+let RP_PATRIMOINE_JETON = 0;
+async function ouvrirFenetreArgent() {
+  fermerPanneauMobile();
+  const nom = state.char?.name;
+  const cur = COUNTRIES[state.char?.country || state.country || 'republic']?.cur || 'FR';
+  const somme = n => (Number(n) || 0).toLocaleString('fr-FR') + ' ' + cur;
+  const jeton = ++RP_PATRIMOINE_JETON;
+  document.getElementById('postes-modal-title').textContent = 'Mon argent';
+  const corps = document.getElementById('postes-body');
+  corps.innerHTML = '<div class="cpj-dialogue hg-fenetre-argent" data-jeton="' + jeton + '" style="padding:1rem;font-style:italic">Lecture de vos comptes…</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const lire = async f => { try { return await f(); } catch (_) { return null; } };
+  const [comptes, placements, prets] = nom ? await Promise.all([
+    lire(() => typeof sbGetComptesBancaires === 'function' ? sbGetComptesBancaires(nom) : null),
+    lire(() => typeof sbGetPlacementsBancaires === 'function' ? sbGetPlacementsBancaires(nom) : null),
+    lire(() => typeof sbGet === 'function' ? sbGet('prets', 'emprunteur=eq.' + encodeURIComponent(nom) + '&statut=eq.en_cours') : null)
+  ]) : [null, null, null];
+  const encore = corps.querySelector('.hg-fenetre-argent');
+  if (!encore || encore.dataset.jeton !== String(jeton)) return;   // une autre fenêtre a pris la place
+  // Ce que le serveur vient de rendre devient l'état de l'écran (même adoption que les guichets).
+  if (Array.isArray(comptes) && typeof construireMapComptesBancaires === 'function') state.comptesBancaires = construireMapComptesBancaires(comptes);
+  if (Array.isArray(placements)) state.placementsBancaires = placements;
+
+  const titre = t => '<div style="font-family:Bebas Neue,sans-serif;letter-spacing:.12em;color:#C9A84C;margin:1rem 0 .4rem">' + t + '</div>';
+  const ligne = (g, d, cls) => '<div class="' + (cls || '') + '" style="display:flex;justify-content:space-between;gap:.8rem;padding:.4rem 0;border-bottom:1px solid #2a2418"><span>' + g + '</span><strong style="color:#e5c477;white-space:nowrap">' + d + '</strong></div>';
+  const indisponible = '<p class="cpj-note hg-argent-indisponible" style="font-size:1rem">Lecture indisponible pour le moment. Rien n’est perdu : rouvrez la fenêtre dans un instant.</p>';
+  let html = '<div class="cpj-dialogue hg-fenetre-argent hg-fenetre-argent-prete" style="padding:1rem">';
+
+  html += titre('ARGENT LIQUIDE (dans vos poches)');
+  html += ligne('Liquide', somme(state.liquide), 'hg-argent-liquide');
+
+  html += titre('EN BANQUE');
+  if (!Array.isArray(comptes)) html += indisponible;
+  else if (!comptes.length) html += '<p style="margin:.3rem 0;color:#9a8a68">Aucun compte en banque.</p>';
+  else comptes.forEach(c => { html += ligne(echapperFenetrePanneau(nomBanquePatrimoine(c.banque)), somme(c.solde), 'hg-argent-compte'); });
+
+  html += titre('PLACEMENTS');
+  const actifs = Array.isArray(placements) ? placements.filter(p => p && p.statut === 'actif') : null;
+  if (!actifs) html += indisponible;
+  else if (!actifs.length) html += '<p style="margin:.3rem 0;color:#9a8a68">Aucun placement en cours.</p>';
+  else actifs.forEach(p => {
+    html += '<div class="hg-argent-placement" style="padding:.45rem 0;border-bottom:1px solid #2a2418">'
+      + '<div style="display:flex;justify-content:space-between;gap:.8rem"><span>' + echapperFenetrePanneau(p.libelle || nomBanquePatrimoine(p.banque)) + '</span><strong style="color:#e5c477;white-space:nowrap">' + somme(p.montant) + '</strong></div>'
+      + '<div style="color:#b0a080">' + echapperFenetrePanneau(nomBanquePatrimoine(p.banque)) + ' · échéance : ' + datePatrimoine(p.prochaine_echeance) + '</div></div>';
+  });
+
+  html += titre('PRÊTS À REMBOURSER');
+  if (!Array.isArray(prets)) html += indisponible;
+  else if (!prets.length) html += '<p style="margin:.3rem 0;color:#9a8a68">Aucun prêt en cours.</p>';
+  else prets.forEach(p => {
+    const type = (typeof TYPES_PRET !== 'undefined' && TYPES_PRET?.[p.type_pret]?.label) || p.type_pret || 'Prêt';
+    const banque = p.type_banque === 'privee' ? 'Banque Helvetia' : nomBanquePatrimoine(p.type_banque || 'nationale');
+    // La table des prêts n'enregistre pas de date d'échéance : on montre ce qu'elle contient (date de signature,
+    // durée, remboursement quotidien), sans rien calculer.
+    html += '<div class="hg-argent-pret" style="padding:.45rem 0;border-bottom:1px solid #2a2418">'
+      + '<div style="display:flex;justify-content:space-between;gap:.8rem"><span>Prêt ' + echapperFenetrePanneau(String(type).toLowerCase()) + ' — ' + echapperFenetrePanneau(banque) + '</span><strong style="color:#e5c477;white-space:nowrap">' + somme(p.montant_restant) + ' restant dû</strong></div>'
+      + '<div style="color:#b0a080">Signé le ' + datePatrimoine(p.created_at) + ' pour ' + (Number(p.duree_jours) || 0) + ' jours · remboursement : ' + somme(p.mensualite) + ' par jour'
+      + (Number(p.jours_impayes) > 0 ? ' · <span style="color:#e07a5a">' + Number(p.jours_impayes) + ' jour(s) impayé(s)</span>' : '') + '</div></div>';
+  });
+
+  html += '<div style="margin-top:1rem"><button class="cpj-touche hg-argent-fermer" onclick="fermerFenetreCommune()">Fermer</button></div>';
+  html += '</div>';
+  corps.innerHTML = html;
 }
 
 // Duree de fraicheur d'un aliment a emporter (Lot 3, 23 aout 2026) : 7x24h REELLES (horloge
@@ -3642,7 +3782,7 @@ async function consommerAliment(idx) {
     showToast(tp('tJam'), tp('bonusSleep', { bonus: r.bonus_differe }), true, true);
     addJournalEntry('Vous avez mangé "' + item.name + '" : +' + r.bonus_differe + ' PA au prochain sommeil.', 'event-good');
     updateUI();
-    if (typeof switchSelfTab === 'function') switchSelfTab('inventaire', null);
+    if (typeof rafraichirFenetreInventaireSiOuverte === 'function') rafraichirFenetreInventaireSiOuverte();
     return;
   }
   const fraicheurConnue = typeof r.aliment_frais === 'boolean';
@@ -3672,7 +3812,7 @@ async function consommerAliment(idx) {
   updateUI();
   // L'inventaire ouvert garde son ancien HTML tant que l'onglet n'est pas reconstruit.
   // Rafraichir l'onglet sans fermer le panneau, apres confirmation du serveur.
-  if (typeof switchSelfTab === 'function') switchSelfTab('inventaire', null);
+  if (typeof rafraichirFenetreInventaireSiOuverte === 'function') rafraichirFenetreInventaireSiOuverte();
   } finally {
     consommationAlimentEnCours = false;
   }
@@ -3707,7 +3847,7 @@ async function consommerDrogue(idx) {
         showToast('La montée', 'PA +3, moral +15, ' + cha + '. Descente dans 6 h : moral −25, santé −10, −3 PA. INT −0,1 pour 15 jours.', true);
         addJournalEntry('Vous avez consommé "' + item.name + '" : PA +3, moral +15, ' + cha + '. Descente attendue dans 6 h.', 'event-info');
         updateUI();
-        if (typeof switchSelfTab === 'function') switchSelfTab('inventaire', null);
+        if (typeof rafraichirFenetreInventaireSiOuverte === 'function') rafraichirFenetreInventaireSiOuverte();
         return;
       }
       const ent = r.bonus_ent ? 'ENT +2 jusqu\'à minuit' : 'ENT déjà au maximum de l\'effet';
@@ -3715,7 +3855,7 @@ async function consommerDrogue(idx) {
       addJournalEntry('Vous avez fumé "' + item.name + '" : moral +10, ' + ent + ', −1 PA, santé −5.', 'event-info');
     }
     updateUI();
-    if (typeof switchSelfTab === 'function') switchSelfTab('inventaire', null);
+    if (typeof rafraichirFenetreInventaireSiOuverte === 'function') rafraichirFenetreInventaireSiOuverte();
   } finally {
     consommationDrogueEnCours = false;
   }
@@ -3899,7 +4039,7 @@ async function fumerTabac(idx) {
     showToast(texteCartePostale('fume_titre'), texteCartePostale('fume', { gain }), true, true);
     if (typeof addJournalEntry === 'function') addJournalEntry(texteCartePostale('fume_journal', { gain }), 'event-good');
     if (typeof updateUI === 'function') updateUI();
-    if (typeof switchSelfTab === 'function') switchSelfTab('inventaire', null);
+    if (typeof rafraichirFenetreInventaireSiOuverte === 'function') rafraichirFenetreInventaireSiOuverte();
   } finally {
     fumerTabacEnCours = false;
   }
@@ -3987,7 +4127,7 @@ async function envoyerCartePostale(idx) {
   showToast(texteCartePostale('envoyee_titre'), texteCartePostale('envoyee', { dest: destinataire }), true, true);
   if (typeof addJournalEntry === 'function') addJournalEntry(texteCartePostale('envoyee_journal', { dest: destinataire }), 'event-info');
   if (typeof renderInventory === 'function') renderInventory();
-  if (typeof switchSelfTab === 'function' && document.getElementById('vue-self')?.classList.contains('active')) switchSelfTab('inventaire', null);
+  if (typeof rafraichirFenetreInventaireSiOuverte === 'function') rafraichirFenetreInventaireSiOuverte();
 }
 
 // Lecture (point 28) : la carte s'ouvre sur son recto (image et légende) ; un clic la retourne : au verso, le message
@@ -4395,107 +4535,11 @@ function supprimerSignature() {
   refreshApresSignature();
 }
 
-function toggleInventaire() {
-  const panel = document.getElementById('inventaire-panel');
-  const chevron = document.getElementById('inv-chevron');
-  if (panel.style.display === 'none') {
-    panel.style.display = 'block';
-    chevron.className = 'ti ti-chevron-down';
-  } else {
-    panel.style.display = 'none';
-    chevron.className = 'ti ti-chevron-right';
-  }
-}
+// Ancien volet Inventaire du panneau de gauche (supprimé, Fred, 23/11/2026, point 18) : l'ancien nom ouvre la fenêtre Inventaire.
+function toggleInventaire() { if (typeof ouvrirFenetreInventaire === 'function') ouvrirFenetreInventaire(); }
 
 // =====================
 
-
-// =====================
-// DETAIL OBJET INVENTAIRE
-// =====================
-function ouvrirDetailObjet(idx) {
-  const item = (state.inventory || [])[idx];
-  if (!item) return;
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-
-  document.getElementById('postes-modal-title').textContent = item.name;
-  let html = '<div style="padding:0">';
-  const imageDetail = (typeof imageUrlObjet === 'function') ? imageUrlObjet(item) : item.imageUrl;
-  if (imageDetail) {
-    html += '<div style="width:100%;height:200px;overflow:hidden;background:#0a0805">';
-    html += '<img src="' + imageDetail + '" style="width:100%;height:100%;object-fit:cover;opacity:.9"/>';
-    html += '</div>';
-  }
-  html += '<div style="padding:1rem">';
-  if (item.desc) {
-    html += '<div style="font-size:.8rem;color:#a09070;line-height:1.7;font-style:italic;margin-bottom:1rem">' + ((typeof texteTresorTsarsObjet === 'function' && texteTresorTsarsObjet(item)) || item.desc) + '</div>';
-  }
-  html += '<div style="font-size:.68rem;color:#9a8a68;margin-bottom:.8rem">';
-  html += (item.legal ? '✓ Légal' : '✗ Non enregistré');
-  if (item.usageUnique) html += ' · Usage unique';
-  html += '</div>';
-  html += '<div style="display:flex;gap:.5rem">';
-  if (item.type === 'drogue') {
-    html += '<button onclick="consommerDrogue(' + idx + ')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.5rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer">' + (item.drogue === 'estadine' ? 'Consommer' : 'Fumer') + '</button>';
-  }
-  if (typeof boutonMangerMatiereBrute === 'function') html += boutonMangerMatiereBrute(item, 'flex:1;font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.5rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
-  // Marché de Krasnov (lot de Krasnov, point 2, 22/11/2026) : pain noir, goulash, fruits et légumes.
-  if (typeof boutonMangerProduitMarche === 'function') html += boutonMangerProduitMarche(item, 'flex:1;font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.5rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
-  if (item.stackKey === 'oeufs' && typeof mangerOeufs === 'function') {
-    html += '<button onclick="mangerOeufs()" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.5rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer">Manger 3 œufs</button>';
-  }
-  if (typeof boutonsTresorTsarsObjet === 'function') html += boutonsTresorTsarsObjet(item, 'flex:1;font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.5rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
-  // Bug de la carte postale (Fred, 22/11/2026, point 28) : l'onglet Inventaire ouvre cette fenêtre, qui n'avait pas
-  // l'action « Écrire et envoyer ».
-  if (typeof boutonsTabacPresseObjet === 'function') html += boutonsTabacPresseObjet(item, idx, 'flex:1;font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.5rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
-  if (item.familleProduitMarche === 'aliment' || (item.generique_id === 'encas-a-emporter' && item.recette_id)) {
-    html += '<button onclick="consommerAliment(' + idx + ')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.5rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer">Consommer</button>';
-  }
-  if (item.type === 'poison') {
-    html += '<button onclick="ouvrirModalEmpoisonner();document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #6a2a20;background:transparent;color:#cc4444;cursor:pointer">Utiliser</button>';
-  }
-  if (typeof boutonRevetir === 'function') html += boutonRevetir(item, idx, 'flex:1;font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.5rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
-  if (typeof boutonPoserSacs === 'function') html += boutonPoserSacs(item, 'flex:1;font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.5rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
-  if (typeof boutonDeposerGraisse === 'function') html += boutonDeposerGraisse(item, 'flex:1;font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.5rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
-  if (typeof boutonRenifler === 'function') html += boutonRenifler(item, idx, 'flex:1;font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.5rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
-  if (typeof boutonBandelettes === 'function') html += boutonBandelettes(item, 'flex:1;font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.5rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
-  if (typeof boutonBoire === 'function') html += boutonBoire(item, idx, 'flex:1;font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.5rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer');
-  if (item.type === 'medicament_maladie' && typeof boutonMedicamentMaladie === 'function') {
-    html += boutonMedicamentMaladie(item, 'flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #2a6a2a;background:transparent;color:#4a8a4a;cursor:pointer');
-  }
-  if (item.type === 'medicament') {
-    html += '<button onclick="doSesoigner();document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #2a6a2a;background:transparent;color:#4a8a4a;cursor:pointer">Utiliser (+20 Santé)</button>';
-  }
-  // TROUSSE DE PREMIERS SECOURS (phase 2, 18 septembre 2026). Reutilise le meme motif d'action
-  // d'objet que le medicament : un bouton dans le detail, pas un systeme parallele. Le choix de la
-  // cible et le calcul du gain sont SERVEUR (militaire_trousse_utiliser) : le gain vaut +2 PA et
-  // +1 par tranche complete de 25 de Secourisme DU SOIGNANT, et la trousse disparait dans la meme
-  // transaction que le soin.
-  // JUMELLES — ordre « Observer » (phase 2, 18 septembre 2026). 1 PA, +30 au jet de
-  // reconnaissance. Snapshot, jamais un radar : chaque clic est un jet independant. Le serveur ne
-  // renvoie QUE du renseignement deja degrade -- les effectifs et positions exacts ne quittent
-  // jamais la base, sans quoi les masquer a l'ecran les rendrait recuperables.
-  if (item.produitMilitaire === 'jumelles') {
-    html += '<button onclick="doObserverJumelles();document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #2a4a6a;background:transparent;color:#5a8ac0;cursor:pointer">Observer (1 PA)</button>';
-  }
-  // RATION DE COMBAT (23 septembre 2026). Meme motif que la trousse et le medicament : un bouton
-  // dans le detail de l'objet, pas un systeme parallele. Le joueur pouvait emporter des rations du
-  // refectoire sans pouvoir les manger -- militaire_ordre_collectif ne nourrit que les soldats PNJ.
-  if (item.produitMilitaire === 'ration_combat') {
-    html += '<button onclick="doConsommerRationCombat();document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #6a8a4a;background:transparent;color:#8ac05a;cursor:pointer">Consommer (+1 PA)</button>';
-  }
-  if (item.produitMilitaire === 'trousse_secours') {
-    html += '<button onclick="ouvrirSoinTrousse();document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #2a6a2a;background:transparent;color:#4a8a4a;cursor:pointer">Soigner</button>';
-  }
-  if (item.type === 'explosif') {
-    html += '<button onclick="doUtiliserExplosifs();document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #6a2a20;background:transparent;color:#cc6a44;cursor:pointer">Utiliser</button>';
-  }
-  html += '<button onclick="dropItem(' + idx + ');document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #3a2a10;background:transparent;color:#9a8a68;cursor:pointer">Jeter</button>';
-  html += '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #2a2010;background:transparent;color:#6a5a30;cursor:pointer">Fermer</button>';
-  html += '</div></div></div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
-}
 
 // =====================
 // REGLES DU JEU (vues)

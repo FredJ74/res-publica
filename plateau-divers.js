@@ -1262,13 +1262,11 @@ function refuserSiSurcharge(libelleAction) {
   return true;
 }
 
-// L'onglet « Inventaire » de la fiche personnage suit l'inventaire en direct (Fred, 22/11/2026 : Tom Tom deposait du
-// bois depuis sa fiche et voyait toujours l'ancien stock). Tout rendu d'inventaire le redessine s'il est ouvert.
+// L'ancien onglet « Inventaire » de la fiche personnage suivait l'inventaire en direct (Fred, 22/11/2026 : Tom Tom
+// deposait du bois et voyait toujours l'ancien stock). L'onglet est devenu la fenêtre Inventaire du panneau de gauche
+// (Fred, 23/11/2026, point 18) : tout rendu d'inventaire la redessine si elle est affichée. Ancien nom conservé.
 function rafraichirOngletInventaireSiOuvert() {
-  if (typeof document === 'undefined' || typeof switchSelfTab !== 'function') return;
-  if (typeof window === 'undefined' || window._ongletSelfActif !== 'inventaire') return;
-  if (!document.getElementById('vue-self')?.classList.contains('active')) return;
-  try { switchSelfTab('inventaire', null); } catch (_) {}
+  if (typeof rafraichirFenetreInventaireSiOuverte === 'function') { try { rafraichirFenetreInventaireSiOuverte(); } catch (_) {} }
 }
 function renderInventory() {
   if (typeof rafraichirOngletInventaireSiOuvert === 'function') rafraichirOngletInventaireSiOuvert();
