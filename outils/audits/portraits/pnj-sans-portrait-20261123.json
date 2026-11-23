@@ -2,10 +2,10 @@
   "genere_par": "outils/bancs/banc-pnj-sans-portrait-20261123.cjs",
   "note": "Une ligne par apparition dans une pièce (un même PNJ peut figurer dans plusieurs pièces). PNJ du serveur (informateurs, agents, soldats) et PNJ ajoutés dynamiquement par les modules non compris.",
   "totaux": {
-    "apparitions_pnj": 936,
+    "apparitions_pnj": 935,
     "avec_portrait": 499,
-    "sans_portrait": 437,
-    "pnj_distincts_sans_portrait": 427,
+    "sans_portrait": 436,
+    "pnj_distincts_sans_portrait": 426,
     "par_ville": {
       "Al Khalija / Al Madina": 48,
       "Al Khalija / Al-Petrol": 33,
@@ -24,7 +24,7 @@
       "Républia / Quartier Haute Securite": 4,
       "Sovarka / Garnison du Peuple": 8,
       "Sovarka / Krasnov": 3,
-      "Sovarka / Novomirsk": 44,
+      "Sovarka / Novomirsk": 43,
       "Sovarka / Starovka": 4
     }
   },
@@ -1514,7 +1514,6 @@
             "Le Maire de Novomirsk (PNJ) — Maire de la Capitale"
           ],
           "Hall d'accueil [hall_mairie]": [
-            "Le Maire (PNJ) — Maire de Novomirsk",
             "Secrétaire municipal Arseni Krylov — PNJ - Secretariat general"
           ]
         },
