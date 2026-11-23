@@ -4699,7 +4699,6 @@ export const SCENES_PNJ = {
     "piece": "Hall d'accueil",
     "personnes": [
       "Secrétaire municipal Arseni Krylov",
-      "Le Maire",
       "Hotesse Objets Trouves"
     ]
   },

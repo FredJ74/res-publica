@@ -545,7 +545,7 @@ export const POSTES_NOMMES_EXCLUSIFS_SERVEUR = {
     ]
   },
   "procureur": {
-    "label": "Procureur de la Republique",
+    "label": "Procureur de la République",
     "nommePar": "min_just",
     "scope": "pays",
     "autoriteScope": "pays",
@@ -578,7 +578,7 @@ export const POSTES_NOMMES_EXCLUSIFS_SERVEUR = {
     ]
   },
   "min_int": {
-    "label": "Ministre de l'Interieur",
+    "label": "Ministre de l'Intérieur",
     "nommePar": "pm",
     "scope": "pays",
     "compatibles": [
@@ -602,7 +602,7 @@ export const POSTES_NOMMES_EXCLUSIFS_SERVEUR = {
     ]
   },
   "min_def": {
-    "label": "Ministre de la Defense",
+    "label": "Ministre de la Défense",
     "nommePar": "pm",
     "scope": "pays",
     "compatibles": [
@@ -618,7 +618,7 @@ export const POSTES_NOMMES_EXCLUSIFS_SERVEUR = {
     ]
   },
   "min_ae": {
-    "label": "Ministre des Affaires Etrangeres",
+    "label": "Ministre des Affaires Étrangères",
     "nommePar": "pm",
     "scope": "pays",
     "compatibles": [
