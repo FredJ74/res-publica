@@ -118,7 +118,7 @@ att('et les quatre empires declarent toujours le leur',
 print('');
 print('4. LE POSTE DE PROCUREUR EXISTE, NATIONAL, NOMME PAR LE MINISTRE');
 att('il est declare au referentiel des postes nommes',
-    donnees.indexOf("procureur:   { label: 'Procureur de la Republique', nommePar: 'min_just', scope: 'pays'") >= 0);
+    donnees.indexOf("procureur:   { label: 'Procureur de la République', nommePar: 'min_just', scope: 'pays'") >= 0);
 att('il a un PNJ par defaut, et c est Saad',
     cron.indexOf("procureur:               'Procureur Saad'") >= 0);
 att('il entre dans la cascade nationale du cron, nomme par min_just',

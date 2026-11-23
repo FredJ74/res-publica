@@ -78,7 +78,9 @@ test('journal : historique commun et accès aux vrais rounds sans ordre de comba
  c.sbMilitaireCalepin=async()=>({ok:true,nom:'A'});c.sbMilitaireMesBatailles=async()=>({ok:true,batailles:[{id:83,statut:'terminee',lieu:{ville:'capitale'},rounds:[{mes_pa_perdus:2}]}]});
  vm.runInContext(fonctions('plateau-politique.js',['ouvrirCalepinCampagne']),c);await c.ouvrirCalepinCampagne();
  assert.match(elements.get('postes-body').innerHTML,/ouvrirPanneauCombat\(83\)/);assert.match(elements.get('postes-body').innerHTML,/Lire les rounds/);assert.equal(c.rpc.length,0);
- assert.match(fs.readFileSync(path.join(root,'plateau.html'),'utf8'),/onclick="ouvrirCalepinCampagne\(\)"[^>]*>Rapports de combat/);
+ // 23/11/2026 (mission Novomirsk, point 21) : le bouton « Rapports de combat » quitte le journal ; le calepin s'ouvre par l'ordre calepin_campagne.
+ assert.doesNotMatch(fs.readFileSync(path.join(root,'plateau.html'),'utf8'),/onclick="ouvrirCalepinCampagne\(\)"/);
+ assert.match(fs.readFileSync(path.join(root,'plateau-router.js'),'utf8'),/fn === 'calepin_campagne'\) \{ ouvrirCalepinCampagne\(\); return; \}/);
 });
 
 test('fiche #258 : round rebascule seulement les valeurs confirmées, null et zéro préservés',async()=>{const c=jeu();let base;c.sbFicheBaseAdopter=v=>base=v;c.sbLoadPersonnage=async()=>({userId:'uid',pa:0,hp:0,hospitalisation:null,estEmprisonne:null,currentBuilding:'mairie',currentRoom:'accueil',country:'republic',currentCity:'capitale'});await c.rafraichirApresRound(71);assert.deepEqual(JSON.parse(JSON.stringify(base)),{pa:0,hp:0,hospitalisation:null,est_emprisonne:null});});
