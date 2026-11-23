@@ -37,8 +37,9 @@
    for(const [key,label] of [['health','Santé'],['moral','Moral']]){
      const raw=src[key]?.textContent?.trim()||'';
      const good=active && /^\d+(?:[.,]\d+)?$/.test(raw);
-     dst[key].hidden=!good;
-     if(good)write(dst[key],label,raw+' %');
+     // Toujours visibles (Fred, 23/11/2026, point 4) : « — » tant que la valeur du serveur n'est pas lue.
+     dst[key].hidden=false;
+     write(dst[key],label,good?raw+' %':'—');
    }
    const photo=active?src.portrait?.querySelector('img'):null;
    const shown=dst.portrait?.querySelector('img');

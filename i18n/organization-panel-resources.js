@@ -5,7 +5,7 @@
  const rows=[
   [
     "empty",
-    "Vous n'appartenez a aucune organisation.",
+    "Vous n'appartenez à aucune organisation.",
     "You do not belong to any organization.",
     "No perteneces a ninguna organización.",
     "你尚未加入任何組織。",
@@ -17,7 +17,7 @@
   ],
   [
     "emptyHelp",
-    "Louez un local et creez votre organisation depuis \"Gerer mon local\".",
+    "Louez un local et créez votre organisation depuis « Gérer mon local ».",
     "Rent premises and create your organization via \"$t(orderVariants.local_manage)\".",
     "Alquila un local y crea tu organización desde «$t(orderVariants.local_manage)».",
     "租用場所，然後透過「$t(orderVariants.local_manage)」建立你的組織。",

@@ -333,7 +333,7 @@ async function ouvrirSovarkaManifsGerer() {
         + (x.statut === 'demande'
           ? vehBouton('Accepter (1 PA)', 'sovarkaManifDecider(' + Number(x.id) + ',true)', true)
             + vehBouton('Refuser (1 PA)', 'sovarkaManifDecider(' + Number(x.id) + ',false)', false)
-          : vehBouton('Réprimer (3 PA)', 'sovarkaManifReprimer(' + Number(x.id) + ')', false)))).join('')
+          : vehBouton('Réprimer (1 PA)', 'sovarkaManifReprimer(' + Number(x.id) + ')', false)))).join('')
       : '<p>Aucune demande ni manifestation en cours.</p>');
   vehModal('Gérer les manifestations', html);
 }

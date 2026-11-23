@@ -481,7 +481,7 @@ INSERT INTO public.ordres_couts (fn,pa,cost) VALUES
   ('se_justifier',1,0),
   ('se_nourrir',0,8),
   ('se_presenter_affectation',1,0),
-  ('se_rebeller',2,0),
+  ('se_rebeller',1,0),
   ('se_renseigner',0,0),
   ('se_reposer',0,0),
   ('se_syndiquer',1,50),

@@ -8774,7 +8774,7 @@ function ouvrirModalRevoquerMinistre(pa, cost) {
     { id:'min_int', name:"Ministre de l'Interieur" },
     { id:'min_fin', name:'Ministre des Finances' },
     { id:'min_just', name:'Ministre de la Justice' },
-    { id:'min_def', name:'Ministre de la Defense' },
+    { id:'min_def', name:'Ministre de la Défense' },
     { id:'min_info', name:"Ministre de l'Information" },
     { id:'min_ae', name:'Ministre des Affaires Etrangeres' }
   ];
@@ -10296,7 +10296,7 @@ function ouvrirNommerMinistresModal(pa, cost) {
     { id:'min_int', name:"Ministre de l'Interieur" },
     { id:'min_fin', name:'Ministre des Finances' },
     { id:'min_just', name:'Ministre de la Justice' },
-    { id:'min_def', name:'Ministre de la Defense' },
+    { id:'min_def', name:'Ministre de la Défense' },
     { id:'min_info', name:"Ministre de l'Information" },
     { id:'min_ae', name:'Ministre des Affaires Etrangeres' }
   ];

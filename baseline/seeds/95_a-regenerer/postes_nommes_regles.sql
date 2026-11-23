@@ -11,12 +11,12 @@ INSERT INTO public.postes_nommes_regles (poste_id,label,nomme_par,scope,autorite
   ('directeur_tabac_alcools', 'Directeur du Pôle Tabac & Alcools', 'min_fin', 'pays', NULL),
   ('juge', 'Juge', 'min_just', 'ville', 'pays'),
   ('maire_adjoint', 'Maire Adjoint', 'maire', 'ville', NULL),
-  ('min_ae', 'Ministre des Affaires Etrangeres', 'pm', 'pays', NULL),
-  ('min_def', 'Ministre de la Defense', 'pm', 'pays', NULL),
+  ('min_ae', 'Ministre des Affaires Étrangères', 'pm', 'pays', NULL),
+  ('min_def', 'Ministre de la Défense', 'pm', 'pays', NULL),
   ('min_fin', 'Ministre des Finances', 'pm', 'pays', NULL),
   ('min_info', 'Ministre de l''Information', 'pm', 'pays', NULL),
-  ('min_int', 'Ministre de l''Interieur', 'pm', 'pays', NULL),
+  ('min_int', 'Ministre de l''Intérieur', 'pm', 'pays', NULL),
   ('min_just', 'Ministre de la Justice', 'pm', 'pays', NULL),
   ('pm', 'Premier Ministre', 'president', 'pays', NULL),
-  ('procureur', 'Procureur de la Republique', 'min_just', 'pays', 'pays')
+  ('procureur', 'Procureur de la République', 'min_just', 'pays', 'pays')
 ON CONFLICT DO NOTHING;

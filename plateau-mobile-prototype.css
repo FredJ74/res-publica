@@ -132,10 +132,7 @@
     font:700 clamp(1.12rem,4.7vw,1.65rem) 'Playfair Display',serif;
     letter-spacing:.025em;color:#e7eff7;
   }
-  #topbar .logo::after{
-    content:'RES PUBLICA';display:block;margin-top:6px;
-    font:600 .65rem 'Crimson Pro',serif;letter-spacing:.18em;color:#a9c2d2;
-  }
+  /* Plus de sous-titre « RES PUBLICA » (Fred, 23/11/2026, point 4) : le jeu s'appelle Human Gambit. */
   #topbar,#hg-mobile-identite-20261117,#vue-rue .hg-explore-head,#vue-rue .city-header{
     background:#172b3c;
   }

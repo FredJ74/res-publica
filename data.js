@@ -176,7 +176,10 @@ function villesDe(pays) {
 // restent traites par leur registre existant dans renderRoomActions.
 function ordresDeclaresDeLaPiece(piece, contexte, pieceId) {
   const surcharge = contexte?.roomOverrides?.[pieceId];
-  const exclus = surcharge?.excludeOrders || [];
+  // Ordres masqués tant que le goulag de Sovarka est verrouillé (Fred, 23/11/2026, point 5 : le taxi du QHS y mène).
+  // Lecture de plateau-goulag-ouverture.js (RPC sovarka_goulag_ouvert) ; sans réponse, l'ordre reste masqué.
+  const goulagOuvert = typeof window !== 'undefined' && typeof window.goulagOuvert === 'function' && window.goulagOuvert() === true;
+  const exclus = (surcharge?.excludeOrders || []).concat(goulagOuvert ? [] : (surcharge?.masquerSiGoulagFerme || []));
   // L'exclusion porte sur les ordres herites (gabarit, batiment), jamais sur ceux que la surcharge
   // ajoute elle-meme : une piece peut ainsi remplacer un ordre (01/11/2026, lot 6 de Montrouge).
   return [].concat(piece?.orders || [], contexte?.orders || [])
@@ -2273,7 +2276,8 @@ const WORLD = {
           desc: "Trans-Urals Express, taxis verts collectifs, bus du Parti. Camarade Horaire veille. Les trains arrivent à l'heure, c'est obligatoire.",
           persons: [{"name": "Camarade Horaire (PNJ)", "role": "Chef de gare", "rel": "neutral", "job": "chef_gare"}, {"name": "Agente Nadejda (PNJ)", "role": "Agente de contrôle", "rel": "neutral", "job": "securite"}],
           // La caserne de Sovarka est en ville (vues 11 et 12) : pas de taxi vers une caserne hors ville.
-          roomOverrides: { hall_gare: { excludeOrders: ['taxi_caserne'] } },
+          // Le taxi du QHS mène au goulag : masqué tant que le goulag est verrouillé (le serveur refuse aussi, goulag_ferme).
+          roomOverrides: { hall_gare: { excludeOrders: ['taxi_caserne'], masquerSiGoulagFerme: ['taxi_qhs'] } },
           rooms: {
           'hall_gare': {
             name: "Hall Principal — Gare Centrale du Peuple",
@@ -4560,7 +4564,7 @@ const BUILDINGS = {
           {name:'Tristan Cabane (PNJ)', role:'Detenu', rel:'neutral', job:'detenu', photoUrl:'images/commissariat-tristan-cabane.webp', photoPos:'50% 15%'}
         ],
         orders: [
-          {fn:'se_rebeller',     label:'Se rebeller',                        pa:2, cost:0,    type:'illegal', icon:'ti-flame',      successRate:30,  desc:'Reserve aux emprisonnes. Defi bruyant aux gardiens : succes = +DIS mais peine allongee, echec = transfert au QHS. Endommage les grilles dans tous les cas.'},
+          {fn:'se_rebeller',     label:'Se rebeller',                        pa:1, cost:0,    type:'illegal', icon:'ti-flame',      successRate:30,  desc:'Reserve aux emprisonnes. Defi bruyant aux gardiens : succes = +DIS mais peine allongee, echec = transfert au QHS. Endommage les grilles dans tous les cas.'},
           {fn:'tentative_evasion',label:'Tenter de s\'evader',               pa:3, cost:0,    type:'illegal', icon:'ti-run',        successRate:10,  desc:'Tres risque, une tentative par jour. Succes : liberte. Echec : transferement en prison.'}
         ]
       },
@@ -6041,7 +6045,7 @@ const BUILDINGS = {
         imageUrl: "images/montrouge/montrouge-commissariat-geoles.jpg",
         persons: [],
         orders: [
-          {fn:'se_rebeller',     label:'Se rebeller',                        pa:2, cost:0,    type:'illegal', icon:'ti-flame',      successRate:30,  desc:'Reserve aux emprisonnes. Defi bruyant aux gardiens : succes = +DIS mais peine allongee, echec = transfert au QHS. Endommage les grilles dans tous les cas.'},
+          {fn:'se_rebeller',     label:'Se rebeller',                        pa:1, cost:0,    type:'illegal', icon:'ti-flame',      successRate:30,  desc:'Reserve aux emprisonnes. Defi bruyant aux gardiens : succes = +DIS mais peine allongee, echec = transfert au QHS. Endommage les grilles dans tous les cas.'},
           {fn:'tentative_evasion',label:'Tenter de s\'evader',               pa:3, cost:0,    type:'illegal', icon:'ti-run',        successRate:10,  desc:'Tres risque, une tentative par jour. Succes : liberte. Echec : transferement en prison.'}
         ]
       },
@@ -10754,16 +10758,16 @@ const POSTES_NOMMES_EXCLUSIFS = {
   // -- c'est desormais la SEULE prerogative judiciaire du ministre, qui ne peut plus classer une
   // plainte lui-meme. La competence territoriale ne se partage pas, elle se DEPLACE : chaque
   // acte du parquet exige la presence du Procureur dans le tribunal de la ville de l'affaire.
-  procureur:   { label: 'Procureur de la Republique', nommePar: 'min_just', scope: 'pays', autoriteScope: 'pays', compatibles: ['depute'] },
+  procureur:   { label: 'Procureur de la République', nommePar: 'min_just', scope: 'pays', autoriteScope: 'pays', compatibles: ['depute'] },
   commissaire: { label: 'Commissaire', nommePar: 'maire',    scope: 'ville', compatibles: ['depute'] },
   commandant:  { label: 'Commandant de la Caserne', nommePar: 'min_def', scope: 'pays', compatibles: ['depute'] },
   pm:          { label: 'Premier Ministre',              nommePar: 'president', scope: 'pays', compatibles: ['depute'] },
-  min_int:     { label: "Ministre de l'Interieur",       nommePar: 'pm',        scope: 'pays', compatibles: ['depute'] },
+  min_int:     { label: "Ministre de l'Intérieur",       nommePar: 'pm',        scope: 'pays', compatibles: ['depute'] },
   min_fin:     { label: 'Ministre des Finances',         nommePar: 'pm',        scope: 'pays', compatibles: ['depute'] },
   min_just:    { label: 'Ministre de la Justice',        nommePar: 'pm',        scope: 'pays', compatibles: ['depute'] },
-  min_def:     { label: 'Ministre de la Defense',        nommePar: 'pm',        scope: 'pays', compatibles: ['depute'] },
+  min_def:     { label: 'Ministre de la Défense',        nommePar: 'pm',        scope: 'pays', compatibles: ['depute'] },
   min_info:    { label: "Ministre de l'Information",     nommePar: 'pm',        scope: 'pays', compatibles: ['depute'] },
-  min_ae:      { label: 'Ministre des Affaires Etrangeres', nommePar: 'pm',     scope: 'pays', compatibles: ['depute'] },
+  min_ae:      { label: 'Ministre des Affaires Étrangères', nommePar: 'pm',     scope: 'pays', compatibles: ['depute'] },
 
   // Directeurs des entreprises stategiques — nommes par le Ministre des Finances, portee
   // nationale (comme les ministres/juge), meme si physiquement rattaches a une ville precise.

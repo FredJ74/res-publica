@@ -1192,7 +1192,7 @@ async function doLogePortail(pa, cost) {
 function openNominerModal() {
   const contacts = state.contacts || [];
   const ministeres = ['min_int','min_fin','min_just','min_def','min_info','min_ae'];
-  const noms = { min_int:"Ministre de l'Interieur", min_fin:'Ministre des Finances', min_just:'Ministre de la Justice', min_def:'Ministre de la Defense', min_info:"Ministre de l'Information", min_ae:'Ministre des AE' };
+  const noms = { min_int:"Ministre de l'Intérieur", min_fin:'Ministre des Finances', min_just:'Ministre de la Justice', min_def:'Ministre de la Défense', min_info:"Ministre de l'Information", min_ae:'Ministre des AE' };
 
   document.getElementById('postes-modal-title').textContent = 'Nommer un ministre';
   let html = '<div style="padding:1rem">';
@@ -1221,7 +1221,7 @@ async function validerNomination() {
   const poste = document.getElementById('nommer-poste')?.value;
   const contact = document.getElementById('nommer-contact')?.value;
   if (!poste || !contact) return;
-  const noms = { min_int:"Ministre de l'Interieur", min_fin:'Ministre des Finances', min_just:'Ministre de la Justice', min_def:'Ministre de la Defense', min_info:"Ministre de l'Information", min_ae:'Ministre des AE' };
+  const noms = { min_int:"Ministre de l'Intérieur", min_fin:'Ministre des Finances', min_just:'Ministre de la Justice', min_def:'Ministre de la Défense', min_info:"Ministre de l'Information", min_ae:'Ministre des AE' };
   const posteNom = noms[poste] || (state.postesCustom?.ministre?.nom) || (state.postesCustom?.comite?.nom) || poste;
   document.getElementById('modal-postes').classList.remove('open');
   await envoyerNotificationVraiJoueur(contact, 'Nomination ministerielle', 'Par decision presidentielle, vous etes nomme(e) au poste de ' + posteNom + '. Prenez vos fonctions immediatement.');

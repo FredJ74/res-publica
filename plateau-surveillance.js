@@ -185,7 +185,7 @@ function surveillanceFenetreTrouvaille(trouvees, couinator) {
 const PIECE_TXT = {
   inspecter: 'Inspecter la pièce',
   inspecterRue: 'Inspecter les lieux',
-  inspecterDesc: 'Voir ce qui est installé ici (gratuit), fouiller les lieux (1 PA), désinstaller votre matériel.',
+  inspecterDesc: 'Ouvrir la fenêtre est gratuit. À l’intérieur : voir ce qui est installé (gratuit), fouiller les lieux (1 PA), désinstaller votre matériel (2 PA), voler (2 PA).',
   inspecterRueDesc: 'Chercher les caméras cachées dans cette rue (1 PA). Personne ne se cache dans la rue.',
   inspecterIntro: 'Vous fouillez les lieux de fond en comble : caméras cachées et personnes cachées. Coût : <strong>1 PA</strong>.',
   inspecterRueIntro: 'Vous inspectez la rue à la recherche de caméras cachées. Coût : <strong>1 PA</strong>.',
@@ -206,7 +206,7 @@ const PIECE_TXT = {
   installeVide: 'Aucun matériel n’est installé dans cette pièce.',
   installeVolNote: '« Voler » applique les règles du vol de matériel : 2 PA ; sans témoin, vous l’emportez mais laissez une trace ; si quelqu’un est là, il peut vous surprendre et le propriétaire peut porter plainte.',
   aVous: 'à vous', aAutrui: 'à quelqu’un d’autre',
-  volerBouton: 'Voler',
+  volerBouton: 'Voler (2 PA)',
   fouillerIntro: 'Cherche les personnes cachées et les caméras cachées.',
   desinstaller: 'Désinstaller',
   desinstallerChezSoi: 'Vous êtes chez vous (ou dans le local de votre organisation) : vous pouvez désinstaller tout le matériel, légalement.',
@@ -222,7 +222,13 @@ const PIECE_TXT = {
 };
 const pieceTxt = (k, v) => String(PIECE_TXT[k] || '').replace(/\{(\w+)\}/g, (_, x) => (v && v[x] != null ? v[x] : ''));
 
+// Catalogue des coûts (ordres_couts, généré depuis les déclarations : outils/generateurs/extraire-ordres-modules.cjs).
+// La FOUILLE est la seule option payante de la fenêtre « Inspecter la pièce » : inspecter_piece, 1 PA, débité au serveur.
+// L'ouverture de la fenêtre ne coûte rien (Fred, 23/11/2026, point 10) : son bouton reprend OUVERTURE_INSPECTION (0 PA)
+// par décomposition, pour ne pas déclarer un second tarif « inspecter_piece 0 PA » au catalogue.
+const TARIF_FOUILLE = { fn: 'inspecter_piece', label: 'Fouiller les lieux', pa: 1, cost: 0 };
 function ordresFouillerVoler(buildingId, roomId) {
+  const OUVERTURE_INSPECTION = { pa: 0, cost: 0, type: 'legal', icon: 'ti-search', successRate: 100, basDeListe: true };
   if (!buildingId || !roomId) return [];
   // Vues en plein air (Fred, 22/11/2026, GAME-DESIGN-SANTE-20261122.md, point 17 : PIECES_PLEIN_AIR et fiches pleinAir,
   // plateau-climat.js) : ni « Inspecter la pièce » ni désinstallation ; « Se cacher » reste. Le serveur refuse aussi
@@ -234,10 +240,11 @@ function ordresFouillerVoler(buildingId, roomId) {
   const seCacher = { fn: 'se_cacher', label: pieceTxt('seCacher'), pa: 1, cost: 0, type: 'legal', icon: 'ti-eye-off', successRate: 70, basDeListe: true,
     desc: pieceTxt('seCacherDesc') };
   if (pleinAir) return [seCacher];
-  // « pa: 1 » : le tarif d'ordres_couts reste celui de la fouille (seule action payante de la fenêtre) ; le routeur ouvre la
-  // fenêtre avant tout débit, la fouille débite son PA au serveur.
+  // Ouvrir la fenêtre coûte 0 PA (Fred, 23/11/2026, point 10) : seules les options choisies à l'intérieur coûtent des PA,
+  // chacune avec son tarif sur son bouton (Fouiller 1 PA, Désinstaller 2 PA, Voler 2 PA). Le routeur ouvre la fenêtre
+  // avant tout débit ; la fouille débite son PA au serveur (inspecter_piece, 1 PA dans ordres_couts).
   return [
-    { fn: 'inspecter_piece', label: pieceTxt('inspecter'), pa: 1, cost: 0, type: 'legal', icon: 'ti-search', successRate: 100, basDeListe: true,
+    { ...OUVERTURE_INSPECTION, fn: 'inspecter_piece', label: pieceTxt('inspecter'), type: 'legal', icon: 'ti-search', successRate: 100, basDeListe: true,
       desc: pieceTxt('inspecterDesc') },
     seCacher
   ];
@@ -250,7 +257,7 @@ if (typeof window !== 'undefined') {
 // Bouton de la vue de rue (même place : tout en bas, en vert) : caméras seulement.
 function ordreFouillerVolerRueHtml() {
   return '<button type="button" class="action-btn legal" data-fn="inspecter_piece" onclick="ouvrirFenetreInspecter()" title="' + pieceTxt('inspecterRueDesc') + '">' +
-    '<i class="ti ti-search" style="font-size:.82rem"></i> ' + pieceTxt('inspecterRue') + ' <span style="opacity:.7">(1 PA)</span></button>';
+    '<i class="ti ti-search" style="font-size:.82rem"></i> ' + pieceTxt('inspecterRue') + '</button>';
 }
 // Ancien nom (écran resté ouvert, ancien routeur) : ouvre la nouvelle fenêtre.
 function ouvrirMenuFouillerVoler() { ouvrirFenetreInspecter(); }

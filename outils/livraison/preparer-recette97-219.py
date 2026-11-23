@@ -137,6 +137,8 @@ def preparer(paquet=None):
  source_historique=[{'fn':'recolter_matiere','pa':2,'cost':0} if x=={'fn':'recolter_matiere','pa':1,'cost':0} else x for x in source_historique]
  # 18/11/2026 : naturalisation passée à 2 PA + 50 (nationalité, domicile et élections) ; la coupe historique garde 2 PA sans frais.
  source_historique=[{'fn':'demander_naturalisation','pa':2,'cost':0} if x=={'fn':'demander_naturalisation','pa':2,'cost':50} else x for x in source_historique]
+ # 23/11/2026 : rébellion passée à 1 PA (mission Novomirsk, point 12) ; la coupe historique garde 2 PA.
+ source_historique=[{'fn':'se_rebeller','pa':2,'cost':0} if x=={'fn':'se_rebeller','pa':1,'cost':0} else x for x in source_historique]
  cmp=module('delta_recette97','outils/baseline/comparer-couts-captures.py')
  ts=sorted(cmp.triples(source_historique))
  md5=hashlib.md5('\n'.join('%s|%d|%d'%t for t in ts).encode()).hexdigest()

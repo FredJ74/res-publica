@@ -6752,6 +6752,9 @@ export default async function handler(req, res) {
     const arrivagePoissonCriee = await tacheQuotidienne('arrivage_criee', genererArrivagePoissonCriee);
     // 12d. Usines d'Etat (Fred, 22/11/2026, Sante point 8) : boites des PNJ, antidotes des centres, excedent a la tutelle.
     const usinesEtatNuit = await tacheQuotidienne('usines_etat_nuit', async () => (await sbRpc('usines_etat_nuit', {}, HEADERS_SERVICE)) || { ok: false, raison: 'rpc_indisponible' });
+    // 12e. Entrepots municipaux (Fred, 23/11/2026, point 7) : l'excedent au-dessus du fonds de roulement est reverse a la
+    // mairie chaque nuit, APRES les livraisons (12). La fonction existait mais n'etait jamais appelee en production.
+    const entrepotsExcedent = await tacheQuotidienne('entrepots_reverser_excedent', async () => (await sbRpc('entrepots_reverser_excedent', {}, HEADERS_SERVICE)) || { ok: false, raison: 'rpc_indisponible' });
 
     // 13. Production quotidienne des transformateurs (mode PNJ), redistribution 60/40
     const production = await tacheQuotidienne('production_transformateurs', produireTransformateursQuotidien);

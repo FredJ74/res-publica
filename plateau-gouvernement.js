@@ -646,7 +646,7 @@ function ouvrirAdresseALaNation() {
 
 // ---- BUREAU DU MINISTRE DE L'INTERIEUR ----
 
-// traiter_manifestations (1 PA) + interdire_manif (2 PA) + reprimer_manif (3 PA).
+// traiter_manifestations (1 PA) + interdire_manif (2 PA) + reprimer_manif (1 PA depuis le 23/11/2026, point 12).
 // Une seule famille : le traitement des manifestations, de l'autorisation prealable a la
 // dispersion. Les trois handlers restent strictement separes -- aucune logique metier fusionnee.
 // L'impossibilite de reprimer quand un syndicat de police est en greve etait un toast d'echec
@@ -662,8 +662,8 @@ function ouvrirGestionManifestations() {
       onclick: 'doTraiterManifestations(1,0)' },
     { label: 'Interdire une manifestation', pa: 2, desc: 'Interdire un rassemblement déjà autorisé ou annoncé.',
       onclick: 'ouvrirInterdireManif(2,0)' },
-    { label: 'Réprimer une manifestation', pa: 3, desc: 'Ordonner la dispersion par les forces de l\'ordre.',
-      onclick: 'ouvrirReprimerManif(3,0)',
+    { label: 'Réprimer une manifestation', pa: 1, desc: 'Ordonner la dispersion par les forces de l\'ordre.',
+      onclick: 'ouvrirReprimerManif(1,0)',
       indisponible: policeEnGreve
         ? 'Un syndicat de policiers est en grève : la répression est impossible tant qu\'il n\'y met pas fin.'
         : null }

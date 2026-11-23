@@ -38,6 +38,7 @@ def main():
  # 16/11/2026 : récolte passée de 2 à 1 PA (régulation de la production) ; la photographie garde l'ancien tarif.
  canon={('recolter_matiere',2,0) if t==('recolter_matiere',1,0) else t for t in canon}
  canon={('demander_naturalisation',2,0) if t==('demander_naturalisation',2,50) else t for t in canon}
+ canon={('se_rebeller',2,0) if t==('se_rebeller',1,0) else t for t in canon}  # 23/11/2026 : rébellion à 1 PA
  retire={(x['fn'],x['pa'],x['cost']) for x in plan['retirer']};ajoute={(x['fn'],x['pa'],x['cost']) for x in plan['ajouter']};capture=sorted((canon-ajoute)|retire)
  assert len(capture)==plan['avant']['lignes']
  base=charger('base','outils/bancs/banc-inventaire-receptions-local.py');a=charger('sources','outils/bancs/banc-audit-securite-135-local.py')

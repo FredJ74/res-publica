@@ -605,6 +605,11 @@ let state = {
 // « let state » n'est pas une propriété de window : plusieurs modules (informateurs, accueil, médecin, secrets, énigme de
 // Krasnov, événements) lisent window.state. Cet accesseur leur donne toujours l'objet courant (Fred, 23/11/2026).
 try { Object.defineProperty(window, 'state', { get() { return state; }, set(v) { state = v; }, configurable: true }); } catch (e) {}
+// Nom du pays tel qu'on l'écrit en français, avec ses accents (Fred, 23/11/2026, point 3) : COUNTRIES[c].n reste la clé
+// historique sans accent, lue par d'anciens écrans et bancs.
+function nomPaysAffiche(c) {
+  return ({ republic: 'Républia', soviet: 'Sovarka' })[c] || (typeof COUNTRIES !== 'undefined' && COUNTRIES[c]?.n) || c || '';
+}
 
 // =====================
 // INIT
@@ -2128,7 +2133,7 @@ function applyCharToState(char) {
   const archEl = document.getElementById('char-arch-left');
   if (archEl) {
     const dom = state.domicile;
-    const domPays = dom?.country ? (COUNTRIES[dom.country]?.n || '') : '';
+    const domPays = dom?.country ? nomPaysAffiche(dom.country) : '';
     const domVille = dom?.country && dom?.city ? (WORLD?.[dom.country]?.[dom.city]?.name || '') : '';
     const domStr = [domPays, domVille].filter(Boolean).join(' - ');
     archEl.textContent = [state.poste?.name, domStr].filter(Boolean).join(' · ');

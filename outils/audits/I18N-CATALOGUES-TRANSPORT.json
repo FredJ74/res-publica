@@ -382,10 +382,10 @@
     {
       "source": "i18n/organization-panel-resources.js",
       "packed": "i18n/packed/organization-panel-resources.js.br",
-      "sourceBytes": 5535,
-      "packedBytes": 2001,
-      "sourceSha256": "f0b53c07c2294e687977f50e75e687b954849b91caa28870fe6306d66e13e5c9",
-      "packedSha256": "008127635a92e4e6c5c4f4954ec373c8b73878787f1a03da75f16a695b508ea9"
+      "sourceBytes": 5540,
+      "packedBytes": 2015,
+      "sourceSha256": "a7dfe6ddd1e99099bde51912e493a1055d5de3e53d5a44aa365e9c328b5ff71c",
+      "packedSha256": "fef2f875839b9180b1983a8c242700bd30619d4359a1971d5e93b17c168e6607"
     },
     {
       "source": "i18n/organization-settings-resources.js",

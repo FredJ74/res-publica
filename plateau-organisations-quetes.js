@@ -705,11 +705,15 @@ async function confirmerCreationOrga(type) {
 
 // ------ ONGLET ORGAS ------
 
+// Toutes les organisations du joueur, quel que soit le pays où il se trouve (Fred, 23/11/2026,
+// GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md, point 2) : Arnie, en Sovarka, voit le S.E.V. de Républia.
+// Chaque carte porte une étiquette de pays ; les actions sur place restent contrôlées par le serveur.
 function renderOngletOrgas() {
-  const mesOrgas = (getMesOrgasPays()).filter(o =>
+  const mesOrgas = (state.organisations || []).filter(o =>
     o.membres?.some(m => m.nom === state.char?.name)
   );
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const nomPaysOrga = c => ({ republic: 'Républia', soviet: 'Sovarka' }[c] || COUNTRIES[c]?.n || c || '');
+  const curOrga = orga => COUNTRIES[orga.country_origine || state.country]?.cur || 'FR';
   const _rpOrgaPanelTexte = value => escapeHtmlText(String(value));
   const _rpOrgaPanelAction = (action, args) => _rpOrgaPanelTexte(action + '(' + args.map(value => JSON.stringify(String(value))).join(',') + ')');
   const _rpOrgaPanelMembres = count => '<span data-i18n="organizationPanel.memberCount" data-i18n-values="' + _rpOrgaPanelTexte(JSON.stringify({count})) + '">' + _rpOrgaPanelTexte(count) + ' membres</span>';
@@ -719,8 +723,10 @@ function renderOngletOrgas() {
   if (mesOrgas.length === 0) {
     return '<div class="hg-organisations" style="padding:1.5rem;text-align:center;color:#9a8a68;font-style:italic;font-size:.85rem">' +
       '<i class="ti ti-building-community" style="font-size:2rem;color:#2a2010;display:block;margin-bottom:.8rem"></i>' +
-      '<span data-i18n="organizationPanel.empty">Vous n\'appartenez a aucune organisation.</span><br>' +
-      '<span style="font-size:.75rem" data-i18n="organizationPanel.emptyHelp">Louez un local et creez votre organisation depuis "Gerer mon local".</span>' +
+      '<span data-i18n="organizationPanel.empty">Vous n\'appartenez à aucune organisation.</span><br>' +
+      (state.country === 'soviet'
+        ? '<span class="hg-orga-vide-sovarka">En Sovarka, demandez d\'abord un local à la mairie de votre ville. Une fois l\'attribution signée chez le notaire, vous pourrez y créer votre organisation.</span>'
+        : '<span data-i18n="organizationPanel.emptyHelp">Louez un local et créez votre organisation depuis « Gérer mon local ».</span>') +
       '</div>';
   }
 
@@ -740,11 +746,12 @@ function renderOngletOrgas() {
       '<div style="padding:.8rem 1rem;border-bottom:1px solid #1a1208;display:flex;align-items:center;gap:.7rem">' +
         avatarHtml +
         '<div style="flex:1;min-width:0">' +
-          '<div style="font-family:Bebas Neue,sans-serif;font-size:.92rem;color:#E8C97A;letter-spacing:.06em">' + _rpOrgaPanelTexte(orga.nom) + '</div>' +
+          '<div style="font-family:Bebas Neue,sans-serif;font-size:.92rem;color:#E8C97A;letter-spacing:.06em">' + _rpOrgaPanelTexte(orga.nom) +
+            ' <span class="hg-orga-pays" style="font-family:Crimson Pro,serif;font-size:.85rem;letter-spacing:0;color:#c0b090;border:1px solid #3a2a10;padding:0 .35rem;margin-left:.3rem">' + _rpOrgaPanelTexte(nomPaysOrga(orga.country_origine)) + '</span></div>' +
           '<div style="font-size:.72rem;color:#8a8060">' + orgaCreationTypeHtml(orga.type, def.label||'') + ' · ' + _rpOrgaPanelTexte(monMembre?.grade||'') + (estChef ? ' 👑' : '') + ' · ' + _rpOrgaPanelMembres(orga.membres?.length||0) + '</div>' +
           (orga.devise ? '<div style="font-size:.85rem;color:#9a8a68;font-style:italic">"' + _rpOrgaPanelTexte(orga.devise) + '"</div>' : '') +
         '</div>' +
-        '<div style="font-family:Bebas Neue,sans-serif;font-size:.75rem;color:#C9A84C">' + (orga.caisse||0).toLocaleString('fr-FR') + ' ' + cur + '</div>' +
+        '<div style="font-family:Bebas Neue,sans-serif;font-size:.75rem;color:#C9A84C">' + (orga.caisse||0).toLocaleString('fr-FR') + ' ' + curOrga(orga) + '</div>' +
       '</div>' +
 
       '<div style="padding:.5rem .8rem;display:flex;flex-wrap:wrap;gap:.35rem;border-bottom:1px solid #1a1208">' +

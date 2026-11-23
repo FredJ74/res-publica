@@ -43,7 +43,8 @@
     hrp: 'Hors jeu',
     compris: 'Compris'
   };
-  const PORTRAITS = { 'Jodie Moitout': 'images/jodie-moitout.webp' };   // Vera Pravdina : portrait à fournir par Fred.
+  // Portraits des deux journalistes (Vera Pravdina : portrait fourni par Fred le 23/11/2026, point 15 ; plus de pastille « V »).
+  const PORTRAITS = { 'Jodie Moitout': 'images/jodie-moitout.webp', 'Vera Pravdina': 'images/Sovarka/Novomirsk/Novo_vera_pravdina_portrait.webp' };
   const f = (t, v) => String(t).replace(/\{(\w+)\}/g, (_, k) => (v && v[k] != null ? v[k] : ''));
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 

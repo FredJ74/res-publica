@@ -689,12 +689,27 @@ function switchSelfTab(tab, el) {
     const char = state.char;
     const ar = ARCHETYPES.find(x => x.id === char?.archetype);
     const ca = CAREERS.find(x => x.id === char?.career);
-    const co = COUNTRIES[state.country];
+    // Pays DU PERSONNAGE (sa nationalité), pas celui où il se trouve (Fred, 23/11/2026, point 3 : Arnie, ministre de
+    // Républia en visite en Sovarka, lit « Calculateur · Républia »).
+    const ligneAnnuaire = (typeof _sbAnnuaireCache !== 'undefined' && Array.isArray(_sbAnnuaireCache))
+      ? _sbAnnuaireCache.find(r => r && r.name === char?.name) : null;
+    const paysPJ = state.nationalite || char?.nationalite || ligneAnnuaire?.nationalite || state.country;
+    if (!state.nationalite && !char?.nationalite && !ligneAnnuaire && typeof sbListPersonnages === 'function') {
+      // Nationalité pas encore lue : une lecture de l'annuaire (déjà partagée, 30 s), puis la fiche se redessine.
+      sbListPersonnages().then(rows => {
+        const r = Array.isArray(rows) ? rows.find(x => x && x.name === char?.name) : null;
+        if (r && r.nationalite && !state.nationalite) {
+          state.nationalite = r.nationalite;
+          if (document.getElementById('self-identite-racine') && typeof switchSelfTab === 'function') switchSelfTab('identite', null);
+        }
+      }).catch(() => {});
+    }
+    const co = { n: typeof nomPaysAffiche === 'function' ? nomPaysAffiche(paysPJ) : (COUNTRIES[paysPJ]?.n || '') };
     const photo = char?.photoUrl
       ? '<img src="' + char.photoUrl + '" style="width:80px;height:80px;border-radius:50%;border:2px solid #8a6a20;object-fit:cover">'
       : '<div style="width:80px;height:80px;border-radius:50%;background:#1a1508;border:2px solid #3a2a10;display:flex;align-items:center;justify-content:center;color:#C9A84C"><i class="ti ti-user" style="font-size:1.8rem"></i></div>';
 
-    let html = '<div style="padding:1.2rem;max-width:600px">';
+    let html = '<div id="self-identite-racine" style="padding:1.2rem;max-width:600px">';
     html += '<div style="display:flex;align-items:center;gap:1rem;margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px solid #1a1810">';
     html += photo;
     html += '<div><div style="font-family:Playfair Display,serif;font-size:1.2rem;font-weight:700;color:#E8C97A">' + (char?.name||'') + '</div>';
