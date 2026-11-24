@@ -14072,6 +14072,13 @@ async function audienceConsentir(affaireId, jour) {
 let _audienceAffaire = null, _audienceDernierRang = 0, _audienceMinuteur = null;
 
 async function ouvrirChatAudience(affaireId) {
+  // SANS IDENTIFIANT, PAS D'AUDIENCE (Fred, 24/11/2026, retour d'un nouveau joueur au tribunal) : un clic sur
+  // « Assister a cette affaire » avec le champ vide ouvrait une fenetre restee sur « Chargement... » pour toujours.
+  affaireId = String(affaireId || '').trim();
+  if (!affaireId) {
+    if (typeof showToast === 'function') showToast('Audience', 'Indiquez d\'abord l\'identifiant de l\'affaire.', false);
+    return;
+  }
   _audienceAffaire = affaireId;
   _audienceDernierRang = 0;
   justiceOuvrirModale('Audience', '<div id="audience-corps" style="padding:1rem;max-width:720px">'
@@ -14256,10 +14263,14 @@ async function ouvrirAudienceDepuisLaSalle() {
   // l'identifiant de l'affaire quand elle n'est pas joignable.
   const affaires = (v && v.ok === true && Array.isArray(v.affaires))
     ? v.affaires.filter(a => a.statut === 'saisie') : [];
+  // Liste lisible et vide : on le dit, au lieu d'annoncer une audience qui n'existe pas.
+  const listeLue = !!(v && v.ok === true);
   let h = '<div style="padding:1rem;max-width:620px">'
     + '<div style="font-size:.74rem;color:#8a8060;margin-bottom:.6rem;line-height:1.5">'
-    + 'Une audience se tient dans cette salle. Vous pouvez y assister ; vous n\'y prenez la parole '
-    + 'que si vous etes partie a l\'affaire, ou si le juge vous l\'a donnee.</div>';
+    + (listeLue && !affaires.length
+       ? 'Aucune audience ne se tient en ce moment. '
+       : 'Vous pouvez assister aux audiences de cette salle. ')
+    + 'Vous n\'y prenez la parole que si vous etes partie a l\'affaire, ou si le juge vous l\'a donnee.</div>';
   if (affaires.length) {
     affaires.forEach(a => {
       h += '<div style="border-top:1px solid #2a1a0a;padding:.5rem 0;display:flex;justify-content:space-between;align-items:center;gap:.5rem">'
