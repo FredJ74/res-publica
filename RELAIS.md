@@ -9,6 +9,13 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Mobile — guidage des pièces de Jérémy (ChatGPT, 24/11/2026)
+- Branche `chatgpt/mobile-guidage-pieces-20261124`, PR #1186.
+- Régression : l'onglet « Pièces » masque sur téléphone la pièce surlignée par le parcours Jérémy. `queteAccueilSurbrillance` ouvre le panneau uniquement si la pièce visée est cachée, puis applique l'effet existant sans déclencher d'ordre.
+- Banc isolé `outils/bancs/banc-mobile-guidage-pieces-20261124.cjs` (trois scénarios), CI `.github/workflows/mobile-guidage-pieces-20261124.yml` ; dédié vert lors du premier push.
+- À terminer : CI complète PR, fusion, contrôle Vercel production. À tester en jeu sur vrai téléphone : chemin Jérémy à l'Hôtel de Ville de Luthécia jusqu'à la salle des élections.
+
+
 ### Bloc 4 — lieux de Krasnov (Claude, 23/11/2026) — points 29 à 34 de GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md
 - Branche `claude/bloc4-krasnov-20261123`. Banc : `outils/bancs/banc-bloc4-krasnov-20261123.cjs` (statique + vrai Chromium pour le karaoké).
 - **Migration APPLIQUÉE en production le 23/11/2026** (feu vert de Fred ; contrôlée en lecture : tarif retiré, carnet mis à jour, bureau_1 à bureau_4 à 40 PSK, fantômes retirés, boutique de la station ; goulag false, postes_attribues 6) : `migrations/20261123214000_bloc4_lieux_krasnov.sql` (tarif de l'ordre supprimé `repondre_enigme_krasnov`
