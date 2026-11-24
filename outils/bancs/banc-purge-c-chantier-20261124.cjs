@@ -17,3 +17,10 @@ test('C.6 : le lot 3 de Luthécia s’appelle « Terrain à bâtir », plus aucu
     if (fs.existsSync(path.join(racine, f))) assert.doesNotMatch(lire(f), /Lot de la Châtaigneraie/, f);
   }
 });
+
+test('C.3 : plus aucun renvoi vers l’ancien onglet « Stock de matériaux » dans les textes affichés', () => {
+  const js = lire('plateau-chantier-vue.js');
+  const textes = js.slice(js.indexOf('const TXT4 = {'), js.indexOf('const t4 ='));
+  assert.doesNotMatch(textes.replace(/o_stock: '[^']*'/, ''), /onglet « Stock de matériaux »|onglet « Main-d’œuvre »|onglet « Gestion »/);
+  assert.match(textes, /onglet « Participer », « Vendre mes matériaux au chantier »/);
+});

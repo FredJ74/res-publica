@@ -203,13 +203,14 @@ function suivre() {
 }
 
 // ── Fenêtre « Le chantier » : quatre onglets (Fred, 21/11/2026, soir) ─────────────────────────────────────
-// Elle ne s'ouvre JAMAIS seule : uniquement par l'ordre « Le chantier ». État (par défaut), Stock de matériaux,
-// Main-d'œuvre, Gestion (maître d'ouvrage). Chaque onglet s'affiche dans la fenêtre elle-même. Police plus grande.
+// Elle ne s'ouvre JAMAIS seule : uniquement par l'ordre « Le chantier ». Depuis la Purge (bloc C, 24/11/2026) : résumé
+// permanent en haut, onglets « Participer » (par défaut : travailler, vendre) et « Avancement » (ancien « État ») ;
+// « Gérer mon chantier » (propriétaire) est une vue à part de la même fenêtre. Clés o_etat/o_stock/o_main/o_gestion : plus affichées.
 // Jauges dessinées en CSS : cadre bronze en relief, petits carrés du rouge au vert, reflet, onglet incliné rayé.
 const TXT4 = {
   o_etat: 'État', o_stock: 'Stock de matériaux', o_main: 'Main-d’œuvre', o_gestion: 'Gestion',
   j_chantier: 'Jour {x} / {n} · {p} %', j_jour: '{f} / {c} h', j_heures: 'Heures du jour', j_suivante: 'Étape suivante : {e}', j_fin: 'Fin prévue : {date}',
-  j_journal: 'Journal du chantier', j_manque: 'L’entrepôt de {ville} n’a pas pu tout fournir : il manque {liste} pour aujourd’hui. Passants, vendez ou donnez ces matériaux au chantier (onglet « Stock de matériaux ») : il vous les rachète.',
+  j_journal: 'Journal du chantier', j_manque: 'L’entrepôt de {ville} n’a pas pu tout fournir : il manque {liste} pour aujourd’hui. Passants, vendez ou donnez ces matériaux au chantier (onglet « Participer », « Vendre mes matériaux au chantier ») : il vous les rachète.',
   j_commande: 'Commande de la nuit à l’entrepôt de {ville} : {livre}.', j_commande_avance: 'Jour d’avance ouvert : commande immédiate à l’entrepôt de {ville} : {livre}.', j_rien_livre: 'rien n’a pu être livré',
   j_journee: 'Nuit du {date} : le chantier a avancé de {a} jour(s).',
   j_crue: 'Nuit du {date} : crue dans la ville, le chantier n’a pas avancé (un jour de retard).',
