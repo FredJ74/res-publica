@@ -18,7 +18,7 @@ function sectionCrue() {
 }
 // Migrations du bloc D, dans l'ordre ; celles qui n'existent pas encore sont ignorées.
 const MIGRATIONS = ['20261124131000_canicule_en_journee', '20261124132000_climat_chantiers_canicule_crue_blizzard_starovka',
-  '20261124133000_climat_arret_chantier_nuit', '20261124134000_chantier_canicule_eau_ouvriers', '20261124135000_starovka_sans_canicule_ni_fontaine']
+  '20261124133000_climat_arret_chantier_nuit', '20261124134000_chantier_canicule_eau_ouvriers', '20261124135000_starovka_sans_canicule_ni_fontaine', '20261124136000_bouteille_eau_sovarka']
   .filter(m => fs.existsSync(path.join(root, 'migrations', m + '.sql')));
 
 function chantier(o = {}) {
@@ -234,4 +234,18 @@ test('D.5 : Starovka exclue des canicules (création refusée, planifiées annul
   assert.equal((await un(db, 'SELECT annule FROM climat_evenements WHERE id = $1', [id])).annule, true);
   assert.equal((await un(db, "SELECT climat_creer_interne('canicule','soviet','ville_a', (now() AT TIME ZONE 'Europe/Paris')::date + 5, 'T', 'mj') id")).id, null);
   assert.notEqual((await un(db, "SELECT climat_creer_interne('canicule','soviet','ville_b', (now() AT TIME ZONE 'Europe/Paris')::date + 5, 'T', 'mj') id")).id, null);
+});
+
+test('D.6 avant / après : aucune boutique climat de Sovarka ne vendait d’eau ; toutes la vendent à 4 PSK, la Républia garde 3 FR', async () => {
+  const avant = await base({ jusqua: 5 });
+  assert.equal((await un(avant, "SELECT count(*)::int n FROM climat_boutiques WHERE pays = 'soviet' AND 'bouteille_eau' = ANY (cles)")).n, 0);
+  const db = await base();
+  const b = (await db.query("SELECT id, cles FROM climat_boutiques WHERE pays = 'soviet' ORDER BY id")).rows;
+  assert.deepEqual(b.map(x => x.id), ['garage-novomirsk', 'station-service-krasnov', 'usine-pharma-novomirsk']);
+  for (const x of b) assert.ok(x.cles.includes('bouteille_eau'), x.id);
+  assert.equal(Number((await un(db, "SELECT climat_prix_pays_interne('bouteille_eau', 'soviet') p")).p), 4);
+  assert.equal(Number((await un(db, "SELECT climat_prix_pays_interne('bouteille_eau', 'republic') p")).p), 3);
+  assert.equal(Number((await un(db, "SELECT climat_prix_pays_interne('sels_rehydratation', 'soviet') p")).p), 22, 'sels inchangés');
+  await db.exec(lire('migrations/20261124136000_bouteille_eau_sovarka.sql'));
+  assert.equal((await un(db, "SELECT array_length(cles, 1) n FROM climat_boutiques WHERE id = 'garage-novomirsk'")).n, 3, 'rejouable sans doublon');
 });

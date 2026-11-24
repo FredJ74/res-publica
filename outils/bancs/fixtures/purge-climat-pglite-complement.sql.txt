@@ -162,3 +162,31 @@ CREATE TABLE public.climat_points_eau (id text PRIMARY KEY, pays text NOT NULL, 
   image text, actif boolean NOT NULL DEFAULT true, batiment text, remplace_par text);
 INSERT INTO public.climat_points_eau (id, pays, ville, noeud, nom) VALUES
   ('starovka-fontaine-mairie', 'soviet', 'ville_a', 'starovka-rue-mairie-marche', 'la fontaine de la place de la mairie, à Starovka');
+
+-- Prix des parades (définition de production de climat_prix_interne ; prix pays des sels simplifié).
+INSERT INTO public.aliments_parametres VALUES ('prix_bouteille_eau', 3), ('prix_groupe_electrogene', 900), ('prix_bidon_carburant', 20) ON CONFLICT DO NOTHING;
+INSERT INTO public.climat_boutiques VALUES ('usine-pharma-novomirsk','soviet','capitale','usine-pharmaceutique-luthecia','salle_ventes','{sels_rehydratation}'),
+  ('station-service-krasnov','soviet','ville_b','station-service-krasnov','boutique_station','{groupe_electrogene}') ON CONFLICT DO NOTHING;
+CREATE OR REPLACE FUNCTION public.pharmacie_prix_pays_interne(p_cle text, p_pays text) RETURNS integer LANGUAGE sql STABLE AS
+$$ SELECT CASE WHEN p_pays = 'soviet' THEN 22 ELSE 44 END $$;
+CREATE OR REPLACE FUNCTION public.climat_prix_interne(p_cle text)
+ RETURNS numeric
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT CASE p_cle
+    WHEN 'bouteille_eau' THEN public.aliments_param_interne('prix_bouteille_eau', 0)
+    WHEN 'bidon_carburant' THEN public.aliments_param_interne('prix_bidon_carburant', 20)
+    WHEN 'sels_rehydratation' THEN public.pharmacie_prix_interne('coup_de_chaleur')::numeric
+    ELSE public.aliments_param_interne('prix_groupe_electrogene', 0) END;
+$function$;
+CREATE OR REPLACE FUNCTION public.climat_prix_pays_interne(p_cle text, p_pays text)
+ RETURNS numeric
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT CASE WHEN p_cle = 'sels_rehydratation' THEN public.pharmacie_prix_pays_interne('coup_de_chaleur', p_pays)::numeric
+              ELSE public.climat_prix_interne(p_cle) END;
+$function$;

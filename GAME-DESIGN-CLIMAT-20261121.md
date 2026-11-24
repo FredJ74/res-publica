@@ -198,4 +198,7 @@ blizzard et de la canicule, fontaine de Starovka).
 - **D.5** : Starovka est exclue des canicules (`climat_villes_exclues`, ligne canicule / Sovarka / Starovka ; aucune canicule
   n'y avait de toute façon jamais été réglée). La fontaine de la place de la mairie de Starovka est **retirée** (désactivée) :
   plus d'ordre « Puiser de l'eau » dans la vue `starovka-rue-mairie-marche`, la liste du navigateur ne la renvoie plus, le
-  message « pas de point d'eau ici » dit que Starovka n'en a pas. Starovka compte donc cinq villes sur six avec fontaine.
+  message « pas de point d'eau ici » dit que Starovka n'en a pas. Le jeu compte donc cinq villes sur six avec une fontaine.
+- **D.6** : bouteille d'eau à **4 PSK** (réglage MJ `prix_bouteille_eau_sovarka`) dans les trois boutiques « Équipements contre
+  les intempéries » de Sovarka : usine pharmaceutique de Novomirsk (Pharmanov), garage de Novomirsk, station-service de Krasnov.
+  Starovka n'a pas de telle boutique (rien créé). La Républia garde 3 FR ; le marché de Krasnov garde son eau déjà puisée à 2 PSK.
