@@ -178,3 +178,8 @@ blizzard et de la canicule, fontaine de Starovka).
   `climat_parametres.duree_heures` (6 h) : 12 h → 18 h. Les reports « un seul événement à la fois par pays » retombent aussi à 12 h.
   Les canicules déjà planifiées sont ramenées à 12 h le même jour (correction publiée si l'alerte était sortie). Les autres
   événements gardent l'heure tirée au hasard (Q1 du 21/11).
+- **D.2** : `climat_parametres.bloque_chantiers` = non pour l'orage et le blizzard (oui pour la crue et la canicule). Consigne de
+  l'orage : « Pendant 6 heures, ordinateurs, box et caméras sont hors service : plus de surveillance, de trading à distance ni de
+  piratage, mais les chantiers continuent. Débranchez vos appareils électroniques. […] » (remplace « et les chantiers sont à
+  l'arrêt » du point 7). Blizzard : table `climat_villes_exclues` (Novomirsk et Krasnov exclues) ; le tirage du mandat ne crée plus
+  qu'un blizzard à Starovka ; ceux déjà planifiés à Novomirsk (28/11) et Krasnov (01/12) sont annulés.

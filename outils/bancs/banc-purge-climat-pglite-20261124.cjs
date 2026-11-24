@@ -96,3 +96,48 @@ test('D.1 : les canicules déjà planifiées passent à 12 h (correction publié
   assert.deepEqual(h, { h: 12, d: 6 });
   assert.ok((await un(db, 'SELECT debut > now() + interval \'7 days\' ok FROM climat_evenements WHERE id = $1', [c])).ok);
 });
+
+test('D.2 avant / après : orage et blizzard arrêtaient les chantiers ; seules canicule et crue les arrêtent', async () => {
+  const avant = await base({ jusqua: 1 });
+  await evenement(avant, 'orage', 0, { heure: 0, heures: 23 });
+  await avant.query("UPDATE climat_evenements SET debut = now() - interval '1 hour', fin = now() + interval '3 hours'");
+  assert.equal((await un(avant, "SELECT climat_chantiers_bloques_interne('republic','capitale') b")).b, true, 'avant : l’orage bloquait');
+  const db = await base({ jusqua: 2 });
+  const p = Object.fromEntries((await db.query('SELECT type, pays, bloque_chantiers b FROM climat_parametres')).rows.map(r => [r.type + '/' + r.pays, r.b]));
+  assert.deepEqual(p, { 'blizzard/soviet': false, 'crue/republic': true, 'canicule/republic': true, 'orage/republic': false, 'orage/soviet': false,
+    'brouillard/republic': false, 'brouillard/soviet': false });
+  for (const type of ['orage', 'blizzard', 'brouillard']) {
+    await db.query('DELETE FROM climat_evenements');
+    await evenement(db, type, 0, { heure: 0, heures: 23, pays: type === 'blizzard' ? 'soviet' : 'republic', ville: type === 'blizzard' ? 'ville_a' : 'capitale' });
+    await db.query("UPDATE climat_evenements SET debut = now() - interval '1 hour', fin = now() + interval '3 hours'");
+    const v = type === 'blizzard' ? "('soviet','ville_a')" : "('republic','capitale')";
+    assert.equal((await un(db, 'SELECT climat_chantiers_bloques_interne' + v + ' b')).b, false, type + ' ne bloque pas');
+  }
+  const r = await un(db, "SELECT chantier_travailler('Arnie', 'republic', 'terrain-a-batir-3', 1) r");
+  assert.notEqual(r.r.raison, 'chantier_intemperies');
+  // Consigne de l'orage : les chantiers continuent.
+  const c = (await un(db, "SELECT climat_consigne_interne('orage','republic','capitale') c")).c;
+  assert.match(c, /ni de piratage, mais les chantiers continuent\. Débranchez/); assert.doesNotMatch(c, /arrêt/);
+});
+
+test('D.2 : le blizzard n’est tiré qu’à Starovka ; les blizzards planifiés ailleurs sont annulés (correction si annoncés)', async () => {
+  let ids = {};
+  const db = await base({ jusqua: 2, avantMigrations: async d => {
+    ids.starovka = await evenement(d, 'blizzard', 2, { pays: 'soviet', ville: 'ville_a', heures: 24, effets: false });
+    ids.novomirsk = await evenement(d, 'blizzard', 4, { pays: 'soviet', ville: 'capitale', heures: 24, effets: false });
+    ids.krasnov = await evenement(d, 'blizzard', 7, { pays: 'soviet', ville: 'ville_b', heures: 24, effets: false });
+    await d.query('UPDATE climat_evenements SET alerte_le = NULL WHERE id = $1', [ids.krasnov]);
+  } });
+  const an = Object.fromEntries((await db.query('SELECT id, annule FROM climat_evenements')).rows.map(r => [r.id, r.annule]));
+  assert.deepEqual([an[ids.starovka], an[ids.novomirsk], an[ids.krasnov]], [false, true, true]);
+  assert.equal((await db.query("SELECT 1 FROM evenements_globaux WHERE texte LIKE '%blizzard%est levée%'")).rows.length, 1, 'une correction : Novomirsk était annoncé');
+  // Tirage du mandat : seuls des blizzards à Starovka.
+  await db.query('DELETE FROM climat_evenements');
+  await db.query("INSERT INTO cycles_electoraux VALUES ('soviet', 'president', $1, now())", [JSON.stringify({ dateFinMandat: Date.now() + 40 * 86400000 })]);
+  await un(db, 'SELECT climat_planifier_mandat_interne() n');
+  const villes = (await db.query("SELECT ville FROM climat_evenements WHERE type = 'blizzard'")).rows.map(r => r.ville);
+  assert.deepEqual(villes, ['ville_a']);
+  assert.equal((await un(db, "SELECT climat_creer_interne('blizzard','soviet','capitale', (now() AT TIME ZONE 'Europe/Paris')::date + 5, 'T', 'mj') id")).id, null);
+  await db.exec(lire('migrations/20261124132000_climat_chantiers_canicule_crue_blizzard_starovka.sql'));
+  assert.equal((await un(db, 'SELECT count(*)::int n FROM climat_villes_exclues')).n, 2);
+});
