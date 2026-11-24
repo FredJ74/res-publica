@@ -32,9 +32,10 @@
     journal: 'Journal du jour : à lire quand vous voulez',
     meteo: 'Événement climatique : à lire quand vous voulez'
   };
-  const VILLES = { republic: { capitale: 'Luthécia', ville_a: 'Port-Sainte-Marie', ville_b: 'Montrouge' },
-                   soviet: { capitale: 'Novomirsk', ville_a: 'Starovka', ville_b: 'Krasnov' } };
-  const PAYS = { republic: 'Républia', soviet: 'Sovarka' };
+  // Ville et pays de départ lus dans les données du jeu (précision de Fred, 24/11/2026) : villeNom (data.js) pour TOUTES
+  // les villes, nomPaysAffiche (plateau-core.js) pour le pays ; aucune table en dur, aucun repli sur le nom du jeu.
+  const nomVilleJeu = (pays, ville) => { try { return (typeof global.villeNom === 'function' && global.villeNom(pays, ville)) || ''; } catch (_) { return ''; } };
+  const nomPaysJeu = pays => { try { return (typeof global.nomPaysAffiche === 'function' && global.nomPaysAffiche(pays)) || ''; } catch (_) { return ''; } };
   // Ce qui compte comme « une fenêtre ouverte » (jamais deux à la fois).
   const OUVERTES = ['#hg-bienvenue', '#hg-accueil-interview', '#climat-explication', '#climat-gouvernement',
     '.modal-overlay.open', '#hg-notif-proposition', '#hg-bulle-pa'].join(',');
@@ -157,8 +158,8 @@
     const bv = accueil() && accueil().bienvenue;
     if (!bv || !bv.a_voir || bienvenue || doc.getElementById('hg-bienvenue')) return false;
     styles();
-    const ville = (VILLES[bv.pays] && VILLES[bv.pays][bv.ville]) || bv.ville || '';
-    const pays = PAYS[bv.pays] || '';
+    const ville = nomVilleJeu(bv.pays, bv.ville);
+    const pays = nomPaysJeu(bv.pays);
     bienvenue = doc.createElement('section');
     bienvenue.id = 'hg-bienvenue';
     bienvenue.setAttribute('role', 'dialog');

@@ -10,6 +10,11 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const source = fs.readFileSync(path.join(__dirname, '../../plateau-accueil-progressif.js'), 'utf8');
+// Noms de ville et de pays : les vraies fonctions du jeu (data.js : VILLES + villeNom ; plateau-core.js : nomPaysAffiche).
+const dataJs = fs.readFileSync(path.join(__dirname, '../../data.js'), 'utf8'), coreJs = fs.readFileSync(path.join(__dirname, '../../plateau-core.js'), 'utf8');
+const bloc = (src, debut, fin) => { const i = src.indexOf(debut); return src.slice(i, src.indexOf(fin, i) + fin.length); };
+const NOMS = vm.runInNewContext(bloc(dataJs, 'const VILLES = {', '\n};') + '\n' + bloc(dataJs, 'function villeNom(', '\n}')
+  + '\n' + bloc(coreJs, 'function nomPaysAffiche(', '\n}') + '\n({ villeNom, nomPaysAffiche, VILLES })', {});
 
 function environnement(serveur) {
   let clock = 1e6;
@@ -44,6 +49,7 @@ function environnement(serveur) {
   };
   const window = {
     document: doc, state: { country: 'soviet', currentCity: 'ville_b', char: { name: 'Testeur' } },
+    villeNom: NOMS.villeNom, nomPaysAffiche: NOMS.nomPaysAffiche,
     setInterval() {}, addEventListener() {},
     sbRpc: async (fn) => { appels.push(fn); return { ok: true }; },
     RPAccueil: { etat: () => serveur }
@@ -157,4 +163,18 @@ test('Quête de Luthécia : le garde attend la fin de la découverte (serveur), 
   const quete = fs.readFileSync(path.join(__dirname, '../../plateau-quete-accueil.js'), 'utf8');
   assert.match(quete, /gardeAttenteDecouverte: reporter/);
   assert.match(quete, /function queteAccueilAfficherGardeDifferee\(\)/);
+});
+
+test('Précision de Fred (24/11) : « Bienvenue à {ville} en {pays}, » pour TOUTES les villes de départ, lues dans les données du jeu', () => {
+  assert.doesNotMatch(source.replace(/\/\*[\s\S]*?\*\/|\/\/[^\n]*/g, ''), /const VILLES = |['"]Luthécia|['"]Novomirsk|Human Gambit/, 'aucune ville ni nom du jeu codés en dur dans le module');
+  let n = 0;
+  for (const pays of ['republic', 'soviet']) for (const ville of Object.keys(NOMS.VILLES[pays])) {
+    const etat = nouveau({ bienvenue: { pays, ville } });
+    const e = environnement(etat); e.ui.initialiser(etat);
+    const titre = e.doc.getElementById('hg-bienvenue').innerHTML.match(/<h2[^>]*>([^<]*)<\/h2>/)[1];
+    assert.equal(titre, 'Bienvenue à ' + NOMS.villeNom(pays, ville) + ' en ' + NOMS.nomPaysAffiche(pays) + ',', pays + '/' + ville);
+    assert.doesNotMatch(titre, /!/, 'pas de point d’exclamation');
+    n++;
+  }
+  assert.equal(n, 6);
 });
