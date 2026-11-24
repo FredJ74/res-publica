@@ -202,6 +202,12 @@ const PIECE_TXT = {
   voletInstalle: 'Ce qui est installé ici',
   voletFouiller: 'Fouiller les lieux',
   voletDesinstaller: 'Désinstaller',
+  // COÛTS SUR LES ONGLETS (Fred, 24/11/2026, capture du musée de Krasnov : « pas très clair sur les dépenses de PA ») :
+  // chaque onglet porte son tarif, et une ligne rappelle que changer d'onglet ne dépense rien.
+  voletInstalleCout: 'gratuit',
+  voletFouillerCout: '1 PA',
+  voletDesinstallerCout: '2 PA',
+  voletsNote: 'Passer d’un onglet à l’autre est gratuit. Seuls les boutons qui affichent un coût dépensent des PA.',
   installeIntro: 'Le matériel installé dans cette pièce, tel que tout le monde le voit. Regarder ne coûte rien.',
   installeVide: 'Aucun matériel n’est installé dans cette pièce.',
   installeVolNote: '« Voler » applique les règles du vol de matériel : 2 PA ; sans témoin, vous l’emportez mais laissez une trace ; si quelqu’un est là, il peut vous surprendre et le propriétaire peut porter plainte.',
@@ -309,9 +315,10 @@ function inspectionRendre(message) {
   const pa = Number(r.pa) || 0;
   const ech = surveillanceEchapper;
   const onglet = (id, cle) => '<button type="button" role="tab" class="cpj-touche' + (inspectionVolet === id ? ' cpj-primaire' : '') +
-    '" aria-selected="' + (inspectionVolet === id) + '" data-volet="' + id + '" onclick="inspectionOnglet(\'' + id + '\')">' + pieceTxt(cle) + '</button>';
-  let h = '<div class="hg-volets" role="tablist" style="display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.8rem">' +
-    onglet('installe', 'voletInstalle') + onglet('fouiller', 'voletFouiller') + onglet('desinstaller', 'voletDesinstaller') + '</div>';
+    '" aria-selected="' + (inspectionVolet === id) + '" data-volet="' + id + '" onclick="inspectionOnglet(\'' + id + '\')">' + pieceTxt(cle) + ' <span class="hg-cout">· ' + pieceTxt(cle + 'Cout') + '</span></button>';
+  let h = '<div class="hg-volets" role="tablist" style="display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.4rem">' +
+    onglet('installe', 'voletInstalle') + onglet('fouiller', 'voletFouiller') + onglet('desinstaller', 'voletDesinstaller') + '</div>' +
+    '<p class="cpj-note" style="margin:0 0 .8rem">' + pieceTxt('voletsNote') + '</p>';
   if (message) h += '<p style="color:#8ab070">' + ech(message) + '</p>';
   const ligne = (gauche, droite) => '<div class="hg-volet-ligne" style="display:flex;gap:.5rem;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:.45rem 0;border-top:1px solid #2a3340">' +
     '<span style="flex:1 1 12rem">' + gauche + '</span>' + droite + '</div>';

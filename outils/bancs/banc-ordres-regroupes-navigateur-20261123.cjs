@@ -102,7 +102,7 @@ for (const largeur of [1280, 390]) {
     await page.evaluate(() => ouvrirFenetreInspecter('installe'));
     await page.locator('[data-panneau="installe"]').waitFor();
     assert.equal(await page.locator('#postes-modal-title').innerText(), 'Inspecter la pièce');
-    assert.deepEqual((await page.locator('.hg-volets button').allTextContents()).map(x => x.trim()), ['Ce qui est installé ici', 'Fouiller les lieux', 'Désinstaller'], 'trois volets');
+    assert.deepEqual((await page.locator('.hg-volets button').allTextContents()).map(x => x.trim()), ['Ce qui est installé ici · gratuit', 'Fouiller les lieux · 1 PA', 'Désinstaller · 2 PA'], 'trois volets');
     assert.equal(await page.locator('.hg-volets button').count(), 3);
     let txt = await corps(page);
     assert.match(txt, /Ordinateur de Tom \(à quelqu’un d’autre\)/); assert.match(txt, /Box internet \(à vous\)/);
