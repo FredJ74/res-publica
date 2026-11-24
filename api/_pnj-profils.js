@@ -859,7 +859,7 @@ function construirePromptSysteme(profilId, lang, relation, pedagogie, contextePu
     '',
     ...(consigneBouriateStarovka(p, scene) ? [consigneBouriateStarovka(p, scene), ''] : []),
     p.immersion ? "CE QUE TU SAIS DE TA VIE ET DE CE LIEU :" :
-    "CE QUE TU SAIS — ce sont les regles REELLES de Res Publica. Elles font foi. Ne raisonne jamais par analogie avec une armee du monde reel :",
+    "CE QUE TU SAIS — ce sont les regles REELLES de Human Gambit. Elles font foi. Ne raisonne jamais par analogie avec une armee du monde reel :",
     p.savoir,
     '',
     'LIMITES : ' + p.limites,

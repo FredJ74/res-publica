@@ -406,10 +406,10 @@
     {
       "source": "i18n/plateau-resources.js",
       "packed": "i18n/packed/plateau-resources.js.br",
-      "sourceBytes": 36470,
-      "packedBytes": 7978,
-      "sourceSha256": "800d4e9814de8f223ba8d16b60412f19a61775d79e1106cbcce5530cb426beed",
-      "packedSha256": "13ef0f2f1f2d70b3e43e5469ca4bb7a8ac6eccc8790e4a61de4e58add324cf36"
+      "sourceBytes": 36478,
+      "packedBytes": 7969,
+      "sourceSha256": "3045117f8321af602cd748000ce82068f6242cd2fb11466c312f819655ab1e83",
+      "packedSha256": "df9d0931b8796f676f997d85b38e4eaf803933751ca3eeba0f229a7b44f0d9b3"
     },
     {
       "source": "i18n/player-directory-resources.js",
@@ -486,10 +486,10 @@
     {
       "source": "i18n/resources.js",
       "packed": "i18n/packed/resources.js.br",
-      "sourceBytes": 161382,
-      "packedBytes": 44982,
-      "sourceSha256": "121c96d3446fa710aed0fa1663b929285b04c9ede14bc0cf78e32eb9aa80c153",
-      "packedSha256": "c9a352eba61e2c6f9ad20c3407cbea2773ea90fe5d1613561072b489c056e086"
+      "sourceBytes": 161386,
+      "packedBytes": 44927,
+      "sourceSha256": "64f0d09d1a0fdf8a0a4225e21353fff956465aead31a22bbb7d06b6207cac42b",
+      "packedSha256": "f1b3ac55084bd779eef9602f50e113df392de313bd5281a7b6cf9922b7520c06"
     },
     {
       "source": "i18n/room-actions-resources.js",

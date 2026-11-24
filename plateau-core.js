@@ -729,7 +729,7 @@ window.addEventListener('load', () => {
   // 4 s : laisse la reconciliation asynchrone se terminer avant de dresser l'etat.
   setTimeout(() => {
     const d = window.__rpDiagId || { etapes: [] };
-    const texte = 'RES PUBLICA — diagnostic identite\n'
+    const texte = 'HUMAN GAMBIT — diagnostic identite\n'
       + 'bandeau present a l\'ecran : ' + (document.getElementById('bandeau-personnage-fantome') ? 'oui' : 'non') + '\n'
       + (d.etapes.length ? d.etapes.join('\n') : '(aucune etape consignee)');
     const boite = document.createElement('div');

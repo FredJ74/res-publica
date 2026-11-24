@@ -1327,7 +1327,7 @@ async function genererMeteoPolitique() {
   const presidentNom = CYCLES_ELECTORAUX?.[state.country]?.['president']?.eluId || 'Personne';
   const topics = (typeof FORUM_TOPICS !== 'undefined' && typeof idForumLocal === 'function' ? (FORUM_TOPICS[idForumLocal()] || []) : []).slice(0, 2).map(t => t.title).join(', ');
 
-  const prompt = 'Tu es le météorologue politique de ' + (co?.n || 'l\'empire') + ' dans Res Publica, jeu parodique. ' +
+  const prompt = 'Tu es le météorologue politique de ' + (co?.n || 'l\'empire') + ' dans Human Gambit, jeu parodique. ' +
     'Style : ' + empireStyle.tone + '. Religion : ' + empireStyle.religion + '. Chef : ' + empireStyle.leader + '. ' +
     'Président actuel : ' + presidentNom + '. ' +
     (topics ? 'Actualités récentes : ' + topics + '. ' : '') +

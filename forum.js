@@ -457,7 +457,7 @@ function rafraichirVoyantMailLocal() {
   const nonLus = mailsRecusVisibles().filter(m => !m.read).length;
   const badge = document.getElementById('mail-badge');
   if (badge) { badge.textContent = nonLus; badge.style.display = nonLus > 0 ? 'inline' : 'none'; }
-  document.title = nonLus > 0 ? '(' + nonLus + ') Res Publica' : 'Res Publica';
+  document.title = nonLus > 0 ? '(' + nonLus + ') Human Gambit' : 'Human Gambit';
 }
 function deleteMail(mailId) {
   const mails = getMails().filter(x => x.id !== mailId);
