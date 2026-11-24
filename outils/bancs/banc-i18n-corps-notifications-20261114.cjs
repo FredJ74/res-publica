@@ -128,7 +128,11 @@ test('aucun recouvrement avec les catalogues déjà raccordés (pas de double tr
  for(const f of [...html.matchAll(/src="(i18n\/[^"?]+)/g)].map(m=>m[1]).filter(f=>!/i18next|plateau-init|plateau-bridge|ordres\.js|texte-joueur|beta-language|toast-bodies/.test(f)))
   vm.runInContext(read(f),ctx,{filename:f});
  const fr=new Set();(function walk(o){for(const v of Object.values(o||{}))typeof v==='string'?fr.add(v):v&&typeof v==='object'&&walk(v)})(ctx.RP_I18N_RESOURCES.fr.translation);
- assert.deepEqual(rows.map(r=>r[0]).filter(x=>fr.has(x)),[]);
+ // Exception nommée (24/11/2026, fusion de #1132) : ces deux refus du Commerce PJ sont traduits par leurs propres clés
+ // (commercepj.refus.bail_absent / pas_titulaire, i18n/commerce-pj-complements-20261119.js) avant l'affichage ; le corps de
+ // notification français n'est donc jamais retraduit une seconde fois.
+ const COMMUNS_COMMERCE_PJ=new Set(['Vous ne louez pas ce local.',"Ce bail n'est pas le vôtre."]);
+ assert.deepEqual(rows.map(r=>r[0]).filter(x=>fr.has(x)&&!COMMUNS_COMMERCE_PJ.has(x)),[]);
 });
 
 test('showToast : français intact, neuf langues traduites, phrase inconnue ou dynamique laissée telle quelle',()=>{

@@ -432,7 +432,7 @@ const EAU_TXT = {
   quantite: 'Nombre de bouteilles à puiser',
   bouton: 'Puiser',
   fermer: 'Fermer',
-  ailleurs: 'Il n’y a pas de point d’eau ici : chaque ville a sa fontaine, sur sa place principale (à Krasnov, la place de l’Ours).',
+  ailleurs: 'Il n’y a pas de point d’eau ici : chaque ville a sa fontaine, sur sa place principale (à Krasnov, la place de l’Ours ; à Luthécia, la place du Formulaire de la Liberté).',
   ancien: 'Ce bouton a été remplacé par l’ordre « Puiser de l’eau » de la place.',
 };
 function eauTxt(k, v) {
@@ -451,9 +451,25 @@ function lirePointsEau() {
 }
 function pointEauIci() {
   const s = etat();
+  if (!pointsEau) return null;
+  const ici = p => p.ville === s.currentCity && (!s.country || p.pays === s.country);
+  // Point d'eau de lieu (Fred, 24/11/2026, F.1 : la fontaine de Luthécia est sur la place du Formulaire de la Liberté,
+  // un lieu où l'on entre) : l'ordre se range dans les ordres de la pièce (RP_ORDRES_DYNAMIQUES ci-dessous).
+  if (s.currentBuilding) return pointsEau.find(p => p.batiment && p.batiment === s.currentBuilding && ici(p)) || null;
   const noeud = (typeof rueCentraleNoeudActuel !== 'undefined') ? rueCentraleNoeudActuel : global.__rueNoeud;   // « let » de plateau-rue-centrale.js
-  if (!pointsEau || !noeud || s.currentBuilding) return null;
-  return pointsEau.find(p => p.noeud === noeud && p.ville === s.currentCity && (!s.country || p.pays === s.country)) || null;
+  if (!noeud) return null;
+  return pointsEau.find(p => !p.batiment && p.noeud === noeud && ici(p)) || null;
+}
+// Ordre de pièce « Puiser de l'eau » dans un lieu qui abrite une fontaine (le routeur l'envoie à ouvrirPuiserEau).
+function ordresPointEauDuLieu(buildingId) {
+  lirePointsEau();
+  const pe = pointEauIci();
+  if (!pe || pe.batiment !== buildingId) return [];
+  return [Object.assign({}, ORDRE_PUISER, { successRate: 100, desc: 'Eau gratuite : 1 PA par puisage, jusqu’à 10 bouteilles toutes les 6 heures.' })];
+}
+if (Array.isArray(global.RP_ORDRES_DYNAMIQUES) || global.document) {
+  global.RP_ORDRES_DYNAMIQUES = global.RP_ORDRES_DYNAMIQUES || [];
+  if (!global.RP_ORDRES_DYNAMIQUES.includes(ordresPointEauDuLieu)) global.RP_ORDRES_DYNAMIQUES.push(ordresPointEauDuLieu);
 }
 // Appelée à chaque passage du filtre (toutes les 1,5 s et à chaque relecture) : l'ordre suit la vue, sans recharger.
 function afficherPointEau() {
@@ -461,7 +477,7 @@ function afficherPointEau() {
   lirePointsEau();
   const ancien = doc.getElementById('climat-eau'); if (ancien) ancien.remove();   // ancien bouton posé sur l'image
   const rangee = doc.getElementById('rue-actions-row');
-  const pe = rangee ? pointEauIci() : null;
+  const pe = (rangee && !etat().currentBuilding) ? pointEauIci() : null;   // dans un lieu : ordre de pièce, pas de rue
   let b = doc.getElementById('rue-ordre-puiser');
   if (!pe) { if (b) b.remove(); return; }
   if (b && b.parentNode === rangee && b.dataset.point === pe.id) return;
@@ -766,7 +782,7 @@ if (global.document && global.document.readyState !== 'loading') demarrer();
 else if (global.document) global.document.addEventListener('DOMContentLoaded', demarrer);
 
 global.RPClimat = { T, ALERTES, EXPLIC, TYPES, PICTOS, pictogramme, texte, explic, message, rafraichirClimat, appliquerFiltre, nomObjet: nomObjetClimat,
-  pointEauIci, remplirBouteille, ouvrirPuiserEau, afficherPointEau, ORDRE_PUISER, _pointsEau: v => { if (Array.isArray(v)) pointsEau = v; return pointsEau; },
+  pointEauIci, ordresPointEauDuLieu, remplirBouteille, ouvrirPuiserEau, afficherPointEau, ORDRE_PUISER, _pointsEau: v => { if (Array.isArray(v)) pointsEau = v; return pointsEau; },
   enCours, dureeRestante, messageLieuFerme, piecePleinAir, PIECES_PLEIN_AIR, fenetreExplication, accueillirNouveau, marquerLieuxInondes,
   _evenements: v => { if (Array.isArray(v)) evenements = v; return evenements; } };
 Object.assign(global, { ouvrirGraisses, confirmerGraisse, climatGraissesBoutiqueHtml, boutonDeposerGraisse, deposerGraisse,

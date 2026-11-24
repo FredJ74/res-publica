@@ -71,6 +71,7 @@ Le second paragraphe (« Traduction en cours… ») reste inchangé.
 - Dans le rapport : liste des images manquantes pour les bâtiments achevés de Luthécia et Montrouge (par type), pour qu'aucune image ne soit produite en double.
 
 ### 6. Fenêtre « Le chantier » (remplace la version actuelle)
+> **Remplacé le 24/11/2026 (mission Purge, bloc C)** pour les onglets et le tableau du stock : voir la fin de GAME-DESIGN-CHANTIERS-IMAGES-20261120.md (résumé en haut, « Participer » / « Avancement », « Gérer mon chantier » à part, cartes sans tableau).
 - La fenêtre ne s'ouvre JAMAIS automatiquement en entrant sur le terrain : uniquement par l'ordre « Le chantier ».
 - Supprimer de la page l'ancien encadré « État du chantier » qui reste visible derrière la fenêtre et chevauche le texte du terrain.
 - Police nettement plus grande partout dans la fenêtre.

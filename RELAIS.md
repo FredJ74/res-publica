@@ -17,7 +17,6 @@ Règles : voir `AGENTS.md`.
 - **À vérifier avant fusion** : CI ciblée et banc d'interview existant, contrôle du déploiement Vercel puis recette connectée à Krasnov/Luthécia. Bug indépendant de l'article de Bernard en Sovarka (Jodie et forum de Républia) toujours à traiter côté serveur.
 - Ne pas toucher au goulag.
 
-
 ### Internationalisation de la formation universitaire (Codex, 23/11/2026) — PR #1183
 - Branche `codex/i18n-formation-20261123`, rebasée sans conflit sur **main 4291ec9f**. Aucun fichier des zones réservées à Claude, aucune écriture en base ni migration. PR #1184 distincte pour le sens de saisie des partis ; PR #1132 non reprise.
 - **Codé et publié, non fusionné** : 51 textes français couverts : 41 originaux strictement conservés et dix références réelles ; 368 traductions étrangères nouvelles et 40 réutilisées ; `plateau-universite.js` et nouveau catalogue `university-resources.js`, moteur i18next existant. Rafraîchissement passif sans reconstruction ni RPC ; Brotli régénéré et vérifié (87 catalogues sans perte).
