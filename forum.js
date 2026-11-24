@@ -100,6 +100,11 @@ function rpDateLisible(valeur) {
   } catch (_) { return ''; }
 }
 if (typeof window !== 'undefined') { window.rpDateLisible = rpDateLisible; window.rpInstantForum = rpInstantForum; }
+// Toutes les dates de la fenêtre Forum et Courrier (sujets, messages, mails) : « 23/11 à 18 h 48 ». Une valeur illisible
+// (ancien « Jour X · 10h00 ») reste affichée telle quelle plutôt qu'inventée.
+function dateForum(valeur) {
+  return rpDateLisible(valeur) || (valeur == null ? '' : String(valeur));
+}
 
 /* ===========================
    RES PUBLICA — FORUM.JS v3
@@ -1342,11 +1347,11 @@ function renderTopicList() {
               </div>
               <div class="forum-topic-author">
                 <div>${escapeHtmlText(t.author)}${t.authorIsOrg ? ' <i class="ti ti-shield" style="font-size:.65rem;color:#8a8060" title="Organisation"></i>' : ''}</div>
-                <div style="font-size:.68rem;color:var(--text3)">${formatDateAffichage(t.time)}</div>
+                <div style="font-size:.68rem;color:var(--text3)">${dateForum(t.time)}</div>
               </div>
               <div class="forum-topic-author">
                 <div>${escapeHtmlText(t.lastPostAuthor || t.author)}</div>
-                <div style="font-size:.68rem;color:var(--text3)">${formatDateAffichage(t.lastPostTime || t.time)}</div>
+                <div style="font-size:.68rem;color:var(--text3)">${dateForum(t.lastPostTime || t.time)}</div>
               </div>
               <div class="forum-topic-stat">${t.views}</div>
               <div class="forum-topic-stat">${t.replies}</div>
@@ -1410,7 +1415,7 @@ function renderTopicView() {
             ${p.authorCountry && COUNTRIES?.[p.authorCountry] ? '<div style="width:100%;height:6px;background:' + COUNTRIES[p.authorCountry].col + ';margin:.3rem 0 .1rem"></div>' : ''}
             <div class="forum-post-author">${escapeHtmlText(p.author)}${p.authorIsOrg ? ' <i class="ti ti-shield" style="font-size:.7rem;color:#8a8060" title="Organisation"></i>' : ''}</div>
             ${p.authorSecret ? '<span class="forum-post-badge" style="border-color:#8a2020;color:#cc4444">' + rpForumLibelle('secret','secrète') + '</span>' : ''}
-            <div class="forum-post-time">${formatDateAffichage(p.time)}</div>
+            <div class="forum-post-time">${dateForum(p.time)}</div>
             ${i === 0 ? `<span class="forum-post-badge">${rpForumLibelle('topicAuthor','Auteur du sujet')}</span>` : ''}
           </div>
           <div class="forum-post-main">
@@ -2772,7 +2777,7 @@ function renderMailInbox() {
           <div onclick="readMail('${m.id}')" style="padding:.6rem .8rem;border-bottom:1px solid #1a1810;cursor:pointer">
             <div style="display:flex;justify-content:space-between">
               <div style="font-size:.82rem;color:#8a8060">${m.fromIsOrg ? '<i class="ti ti-shield" style="font-size:.65rem" title="Envoyé en tant qu\'organisation"></i> ' : ''}${escapeHtmlText(mailSujetAffiche(m))}</div>
-              <div style="font-size:.68rem;color:var(--text3)">${formatDateAffichage(m.time)}</div>
+              <div style="font-size:.68rem;color:var(--text3)">${dateForum(m.time)}</div>
             </div>
             <div style="font-size:.72rem;color:#6a5a30">${rpForumLibelle('toLabel','À :')} ${escapeHtmlText(m.to)}</div>
           </div>`).join('')}
@@ -2786,7 +2791,7 @@ function renderMailInbox() {
         <div onclick="readMail('${m.id}')" style="padding:.6rem .8rem;border-bottom:1px solid #1a1810;cursor:pointer;opacity:.75">
           <div style="display:flex;justify-content:space-between">
             <div style="font-size:.82rem;color:#8a8060">${m.fromIsOrg ? '<i class="ti ti-shield" style="font-size:.65rem" title="Organisation"></i> ' : ''}${escapeHtmlText(mailSujetAffiche(m))}</div>
-            <div style="font-size:.68rem;color:var(--text3)">${formatDateAffichage(m.time)}</div>
+            <div style="font-size:.68rem;color:var(--text3)">${dateForum(m.time)}</div>
           </div>
           <div style="font-size:.72rem;color:#6a5a30">${(m.from === myName || m.fromReal === myName) ? rpForumLibelle('toLabel','À :') + ' ' + escapeHtmlText(m.to) : rpForumLibelle('fromLabel','De :') + ' ' + escapeHtmlText(m.from)}</div>
         </div>`).join('') : '<div class="forum-empty">' + rpForumLibelle('noArchivedMail','Aucun message archivé.') + '</div>'}
@@ -2804,7 +2809,7 @@ function renderMailInbox() {
               <div style="font-size:.82rem;color:${m.read?'#8a8060':'#f0ead6'};font-weight:${m.read?'normal':'bold'}">
                 ${!m.read?'🔵 ':''}${escapeHtmlText(mailSujetAffiche(m))}
               </div>
-              <div style="font-size:.68rem;color:var(--text3)">${formatDateAffichage(m.time)}</div>
+              <div style="font-size:.68rem;color:var(--text3)">${dateForum(m.time)}</div>
             </div>
             <div style="font-size:.72rem;color:#6a5a30">${rpForumLibelle('fromLabel','De :')} ${escapeHtmlText(m.from)}${m.fromIsOrg ? ' <i class="ti ti-shield" style="font-size:.65rem;color:#8a8060" title="Organisation"></i>' : ''}</div>
           </div>`).join('')}
@@ -3171,7 +3176,7 @@ function renderMailRead() {
         <div>
           ${rpForumLibelle('fromLabel','De :')} <strong style="color:#c0b090">${escapeHtmlText(mail.from)}</strong>${mail.fromIsOrg ? ' <i class="ti ti-shield" style="font-size:.65rem;color:#8a8060" title="Organisation"></i>' : ''}
           → ${rpForumLibelle('toLabel','À :')} <strong style="color:#c0b090">${escapeHtmlText(mail.to)}</strong>
-          · ${formatDateAffichage(mail.time)}
+          · ${dateForum(mail.time)}
         </div>
       </div>
       <div class="lecture-longue lecture-longue-page" style="color:#f0ead6">${typeof sanitizeRichHtml === 'function' ? sanitizeRichHtml(_actionsMail.corps) : ''}</div>

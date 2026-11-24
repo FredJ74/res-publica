@@ -60,7 +60,7 @@ async function ouvrir(largeur = 1280) {
     function getMails(){return MAILS;} function getMyMails(){return MAILS;} function trierMailsRecents(l){return l;}
     function markMailRead(id){const m=MAILS.find(x=>x.id===id); if(m) m.read=true;}
     function rafraichirVoyantMailLocal(){} function extraireActionsMail(c){return {corps:c,actions:[]};} function boutonsActionMail(){return '';}
-    function sanitizeRichHtml(x){return x;} function formatDateAffichage(t){return t;} function getAvatarHtmlPost(){return '';}
+    function sanitizeRichHtml(x){return x;} function formatDateAffichage(t){return t;} function dateForum(t){return t;} function getAvatarHtmlPost(){return '';}
     function htmlSelecteurPaysForums(){return '';} function htmlPointRougeActivite(){return '<span class="point-rouge"></span>';}
     function renderCategorieHeader(){return '';} function getForums(){return {};} function canAccessForum(){return false;}
     function forumADeLActiviteNonVue(){return false;} function renderForumAccueil(){return '<div id="accueil-forum">Forums</div>';}

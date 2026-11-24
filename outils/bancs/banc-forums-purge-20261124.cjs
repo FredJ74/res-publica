@@ -100,3 +100,15 @@ test('B.3 sujets classés de la publication ou réponse la plus récente à la p
   assert.match(bloc(FORUM, 'function renderTopicList('), /parseGameTime\(b\.lastPostTime \|\| b\.time\) - parseGameTime\(a\.lastPostTime \|\| a\.time\)/);
   assert.match(bloc(FORUM, 'async function loadForumTopicsFromSB('), /sort\(\(a, b\) => parseGameTime\(b\.lastPostTime \|\| b\.time\) - parseGameTime\(a\.lastPostTime \|\| a\.time\)\)/);
 });
+
+test('B.4 dates lisibles, un seul format « 23/11 à 18 h 48 » (heure de Paris) dans toute la fenêtre Forum et Courrier', () => {
+  const c = dates();
+  assert.equal(c.rpDateLisible('23/11/2026 · 17h04'), '23/11 à 17 h 04');
+  assert.equal(c.rpDateLisible('23/11/2026 22:51'), '23/11 à 22 h 51');
+  assert.equal(c.rpDateLisible('2026-11-23 18:48:24.969+00'), '23/11 à 19 h 48', 'UTC → Paris (hiver)');
+  assert.equal(c.rpDateLisible('2026-07-14T10:00:00Z'), '14/07 à 12 h 00', 'UTC → Paris (été)');
+  assert.equal(c.rpDateLisible('2026-11-23 16:04:09.915941'), '23/11 à 17 h 04', 'horodatage PostgreSQL sans fuseau : UTC');
+  assert.equal(c.rpDateLisible('Jour 3 · 10h00'), '', 'illisible : rien d’inventé');
+  assert.doesNotMatch(FORUM, /formatDateAffichage\(/, 'plus aucun autre format dans forum.js');
+  assert.equal((FORUM.match(/dateForum\(/g) || []).length, 8, 'sujets, messages, mails reçus, envoyés, archivés, lecture');
+});
