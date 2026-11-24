@@ -2178,6 +2178,9 @@ body.plateau-body .top-right {
 .cpj-champ{color:#e2e9f1;background:#1b2531;border-color:#667c94;border-radius:5px}
 .cpj-champ:focus{background:#253347;border-color:#e5c477;box-shadow:0 0 0 1px rgba(229,196,119,.3)}
 .cpj-champ:disabled{color:#8494a7;border-color:#415367}
+/* Texte libre (Fred, 24/11/2026, capture d'un nouveau joueur) : .cpj-champ aligne a droite, fait pour les nombres ; les
+   zones de texte et les champs de nom s'ecrivent depuis le debut de la ligne (a gauche, a droite en arabe). */
+textarea.cpj-champ,input[type="text"].cpj-champ{text-align:start}
 .cpj-touche{color:#e5c477;background:#344354;border-color:#b99a57;border-radius:5px}
 .cpj-touche:hover:not(:disabled){background:#455a70;color:#ffe2a0}
 .cpj-touche:disabled{color:#8190a0;border-color:#526173}
