@@ -35,6 +35,13 @@ async function preparer(b, o, l, h) {
   const p = await page(b, o, l, h, false, { texteMinimum: true });
   const erreurs = []; p.on('pageerror', e => erreurs.push(e.message));
   await p.evaluate(serveurSimule);
+  // Noms de ville et de pays : les vraies fonctions du jeu (data.js, plateau-core.js), extraites telles quelles.
+  { const lireJeu = f => require('node:fs').readFileSync(require('node:path').join(__dirname, '../..', f), 'utf8');
+    const bloc = (src, debut, fin) => { const i = src.indexOf(debut); return src.slice(i, src.indexOf(fin, i) + fin.length); };
+    const d = lireJeu('data.js'), c = lireJeu('plateau-core.js');
+    await p.addScriptTag({ content: 'if (typeof villeNom !== "function") { var VILLES = ' + bloc(d, 'const VILLES = {', '\n};').slice('const VILLES = '.length)
+      + '\nwindow.villeNom = ' + bloc(d, 'function villeNom(', '\n}') + '; }\nif (typeof nomPaysAffiche !== "function") window.nomPaysAffiche = '
+      + bloc(c, 'function nomPaysAffiche(', '\n}') + ';' }); }
   for (const s of ['plateau-evenements-personnage.js', 'plateau-accueil-progressif.js', 'plateau-accueil-interview.js']) await p.addScriptTag({ url: o + '/' + s });
   await p.waitForFunction(() => window.RPAccueil && window.RPFenetresAuto);
   await p.evaluate(() => window.RPAccueil.verifier());
