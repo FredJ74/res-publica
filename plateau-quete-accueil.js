@@ -777,7 +777,7 @@ async function queteAccueilGenererReponseMailJeremy(subjectRecu, bodyRecu) {
     dejaLa.roomId = 'marche_ext';
   }
 
-  const prompt = "Tu es Jeremy, jeune stagiaire un peu maladroit mais serviable de l'Hotel de Ville de Luthecia, dans le jeu Res Publica. Tu vouvoies toujours le joueur.\n" +
+  const prompt = "Tu es Jeremy, jeune stagiaire un peu maladroit mais serviable de l'Hotel de Ville de Luthecia, dans le jeu Human Gambit. Tu vouvoies toujours le joueur.\n" +
     "Le joueur, que tu as guide dans la ville il y a quelque temps, vient de t'envoyer un mail. Sujet : \"" + subjectRecu.replace(/"/g, "'") + "\". Message : \"" + bodyRecu.replace(/"/g, "'") + "\".\n" +
     "Reponds en 2 a 3 phrases, dans ton personnage, de facon coherente avec sa demande. Termine TOUJOURS ta reponse en indiquant que tu te trouves actuellement sur la Place du Marche Central de Luthecia, et que le joueur peut venir t'y retrouver puis cliquer sur \"Rejoindre le groupe\" pour que tu l'accompagnes de nouveau. Reponds UNIQUEMENT avec ta replique, sans guillemets ni introduction." + "\n" + rpQueteTexte('replyLanguageInstruction','Réponds EXCLUSIVEMENT en français.');
 

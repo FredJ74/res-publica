@@ -2916,7 +2916,7 @@ async function confirmerFabriquerKompromat(nomAgent, nomCible) {
   if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ arg: v.arg, liquide: v.liquide });
   if (typeof adopterJaugeServeur === 'function') adopterJaugeServeur('inf', v.inf);
   updateUI();
-  const prompt = `Tu joues dans Res Publica, jeu politique parodique.
+  const prompt = `Tu joues dans Human Gambit, jeu politique parodique.
 ${nomAgent} a recueilli des informations compromettantes sur ${nomCible} dans l'empire ${co?.n}.
 Génère UNE révélation compromettante, parodique et drôle (2 phrases max). Style scandale politique. Pas de vrais noms de personnes réelles. Pas de religions réelles. Réponds en texte brut uniquement, sans markdown (pas de #, pas de **, pas de titre).`;
   const info = await redigerKompromatServeur(v.objet_id, 'kompromat', prompt) || 'Information confidentielle obtenue.';
@@ -3110,7 +3110,7 @@ async function escortIntimiteServeur(nomEscort, palierVise) {
   const longueurVisee = longueurParPalier[palierActuel];
   // BAREME DE LONGUEUR PAR PALIER : [250, 320, 400, 480] jetons, cote serveur (usage
   // `escort_amour` de api/redaction.js) ; le navigateur ne transmet que le palier.
-  const prompt = 'Tu es le narrateur de Res Publica, jeu politique parodique et satirique. Le joueur vient de passer un moment intime avec ' + nomEscort + ", une escort de l'Agence Roxane Velours. La complicite entre eux a atteint un palier ou le petit nom \"" + petitNomActuel + '" est desormais utilise. Redige UN recit (' + longueurVisee + ') qui flatte et valorise le joueur, lui donnant un sentiment de plenitude et de superiorite, integrant naturellement ce petit nom dans le dialogue, mais glisse a la toute fin un doute subtil sur l authenticite du plaisir ressenti par l escort (professionnelle avant tout). Ton elegant, un peu ironique, jamais vulgaire ni explicite. Reponds en texte brut uniquement, sans markdown (pas de #, pas de **).';
+  const prompt = 'Tu es le narrateur de Human Gambit, jeu politique parodique et satirique. Le joueur vient de passer un moment intime avec ' + nomEscort + ", une escort de l'Agence Roxane Velours. La complicite entre eux a atteint un palier ou le petit nom \"" + petitNomActuel + '" est desormais utilise. Redige UN recit (' + longueurVisee + ') qui flatte et valorise le joueur, lui donnant un sentiment de plenitude et de superiorite, integrant naturellement ce petit nom dans le dialogue, mais glisse a la toute fin un doute subtil sur l authenticite du plaisir ressenti par l escort (professionnelle avant tout). Ton elegant, un peu ironique, jamais vulgaire ni explicite. Reponds en texte brut uniquement, sans markdown (pas de #, pas de **).';
 
   let recit = 'Vous passez un moment agréable avec ' + nomEscort + '.';
   try {
@@ -3281,7 +3281,7 @@ async function confirmerEscortPiege(nomCible, pa, cost) {
   updateUI();
 
   if (v.reussi) {
-    const prompt = 'Res Publica, jeu politique parodique. ' + nomCible + ' vient d\'être piégé(e) par une escort dans un scandale compromettant. Génère UN titre de scandale parodique (1 phrase max, style journal à scandales). Réponds en texte brut uniquement, sans markdown (pas de #, pas de **).';
+    const prompt = 'Human Gambit, jeu politique parodique. ' + nomCible + ' vient d\'être piégé(e) par une escort dans un scandale compromettant. Génère UN titre de scandale parodique (1 phrase max, style journal à scandales). Réponds en texte brut uniquement, sans markdown (pas de #, pas de **).';
     const scandale = await redigerKompromatServeur(v.objet_id, 'escort_piege', prompt)
       || (nomCible + ' impliqué(e) dans un scandale compromettant avec une escort.');
     addExternalEvent('📰 SCANDALE : ' + scandale);

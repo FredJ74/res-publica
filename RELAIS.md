@@ -1209,6 +1209,8 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 
 ## Derniers chantiers
 
+- **Nom du jeu : Res Publica → Human Gambit** (Claude, 24/11/2026, branche `claude/nom-human-gambit-20261124`) : 38 occurrences visibles ou dites par les PNJ remplacées dans 17 fichiers (titre de l'onglet du forum, manifeste, écran d'inscription en quatre langues, guide du joueur en huit langues, consignes DeepSeek des PNJ, de la presse, de l'aide, de l'interview). Non touchés volontairement : clés de stockage `respublica_*`, adresses `res-publica.vercel.app` et du dépôt GitHub, commentaires de code. Catalogues i18n recompressés.
+
 - **Parler en premier, PR à venir** (Claude, 24/11/2026, branche `claude/parler-en-premier-20261124`) : dans la fiche d'un PNJ, la boîte de conversation passe juste sous sa réplique, avant tous les boutons (`plateau-pnj.js`) ; invite « Parler à <nom>… ». Signalé par Fred sur Kouzma Lapchine, dont les sept boutons repoussaient la boîte hors de la fenêtre. Banc `banc-dialogue-pnj-republia.js` vert (43/43). À tester : ouvrir la fiche de Kouzma à la Grange Sainte.
 
 - **Relevés images, PR #1181** (Codex, 23/11/2026) : objets sans illustration, quatre icônes prévues, noms fragiles et références détaillées dans `outils/audits/images-cassees-20261122/*20261123*`. Aucun fichier du jeu ni image renommé ; SQL de renommage **NON APPLIQUÉ**, gardé ci-dessus pour le futur chantier. Résultats de CI et commit de fusion : [PR #1181](https://github.com/FredJ74/res-publica/pull/1181).
