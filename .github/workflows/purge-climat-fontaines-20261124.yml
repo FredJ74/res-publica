@@ -1,0 +1,28 @@
+name: "Purge D et F — climat (canicule, chantiers, Starovka, eau en Sovarka) et fontaines"
+on:
+  pull_request:
+    paths: [plateau-climat.js, plateau-router.js, plateau-chantier-vue.js, plateau.html, 'migrations/2026112413*', 'outils/bancs/banc-purge-climat-*', 'outils/bancs/banc-purge-fontaines-*', 'outils/bancs/banc-purge-canicule-*', 'outils/bancs/fixtures/purge-climat-*', 'images/fontaines/**', .github/workflows/purge-climat-fontaines-20261124.yml]
+  push:
+    branches: [main, 'claude/**']
+    paths: [plateau-climat.js, plateau-router.js, plateau-chantier-vue.js, plateau.html, 'migrations/2026112413*', 'outils/bancs/banc-purge-climat-*', 'outils/bancs/banc-purge-fontaines-*', 'outils/bancs/banc-purge-canicule-*', 'outils/bancs/fixtures/purge-climat-*', 'images/fontaines/**', .github/workflows/purge-climat-fontaines-20261124.yml]
+permissions:
+  contents: read
+jobs:
+  purge-df:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
+      - run: for f in plateau-climat.js plateau-router.js plateau-chantier-vue.js; do node --check "$f"; done
+      - name: Chromium réel, 1280 et 390 px (zone canicule de la fenêtre du chantier)
+        env:
+          HG_CHROMIUM: /usr/bin/google-chrome
+        run: node --test outils/bancs/banc-purge-canicule-chantier-navigateur-20261124.cjs
+      - name: PostgreSQL local (PGlite)
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund --prefix "$RUNNER_TEMP/pglite" @electric-sql/pglite@0.2.17
+          PGLITE_DIR="$RUNNER_TEMP/pglite" node --test outils/bancs/banc-purge-fontaines-20261124.cjs outils/bancs/banc-purge-climat-pglite-20261124.cjs
