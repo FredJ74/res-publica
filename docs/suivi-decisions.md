@@ -255,7 +255,7 @@ et sur le registre de production jusqu'à `20261123222538 renommages_pnj_finale`
 | 24/11/2026 | H.9 Dépôt des cartes postales dans l'armoire à souvenirs : BLOQUÉ, le contrôle serveur n'existe qu'à moitié (aucune fonction de dépôt, contenu d'armoire non enregistré) ; questions posées à Fred. | décidé |  |  | Mission Purge H.9, GAME-DESIGN-APPARTEMENTS.md |
 | 24/11/2026 | H.10 Feuille volante de l'énigme : personne ne la possède, rien à mettre à jour. | en ligne | 24/11/2026 | 12ef5351 | Mission Purge H.10 |
 | 24/11/2026 | H.11 Quête « Une affaire mystérieuse » : nomme le Sergent Bogdan Zatvorov, Armurerie Militaire de la Caserne centrale de Novomirsk (aucun écran ne lit encore quetes_actives : question). Migration appliquée. | en ligne | 24/11/2026 | 12ef5351 | Mission Purge H.11 |
-| 24/11/2026 | E.1 « Inspecter les lieux » à 0 PA : déjà en ligne (seule la fouille coûte 1 PA). | en ligne | 23/11/2026 |  | Mission Purge E.1 |
+| 24/11/2026 | E.1 « Inspecter les lieux » à 0 PA : déjà en ligne (seule la fouille coûte 1 PA). | en ligne | 23/11/2026 | 9924fa5a | Mission Purge E.1 |
 | 24/11/2026 | E.2 Noms d'images corrigés (acceuil, EPHAD, amabassades) avec redirections vercel.json ; les noms à espaces ne sont pas renommés (question). | en ligne | 24/11/2026 | 12ef5351 | Mission Purge E.2 |
 | 24/11/2026 | A.6 Case des PA en jauge (curseur, « ? ») ; lien « Plus d'informations sur les PA ? » vers l'infirmière d'accueil de la ville (six fiches DeepSeek complétées, aucune créée). | en ligne | 24/11/2026 | 02a9cfcf | Mission Purge A.6 |
 | 24/11/2026 | A.7 Fenêtre de candidature : conditions en vert/rouge et dates de la période. | en ligne | 24/11/2026 | 02a9cfcf | Mission Purge A.7 |
