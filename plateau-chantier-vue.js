@@ -233,12 +233,21 @@ const TXTC = {
   r_heures_aucune: 'Plus aucune heure à faire aujourd’hui.', r_heures_attente: 'Lecture du chantier…',
   r_heures_aide: 'Chaque heure de travail coûte 1 PA et rapporte le salaire fixé par le propriétaire du chantier. Si toutes les heures du jour sont faites, le jour suivant s’ouvre en avance et le chantier gagne une journée cette nuit.',
   r_materiaux: 'Matériaux du jour', r_mat: '{m} : {s} sur {b}', r_mat_aide: 'Chaque jour de travail consomme du bois, du minerai et du métal. Ce qui manque, le chantier le rachète aux joueurs au prix fixé par le propriétaire.',
-  r_lecture_ko: 'Le chantier ne répond pas pour l’instant. Réessayez dans un moment.', aide: 'Aide'
+  r_lecture_ko: 'Le chantier ne répond pas pour l’instant. Réessayez dans un moment.', aide: 'Aide',
+  o_participer: 'Participer', o_avancement: 'Avancement',
+  w_titre: 'Travailler sur ce chantier', w_salaire: 'Salaire : {v} {cur} de l’heure · 1 PA par heure', w_moins: 'Une heure de moins', w_plus: 'Une heure de plus',
+  w_heures: '{h} h', w_gain: 'Vous recevrez {v} {cur} et utiliserez {h} PA.', w_bouton: 'Travailler {h} h', w_plafond: 'Au plus {h} heure(s) pour vous maintenant.',
+  w_salaire_aide: 'Le salaire est fixé par le propriétaire du chantier et payé par sa trésorerie. Le nombre d’heures est limité par les heures encore ouvertes, vos PA et l’argent du chantier.',
+  x_aucune_heure_ouverte: 'Plus aucune heure de travail ouverte aujourd’hui.', x_pa_insuffisants: 'Il vous faut au moins 1 PA par heure.',
+  x_tresorerie_insuffisante: 'La trésorerie du chantier ne peut plus payer d’heures.', x_chantier_intemperies: 'Le chantier est arrêté par les intempéries.',
+  x_pas_sur_place: 'Vous devez être sur le terrain pour travailler.', x_acteur_incapacite: 'Vous êtes hospitalisé : impossible de travailler.',
+  x_acteur_detenu: 'Vous êtes détenu : impossible de travailler.', x_terrain_gele: 'Ce terrain est gelé (succession en cours).',
+  x_defaut: 'Le travail n’est pas possible pour l’instant.'
 };
 const tc = (k, v) => String(TXTC[k] || TXT4[k] || TXT[k] || k).replace(/\{(\w+)\}/g, (m, c) => (v && v[c] != null) ? String(v[c]) : m);
 const t4 = (k, v) => String(TXT4[k] || k).replace(/\{(\w+)\}/g, (m, c) => (v && v[c] != null) ? String(v[c]) : m);
 const MATS = ['bois', 'minerai', 'metal'];
-const vue = { onglet: 'etat' };
+const vue = { onglet: 'participer' };
 const choix = { action: null };   // compatibilité (anciens bancs, chemins existants)
 function maitreOuvrage(t0) { return typeof constructionPeutGerer === 'function' ? constructionPeutGerer(t0) : false; }
 function stockPJ(m) { return (etat().inventory || []).filter(i => i && i.stackable && i.stackKey === m).reduce((a, i) => a + (Number(i.qty) || 0), 0); }
@@ -527,6 +536,45 @@ function remplirZoneClimat() {
   try { if (typeof global.chantierZoneClimat === 'function') global.chantierZoneClimat(zone, contexte); } catch (_) {}
   try { doc.dispatchEvent(new global.CustomEvent('rp:chantier-fenetre', { detail: Object.assign({ zone }, contexte) })); } catch (_) {}
 }
+// C.2 — « Travailler sur ce chantier » dans la fenêtre principale : heures avec − et +, plafonnées par le serveur,
+// gain affiché avant validation (salaire horaire renvoyé par le serveur × heures choisies).
+const saisie = {};   // valeurs des compteurs − / + (heures, quantités), gardées d'un rendu à l'autre
+function borne(cle, max, defaut) {
+  const v = saisie[cle] == null ? defaut : saisie[cle];
+  saisie[cle] = Math.max(max > 0 ? (cle === 'h' ? 1 : 0) : 0, Math.min(max, Math.floor(Number(v) || 0)));
+  return saisie[cle];
+}
+function compteur(cle, valeur, max, moins, plus, unite) {
+  return '<div class="cj-compteur" role="group">'
+    + '<button type="button" class="cpj-touche cj-pas" aria-label="' + esc(moins) + '" onclick="chantierPas(\'' + cle + '\',-1)"' + (valeur <= (cle === 'h' ? 1 : 0) ? ' disabled' : '') + '>−</button>'
+    + '<output class="cj-valeur" id="cj-v-' + cle + '" aria-live="polite">' + esc(unite) + '</output>'
+    + '<button type="button" class="cpj-touche cj-pas" aria-label="' + esc(plus) + '" onclick="chantierPas(\'' + cle + '\',1)"' + (valeur >= max ? ' disabled' : '') + '>+</button></div>';
+}
+function raisonTexte(r) { return TXTC['x_' + r] ? tc('x_' + r) : tc('x_defaut'); }
+function carteTravail() {
+  const L = lectureCourante(), c = cur();
+  const tr = L && L.ok ? (L.travail || {}) : null;
+  const max = tr ? Math.max(0, Math.floor(Number(tr.max) || 0)) : 0, taux = tr ? Number(tr.taux) || 0 : 0;
+  const h = borne('h', max, max);
+  let corps;
+  if (!tr) corps = '<p class="cpj-note">' + esc(tc(L ? 'r_lecture_ko' : 'r_heures_attente')) + '</p>';
+  else if (max <= 0) corps = '<p class="cj-raison">' + esc(raisonTexte(tr.raison)) + '</p>';
+  else corps = compteur('h', h, max, tc('w_moins'), tc('w_plus'), tc('w_heures', { h }))
+    + '<p class="cpj-note">' + esc(tc('w_plafond', { h: max })) + '</p>'
+    + '<p class="cj-resume" id="cj-main-resume">' + esc(tc('w_gain', { v: fr(h * taux), cur: c, h })) + '</p>'
+    + '<input type="hidden" id="chantier-heures" value="' + h + '">'
+    + '<button type="button" id="cj-main-valider" class="cpj-touche cpj-primaire cj-action" onclick="chantierMainValider()">' + esc(tc('w_bouton', { h })) + '</button>';
+  return '<section class="cj-carte cj-travail"><h3 class="cj-carte-titre">' + esc(tc('w_titre')) + '</h3>'
+    + (tr ? '<p class="cj-ligne-aide">' + esc(tc('w_salaire', { v: fr(taux), cur: c })) + ' ' + aide('w_salaire_aide') + '</p>' : '')
+    + corps + '</section>';
+}
+function chantierPas(cle, d) {
+  saisie[cle] = (Number(saisie[cle]) || 0) + d;
+  ouvrirFenetreChantier(true, null, true);
+  const b = global.document.querySelector('#chantier-fenetre button[onclick="chantierPas(\'' + cle + '\',' + d + ')"]');
+  if (b && !b.disabled) b.focus();
+}
+function ongletParticiper(ch) { return carteTravail(); }
 function fenetreOuverte() {
   const doc = global.document, m = doc && doc.getElementById('modal-postes');
   return !!(m && m.classList.contains('open') && doc.getElementById('chantier-fenetre'));
@@ -535,14 +583,16 @@ function ouvrirFenetreChantier(silencieux, onglet, sansLecture) {
   const t0 = ts(), ch = t0.chantier, doc = global.document;
   if (!ch || !doc) return;
   if (silencieux === true && !fenetreOuverte()) return;   // jamais d'ouverture automatique
-  if (onglet) vue.onglet = onglet; else if (silencieux !== true) vue.onglet = 'etat';
+  if (onglet) vue.onglet = onglet; else if (silencieux !== true) { vue.onglet = 'participer'; for (const k of Object.keys(saisie)) delete saisie[k]; }
   injecterStyleJauges();
   const gere = maitreOuvrage(t0);
-  const onglets = ['etat', 'stock', 'main'].concat(gere ? ['gestion'] : []);
-  if (!onglets.includes(vue.onglet)) vue.onglet = 'etat';
-  const contenu = vue.onglet === 'stock' ? ongletStock(ch) : vue.onglet === 'main' ? ongletMain(ch) : vue.onglet === 'gestion' ? ongletGestion(ch, t0) : ongletEtat(ch, t0);
+  if (vue.onglet === 'main') vue.onglet = 'participer';
+  if (vue.onglet === 'etat') vue.onglet = 'avancement';
+  const onglets = ['participer', 'stock', 'avancement'].concat(gere ? ['gestion'] : []);
+  if (!onglets.includes(vue.onglet)) vue.onglet = 'participer';
+  const contenu = vue.onglet === 'stock' ? ongletStock(ch) : vue.onglet === 'participer' ? ongletParticiper(ch) : vue.onglet === 'gestion' ? ongletGestion(ch, t0) : ongletEtat(ch, t0);
   const html = '<div id="chantier-fenetre" class="cpj-dialogue" style="padding:.3rem .2rem .6rem">' + resumeChantier()
-    + '<div class="cj-onglets" role="tablist">' + onglets.map(o => '<button type="button" role="tab" aria-selected="' + (o === vue.onglet) + '" onclick="chantierOnglet(\'' + o + '\')">' + esc(t4('o_' + o)) + '</button>').join('') + '</div>'
+    + '<div class="cj-onglets" role="tablist">' + onglets.map(o => '<button type="button" role="tab" aria-selected="' + (o === vue.onglet) + '" onclick="chantierOnglet(\'' + o + '\')">' + esc(tc('o_' + o)) + '</button>').join('') + '</div>'
     + '<div role="tabpanel">' + contenu + '</div></div>';
   const titre = doc.getElementById('postes-modal-title'), corps = doc.getElementById('postes-body');
   if (!corps) return;
@@ -555,7 +605,6 @@ function ouvrirFenetreChantier(silencieux, onglet, sansLecture) {
   const f = doc.getElementById('chantier-fenetre'); if (f) brancherAides(f);
   remplirZoneClimat();
   if (vue.onglet === 'stock') chantierStockTotaux();
-  if (vue.onglet === 'main') chantierMainTotaux();
   // Relecture du serveur, puis nouveau rendu (sans relancer de lecture) si la fenêtre est toujours ouverte.
   if (!sansLecture) lireServeur().then(() => { if (fenetreOuverte()) ouvrirFenetreChantier(true, null, true); });
 }
@@ -585,7 +634,7 @@ async function chantierStockValider() {
   } finally { validation = false; }
 }
 async function chantierMainValider() {
-  const h = chantierMainTotaux();
+  const h = Math.floor(Number(global.document.getElementById('chantier-heures')?.value) || 0);
   if (!(h > 0) || validation) return;
   validation = true;
   try { await global.confirmerTravailChantier(); await relireEtRouvrir(); } finally { validation = false; }
@@ -612,7 +661,7 @@ async function chantierGestion(a) {
 }
 // Ancienne API (verdictChoix, chantierChoisir, chantierTotaux, chantierValider) : conservée pour les écrans encore ouverts.
 function verdictChoix() { return choix.action ? { pa: 0 } : { refus: t('r_choisir') }; }
-function chantierChoisir(a) { choix.action = a; vue.onglet = a === 'travailler' ? 'main' : (a === 'vendre' || a === 'donner') ? 'stock' : 'gestion'; ouvrirFenetreChantier(false, vue.onglet); }
+function chantierChoisir(a) { choix.action = a; vue.onglet = a === 'travailler' ? 'participer' : (a === 'vendre' || a === 'donner') ? 'stock' : 'gestion'; ouvrirFenetreChantier(false, vue.onglet); }
 function chantierTotaux() { return verdictChoix(); }
 async function chantierValider() { return null; }
 
@@ -626,5 +675,5 @@ if (global.document && global.document.readyState !== 'loading') demarrer();
 else if (global.document) global.document.addEventListener('DOMContentLoaded', demarrer);
 
 global.RPChantierVue = { TXT, TXT4, TXTC, lireServeur, lectureCourante, jauge, verdictStock, candidatsImage, imageImmediate, imageResolue, etapeDe, lignesSurcouche, rafraichirVueChantier, verdictChoix, _choix: choix, _existe: existe };
-Object.assign(global, { ouvrirFenetreChantier, chantierChoisir, chantierTotaux, chantierValider, chantierOnglet, chantierStockTotaux, chantierStockValider, chantierMainTotaux, chantierMainValider, chantierGestion, chantierImageImmediate: imageImmediate, rafraichirVueChantier });
+Object.assign(global, { ouvrirFenetreChantier, chantierChoisir, chantierTotaux, chantierValider, chantierOnglet, chantierStockTotaux, chantierStockValider, chantierMainTotaux, chantierMainValider, chantierGestion, chantierPas, chantierImageImmediate: imageImmediate, rafraichirVueChantier });
 })(typeof window !== 'undefined' ? window : globalThis);

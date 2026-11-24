@@ -2712,3 +2712,13 @@ body.plateau-body .top-right {
 .cj-aide:hover,.cj-aide:focus-visible{background:#455a70;outline:none}
 #chantier-fenetre .cj-zone-climat{margin:0 0 .7rem}
 #chantier-fenetre .cj-zone-climat[hidden]{display:none}
+/* C.2 : « Travailler sur ce chantier » — compteur − / + plafonné, gain affiché avant validation. */
+#chantier-fenetre .cj-carte{border:1px solid #53647a;border-radius:8px;padding:.7rem .8rem;margin:.6rem 0;background:#202a36}
+#chantier-fenetre .cj-carte-titre{margin:0 0 .4rem;font-family:'Bebas Neue',sans-serif;letter-spacing:.06em;font-size:1.35rem;font-weight:400;color:#e5c477}
+#chantier-fenetre .cj-ligne-aide{margin:.2rem 0 .5rem;display:flex;align-items:center;flex-wrap:wrap;gap:.4rem;color:#e2e9f1}
+#chantier-fenetre .cj-compteur{display:inline-flex;align-items:center;gap:.5rem;margin:.3rem 0}
+#chantier-fenetre .cj-pas{width:44px;height:44px;min-width:44px;padding:0;font-size:1.5rem!important;line-height:1;font-family:inherit}
+#chantier-fenetre .cj-valeur{min-width:4.5rem;text-align:center;font-size:1.3rem!important;color:#e5c477;font-weight:600}
+#chantier-fenetre .cj-action{display:block;width:100%;min-height:44px;margin-top:.5rem;font-size:1.1rem!important}
+#chantier-fenetre .cj-raison{color:#f2c9a0;margin:.4rem 0}
+#chantier-fenetre .cj-resume{color:#b9e3a6;margin:.4rem 0}
