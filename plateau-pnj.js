@@ -1284,7 +1284,10 @@ const PNJ_REFERENTS = ['marc_hantile', 'martial_bouterin', 'gaspard_ferriere',
   'sayana_tsydypova', 'tsyren_dorji_bazarov', 'munko_tsybenov', 'dugar_tsyrempilov', 'lieutenant_tsyden_zhalsaraev',
   'erdem_gombozhapov', 'arseni_ledokolov', 'stepan_vetrov', 'batzorig_dorjiev', 'damdin_mazoutov', 'dashi_burilov',
   'tuyana_sambueva', 'saran_batbayar', 'saryuna_dorjieva', 'arkadi_prigovorov', 'zhargal_dashiev', 'darima_zhambalova',
-  'gombo_zhigzhitov', 'viktor_morozko'
+  'gombo_zhigzhitov', 'viktor_morozko',
+  // Référents élections de Sovarka (Fred, 24/11/2026, point G.1) : secrétaires de mairie et officiers des salles des partis
+  // de Novomirsk et Krasnov (Starovka : Sayana Tsydypova et le lieutenant Zhalsaraev, déjà dans la liste).
+  'sovarka_valentina_petchatkina', 'capitaine_igor_balatov', 'galina_dokladova', 'lieutenant_fiodor_doznaiev'
 ];
 
 // Note une consultation reellement aboutie aupres d'un referent. No-op partout ailleurs.
