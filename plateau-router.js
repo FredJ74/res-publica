@@ -14,6 +14,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   // modifier 268 signatures. Les handlers qui facturent apres une confirmation
   // differee (modale) peuvent le passer explicitement via l'option `fn`.
   if (typeof state !== 'undefined') state._ordreEnCours = fn;
+  // Fontaine d'un lieu (Fred, 24/11/2026, F.1) : le serveur paie le PA (point_eau_puiser), aucun débit ici.
+  if (fn === 'puiser_eau' && window.RPClimat && typeof window.RPClimat.ouvrirPuiserEau === 'function') { window.RPClimat.ouvrirPuiserEau(); return; }
   // Goulag : ordre de choix, sans débit générique ; toutes les permissions sont côté RPC.
   if (fn === 'goulag_depart_pied') {
     if (state.country !== 'soviet' || state.currentCity !== 'qhs' || state.currentBuilding !== 'qhs-prison' || state.currentRoom !== 'entree_qhs') {
