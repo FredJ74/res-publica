@@ -157,6 +157,15 @@ Décors : fonction serveur `logement-decoration` (déployée), même atelier que
   personne).
 - **Décision de Fred (13/11/2026, 0 h 33)** : l'armoire **n'est pas codée maintenant** : elle reste inutilisable tant que
   les **douze villes** de sa liste n'existent pas. Les décisions ci-dessus sont seulement consignées.
+- **Consigne de Fred (24/11/2026, mission « Purge », point H.9)** : « Dépôt des cartes postales dans l'armoire à souvenirs :
+  code l'ordre côté client (le contrôle serveur existe déjà). » **Non codé, bloqué (constat de Claude, 24/11/2026)** : côté
+  serveur, seul le **critère** existe (`souvenir_utilisable_interne`, migration `20261123150000` : cartes vierges ou écrites,
+  revues lues, feuille de l'énigme si résolue) ; **aucune fonction ne dépose ni ne retire un objet**, le contenu d'une armoire
+  n'est enregistré nulle part (`equipements_installes.objet` ne porte pas de contenu, l'armoire de l'inventaire a un
+  `contenu` vide écrit par l'écran) et la désinstallation ne vérifie pas qu'elle est vide. Un ordre purement côté écran
+  violerait « une seule réalité ». Questions pour Fred avant de coder le dépôt serveur : dépôt dans l'armoire **installée**
+  seulement (la règle dit qu'elle se vide avant tout déplacement) ? par son seul propriétaire, ou par quiconque a la
+  jouissance du local ? une carte postale compte-t-elle dans les douze souvenirs exacts de la liste (aucune carte n'y figure) ?
 
 ## Codé le 13/11/2026 au soir (Claude, branche `claude/relecture-decisions-20261113`)
 
