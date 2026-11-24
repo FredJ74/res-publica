@@ -1,4 +1,4 @@
--- NON APPLIQUÉE — mission « Purge » du 24/11/2026, bloc D (climat), point D.1 (consigne de Fred) :
+-- APPLIQUÉE en production le 24/11/2026 (contrôlée en lecture) — mission « Purge » du 24/11/2026, bloc D (climat), point D.1 (consigne de Fred) :
 -- « La canicule n'a lieu qu'en journée (typiquement de 12 h à 18 h). »
 -- • Réglage MJ aliments_parametres.canicule_heure_debut = 12 (heure de Paris) ; la durée reste climat_parametres.duree_heures
 --   (6 h) : 12 h → 18 h.

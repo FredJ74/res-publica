@@ -1,4 +1,4 @@
--- NON APPLIQUÉE — mission « Purge » du 24/11/2026, bloc D (climat), point D.6 (consigne de Fred) :
+-- APPLIQUÉE en production le 24/11/2026 (contrôlée en lecture) — mission « Purge » du 24/11/2026, bloc D (climat), point D.6 (consigne de Fred) :
 -- « Bouteille d'eau à 4 PSK l'unité dans toutes les boutiques « Équipements contre les intempéries » de Sovarka. »
 -- Constat (base lue le 24/11) : trois boutiques climat en Sovarka, aucune ne vendait d'eau : usine pharmaceutique de Novomirsk
 -- (Pharmanov, sels), garage de Novomirsk (groupe électrogène, bidons), station-service de Krasnov (groupe électrogène).

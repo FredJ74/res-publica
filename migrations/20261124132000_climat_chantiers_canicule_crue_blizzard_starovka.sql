@@ -1,4 +1,4 @@
--- NON APPLIQUÉE — mission « Purge » du 24/11/2026, bloc D (climat), point D.2 (consigne de Fred) :
+-- APPLIQUÉE en production le 24/11/2026 (contrôlée en lecture) — mission « Purge » du 24/11/2026, bloc D (climat), point D.2 (consigne de Fred) :
 -- « Seules la CANICULE et la CRUE arrêtent les chantiers. L'orage et le blizzard ne les arrêtent pas : corrige aussi la
 --   consigne d'alerte de l'orage. Le blizzard n'existe qu'à Starovka : vérifie le tirage. »
 -- Constat (base lue le 24/11) : climat_parametres.bloque_chantiers valait vrai pour l'orage (deux pays) et le blizzard ; la

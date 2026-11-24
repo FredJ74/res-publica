@@ -1,4 +1,4 @@
--- NON APPLIQUÉE — mission « Purge » du 24/11/2026, bloc D (climat), point D.3 (consigne de Fred) :
+-- APPLIQUÉE en production le 24/11/2026 (contrôlée en lecture) — mission « Purge » du 24/11/2026, bloc D (climat), point D.3 (consigne de Fred) :
 -- « L'arrêt doit réellement s'appliquer : la tâche de minuit passe avant la pose des effets. Banc. »
 -- Constat (base lue le 24/11) : la nuit des chantiers (api/cron-minuit.js → chantier_jour_traiter, 0 h à Paris) ne connaissait
 -- que la crue (chantier_crue_jour_interne). La canicule « bloquait » seulement le travail des joueurs pendant ses 6 heures : la

@@ -1,4 +1,4 @@
--- NON APPLIQUÉE — mission « Purge » du 24/11/2026, bloc D (climat), point D.4 (consigne de Fred) :
+-- APPLIQUÉE en production le 24/11/2026 (contrôlée en lecture) — mission « Purge » du 24/11/2026, bloc D (climat), point D.4 (consigne de Fred) :
 -- « Canicule : image dédiée, et bouton « Offrir 20 bouteilles d'eau aux ouvriers » (ouvert à tout joueur présent, avec « ? »,
 --   inscrit au journal du chantier). »
 -- • RPC chantier_canicule_offrir_eau(p_requete, p_batiment) : tout joueur présent sur le terrain du chantier (même pays, même
@@ -6,15 +6,15 @@
 --   de son inventaire (réglage MJ aliments_parametres.canicule_eau_ouvriers_bouteilles). 0 PA, 0 argent (rien n'est dit d'un
 --   coût : question posée à Fred). Une seule fois par chantier et par canicule. Ligne « eau_offerte » au journal du chantier
 --   (cle, date, par, evenement, bouteilles). Idempotente par requête.
--- • Effet (choix de Claude, à confirmer par Fred — réglage MJ aliments_parametres.canicule_eau_leve_arret, 1 = oui) : l'eau
---   offerte lève l'arrêt de canicule POUR CE CHANTIER : les joueurs peuvent y travailler et la nuit suivante le chantier avance.
+-- • Effet : AUCUN par défaut (24/11, agent principal : la consigne de Fred ne prévoit qu'un geste inscrit au journal). Réglage MJ aliments_parametres.canicule_eau_leve_arret (0 par défaut ; 1 = l'eau lève l'arrêt de canicule du chantier), question posée à Fred. L'eau
+--   offerte (si le réglage vaut 1) lève l'arrêt de canicule POUR CE CHANTIER : les joueurs peuvent y travailler et la nuit suivante le chantier avance.
 --   Raccords : chantier_crue_jour_interne (marque canicule_eau_ouvriers_v1) et chantier_travailler (même marque), qui lit la
 --   nouvelle climat_chantier_bloque_interne(pays, ville, batiment).
 -- • chantier_climat_etat(p_batiment) : ce que la zone d'alerte climatique de la fenêtre du chantier affiche (canicule en cours,
 --   fin de l'arrêt, eau déjà offerte et par qui, bouteilles requises et possédées).
 -- Rejouable (CREATE OR REPLACE, ON CONFLICT, marques). Aucune fonction commune du cron, aucun objet du goulag.
 BEGIN;
-INSERT INTO public.aliments_parametres (cle, valeur) VALUES ('canicule_eau_ouvriers_bouteilles', 20), ('canicule_eau_leve_arret', 1)
+INSERT INTO public.aliments_parametres (cle, valeur) VALUES ('canicule_eau_ouvriers_bouteilles', 20), ('canicule_eau_leve_arret', 0)
 ON CONFLICT (cle) DO NOTHING;
 
 -- Canicule qui arrête aujourd'hui les chantiers d'une ville (NULL sinon).
@@ -46,7 +46,7 @@ RETURNS boolean LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path TO 'pub
 DECLARE e public.climat_evenements; d jsonb; emp text;
 BEGIN
   IF NOT public.climat_chantiers_bloques_interne(p_pays, p_ville) THEN RETURN false; END IF;
-  IF public.aliments_param_interne('canicule_eau_leve_arret', 1) <> 1 THEN RETURN true; END IF;
+  IF public.aliments_param_interne('canicule_eau_leve_arret', 0) <> 1 THEN RETURN true; END IF;
   e := public.climat_canicule_arret_interne(p_pays, p_ville);
   IF e.id IS NULL THEN RETURN true; END IF;
   -- Seule la canicule peut être levée : un autre événement bloquant (crue) garde l'arrêt.
@@ -73,7 +73,7 @@ BEGIN
   IF e.id IS NOT NULL AND emp IS NOT NULL THEN v_offre := public.chantier_eau_offerte_interne(d->emp, e.id); END IF;
   RETURN jsonb_build_object('ok', true, 'canicule', e.id IS NOT NULL,
     'evenement', e.id, 'fin_arret', CASE WHEN e.id IS NOT NULL THEN greatest(e.fin, public.climat_minuit_interne((e.debut AT TIME ZONE 'Europe/Paris')::date + 1)) END,
-    'eau_offerte', v_offre, 'leve_arret', public.aliments_param_interne('canicule_eau_leve_arret', 1) = 1,
+    'eau_offerte', v_offre, 'leve_arret', public.aliments_param_interne('canicule_eau_leve_arret', 0) = 1,
     'requis', public.aliments_param_interne('canicule_eau_ouvriers_bouteilles', 20)::integer,
     'possede', public.inventaire_quantite(coalesce(p.inventory, '[]'::jsonb), 'bouteille_eau')::integer,
     'present', p.current_building = p_batiment AND d IS NOT NULL AND d->>'city' = p.current_city);
@@ -110,7 +110,7 @@ BEGIN
           'cle', 'eau_offerte', 'date', v_jour, 'par', a, 'evenement', e.id, 'bouteilles', v_n, 'le', now())));
   UPDATE public.terrains_etat SET data = (d || jsonb_build_object(emp, ch))::text, updated_at = now() WHERE id = r.id;
   RETURN public.achat_requete_clore_interne(a, p_requete, 'chantier_canicule_offrir_eau', prm,
-    jsonb_build_object('ok', true, 'bouteilles', v_n, 'evenement', e.id, 'leve_arret', public.aliments_param_interne('canicule_eau_leve_arret', 1) = 1,
+    jsonb_build_object('ok', true, 'bouteilles', v_n, 'evenement', e.id, 'leve_arret', public.aliments_param_interne('canicule_eau_leve_arret', 0) = 1,
       'inventory', (SELECT inventory FROM public.personnages_donnees WHERE name = a)));
 END $$;
 
@@ -129,7 +129,7 @@ END $$;
 SELECT pg_temp.rp_remplacer('public.chantier_crue_jour_interne(text,text,jsonb,text,text)'::regprocedure,
   $a$  IF v_id IS NULL THEN RETURN NULL; END IF;$a$,
   $b$  IF v_id IS NULL THEN RETURN NULL; END IF;
-  IF v_type = 'canicule' AND public.aliments_param_interne('canicule_eau_leve_arret', 1) = 1
+  IF v_type = 'canicule' AND public.aliments_param_interne('canicule_eau_leve_arret', 0) = 1
      AND public.chantier_eau_offerte_interne(ch, v_id) IS NOT NULL THEN RETURN NULL; END IF; /* canicule_eau_ouvriers_v1 */$b$,
   1, 'canicule_eau_ouvriers_v1');
 

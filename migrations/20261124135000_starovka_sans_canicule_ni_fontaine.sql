@@ -1,4 +1,4 @@
--- NON APPLIQUÉE — mission « Purge » du 24/11/2026, bloc D (climat), point D.5 (consigne de Fred) :
+-- APPLIQUÉE en production le 24/11/2026 (contrôlée en lecture) — mission « Purge » du 24/11/2026, bloc D (climat), point D.5 (consigne de Fred) :
 -- « Starovka est exclue des canicules. Pas de fontaine à Starovka : retire-la avec redirections, et ajoute un banc. »
 -- Constat (base lue le 24/11) : aucune canicule n'est réglée en Sovarka (climat_parametres n'a pas de ligne canicule/soviet),
 -- donc aucune canicule n'a jamais été tirée à Starovka ; l'exclusion est désormais écrite, pour qu'un réglage futur ou une
