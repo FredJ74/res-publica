@@ -56,6 +56,51 @@ function rpForumNom(id,source) {
 function rpForumDescription(id,source) {
   return (typeof window!=='undefined' && window.RPForumUI?.forumDescriptionHtml?.(id,source)) || source;
 }
+// DATES LISIBLES, UN SEUL FORMAT (Fred, 24/11/2026, mission Purge B.4 ; aussi la fenêtre de candidature, A.7) :
+// « 23/11 à 18 h 48 », heure de Paris (l'horloge commune du jeu). rpInstantForum lit tous les formats rencontrés en base :
+// millisecondes, ISO (« 2026-11-23T18:48:24.969Z », « 2026-11-23 18:48:24.969+00 »), et les deux anciens formats écrits
+// par le navigateur en heure de Paris (« 23/11/2026 · 17h04 », « 23/11/2026 22:51 »). Illisible : null (jamais une date inventée).
+function rpDecalageParisMs(instant) {
+  try {
+    const parts = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' }).formatToParts(new Date(instant));
+    const g = t => Number(parts.find(p => p.type === t)?.value);
+    return Date.UTC(g('year'), g('month') - 1, g('day'), g('hour'), g('minute'), g('second')) - Math.floor(instant / 1000) * 1000;
+  } catch (_) { return 0; }
+}
+function rpInstantForum(valeur) {
+  if (valeur == null || valeur === '') return null;
+  if (typeof valeur === 'number') return Number.isFinite(valeur) ? valeur : null;
+  if (valeur instanceof Date) return Number.isFinite(valeur.getTime()) ? valeur.getTime() : null;
+  const s = String(valeur).trim();
+  if (/^\d{10,}$/.test(s)) return Number(s);
+  const fr = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\D+(\d{1,2})\s*[h:]\s*(\d{2})/);
+  if (fr) {
+    const naif = Date.UTC(Number(fr[3]), Number(fr[2]) - 1, Number(fr[1]), Number(fr[4]), Number(fr[5]));
+    let t = naif - rpDecalageParisMs(naif);
+    t = naif - rpDecalageParisMs(t);   // second passage : changement d'heure
+    return t;
+  }
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
+    let iso = s.replace(' ', 'T').replace(/([+-]\d{2})$/, '$1:00');
+    if (!/(Z|[+-]\d{2}:?\d{2})$/.test(iso)) iso += 'Z';   // horodatage PostgreSQL sans fuseau : UTC
+    const n = Date.parse(iso);
+    return Number.isFinite(n) ? n : null;
+  }
+  return null;
+}
+function rpDateLisible(valeur) {
+  const n = rpInstantForum(valeur);
+  if (n == null) return '';
+  try {
+    const parts = new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', day: '2-digit', month: '2-digit',
+      hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date(n));
+    const g = t => parts.find(p => p.type === t)?.value || '';
+    return g('day') + '/' + g('month') + ' à ' + g('hour') + ' h ' + g('minute');
+  } catch (_) { return ''; }
+}
+if (typeof window !== 'undefined') { window.rpDateLisible = rpDateLisible; window.rpInstantForum = rpInstantForum; }
+
 /* ===========================
    RES PUBLICA — FORUM.JS v3
    Éditeur riche, mails, emojis
