@@ -207,6 +207,9 @@ Chaque point porte un banc qui l'empêche de revenir (liste dans RELAIS.md).
     accrédités restent génériques. Base : seuls les 7 informateurs relevés en lecture sont renommés par la migration
     `20261123230000_renommages_pnj_finale` ; les anciens noms restent en `aliasInformateur` côté client. Banc :
     `outils/bancs/banc-renommages-pnj-novomirsk-20261123.cjs`.
+    *Quête « Une affaire mystérieuse » de Sovarka (Fred, 24/11/2026, mission « Purge », point H.11) : son texte précise que
+    l'« Armurier Militaire » visé est le Sergent Bogdan Zatvorov, à l'Armurerie Militaire de la Caserne centrale de Novomirsk
+    (migration `20261124144000` ; mécanique de la quête inchangée).*
 45. Doublon « Le Maire » / « Le Maire de Novomirsk » : celui qui n'est pas utilisé est supprimé avec redirection.
 46. Relevé seulement des images à remplacer (Cercle des Camarades, rédaction de La Voix de Sovarka, amphithéâtre).
 47. Krasnov et Starovka : liste des PNJ sans portrait, recadrable ou absent.
