@@ -1,4 +1,4 @@
--- NON APPLIQUÉE — l'agent principal l'applique à la fusion (mission « Purge », bloc C, Fred, 24/11/2026).
+-- APPLIQUÉE en production le 24/11/2026 (contrôlée : anon refusé, authenticated autorisé) (mission « Purge », bloc C, Fred, 24/11/2026).
 -- Fenêtre du chantier simplifiée (points C.1 à C.3) : l'écran affiche le plafond d'heures, le gain et les quantités
 -- vendables que le SERVEUR décide, jamais un calcul à lui (AGENTS.md, « Une seule réalité »). Il n'existait aucune
 -- lecture : seuls chantier_commande('travailler') et vendre_materiaux_chantier décidaient, au moment de l'action.
