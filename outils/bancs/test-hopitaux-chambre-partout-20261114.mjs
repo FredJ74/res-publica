@@ -14,12 +14,12 @@ for (const [pays, ville, bat] of villes) {
   const ch = vm.runInContext(`WORLD.${pays}.${ville}.buildingContext?.['${bat}']?.roomsExtra?.chambre`, ctx);
   assert.ok(ch, `${pays} ${ville} : chambre absente`);
   assert.equal(ch.name, "Chambre d'hôpital");
-  // Krasnov (Fred, 23/11/2026, point 30) : la chambre des hospitalisés porte aussi « Sortir de l'hôpital ».
-  const krasnov = pays === 'soviet' && ville === 'ville_b';
-  const ordres = krasnov ? ch.orders.slice(0, 3) : ch.orders;
+  // Krasnov (Fred, 23/11/2026, point 30), puis tous les hôpitaux (24/11/2026, point H.1) : la chambre des hospitalisés
+  // porte aussi « Sortir de l'hôpital ».
+  const ordres = ch.orders.slice(0, 3);
   assert.deepEqual(Array.from(ordres, o => [o.fn, o.pa, o.cost]),
     [['dormir', 0, 0], ['repas_hopital', 1, 0], ['transfert_clinique_privee', 0, 1000]], `${pays} ${ville}`);
-  if (krasnov) assert.deepEqual(Array.from(ch.orders.slice(3), o => o.fn), ['sortie_hopital']);
+  assert.deepEqual(Array.from(ch.orders.slice(3), o => o.fn), ['sortie_hopital'], `${pays} ${ville} : sortie depuis la chambre`);
   assert.equal(JSON.stringify(ordres), reference, `${pays} ${ville} : mêmes ordres et mêmes textes partout`);
   assert.ok(fs.existsSync(new URL('../../' + ch.imageUrl, import.meta.url)), `${pays} ${ville} : image ${ch.imageUrl}`);
 }

@@ -93,9 +93,9 @@ test('30 : hôpital de Krasnov — salle d’attente des visiteurs, chambre des 
   assert.match(lire('migrations/20261110003000_sovarka_tarifs_nationaux.sql'), /\('transfert_clinique_privee', 'soviet', 0, 400\)/);
   const perso = lire('plateau-personnage.js');
   assert.match(perso, /const tarif = typeof tarifOrdrePays === 'function' \? tarifOrdrePays\('transfert_clinique_privee', state\.country\) : null;/);
-  // Les autres villes ne changent pas (Starovka garde son gabarit).
+  // Depuis le 24/11/2026 (Fred, point H.1), tous les hôpitaux suivent ce modèle : banc-ghe-h1-hopitaux-20261124.cjs.
   const a = c.__W.soviet.ville_a.buildingContext['dispensaire-public-v'];
-  assert.ok(fns(c.__o(c.__B['dispensaire-public-v'].rooms.attente, a, 'attente')).includes('repas_hopital'));
+  assert.ok(!fns(c.__o(c.__B['dispensaire-public-v'].rooms.attente, a, 'attente')).includes('repas_hopital'));
 });
 
 test('31 : locaux libres de Sovarka — encadré exact, demande à 1 PA, ordres d’exploitant masqués, « Ce commerce » supprimé', () => {

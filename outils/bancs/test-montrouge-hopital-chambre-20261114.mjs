@@ -9,8 +9,9 @@ const ch=vm.runInContext("WORLD.republic.ville_b.buildingContext['dispensaire-pu
 assert.equal(ch.name,"Chambre d'hôpital");
 assert.equal(ch.imageUrl,'images/montrouge/montrouge-hopital-chambre.webp');
 assert.ok(fs.existsSync(new URL('../../'+ch.imageUrl,import.meta.url)),'WebP de la chambre');
-assert.deepEqual(Array.from(ch.orders,o=>o.fn),['dormir','repas_hopital','transfert_clinique_privee']);
-assert.deepEqual(Array.from(ch.orders,o=>[o.pa,o.cost]),[[0,0],[1,0],[0,1000]]);
+// + « Sortir de l'hôpital » dans la chambre (Fred, 24/11/2026, point H.1 : salle d'attente et chambre séparées partout).
+assert.deepEqual(Array.from(ch.orders,o=>o.fn),['dormir','repas_hopital','transfert_clinique_privee','sortie_hopital']);
+assert.deepEqual(Array.from(ch.orders,o=>[o.pa,o.cost]),[[0,0],[1,0],[0,1000],[0,0]]);
 for(const pays of ['soviet','narco','khalija']) {
   const nom=vm.runInContext(`WORLD.${pays}.ville_b.buildingContext?.['dispensaire-public-v']?.roomsExtra?.chambre?.imageUrl`,ctx);
   assert.notEqual(nom,ch.imageUrl,pays+' non modifié');

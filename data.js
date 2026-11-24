@@ -11698,27 +11698,6 @@ function CHAMBRE_HOPITAL_ORDRES_SOVARKA() { return CHAMBRE_HOPITAL_ORDRES(); }
   }
 })();
 
-// HÔPITAL DE KRASNOV : SALLE D'ATTENTE ET CHAMBRE SÉPARÉES (Fred, 23/11/2026, point 30 ;
-// GAME-DESIGN-HOSPITALISATION.md). Salle d'attente = visiteurs (centre antipoison, soin standard, fournir des
-// ressources médicales ; « Inspecter » et « Se cacher » sont des actions de pièce communes). Chambre = hospitalisés :
-// dormir, repas, transfert en clinique privée (0 PA, tarif du pays lu dans ordres_couts_pays : 400 PSK en Sovarka,
-// affiché sur le bouton), sortir. « Salle bondée. Patience requise. » est supprimé.
-(function () {
-  const ORDRES_RESERVES_AUX_HOSPITALISES = ['transfert_clinique_privee', 'repas_hopital', 'sortie_hopital'];
-  const cite = WORLD.soviet && WORLD.soviet.ville_b;
-  const hopital = cite && cite.buildingContext && cite.buildingContext['dispensaire-public-v'];
-  if (!hopital || !hopital.roomsExtra || !hopital.roomsExtra.chambre) throw new Error("Pièces de l'hôpital de Krasnov absentes");
-  hopital.roomOverrides = hopital.roomOverrides || {};
-  const attente = hopital.roomOverrides.attente = hopital.roomOverrides.attente || {};
-  attente.desc = "La salle d'attente de l'hôpital municipal : bancs de bois, poêle en fonte et affiches sur l'hygiène. On y vient en visiteur ; les patients hospitalisés restent dans leur chambre.";
-  attente.excludeOrders = Array.from(new Set((attente.excludeOrders || []).concat(ORDRES_RESERVES_AUX_HOSPITALISES)));
-  attente.orders = (attente.orders || []).filter(o => !ORDRES_RESERVES_AUX_HOSPITALISES.includes(o.fn));
-  const sortie = (BUILDINGS['dispensaire-public-v'].rooms.attente.orders || []).find(o => o.fn === 'sortie_hopital');
-  const chambre = hopital.roomsExtra.chambre;
-  // Le montant du socle (1000 FR) est remplacé à l'écran par le tarif national (tarifOrdrePays, montantDansTexte) et le sigle du pays.
-  chambre.orders = CHAMBRE_HOPITAL_ORDRES().concat(sortie ? [Object.assign({}, sortie)] : []);
-})();
-
 // CHAMBRES D'HÔPITAL DE LUTHÉCIA ET DE PORT-SAINTE-MARIE (Fred, 14/11/2026) : même pièce que Montrouge et
 // Sovarka (migration 20261114130000). Image provisoire de Montrouge, en attendant celles de Fred.
 (function () {
@@ -11742,6 +11721,45 @@ function CHAMBRE_HOPITAL_ORDRES_SOVARKA() { return CHAMBRE_HOPITAL_ORDRES(); }
       orders: CHAMBRE_HOPITAL_ORDRES()
     };
   });
+})();
+
+// SALLE D'ATTENTE ET CHAMBRE SÉPARÉES DANS TOUS LES HÔPITAUX PUBLICS DE RÉPUBLIA ET DE SOVARKA (Fred, 23/11/2026,
+// point 30, d'abord à Krasnov ; étendu à tous les hôpitaux par Fred le 24/11/2026, mission « Purge », point H.1 ;
+// GAME-DESIGN-HOSPITALISATION.md). Hôpital par hôpital (Luthécia, Port-Sainte-Marie, Montrouge, Novomirsk, Starovka,
+// Krasnov), même modèle que Krasnov : salle d'attente = visiteurs (centre antipoison, soin standard, fournir des
+// ressources médicales ; « Inspecter » et « Se cacher » sont des actions de pièce communes) ; chambre = hospitalisés :
+// dormir, repas, transfert en clinique privée (0 PA, tarif du pays lu dans ordres_couts_pays, affiché sur le bouton),
+// sortir. Le serveur conduit déjà tout hospitalisé dans la chambre (hospitalisation_lieu_rejoindre_interne, migration
+// 20261114130000 : les six hôpitaux ont leur pièce « chambre »). « Salle bondée. Patience requise. » est supprimé.
+const HOPITAUX_PUBLICS_SALLE_ET_CHAMBRE = [
+  ['republic', 'capitale', 'dispensaire-public', 'salle_attente'], ['republic', 'ville_a', 'dispensaire-public-v', 'attente'],
+  ['republic', 'ville_b', 'dispensaire-public-v', 'attente'], ['soviet', 'capitale', 'dispensaire-public', 'salle_attente'],
+  ['soviet', 'ville_a', 'dispensaire-public-v', 'attente'], ['soviet', 'ville_b', 'dispensaire-public-v', 'attente']
+];
+const ORDRES_RESERVES_AUX_HOSPITALISES = ['transfert_clinique_privee', 'repas_hopital', 'sortie_hopital'];
+(function () {
+  const VISITEURS = "On y vient en visiteur ; les patients hospitalisés restent dans leur chambre.";
+  const DESC_BONDEE = ["Salle bondee. Patience requise.", "La salle d'attente est bondee. Comptez plusieurs heures."];
+  for (const [pays, ville, batiment, salle] of HOPITAUX_PUBLICS_SALLE_ET_CHAMBRE) {
+    const cite = WORLD[pays] && WORLD[pays][ville];
+    const hopital = cite && cite.buildingContext && cite.buildingContext[batiment];
+    if (!hopital || !hopital.roomsExtra || !hopital.roomsExtra.chambre) throw new Error("Chambre d'hôpital absente : " + [pays, ville, batiment].join('/'));
+    hopital.roomOverrides = hopital.roomOverrides || {};
+    const attente = hopital.roomOverrides[salle] = Object.assign({}, hopital.roomOverrides[salle] || {});
+    const descBase = BUILDINGS[batiment].rooms[salle].desc;
+    if (pays === 'soviet' && ville === 'ville_b') {
+      attente.desc = "La salle d'attente de l'hôpital municipal : bancs de bois, poêle en fonte et affiches sur l'hygiène. " + VISITEURS;
+    } else if (!attente.desc && DESC_BONDEE.includes(descBase)) {
+      attente.desc = "La salle d'attente de l'hôpital. " + VISITEURS;
+    }
+    attente.excludeOrders = Array.from(new Set((attente.excludeOrders || []).concat(ORDRES_RESERVES_AUX_HOSPITALISES)));
+    attente.orders = (attente.orders || []).filter(o => !ORDRES_RESERVES_AUX_HOSPITALISES.includes(o.fn));
+    const sortie = (BUILDINGS[batiment].rooms[salle].orders || []).find(o => o.fn === 'sortie_hopital');
+    // Le montant du socle (1000 FR) est remplacé à l'écran par le tarif national (tarifOrdrePays, montantDansTexte).
+    hopital.roomsExtra = Object.assign({}, hopital.roomsExtra);
+    hopital.roomsExtra.chambre = Object.assign({}, hopital.roomsExtra.chambre,
+      { orders: CHAMBRE_HOPITAL_ORDRES().concat(sortie ? [Object.assign({}, sortie)] : []) });
+  }
 })();
 
 // STAROVKA ET KRASNOV : TEXTES DU GABARIT DE MONTROUGE (Claude, 09/11/2026, audit des deux villes).
