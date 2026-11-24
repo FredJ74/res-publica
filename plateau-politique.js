@@ -38,8 +38,10 @@
 // d'aller s'engager. Le bloc militaire ajoute plus bas est en LECTURE SEULE : on ne s'engage
 // pas depuis le Palais, il faut etre physiquement a la caserne et cela coute 2 PA.
 async function ouvrirEcranPostes() {
-  document.getElementById('postes-modal-title').textContent = 'Organigramme';
-  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
+  // Textes politiques uniquement : les noms de postes et les données serveur restent inchangés.
+  const orgT = (key, fr, values) => ficheLibelleHtml(key, fr, values, 'politicalOrg');
+  document.getElementById('postes-modal-title').innerHTML = orgT('title', 'Organigramme');
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">' + orgT('loading', 'Chargement...') + '</div>';
   document.getElementById('modal-postes').classList.add('open');
 
   const country = state.country;
@@ -51,16 +53,16 @@ async function ouvrirEcranPostes() {
 
   let html = '<div style="padding:.5rem 0">';
 
-  html += '<div style="padding:.6rem 1rem;font-size:.72rem;color:#6a5a30;font-family:Bebas Neue,sans-serif;letter-spacing:.1em;border-bottom:1px solid #1a1810">POSTES ÉLECTIFS</div>';
+  html += '<div style="padding:.6rem 1rem;font-size:.72rem;color:#6a5a30;font-family:Bebas Neue,sans-serif;letter-spacing:.1em;border-bottom:1px solid #1a1810">' + orgT('elected', 'POSTES ÉLECTIFS') + '</div>';
   postesElus.forEach(p => {
     const local = p.niveau === 'ville';
     html += '<div class="poste-item"><div>' +
       '<div class="poste-name">' + p.name + (local ? ' (' + villeNom + ')' : '') + '</div>' +
-      '<div class="poste-holder" style="font-size:.75rem;color:#6a5a30">Mandat de ' + p.mandatSemaines + ' semaines — voir le calendrier électoral pour candidater</div>' +
-      '</div><button class="poste-btn" onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\');ouvrirCalendrierElectoral();">Calendrier</button></div>';
+      '<div class="poste-holder" style="font-size:.75rem;color:#6a5a30">' + orgT('mandate', 'Mandat de ' + p.mandatSemaines + ' semaines — voir le calendrier électoral pour candidater', {weeks:p.mandatSemaines}) + '</div>' +
+      '</div><button class="poste-btn" onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\');ouvrirCalendrierElectoral();">' + orgT('calendar', 'Calendrier') + '</button></div>';
   });
 
-  html += '<div style="padding:.6rem 1rem;font-size:.72rem;color:#6a5a30;font-family:Bebas Neue,sans-serif;letter-spacing:.1em;border-bottom:1px solid #1a1810;margin-top:.6rem">POSTES NOMMÉS</div>';
+  html += '<div style="padding:.6rem 1rem;font-size:.72rem;color:#6a5a30;font-family:Bebas Neue,sans-serif;letter-spacing:.1em;border-bottom:1px solid #1a1810;margin-top:.6rem">' + orgT('appointed', 'POSTES NOMMÉS') + '</div>';
   // DEUX LECTURES AU LIEU DE TRENTE-QUATRE (24 septembre 2026, apres recette navigateur).
   //
   // CE QUI N'ALLAIT PAS. La boucle appelait getTitulaireActuel() une fois PAR POSTE NOMME, soit
@@ -102,19 +104,19 @@ async function ouvrirEcranPostes() {
     const titulaire = titulaires[iPoste];
     let actionHtml;
     if (titulaire && titulaire.estPJ && titulaire.nom === state.char?.name) {
-      actionHtml = '<button class="poste-btn" style="opacity:.4;cursor:default;color:#C9A84C">Votre poste</button>';
+      actionHtml = '<button class="poste-btn" style="opacity:.4;cursor:default;color:#C9A84C">' + orgT('myPost', 'Votre poste') + '</button>';
     } else if (titulaire && titulaire.estPJ) {
-      actionHtml = '<button class="poste-btn" style="opacity:.4;cursor:default">Occupé</button>';
+      actionHtml = '<button class="poste-btn" style="opacity:.4;cursor:default">' + orgT('occupied', 'Occupé') + '</button>';
     } else {
-      actionHtml = '<button class="poste-btn" onclick="demanderNominationPoste(\'' + p.id + '\',\'' + p.label.replace(/'/g,'') + '\')">Postuler</button>';
+      actionHtml = '<button class="poste-btn" onclick="demanderNominationPoste(\'' + p.id + '\',\'' + p.label.replace(/'/g,'') + '\')">' + orgT('apply', 'Postuler') + '</button>';
     }
     // ORGANIGRAMME : un titulaire passe a la mutinerie doit se voir d'un coup d'oeil. RP_MUTINS
     // est relu a chaque entree de piece ; il ne porte que des noms, jamais une position.
     const mutinIci = (titulaire && typeof estMutin === 'function' && estMutin(titulaire.nom))
-      ? ' <b style="color:#cc4444">— MUTIN</b>' : '';
+      ? ' <b style="color:#cc4444">' + orgT('mutineer', '— MUTIN') + '</b>' : '';
     html += '<div class="poste-item"><div>' +
       '<div class="poste-name">' + p.label + (villeDeCePoste ? ' (' + villeNom + ')' : '') + '</div>' +
-      '<div class="poste-holder">' + (titulaire ? ('Occupé par ' + titulaire.nom + (titulaire.estPJ ? '' : ' (PNJ)')) : 'Poste vacant') + mutinIci + '</div>' +
+      '<div class="poste-holder">' + (titulaire ? orgT('heldBy', 'Occupé par ' + titulaire.nom, {name:titulaire.nom}) + (titulaire.estPJ ? '' : ' ' + orgT('npc', '(PNJ)')) : orgT('vacant', 'Poste vacant')) + mutinIci + '</div>' +
       '</div>' + actionHtml + '</div>';
   }
 
@@ -123,32 +125,32 @@ async function ouvrirEcranPostes() {
   // exception du Commandant, qui est bien une fonction nommee) : Capitaines et Lieutenants sont
   // portes par le blob de leur compagnie. Il faut donc aller la lire pour montrer les vacances.
   // ------------------------------------------------------------------------------------------
-  html += '<div style="padding:.6rem 1rem;font-size:.72rem;color:#6a5a30;font-family:Bebas Neue,sans-serif;letter-spacing:.1em;border-bottom:1px solid #1a1810;margin-top:.6rem">CHAÎNE DE COMMANDEMENT MILITAIRE</div>';
+  html += '<div style="padding:.6rem 1rem;font-size:.72rem;color:#6a5a30;font-family:Bebas Neue,sans-serif;letter-spacing:.1em;border-bottom:1px solid #1a1810;margin-top:.6rem">' + orgT('military', 'CHAÎNE DE COMMANDEMENT MILITAIRE') + '</div>';
   if (!compagnies.length) {
-    html += '<div class="poste-item"><div><div class="poste-holder">Aucune compagnie n\'a encore été levée.</div></div></div>';
+    html += '<div class="poste-item"><div><div class="poste-holder">' + orgT('noCompany', "Aucune compagnie n'a encore été levée.") + '</div></div></div>';
   } else {
     compagnies.forEach(c => {
       const cap = c.capitaineNom;
       html += '<div class="poste-item"><div>' +
-        '<div class="poste-name">' + escapeHtmlText(c.nom || c.id) + ' — Capitaine</div>' +
-        '<div class="poste-holder">' + (cap ? ('Occupé par ' + escapeHtmlText(cap)) : 'Poste vacant') + '</div>' +
+        '<div class="poste-name">' + escapeHtmlText(c.nom || c.id) + ' — ' + orgT('captain','Capitaine') + '</div>' +
+        '<div class="poste-holder">' + (cap ? orgT('heldBy','Occupé par ' + cap,{name:cap}) : orgT('vacant','Poste vacant')) + '</div>' +
         '</div></div>';
       (c.sections || []).forEach(sec => {
         const eff = (sec.soldats || []).length;
         html += '<div class="poste-item" style="padding-left:1.6rem"><div>' +
-          '<div class="poste-name">Section ' + escapeHtmlText(String(sec.numero || sec.id)) + ' — Lieutenant</div>' +
-          '<div class="poste-holder">' + (sec.lieutenantNom ? ('Occupé par ' + escapeHtmlText(sec.lieutenantNom)) : 'Poste vacant')
-          + ' — effectif ' + eff + '/' + EFFECTIF_SECTION + '</div>' +
+          '<div class="poste-name">' + orgT('section','Section') + ' ' + escapeHtmlText(String(sec.numero || sec.id)) + ' — ' + orgT('lieutenant','Lieutenant') + '</div>' +
+          '<div class="poste-holder">' + (sec.lieutenantNom ? orgT('heldBy','Occupé par ' + sec.lieutenantNom,{name:sec.lieutenantNom}) : orgT('vacant','Poste vacant'))
+          + ' — ' + orgT('strength','effectif ' + eff + '/' + EFFECTIF_SECTION,{count:eff,max:EFFECTIF_SECTION}) + '</div>' +
           '</div></div>';
       });
     });
   }
   html += '<div style="padding:.5rem 1rem .8rem;font-size:.72rem;color:#6a5a30;font-style:italic">'
-        + 'Capitaine, Lieutenant et soldat se candidatent à la Caserne Militaire, en personne, '
-        + 'par l\'ordre « S\'engager dans l\'armée » (1 PA).</div>';
+        + orgT('militaryHint', "Capitaine, Lieutenant et soldat se candidatent à la Caserne Militaire, en personne, par l'ordre « S'engager dans l'armée » (1 PA).") + '</div>';
 
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
+  window.RPI18nPlateau?.apply?.(document.getElementById('modal-postes'));
 }
 
 // =====================
