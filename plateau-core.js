@@ -2188,6 +2188,22 @@ function applyCharToState(char) {
   const cur = co?.cur || 'FR';
   const argEl = document.getElementById('r-arg');
   if (argEl) argEl.textContent = (state.liquide ?? 0).toLocaleString('fr-FR') + ' ' + cur;
+  majInfobulleArgent(cur);
+}
+
+// INFOBULLE DE L'ARGENT (Fred, 24/11/2026, retour d'un nouveau joueur qui croyait avoir perdu 2 500 PSK) : la case
+// « ARGENT » reste telle quelle (l'argent en poche), mais son survol donne le montant total, poche et banque comprises.
+// Au toucher, la case ouvre déjà la fenêtre de l'argent, qui donne le même détail.
+function majInfobulleArgent(cur) {
+  const panneau = document.getElementById('hg-panneau-argent');
+  if (!panneau) return;
+  const f = (typeof resumeFortune === 'function') ? resumeFortune() : { liquide: state.liquide || 0, comptes: 0, placements: 0, poches: state.liquide || 0 };
+  const n = v => (Number(v) || 0).toLocaleString('fr-FR');
+  const detail = [n(f.liquide) + ' en poche', n(f.comptes) + ' en banque'];
+  if (Number(f.placements) > 0) detail.push(n(f.placements) + ' placés');
+  const texte = 'Argent total : ' + n(f.poches) + ' ' + (cur || '') + ' (' + detail.join(', ') + '). Cliquez pour le détail.';
+  panneau.title = texte;
+  panneau.setAttribute('aria-label', texte);
 }
 
 // =====================
@@ -2991,6 +3007,7 @@ function updateUI() {
   document.getElementById('r-pa').textContent   = TEST_MODE ? '∞' : state.pa;
   document.getElementById('b-pa').style.width   = TEST_MODE ? '100%' : (Math.min(state.pa, PA_MAX) / PA_MAX * 100) + '%';
   document.getElementById('r-arg').textContent  = (state.liquide ?? 0).toLocaleString('fr-FR') + ' ' + cur;
+  majInfobulleArgent(cur);
   document.getElementById('r-inf').textContent  = state.inf;
   document.getElementById('b-inf').style.width  = state.inf + '%';
   document.getElementById('r-pop').textContent  = state.pop;
