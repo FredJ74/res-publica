@@ -2155,6 +2155,8 @@ async function ouvrirListeConversations() {
   html += '<button onclick="ouvrirCreerSalonPrompt()" style="margin-top:.4rem;font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.08em;padding:.35rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">+ Créer un salon</button>';
   html += '</div>';
   document.getElementById('chat-piece-body').innerHTML = html;
+  // Réglage des notifications du chat (purge A.8) : en tête de la liste des conversations.
+  if (window.RPNotifChat) window.RPNotifChat.insererReglage(document.getElementById('chat-piece-body').firstElementChild);
 }
 
 function ouvrirCreerSalonPrompt() {
@@ -2313,6 +2315,8 @@ async function verifierNotificationChat() {
     if (nonLu && nonLu.id && nonLu.id !== _dernierMessageNotifie && !dejaOuverte) {
       _dernierMessageNotifie = nonLu.id;
       afficherNotificationChat(nonLu);
+      // Notification du navigateur (purge A.8, 24/11/2026) : nom et lieu seulement, jamais le message ; jamais pour le PNJ guide.
+      if (window.RPNotifChat) window.RPNotifChat.messageRecu(nonLu, chatLibelleParticipant(nonLu.auteur));
     }
     if (!nonLu) { const n = document.getElementById('rp-notif-chat'); if (n) n.remove(); }
     _dernierEtatNonLuChat = !!nonLu;

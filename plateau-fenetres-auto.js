@@ -32,7 +32,7 @@
 
   // 'ouvrir' | 'attendre' | 'badge'
   function decision(type) {
-    if (!accueil() && attenteEtat < 10) return 'attendre';     // état du serveur pas encore lu (au plus ~20 s)
+    if (global.RPAccueil && !accueil() && attenteEtat < 10) return 'attendre';     // état du serveur pas encore lu (au plus ~20 s)
     if (premiereHeure()) return 'badge';
     if (montrees >= 1) return 'badge';
     if (fenetreOuverte()) return 'attendre';

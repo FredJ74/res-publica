@@ -7,7 +7,7 @@
 const test = require('node:test'), assert = require('node:assert/strict'), fs = require('node:fs'), path = require('node:path');
 const root = path.resolve(__dirname, '../..'), lire = f => fs.readFileSync(path.join(root, f), 'utf8');
 const M = ['migrations/20261123140000_accueil_interview.sql', 'migrations/20261124101000_accueil_bienvenue.sql', 'migrations/20261124102000_accueil_calendrier.sql',
-  'migrations/20261124104000_accueil_question.sql'];
+  'migrations/20261124104000_accueil_question.sql', 'migrations/20261124105000_notifications_chat.sql'];
 
 test('les migrations ne touchent ni au goulag ni aux données des joueurs', () => {
   for (const f of M.slice(1)) {
@@ -135,4 +135,20 @@ test('A.5 : la journaliste demande ce que le nouveau veut être, dit qu’il a l
   // Fermée sans réponse (ouverture notée) : toujours « a_faire », donc dans Mes objectifs.
   await rpc(db, U.bernard, 'accueil_interview_vue');
   assert.equal((await rpc(db, U.bernard, 'accueil_etat')).interview.etat, 'a_faire');
+});
+
+test('A.8 : proposition des notifications jamais pendant la première heure ; réglage gardé au serveur', async () => {
+  const db = await base();
+  await rpc(db, U.bernard, 'accueil_etat');
+  let n = await rpc(db, U.bernard, 'notifications_chat_lire');
+  assert.deepEqual([n.active, n.proposee, n.a_proposer, n.premiere_heure], [false, false, false, true]);
+  await jouer(db, U.bernard, 'Bernard', 3630);
+  n = await rpc(db, U.bernard, 'notifications_chat_lire');
+  assert.equal(n.a_proposer, true, 'après la première heure');
+  n = (await comme(db, U.bernard, 'SELECT public.notifications_chat_fixer(true) r'))[0].r;
+  assert.deepEqual([n.active, n.proposee, n.a_proposer], [true, true, false]);
+  n = (await comme(db, U.bernard, 'SELECT public.notifications_chat_fixer(false) r'))[0].r;
+  assert.equal(n.active, false);
+  assert.equal((await rpc(db, U.vieux, 'notifications_chat_lire')).a_proposer, true, 'ancien joueur : proposée au premier message');
+  await assert.rejects(comme(db, U.bernard, 'SELECT * FROM notifications_chat'));
 });
