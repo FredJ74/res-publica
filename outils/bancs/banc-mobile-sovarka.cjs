@@ -32,5 +32,9 @@ test('Bureau 1440 : pixels identiques au témoin avec le plancher de notes valid
 const plancher='.cpj-note{font-size:.95rem}';
 assert.ok(fs.readFileSync(path.join(R,'style.css'),'utf8').includes(plancher));
 await a.addStyleTag({content:plancher});
+// Deuxième exception voulue (Fred, 24/11/2026) : zones de texte et champs de nom écrits depuis le début de la ligne.
+const texteLibre='textarea.cpj-champ,input[type="text"].cpj-champ{text-align:start}';
+assert.ok(fs.readFileSync(path.join(R,'style.css'),'utf8').includes(texteLibre));
+await a.addStyleTag({content:texteLibre});
 for(const e of ecrans){await afficher(a,e);await afficher(n,e);assert.ok((await a.screenshot({animations:'disabled',caret:'hide'})).equals(await n.screenshot({animations:'disabled',caret:'hide'})),e+' modifié sur bureau');}}));
 test('Contre-épreuve : sélecteur de local étroit dans le témoin',()=>environnement(async(b,o)=>{const p=await ouvrir(b,o,360,true);await afficher(p,'ouvrirSovarkaDossiers');assert.ok(await p.locator('#sov-local-0').evaluate(e=>e.getBoundingClientRect().width<100));}));
