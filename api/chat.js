@@ -24,6 +24,7 @@
 import { construirePromptSysteme, profilExiste, maxTokensProfil, filtrerReponseSquatteur, langueDialogueAutorisee, TOUS_PROFILS } from './_pnj-profils.js';
 import { handlerAide } from './_aide.js';
 import { handlerReactionHabitant } from './_reaction-habitant.js';
+import { handlerGuide } from './_pnj-guide.js';
 import { appelDeepSeek, joueurAuthentifie, classerEchecFournisseur } from './_deepseek.js';
 import { sbTransport } from './_supabase.js';
 import { sceneDialogue } from './_pnj-localisation.js';
@@ -300,6 +301,8 @@ export default async function handler(req, res) {
   if (req.query && req.query.mode === 'aide') return handlerAide(req, res);
   // Réaction de l'habitant qui trinque (Sovarka, 13/11/2026) : même fonction, pour rester à 12.
   if (req.query && req.query.mode === 'trinquer') return handlerReactionHabitant(req, res);
+  // PNJ guide des nouveaux joueurs (purge A.10, 24/11/2026) : même fonction, pour rester à 12.
+  if (req.query && req.query.mode === 'guide') return handlerGuide(req, res);
   const origin = req.headers.origin;
   if (origin === ALLOWED_ORIGIN) {
     res.setHeader('Access-Control-Allow-Origin', ALLOWED_ORIGIN);
