@@ -6968,7 +6968,7 @@ const BUILDINGS = {
           // catalogue, seul l'appelant client manquait. Sans lui, la tente du repos, les jumelles
           // de la detection et les radios de commandement restaient dans l'armurerie.
           {fn:'retirer_equipement_militaire', label:'Retirer de l\'équipement',  pa:0, cost:0, type:'legal',   icon:'ti-backpack', successRate:100, requiresPost:'lieutenant', desc:'Reserve au chef de section. Gilets, radios, tentes, jumelles et tenues de camouflage, sur le stock reel de l\'armurerie. Inscrit au registre.'},
-          {fn:'acheter_bombe_illegale',       label:'Subtiliser des explosifs', pa:2, cost:0, type:'illegal', icon:'ti-eye-off', successRate:35,  desc:'Voler un explosif dans le stock de la caserne. 35% de base, module par la discretion, l\'ISN et la reputation criminelle. Echec detecte : QHS.'}
+          {fn:'acheter_bombe_illegale',       label:'Subtiliser des explosifs', pa:2, cost:0, type:'illegal', icon:'ti-eye-off', successRate:35,  desc:'Voler un explosif dans le stock de la caserne. Vos chances dépendent de votre discrétion, de votre réputation criminelle, d\'un bonus de carrière criminelle, de l\'ISN de la ville, d\'un malus en Sovarka et des hommes armés présents. Un échec ne vous fait rechercher que si la garde vous a repéré (en Sovarka : Quartier Haute Sécurité).'}
         ]
       },
       // Refectoire (13 septembre 2026, chantier Effort de guerre). Volontairement SANS

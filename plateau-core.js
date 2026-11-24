@@ -380,7 +380,7 @@ const PEINES_ACTES = {
     assassinat:               { jours: 2, amende: 1500, label: 'Assassinat', categorie: 'crime' },
     tentative_empoisonnement: { jours: 2, amende: 2000, label: "Tentative d'empoisonnement", categorie: 'crime' },
     empoisonnement:           { jours: 2, amende: 2000, label: 'Empoisonnement' },
-    acheter_bombe_illegale:   { jours: 2, amende: 2000, label: "Achat d'explosifs non enregistres" },
+    acheter_bombe_illegale:   { jours: 2, amende: 2000, label: "Vol d'explosifs militaires" },
     utiliser_explosifs:       { jours: 2, amende: 2000, label: "Usage d'explosifs" },
     incendier:                { jours: 2, amende: 2000, label: 'Incendie volontaire' },
     hooliganisme:             { jours: 1, amende: 500,  label: 'Trouble a l\'ordre public (hooliganisme)', categorie: 'delit' },

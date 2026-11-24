@@ -3,7 +3,7 @@
 INSERT INTO public.infractions (id,libelle,categorie,jours_reference,amende_reference,detect_rate,bareme_propre,detectable) VALUES
 ('achat_arme_illegal', 'Achat d''arme non enregistree', 'delit', 1, 500, NULL, true, true),
   ('acheter_arme_illegale', 'Achat d''arme non enregistree', 'delit', 1, 500, 20, true, true),
-  ('acheter_bombe_illegale', 'Achat d''explosifs non enregistres', 'crime', 2, 2000, 55, true, true),
+  ('acheter_bombe_illegale', 'Vol d''explosifs militaires', 'crime', 2, 2000, 55, true, true),
   ('arreter', 'Delit grave', 'delit_grave', 1, 1500, 40, false, true),
   ('assassinat', 'Assassinat', 'crime', 2, 1500, NULL, true, true),
   ('assassiner_arme', 'Assassinat', 'crime', 2, 1500, 40, true, true),
