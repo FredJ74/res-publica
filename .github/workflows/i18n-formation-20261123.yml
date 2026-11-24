@@ -1,0 +1,25 @@
+name: Formation universitaire — neuf langues et progression conservée
+on:
+  pull_request:
+    paths: ['plateau-universite.js', 'i18n/university-resources.js', 'i18n/packed/university-resources.js.br', 'i18n/plateau-init.js', 'outils/bancs/banc-i18n-formation-20261123.cjs', 'outils/audits/i18n/FORMATION-20261123-sources.json', 'outils/audits/i18n/FORMATION-CATALOGUE-20261123.json', '.github/workflows/i18n-formation-20261123.yml']
+  push:
+    branches: [main]
+    paths: ['plateau-universite.js', 'i18n/university-resources.js', 'i18n/packed/university-resources.js.br', 'i18n/plateau-init.js', 'outils/bancs/banc-i18n-formation-20261123.cjs', 'outils/audits/i18n/FORMATION-20261123-sources.json', 'outils/audits/i18n/FORMATION-CATALOGUE-20261123.json', '.github/workflows/i18n-formation-20261123.yml']
+permissions:
+  contents: read
+jobs:
+  formation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci --ignore-scripts --prefix outils/audits/i18n-global
+      - run: npm ci --prefix outils/e2e
+      - run: npx --prefix outils/e2e playwright install --with-deps chromium
+      - run: node outils/generateurs/compresser-catalogues-i18n.cjs --check
+      - run: node --test outils/bancs/banc-i18n-formation-20261123.cjs outils/bancs/banc-audit-i18n-global.cjs

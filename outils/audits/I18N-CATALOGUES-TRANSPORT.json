@@ -676,6 +676,14 @@
       "packedSha256": "b3faad440e5caf9cd1d65e6b0553d64c86188c397829ac1dd0c350b788a524cc"
     },
     {
+      "source": "i18n/university-resources.js",
+      "packed": "i18n/packed/university-resources.js.br",
+      "sourceBytes": 27395,
+      "packedBytes": 6638,
+      "sourceSha256": "1de5cf4356a40eca8cc976dc96a030c9df4a981035bae2efcb102193e11c0a09",
+      "packedSha256": "62542bfc8982e2a26f2e22014315bae05922ae73ac71375a023878a5d8386cd1"
+    },
+    {
       "source": "i18n/vehicle-garage-resources.js",
       "packed": "i18n/packed/vehicle-garage-resources.js.br",
       "sourceBytes": 31321,
