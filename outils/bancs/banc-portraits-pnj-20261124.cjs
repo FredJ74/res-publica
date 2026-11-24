@@ -17,7 +17,7 @@ const ajouter=(b,p,personne,imagePiece)=>{
   const key=[b,p,normaliser(personne.name)].join('|');
   const photo=String(personne.photoUrl||'').split('?')[0];
   const relative=photo.replace(/^https:\/\/raw\.githubusercontent\.com\/FredJ74\/res-publica\/main\//,'');
-  const estLieu=photo && [imagePiece,relative].some(x=>x&&x===imagePiece);
+  const estLieu=!!photo && (photo===imagePiece || relative===imagePiece);
   const valable=!!relative&&relative.startsWith('images/')&&fs.existsSync(path.join(root,relative))&&!estLieu;
   const attente=attendus.some(a=>a.batiment===b&&a.piece===p&&normaliser(a.nom)===normaliser(personne.name));
   const ligne={batiment:b,piece:p,nom:personne.name,role:personne.role||'',photo:relative||null,source:imagePiece||null,portrait_existant:valable,a_produire:attente};
