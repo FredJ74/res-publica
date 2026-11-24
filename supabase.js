@@ -1241,8 +1241,10 @@ function rpReduirePortrait(source, cote = 320, qualite = 0.8) {
 // =====================
 // Les identifiants nationaux et locaux sont historiques et communs aux pays.
 // Le pays réel de chaque sujet est la colonne country, pas son auteur affiché.
+// Presse (purge A.4, 24/11/2026) : la liste du forum de presse est filtrée par pays, comme le forum national. Les interviews
+// d'accueil de Sovarka (Vera Pravdina) ne paraissent plus dans la presse de Républia, et inversement.
 function sbForumEstTerritorial(forumId) {
-  return forumId === 'national' || (typeof forumId === 'string' && forumId.startsWith('local_'));
+  return forumId === 'national' || forumId === 'presse' || (typeof forumId === 'string' && forumId.startsWith('local_'));
 }
 function sbForumSujetDansPays(forumId, paysSujet, paysCourant) {
   return !sbForumEstTerritorial(forumId) || (paysSujet === paysCourant);
