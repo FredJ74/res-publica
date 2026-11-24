@@ -14,8 +14,7 @@ Règles : voir `AGENTS.md`.
   « Pour Codex »** (textes français nouveaux ou changés, à traduire à son retour le 27/11) : `docs/purge/BLOC-A.md`, `BLOC-B.md`,
   `BLOC-C.md`, `BLOC-DF.md`, `BLOC-GHE.md` (section « Pour Codex » de chacun). Catalogues i18n non modifiés.
 - Migrations appliquées et contrôlées le 24/11 : 20261124100000 à 105000 (A), 110000 (B), 120000 (C), 130000 à 136000 (F, D),
-  140000 à 144000 (G, H). **En attente** : `20261124106000_pnj_guide` (validation à l'écran non donnée ; le client du guide reste
-  inerte tant qu'elle manque). Le guide a besoin de `SUPABASE_SERVICE_ROLE_KEY` côté Vercel (déjà utilisée par l'API).
+  140000 à 144000 (G, H), et `20261124106000_pnj_guide` (appliquée ensuite à la demande de Fred : 6 habitants, 42 pistes). Le guide a besoin de `SUPABASE_SERVICE_ROLE_KEY` côté Vercel (déjà utilisée par l'API).
 - Migration rejetée retirée : `historique/migrations-rejetees/20261123170047_plan_renommage_images_non_appliquee.sql`.
 - CI : « Bancs JavaScript » en six parts ; à la poussée, seuls les bancs liés aux fichiers modifiés ; suite complète la nuit.
 - Branches : 994 supprimées (liste restaurable `docs/branches-supprimees-20261124.tsv`), 188 non intégrées conservées.
