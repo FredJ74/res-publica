@@ -1,4 +1,4 @@
--- NON APPLIQUÉE — mission « Purge » du 24/11/2026, bloc F (images de fontaines), point F.1 (consigne de Fred) :
+-- APPLIQUÉE en production le 24/11/2026 (contrôlée en lecture : 1 fontaine active à Luthécia, ancienne redirigée) — mission « Purge » du 24/11/2026, bloc F (images de fontaines), point F.1 (consigne de Fred) :
 -- « La fontaine de Luthécia est DÉPLACÉE du parvis de l'Hôtel de Ville vers la place du Formulaire de la Liberté.
 --   C'est un lieu où l'on entre, pas une vue de rue : « Puiser de l'eau » se fait sur la place. Mets à jour la consigne
 --   de canicule, redirige l'ancien emplacement et ajoute un banc. »
