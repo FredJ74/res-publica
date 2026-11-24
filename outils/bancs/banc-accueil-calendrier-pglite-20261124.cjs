@@ -6,7 +6,8 @@
 // Usage : PGLITE_DIR=<…/node_modules/@electric-sql/pglite> node --test outils/bancs/banc-accueil-calendrier-pglite-20261124.cjs
 const test = require('node:test'), assert = require('node:assert/strict'), fs = require('node:fs'), path = require('node:path');
 const root = path.resolve(__dirname, '../..'), lire = f => fs.readFileSync(path.join(root, f), 'utf8');
-const M = ['migrations/20261123140000_accueil_interview.sql', 'migrations/20261124101000_accueil_bienvenue.sql', 'migrations/20261124102000_accueil_calendrier.sql'];
+const M = ['migrations/20261123140000_accueil_interview.sql', 'migrations/20261124101000_accueil_bienvenue.sql', 'migrations/20261124102000_accueil_calendrier.sql',
+  'migrations/20261124104000_accueil_question.sql'];
 
 test('les migrations ne touchent ni au goulag ni aux données des joueurs', () => {
   for (const f of M.slice(1)) {
@@ -120,4 +121,18 @@ test('A.3 : sans conversation, interview due entre 5 et 10 minutes ; le moment e
   // Le navigateur ne peut ni lire ni écrire l'état, ni créditer lui-même.
   await assert.rejects(comme(db, U.bernard, "UPDATE accueil_personnages SET secondes_jeu = 3600"));
   await assert.rejects(comme(db, U.bernard, "SELECT public.accueil_temps_crediter_interne('Bernard')"));
+});
+
+test('A.5 : la journaliste demande ce que le nouveau veut être, dit qu’il a le temps ; six chemins ; fermée sans réponse = reprenable', async () => {
+  const db = await base();
+  const e = await rpc(db, U.bernard, 'accueil_etat');
+  assert.match(e.interview.question, /ce que vous voulez être/);
+  assert.match(e.interview.question, /Si vous ne le savez pas encore, c'est normal : vous avez tout le temps de vous décider\./);
+  assert.equal(e.interview.journaliste, 'Vera Pravdina');
+  assert.deepEqual(e.chemins.map(c => c.id), ['politique', 'affaires', 'influence', 'crime', 'uniforme', 'belle_vie']);
+  const v = await rpc(db, U.vieux, 'accueil_etat');
+  assert.match(v.interview.question, /que voulez-vous être, ici \?/);
+  // Fermée sans réponse (ouverture notée) : toujours « a_faire », donc dans Mes objectifs.
+  await rpc(db, U.bernard, 'accueil_interview_vue');
+  assert.equal((await rpc(db, U.bernard, 'accueil_etat')).interview.etat, 'a_faire');
 });
