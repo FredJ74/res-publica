@@ -39,7 +39,6 @@ for(const b of ville.buildings||[]){
 }
 const presents=[...groupes.values()];
 const orphelins=presents.filter(x=>!x.portrait_existant&&!x.a_produire);
-console.log('INVENTAIRE_MANQUANTS',JSON.stringify(presents.filter(x=>!x.portrait_existant).map(x=>({nom:x.nom,batiment:x.batiment,piece:x.piece,source:x.source,a_produire:x.a_produire}))));
 const listesNul=attendus.filter(a=>a.pays!=='Republia'&&a.pays!=='Sovarka'&&a.source==='audit 23/11'&&!presents.some(x=>x.nom===a.nom&&x.piece===a.piece&&x.batiment===a.batiment));
 const guides=[
  ['guide_zinaida_otcheredova','images/Sovarka/Novomirsk/guide-zinaida-otcheredova-portrait.webp'],
@@ -62,7 +61,13 @@ function chercherProfil(identifiant) {
 }
 for(const [id,chemin] of guides){
   const occurences=chercherProfil(id);
-  if(!occurences.length){ console.error('Guide introuvable',id,'Krasnov marche=',JSON.stringify((monde.soviet.ville_b.buildingContext||{}).marche?.persons||[])); continue; }
+  if(!occurences.length){
+    assert.equal(id,'guide_fiodor_medvedkine','Guide disparu du monde effectif: '+id);
+    const source=lire('data.js').split('\n').find(line=>line.includes("profilId: '"+id+"'"));
+    assert.ok(source&&source.includes("photoUrl: '"+chemin+"'"),'Guide Fiodor: chemin déclaré non vérifié');
+    console.warn('HORS PORTRAITS : Fiodor déclaré dans la source mais absent du monde effectif à Krasnov');
+    continue;
+  }
   for(const personnage of occurences) assert.equal(personnage.photoUrl,chemin,'Guide encore illustré par une image de lieu: '+id);
   assert.ok(fs.existsSync(path.join(root,chemin))||attendus.some(a=>a.fichier===chemin),'Guide sans fichier et absent de la liste: '+id);
 }
@@ -71,4 +76,5 @@ if(process.env.PORTRAITS_AUDIT_OUT) fs.writeFileSync(path.resolve(process.env.PO
 console.log('Novomirsk:',sortie.total_visible,'visibles,',sortie.avec_portrait,'portraits,',sortie.a_produire,'à produire');
 if(orphelins.length)console.error('PNJ sans portrait ni fiche à produire:',JSON.stringify(orphelins,null,2));
 assert.equal(orphelins.length,0,'Inventaire incomplet : compléter la liste avant fusion');
-console.log('Six guides : chemins de portrait dédiés, scènes entières non utilisées.');
+assert.equal(listesNul.length,0,'Liste historique contenant des PNJ non visibles');
+console.log('Guides : six chemins dédiés contrôlés ; Fiodor signalé absent du monde effectif.');
