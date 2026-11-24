@@ -2726,3 +2726,13 @@ body.plateau-body .top-right {
 #chantier-fenetre .cj-vente > .cj-carte-titre{display:flex;align-items:center;gap:.4rem;flex-wrap:wrap}
 #chantier-fenetre .cj-mat{background:#1b2531;margin:.5rem 0}
 #chantier-fenetre .cj-mat-titre{margin:0 0 .2rem;color:#e2e9f1;font-size:1.1rem!important}
+/* C.4 : « Gérer mon chantier » — vue à part, une ligne par réglage. */
+#chantier-fenetre .cj-bouton-gerer{margin-top:.8rem}
+#chantier-fenetre .cj-retour{min-height:44px;margin:0 0 .4rem;font-size:1.05rem!important}
+#chantier-fenetre .cj-reglage{display:flex;flex-wrap:wrap;align-items:center;gap:.35rem .6rem;padding:.55rem 0;border-top:1px solid rgba(153,176,198,.22)}
+#chantier-fenetre .cj-reglage:first-of-type{border-top:0}
+#chantier-fenetre .cj-reglage-nom{flex:1 1 12rem;min-width:0;color:#e2e9f1}
+#chantier-fenetre .cj-reglage-val{color:#e5c477;font-size:1.1rem!important}
+#chantier-fenetre .cj-reglage-saisie{display:flex;align-items:center;gap:.4rem;flex-wrap:wrap}
+#chantier-fenetre .cj-champ{width:7rem;max-width:100%;min-height:40px;font-size:1.05rem!important;text-align:right}
+#chantier-fenetre .cj-reglage-saisie .cpj-touche{min-height:40px}

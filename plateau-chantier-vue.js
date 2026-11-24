@@ -246,7 +246,11 @@ const TXTC = {
   v_titre: 'Vendre mes matériaux au chantier', v_prix: '{m} : {p} {cur} l’unité', v_note: 'Le chantier en rachète encore {n} aujourd’hui. Vous en avez {a}.',
   v_moins: 'Une unité de moins', v_plus: 'Une unité de plus', v_vendre: 'Vendre {q} {m} · {t} {cur}', v_donner: 'Donner {q} {m} gratuitement',
   v_complet: 'Le besoin du jour en {m} est couvert.', v_aucun: 'Vous n’avez pas de {m}.', v_treso: 'Le chantier ne peut vous en payer que {n} : le reste peut être donné.',
-  v_ferme: 'Le chantier n’accepte plus de matériaux.', v_prix_aide: 'Le chantier rachète seulement ce qui manque pour la journée, au prix fixé par son propriétaire. Il paie avec sa trésorerie : si elle est vide, vous pouvez encore donner.'
+  v_ferme: 'Le chantier n’accepte plus de matériaux.',
+  g_gerer: 'Gérer mon chantier', g_retour: '← Retour au chantier', g_tableau: 'Tableau de bord', g_reglages: 'Réglages', g_prix_m: 'Prix de rachat du {m}',
+  g_prix_aide: 'C’est le prix auquel le chantier rachète chaque matériau aux joueurs. Il est payé par la trésorerie du chantier.',
+  g_salaire_aide: 'C’est ce que gagne un joueur pour une heure de travail sur votre chantier. Il ne peut pas descendre sous le salaire minimum.',
+  g_fonds_aide: 'Le montant est pris sur votre argent et versé à la trésorerie du chantier. Sans les appels de fonds, le chantier s’arrête au tiers puis aux deux tiers.', v_prix_aide: 'Le chantier rachète seulement ce qui manque pour la journée, au prix fixé par son propriétaire. Il paie avec sa trésorerie : si elle est vide, vous pouvez encore donner.'
 };
 const tc = (k, v) => String(TXTC[k] || TXT4[k] || TXT[k] || k).replace(/\{(\w+)\}/g, (m, c) => (v && v[c] != null) ? String(v[c]) : m);
 const t4 = (k, v) => String(TXT4[k] || k).replace(/\{(\w+)\}/g, (m, c) => (v && v[c] != null) ? String(v[c]) : m);
@@ -445,30 +449,34 @@ function chantierMainTotaux() {
   const b = doc.getElementById('cj-main-valider'); if (b) b.disabled = !(h > 0);
   return h;
 }
-function ongletGestion(ch, t0) {
+// C.4 — « Gérer mon chantier » (propriétaire) : vue à part dans la même fenêtre (jamais une fenêtre par-dessus une
+// autre), une ligne par réglage, chacune avec son seul bouton. Retour au chantier par « ← Retour au chantier ».
+function ligneInfo(titre, valeur) { return '<div class="cj-reglage cj-info"><span class="cj-reglage-nom">' + esc(titre) + '</span><b class="cj-reglage-val">' + esc(valeur) + '</b></div>'; }
+function ligneReglage(id, titre, valeur, min, unite, bouton, action, aideCle) {
+  return '<div class="cj-reglage"><label class="cj-reglage-nom" for="' + id + '">' + esc(titre) + '</label>' + (aideCle ? ' ' + aide(aideCle) : '')
+    + '<div class="cj-reglage-saisie"><input type="number" inputmode="numeric" class="cpj-champ cj-champ" id="' + id + '" min="' + min + '" step="1" value="' + esc(valeur) + '"> <span>' + esc(unite) + '</span>'
+    + ' <button type="button" class="cpj-touche cpj-primaire" onclick="' + action + '">' + esc(bouton) + '</button></div></div>';
+}
+function vueGerer(ch, t0) {
   const c = cur(), p = ch.prixAchatPJ || {}, min = typeof CHANTIER_SALAIRE_MINIMUM !== 'undefined' ? CHANTIER_SALAIRE_MINIMUM : 50;
   if (!maitreOuvrage(t0)) return '<p>' + esc(t4('g_reserve')) + '</p>';
   const ap = prochainAppel(ch);
-  let h = '<div class="cj-tableau-bord">'
-    + '<div>' + esc(t4('g_treso')) + '<b>' + fr(ch.tresorerie) + ' ' + c + '</b></div>'
-    + '<div>' + esc(t4('g_verse')) + '<b>' + fr(ch.totalVerse) + ' / ' + fr(ch.coutTotal) + ' ' + c + '</b></div>'
-    + '<div>' + esc(t4('g_appel')) + '<b>' + esc(ap ? t4('g_appel_txt', { m: fr(ap.m), cur: c, j: ap.j, date: dateDuJour(ap.j, ch) }) : t4('g_appel_ok')) + '</b></div></div>';
+  let h = '<button type="button" class="cpj-touche cj-retour" onclick="chantierRetour()">' + esc(tc('g_retour')) + '</button>'
+    + '<section class="cj-carte"><h3 class="cj-carte-titre">' + esc(tc('g_tableau')) + '</h3>'
+    + ligneInfo(t4('g_treso'), fr(ch.tresorerie) + ' ' + c)
+    + ligneInfo(t4('g_verse'), fr(ch.totalVerse) + ' / ' + fr(ch.coutTotal) + ' ' + c)
+    + ligneInfo(t4('g_appel'), ap ? t4('g_appel_txt', { m: fr(ap.m), cur: c, j: ap.j, date: dateDuJour(ap.j, ch) }) : t4('g_appel_ok')) + '</section>';
   if (ch.attenteReception || (typeof chantierTermine === 'function' && chantierTermine(ch)))
-    return h + '<div class="cj-carte"><button type="button" class="cpj-touche cpj-primaire" onclick="chantierGestion(\'reception\')">' + esc(t4('g_reception')) + '</button></div>';
-  h += '<div class="cj-carte"><b>' + esc(t4('g_prix')) + '</b><div style="font-size:.95rem;color:#b8a888">' + esc(t('prix_note')) + '</div>'
-    + MATS.map(m => '<label style="margin-right:.8rem">' + esc(t('m_' + m)) + ' <input type="number" min="0" step="1" id="chantier-prix-' + m + '" value="' + esc(p[m] ?? '') + '"> ' + c + '</label>').join('')
-    + ' <button type="button" class="cpj-touche cpj-primaire" onclick="chantierGestion(\'prix\')">' + esc(t4('g_enregistrer')) + '</button></div>'
-    + '<div class="cj-carte"><b>' + esc(t4('g_salaire')) + '</b><div style="font-size:.95rem;color:#b8a888">' + esc(t('taux_note', { m: min, cur: c })) + '</div>'
-    + '<input type="number" min="' + min + '" step="1" id="chantier-taux" value="' + esc(ch.tauxHoraire ?? (typeof tauxHoraireChantier === 'function' ? tauxHoraireChantier(ch) : '')) + '"> ' + c
-    + ' <button type="button" class="cpj-touche cpj-primaire" onclick="chantierGestion(\'taux\')">' + esc(t4('g_enregistrer')) + '</button></div>'
-    + '<div class="cj-carte"><b>' + esc(t4('g_fonds')) + '</b><div style="font-size:.95rem;color:#b8a888">' + esc(t('fonds_note')) + '</div>'
-    + '<input type="number" min="1" step="1" id="chantier-fonds" value="' + esc(ap ? ap.m : Math.max(0, (Number(ch.coutTotal) || 0) - (Number(ch.totalVerse) || 0))) + '"> ' + c
-    + ' <button type="button" class="cpj-touche cpj-primaire" onclick="chantierGestion(\'fonds\')">' + esc(t4('g_verser')) + '</button></div>'
-    + '<div class="cj-carte"><b>' + esc(t4('g_commande')) + '</b><div><b>' + esc(t4('g_commande_txt', { ville: nomVilleChantier() })) + '</b></div>'
-    + '<div style="font-size:.95rem;color:#b8a888">' + esc(t4('g_commande_note')) + '</div>'
-    + '<div id="cj-derniere-commande">' + esc(derniereCommandeTexte(ch)) + '</div></div>';
+    return h + '<section class="cj-carte"><button type="button" class="cpj-touche cpj-primaire cj-action" onclick="chantierGestion(\'reception\')">' + esc(t4('g_reception')) + '</button></section>';
+  h += '<section class="cj-carte"><h3 class="cj-carte-titre">' + esc(tc('g_reglages')) + '</h3>'
+    + MATS.map(m => ligneReglage('chantier-prix-' + m, tc('g_prix_m', { m: t('m_' + m).toLowerCase() }), p[m] ?? '', 0, c, t4('g_enregistrer'), "chantierGestion('prix','" + m + "')", m === 'bois' ? 'g_prix_aide' : '')).join('')
+    + ligneReglage('chantier-taux', t4('g_salaire'), ch.tauxHoraire ?? (typeof tauxHoraireChantier === 'function' ? tauxHoraireChantier(ch) : ''), min, c, t4('g_enregistrer'), "chantierGestion('taux')", 'g_salaire_aide')
+    + ligneReglage('chantier-fonds', t4('g_fonds'), ap ? ap.m : Math.max(0, (Number(ch.coutTotal) || 0) - (Number(ch.totalVerse) || 0)), 1, c, t4('g_verser'), "chantierGestion('fonds')", 'g_fonds_aide')
+    + '</section>'
+    + '<section class="cj-carte"><h3 class="cj-carte-titre">' + esc(t4('g_commande')) + '</h3><p>' + esc(t4('g_commande_txt', { ville: nomVilleChantier() })) + '</p>'
+    + '<p class="cpj-note">' + esc(t4('g_commande_note')) + '</p><p id="cj-derniere-commande">' + esc(derniereCommandeTexte(ch)) + '</p></section>';
   if (typeof verdictModificationPlan === 'function' && verdictModificationPlan(ch).ok)
-    h += '<div class="cj-carte"><button type="button" class="cpj-touche" onclick="chantierGestion(\'lots\')">' + esc(t4('g_lots')) + '</button></div>';
+    h += '<section class="cj-carte"><button type="button" class="cpj-touche cj-action" onclick="chantierGestion(\'lots\')">' + esc(t4('g_lots')) + '</button></section>';
   return h;
 }
 // ── Lecture du serveur (migration 20261124120000_chantier_fenetre_lire) ─────────────────────────────
@@ -632,15 +640,20 @@ function ouvrirFenetreChantier(silencieux, onglet, sansLecture) {
   if (vue.onglet === 'main') vue.onglet = 'participer';
   if (vue.onglet === 'etat') vue.onglet = 'avancement';
   if (vue.onglet === 'stock') vue.onglet = 'participer';
-  const onglets = ['participer', 'avancement'].concat(gere ? ['gestion'] : []);
-  if (!onglets.includes(vue.onglet)) vue.onglet = 'participer';
-  const contenu = vue.onglet === 'participer' ? ongletParticiper(ch) : vue.onglet === 'gestion' ? ongletGestion(ch, t0) : ongletEtat(ch, t0);
-  const html = '<div id="chantier-fenetre" class="cpj-dialogue" style="padding:.3rem .2rem .6rem">' + resumeChantier()
-    + '<div class="cj-onglets" role="tablist">' + onglets.map(o => '<button type="button" role="tab" aria-selected="' + (o === vue.onglet) + '" onclick="chantierOnglet(\'' + o + '\')">' + esc(tc('o_' + o)) + '</button>').join('') + '</div>'
-    + '<div role="tabpanel">' + contenu + '</div></div>';
+  if (vue.onglet === 'gestion') vue.onglet = gere ? 'gerer' : 'participer';
+  if (vue.onglet === 'gerer' && !gere) vue.onglet = 'participer';
+  const onglets = ['participer', 'avancement'];
+  if (vue.onglet !== 'gerer' && !onglets.includes(vue.onglet)) vue.onglet = 'participer';
+  const html = vue.onglet === 'gerer'
+    ? '<div id="chantier-fenetre" class="cpj-dialogue cj-fenetre cj-gerer">' + vueGerer(ch, t0) + '</div>'
+    : '<div id="chantier-fenetre" class="cpj-dialogue cj-fenetre">' + resumeChantier()
+      + '<div class="cj-onglets" role="tablist">' + onglets.map(o => '<button type="button" role="tab" aria-selected="' + (o === vue.onglet) + '" onclick="chantierOnglet(\'' + o + '\')">' + esc(tc('o_' + o)) + '</button>').join('') + '</div>'
+      + '<div role="tabpanel">' + (vue.onglet === 'participer' ? ongletParticiper(ch) : ongletEtat(ch, t0)) + '</div>'
+      + (gere ? '<button type="button" class="cpj-touche cj-action cj-bouton-gerer" onclick="chantierGerer()">' + esc(tc('g_gerer')) + '</button>' : '')
+      + '</div>';
   const titre = doc.getElementById('postes-modal-title'), corps = doc.getElementById('postes-body');
   if (!corps) return;
-  if (titre) titre.textContent = t('titre');
+  if (titre) titre.textContent = vue.onglet === 'gerer' ? tc('g_gerer') : t('titre');
   const saisies = {};
   if (silencieux === true) corps.querySelectorAll('#chantier-fenetre input').forEach(e => { if (e.id) saisies[e.id] = e.type === 'checkbox' ? e.checked : e.value; });
   corps.innerHTML = html;
@@ -651,7 +664,10 @@ function ouvrirFenetreChantier(silencieux, onglet, sansLecture) {
   // Relecture du serveur, puis nouveau rendu (sans relancer de lecture) si la fenêtre est toujours ouverte.
   if (!sansLecture) lireServeur().then(() => { if (fenetreOuverte()) ouvrirFenetreChantier(true, null, true); });
 }
-function chantierOnglet(o) { vue.onglet = o; ouvrirFenetreChantier(false, o); }
+const ANCIENS_ONGLETS = { etat: 'avancement', stock: 'participer', main: 'participer', gestion: 'gerer' };
+function chantierOnglet(o) { vue.onglet = ANCIENS_ONGLETS[o] || o; ouvrirFenetreChantier(false, vue.onglet); }
+function chantierGerer() { cacherAide(); ouvrirFenetreChantier(false, 'gerer'); }
+function chantierRetour() { cacherAide(); ouvrirFenetreChantier(false, 'participer'); }
 const val = id => (global.document.getElementById(id)?.value || '').trim();
 const entier = s => /^[0-9]{1,9}$/.test(s) ? Number(s) : null;
 let validation = false;
@@ -682,12 +698,12 @@ async function chantierMainValider() {
   validation = true;
   try { await global.confirmerTravailChantier(); await relireEtRouvrir(); } finally { validation = false; }
 }
-async function chantierGestion(a) {
+async function chantierGestion(a, mat) {
   if (validation) return;
   const c = cur(), min = typeof CHANTIER_SALAIRE_MINIMUM !== 'undefined' ? CHANTIER_SALAIRE_MINIMUM : 50;
   if (a === 'prix') {
     const prix = {};
-    for (const m of MATS) { const x = val('chantier-prix-' + m); if (x !== '') { if (entier(x) === null) { global.showToast(t('titre'), t('r_prix'), false); return; } prix[m] = x; } }
+    for (const m of (MATS.includes(mat) ? [mat] : MATS)) { const x = val('chantier-prix-' + m); if (x !== '') { if (entier(x) === null) { global.showToast(t('titre'), t('r_prix'), false); return; } prix[m] = x; } }
     if (!Object.keys(prix).length) return;
     validation = true; try { await global.constructionExecuterCommande('prix', { prix }); await relireEtRouvrir(); } finally { validation = false; }
   } else if (a === 'taux') {
@@ -704,7 +720,7 @@ async function chantierGestion(a) {
 }
 // Ancienne API (verdictChoix, chantierChoisir, chantierTotaux, chantierValider) : conservée pour les écrans encore ouverts.
 function verdictChoix() { return choix.action ? { pa: 0 } : { refus: t('r_choisir') }; }
-function chantierChoisir(a) { choix.action = a; vue.onglet = a === 'travailler' ? 'participer' : (a === 'vendre' || a === 'donner') ? 'participer' : 'gestion'; ouvrirFenetreChantier(false, vue.onglet); }
+function chantierChoisir(a) { choix.action = a; vue.onglet = a === 'travailler' ? 'participer' : (a === 'vendre' || a === 'donner') ? 'participer' : 'gerer'; ouvrirFenetreChantier(false, vue.onglet); }
 function chantierTotaux() { return verdictChoix(); }
 async function chantierValider() { return null; }
 
@@ -718,5 +734,5 @@ if (global.document && global.document.readyState !== 'loading') demarrer();
 else if (global.document) global.document.addEventListener('DOMContentLoaded', demarrer);
 
 global.RPChantierVue = { TXT, TXT4, TXTC, lireServeur, lectureCourante, jauge, verdictStock, candidatsImage, imageImmediate, imageResolue, etapeDe, lignesSurcouche, rafraichirVueChantier, verdictChoix, _choix: choix, _existe: existe };
-Object.assign(global, { ouvrirFenetreChantier, chantierChoisir, chantierTotaux, chantierValider, chantierOnglet, chantierStockTotaux, chantierStockValider, chantierMainTotaux, chantierMainValider, chantierGestion, chantierPas, chantierVendre, chantierImageImmediate: imageImmediate, rafraichirVueChantier });
+Object.assign(global, { ouvrirFenetreChantier, chantierChoisir, chantierTotaux, chantierValider, chantierOnglet, chantierStockTotaux, chantierStockValider, chantierMainTotaux, chantierMainValider, chantierGestion, chantierPas, chantierVendre, chantierGerer, chantierRetour, chantierImageImmediate: imageImmediate, rafraichirVueChantier });
 })(typeof window !== 'undefined' ? window : globalThis);
