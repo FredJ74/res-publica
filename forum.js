@@ -231,7 +231,7 @@ function getForums() {
     const nomVille = (typeof WORLD !== 'undefined' && WORLD[paysForums()]?.[v]?.name) || v;
     const domicile = state.domicile && state.domicile.country === paysForums() && state.domicile.city === v;
     forumsLocaux[idForumLocal(v)] = { name: 'Forum local — ' + nomVille, icon: 'ti-home',
-      desc: 'Discussions de ' + nomVille + (domicile ? ' (votre ville de domicile)' : ' (ville visitée)'), private: false, cat: 'intra', local: true };
+      desc: 'Discussions de ' + nomVille + (domicile ? ' (votre ville de domicile)' : ' (ville visitée)'), private: false, cat: 'local', local: true };
   });
 
   const orgForums = {};
@@ -597,7 +597,7 @@ const FORUM_VUES_COMPOSITION = ['compose-canvas', 'edit-post', 'new-topic', 'rep
 function forumEstEnCompositionActuellement() {
   return FORUM_VUES_COMPOSITION.includes(forumView) || ['compose','jodie-interview','jodie-preview'].includes(mailView);
 }
-let forumCategorieActive = null; // 'intra' | 'inter' | 'prive' | null (rien de deplie)
+let forumCategorieActive = null; // 'intra' | 'local' | 'inter' | 'prive' | null (rien de deplie)
 let forumSousGroupeOuvert = false; // accordeon imbrique pour 'Institutionnels'
 // Voyants par rubrique (22 aout 2026) : dernier resultat calcule par recalculerActiviteForumAgregat().
 // forums: { [forumId]: bool }, groupes: { [cat]: bool } ('intra'/'inter'/'prive'), global: bool.
@@ -1020,13 +1020,10 @@ function renderForumCategorieItems(cat) {
   if (cat === 'intra') {
     const directs = entries.filter(([id, f]) => !f.sousGroupe);
     const institutions = entries.filter(([id, f]) => f.sousGroupe === 'institutions');
-    // Le forum local est local_<ville> ; l'ancien filtre "local" masquait
-    // complètement sa rubrique, tout en laissant son point rouge actif.
-    const parLocal = directs.filter(([id, f]) => f.local);
+    // Les forums locaux ont leur propre section « Forums locaux » (Fred, 24/11/2026, mission Purge B.2).
     const parNational = directs.filter(([id]) => id === 'national');
     const parPresse = directs.filter(([id]) => id === 'presse');
     return `<div class="forum-categorie-items">` +
-      parLocal.map(([id, f]) => renderForumNavItem(id, f)).join('') +
       parNational.map(([id, f]) => renderForumNavItem(id, f)).join('') +
       (institutions.length > 0 ? `<div class="forum-nav-item" onclick="toggleSousGroupeForum()">
         <i class="ti ti-building-bank" style="font-size:.85rem"></i>
@@ -1038,6 +1035,11 @@ function renderForumCategorieItems(cat) {
         `</div>` : '') +
       parPresse.map(([id, f]) => renderForumNavItem(id, f)).join('') +
       `</div>`;
+  }
+
+  // Section « Forums locaux » vide : la phrase dit comment en obtenir un (B.2).
+  if (cat === 'local' && entries.length === 0) {
+    return `<div class="forum-categorie-items"><div class="forum-empty">Aucun forum local dans ce pays : rendez-vous dans une de ses villes, ou domiciliez-vous dans l’une d’elles.</div></div>`;
   }
 
   if (cat === 'prive' && entries.length === 0) {
@@ -1129,6 +1131,7 @@ function renderForumSidebar() {
           </button>`).join('')}
       </div>` : ''}
     ${renderCategorieHeader('intra', 'ti-flag', rpForumUiOuvert('nationalForums','Forums nationaux',rpForumLibelle('nationalForums','Forums nationaux')))}
+    ${renderCategorieHeader('local', 'ti-home', rpForumUiOuvert('localForums','Forums locaux',rpForumLibelle('localForums','Forums locaux')))}
     ${renderCategorieHeader('inter', 'ti-world', rpForumUiOuvert('internationalForums','Forums internationaux',rpForumLibelle('internationalForums','Forums internationaux')))}
     ${renderCategorieHeader('prive', 'ti-lock', rpForumUiOuvert('privateForums','Forums privés',rpForumLibelle('privateForums','Forums privés')))}
   `;

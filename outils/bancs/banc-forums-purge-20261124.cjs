@@ -66,3 +66,14 @@ test('B.1 raccords : lecture seule dite en clair, publication bornée aux forums
   assert.match(bloc(FORUM, 'async function forumPublierAvecJauges('), /const territorial = forumEstTerritorial\(forumId\)/);
   assert.match(lire('GAME-DESIGN-FORUMS.md'), /Règles d'accès du 24\/11\/2026/);
 });
+
+test('B.2 section « Forums locaux » séparée des « Forums nationaux »', () => {
+  assert.match(FORUM, /private: false, cat: 'local', local: true \};/);
+  const items = bloc(FORUM, 'function renderForumCategorieItems(');
+  assert.doesNotMatch(items, /parLocal/, 'plus de forum local dans les forums nationaux');
+  assert.match(items, /cat === 'local' && entries\.length === 0/);
+  const barre = bloc(FORUM, 'function renderForumSidebar(');
+  const iNat = barre.indexOf("renderCategorieHeader('intra'"), iLoc = barre.indexOf("renderCategorieHeader('local'"), iInter = barre.indexOf("renderCategorieHeader('inter'");
+  assert.ok(iNat > 0 && iLoc > iNat && iInter > iLoc, 'Forums nationaux, puis Forums locaux, puis internationaux');
+  assert.match(barre, /'localForums','Forums locaux'/);
+});
