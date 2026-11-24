@@ -6,6 +6,7 @@ on:
       - 'plateau-accueil-interview.js'
       - 'plateau-core.js'
       - 'plateau-pnj.js'
+      - 'plateau-quete-accueil.js'
       - 'plateau.html'
       - 'outils/bancs/banc-accueil-progressif-20261124.cjs'
       - '.github/workflows/accueil-progressif-20261124.yml'
@@ -16,6 +17,7 @@ on:
       - 'plateau-accueil-interview.js'
       - 'plateau-core.js'
       - 'plateau-pnj.js'
+      - 'plateau-quete-accueil.js'
       - 'plateau.html'
       - 'outils/bancs/banc-accueil-progressif-20261124.cjs'
       - '.github/workflows/accueil-progressif-20261124.yml'
@@ -31,4 +33,5 @@ jobs:
       - run: node --check plateau-accueil-interview.js
       - run: node --check plateau-core.js
       - run: node --check plateau-pnj.js
+      - run: node --check plateau-quete-accueil.js
       - run: node --test outils/bancs/banc-accueil-progressif-20261124.cjs
