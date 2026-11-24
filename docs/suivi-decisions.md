@@ -1,0 +1,235 @@
+# Suivi des décisions de Fred
+
+## But
+
+Ce tableau suit chaque décision de game design de Fred, de la décision à la mise en ligne. Il sert à produire
+**chaque soir trois listes** (script `outils/suivi/listes-du-soir.py`) :
+
+1. **décidé aujourd'hui** (colonne Date = ce jour) ;
+2. **en ligne aujourd'hui** (colonne En ligne le = ce jour) ;
+3. **encore en attente** (état différent de « en ligne », toutes dates confondues).
+
+## Règle de mise à jour
+
+- **À chaque bloc de chaque mission, l'agent ajoute ou modifie au moins une ligne** : nouvelle décision → ligne
+  `décidé` ; code poussé sur une branche ou migration écrite non appliquée → `en cours` ; présent dans `origin/main` ET,
+  si la décision touche la base, migration réellement appliquée en production (registre
+  `supabase_migrations.schema_migrations`) → `en ligne`.
+- Colonnes : `Date` (date de la décision, JJ/MM/AAAA) ; `Décision` (une phrase) ; `État` (`décidé`, `en cours`,
+  `en ligne`) ; `En ligne le` (date du passage à « en ligne », JJ/MM/AAAA, vide sinon) ; `Commit` (sha court sur `main`
+  qui la met en ligne, vide si pas en ligne) ; `Source` (document de game design, fichier et point ou section).
+- On ne coche jamais « en ligne » d'après un rapport : on le vérifie dans le code de `origin/main` (git log -S, grep) et,
+  pour la base, dans le registre des migrations (lecture seule).
+- Une ligne par décision distincte ; les micro-détails d'un même point sont regroupés. Une décision remplacée par une
+  plus récente garde sa ligne, avec la mention « remplacée le … ».
+- Le banc `outils/bancs/test-suivi-decisions.mjs` vérifie le format du tableau.
+
+Rempli rétroactivement le 24/11/2026 (décisions depuis le 01/11/2026), vérifié sur `origin/main` au commit `0d1a9fc9`
+et sur le registre de production jusqu'à `20261123222538 renommages_pnj_finale`.
+
+## Tableau
+
+| Date | Décision | État | En ligne le | Commit | Source |
+|---|---|---|---|---|---|
+| 24/11/2026 | 0.1 Tableau de suivi des décisions (ce fichier), rempli depuis le 01/11 et tenu à chaque bloc ; listes du soir par `outils/suivi/listes-du-soir.py`. | en ligne | 24/11/2026 | (bloc 1) | Mission Purge 0.1 |
+| 24/11/2026 | 0.2 CI : « Bancs JavaScript » découpés en six parts parallèles ; à la poussée, bancs liés aux fichiers modifiés ; suite complète la nuit (25 → 12 min sur main). | en ligne | 24/11/2026 | 94b4ce33 | Mission Purge 0.2 |
+| 24/11/2026 | 0.2 Bancs hérités : test-crim-lot2-resolution, test-montrouge-tribunal-ssm, test-reconnexion-position-serveur recalés (règle valable) ; test-starovka-imprimerie-local : assertion « Ce commerce » inversée (règle abandonnée, point 31). Les 10 bancs *-browser/mobile test-*.cjs ne sont rouges qu'en local (navigateur Playwright absent) : ils tournent dans leurs workflows dédiés. Relevé local de controler-client : rouges dus à l'environnement (Chromium, chemins en dur), aucun rouge en CI sur main. | en ligne | 24/11/2026 | 94b4ce33 | Mission Purge 0.2 |
+| 24/11/2026 | 0.3 Flèches : ancienne disposition partout, flèche unique en bas seulement rue de l'hôpital de Krasnov ; relecture des points 1 à 47 : aucune autre consigne élargie à tort. | en ligne | 24/11/2026 | 94b4ce33 | Mission Purge 0.3 |
+| 24/11/2026 | 1.1 PR #1183 (formation), #1184 (saisie LTR hors arabe), #1132 (Commerce PJ + organigramme), #1186 (guidage mobile des pièces) fusionnées. | en ligne | 24/11/2026 | (bloc 1) | Mission Purge 1.1 |
+| 24/11/2026 | 1.1 PR #993/#994 (Ignat) : déjà sur main sauf la règle de dialogue (critique → pédagogie, jamais d'expulsion), ajoutée ; reste périmé, PR fermées. PR #1106 (banc mobile coque) : déjà couverte par main, fermée. | en ligne | 24/11/2026 | (bloc 1) | Mission Purge 1.1, GAME-DESIGN-KRASNOV-IGNAT.md |
+| 24/11/2026 | 1.5 Migration 20261123170047 retirée (jamais appliquée, absente du registre). | en ligne | 24/11/2026 | 218259d7 | Mission Purge 1.5 |
+| 01/11/2026 | Les ordres qui attendent le voyage entre empires restent visibles, grisés, « Bientôt disponible ». | en ligne | 01/11/2026 | 9ce70b64 | GAME-DESIGN-AMBASSADES.md, « Décidé le 01/11/2026 » |
+| 01/11/2026 | Transfert de joueur de football : prix du transfert au club de départ et prime de signature, tous deux payés par le club recruteur. | en ligne | 01/11/2026 | 8fdaaf51 | GAME-DESIGN-FOOTBALL.md, « Transferts de joueurs » |
+| 01/11/2026 | Hôpital : pas de sortie avant 20 PA ; à partir de J3 le Dormir rend 12 PA. | en ligne | 01/11/2026 | 27b9bf56 | GAME-DESIGN-HOSPITALISATION.md, « Condition de sortie » |
+| 01/11/2026 | Manifestation spontanée : groupe d'au moins 10 PJ, chef seul, une par jour et par ville, participants hors-la-loi. | en ligne | 01/11/2026 | 9aa87fa5 | GAME-DESIGN-MANIFESTATIONS.md, « Règles » |
+| 01/11/2026 | Loyer quotidien entre fonds et murs, non appliqué quand le fonds est tenu par un PNJ. | en ligne | 01/11/2026 | bd4e834a | GAME-DESIGN-FONDS-MURS.md, « Loyer entre murs et fonds » |
+| 01/11/2026 | Serrure à clé : article de quincaillerie (2 métal + 1 PA = 2 serrures, 60 FR), détruite au départ du locataire, clés vierges et doubles. | en ligne | 04/11/2026 | 06657545 | GAME-DESIGN-SERRURES.md, 01/11 |
+| 01/11/2026 | Agences de sécurité privée ouvertes par les PJ (pas de Grobras en province), vivier local commun. | en ligne | 03/11/2026 | 6b556b98 | GAME-DESIGN-SECURITE-PRIVEE-135.md, points 11 à 14 |
+| 02/11/2026 | Blocus syndical : organisé par le Secrétaire général ou son adjoint, au moins 2 participants, première pièce seule accessible. | en ligne | 02/11/2026 | bf2680b3 | GAME-DESIGN-BLOCUS.md, décisions du 02/11 |
+| 02/11/2026 | Drogues : consommer est légal, acheter et transporter est illégal ; aucune drogue réelle nommée. | en ligne | 02/11/2026 | 9e340dba | GAME-DESIGN-DROGUES.md |
+| 02/11/2026 | Fraude électorale valable pour son seul tour ; une contestation qui révèle une fraude impose le recompte. | en ligne | 03/11/2026 | 0d9b4907 | GAME-DESIGN-ELECTIONS.md, décisions du 02/11 |
+| 03/11/2026 | Soldats postés en temps de paix = renforts policiers ; plus d'ordre de mission. | en ligne | 03/11/2026 | a746549e | GAME-DESIGN-ARMEE.md, « Mission des soldats » |
+| 03/11/2026 | Dissuasion des hommes armés : malus min(40, 10 + hommes), moins de réussite et plus de repérage. | en ligne | 03/11/2026 | e3729066 | GAME-DESIGN-SECURITE-PRIVEE-135.md, points 8 à 10 |
+| 03/11/2026 | Trading de matières premières depuis son bureau (cours 0 PA, achat 1 PA), offres d'achat 7 jours, 48 h pour désinstaller après perte du bail. | en ligne | 03/11/2026 | bc91a71c | GAME-DESIGN-TRADING.md, décisions du 03/11 |
+| 03/11/2026 | Pas de compte premium mais des options : bureau à 3 emplacements gratuits, 6 en option, gratuite pendant la bêta. | en ligne | 03/11/2026 | a6d6fb71 | GAME-DESIGN-TRADING.md, points 17 à 19 |
+| 03/11/2026 | Forums : le forum local est celui de la ville où se trouve le PJ, cloisonné par pays. | en ligne | 04/11/2026 | e2574784 | GAME-DESIGN-FORUMS.md |
+| 03/11/2026 | Objectifs secrets : +2 INF par lot nouvellement accompli ; anathème : la cible perd 15 Moral et 10 POP. | en ligne | 03/11/2026 | 4c657b53 | GAME-DESIGN-JAUGES-379.md |
+| 04/11/2026 | Livraison terrestre nationale du trading (camion ou train vers l'entrepôt choisi). | en ligne | 04/11/2026 | 140ebafd | GAME-DESIGN-TRADING.md, point 11 |
+| 04/11/2026 | Douanes : poste à l'aéroport de Luthécia, amende double sur le non-déclaré due sur la caisse, une caisse sur trois inspectée. | en ligne | 04/11/2026 | 2bd2fc6d | GAME-DESIGN-DOUANES.md, décisions du 04/11 |
+| 04/11/2026 | Fenêtre de confirmation obligatoire avant un ordre qui laisserait à 0 PA. | en ligne | 04/11/2026 | 36ccb402 | GAME-DESIGN-HOSPITALISATION.md, « Avertissement avant 0 PA » |
+| 04/11/2026 | Serrure posée : fermer et ouvrir avec une clé, cadenas affiché, armoire à souvenirs installable, clé vierge 14 FR par lot de 10. | en ligne | 04/11/2026 | 8a721f35 | GAME-DESIGN-SERRURES.md, décisions du 04/11 |
+| 04/11/2026 | Chantier naval de Port-Sainte-Marie : bateaux 3 et 5 places (90 000 / 150 000 FR), 7 et 10 jours, 35 % d'acompte. | en ligne | 04/11/2026 | dcf1dff9 | GAME-DESIGN-CHANTIER-NAVAL.md |
+| 04/11/2026 | Entrepôts : le pays fait partie de la clé. | en ligne | 05/11/2026 | c77aea34 | GAME-DESIGN-NOVOMIRSK.md, « Entrepôts : le pays dans la clé » |
+| 05/11/2026 | Entrepôt logistique de Krasnov (Fiodor Kolkhozov) et achat international via les ports. | en ligne | 05/11/2026 | 2fe8ed42 | GAME-DESIGN-TRADING.md, points 20 à 23 |
+| 06/11/2026 | Les trois villes de Sovarka au trading, port industriel de Starovka en service. | en ligne | 06/11/2026 | 25cd49c6 | GAME-DESIGN-TRADING.md, point 24 |
+| 06/11/2026 | Fabrication de véhicules au garage : voiture 10 j, utilitaire 15 j, deux-roues 5 j, main-d'œuvre PJ ou PNJ. | en ligne | 06/11/2026 | 49b8cf2d | GAME-DESIGN-VEHICULES.md, « Fabrication au garage » |
+| 06/11/2026 | Salon de coiffure de Novomirsk : coupe à 20 PSK avec bonus de CHA. | en ligne | 06/11/2026 | 1fee3710 | GAME-DESIGN-SALON-COIFFURE.md |
+| 06/11/2026 | Commerce premium gratuit pendant la bêta. | en ligne | 06/11/2026 | 074eb426 | GAME-DESIGN-NOVOMIRSK.md, « Commerce Premium gratuit » |
+| 06/11/2026 | Galeries de Novomirsk : plafonds de loyer ; marges des commerces de Sovarka. | en ligne | 06/11/2026 | f0460e87 | GAME-DESIGN-NOVOMIRSK.md, « Galeries » et « Marges » |
+| 07/11/2026 | Centre d'affaires de Novomirsk : bureaux en location. | en ligne | 07/11/2026 | 6a6902fb | GAME-DESIGN-NOVOMIRSK.md, « Centre d'affaires de Novomirsk » |
+| 07/11/2026 | Organisation du pouvoir et partis de Sovarka (salaires, candidatures, gloire des partis, députés désignés). | en ligne | 07/11/2026 | c5776cf9 | GAME-DESIGN-NOVOMIRSK.md, « Organisation du pouvoir » et « Partis » |
+| 07/11/2026 | Dotation initiale des entrepôts de province. | en ligne | 07/11/2026 | 81477477 | GAME-DESIGN-NOVOMIRSK.md / ARCHITECTURE.md, 07/11 |
+| 08/11/2026 | Palais présidentiel, greffe du Tribunal populaire et justice de Sovarka sans procureur. | en ligne | 09/11/2026 | a8bd5e26 | GAME-DESIGN-NOVOMIRSK.md, sections du 08/11 |
+| 10/11/2026 | Règle des prix et tarifs nationaux de Sovarka. | en ligne | 10/11/2026 | 81fd5c9c | GAME-DESIGN-NOVOMIRSK.md, « Règle des prix en Sovarka » |
+| 10/11/2026 | Fermes, distillerie, fourreur et forêt profonde de Krasnov (créatures, seconde coupe). | en ligne | 10/11/2026 | dda8063a | GAME-DESIGN-NOVOMIRSK.md, « Fermes » et « Forêt profonde » |
+| 10/11/2026 | Cartes des restaurants de Sovarka et marché de Krasnov. | en ligne | 10/11/2026 | dd224f6b | GAME-DESIGN-NOVOMIRSK.md, « Cartes des restaurants », « Marché de Krasnov » |
+| 10/11/2026 | Caméras : une pièce ou une vue de rue, rapport des passages et des actes visibles, Couinator. | en ligne | 11/11/2026 | 09beabb7 | GAME-DESIGN-EQUIPEMENTS.md, « Décisions du 10 novembre » |
+| 11/11/2026 | L'onglet « Règles » devient « Aide », avec un conseiller HRP en premier écran. | en ligne | 11/11/2026 | 48682eb7 | GAME-DESIGN-AIDE.md |
+| 11/11/2026 | Au plus 12 fonctions serveur Vercel (l'aide passe par /api/chat). | en ligne | 11/11/2026 | 782eacd6 | AGENTS.md, « Fonctions serveur Vercel » |
+| 11/11/2026 | Pavillon des Ambassadeurs : baux institutionnels, accès réservé aux dignitaires, portraits tirés des images. | en ligne | 12/11/2026 | f635c946 | GAME-DESIGN-NOVOMIRSK.md, sections du 11/11 |
+| 11/11/2026 | Musée national de Novomirsk : textes des salles et questions libres au guide. | en ligne | 11/11/2026 | 166cab12 | GAME-DESIGN-NOVOMIRSK.md, « Guide du Musée de la République » |
+| 11/11/2026 | Salle des expositions tournantes : contenu à venir (pas de feu vert de codage). | décidé |  |  | GAME-DESIGN-NOVOMIRSK.md, « Salle des expositions tournantes » |
+| 12/11/2026 | Service d'étage, escorts et espionnage au Pavillon et à la Résidence. | en ligne | 12/11/2026 | 360e859c | GAME-DESIGN-NOVOMIRSK.md, « Pavillon et Résidence » |
+| 12/11/2026 | Musée municipal de Novomirsk et énigme du trésor des Tsars. | en ligne | 12/11/2026 | c0d99602 | GAME-DESIGN-NOVOMIRSK.md, « Musée municipal » |
+| 12/11/2026 | Appartements populaires : +1 PA au sommeil, option premium, colocation, époux. | en ligne | 13/11/2026 | b100b2ef | GAME-DESIGN-APPARTEMENTS.md |
+| 13/11/2026 | Musée de Luthécia : Valérie Loisillon met sur la voie au départ de l'enquête, le coupable se tait. | en ligne | 13/11/2026 | 68275b00 | GAME-DESIGN-ENIGME-MUSEE-LUTHECIA.md, « Départ lisible » |
+| 13/11/2026 | Soins sans trace en clinique : aucun dossier ni fuite vers la presse. | en ligne | 13/11/2026 | f74e57bb | GAME-DESIGN-HOSPITALISATION.md, « Soins sans trace » |
+| 13/11/2026 | Chambre dans les hôpitaux publics de Sovarka (Dormir, repas de l'hôpital). | en ligne | 13/11/2026 | 517a425a | GAME-DESIGN-HOSPITALISATION.md, « Chambres des hôpitaux de Sovarka » |
+| 13/11/2026 | Héros du Travail et boîte aux lettres du Parti. | en ligne | 13/11/2026 | 077b4ce3 | GAME-DESIGN-NOVOMIRSK.md, sections du 13/11 |
+| 13/11/2026 | Direction du Renseignement : équipes par empire et par ministère, habilitations, interrogatoire. | en ligne | 13/11/2026 | 67d2a5c1 | GAME-DESIGN-NOVOMIRSK.md, « Direction du Renseignement » |
+| 13/11/2026 | Dotation initiale du stock de Novomirsk et cloisonnement national des ministres. | en ligne | 13/11/2026 | d6d2f083 | GAME-DESIGN-NOVOMIRSK.md, « Dotation initiale et cloisonnement » |
+| 13/11/2026 | Camion militaire de Novomirsk. | en ligne | 13/11/2026 | b785a65f | GAME-DESIGN-NOVOMIRSK.md, « Camion militaire » |
+| 13/11/2026 | Le port de Sovarka nourrit chaque nuit les entrepôts de Sovarka, comme celui de Républia. | en ligne | 15/11/2026 | 2e88566a | GAME-DESIGN-NOVOMIRSK.md, décisions du 13/11 (23 h 44) |
+| 14/11/2026 | La confirmation avant 0 PA annonce 2 à 3 jours d'immobilisation (9 langues). | en ligne | 14/11/2026 | 38b69784 | GAME-DESIGN-HOSPITALISATION.md, 14/11 |
+| 14/11/2026 | Krasnov : kolkhoze avec caisse, maisonnettes, centre commercial à 4 box de 20 PSK, tabac-presse à 4 articles. | en ligne | 14/11/2026 | 0174e978 | GAME-DESIGN-NOVOMIRSK.md, sections du 14/11 |
+| 15/11/2026 | Kouzma (batiouchka) et Praskovia : rôles et histoire d'amour. | en ligne | 15/11/2026 | 2f08c477 | GAME-DESIGN-KRASNOV-KOUZMA-PRASKOVIA.md ; GAME-DESIGN-NOVOMIRSK.md, 15/11 |
+| 15/11/2026 | Tour de Starovka : vues de rue, bons d'État au guichet de la mairie, raffinerie à trois salles. | en ligne | 15/11/2026 | b9fced8d | GAME-DESIGN-NOVOMIRSK.md, « Tour de Starovka » ; GAME-DESIGN-STAROVKA-RAFFINERIE.md |
+| 15/11/2026 | Production et logistique de Sovarka : usines par pays, production passée, contrats de médicaments. | en ligne | 15/11/2026 | ca4e34a8 | GAME-DESIGN-NOVOMIRSK.md, « Production et logistique » |
+| 16/11/2026 | Régulation de la production et de la récolte. | en ligne | 16/11/2026 | 99c6828a | GAME-DESIGN-REGULATION-PRODUCTION.md |
+| 16/11/2026 | Lancement mondial le samedi 19/12/2026, 9 langues, une seule horloge (Paris), gel de l'étendue. | décidé |  |  | GAME-DESIGN-LANCEMENT.md, points 1 à 10 |
+| 16/11/2026 | Tout texte écrit par un joueur est traduit automatiquement pour tous, avec « voir l'original » (couverture complète à vérifier). | en cours |  |  | GAME-DESIGN-LANCEMENT.md, point 7 |
+| 16/11/2026 | Premium payant dès l'ouverture, toutes les options si possible (grille de prix non décidée). | décidé |  |  | GAME-DESIGN-LANCEMENT.md, points 12 et 13 |
+| 16/11/2026 | Goulag de Sovarka : quatre arbitrages, traversée de la toundra et cinq pièces ; installé verrouillé. | en ligne | 21/11/2026 | b514b1be | GAME-DESIGN-GOULAG-SOVARKA.md |
+| 17/11/2026 | Goulag : ordres internes des cinq pièces (installés, goulag verrouillé). | en ligne | 21/11/2026 | b514b1be | GAME-DESIGN-GOULAG-SOVARKA-ORDRES-INTERNES.md |
+| 17/11/2026 | Pas de débat de politique réelle hors jeu ; réponse aux abus par un contre-pouvoir. | décidé |  |  | GAME-DESIGN-LANCEMENT.md, points 15 et 16 |
+| 17/11/2026 | Compte confirmé et quota IA (audit des failles du 16/11). | en ligne | 17/11/2026 | f0f8d268 | GAME-DESIGN-LANCEMENT.md, point 14 |
+| 17/11/2026 | Starovka : identité bouriate des personnages, sans centre commercial, local de chasse. | en ligne | 17/11/2026 | 749c2759 | GAME-DESIGN-STAROVKA-BOURIATES.md |
+| 18/11/2026 | Nationalité et domicile ne changent plus en voyage ; élections et forums selon la nationalité. | en ligne | 18/11/2026 | 1f1828ad | GAME-DESIGN-ELECTIONS.md, « Nationalité, domicile et élections » |
+| 18/11/2026 | Investiture gratuite, naturalisation acceptée faute de réponse, forum local du domicile lisible à l'étranger. | en ligne | 18/11/2026 | ef437719 | GAME-DESIGN-ELECTIONS.md, « Compléments de Fred » |
+| 18/11/2026 | Départ d'un maire : l'adjoint a 72 h pour accepter, sinon tutelle du ministre. | en ligne | 18/11/2026 | ef437719 | GAME-DESIGN-ELECTIONS.md, « Départ d'un maire » |
+| 18/11/2026 | PNJ de Starovka : personnalités, référents, train, syndicat national et kolkhoze. | en ligne | 18/11/2026 | 9081f76a | GAME-DESIGN-NOVOMIRSK.md, « PNJ de Starovka » et « Décisions du 18/11 » |
+| 18/11/2026 | Maladies : socle, nom du médicament, boissons. | en ligne | 18/11/2026 | 4452045d | GAME-DESIGN-MALADIES-CLIMAT.md, lot 1 |
+| 18/11/2026 | Aliments : piles datées, contrôle à la réception, bandelettes, plats cuisinés, furet renifleur. | en ligne | 18/11/2026 | 460dc41b | GAME-DESIGN-MALADIES-CLIMAT.md, lot 2 |
+| 18/11/2026 | Climat : socle des événements (alerte 48 h, chantiers arrêtés après l'alerte). | en ligne | 18/11/2026 | 0b9f561c | GAME-DESIGN-MALADIES-CLIMAT.md, décisions climat du 18/11 |
+| 18/11/2026 | Criminalité : cadre commun des crimes et corruption. | en ligne | 19/11/2026 | f0f5fbb4 | GAME-DESIGN-CRIMINALITE.md, §§ 6 et 12 |
+| 19/11/2026 | Blizzard et grippe ; effets du climat ; corrections de Fred. | en ligne | 19/11/2026 | d775fd9f | GAME-DESIGN-MALADIES-CLIMAT.md, lots 4 et 5 |
+| 19/11/2026 | État de catastrophe naturelle déclaré par le PM (remplacée le 21/11 puis mise en sommeil le 22/11). | en ligne | 19/11/2026 | a7218507 | GAME-DESIGN-MALADIES-CLIMAT.md, « Décision du 19/11 — catastrophe » |
+| 19/11/2026 | Sacs de sable proportionnels (remplacée le 21/11 par un sac par lieu, puis supprimée le 22/11). | en ligne | 19/11/2026 | a7218507 | GAME-DESIGN-MALADIES-CLIMAT.md, « Sacs de sable proportionnels » |
+| 19/11/2026 | Criminalité : délits d'information, mise en ordre des peines, carrière criminelle, envoi au QHS (lots 1 à 10). | en ligne | 19/11/2026 | f0f5fbb4 | GAME-DESIGN-CRIMINALITE.md, §§ 13 à 16 |
+| 19/11/2026 | Barème commun des informateurs (Républia 20-50 FR, Sovarka 7-20 PSK). | en ligne | 21/11/2026 | e00fd911 | GAME-DESIGN-CRIMINALITE.md, « Barème commun des informateurs » |
+| 19/11/2026 | Refonte des informateurs : plus de recrutement, PNJ spécialistes de lieu et généralistes payés au barème. | en ligne | 22/11/2026 | 6d3606de | GAME-DESIGN-INFORMATEURS-20261121.md, points 1 à 6 |
+| 20/11/2026 | Criminalité : valeurs provisoires tranchées, marché noir sans bonus, discrétion, groupe masqué sans indice. | en ligne | 20/11/2026 | d7c2e083 | GAME-DESIGN-CRIMINALITE.md, « Décisions du 20/11/2026 » |
+| 20/11/2026 | Laissez-passer : mécanisme définitif avec registre. | en ligne | 20/11/2026 | 6df1fef5 | GAME-DESIGN-CRIMINALITE.md, « Laissez-passer » |
+| 20/11/2026 | Organisations secrètes (deux options). | en ligne | 20/11/2026 | a0ac251e | GAME-DESIGN-CRIMINALITE.md, § 3 bis |
+| 20/11/2026 | Faits divers dans le Journal du jour. | en ligne | 20/11/2026 | 160770d7 | GAME-DESIGN-PRESSE.md, « Faits divers » |
+| 20/11/2026 | Compte confirmé exigé pour être candidat, être nommé, créer un parti ou une organisation. | en ligne | 20/11/2026 | 090bf500 | GAME-DESIGN-ELECTIONS.md, « Compte confirmé » |
+| 20/11/2026 | Lot de Krasnov 1 : un ours tué donne en plus 10 pots de graisse d'ours. | en ligne | 21/11/2026 | b888d2db | GAME-DESIGN-KRASNOV-LOT-20261120.md, point 1 |
+| 20/11/2026 | Lot de Krasnov 2 : marché de Krasnov en fenêtre unique Acheter / Vendre / Produire. | en ligne | 22/11/2026 | 5a1c24e1 | GAME-DESIGN-KRASNOV-LOT-20261120.md, point 2 |
+| 20/11/2026 | Lot de Krasnov 3 : un seul objet bouteille d'eau, une fontaine par ville. | en ligne | 22/11/2026 | 5a1c24e1 | GAME-DESIGN-KRASNOV-LOT-20261120.md, point 3 |
+| 20/11/2026 | Lot de Krasnov 4 : caisse commune du kolkhoze avec un seul ordre « Donner ». | en ligne | 21/11/2026 | b888d2db | GAME-DESIGN-KRASNOV-LOT-20261120.md, point 4 |
+| 20/11/2026 | Lot de Krasnov 5-6 : PNJ et textes du commissariat et du stade Étoile Rouge (Pavel Zapasnoï absent ; textes à réécrire, reportés par Fred). | en cours |  |  | GAME-DESIGN-KRASNOV-LOT-20261120.md, points 5 et 6 |
+| 20/11/2026 | Lot de Krasnov 6 : supporters en Sovarka. | en ligne | 21/11/2026 | 1459aea3 | GAME-DESIGN-KRASNOV-LOT-20261120.md, point 6 |
+| 20/11/2026 | Lot de Krasnov 7 : école (stage de survie), guide des baies, feuille volante et énigme de Krasnov. | en ligne | 21/11/2026 | c089d5d9 | GAME-DESIGN-KRASNOV-LOT-20261120.md, point 7 |
+| 20/11/2026 | Lot de Krasnov 8 : radar, polonium du colonel Voronov, carnet « Contacts et secrets », vol des archives. | en ligne | 21/11/2026 | e00fd911 | GAME-DESIGN-KRASNOV-LOT-20261120.md, point 8 |
+| 20/11/2026 | Lot de Krasnov 9 : « Inspecter la pièce », fouiller et débusquer en un ordre, « Désinstaller du matériel », « Se cacher » dans la pièce. | en ligne | 22/11/2026 | 5a1c24e1 | GAME-DESIGN-KRASNOV-LOT-20261120.md, point 9 |
+| 20/11/2026 | Lot de Krasnov 10 : rue du commissariat avec drapeau de Sovarka et enseigne « МИЛИЦИЯ ». | en ligne | 21/11/2026 | 06edad46 | GAME-DESIGN-KRASNOV-LOT-20261120.md, point 10 |
+| 20/11/2026 | Construction : jamais besoin de recharger, images par étape et par ville, surcouche d'avancement, fenêtre unique « Le chantier ». | en ligne | 21/11/2026 | b7f9c184 | GAME-DESIGN-CHANTIERS-IMAGES-20261120.md, points 1 à 4 |
+| 21/11/2026 | Construction : un jour d'avance au plus par jour quand les joueurs font toutes les heures. | en ligne | 21/11/2026 | 2cd23811 | GAME-DESIGN-CHANTIERS-IMAGES-20261120.md, point 5 |
+| 21/11/2026 | Terrains à bâtir : plan des lots en vignettes et rue en trois états. | en ligne | 22/11/2026 | 18aeb8e1 | GAME-DESIGN-CHANTIERS-IMAGES-20261120.md, complément du 21/11 |
+| 21/11/2026 | Climat : jamais d'entrave aux déplacements, gare jamais inondée, 6 heures, un seul événement à la fois par pays, aucune exemption. | en ligne | 21/11/2026 | 0679b48a | GAME-DESIGN-CLIMAT-20261121.md, points 1 à 5 |
+| 21/11/2026 | Climat : pédagogie (pictogrammes, fenêtre de l'alerte, accueil du nouveau personnage, marques expliquées sur la carte) et textes des consignes. | en ligne | 21/11/2026 | 0679b48a | GAME-DESIGN-CLIMAT-20261121.md, points 6 et 7 |
+| 21/11/2026 | Climat : parades en vente dans chaque pays (quincaillerie, usines pharmaceutiques, sels à 22 PSK, bidons à Novomirsk). | en ligne | 21/11/2026 | 0679b48a | GAME-DESIGN-CLIMAT-20261121.md, compléments sur les parades |
+| 21/11/2026 | Climat : heure de début tirée au hasard, brouillard 1 par mois et par ville. | en ligne | 21/11/2026 | 0679b48a | GAME-DESIGN-CLIMAT-20261121.md, Q1 et Q2 |
+| 21/11/2026 | Catastrophe naturelle indemnisant à 50 % et un seul sac de sable par lieu (remplacées le 22/11). | en ligne | 21/11/2026 | 0679b48a | GAME-DESIGN-CLIMAT-20261121.md, Q3 et Q4 |
+| 21/11/2026 | Forêt de Krasnov : déplacements sans PA, portique, clairière, retour en deux clics, exploration en groupe. | en ligne | 21/11/2026 | 96b893e3 | GAME-DESIGN-FORET-KRASNOV-20261121.md |
+| 21/11/2026 | Fenêtres : une nouvelle fenêtre se place sous la précédente sans la recouvrir. | en ligne | 22/11/2026 | 5f137b44 | GAME-DESIGN-FENETRES-FORUM-20261121.md, § 1 |
+| 21/11/2026 | Fenêtres : lâchée en chevauchement, une fenêtre revient à sa place avec l'infobulle « Vos fenêtres ne peuvent pas se superposer » (absente du code). | en cours |  |  | GAME-DESIGN-FENETRES-FORUM-20261121.md, § 1 |
+| 21/11/2026 | Bandeau « HUMAN GAMBIT » au lieu de « RES PUBLICA » dans l'interface. | en ligne | 22/11/2026 | 9566f062 | GAME-DESIGN-FENETRES-FORUM-20261121.md, § 2 |
+| 21/11/2026 | Forum lisible par un enfant : libellés, « Nouveau sujet », forum vide expliqué, cadenas expliqué, chemin cliquable (chemin non trouvé dans le code). | en cours |  |  | GAME-DESIGN-FENETRES-FORUM-20261121.md, § 3 |
+| 21/11/2026 | Interview d'accueil par le journaliste de la ville, toujours publiable, lisible ; fenêtre « Courrier » et compteur corrects. | en ligne | 22/11/2026 | 457b13b2 | GAME-DESIGN-INTERVIEW-ACCUEIL-20261121.md |
+| 21/11/2026 | Page d'accueil : « HUMAN GAMBIT OUVRE SA BÊTA. » et paragraphe deux empires, dans toutes les langues. | en ligne | 21/11/2026 | 9242a4e3 | GAME-DESIGN-MISSION-SOIR-20261121.md, urgence 1 à 3 |
+| 21/11/2026 | Presse : monde fictif (« sovarkien »), point de vue national, anonymat absolu, noms cliquables. | en ligne | 21/11/2026 | 9d041513 | GAME-DESIGN-MISSION-SOIR-20261121.md, point 1 |
+| 21/11/2026 | Forum : blocs empilés sur petit écran, images collées ou glissées copiées dans le stockage du jeu. | en ligne | 22/11/2026 | 40568be5 | GAME-DESIGN-MISSION-SOIR-20261121.md, point 2 ; MISSION-NUIT, point 7 |
+| 21/11/2026 | Eau de la place de l'Ours : ordre vert « Puiser de l'eau », 1 PA, 10 bouteilles par tranche de 6 h, bouteille bue sans bouteille vide. | en ligne | 21/11/2026 | c39de4b5 | GAME-DESIGN-MISSION-SOIR-20261121.md, point 3 |
+| 21/11/2026 | Types de bâtiments : 7 → 5 (hangar, commerce standard, premium, logement, building), mairie = logements sociaux. | en ligne | 22/11/2026 | edd137e0 | GAME-DESIGN-MISSION-SOIR-20261121.md, point 4 ; MISSION-NUIT, point 6 |
+| 21/11/2026 | Images de construction de Port-Sainte-Marie (série complète) et démarrage commun en Républia. | en ligne | 22/11/2026 | 290bdd86 | GAME-DESIGN-MISSION-SOIR-20261121.md, point 5 ; MISSION-NUIT, point 1 |
+| 21/11/2026 | Fenêtre « Le chantier » à quatre onglets (État, Stock, Main-d'œuvre, Gestion), jauges en carrés, « Voler des matériaux » remis. | en ligne | 21/11/2026 | c39de4b5 | GAME-DESIGN-MISSION-SOIR-20261121.md, point 6 |
+| 21/11/2026 | Groupes en bloc dans « Personnes présentes », mise à jour en direct, cachette de groupe sur un seul jet du chef (−5 par membre). | en ligne | 21/11/2026 | c39de4b5 | GAME-DESIGN-MISSION-SOIR-20261121.md, point 7 |
+| 21/11/2026 | Masque de carnaval : masqué reste visible sous « Personnage masqué ». | en ligne | 21/11/2026 | c39de4b5 | GAME-DESIGN-MISSION-SOIR-20261121.md, point 8 |
+| 21/11/2026 | Mairie de Krasnov : on n'en sort que dans la rue de la mairie, porte sur cette rue seulement. | en ligne | 21/11/2026 | c39de4b5 | GAME-DESIGN-MISSION-SOIR-20261121.md, point 9 |
+| 21/11/2026 | Pause Supabase : aucune migration en production sans feu vert de Fred ; le goulag reste verrouillé. | en ligne | 21/11/2026 | abb6ea44 | AGENTS.md, « Coordination Claude Code / Codex » ; NOVOMIRSK-PNJ-INTERFACE, R11 |
+| 22/11/2026 | Chantier : heures du jour toujours ouvertes, commande automatique de nuit à l'entrepôt, journal au lieu du courrier. | en ligne | 22/11/2026 | abe923cd | GAME-DESIGN-MISSION-NUIT-20261122.md, point 2 |
+| 22/11/2026 | Images des étapes : fondations par ville, gros œuvre et façade en deux gabarits (images de Montrouge encore à produire). | en ligne | 22/11/2026 | abe923cd | GAME-DESIGN-MISSION-NUIT-20261122.md, point 3 |
+| 22/11/2026 | Forêt : égarement 50 %, 15 % de rencontre à l'arrivée dans une vue profonde. | en ligne | 22/11/2026 | abe923cd | GAME-DESIGN-MISSION-NUIT-20261122.md, point 4 |
+| 22/11/2026 | Climat : les événements déjà annoncés sont maintenus ; aucune alerte ne couvre une flèche. | en ligne | 22/11/2026 | abe923cd | GAME-DESIGN-MISSION-NUIT-20261122.md, point 5 |
+| 22/11/2026 | Place de l'Ours : sortie vers la rue de la mairie à droite ; retour par le côté opposé dans les culs-de-sac de Sovarka. | en ligne | 22/11/2026 | abe923cd | GAME-DESIGN-MISSION-NUIT-20261122.md, point 9 |
+| 22/11/2026 | Texte jamais plus petit que le texte courant, dans tout le jeu. | en ligne | 22/11/2026 | 6d3606de | GAME-DESIGN-FORET-TEST-20261122.md, point 1 |
+| 22/11/2026 | Inventaire en direct, quantité au dépôt et au ramassage, capacité par personnage (100, réglable), don entre membres d'un groupe. | en ligne | 22/11/2026 | 6d3606de | GAME-DESIGN-FORET-TEST-20261122.md, points 2 à 4 |
+| 22/11/2026 | Groupes : un membre ne perd que le déplacement ; butin au chef sans doublement ; rapport à chaque membre. | en ligne | 22/11/2026 | 6d3606de | GAME-DESIGN-FORET-TEST-20261122.md, point 5 |
+| 22/11/2026 | Rapport de combat en deux colonnes par round ; meute de trois loups ; suspense en deux fenêtres. | en ligne | 22/11/2026 | 6d3606de | GAME-DESIGN-FORET-TEST-20261122.md, points 6 et 7 |
+| 22/11/2026 | Météo dans toutes les vues en plein air ; alerte en bandeau au-dessus de l'image ; bouton « Explorer la forêt » classique. | en ligne | 22/11/2026 | 6d3606de | GAME-DESIGN-FORET-TEST-20261122.md, point 8 ; CLIMAT-20261121, complément du 22/11 |
+| 22/11/2026 | Santé : robustesse selon la Santé, 1 Santé par PA perdu, Santé 0 ne bloque plus, coma = 0 PA. | en ligne | 22/11/2026 | 77750497 | GAME-DESIGN-SANTE-20261122.md, points 1 à 3 |
+| 22/11/2026 | Santé : maladies (perte à la contraction), MST et antibiotique, escort sans Santé. | en ligne | 22/11/2026 | 77750497 | GAME-DESIGN-SANTE-20261122.md, points 4 à 6 |
+| 22/11/2026 | Santé : alcool, sommeil calculé par le serveur, repas, soins, modulation par le Moral. | en ligne | 22/11/2026 | 77750497 | GAME-DESIGN-SANTE-20261122.md, points 7 à 11 |
+| 22/11/2026 | Médecin de terrain (Diagnostiquer, Soigner, tarif accepté par le patient) et « Montrer un objet » à 0 PA. | en ligne | 22/11/2026 | 77750497 | GAME-DESIGN-SANTE-20261122.md, points 12 et 22 |
+| 22/11/2026 | Une usine pharmaceutique par pays, un ordre « Produire des médicaments », jauges Santé et Moral, « PV » devient « Santé ». | en ligne | 22/11/2026 | 77750497 | GAME-DESIGN-SANTE-20261122.md, points 13 à 15 |
+| 22/11/2026 | Vues en plein air sans « Inspecter » ni « Désinstaller » ; nouveaux titres des vues de la forêt ; dernier loup s'enfuit. | en ligne | 22/11/2026 | 77750497 | GAME-DESIGN-SANTE-20261122.md, points 17 à 19 |
+| 22/11/2026 | Six fontaines potables sans risque de maladie. | en ligne | 22/11/2026 | 5a1c24e1 | GAME-DESIGN-SANTE-20261122.md, point 20 |
+| 22/11/2026 | Suites Santé : « En-cas » / « Zakouski », palier 15+, repas du président, de l'hôpital et de la clinique. | en ligne | 22/11/2026 | d8e6d473 | GAME-DESIGN-SANTE-20261122.md, « Suites », points 1 à 3 |
+| 22/11/2026 | Tous les paiements se font en liquide (médecin compris). | en ligne | 22/11/2026 | d8e6d473 | GAME-DESIGN-SANTE-20261122.md, « Suites », point 5 |
+| 22/11/2026 | Robustesse appliquée aussi à « se laisser faire », à la répression et à la rébellion. | en ligne | 22/11/2026 | d8e6d473 | GAME-DESIGN-SANTE-20261122.md, « Suites », point 7 |
+| 22/11/2026 | Médicaments : matière première, production des PNJ d'usine, caisse d'usine à fonds de roulement, antidote. | en ligne | 22/11/2026 | d8e6d473 | GAME-DESIGN-SANTE-20261122.md, « Suites », point 8 |
+| 22/11/2026 | Dons de tracts au plafond commun ; antenne de Starovka « La Voix de Sovarka ». | en ligne | 22/11/2026 | d8e6d473 | GAME-DESIGN-SANTE-20261122.md, « Suites », points 9 et 10 |
+| 22/11/2026 | Rachat de tous les marchés à 30 % sous le prix de vente ; confiture 10 PSK ; caisse du marché de Krasnov 1 000 PSK. | en ligne | 22/11/2026 | d8e6d473 | GAME-DESIGN-SANTE-20261122.md, « Suites », point 11 |
+| 22/11/2026 | Objectif « Acheter 5 informations à des informateurs différents ». | en ligne | 22/11/2026 | d8e6d473 | GAME-DESIGN-SANTE-20261122.md, « Suites », point 13 |
+| 22/11/2026 | Pays d'un poste lu dans le registre, jamais dans la position ; un voyageur garde son poste sans pouvoir sur place. | en ligne | 22/11/2026 | d8e6d473 | GAME-DESIGN-INTERFACE-ACCUEIL-20261122.md, points 15 et 16 ; AGENTS.md |
+| 22/11/2026 | Regroupement des ordres : Inspecter à trois volets, Élections et Guichet des mairies, partis, syndicat, « Fonctions de [poste] ». | en ligne | 22/11/2026 | d8e6d473 | GAME-DESIGN-INTERFACE-ACCUEIL-20261122.md, points 17 à 22 |
+| 22/11/2026 | Accueil : interview RP à la première connexion (Jodie, Vera Pravdina), six chemins de trois étapes, bulle des PA une seule fois. | en ligne | 22/11/2026 | d8e6d473 | GAME-DESIGN-INTERFACE-ACCUEIL-20261122.md, points 23 à 26 ; AGENTS.md |
+| 22/11/2026 | Tabac-presse de Krasnov : papirossy (+2 Moral), carte postale à écrire et envoyer, revue (+1 ENT 24 h). | en ligne | 22/11/2026 | d8e6d473 | GAME-DESIGN-INTERFACE-ACCUEIL-20261122.md, points 27 à 29 |
+| 22/11/2026 | Dépôt d'une carte postale ou d'une revue dans l'armoire à souvenirs (non codé). | décidé |  |  | GAME-DESIGN-INTERFACE-ACCUEIL-20261122.md, point 28 |
+| 22/11/2026 | Crue : arrête seulement les chantiers de la ville une journée ; plus de fermeture, de pertes ni de sacs de sable. | en ligne | 22/11/2026 | d8e6d473 | GAME-DESIGN-INTERFACE-ACCUEIL-20261122.md, point 30 |
+| 22/11/2026 | État de catastrophe naturelle en sommeil (retiré de l'interface, réglage MJ), rôle à redéfinir par Fred. | en ligne | 22/11/2026 | d8e6d473 | GAME-DESIGN-INTERFACE-ACCUEIL-20261122.md, point 31 |
+| 22/11/2026 | Images de chantier de Luthécia (gros œuvre et façade bas, quatre bâtiments achevés). | en ligne | 22/11/2026 | d8e6d473 | GAME-DESIGN-INTERFACE-ACCUEIL-20261122.md, point 33 |
+| 23/11/2026 | R4 : rien n'est supprimé sans rediriger tout ce qui l'appelle ; R6 : le PNJ suit l'image ; R9 : crimes et nuit au journal, jamais au courrier. | en ligne | 23/11/2026 | 97fa407b | GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md, règles générales |
+| 23/11/2026 | Point 1 : une seule fiche d'objet réunissant toutes les actions. | en ligne | 23/11/2026 | 15e4fac6 | GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md, point 1 |
+| 23/11/2026 | Points 2-3 : onglet Organisations avec toutes les organisations et leur pays ; fiche Identité avec le pays du PJ, accents. | en ligne | 23/11/2026 | 9924fa5a | GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md, points 2 et 3 |
+| 23/11/2026 | Point 4 : vérifier le bandeau et les jauges en navigation privée (Tom Tom). | décidé |  |  | GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md, point 4 |
+| 23/11/2026 | Point 5 : « Taxi vers le QHS » masqué en Sovarka tant que le goulag est verrouillé. | en ligne | 23/11/2026 | 9924fa5a | GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md, point 5 |
+| 23/11/2026 | Point 6 : tout en liquide, sauf prélèvements automatiques (liquide puis banque). | en ligne | 23/11/2026 | 9924fa5a | GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md, point 6 |
+| 23/11/2026 | Points 7-9 : excédent des entrepôts reversé à minuit, dotation de plantes des usines, PNJ d'usine non payés. | en ligne | 23/11/2026 | 9924fa5a | GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md, points 7 à 9 |
+| 23/11/2026 | Points 10-13 : Inspecter à 0 PA, « Voler » chez soi en face du matériel d'autrui, rébellion et répression à 1 PA, ligne desinstaller_materiel retirée. | en ligne | 23/11/2026 | 9924fa5a | GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md, points 10 à 13 |
+| 23/11/2026 | Point 14 : correction des chemins d'images de Codex appliquée en production. | en ligne | 23/11/2026 | 395a0100 | GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md, point 14 |
+| 23/11/2026 | Point 15 : portrait de Vera Pravdina dans l'interview d'accueil. | en ligne | 23/11/2026 | 9924fa5a | GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md, point 15 |
+| 23/11/2026 | Points 16-20 : panneau de gauche réordonné, fenêtres Argent et Inventaire, onglets Inventaire et Statistiques supprimés. | en ligne | 23/11/2026 | 15e4fac6 | GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md, points 16 à 20 |
+| 23/11/2026 | Point 17 (écart) : échéance des prêts dans la fenêtre Argent (la table prets n'a pas de date d'échéance). | décidé |  |  | GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md, point 20 (état) |
+| 23/11/2026 | Points 21-22 : journal sans « Rapports de combat » ni entrées et sorties, croix en vrai bouton ; boutons ronds en bas à droite. | en ligne | 23/11/2026 | d7b02556 | GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md, points 21 et 22 |
+| 23/11/2026 | Point 23 : flèche unique en bas pour la seule rue de l'hôpital de Krasnov, les autres rues gardent l'ancienne disposition (élargie à tort le 23/11, corrigée le 24/11). | en ligne | 24/11/2026 | 94b4ce33 | GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md, point 23 |
+| 23/11/2026 | Point 24 : acheter une information en cliquant sur le PNJ informateur ; l'ordre de pièce disparaît. | en ligne | 23/11/2026 | cfe67fc4 | GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md, point 24 ; INFORMATEURS-20261121 |
+| 23/11/2026 | Point 25 : l'habitué du Bar Sever, PNJ social, offre un verre par jour et vend l'information. | en ligne | 23/11/2026 | cfe67fc4 | GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md, point 25 |
+| 23/11/2026 | Points 26-28 : fiches DeepSeek (Zaitsev, musée, EHPAD, maisons, infirmière Oukolova), Lykov fonctionnaire retraité, Kouzma batiouchka, frères Rybakov. | en ligne | 23/11/2026 | cfe67fc4 | GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md, points 26 à 28 |
+| 23/11/2026 | Point 29 : directeur du musée de Krasnov supprimé, Arkadi reprend l'énigme, « Écouter le guide » dans les cinq salles. | en ligne | 23/11/2026 | 31ba0f4f | GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md, point 29 |
+| 23/11/2026 | Point 30 : hôpital de Krasnov, salle d'attente pour les visiteurs, chambre pour les hospitalisés, transfert à 0 PA (400 PSK). | en ligne | 23/11/2026 | 31ba0f4f | GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md, point 30 ; HOSPITALISATION |
+| 23/11/2026 | Point 30 (suite) : même séparation salle d'attente et chambre dans les autres hôpitaux (seul Krasnov est fait). | décidé |  |  | GAME-DESIGN-HOSPITALISATION.md, « Salle d'attente et chambre séparées » |
+| 23/11/2026 | Points 31-32 : locaux libres de Sovarka demandés à la mairie (encadré, 1 PA), 4 bureaux du centre d'affaires de Krasnov à 40 PSK. | en ligne | 23/11/2026 | 31ba0f4f | GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md, points 31 et 32 |
+| 23/11/2026 | Point 33 : karaoké « Chanter l'hymne au Tracteur » dans les églises de la Sainte-Moisson-Commune. | en ligne | 23/11/2026 | 31ba0f4f | GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md, points 33 et 39 |
+| 23/11/2026 | Point 34 : groupe électrogène à la station-service de Krasnov. | en ligne | 23/11/2026 | 31ba0f4f | GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md, point 34 |
+| 23/11/2026 | Point 35 : cartes postales de Krasnov et de Starovka. | en ligne | 23/11/2026 | fc2c2d73 | GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md, point 35 |
+| 23/11/2026 | Point 36 : noms propres et 18 icônes dans l'inventaire. | en ligne | 23/11/2026 | fc2c2d73 | GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md, point 36 |
+| 23/11/2026 | Points 37-39 : gare (Vassili Sukhoï, Lioudmila Proverkina), Direction du Renseignement (Naouchnikova, Doprossov, Koulakov), église. | en ligne | 23/11/2026 | 3f7ca907 | GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md, points 37 à 39 |
+| 23/11/2026 | Points 40-41, 43, 46-47 : relevé des PNJ sans portrait, 34 portraits recadrés, planches attribuées, réserve, relevés. | en ligne | 23/11/2026 | 52038d38 | GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md, points 40 à 43, 46, 47 |
+| 23/11/2026 | Points 42 et 44 : noms choisis par Fred (Kvassova, Petchatkina, Arkhipova et 14 noms sovarkiens) ; 7 informateurs renommés en base. | en ligne | 23/11/2026 | 3f7ca907 | GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md, points 42 et 44 |
+| 23/11/2026 | Point 45 : doublon « Le Maire » de Novomirsk retiré avec redirection. | en ligne | 23/11/2026 | fc2c2d73 | GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md, point 45 |
+| 23/11/2026 | Point 46 : remplacer les images du Cercle des Camarades, de la rédaction de La Voix de Sovarka et de l'amphithéâtre. | décidé |  |  | GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md, point 46 |
+| 23/11/2026 | Plan de renommage des images de Codex (migration 20261123170047, jamais appliquée) : REJETÉ par Fred, fichier retiré vers historique/migrations-rejetees (24/11). | en ligne | 24/11/2026 | 218259d7 | RELAIS.md, « Images — relevés et plan de renommage NON APPLIQUÉ » |
+
+## Mission Purge (24/11/2026)
+
+| Date | Décision | État | En ligne le | Commit | Source |
+|---|---|---|---|---|---|
+| 24/11/2026 | 0.1 Tableau de suivi des décisions (ce fichier), rempli depuis le 01/11 et tenu à chaque bloc ; listes du soir par `outils/suivi/listes-du-soir.py`. | en ligne | 24/11/2026 | (bloc 1) | Mission Purge 0.1 |
+| 24/11/2026 | 0.2 CI : « Bancs JavaScript » découpés en six parts parallèles ; à la poussée, bancs liés aux fichiers modifiés ; suite complète la nuit (25 → 12 min sur main). | en ligne | 24/11/2026 | 94b4ce33 | Mission Purge 0.2 |
+| 24/11/2026 | 0.2 Bancs hérités : test-crim-lot2-resolution, test-montrouge-tribunal-ssm, test-reconnexion-position-serveur recalés (règle valable) ; test-starovka-imprimerie-local : assertion « Ce commerce » inversée (règle abandonnée, point 31). Les 10 bancs *-browser/mobile test-*.cjs ne sont rouges qu'en local (navigateur Playwright absent) : ils tournent dans leurs workflows dédiés. Relevé local de controler-client : rouges dus à l'environnement (Chromium, chemins en dur), aucun rouge en CI sur main. | en ligne | 24/11/2026 | 94b4ce33 | Mission Purge 0.2 |
+| 24/11/2026 | 0.3 Flèches : ancienne disposition partout, flèche unique en bas seulement rue de l'hôpital de Krasnov ; relecture des points 1 à 47 : aucune autre consigne élargie à tort. | en ligne | 24/11/2026 | 94b4ce33 | Mission Purge 0.3 |
+| 24/11/2026 | 1.1 PR #1183 (formation), #1184 (saisie LTR hors arabe), #1132 (Commerce PJ + organigramme), #1186 (guidage mobile des pièces) fusionnées. | en ligne | 24/11/2026 | (bloc 1) | Mission Purge 1.1 |
+| 24/11/2026 | 1.1 PR #993/#994 (Ignat) : déjà sur main sauf la règle de dialogue (critique → pédagogie, jamais d'expulsion), ajoutée ; reste périmé, PR fermées. PR #1106 (banc mobile coque) : déjà couverte par main, fermée. | en ligne | 24/11/2026 | (bloc 1) | Mission Purge 1.1, GAME-DESIGN-KRASNOV-IGNAT.md |
+| 24/11/2026 | 1.5 Migration 20261123170047 retirée (jamais appliquée, absente du registre). | en ligne | 24/11/2026 | 218259d7 | Mission Purge 1.5 |
