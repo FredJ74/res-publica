@@ -2697,3 +2697,18 @@ body.plateau-body .top-right {
 #actions-row-bat .sov-encadre-local{flex:1 1 100%;width:100%;box-sizing:border-box;border:1px solid #a98d56;border-radius:6px;
   background:#1b2531;color:#ecd8ac;padding:.7rem .8rem;margin:0 0 .5rem;line-height:1.45;font-size:1rem}
 #actions-row-bat .action-btn.action-en-tete{border-color:#C9A84C;box-shadow:0 0 0 2px #C9A84C inset;color:#f0e2b0;font-weight:600}
+
+/* CHANTIER — fenêtre simplifiée (mission Purge, bloc C, Fred, 24/11/2026 ; plateau-chantier-vue.js).
+   C.1 : résumé permanent en haut (heures du jour, matériaux du jour) ; rond « ? » ; emplacement du climat (bloc D). */
+#chantier-fenetre .cj-resume-haut{border:1px solid #a98d56;border-radius:8px;background:#1b2531;padding:.6rem .75rem;margin:0 0 .7rem}
+#chantier-fenetre .cj-resume-heures{margin:0;font-size:1.15rem!important;color:#e2e9f1;display:flex;align-items:center;flex-wrap:wrap;gap:.4rem}
+#chantier-fenetre .cj-resume-heures b{color:#e5c477;font-size:1.3rem}
+#chantier-fenetre .cj-resume-mat{margin:.5rem 0 .25rem;display:flex;align-items:center;gap:.4rem;color:#aab8c8}
+#chantier-fenetre .cj-pastilles{display:flex;flex-wrap:wrap;gap:.35rem}
+#chantier-fenetre .cj-pastille{display:inline-block;padding:.2rem .55rem;border-radius:999px;border:1px solid #667c94;background:#253347;color:#e2e9f1;font-size:1rem}
+#chantier-fenetre .cj-pastille.cj-manque{border-color:#c98a5a;color:#f2c9a0}
+.cj-aide{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;min-width:28px;padding:0;border-radius:50%;
+  border:1px solid #e5c477;background:#344354;color:#e5c477;font-weight:700;font-size:1rem!important;line-height:1;cursor:help}
+.cj-aide:hover,.cj-aide:focus-visible{background:#455a70;outline:none}
+#chantier-fenetre .cj-zone-climat{margin:0 0 .7rem}
+#chantier-fenetre .cj-zone-climat[hidden]{display:none}

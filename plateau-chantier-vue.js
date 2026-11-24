@@ -227,6 +227,15 @@ s_complet: 'Le besoin du jour est couvert : le chantier n’achète plus de {m} 
   g_derniere: 'Dernière commande ({date}, pour le jour {j}) : livré {livre} ; manquant {manque} ; coût {cout} {cur}.', g_aucune: 'Aucune commande pour l’instant : la première partira cette nuit.', g_rien: 'rien',
   g_enregistrer: 'Enregistrer', g_verser: 'Verser', g_lots: 'Définir les lots', g_reception: 'Réceptionner le bâtiment', g_reserve: 'Réservé au maître d’ouvrage.'
 };
+// Purge, bloc C (Fred, 24/11/2026) : fenêtre simplifiée « comme pour un enfant ». Textes nouveaux (français, pour Codex).
+const TXTC = {
+  r_heures: 'Encore {h} heure(s) à faire aujourd’hui', r_heures_avance: 'Les heures du jour sont faites. Encore {h} heure(s) du jour d’avance.',
+  r_heures_aucune: 'Plus aucune heure à faire aujourd’hui.', r_heures_attente: 'Lecture du chantier…',
+  r_heures_aide: 'Chaque heure de travail coûte 1 PA et rapporte le salaire fixé par le propriétaire du chantier. Si toutes les heures du jour sont faites, le jour suivant s’ouvre en avance et le chantier gagne une journée cette nuit.',
+  r_materiaux: 'Matériaux du jour', r_mat: '{m} : {s} sur {b}', r_mat_aide: 'Chaque jour de travail consomme du bois, du minerai et du métal. Ce qui manque, le chantier le rachète aux joueurs au prix fixé par le propriétaire.',
+  r_lecture_ko: 'Le chantier ne répond pas pour l’instant. Réessayez dans un moment.', aide: 'Aide'
+};
+const tc = (k, v) => String(TXTC[k] || TXT4[k] || TXT[k] || k).replace(/\{(\w+)\}/g, (m, c) => (v && v[c] != null) ? String(v[c]) : m);
 const t4 = (k, v) => String(TXT4[k] || k).replace(/\{(\w+)\}/g, (m, c) => (v && v[c] != null) ? String(v[c]) : m);
 const MATS = ['bois', 'minerai', 'metal'];
 const vue = { onglet: 'etat' };
@@ -449,11 +458,80 @@ function ongletGestion(ch, t0) {
     h += '<div class="cj-carte"><button type="button" class="cpj-touche" onclick="chantierGestion(\'lots\')">' + esc(t4('g_lots')) + '</button></div>';
   return h;
 }
+// ── Lecture du serveur (migration 20261124120000_chantier_fenetre_lire) ─────────────────────────────
+// Heures du jour, plafond d'heures, salaire, prix et plafonds de vente : décidés par le serveur, jamais par l'écran.
+const lecture = { terrain: null, r: null, enCours: null };
+function lectureCourante() { const id = etat().currentBuilding; return lecture.terrain === id ? lecture.r : null; }
+async function lireServeur() {
+  const id = etat().currentBuilding;
+  if (!estTerrain(id) || typeof global.sbRpcVerdict !== 'function') return null;
+  if (lecture.enCours && lecture.enCours.id === id) return lecture.enCours.p;
+  const p = global.sbRpcVerdict('chantier_fenetre_lire', { p_terrain_id: id }).catch(() => null).then(r => {
+    if (etat().currentBuilding === id) { lecture.terrain = id; lecture.r = r && typeof r === 'object' ? r : { ok: false, raison: 'transport' }; }
+    return r;
+  }).finally(() => { if (lecture.enCours && lecture.enCours.p === p) lecture.enCours = null; });
+  lecture.enCours = { id, p };
+  return p;
+}
+// Rond « ? » : bulle de deux phrases au survol, au clavier et au toucher (même bulle que les jauges, .hg-jauge-bulle).
+function aide(cle) { return '<button type="button" class="cj-aide" data-cj-aide="' + esc(cle) + '" aria-label="' + esc(tc('aide')) + '">?</button>'; }
+function montrerAide(b) {
+  const doc = global.document; let bulle = doc.getElementById('cj-aide-bulle');
+  if (!bulle) { bulle = doc.createElement('div'); bulle.id = 'cj-aide-bulle'; bulle.className = 'hg-jauge-bulle cj-aide-bulle'; bulle.setAttribute('role', 'tooltip'); doc.body.appendChild(bulle); }
+  if (bulle.hidden || bulle.dataset.cle !== b.dataset.cjAide) bulle.dataset.depuis = String(Date.now());
+  bulle.dataset.cle = b.dataset.cjAide; bulle.textContent = tc(b.dataset.cjAide); bulle.hidden = false;
+  const r = b.getBoundingClientRect(), vw = global.innerWidth || 1024, largeur = Math.min(300, vw - 32);
+  bulle.style.maxWidth = largeur + 'px'; bulle.style.left = Math.max(16, Math.min(r.left, vw - largeur - 16)) + 'px'; bulle.style.top = (r.bottom + 8) + 'px';
+  const h = bulle.getBoundingClientRect().height, vh = global.innerHeight || 768;
+  if (r.bottom + 8 + h > vh - 8) bulle.style.top = Math.max(8, r.top - h - 8) + 'px';
+}
+function cacherAide() { const b = global.document && global.document.getElementById('cj-aide-bulle'); if (b) b.hidden = true; }
+function brancherAides(racine) {
+  racine.querySelectorAll('.cj-aide').forEach(b => {
+    b.addEventListener('mouseenter', () => montrerAide(b)); b.addEventListener('mouseleave', cacherAide);
+    b.addEventListener('focus', () => montrerAide(b)); b.addEventListener('blur', cacherAide);
+    b.addEventListener('keydown', e => { if (e.key === 'Escape') cacherAide(); });
+    b.addEventListener('click', e => {   // toucher : bascule (un toucher émet aussi focus et mouseenter juste avant)
+      e.stopPropagation(); const bulle = global.document.getElementById('cj-aide-bulle');
+      if (bulle && !bulle.hidden && bulle.dataset.cle === b.dataset.cjAide && e.pointerType !== 'mouse' && Date.now() - Number(bulle.dataset.depuis || 0) > 600) { cacherAide(); return; }
+      montrerAide(b);
+    });
+  });
+}
+// C.1 — résumé permanent en haut de la fenêtre : heures du jour et matériaux du jour (valeurs du serveur).
+function resumeChantier() {
+  const L = lectureCourante();
+  let heures;
+  if (!L) heures = esc(tc('r_heures_attente'));
+  else if (!L.ok) heures = esc(tc('r_lecture_ko'));
+  else {
+    const tr = L.travail || {}, j = Math.max(0, Number(tr.restantesJour) || 0), a = Math.max(0, Number(tr.restantesAvance) || 0);
+    heures = j > 0 ? esc(tc('r_heures', { h: fr(j) })).replace(fr(j), '<b>' + fr(j) + '</b>') : a > 0 ? esc(tc('r_heures_avance', { h: fr(a) })) : esc(tc('r_heures_aucune'));
+  }
+  const mats = L && L.ok ? MATS.map(m => {
+    const x = (L.materiaux || {})[m] || {}, s0 = Number(x.stock) || 0, b = Number(x.besoin) || 0;
+    return '<span class="cj-pastille' + (s0 < b ? ' cj-manque' : '') + '">' + esc(tc('r_mat', { m: t('m_' + m), s: fr(s0), b: fr(b) })) + '</span>';
+  }).join('') : '';
+  return '<section class="cj-resume-haut" aria-live="polite">'
+    + '<p class="cj-resume-heures">' + heures + ' ' + aide('r_heures_aide') + '</p>'
+    + (mats ? '<p class="cj-resume-mat"><span class="cj-resume-titre">' + esc(tc('r_materiaux')) + '</span> ' + aide('r_mat_aide') + '</p><div class="cj-pastilles">' + mats + '</div>' : '')
+    + '</section>'
+    // Emplacement réservé au climat (bloc D de la mission Purge : arrêt par canicule ou crue, « Offrir 20 bouteilles d’eau »).
+    // Vide et caché ici : le module climat le remplit par chantierZoneClimat(zone, contexte) ou l'événement « rp:chantier-fenetre ».
+    + '<div id="chantier-zone-climat" class="cj-zone-climat" hidden></div>';
+}
+function remplirZoneClimat() {
+  const doc = global.document, zone = doc.getElementById('chantier-zone-climat');
+  if (!zone) return;
+  const contexte = { terrain: etat().currentBuilding, lecture: lectureCourante(), chantier: ts().chantier || null };
+  try { if (typeof global.chantierZoneClimat === 'function') global.chantierZoneClimat(zone, contexte); } catch (_) {}
+  try { doc.dispatchEvent(new global.CustomEvent('rp:chantier-fenetre', { detail: Object.assign({ zone }, contexte) })); } catch (_) {}
+}
 function fenetreOuverte() {
   const doc = global.document, m = doc && doc.getElementById('modal-postes');
   return !!(m && m.classList.contains('open') && doc.getElementById('chantier-fenetre'));
 }
-function ouvrirFenetreChantier(silencieux, onglet) {
+function ouvrirFenetreChantier(silencieux, onglet, sansLecture) {
   const t0 = ts(), ch = t0.chantier, doc = global.document;
   if (!ch || !doc) return;
   if (silencieux === true && !fenetreOuverte()) return;   // jamais d'ouverture automatique
@@ -463,7 +541,7 @@ function ouvrirFenetreChantier(silencieux, onglet) {
   const onglets = ['etat', 'stock', 'main'].concat(gere ? ['gestion'] : []);
   if (!onglets.includes(vue.onglet)) vue.onglet = 'etat';
   const contenu = vue.onglet === 'stock' ? ongletStock(ch) : vue.onglet === 'main' ? ongletMain(ch) : vue.onglet === 'gestion' ? ongletGestion(ch, t0) : ongletEtat(ch, t0);
-  const html = '<div id="chantier-fenetre" class="cpj-dialogue" style="padding:.3rem .2rem .6rem">'
+  const html = '<div id="chantier-fenetre" class="cpj-dialogue" style="padding:.3rem .2rem .6rem">' + resumeChantier()
     + '<div class="cj-onglets" role="tablist">' + onglets.map(o => '<button type="button" role="tab" aria-selected="' + (o === vue.onglet) + '" onclick="chantierOnglet(\'' + o + '\')">' + esc(t4('o_' + o)) + '</button>').join('') + '</div>'
     + '<div role="tabpanel">' + contenu + '</div></div>';
   const titre = doc.getElementById('postes-modal-title'), corps = doc.getElementById('postes-body');
@@ -474,8 +552,12 @@ function ouvrirFenetreChantier(silencieux, onglet) {
   corps.innerHTML = html;
   for (const [id, v] of Object.entries(saisies)) { const e = doc.getElementById(id); if (!e) continue; if (e.type === 'checkbox') e.checked = v; else e.value = v; }
   doc.getElementById('modal-postes')?.classList.add('open');
+  const f = doc.getElementById('chantier-fenetre'); if (f) brancherAides(f);
+  remplirZoneClimat();
   if (vue.onglet === 'stock') chantierStockTotaux();
   if (vue.onglet === 'main') chantierMainTotaux();
+  // Relecture du serveur, puis nouveau rendu (sans relancer de lecture) si la fenêtre est toujours ouverte.
+  if (!sansLecture) lireServeur().then(() => { if (fenetreOuverte()) ouvrirFenetreChantier(true, null, true); });
 }
 function chantierOnglet(o) { vue.onglet = o; ouvrirFenetreChantier(false, o); }
 const val = id => (global.document.getElementById(id)?.value || '').trim();
@@ -537,10 +619,12 @@ async function chantierValider() { return null; }
 function demarrer() {
   brancher();
   setInterval(suivre, 20000);
+  global.document.addEventListener('click', e => { if (!e.target.closest || !e.target.closest('.cj-aide')) cacherAide(); });
+  global.addEventListener('scroll', cacherAide, true);
 }
 if (global.document && global.document.readyState !== 'loading') demarrer();
 else if (global.document) global.document.addEventListener('DOMContentLoaded', demarrer);
 
-global.RPChantierVue = { TXT, TXT4, jauge, verdictStock, candidatsImage, imageImmediate, imageResolue, etapeDe, lignesSurcouche, rafraichirVueChantier, verdictChoix, _choix: choix, _existe: existe };
+global.RPChantierVue = { TXT, TXT4, TXTC, lireServeur, lectureCourante, jauge, verdictStock, candidatsImage, imageImmediate, imageResolue, etapeDe, lignesSurcouche, rafraichirVueChantier, verdictChoix, _choix: choix, _existe: existe };
 Object.assign(global, { ouvrirFenetreChantier, chantierChoisir, chantierTotaux, chantierValider, chantierOnglet, chantierStockTotaux, chantierStockValider, chantierMainTotaux, chantierMainValider, chantierGestion, chantierImageImmediate: imageImmediate, rafraichirVueChantier });
 })(typeof window !== 'undefined' ? window : globalThis);
