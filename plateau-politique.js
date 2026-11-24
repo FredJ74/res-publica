@@ -39,7 +39,10 @@
 // pas depuis le Palais, il faut etre physiquement a la caserne et cela coute 2 PA.
 async function ouvrirEcranPostes() {
   // Textes politiques uniquement : les noms de postes et les données serveur restent inchangés.
-  const orgT = (key, fr, values) => ficheLibelleHtml(key, fr, values, 'politicalOrg');
+  // Garde (24/11/2026) : ficheLibelleHtml vit dans plateau-objets.js ; sans lui, le français s'affiche (régression de #1132).
+  const orgT = (key, fr, values) => (typeof ficheLibelleHtml === 'function')
+    ? ficheLibelleHtml(key, fr, values, 'politicalOrg')
+    : String(fr).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
   document.getElementById('postes-modal-title').innerHTML = orgT('title', 'Organigramme');
   document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">' + orgT('loading', 'Chargement...') + '</div>';
   document.getElementById('modal-postes').classList.add('open');

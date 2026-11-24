@@ -25,7 +25,7 @@ async function preparer(b, o) {
   const p = await page(b, o, 390, 844, false, { texteMinimum: true });
   const erreurs = []; p.on('pageerror', e => erreurs.push(e.message));
   await p.evaluate(simuler);
-  for (const s of ['plateau-fenetres-auto.js', 'plateau-notifications-chat.js']) await p.addScriptTag({ url: o + '/' + s });
+  for (const s of ['plateau-accueil-progressif.js', 'plateau-notifications-chat.js']) await p.addScriptTag({ url: o + '/' + s });
   await p.waitForFunction(() => window.RPNotifChat);
   return { p, erreurs };
 }

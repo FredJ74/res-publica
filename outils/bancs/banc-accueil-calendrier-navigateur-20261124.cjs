@@ -4,7 +4,7 @@
 //  - A.3 : arrivée de Bernard — pendant la première heure aucune fenêtre automatique (journal du jour et climat au badge),
 //          l'interview due arrive quand même mais attend que la fenêtre ouverte soit fermée ; après la première heure,
 //          une seule fenêtre automatique par connexion, les autres au badge, jamais deux superposées.
-// Vrais fichiers : plateau-evenements-personnage.js, plateau-fenetres-auto.js, plateau-accueil-interview.js ; serveur simulé.
+// Vrais fichiers : plateau-evenements-personnage.js, plateau-accueil-progressif.js (module de #1188 repris), plateau-accueil-interview.js ; serveur simulé.
 const test = require('node:test'), assert = require('node:assert/strict');
 const { avecJeu, page } = require('./mobile-navigateur.cjs');
 
@@ -15,7 +15,7 @@ function serveurSimule() {
     ['uniforme', "L'uniforme (armée ou police)"], ['belle_vie', 'La belle vie']].map(([id, libelle]) => ({ id, libelle }));
   const vue = () => ({ ok: true, personnage: 'Bernard', pays: 'soviet',
     interview: { etat: S.etat, journaliste: 'Vera Pravdina', journal: 'La Voix de Sovarka', question: 'Que voulez-vous être ?', ouvrir_auto: S.etat === 'a_faire' && !S.vue && S.due },
-    calendrier: { actif: true, secondes_jeu: 0, premiere_heure: S.premiere, interview_due: S.due },
+    calendrier: { actif: true, secondes_jeu: 0, premiere_heure: S.premiere, interview_due: S.due, decouverte_finie: !!S.decouverte, interview_forcee: false },
     bienvenue: { a_voir: S.bienvenue, pays: 'soviet', ville: 'ville_b', signataire: null, portrait: null },
     mot_max: 280, chemins, chemin: null, mot: null, etapes: [], bulle_pa: { vue: true, pa: null, active: true } });
   window.sbRpc = async (fn, a) => {
@@ -35,7 +35,7 @@ async function preparer(b, o, l, h) {
   const p = await page(b, o, l, h, false, { texteMinimum: true });
   const erreurs = []; p.on('pageerror', e => erreurs.push(e.message));
   await p.evaluate(serveurSimule);
-  for (const s of ['plateau-evenements-personnage.js', 'plateau-fenetres-auto.js', 'plateau-accueil-interview.js']) await p.addScriptTag({ url: o + '/' + s });
+  for (const s of ['plateau-evenements-personnage.js', 'plateau-accueil-progressif.js', 'plateau-accueil-interview.js']) await p.addScriptTag({ url: o + '/' + s });
   await p.waitForFunction(() => window.RPAccueil && window.RPFenetresAuto);
   await p.evaluate(() => window.RPAccueil.verifier());
   return { p, erreurs };
@@ -50,11 +50,11 @@ for (const [largeur, hauteur] of [[1280, 860], [390, 844]]) {
   test(`${largeur} px : bienvenue — texte exact, icône d'aide, croix seule, jamais recouverte`, async () => avecJeu(async (b, o) => {
     const { p, erreurs } = await preparer(b, o, largeur, hauteur);
     await p.waitForSelector('#hg-bienvenue');
-    assert.equal(await p.locator('#hg-bv-titre').innerText(), TEXTE[0]);
+    assert.equal(await p.locator('#hg-bienvenue-titre').innerText(), TEXTE[0]);
     assert.deepEqual(await p.locator('#hg-bienvenue p').allInnerTexts(), TEXTE.slice(1));
     // L'icône du vrai bouton d'aide de la barre du haut, recopiée et inerte.
-    assert.equal(await p.locator('#hg-bienvenue .hg-bv-aide .forum-btn i.ti-book').count(), 1);
-    assert.equal(await p.locator('#hg-bienvenue .hg-bv-aide [onclick]').count(), 0, 'inerte');
+    assert.equal(await p.locator('#hg-bienvenue .hg-bienvenue-aide .forum-btn i.ti-book').count(), 1);
+    assert.equal(await p.locator('#hg-bienvenue .hg-bienvenue-aide [onclick]').count(), 0, 'inerte');
     assert.equal(await p.locator('#hg-bienvenue [data-bienvenue-signature]').count(), 1, 'emplacement de signature prévu');
     assert.equal(await p.locator('#hg-bienvenue [data-bienvenue-signature]').innerText(), '', 'signature vide (PNJ à créer)');
     // Échap et clic à côté : rien.
@@ -70,12 +70,12 @@ for (const [largeur, hauteur] of [[1280, 860], [390, 844]]) {
     await p.evaluate(() => document.getElementById('modal-postes')?.classList.remove('open'));
     // Rien d'autre ne s'ouvre pendant qu'elle est là.
     assert.equal(await p.evaluate(() => window.RPFenetresAuto.fenetreOuverte()), true);
-    const croix = await p.evaluate(() => { const r = document.querySelector('.hg-bv-croix').getBoundingClientRect(); return [r.width, r.height]; });
+    const croix = await p.evaluate(() => { const r = document.querySelector('.hg-bienvenue-croix').getBoundingClientRect(); return [r.width, r.height]; });
     assert.ok(croix[0] >= (largeur < 600 ? 56 : 44) && croix[1] >= (largeur < 600 ? 56 : 44), 'croix ' + croix);
-    const r = await p.evaluate(() => { const e = document.querySelector('#hg-bienvenue .hg-bv-carte').getBoundingClientRect(); return [e.left, e.right, innerWidth, document.documentElement.scrollWidth > document.documentElement.clientWidth + 1]; });
+    const r = await p.evaluate(() => { const e = document.querySelector('#hg-bienvenue .hg-bienvenue-carte').getBoundingClientRect(); return [e.left, e.right, innerWidth, document.documentElement.scrollWidth > document.documentElement.clientWidth + 1]; });
     assert.ok(r[0] >= 0 && r[1] <= r[2] && !r[3], 'dans l’écran ' + r);
     if (process.env.HG_PREUVES) await p.screenshot({ path: process.env.HG_PREUVES + '/bienvenue-' + largeur + '.png' });
-    await p.locator('.hg-bv-croix').click();
+    await p.locator('.hg-bienvenue-croix').click();
     assert.equal(await p.locator('#hg-bienvenue').count(), 0);
     await p.waitForFunction(() => window.__appels.some(a => a[0] === 'accueil_bienvenue_vue'));
     await p.evaluate(() => window.RPAccueil.charger().then(() => window.RPAccueil.verifier()));
@@ -86,7 +86,7 @@ for (const [largeur, hauteur] of [[1280, 860], [390, 844]]) {
 
 test('arrivée de Bernard : première heure sans fenêtre automatique, interview due qui attend, puis une seule fenêtre par connexion', async () => avecJeu(async (b, o) => {
   const { p, erreurs } = await preparer(b, o, 390, 844);
-  await p.locator('.hg-bv-croix').click();
+  await p.locator('.hg-bienvenue-croix').click();
   // Première heure : journal du jour et climat partent au badge, rien ne s'ouvre.
   await p.evaluate(() => {
     window.__ouvertes = [];
@@ -103,11 +103,21 @@ test('arrivée de Bernard : première heure sans fenêtre automatique, interview
   await p.waitForTimeout(400);
   assert.equal(await p.locator('#hg-accueil-interview').count(), 0, 'attend la fermeture de la fenêtre ouverte');
   await p.evaluate(() => document.getElementById('modal-postes').classList.remove('open'));
+  // Juste après la bienvenue : délai de respiration (jamais deux fenêtres automatiques à la suite).
+  await p.evaluate(() => window.RPAccueil.verifier());
+  await p.waitForTimeout(200);
+  assert.equal(await p.locator('#hg-accueil-interview').count(), 0, 'pas collée à la bienvenue');
+  await p.evaluate(() => { const d0 = Date.now; Date.now = () => d0.call(Date) + 180000; });   // trois minutes plus tard
   await p.evaluate(() => window.RPAccueil.verifier());
   await p.waitForSelector('#hg-accueil-interview');
   assert.equal(await appels(p, 'accueil_interview_vue'), 1);
   await p.evaluate(() => document.querySelector('[data-acc="fermer"]').click());
   await p.waitForSelector('#hg-accueil-interview', { state: 'detached' });
+  // Quête d'accueil de Luthécia (#1188) : découverte finie au serveur, mais pas juste après l'interview.
+  await p.evaluate(() => { window.__S.decouverte = true; return window.RPAccueil.charger().then(e => window.RPAccueilProgressif.initialiser(e)); });
+  assert.equal(await p.evaluate(() => window.RPAccueilProgressif.queteInitialeAutorisee()), false, 'respiration après l’interview');
+  await p.evaluate(() => { const d1 = Date.now; Date.now = () => d1.call(Date) + 180000; });
+  assert.equal(await p.evaluate(() => window.RPAccueilProgressif.queteInitialeAutorisee()), true);
   // Le joueur ouvre lui-même le badge : une fenêtre à la fois.
   await p.locator('#hg-fenetres-badges [data-badge="journal"]').click();
   assert.deepEqual(await p.evaluate(() => window.__ouvertes), ['journal']);
@@ -122,7 +132,7 @@ test('arrivée de Bernard : première heure sans fenêtre automatique, interview
 
 test('ancien joueur après la première heure : la première fenêtre s’ouvre, la seconde va au badge, jamais deux à la fois', async () => avecJeu(async (b, o) => {
   const { p, erreurs } = await preparer(b, o, 1280, 860);
-  await p.locator('.hg-bv-croix').click();
+  await p.locator('.hg-bienvenue-croix').click();
   await p.evaluate(() => { window.__S.premiere = false; return window.RPAccueil.charger(); });
   await p.evaluate(() => {
     window.__ouvertes = [];

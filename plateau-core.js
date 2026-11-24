@@ -729,7 +729,7 @@ window.addEventListener('load', () => {
   // 4 s : laisse la reconciliation asynchrone se terminer avant de dresser l'etat.
   setTimeout(() => {
     const d = window.__rpDiagId || { etapes: [] };
-    const texte = 'RES PUBLICA — diagnostic identite\n'
+    const texte = 'HUMAN GAMBIT — diagnostic identite\n'
       + 'bandeau present a l\'ecran : ' + (document.getElementById('bandeau-personnage-fantome') ? 'oui' : 'non') + '\n'
       + (d.etapes.length ? d.etapes.join('\n') : '(aucune etape consignee)');
     const boite = document.createElement('div');
@@ -1089,13 +1089,14 @@ window.addEventListener('DOMContentLoaded', () => {
       sessionStorage.setItem('journaliste_done', '1');
     }
   }, 5000);
-  // Journal du jour en dernier — après tous les autres. Portier des fenêtres automatiques (purge A.3, 24/11/2026) :
-  // jamais pendant la première heure d'un nouveau venu, une seule fenêtre automatique par connexion, sinon un badge.
+  // Journal du jour : portier des fenêtres automatiques (plateau-accueil-progressif.js, purge A.3, 24/11/2026) —
+  // jamais pendant la première heure d'un nouveau venu (temps tenu par le serveur), une seule fenêtre automatique par
+  // connexion, sinon un badge. L'accès volontaire au journal reste immédiat.
   setTimeout(() => {
-    if (!window.RPFenetresAuto) { afficherJournalDuJour(); return; }
-    window.RPFenetresAuto.demander('journal_du_jour', () => afficherJournalDuJour(), () => {
+    if (window.RPAccueilProgressif) window.RPAccueilProgressif.programmerJournal(() => afficherJournalDuJour(), () => {
       try { return !sessionStorage.getItem('journal_dujour_' + dateEditionAujourdhui(state.country)); } catch (_) { return true; }
     });
+    else afficherJournalDuJour();
   }, 8000);
 
   // Forcer le rendu complet au chargement

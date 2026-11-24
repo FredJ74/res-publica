@@ -840,7 +840,7 @@ async function contacterPnjAutreJoueur() {
   const speech = document.getElementById('pnj-speech');
   if (speech) speech.innerHTML = '<div class="pnj-loading"><span class="spin"></span> En train de repondre...</div>';
   const co = COUNTRIES[state.country];
-  const prompt = 'Tu joues ' + p.nom + ', ' + (p.role || 'un personnage') + ' au service de ' + (p.proprietaire || 'quelqu\'un') + ', dans Res Publica (jeu politique parodique, empire ' + (co?.n || '') + '). Un autre personnage t\'aborde brievement. Reponds en 1-2 phrases, dans ton personnage, avec une pointe de loyaute envers ton employeur actuel mais sans etre hostile. Texte brut uniquement.';
+  const prompt = 'Tu joues ' + p.nom + ', ' + (p.role || 'un personnage') + ' au service de ' + (p.proprietaire || 'quelqu\'un') + ', dans Human Gambit (jeu politique parodique, empire ' + (co?.n || '') + '). Un autre personnage t\'aborde brievement. Reponds en 1-2 phrases, dans ton personnage, avec une pointe de loyaute envers ton employeur actuel mais sans etre hostile. Texte brut uniquement.';
   try {
     const r = await rpRedaction('pnj_autre_joueur', prompt);
     if (speech) speech.textContent = (r.texte || '').trim() || ('Bonjour. Je suis au service de ' + (p.proprietaire||'') + '.');

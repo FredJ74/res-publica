@@ -11,7 +11,9 @@
 --    le joueur a parlé à un PNJ dans les 5 dernières minutes au moment prévu, l'interview est repoussée de 5 minutes,
 --    autant de fois que nécessaire ; à 30 minutes de jeu elle arrive quand même. Quand elle est due, le serveur prévient
 --    l'écran (personnage_evenements, clé accueil_interview) ; l'écran attend seulement que la fenêtre ouverte soit fermée.
---  • à une heure de jeu, le serveur prévient (clé accueil_heure_finie) : fin de la première heure sans fenêtre automatique.
+--  • à 5 minutes, fin de la découverte (clé accueil_decouverte_finie : la quête d'accueil de Luthécia peut se présenter) ;
+--    à une heure de jeu, le serveur prévient (clé accueil_heure_finie) : fin de la première heure sans fenêtre automatique.
+--  • L'écran (plateau-accueil-progressif.js, module de la PR #1188 repris) ne compte plus le temps lui-même : il affiche.
 -- Le déclenchement de l'interview à la connexion est retiré pour les personnages du calendrier (A.2) ; le déclenchement
 -- « après le 3e déplacement » cité par la consigne n'existe ni dans le code de main ni dans la base (relevé du 24/11).
 -- Réglages MJ (accueil_parametres) : interview_min_s, interview_max_s, interview_report_s, interview_force_s,
@@ -33,6 +35,7 @@ ALTER TABLE public.accueil_personnages ADD COLUMN IF NOT EXISTS interview_a inte
 ALTER TABLE public.accueil_personnages ADD COLUMN IF NOT EXISTS interview_due_le timestamptz;
 ALTER TABLE public.accueil_personnages ADD COLUMN IF NOT EXISTS pnj_parle_a integer;
 ALTER TABLE public.accueil_personnages ADD COLUMN IF NOT EXISTS heure_finie_le timestamptz;
+ALTER TABLE public.accueil_personnages ADD COLUMN IF NOT EXISTS decouverte_le timestamptz;
 
 -- Crédite le temps de jeu d'un battement et fait avancer le calendrier. Ne lève jamais d'erreur.
 CREATE OR REPLACE FUNCTION public.accueil_temps_crediter_interne(p_nom text)
@@ -62,12 +65,18 @@ BEGIN
       PERFORM public.personnage_evenement_ajouter_interne(p_nom, 'accueil_interview', '', jsonb_build_object('secondes', v_s));
     END IF;
   END IF;
+  -- Fin des 5 minutes de découverte (aucune fenêtre avant, hormis l'avertissement des PA) : la quête d'accueil de
+  -- Luthécia (garde du Palais, #1188) peut se présenter.
+  IF r.decouverte_le IS NULL AND v_s >= public.accueil_param('interview_min_s', 300) THEN
+    r.decouverte_le := now();
+    PERFORM public.personnage_evenement_ajouter_interne(p_nom, 'accueil_decouverte_finie', '', '{}'::jsonb);
+  END IF;
   IF r.heure_finie_le IS NULL AND v_s >= v_heure THEN
     r.heure_finie_le := now();
     PERFORM public.personnage_evenement_ajouter_interne(p_nom, 'accueil_heure_finie', '', '{}'::jsonb);
   END IF;
   UPDATE public.accueil_personnages SET secondes_jeu = v_s, battement_le = now(), interview_a = v_a,
-         interview_due_le = r.interview_due_le, heure_finie_le = r.heure_finie_le, maj_le = now()
+         interview_due_le = r.interview_due_le, heure_finie_le = r.heure_finie_le, decouverte_le = r.decouverte_le, maj_le = now()
    WHERE personnage = p_nom;
 EXCEPTION WHEN OTHERS THEN
   RAISE WARNING 'accueil_temps_crediter_interne : %', SQLERRM; /* accueil_calendrier_v1 */
@@ -126,6 +135,7 @@ BEGIN
     'calendrier', jsonb_build_object('actif', r.calendrier, 'secondes_jeu', r.secondes_jeu,
       'premiere_heure', r.calendrier AND r.heure_finie_le IS NULL AND r.secondes_jeu < v_heure,
       'interview_due', r.interview_due_le IS NOT NULL,
+      'decouverte_finie', NOT r.calendrier OR r.decouverte_le IS NOT NULL,
       'interview_forcee', r.calendrier AND r.secondes_jeu >= public.accueil_param('interview_force_s', 1800)),
     'bienvenue', jsonb_build_object('a_voir', r.calendrier AND r.bienvenue_vue_le IS NULL,
       'pays', coalesce(r.pays, v_pays), 'ville', r.ville_depart,

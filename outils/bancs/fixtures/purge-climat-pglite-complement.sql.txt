@@ -1,0 +1,192 @@
+-- Complément du socle crue-chantier (banc local seulement, jamais la production) pour les migrations climat de la mission
+-- « Purge » du 24/11/2026 (blocs D) : définitions de PRODUCTION relues le 24/11/2026 (pg_get_functiondef) de
+-- climat_heure_hasard_interne, climat_villes_interne, climat_lieu_est_gare_interne, climat_creer_interne,
+-- climat_espacer_interne, climat_planifier_mandat_interne ; tables minimales et bouchons d'inventaire.
+ALTER TABLE public.personnages_donnees ADD COLUMN IF NOT EXISTS current_building text, ADD COLUMN IF NOT EXISTS current_room text,
+  ADD COLUMN IF NOT EXISTS inventory jsonb DEFAULT '[]'::jsonb;
+CREATE TABLE IF NOT EXISTS public.climat_zones_inondables (pays text, ville text, batiment text, nom text);
+INSERT INTO public.climat_zones_inondables VALUES ('republic','capitale','entrepot-logistique-luthecia','l''entrepôt logistique'),
+  ('republic','capitale','marche','le marché'), ('republic','ville_a','marche-psm','le marché'), ('republic','ville_b','marche','le marché');
+CREATE TABLE IF NOT EXISTS public.cycles_electoraux (country text, poste_id text, data text, updated_at timestamptz);
+CREATE TABLE IF NOT EXISTS public.journal_articles_en_attente (id text PRIMARY KEY, country text, rubrique text, titre text, texte text, statut text,
+  origine text, priorite text, dedup_key text, created_at timestamptz);
+CREATE OR REPLACE FUNCTION public.inventaire_quantite(p_inv jsonb, p_cle text) RETURNS numeric LANGUAGE sql IMMUTABLE AS $$
+  SELECT coalesce((SELECT sum(coalesce((e->>'qty')::numeric,1)) FROM jsonb_array_elements(coalesce(p_inv,'[]'::jsonb)) e WHERE e->>'stackKey' = p_cle), 0) $$;
+CREATE OR REPLACE FUNCTION public.inventaire_retirer(p_inv jsonb, p_cle text, p_qte integer) RETURNS jsonb LANGUAGE sql IMMUTABLE AS $$
+  SELECT coalesce(jsonb_agg(x) FILTER (WHERE coalesce((x->>'qty')::integer, 1) > 0), '[]'::jsonb) FROM (
+    SELECT CASE WHEN e->>'stackKey' = p_cle OR e->>'type' = p_cle THEN jsonb_set(e, '{qty}', to_jsonb(coalesce((e->>'qty')::integer, 1) - p_qte)) ELSE e END x
+      FROM jsonb_array_elements(coalesce(p_inv, '[]'::jsonb)) e) s $$;
+
+CREATE OR REPLACE FUNCTION public.climat_heure_hasard_interne(p_jour date)
+ RETURNS timestamp with time zone
+ LANGUAGE sql
+AS $function$
+  SELECT public.climat_minuit_interne(p_jour) + make_interval(hours => floor(random() * 24)::integer);
+$function$;
+
+CREATE OR REPLACE FUNCTION public.climat_villes_interne(p_pays text)
+ RETURNS text[]
+ LANGUAGE sql
+ IMMUTABLE
+AS $function$ SELECT ARRAY['capitale', 'ville_a', 'ville_b']; $function$;
+
+CREATE OR REPLACE FUNCTION public.climat_lieu_est_gare_interne(p_batiment text)
+ RETURNS boolean
+ LANGUAGE sql
+ IMMUTABLE
+AS $function$
+  SELECT coalesce(p_batiment ~ '(multimodal|multinodal)' OR p_batiment ~ '^hall_gare'
+         OR (p_batiment ~ '(^|-)gare(-|$)' AND p_batiment !~ '^cafe-'), false);
+$function$;
+
+CREATE OR REPLACE FUNCTION public.climat_creer_interne(p_type text, p_pays text, p_ville text, p_jour date, p_periode text, p_origine text)
+ RETURNS bigint
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE c public.climat_parametres; v_lieux jsonb := '[]'::jsonb; v_id bigint; v_debut timestamptz;
+BEGIN
+  SELECT * INTO c FROM public.climat_parametres WHERE type = p_type AND pays = p_pays;
+  IF p_type = 'crue' THEN
+    SELECT coalesce(jsonb_agg(jsonb_build_object('batiment', batiment, 'nom', nom)), '[]'::jsonb) INTO v_lieux
+      FROM (SELECT batiment, nom FROM public.climat_zones_inondables
+             WHERE pays = p_pays AND ville = p_ville AND NOT public.climat_lieu_est_gare_interne(batiment) /* climat_gare_jamais_v1 */
+             ORDER BY random() LIMIT (2 + floor(random() * 2))::integer) z;
+    IF jsonb_array_length(v_lieux) = 0 THEN RETURN NULL; END IF;
+  END IF;
+  v_debut := public.climat_heure_hasard_interne(p_jour) /* climat_heure_hasard_v1 */;
+  INSERT INTO public.climat_evenements (type, pays, ville, debut, fin, periode, lieux, origine, debut_prevu)
+  VALUES (p_type, p_pays, p_ville, v_debut, v_debut + make_interval(hours => coalesce(c.duree_heures, 24)), p_periode, v_lieux, p_origine, v_debut)
+  RETURNING id INTO v_id;
+  RETURN v_id;
+END $function$;
+
+CREATE OR REPLACE FUNCTION public.climat_espacer_interne(p_pays text)
+ RETURNS integer
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE r record; v_places tstzrange[] := '{}'; v_debut timestamptz; v_long interval; v_conflit tstzrange; v_delta interval; v_n integer := 0;
+BEGIN
+  PERFORM pg_advisory_xact_lock(hashtext('climat_espacer:' || p_pays));
+  FOR r IN
+    WITH ev AS (
+      SELECT e.id, e.type, e.debut, e.fin, coalesce(e.debut_prevu, e.debut) AS prevu, e.alerte_le, coalesce(c.preavis_heures, 48) AS preavis,
+             CASE WHEN c.frequence = 'trimestre_propage' AND e.origine = 'calendrier' THEN e.type || ':' || e.periode ELSE 'ev:' || e.id END AS episode
+        FROM public.climat_evenements e LEFT JOIN public.climat_parametres c ON c.type = e.type AND c.pays = e.pays
+       WHERE e.pays = p_pays AND NOT e.annule)
+    SELECT episode, min(debut) AS d0, max(fin) AS f1, min(prevu) AS p0, max(prevu + (fin - debut)) AS pf1, max(preavis) AS preavis,
+           min(id) AS id0, bool_or(now() >= debut) AS commence, bool_or(alerte_le IS NOT NULL) AS annonce,
+           bool_and(type = 'brouillard') AS brouillard, count(*) AS n
+      FROM ev GROUP BY episode HAVING max(fin) > now() - interval '7 days'
+     ORDER BY bool_or(now() >= debut) DESC, bool_or(alerte_le IS NOT NULL) DESC, bool_and(type = 'brouillard'),
+              CASE WHEN bool_or(alerte_le IS NOT NULL) THEN min(debut) ELSE min(prevu) END, count(*) DESC, min(id)
+  LOOP
+    IF r.commence THEN
+      v_places := v_places || tstzrange(r.d0, r.f1 + make_interval(hours => r.preavis));
+      CONTINUE;
+    END IF;
+    IF r.annonce THEN v_debut := r.d0; v_long := (r.f1 - r.d0) + make_interval(hours => r.preavis);
+    ELSE v_debut := r.p0; v_long := (r.pf1 - r.p0) + make_interval(hours => r.preavis);
+      IF v_debut < now() + make_interval(hours => r.preavis) THEN
+        v_debut := date_trunc('hour', now() + make_interval(hours => r.preavis)) + interval '1 hour';
+      END IF;
+    END IF;
+    LOOP
+      SELECT x INTO v_conflit FROM unnest(v_places) x WHERE x && tstzrange(v_debut, v_debut + v_long) ORDER BY upper(x) DESC LIMIT 1;
+      EXIT WHEN v_conflit IS NULL;
+      v_debut := date_trunc('hour', upper(v_conflit)) + CASE WHEN upper(v_conflit) > date_trunc('hour', upper(v_conflit)) THEN interval '1 hour' ELSE interval '0' END;
+    END LOOP;
+    v_places := v_places || tstzrange(v_debut, v_debut + v_long);
+    v_delta := v_debut - CASE WHEN r.annonce THEN r.d0 ELSE r.p0 END;
+    IF v_debut IS DISTINCT FROM r.d0 THEN
+      INSERT INTO public.evenements_globaux (country, city, texte, jour)
+      SELECT e.pays, e.ville, '⚠️ Prévisions corrigées : l''alerte « ' || lower(public.climat_nom_type_interne(e.type)) || ' » à '
+             || public.climat_nom_ville_interne(e.pays, e.ville) || ', ' || public.climat_quand_interne(e.debut) || ', est reportée '
+             || public.climat_quand_interne(CASE WHEN r.annonce THEN e.debut ELSE coalesce(e.debut_prevu, e.debut) END + v_delta)
+             || ' : un seul événement climatique à la fois dans le pays. Une nouvelle alerte suivra.', NULL
+        FROM public.climat_evenements e
+       WHERE e.alerte_le IS NOT NULL AND NOT e.annule AND e.pays = p_pays
+         AND (CASE WHEN r.episode LIKE 'ev:%' THEN e.id = r.id0
+                   ELSE e.type || ':' || e.periode = r.episode AND e.origine = 'calendrier' END);
+      UPDATE public.climat_evenements e
+         SET debut = CASE WHEN r.annonce THEN e.debut ELSE coalesce(e.debut_prevu, e.debut) END + v_delta,
+             fin = CASE WHEN r.annonce THEN e.debut ELSE coalesce(e.debut_prevu, e.debut) END + v_delta + (e.fin - e.debut),
+             alerte_le = NULL
+       WHERE NOT e.annule AND e.pays = p_pays
+         AND (CASE WHEN r.episode LIKE 'ev:%' THEN e.id = r.id0
+                   ELSE e.type || ':' || e.periode = r.episode AND e.origine = 'calendrier' END);
+      v_n := v_n + 1;
+    END IF;
+  END LOOP;
+  RETURN v_n;
+END $function$;
+
+CREATE OR REPLACE FUNCTION public.climat_planifier_mandat_interne()
+ RETURNS integer
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE c public.climat_parametres; v_fin date; v_min date; v_periode text; v_jours date[]; v_villes text[]; i integer; v_n integer := 0; v_ms numeric;
+BEGIN
+  FOR c IN SELECT * FROM public.climat_parametres WHERE actif AND frequence = 'mandat' LOOP
+    SELECT (data::jsonb->>'dateFinMandat')::numeric INTO v_ms FROM public.cycles_electoraux
+     WHERE country = c.pays AND poste_id = 'president' AND left(btrim(data), 1) = '{' ORDER BY updated_at DESC NULLS LAST LIMIT 1;
+    IF v_ms IS NULL THEN CONTINUE; END IF;
+    v_fin := (to_timestamp(v_ms / 1000) AT TIME ZONE 'Europe/Paris')::date - 1;
+    v_min := (now() AT TIME ZONE 'Europe/Paris')::date + ceil(c.preavis_heures / 24.0)::integer + 1;
+    v_periode := 'mandat-' || v_ms::bigint;
+    IF v_fin < v_min + 2 OR EXISTS (SELECT 1 FROM public.climat_evenements WHERE type = c.type AND pays = c.pays AND periode = v_periode AND origine = 'calendrier') THEN CONTINUE; END IF;
+    v_villes := public.climat_villes_interne(c.pays);
+    SELECT array_agg(d) INTO v_jours FROM (SELECT d::date FROM generate_series(v_min, v_fin, interval '1 day') d ORDER BY random() LIMIT array_length(v_villes, 1)) s;
+    FOR i IN 1 .. coalesce(array_length(v_jours, 1), 0) LOOP
+      IF public.climat_creer_interne(c.type, c.pays, v_villes[i], v_jours[i], v_periode, 'calendrier') IS NOT NULL THEN v_n := v_n + 1; END IF;
+    END LOOP;
+  END LOOP;
+  RETURN v_n;
+END $function$;
+
+-- Idempotence des requêtes (même contrat que la production : achat_requete_ouvrir_interne / achat_requete_clore_interne).
+CREATE TABLE IF NOT EXISTS public.requetes_test (acteur text, requete uuid, resultat jsonb, PRIMARY KEY (acteur, requete));
+CREATE OR REPLACE FUNCTION public.achat_requete_ouvrir_interne(p_acteur text, p_requete uuid, p_action text, p_parametres jsonb) RETURNS jsonb LANGUAGE sql AS
+$$ SELECT resultat || '{"rejeu":true}'::jsonb FROM public.requetes_test WHERE acteur = p_acteur AND requete = p_requete $$;
+CREATE OR REPLACE FUNCTION public.achat_requete_clore_interne(a text, r uuid, f text, p jsonb, v jsonb) RETURNS jsonb LANGUAGE sql AS
+$$ INSERT INTO public.requetes_test VALUES (a, r, v) RETURNING resultat $$;
+
+-- Points d'eau : forme de production (après 20261124130000) au lieu du bouchon du socle crue-chantier.
+DROP TABLE IF EXISTS public.climat_points_eau;
+CREATE TABLE public.climat_points_eau (id text PRIMARY KEY, pays text NOT NULL, ville text NOT NULL, noeud text NOT NULL, nom text NOT NULL,
+  image text, actif boolean NOT NULL DEFAULT true, batiment text, remplace_par text);
+INSERT INTO public.climat_points_eau (id, pays, ville, noeud, nom) VALUES
+  ('starovka-fontaine-mairie', 'soviet', 'ville_a', 'starovka-rue-mairie-marche', 'la fontaine de la place de la mairie, à Starovka');
+
+-- Prix des parades (définition de production de climat_prix_interne ; prix pays des sels simplifié).
+INSERT INTO public.aliments_parametres VALUES ('prix_bouteille_eau', 3), ('prix_groupe_electrogene', 900), ('prix_bidon_carburant', 20) ON CONFLICT DO NOTHING;
+INSERT INTO public.climat_boutiques VALUES ('usine-pharma-novomirsk','soviet','capitale','usine-pharmaceutique-luthecia','salle_ventes','{sels_rehydratation}'),
+  ('station-service-krasnov','soviet','ville_b','station-service-krasnov','boutique_station','{groupe_electrogene}') ON CONFLICT DO NOTHING;
+CREATE OR REPLACE FUNCTION public.pharmacie_prix_pays_interne(p_cle text, p_pays text) RETURNS integer LANGUAGE sql STABLE AS
+$$ SELECT CASE WHEN p_pays = 'soviet' THEN 22 ELSE 44 END $$;
+CREATE OR REPLACE FUNCTION public.climat_prix_interne(p_cle text)
+ RETURNS numeric
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT CASE p_cle
+    WHEN 'bouteille_eau' THEN public.aliments_param_interne('prix_bouteille_eau', 0)
+    WHEN 'bidon_carburant' THEN public.aliments_param_interne('prix_bidon_carburant', 20)
+    WHEN 'sels_rehydratation' THEN public.pharmacie_prix_interne('coup_de_chaleur')::numeric
+    ELSE public.aliments_param_interne('prix_groupe_electrogene', 0) END;
+$function$;
+CREATE OR REPLACE FUNCTION public.climat_prix_pays_interne(p_cle text, p_pays text)
+ RETURNS numeric
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT CASE WHEN p_cle = 'sels_rehydratation' THEN public.pharmacie_prix_pays_interne('coup_de_chaleur', p_pays)::numeric
+              ELSE public.climat_prix_interne(p_cle) END;
+$function$;

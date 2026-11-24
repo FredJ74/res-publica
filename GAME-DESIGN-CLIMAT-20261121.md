@@ -157,3 +157,48 @@ Cette décision **remplace** tout ce qui précède sur la crue (fermeture des li
   fonctions serveur sont conservées mais refusent tant que le réglage MJ « État de catastrophe naturelle »
   (`climat_parametres.catastrophe_active`, crue) vaut non. Sans pertes de stock, il n'a plus rien à indemniser : son rôle est à
   redéfinir par Fred avant tout réveil.
+
+---
+
+## Décisions de Fred du 24/11/2026 (mission « Purge », bloc D), recopiées mot pour mot
+
+Elles **remplacent** ce qui précède sur ces points (heure de la canicule, chantiers arrêtés par l'orage et le blizzard, villes du
+blizzard et de la canicule, fontaine de Starovka).
+
+> D.1 La canicule n'a lieu qu'en journée (typiquement de 12 h à 18 h).
+> D.2 Seules la CANICULE et la CRUE arrêtent les chantiers. L'orage et le blizzard ne les arrêtent pas : corrige aussi la consigne d'alerte de l'orage. Le blizzard n'existe qu'à Starovka : vérifie le tirage.
+> D.3 L'arrêt doit réellement s'appliquer : la tâche de minuit passe avant la pose des effets. Banc.
+> D.4 Canicule : image dédiée, et bouton « Offrir 20 bouteilles d'eau aux ouvriers » (ouvert à tout joueur présent, avec « ? », inscrit au journal du chantier).
+> D.5 Starovka est exclue des canicules. Pas de fontaine à Starovka : retire-la avec redirections, et ajoute un banc.
+> D.6 Bouteille d'eau à 4 PSK l'unité dans toutes les boutiques « Équipements contre les intempéries » de Sovarka.
+
+### Mise en œuvre (Claude, 24/11/2026 ; migrations `20261124131000` à `20261124136000`, banc `outils/bancs/banc-purge-climat-pglite-20261124.cjs`)
+
+- **D.1** : une canicule commence à **12 h** (heure de Paris, réglage MJ `aliments_parametres.canicule_heure_debut`) et dure
+  `climat_parametres.duree_heures` (6 h) : 12 h → 18 h. Les reports « un seul événement à la fois par pays » retombent aussi à 12 h.
+  Les canicules déjà planifiées sont ramenées à 12 h le même jour (correction publiée si l'alerte était sortie). Les autres
+  événements gardent l'heure tirée au hasard (Q1 du 21/11).
+- **D.2** : `climat_parametres.bloque_chantiers` = non pour l'orage et le blizzard (oui pour la crue et la canicule). Consigne de
+  l'orage : « Pendant 6 heures, ordinateurs, box et caméras sont hors service : plus de surveillance, de trading à distance ni de
+  piratage, mais les chantiers continuent. Débranchez vos appareils électroniques. […] » (remplace « et les chantiers sont à
+  l'arrêt » du point 7). Blizzard : table `climat_villes_exclues` (Novomirsk et Krasnov exclues) ; le tirage du mandat ne crée plus
+  qu'un blizzard à Starovka ; ceux déjà planifiés à Novomirsk (28/11) et Krasnov (01/12) sont annulés.
+- **D.3** : la canicule arrête les chantiers **comme la crue** : travail des joueurs refusé du début de la canicule jusqu'à minuit,
+  et la nuit suivante le chantier n'avance pas (ligne « canicule » au journal du chantier, un jour de retard). La nuit lit la
+  **date** de début de l'événement, jamais la pose de ses effets : l'ordre entre la tâche de minuit (`api/cron-minuit.js`, non
+  modifié) et `climat_passe` (17 de chaque heure) ne compte plus. Cause constatée : la canicule de Luthécia du 22/11 (0 h – 6 h)
+  n'avait arrêté aucune nuit de chantier.
+- **D.4** : pendant l'arrêt de canicule (du début de la canicule à minuit), la zone d'alerte climatique de la fenêtre du chantier
+  affiche l'image dédiée (`images/chantier-alea-canicule.webp`), l'heure de fin de l'arrêt et le bouton « Offrir 20 bouteilles
+  d'eau aux ouvriers » avec son « ? ». Ouvert à tout joueur présent sur le terrain (pas seulement le maître d'ouvrage), une fois
+  par chantier et par canicule, 0 PA ; les 20 bouteilles (réglage MJ `canicule_eau_ouvriers_bouteilles`) sortent de son
+  inventaire ; ligne « eau offerte » au journal du chantier. **Effet choisi par Claude, à confirmer par Fred** : l'eau lève l'arrêt
+  de canicule pour ce chantier (travail des joueurs accepté, la nuit suivante le chantier avance) — réglage MJ
+  `canicule_eau_leve_arret` (1 = oui, 0 = geste sans effet sur l'arrêt).
+- **D.5** : Starovka est exclue des canicules (`climat_villes_exclues`, ligne canicule / Sovarka / Starovka ; aucune canicule
+  n'y avait de toute façon jamais été réglée). La fontaine de la place de la mairie de Starovka est **retirée** (désactivée) :
+  plus d'ordre « Puiser de l'eau » dans la vue `starovka-rue-mairie-marche`, la liste du navigateur ne la renvoie plus, le
+  message « pas de point d'eau ici » dit que Starovka n'en a pas. Le jeu compte donc cinq villes sur six avec une fontaine.
+- **D.6** : bouteille d'eau à **4 PSK** (réglage MJ `prix_bouteille_eau_sovarka`) dans les trois boutiques « Équipements contre
+  les intempéries » de Sovarka : usine pharmaceutique de Novomirsk (Pharmanov), garage de Novomirsk, station-service de Krasnov.
+  Starovka n'a pas de telle boutique (rien créé). La Républia garde 3 FR ; le marché de Krasnov garde son eau déjà puisée à 2 PSK.

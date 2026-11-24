@@ -112,6 +112,8 @@ const EXPLIC = { fr: {
   duree_h: '{h} h {m} min', duree_m: '{m} min',
   // Crue (Fred, 22/11/2026, point 30) : plus aucun lieu fermé ni « protégé par des sacs » ; seuls les chantiers s'arrêtent.
   chantiers_crue: 'Tous les chantiers de la ville sont à l’arrêt pour la journée : ils prennent un jour de retard. Tout le reste est ouvert.',
+  // Canicule (Fred, 24/11/2026, D.2 et D.3) : seules la crue et la canicule arrêtent les chantiers, pour la journée.
+  chantiers_canicule: 'Tous les chantiers de la ville sont à l’arrêt jusqu’à minuit : ils prennent un jour de retard, sauf ceux où un joueur offre de l’eau aux ouvriers.',
   r_sacs_retires: 'Les sacs de sable n’existent plus : la crue ne ferme plus aucun lieu.', r_catastrophe_en_sommeil: 'L’état de catastrophe naturelle est en sommeil.',
   pourquoi: 'Pourquoi cet effet sur l’image ?',
   annonce_crue: 'Crue annoncée {lieu}, à {heure} (heure du jeu).', annonce_orage: 'Orage annoncé {lieu}, à {heure} (heure du jeu).',
@@ -161,7 +163,7 @@ function ligneRestant(ev) {
 }
 function typeConnu(ev) { return TYPES.includes(ev && ev.type) ? ev.type : 'brouillard'; }
 // Crue : la seule conséquence (chantiers de la ville arrêtés une journée), dite dans la fenêtre d'explication.
-function chantiersCrue(ev) { return ev && ev.type === 'crue' ? explic('chantiers_crue') : ''; }
+function chantiersCrue(ev) { return ev && (ev.type === 'crue' || ev.type === 'canicule') ? explic('chantiers_' + ev.type) : ''; }
 // Fenêtre commune : explication d'un événement (bandeau des vues de rue, accueil du nouveau personnage).
 function fenetreExplication(ev, opts) {
   const doc = global.document;
@@ -445,7 +447,7 @@ const EAU_TXT = {
   quantite: 'Nombre de bouteilles à puiser',
   bouton: 'Puiser',
   fermer: 'Fermer',
-  ailleurs: 'Il n’y a pas de point d’eau ici : chaque ville a sa fontaine, sur sa place principale (à Krasnov, la place de l’Ours).',
+  ailleurs: 'Il n’y a pas de point d’eau ici : chaque ville a sa fontaine, sur sa place principale (à Krasnov, la place de l’Ours ; à Luthécia, la place du Formulaire de la Liberté), sauf Starovka, qui n’en a pas.',
   ancien: 'Ce bouton a été remplacé par l’ordre « Puiser de l’eau » de la place.',
 };
 function eauTxt(k, v) {
@@ -464,9 +466,25 @@ function lirePointsEau() {
 }
 function pointEauIci() {
   const s = etat();
+  if (!pointsEau) return null;
+  const ici = p => p.ville === s.currentCity && (!s.country || p.pays === s.country);
+  // Point d'eau de lieu (Fred, 24/11/2026, F.1 : la fontaine de Luthécia est sur la place du Formulaire de la Liberté,
+  // un lieu où l'on entre) : l'ordre se range dans les ordres de la pièce (RP_ORDRES_DYNAMIQUES ci-dessous).
+  if (s.currentBuilding) return pointsEau.find(p => p.batiment && p.batiment === s.currentBuilding && ici(p)) || null;
   const noeud = (typeof rueCentraleNoeudActuel !== 'undefined') ? rueCentraleNoeudActuel : global.__rueNoeud;   // « let » de plateau-rue-centrale.js
-  if (!pointsEau || !noeud || s.currentBuilding) return null;
-  return pointsEau.find(p => p.noeud === noeud && p.ville === s.currentCity && (!s.country || p.pays === s.country)) || null;
+  if (!noeud) return null;
+  return pointsEau.find(p => !p.batiment && p.noeud === noeud && ici(p)) || null;
+}
+// Ordre de pièce « Puiser de l'eau » dans un lieu qui abrite une fontaine (le routeur l'envoie à ouvrirPuiserEau).
+function ordresPointEauDuLieu(buildingId) {
+  lirePointsEau();
+  const pe = pointEauIci();
+  if (!pe || pe.batiment !== buildingId) return [];
+  return [Object.assign({}, ORDRE_PUISER, { successRate: 100, desc: 'Eau gratuite : 1 PA par puisage, jusqu’à 10 bouteilles toutes les 6 heures.' })];
+}
+if (Array.isArray(global.RP_ORDRES_DYNAMIQUES) || global.document) {
+  global.RP_ORDRES_DYNAMIQUES = global.RP_ORDRES_DYNAMIQUES || [];
+  if (!global.RP_ORDRES_DYNAMIQUES.includes(ordresPointEauDuLieu)) global.RP_ORDRES_DYNAMIQUES.push(ordresPointEauDuLieu);
 }
 // Appelée à chaque passage du filtre (toutes les 1,5 s et à chaque relecture) : l'ordre suit la vue, sans recharger.
 function afficherPointEau() {
@@ -474,7 +492,7 @@ function afficherPointEau() {
   lirePointsEau();
   const ancien = doc.getElementById('climat-eau'); if (ancien) ancien.remove();   // ancien bouton posé sur l'image
   const rangee = doc.getElementById('rue-actions-row');
-  const pe = rangee ? pointEauIci() : null;
+  const pe = (rangee && !etat().currentBuilding) ? pointEauIci() : null;   // dans un lieu : ordre de pièce, pas de rue
   let b = doc.getElementById('rue-ordre-puiser');
   if (!pe) { if (b) b.remove(); return; }
   if (b && b.parentNode === rangee && b.dataset.point === pe.id) return;
@@ -778,8 +796,125 @@ function demarrer() {
 if (global.document && global.document.readyState !== 'loading') demarrer();
 else if (global.document) global.document.addEventListener('DOMContentLoaded', demarrer);
 
+// ── Canicule sur un chantier (Fred, 24/11/2026, mission « Purge », D.4) ─────────────────────────────────────────────
+// Zone d'alerte climatique de la fenêtre du chantier (#chantier-zone-climat, plateau-chantier-vue.js l'appelle par
+// chantierZoneClimat(zone, contexte)) : image dédiée, explication, bouton « Offrir 20 bouteilles d'eau aux ouvriers » ouvert à
+// tout joueur présent, avec un rond « ? ». Le serveur tranche tout (chantier_climat_etat, chantier_canicule_offrir_eau).
+// Français seulement (traduction en pause) : clés listées « Pour Codex » dans docs/purge/BLOC-DF.md.
+const CHANTIER_CANICULE_TXT = {
+  titre: 'Canicule : chantier à l’arrêt',
+  arret: 'Il fait trop chaud pour travailler : le chantier est à l’arrêt jusqu’à {h} et prend un jour de retard.',
+  offrir: 'Offrir {n} bouteilles d’eau aux ouvriers',
+  aide: 'Vous donnez {n} bouteilles d’eau de votre inventaire aux ouvriers : ils reprennent le travail aujourd’hui et le chantier ne prend pas de retard. Tout joueur présent sur le chantier peut le faire, une fois par canicule.',
+  aide_sans_levee: 'Vous donnez {n} bouteilles d’eau de votre inventaire aux ouvriers, une fois par canicule. Le geste est inscrit au journal du chantier.',
+  possede: 'Vous avez {p} bouteille{s} d’eau sur vous.',
+  offerte: '{par} a offert {n} bouteilles d’eau aux ouvriers : le travail reprend.',
+  offerte_sans_levee: '{par} a offert {n} bouteilles d’eau aux ouvriers.',
+  merci: 'Merci ! Les ouvriers ont reçu {n} bouteilles d’eau.',
+  r_bouteilles_insuffisantes: 'Il vous faut {requis} bouteilles d’eau sur vous (vous en avez {possede}). L’eau des fontaines est gratuite.',
+  r_deja_offerte: '{par} a déjà offert de l’eau aux ouvriers pour cette canicule.',
+  r_pas_de_canicule: 'La canicule est finie : les ouvriers n’ont plus besoin d’eau.',
+  r_pas_sur_le_chantier: 'Il faut être sur le chantier pour offrir de l’eau aux ouvriers.',
+  r_pas_de_chantier: 'Il n’y a pas de chantier en cours ici.',
+  aide_label: 'Aide',
+  j_canicule: 'Nuit du {date} : canicule dans la ville, le chantier n’a pas avancé (un jour de retard).',
+  j_eau_offerte: '{date} : {par} a offert {n} bouteilles d’eau aux ouvriers pendant la canicule.',
+};
+const ccTxt = (k, v) => String(CHANTIER_CANICULE_TXT[k] || '').replace(/\{(\w+)\}/g, (_, x) =>
+  x === 's' ? ((v && Number(v.p) > 1) ? 's' : '') : (v && v[x] != null ? v[x] : ''));
+// Lignes du journal du chantier propres au climat (canicule, eau offerte) : null pour les autres.
+function climatJournalChantier(e) {
+  if (!e) return null;
+  if (e.cle === 'canicule') return ccTxt('j_canicule', { date: e.date || '' });
+  if (e.cle === 'eau_offerte') return ccTxt('j_eau_offerte', { date: e.date || '', par: e.par || '', n: e.bouteilles || 20 });
+  return null;
+}
+const chantierClimatCache = {};   // terrain → { t, r } : la fenêtre se redessine souvent, une lecture toutes les 30 s suffit
+function zoneCaniculeHtml(r) {
+  const fin = r.fin_arret ? heureDe(r.fin_arret) : '';
+  const o = r.eau_offerte;
+  const aideTxt = ccTxt(r.leve_arret ? 'aide' : 'aide_sans_levee', { n: r.requis });
+  let h = '<div class="cj-carte climat-chantier-canicule">'
+    + '<img src="images/chantier-alea-canicule.webp" alt="" style="width:100%;max-height:200px;object-fit:cover;border-radius:6px">'
+    + '<h3 class="cj-carte-titre">' + esc(ccTxt('titre')) + '</h3>';
+  if (o && r.leve_arret) return h + '<p style="margin:.2rem 0">' + esc(ccTxt('offerte', { par: o.par, n: o.bouteilles || r.requis })) + '</p></div>';
+  h += '<p style="margin:.2rem 0">' + esc(ccTxt('arret', { h: fin })) + '</p>';
+  if (o) return h + '<p style="margin:.2rem 0">' + esc(ccTxt('offerte_sans_levee', { par: o.par, n: o.bouteilles || r.requis })) + '</p></div>';
+  if (r.present) {
+    h += '<p class="cpj-note" style="margin:.2rem 0">' + esc(ccTxt('possede', { p: r.possede })) + '</p>'
+      + '<div style="display:flex;gap:.5rem;align-items:center;margin-top:.4rem">'
+      + '<button type="button" class="cpj-touche cpj-primaire" style="flex:1" id="climat-offrir-eau">' + esc(ccTxt('offrir', { n: r.requis })) + '</button>'
+      + '<button type="button" class="cj-aide" id="climat-offrir-eau-aide" aria-label="' + esc(ccTxt('aide_label')) + '" data-texte="' + esc(aideTxt) + '">?</button></div>';
+  }
+  return h + '</div>';
+}
+function bulleClimat(b, ouvrir) {
+  const doc = global.document; let bulle = doc.getElementById('climat-aide-bulle');
+  if (!ouvrir) { if (bulle) bulle.hidden = true; return; }
+  if (!bulle) { bulle = doc.createElement('div'); bulle.id = 'climat-aide-bulle'; bulle.className = 'hg-jauge-bulle cj-aide-bulle'; bulle.setAttribute('role', 'tooltip'); doc.body.appendChild(bulle); }
+  if (bulle.hidden) bulle.dataset.depuis = String(Date.now());
+  bulle.textContent = b.dataset.texte || ''; bulle.hidden = false;
+  const r = b.getBoundingClientRect(), vw = global.innerWidth || 1024, largeur = Math.min(300, vw - 32);
+  bulle.style.maxWidth = largeur + 'px'; bulle.style.left = Math.max(16, Math.min(r.left, vw - largeur - 16)) + 'px'; bulle.style.top = (r.bottom + 8) + 'px';
+  const hb = bulle.getBoundingClientRect().height, vh = global.innerHeight || 768;
+  if (r.bottom + 8 + hb > vh - 8) bulle.style.top = Math.max(8, r.top - hb - 8) + 'px';
+}
+function dessinerZoneClimat(zone, terrain, r) {
+  if (!zone || !zone.isConnected) return;
+  if (!r || r.ok !== true || !r.canicule) { zone.innerHTML = ''; zone.hidden = true; return; }
+  zone.innerHTML = zoneCaniculeHtml(r); zone.hidden = false;
+  const b = zone.querySelector('#climat-offrir-eau'), a = zone.querySelector('#climat-offrir-eau-aide');
+  if (b) b.addEventListener('click', () => offrirEauOuvriers(terrain, b));
+  if (a) {
+    a.addEventListener('mouseenter', () => bulleClimat(a, true)); a.addEventListener('mouseleave', () => bulleClimat(a, false));
+    a.addEventListener('focus', () => bulleClimat(a, true)); a.addEventListener('blur', () => bulleClimat(a, false));
+    a.addEventListener('click', e => {   // toucher : bascule
+      e.stopPropagation(); const bulle = global.document.getElementById('climat-aide-bulle');
+      if (bulle && !bulle.hidden && e.pointerType !== 'mouse' && Date.now() - Number(bulle.dataset.depuis || 0) > 600) { bulleClimat(a, false); return; }
+      bulleClimat(a, true);
+    });
+  }
+}
+// Appelée par la fenêtre du chantier à chaque rendu (zone vide et cachée par défaut).
+function chantierZoneClimat(zone, contexte) {
+  const terrain = (contexte && contexte.terrain) || etat().currentBuilding;
+  if (!zone || !terrain || typeof global.sbRpc !== 'function') return;
+  const c = chantierClimatCache[terrain];
+  if (c) dessinerZoneClimat(zone, terrain, c.r);
+  if (c && Date.now() - c.t < 30000) return;
+  // Sans canicule connue dans la ville (lecture de climat_etat déjà en mémoire), aucune lecture serveur.
+  const s = etat(), maintenant = Date.now();
+  const canicule = evenements.some(e => e.type === 'canicule' && e.ville === s.currentCity && Date.parse(e.debut) <= maintenant && maintenant < Date.parse(e.debut) + 86400000);
+  if (!canicule && !(c && c.r && c.r.canicule)) { chantierClimatCache[terrain] = { t: maintenant, r: null }; dessinerZoneClimat(zone, terrain, null); return; }
+  global.sbRpc('chantier_climat_etat', { p_batiment: terrain }).then(x => {
+    const r = un(x); chantierClimatCache[terrain] = { t: Date.now(), r };
+    dessinerZoneClimat(zone, terrain, r);
+  }).catch(() => null);
+}
+let offreEnCours = false;
+async function offrirEauOuvriers(terrain, bouton) {
+  if (offreEnCours) return;
+  offreEnCours = true; if (bouton) bouton.disabled = true;
+  try {
+    const r = un(await global.sbRpc('chantier_canicule_offrir_eau', { p_requete: uuid(), p_batiment: terrain }).catch(() => null));
+    delete chantierClimatCache[terrain];
+    const titre = ccTxt('titre');
+    if (!r || r.ok !== true) {
+      const k = 'r_' + (r && r.raison);
+      global.showToast(titre, CHANTIER_CANICULE_TXT[k] ? ccTxt(k, r) : motif(r), false);
+    } else {
+      appliquerInventaire(r);
+      global.showToast(titre, ccTxt('merci', { n: r.bouteilles }), true);
+    }
+    try { global.document.activeElement && global.document.activeElement.blur(); } catch (_) {}   // la fenêtre ne se redessine pas sous le focus
+    if (typeof global.chargerTerrainState === 'function') await global.chargerTerrainState(terrain);   // la fenêtre se redessine
+  } finally { offreEnCours = false; if (bouton && bouton.isConnected) bouton.disabled = false; }
+}
+global.chantierZoneClimat = chantierZoneClimat;
+global.climatJournalChantier = climatJournalChantier;
+
 global.RPClimat = { T, ALERTES, EXPLIC, TYPES, PICTOS, pictogramme, texte, explic, message, rafraichirClimat, appliquerFiltre, nomObjet: nomObjetClimat,
-  pointEauIci, remplirBouteille, ouvrirPuiserEau, afficherPointEau, ORDRE_PUISER, _pointsEau: v => { if (Array.isArray(v)) pointsEau = v; return pointsEau; },
+  pointEauIci, ordresPointEauDuLieu, remplirBouteille, ouvrirPuiserEau, afficherPointEau, ORDRE_PUISER, _pointsEau: v => { if (Array.isArray(v)) pointsEau = v; return pointsEau; },
   enCours, dureeRestante, messageLieuFerme, piecePleinAir, PIECES_PLEIN_AIR, fenetreExplication, accueillirNouveau, marquerLieuxInondes,
   _evenements: v => { if (Array.isArray(v)) evenements = v; return evenements; } };
 Object.assign(global, { ouvrirGraisses, confirmerGraisse, climatGraissesBoutiqueHtml, boutonDeposerGraisse, deposerGraisse,

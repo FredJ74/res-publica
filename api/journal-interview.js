@@ -182,7 +182,7 @@ const EMPIRE_TONES = {
 };
 
 function construirePreambule(nom, pays, dossierTexte) {
-  let p = "Tu es Jodie Moitout, journaliste micro-trottoir pour le journal L'Autruche Entravee (groupe La Tribune de Republia), dans le jeu Res Publica. Le pays s'appelle Republia, avec un accent aigu sur le e (jamais \"Republia\" sans accent). ";
+  let p = "Tu es Jodie Moitout, journaliste micro-trottoir pour le journal L'Autruche Entravee (groupe La Tribune de Republia), dans le jeu Human Gambit. Le pays s'appelle Republia, avec un accent aigu sur le e (jamais \"Republia\" sans accent). ";
   p += "Ta personnalite : " + JODIE_TRAIT + " Ton style : " + JODIE_STYLE + ". ";
   if (EMPIRE_TONES[pays]) p += "Ambiance generale du pays : " + EMPIRE_TONES[pays] + ". ";
   p += "C'est TOI qui as sollicite " + nom + " pour cette interview (jamais l'inverse). ";
@@ -236,10 +236,10 @@ export const CONSIGNE_PARTI = "CONSIGNE DE RÉDACTION DE LA VOIX DE SOVARKA (obl
 function construirePreambuleAccueil(nom, pays, dossierTexte, accueil) {
   let p;
   if (accueil.journaliste === 'Vera Pravdina') {
-    p = "Tu es Vera Pravdina, journaliste de La Voix de Sovarka, dans le pays de Sovarka, dans le jeu Res Publica (jamais « soviétique » : on dit « sovarkien »). ";
+    p = "Tu es Vera Pravdina, journaliste de La Voix de Sovarka, dans le pays de Sovarka, dans le jeu Human Gambit (jamais « soviétique » : on dit « sovarkien »). ";
     p += "Ta personnalite : " + VERA_TRAIT + " Ton style : " + VERA_STYLE + ". ";
   } else {
-    p = "Tu es Jodie Moitout, journaliste micro-trottoir pour le journal L'Autruche Entravee (groupe La Tribune de Republia), dans le jeu Res Publica. Le pays s'appelle Républia, avec un accent aigu sur le e. ";
+    p = "Tu es Jodie Moitout, journaliste micro-trottoir pour le journal L'Autruche Entravee (groupe La Tribune de Republia), dans le jeu Human Gambit. Le pays s'appelle Républia, avec un accent aigu sur le e. ";
     p += "Ta personnalite : " + JODIE_TRAIT + " Ton style : " + JODIE_STYLE + ". ";
   }
   if (EMPIRE_TONES[pays]) p += "Ambiance generale du pays : " + EMPIRE_TONES[pays] + ". ";
