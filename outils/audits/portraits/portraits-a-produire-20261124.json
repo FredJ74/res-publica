@@ -1,24 +1,8 @@
 {
   "date": "2026-11-24",
-  "base": "Audit initial des sans-portrait 23/11 + six guides (à compléter après exécution du banc de couverture)",
-  "note": "Les 36 anciennes entrées sans portrait ne prouvent pas une absence physique sur l'image de pièce. Les descriptions physiques inconnues ne sont pas inventées.",
+  "base": "Banc GitHub Actions du 24/11/2026 : 140 apparitions, 105 avec portrait existant, 35 à produire (dont Zinaïda Otcheredova)",
+  "note": "Deux anciennes entrées du relevé 23/11 ne sont plus visibles dans le monde courant. Les descriptions physiques inconnues restent signalées, sans invention.",
   "portraits_a_produire": [
-    {
-      "nom": "Camarade Privilège (PNJ)",
-      "role": "Directeur",
-      "batiment": "banque-privee",
-      "piece": "bureau_prive",
-      "source": "audit 23/11",
-      "description": "Camarade Privilège (PNJ) exerce le rôle de Directeur dans Bureau prive. Sa fiche consultée ne donne pas de description physique certaine : un portrait original devra respecter son rôle sans lui attribuer le visage d'un figurant non identifié."
-    },
-    {
-      "nom": "Caissier Méticuleux (PNJ)",
-      "role": "Caissier",
-      "batiment": "banque-nationale",
-      "piece": "accueil_banque",
-      "source": "audit 23/11",
-      "description": "Caissier Méticuleux (PNJ) exerce le rôle de Caissier dans Accueil. Sa fiche consultée ne donne pas de description physique certaine : un portrait original devra respecter son rôle sans lui attribuer le visage d'un figurant non identifié."
-    },
     {
       "nom": "Lieutenant Nestor Medalev (PNJ)",
       "role": "PNJ - Gardien de la memoire",
@@ -356,6 +340,24 @@
       "fichier": "images/Sovarka/Krasnov/guide-fiodor-medvedkine-portrait.webp",
       "source": "fiche guide 24/11",
       "description": "Apiculteur du kolkhoze, barbe rousse et pots de miel près de lui. Jovial et serviable, il sourit volontiers de sa ressemblance avec l'ours amateur de miel."
+    }
+  ],
+  "anciens_pnj_non_visibles_dans_le_monde_actuel": [
+    {
+      "nom": "Camarade Privilège (PNJ)",
+      "role": "Directeur",
+      "batiment": "banque-privee",
+      "piece": "bureau_prive",
+      "source": "audit 23/11",
+      "description": "Camarade Privilège (PNJ) exerce le rôle de Directeur dans Bureau prive. Sa fiche consultée ne donne pas de description physique certaine : un portrait original devra respecter son rôle sans lui attribuer le visage d'un figurant non identifié."
+    },
+    {
+      "nom": "Caissier Méticuleux (PNJ)",
+      "role": "Caissier",
+      "batiment": "banque-nationale",
+      "piece": "accueil_banque",
+      "source": "audit 23/11",
+      "description": "Caissier Méticuleux (PNJ) exerce le rôle de Caissier dans Accueil. Sa fiche consultée ne donne pas de description physique certaine : un portrait original devra respecter son rôle sans lui attribuer le visage d'un figurant non identifié."
     }
   ]
 }
