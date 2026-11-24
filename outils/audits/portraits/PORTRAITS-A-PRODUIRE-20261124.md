@@ -14,8 +14,8 @@ Les portraits Valentina et Zinaïda étaient **déjà présents dans le dépôt*
 
 ## Résultat du banc du 24/11/2026
 - **140 apparitions de PNJ** contrôlées dans les pièces de Novomirsk (dont titulaires dans les salles).
-- **105 apparitions disposent d'un portrait sur disque**.
-- **35 apparitions attendent un portrait**, dont le guide Zinaïda Otcheredova. Le tableau ci-dessous contient les **34 autres**.
+- **106 apparitions disposent d'un portrait sur disque** (105 lors du relevé initial, plus Zinaïda Otcheredova ; résultat à confirmer sur la CI finale).
+- **34 apparitions attendent un portrait**. Le tableau ci-dessous les recense.
 - Deux lignes historiques du 23/11 ne sont plus présentes dans le parcours actuel : **Camarade Privilège** et **Caissier Méticuleux** (conservées dans le JSON en tant qu'archives, non comptées comme « portraits à produire »).
 - Vérification visuelle : les six bureaux des ministres, les trois ambassades, la salle d'audience, le bureau du maire et le bureau de l'entrepôt sont **vides** ; au garage, les mécaniciens sont trop petits pour une photo de profil. Au centre artisanal, les passants ne peuvent pas être attribués sans ambiguïté aux trois PNJ ; au club de supporters, aucun chef ne peut être identifié avec certitude.
 - **Point extérieur au chantier portraits** : Fiodor Medvedkine existe dans la déclaration source de `data.js` mais n'est pas présent dans `WORLD.soviet.ville_b.buildingContext.marche.persons` une fois le fichier chargé (liste effective : Nina Gorbounova seulement). Ne pas réintroduire Fiodor en modifiant sa présence dans cette PR.
@@ -63,9 +63,9 @@ Les lignes ci-dessous viennent du relevé 23/11 et doivent être vérifiées con
 
 ## Guides — images de lieux inspectées
 
-Les six images de lieux ont été vues. Elles montrent des scènes de foule/marché (visages trop petits, aucun portrait permettant d'identifier **avec certitude** les traits de la fiche). Par conséquent, aucun passant n'est attribué arbitrairement à un guide. Chaque `photoUrl` vise désormais **son chemin dédié**, réservé ici ; en l'absence du fichier, l'interface conserve son repli générique plutôt que d'utiliser l'image complète du marché.
+Les six images de lieux ont été vues. Elles montrent des scènes de foule/marché (visages trop petits, aucun portrait permettant d'identifier **avec certitude** les traits de la fiche). Par conséquent, aucun passant n'est attribué arbitrairement à un guide. Les six portraits fournis par Fred ont été intégrés par Claude dans le commit `f408064`. Les six fichiers et raccordements sont vérifiés dans GitHub ; ils sont retirés de la liste d'attente. Le cas de présence effective de Fiodor reste signalé séparément.
 
-## Prompts prêts à coller
+## Archives des prompts — six guides livrés
 
 ### Zinaïda Otcheredova — `images/Sovarka/Novomirsk/guide-zinaida-otcheredova-portrait.webp`
 
@@ -99,4 +99,4 @@ Les six images de lieux ont été vues. Elles montrent des scènes de foule/marc
 
 ## Test de clôture
 
-`node outils/bancs/banc-portraits-pnj-20261124.cjs` vérifie chaque PNJ visible à Novomirsk : image disque existante ou entrée explicite de la liste `portraits-a-produire-20261124.json`. Il vérifie également les six chemins réservés des guides. Les images futures doivent être ajoutées avec exactement ces noms, puis la liste d'attente actualisée.
+`node outils/bancs/banc-portraits-pnj-20261124.cjs` vérifie chaque PNJ visible à Novomirsk : image disque existante ou entrée explicite de la liste `portraits-a-produire-20261124.json`. Il vérifie également les six raccordements des guides et l'existence de leurs fichiers. Aucun nouveau portrait ne doit être raccordé avant la présence physique du fichier.
