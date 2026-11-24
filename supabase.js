@@ -1241,8 +1241,12 @@ function rpReduirePortrait(source, cote = 320, qualite = 0.8) {
 // =====================
 // Les identifiants nationaux et locaux sont historiques et communs aux pays.
 // Le pays réel de chaque sujet est la colonne country, pas son auteur affiché.
+// Mission Purge B.1 (Fred, 24/11/2026) : les sous-forums nationaux (Présidence, Assemblée, Gouvernement, Presse) suivent
+// la règle du forum national ; leurs sujets sont donc filtrés par pays comme lui (Bernard ne voit plus ceux de Républia).
 function sbForumEstTerritorial(forumId) {
-  return forumId === 'national' || (typeof forumId === 'string' && forumId.startsWith('local_'));
+  if (typeof forumEstTerritorial === 'function') return forumEstTerritorial(forumId);
+  return ['national', 'presidence', 'assemblee', 'gouvernement', 'presse'].includes(forumId)
+    || (typeof forumId === 'string' && forumId.startsWith('local_'));
 }
 function sbForumSujetDansPays(forumId, paysSujet, paysCourant) {
   return !sbForumEstTerritorial(forumId) || (paysSujet === paysCourant);

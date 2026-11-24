@@ -2222,10 +2222,13 @@ async function rafraichirConversationActuelle(reset) {
     const zone = document.getElementById('chat-messages-zone');
     if (!zone) return;
     if (!messages || messages.length === 0) {
-      if (reset && zone.children.length === 0) zone.innerHTML = '<div style="font-size:.72rem;color:#6a5a30;font-style:italic">Aucun message pour le moment.</div>';
+      if (reset && zone.children.length === 0) zone.innerHTML = '<div class="rp-chat-vide" style="font-size:.72rem;color:#6a5a30;font-style:italic">Aucun message pour le moment.</div>';
       return;
     }
     if (reset) zone.innerHTML = '';
+    // « Aucun message pour le moment » disparaît dès qu'un message existe, même arrivé par le relevé périodique
+    // (Fred, 24/11/2026, mission Purge A.9 : la phrase restait au-dessus des premiers messages).
+    zone.querySelectorAll('.rp-chat-vide').forEach(el => el.remove());
     messages.forEach(m => {
       const estMoi = m.auteur === moi;
       const heureMsg = m.created_at ? new Date(m.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '';

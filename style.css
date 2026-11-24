@@ -2653,6 +2653,14 @@ body.plateau-body .top-right {
 #hg-jauge-discretion .hg-jauge-val{color:#dcc0f0}
 #hg-jauge-discretion .hg-jauge-barre{background:#8a4aaa}
 #hg-jauge-influence.hg-jauge-basse,#hg-jauge-popularite.hg-jauge-basse,#hg-jauge-discretion.hg-jauge-basse{border-color:#2a1a08}
+/* Jauge des PA (Fred, 24/11/2026, mission Purge A.6) : mêmes couleurs vertes qu'avant, même bulle que Santé et Moral. */
+#hg-jauge-pa .hg-jauge-nom{color:#4a8a4a}
+#hg-jauge-pa .hg-jauge-val{color:#6ada6a}
+#hg-jauge-pa .hg-jauge-fond{background:#1a2a1a}
+#hg-jauge-pa .hg-jauge-barre{background:#4a8a4a}
+.hg-pa-infos{display:block;width:calc(100% - .4rem);margin:-.15rem .2rem .45rem;padding:.2rem .3rem;background:none;border:0;
+  color:#e5c477;text-decoration:underline;font-size:.8rem;text-align:center;cursor:pointer}
+.hg-pa-infos:hover,.hg-pa-infos:focus-visible{color:#f3dc9c;outline:1px solid #a98d56;outline-offset:1px}
 .hg-panneau-argent:hover,.hg-panneau-argent:focus-visible,.hg-panneau-inventaire:hover,.hg-panneau-inventaire:focus-visible{border-color:#a98d56;outline:none}
 .hg-panneau-bouton{width:100%;margin:.3rem 0 .1rem;font-family:'Bebas Neue',sans-serif;letter-spacing:.08em;padding:.35rem .5rem;
   border:1px solid #a98d56;background:#344354;color:#e5c477;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem}
@@ -2811,3 +2819,13 @@ body.plateau-body .top-right {
   .hg-cal-case:nth-child(2)::after{content:none}
   .hg-cal-case-nom{overflow-wrap:normal}
 }
+/* FENÊTRE DE CANDIDATURE (Fred, 24/11/2026, mission Purge A.7) : conditions cochées en vert ou en rouge, dates de la période. */
+.hg-cand-titre{font-family:'Bebas Neue',sans-serif;letter-spacing:.06em;font-size:1rem;color:#e5c477;margin:.2rem 0 .35rem}
+.hg-cand-conditions,.hg-cand-periode{list-style:none;margin:0 0 .7rem;padding:0;font-size:.95rem;line-height:1.45;color:#e2e9f1}
+.hg-cand-conditions li{display:flex;gap:.45rem;align-items:baseline;padding:.15rem 0}
+.hg-cand-periode li{padding:.1rem 0}
+.hg-cond-marque{font-weight:700;min-width:1.1rem;text-align:center}
+.hg-cond-ok .hg-cond-marque,.hg-cond-ok .hg-cond-texte{color:#7fcf7f}
+.hg-cond-ko .hg-cond-marque,.hg-cond-ko .hg-cond-texte{color:#e07a6a}
+.hg-cond-lu{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.hg-cand-avertir{color:#e07a6a}

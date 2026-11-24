@@ -14,11 +14,16 @@
   const doc = global.document;
   // Clés de traduction pour Codex : medecinMontrer.* (français seulement ici).
   const FR = {
-    sante: 'Santé', moral: 'Moral', influence: 'Influence', popularite: 'Popularité', discretion: 'Discrétion',
+    pa: 'PA', sante: 'Santé', moral: 'Moral', influence: 'Influence', popularite: 'Popularité', discretion: 'Discrétion',
     // Deuxième ligne du panneau de gauche (Fred, 23/11/2026, point 16) ; descriptions reprises de l'ancien onglet Statistiques.
     influence_txt: 'Influence {n} / 100 : votre poids politique et votre réseau.',
     popularite_txt: 'Popularité {n} / 100 : le soutien que vous accorde la population.',
     discretion_txt: 'Discrétion {n} / 100 : votre capacité à agir sans être remarqué.',
+    // Jauge des PA (Fred, 24/11/2026, mission Purge A.6) : reprend la bulle d'accueil des PA (GAME-DESIGN-INTERFACE-ACCUEIL-20261122.md, point 26).
+    pa_txt: 'PA {n} / {max} : votre énergie du jour, chaque action en coûte. Dormir les recharge ; à 0, c’est l’hôpital.',
+    paInfosTitre: 'Plus d’informations sur les PA',
+    paInfosOu: '{nom}, l’infirmière d’accueil, vous expliquera les PA. Vous la trouverez ici : {lieu}, pièce « {piece} ».',
+    paInfosAucune: 'Il n’y a pas d’infirmière d’accueil dans cette ville. Les PA sont votre énergie du jour : chaque action en coûte, dormir les recharge et à 0, c’est l’hôpital.',
     sante_haut: 'Santé {n} : vous êtes en pleine forme ; sous les coups, vous perdez moins de PA.',
     sante_bien: 'Santé {n} : vous perdez un peu moins de PA sous les coups. Mangez, dormez dans un lit ou consultez un médecin pour la garder.',
     sante_moyen: 'Santé {n} : vous encaissez les coups normalement. Mangez, dormez dans un lit ou consultez un médecin.',
@@ -120,18 +125,21 @@
     return t('moral_moyen', { n, haut: paliers.moral_seuil_haut });
   }
   // Chaque jauge recopie une case de l'état du serveur (updateUI, plateau-core.js).
-  const SOURCES_JAUGES = { sante: 'r-hp', moral: 'r-moral', influence: 'r-inf', popularite: 'r-pop', discretion: 'r-dis' };
+  const SOURCES_JAUGES = { pa: 'r-pa', sante: 'r-hp', moral: 'r-moral', influence: 'r-inf', popularite: 'r-pop', discretion: 'r-dis' };
   function valeurJauge(cle) {
     const brut = doc && doc.getElementById(SOURCES_JAUGES[cle] || 'r-moral');
     const n = Number(String(brut && brut.textContent || '').trim());
-    return Number.isFinite(n) && String(brut && brut.textContent || '').trim() !== '' ? Math.max(0, Math.min(100, Math.round(n))) : null;
+    return Number.isFinite(n) && String(brut && brut.textContent || '').trim() !== '' ? Math.max(0, cle === 'pa' ? Math.round(n) : Math.min(100, Math.round(n))) : null;
   }
+  // PA_MAX et state sont des déclarations lexicales de plateau-core.js (const / let) : jamais sur window.
+  const paMax = () => (typeof PA_MAX === 'number' ? PA_MAX : 30);
+  const etatJeu = () => (typeof state !== 'undefined' && state) || global.state || {};
   function texteJauge(cle) {
     const n = valeurJauge(cle);
     if (n == null) return '';
     if (cle === 'sante') return texteSante(n);
     if (cle === 'moral') return texteMoral(n);
-    return t(cle + '_txt', { n });
+    return t(cle + '_txt', { n, max: paMax() });
   }
   function majJauges() {
     if (!doc) return;
@@ -141,7 +149,7 @@
       const boite = doc.getElementById('hg-jauge-' + cle);
       if (val) val.textContent = n == null ? '—' : String(n);
       if (barre) barre.style.width = (n == null ? 0 : n) + '%';
-      if (boite) { boite.setAttribute('aria-label', n == null ? t(cle) : texteJauge(cle)); boite.classList.toggle('hg-jauge-basse', n != null && n < 25); }
+      if (boite) { boite.setAttribute('aria-label', n == null ? t(cle) : texteJauge(cle)); boite.classList.toggle('hg-jauge-basse', cle !== 'pa' && n != null && n < 25); }
     });
     const bulle = doc.getElementById('hg-jauge-bulle');
     if (bulle && !bulle.hidden && bulle.dataset.jauge) bulle.textContent = texteJauge(bulle.dataset.jauge);
@@ -184,6 +192,48 @@
     majJauges();
     lirePaliers().then(majJauges);
   }
+
+  // ---------------------------------------------------------------------------------------------------------------
+  // « Plus d'informations sur les PA ? » (Fred, 24/11/2026, mission Purge A.6) : l'infirmière d'accueil de l'hôpital ou du
+  // dispensaire de la ville où se trouve le joueur. Dans sa pièce : la conversation s'ouvre (fiche DeepSeek complétée pour
+  // expliquer les PA, api/_pnj-personnalites.js, SAVOIR_PA) ; ailleurs : on dit où la trouver. Relevé ville par ville
+  // (banc-pa-jauge-infirmiere-20261124.cjs) : aucune infirmière n'a eu à être créée.
+  const INFIRMIERES_PA = {
+    republic: {
+      capitale: { batiment: 'dispensaire-public', piece: 'salle_attente', nom: 'Anne Tibiotique' },
+      ville_a: { batiment: 'dispensaire-public-v', piece: 'attente', nom: 'Betty Dine' },
+      ville_b: { batiment: 'dispensaire-public-v', piece: 'attente', nom: 'Agnès Thésie' }
+    },
+    soviet: {
+      capitale: { batiment: 'dispensaire-public', piece: 'salle_attente', nom: 'Ekaterina Bintova' },
+      ville_a: { batiment: 'dispensaire-public-v', piece: 'attente', nom: 'Raïssa Bintova' },
+      ville_b: { batiment: 'dispensaire-public-v', piece: 'attente', nom: 'Nadejda Oukolova' }
+    }
+  };
+  global.RP_INFIRMIERES_PA = INFIRMIERES_PA;
+  const sansPnj = n => String(n || '').replace(/\s*\(PNJ\)\s*$/i, '').trim();
+  function personnesPiece(batiment, piece) {
+    if (typeof global.personnesNormalesDeLaPiece === 'function') return global.personnesNormalesDeLaPiece(batiment, piece) || [];
+    return [];
+  }
+  function ouvrirInfirmierePa() {
+    const s = etatJeu(), inf = (INFIRMIERES_PA[s.country] || {})[s.currentCity];
+    if (!inf) { fenetre('hg-pa-infos-fenetre', t('paInfosTitre'), '<p class="hg-sante-texte">' + esc(t('paInfosAucune')) + '</p>'); return false; }
+    if (s.currentBuilding === inf.batiment && s.currentRoom === inf.piece) {
+      const pnj = personnesPiece(inf.batiment, inf.piece).find(p => sansPnj(p.name) === inf.nom);
+      if (pnj && typeof global.openPnjModal === 'function' && typeof global.encodePnjSafe === 'function') {
+        global.openPnjModal(global.encodePnjSafe(pnj));
+        return true;
+      }
+    }
+    const B = (global.BUILDINGS || {})[inf.batiment] || {};
+    const ctx = ((((global.WORLD || {})[s.country] || {})[s.currentCity] || {}).buildingContext || {})[inf.batiment] || {};
+    const salle = (ctx.roomOverrides || {})[inf.piece] || {}, base = (B.rooms || {})[inf.piece] || (ctx.roomsExtra || {})[inf.piece] || {};
+    fenetre('hg-pa-infos-fenetre', t('paInfosTitre'), '<p class="hg-sante-texte">'
+      + esc(t('paInfosOu', { nom: inf.nom, lieu: ctx.name || B.name || inf.batiment, piece: salle.name || base.name || inf.piece })) + '</p>');
+    return false;
+  }
+  global.ouvrirInfirmierePa = ouvrirInfirmierePa;
 
   // ---------------------------------------------------------------------------------------------------------------
   // Point 12 : médecin de terrain

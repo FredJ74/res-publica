@@ -19,7 +19,7 @@ async function scenario(largeur,ancien=false){
   await page.addScriptTag({content:`var forumView='mail',mailView='read',currentMailId='fiction',mailDefaultTo='',state={char:{name:'Temoin'},contacts:[]},envois=0;
    function getMails(){return [{id:'fiction',to:'Temoin',from:'Jodie Moitout',subject:'Proposition',body:'<p>Texte long de consultation.</p>'.repeat(100),time:'date'}];}
    function extraireActionsMail(corps){return {corps,actions:[]};} function boutonsActionMail(){return '';}
-   function sanitizeRichHtml(x){return x;} function formatDateAffichage(){return 'date de fixture';}
+   function sanitizeRichHtml(x){return x;} function formatDateAffichage(){return 'date de fixture';} function dateForum(){return 'date de fixture';}
    function renderEnvoyerMailEnTantQue(){return '';}
    function mailVuTraduit(m){return m;} function getAvatarHtmlPost(){return '';} // présentation traduite et avatar (depuis le 12/11), neutres ici
    function renderRichEditor(id){return '<div id="'+id+'" contenteditable="true" style="min-height:1800px">Réponse longue de fixture</div>';}

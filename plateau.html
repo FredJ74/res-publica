@@ -284,12 +284,12 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
     </button>
     <!-- Ligne 1 : PA, Santé, Moral -->
     <div class="hg-jauges-ligne" style="display:flex;gap:.4rem;margin:.4rem 0;padding:0 .2rem">
-      <div style="flex:1;background:#0a0a07;border:1px solid #2a1a08;border-radius:3px;padding:.3rem .5rem;text-align:center">
-        <div style="font-size:.58rem;color:#4a8a4a;font-family:'Bebas Neue',sans-serif;letter-spacing:.08em">PA</div>
-        <div style="font-size:.85rem;color:#6ada6a;font-family:'Bebas Neue',sans-serif" id="r-pa">∞</div>
-        <div style="height:3px;background:#1a2a1a;border-radius:2px;margin-top:2px">
-          <div id="b-pa" style="height:100%;background:#4a8a4a;border-radius:2px;width:100%"></div>
-        </div>
+      <!-- Jauge des PA (Fred, 24/11/2026, mission Purge A.6) : comme Santé et Moral (curseur d'aide, bulle au survol et au
+           toucher). #r-pa et #b-pa restent les cases écrites par updateUI (plateau-core.js) : r-pa est enfant direct de la jauge. -->
+      <div class="hg-jauge" id="hg-jauge-pa" data-jauge="pa" tabindex="0" role="button" aria-describedby="hg-jauge-bulle">
+        <div class="hg-jauge-nom">PA</div>
+        <div class="hg-jauge-val" id="r-pa">∞</div>
+        <div class="hg-jauge-fond"><div class="hg-jauge-barre" id="b-pa" style="width:100%"></div></div>
       </div>
       <!-- Jauges Santé et Moral (Fred, 22/11/2026, GAME-DESIGN-SANTE-20261122.md, point 14) : infobulle au survol et au toucher
            (plateau-medecin-montrer.js), valeurs recopiées de r-hp et r-moral (état du serveur). -->
@@ -304,6 +304,9 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
         <div class="hg-jauge-fond"><div class="hg-jauge-barre" id="hg-jauge-moral-barre"></div></div>
       </div>
     </div>
+    <!-- « Plus d'informations sur les PA ? » (A.6) : ouvre la conversation avec l'infirmière d'accueil de l'hôpital ou du
+         dispensaire de la ville si le joueur est dans sa pièce, sinon dit où la trouver (plateau-medecin-montrer.js). -->
+    <button type="button" id="hg-pa-infos" class="hg-pa-infos" onclick="ouvrirInfirmierePa()">Plus d'informations sur les PA ?</button>
     <!-- Ligne 2 (point 16) : Influence, Popularité, Discrétion — mêmes petites jauges, valeurs recopiées de r-inf, r-pop, r-dis. -->
     <div class="hg-jauges-ligne" style="display:flex;gap:.4rem;margin:0 0 .4rem;padding:0 .2rem">
       <div class="hg-jauge" id="hg-jauge-influence" data-jauge="influence" tabindex="0" role="button" aria-describedby="hg-jauge-bulle">
@@ -729,7 +732,7 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
 <script src="world-map.js?v=126"></script>
 <!-- auth.js AVANT supabase.js : sbEnTetes() y lit le jeton de session a chaque requete. -->
 <script src="auth.js?v=logout-joueur-20261117-purge-20261124"></script>
-<script src="supabase.js?v=jets-serveur-20261105-sovarka-nuit-20261110-failles-20261117-nationalite-20261118-presence-permanente-20261120-inventaire-direct-20261122-purge-20261124"></script>
+<script src="supabase.js?v=jets-serveur-20261105-sovarka-nuit-20261110-failles-20261117-nationalite-20261118-presence-permanente-20261120-inventaire-direct-20261122-purge-20261124-b1"></script>
 <!-- Goulag de Sovarka : verrou d'ouverture lu au serveur, AVANT tout module du goulag (fermé par défaut). -->
 <script src="plateau-goulag-ouverture.js?v=goulag-verrou-20261117"></script>
 <!-- Tiptap (Lot C2) : chargé en ESM depuis un CDN, comme déjà validé dans les prototypes
@@ -831,8 +834,8 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
   });
   window.RP_TIPTAP_FONT_SIZE = FontSize;
 </script>
-<script src="forum-canvas.js?v=mobile-l6-20261106"></script>
-<script src="forum.js?v=confirmations-871-feedback-i18n-871-20261113-i18n-refresh-fenetres-20261110-courriers-sovarka-20261111-premium-coloc-20261113-nationalite-20261118-interview-accueil-20261122-catastrophe-sommeil-20261123"></script>
+<script src="forum-canvas.js?v=mobile-l6-20261106-purge-b5-20261124"></script>
+<script src="forum.js?v=confirmations-871-feedback-i18n-871-20261113-i18n-refresh-fenetres-20261110-courriers-sovarka-20261111-premium-coloc-20261113-nationalite-20261118-interview-accueil-20261122-catastrophe-sommeil-20261123-purge-a7-20261124-b1-b2-b3-b4"></script>
 <script src="plateau-core.js?v=corps-toasts-20261114-reprise-confirmation-r1-20261117-failles-20261117-state-window-20261123-fiche-objet-panneau-20261123-bloc1-20261123-ci-bloc3-20261123-bloc6-base-20261123-purge-20261124"></script>
 <!-- Texte minimum dans toutes les fenêtres (Fred, 22/11/2026, point 1) : plancher 0,95 rem, titres jamais touchés. -->
 <script src="plateau-texte-minimum.js?v=texte-minimum-20261122-fiche-objet-panneau-20261123"></script>
@@ -877,11 +880,11 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
 <script src="plateau-pnj.js?v=social-reponse-directe-20261104-psm-terrains-onglets-novomirsk-librairie-v6-jodie-enquete-20261109-passeur-i18n-20261111-roles-sovarka-20261112-i18n-equip-20261112-heros-boite-20261113-krasnov-referents-20261115-inventaire-direct-20261122-sante-maladies-20261122-sante-medecin-20261122-fiche-objet-panneau-20261123-bloc3-20261123-ghe-g1-ghe-h3"></script>
 <script src="i18n/dealer-resources.js?v=20261112"></script>
 <script src="plateau-ced.js?v=dealer-i18n-20261112"></script>
-<script src="plateau-multijoueur.js?v=fenetres-20261122-mobile-l9-20261106-surveillance-20261111-guide-musee-guide-fiches-20261111-questions-roles-sovarka-20261112-i18n-equip-20261112-presence-permanente-20261120-informateurs-20261122-bloc2-20261123"></script>
+<script src="plateau-multijoueur.js?v=fenetres-20261122-mobile-l9-20261106-surveillance-20261111-guide-musee-guide-fiches-20261111-questions-roles-sovarka-20261112-i18n-equip-20261112-presence-permanente-20261120-informateurs-20261122-bloc2-20261123-purge-a9-20261124"></script>
 <script src="plateau-communication.js?v=repertoire-i18n-20261113-autorite219-20261101-cloture135-20261102-r2-reliquats379-tracts-i18n-20261111-nationalite-20261118-interview-accueil-20261122-inventaire-direct-20261122-sante-suites-20261123-bloc1-20261123"></script>
 <!-- Nationalité, domicile et élections (18/11/2026) : textes en neuf langues, avant plateau-politique.js. -->
 <script src="plateau-nationalite.js?v=nationalite-20261118"></script>
-<script src="plateau-politique.js?v=goulag-20261117-texte-joueur-871-socle-ordres-871-20261113-ordres-info-tactile-20261113-i18n-refresh-fenetres-20261110-sovarka-nuit-20261110-fouiller-20261111-i18n-missions-20261113-infobulles-20261113-min636-20261114-foret-perdu-20261114-combat-faune-20261114-journal-20261114-audit-mairie-krasnov-20261114-calendrier-gloire-20261115-failles-20261117-terrain-sovarka-20261117-nationalite-20261118-krasnov-radar-20261121-chantier-unique-20261121-foret-combat-20261122-sante-suites-20261123-accueil-20261123-ordres-regroupes-20261123-bloc1-20261123-bloc4-20261123-garde-20261124-ghe-g2"></script>
+<script src="plateau-politique.js?v=goulag-20261117-texte-joueur-871-socle-ordres-871-20261113-ordres-info-tactile-20261113-i18n-refresh-fenetres-20261110-sovarka-nuit-20261110-fouiller-20261111-i18n-missions-20261113-infobulles-20261113-min636-20261114-foret-perdu-20261114-combat-faune-20261114-journal-20261114-audit-mairie-krasnov-20261114-calendrier-gloire-20261115-failles-20261117-terrain-sovarka-20261117-nationalite-20261118-krasnov-radar-20261121-chantier-unique-20261121-foret-combat-20261122-sante-suites-20261123-accueil-20261123-ordres-regroupes-20261123-bloc1-20261123-bloc4-20261123-garde-20261124-ghe-g2-purge-a7-20261124"></script>
 <!-- Regroupement des ordres dans les pièces (22/11/2026, soir, points 18 à 21) : lu par renderRoomActions au rendu. -->
 <script src="plateau-ordres-regroupes.js?v=ordres-regroupes-20261123"></script>
 <!-- Presse : noms cliquables des personnages cités (21/11/2026). APRÈS plateau-politique.js (construireHtmlJournalDuJour). -->
@@ -966,7 +969,7 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
 <script src="plateau-criminalite.js?v=crim-lot1-20261119-victimes-journal-20261120-informateurs-20261122-sante-medecin-20261122-sante-suites-20261123-purge-20261124"></script>
 <script src="plateau-evenements-personnage.js?v=sante-20261122-purge-20261124"></script>
 <!-- Santé : jauges Santé et Moral, médecin de terrain, montrer un objet (22/11/2026, points 12, 14, 22). -->
-<script src="plateau-medecin-montrer.js?v=sante-medecin-20261122-fiche-objet-panneau-20261123"></script>
+<script src="plateau-medecin-montrer.js?v=sante-medecin-20261122-fiche-objet-panneau-20261123-purge-a6-20261124"></script>
 <!-- Accueil : interview de la première connexion, parcours dans Mes objectifs, bulle des PA (23/11/2026, points 23 à 26). -->
 <script src="plateau-accueil-progressif.js?v=accueil-progressif-20261124"></script>
 <script src="plateau-accueil-interview.js?v=accueil-progressif-20261124"></script>
@@ -1138,6 +1141,8 @@ function signalerEvenementJournal() {
 <script src="i18n/beta-language-notice.js?v=20261109"></script>
 <script src="i18n/navigation-resources.js?v=building-categories-i18n-20261116-exit-feedback-i18n-20261116-plan-rues-i18n-20261113"></script>
 <script src="i18n/plateau-init.js?v=refus-compat-924-titre-seul-20261113-repertoire-toasts-20261113-inventaire-variables-20261110-i18n-refresh-fenetres-20261110-legendes-i18n-20261110-callbacks-20261111"></script>
+<!-- Saisie de gauche à droite partout, sauf en arabe (mission Purge B.6, 24/11/2026). -->
+<script src="sens-saisie.js?v=purge-b6-20261124"></script>
 <link rel="stylesheet" href="plateau-aide.css?v=20261111">
 <script src="plateau-aide.js?v=20261111-neuf-langues-debut-reponse"></script>
 <script src="plateau-ordres-info.js?v=info-direct-mobile-20261117" defer></script>

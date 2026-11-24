@@ -5,10 +5,12 @@ const {R,temoin,lecture,preuve,avecJeu,page}=require('./mobile-navigateur.cjs');
 // « PA / Santé / Moral + Argent » et le bloc CSS des jauges sont repris de main (GAME-DESIGN-SANTE-20261122.md, point 14 ;
 // différence vérifiée sur capture, bureau et mobile). Renouvelé le 23/11/2026 : le bloc <div id="left"> (panneau de gauche refait,
 // GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md, points 16 à 19) et le bloc CSS des jauges sont repris de main ; puis le journal et le chat (points 21 et 22).
+// Renouvelé le 24/11/2026 (mission Purge A.6) : jauge des PA et lien « Plus d'informations sur les PA ? » (bloc Ligne 1 → LOCATION
+// de plateau.html, règles #hg-jauge-pa et .hg-pa-infos de style.css), repris de la branche.
 // Il est servi tel quel : aucune injection, aucun masque, aucune tolérance.
 const zlibL1=require('node:zlib'),cryptoL1=require('node:crypto');
 const archiveL1=fs.readFileSync(path.join(__dirname,'fixtures/mobile-coque-l1-temoin-728010c8-jauges-20261122.json.gz'));
-assert.equal(cryptoL1.createHash('sha256').update(archiveL1).digest('hex'),'e9043fd5818e6bfe679a4a80196dc0923114c24ead74994ec8da9c842852274b');
+assert.equal(cryptoL1.createHash('sha256').update(archiveL1).digest('hex'),'9c3df59617569c7fd117499f4e5ce14adf324d1b089629f1998cdaa36b2f117a');
 const temoinL1=JSON.parse(zlibL1.gunzipSync(archiveL1));
 assert.equal(temoinL1.commit,temoin.commit);
 async function pageTemoinL1(b,o){

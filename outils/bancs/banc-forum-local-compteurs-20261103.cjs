@@ -30,11 +30,14 @@ function scene(){
 }
 test('le forum local réel local_ville_a est visible et son alerte consultable',()=>{
  const c=scene();
- const html=vm.runInContext("renderForumCategorieItems('intra')",c);
- assert.match(html,/Forum Local/);
+ // Section « Forums locaux » séparée des forums nationaux (mission Purge B.2, 24/11/2026).
+ const html=vm.runInContext("renderForumCategorieItems('local')",c);
+ assert.doesNotMatch(vm.runInContext("renderForumCategorieItems('intra')",c),/local_ville_a/);
+ // Depuis le 24/11/2026 (mission Purge B.1) le nom porte la ville : « Forum local — Luthécia ».
+ assert.match(html,/Forum local — Luthécia/);
  assert.match(html,/switchForum\('local_ville_a'\)/);
  assert.match(html,/point-rouge/);
- assert.equal((html.match(/Forum Local/g)||[]).length,1);
+ assert.equal((html.match(/Forum local — /g)||[]).length,1);
 });
 test('les nombres des forums institutionnels sont calculés dès ouverture, indépendamment des clics',async()=>{
  const c=scene();

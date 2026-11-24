@@ -1528,68 +1528,92 @@ async function doPoulsPopulaire() {
 async function deposerCandidature(posteId, country, city) {
   const nom = state.char?.name;
   if (!nom) return;
-
-  // Vérifier domiciliation
-  const domicile = state.domicile;
-  const domicilePays = domicile?.country || state.country;
-  if (domicilePays !== (country || state.country)) {
-    showToast('Non domicilié', 'Vous devez être domicilié dans cet empire pour vous présenter.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bf265d197", 'Vous devez être domicilié dans cet empire pour vous présenter.', undefined, 'Non domicilié');
-    return;
-  }
-
   const poste = [...(POSTES_ELECTIFS.national), ...(POSTES_ELECTIFS.departemental), ...(POSTES_ELECTIFS.local)]
     .find(p => p.id === posteId);
   if (!poste) return;
-
-  // Vérifier niveau d'influence requis
-  if ((state.inf || 0) < (poste.minInf || 0)) {
-    showToast('Influence insuffisante', 'Il faut ' + poste.minInf + ' INF minimum pour ce poste.', false); globalThis.RPI18nPlateau?.markToast(null, 'Il faut ' + poste.minInf + ' INF minimum pour ce poste.', undefined, 'Influence insuffisante');
-    return;
-  }
-
-  if (posteId === 'depute') {
-    if (state.posteDepute) {
-      showToast('Deja depute', 'Vous etes deja depute.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bc8b4bf94", 'Vous etes deja depute.', undefined, 'Deja depute');
-      return;
-    }
-  } else if (state.poste && state.poste.id !== posteId) {
-    const interdits = [['president','maire']];
-    const conflict = interdits.some(pair =>
-      pair.includes(state.poste.id) && pair.includes(posteId)
-    );
-    if (conflict) {
-      showToast('Cumul interdit', 'Vous ne pouvez pas cumuler ' + state.poste.name + ' et ' + poste.name + '.', false); globalThis.RPI18nPlateau?.markToast(null, 'Vous ne pouvez pas cumuler ' + state.poste.name + ' et ' + poste.name + '.', undefined, 'Cumul interdit');
-      return;
-    }
-  }
-
   const c = country || state.country;
   const cle = getCleCycle(posteId, city);
   if (!CYCLES_ELECTORAUX[c]) CYCLES_ELECTORAUX[c] = {};
   if (!CYCLES_ELECTORAUX[c][cle]) await initCycleElectoral(c, posteId, city);
-
   const cycle = CYCLES_ELECTORAUX[c][cle];
-  // Delai de depot restreint a la seule phase CANDIDATURES retire le 17 aout 2026 (decision
-  // explicite) : une election doit rester accessible a tout moment, pas seulement durant la
-  // toute premiere semaine suivant sa creation. Les autres prerequis (domiciliation,
-  // influence minimale, cumul interdit, deja candidat) restent tous verifies ci-dessus/dessous,
-  // inchanges -- seul ce verrou temporel disparait. Ne modifie ni le calendrier de campagne, ni
-  // le vote, ni le depouillement : une candidature deposee tardivement rejoint simplement
-  // cycle.candidats avec 0 voix, comme n'importe quelle autre.
-  if (cycle.candidats.find(ca => ca.nom === nom)) {
-    showToast('Déjà candidat', 'Vous êtes déjà candidat à ce poste.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bc53bba10", 'Vous êtes déjà candidat à ce poste.', undefined, 'Déjà candidat');
-    return;
-  }
-  // Calendrier du dimanche (12 septembre 2026) : le verrou temporel retire le 17 aout revient --
-  // candidatures fermees le lundi 00:01 precedant le vote (le serveur refuse aussi, trigger
-  // candidatures_cloture). Aucun PA n'est debite pour une candidature refusee.
-  if (!candidaturesOuvertes(cycle)) {
-    showToast('Candidatures closes', 'Les candidatures à ce scrutin sont closes. Elles rouvriront avec le prochain scrutin.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b74624902", 'Les candidatures à ce scrutin sont closes. Elles rouvriront avec le prochain scrutin.', undefined, 'Candidatures closes');
-    return;
-  }
-
-  // Ouvrir modal pour programme
+  // FENÊTRE DE CANDIDATURE (Fred, 24/11/2026, mission Purge A.7) : elle s'ouvre toujours et montre chaque condition cochée
+  // en vert ou en rouge, avec les dates de la période. Les anciens refus en cascade (domicile, influence, cumul, déjà
+  // candidat, candidatures closes) sont devenus ces conditions ; un dépôt tenté avec une condition rouge est refusé par
+  // son nom (refusCandidatureLocal) avant tout appel, et le serveur (candidature_deposer) reste la seule porte.
   ouvrirModalCandidature(posteId, c, poste, cycle, city);
+}
+
+// Conditions de candidature, telles que l'écran peut les lire dans l'état chargé du serveur. Même liste que les refus
+// historiques de deposerCandidature et que candidaturePossibleIci ; la décision finale reste au serveur.
+function conditionsCandidature(posteId, country, city, poste, cycle) {
+  const nom = state.char?.name;
+  const nat = (typeof maNationalite === 'function') ? maNationalite() : state.country;
+  const nomPays = _presseNomPays(country);
+  const local = posteEstLocal(posteId);
+  const villeCand = city || state.currentCity;
+  const nomVille = WORLD[country]?.[villeCand]?.name || villeCand;
+  const dom = state.domicile || {};
+  const liste = [];
+  liste.push({ cle: 'nationalite', ok: nat === country, texte: 'Avoir la nationalité : ' + nomPays,
+    toast: ['Candidature refusee', typeof motifNationalite === 'function' ? motifNationalite('nationalite_requise') : 'Il faut avoir la nationalité de ce pays.'] });
+  liste.push({ cle: 'presence', ok: state.country === country, texte: 'Être dans le pays : ' + nomPays,
+    toast: ['Candidature refusee', typeof motifNationalite === 'function' ? motifNationalite('hors_de_son_pays') : 'Il faut être dans ce pays.'] });
+  liste.push(local
+    ? { cle: 'domicile', ok: dom.country === country && dom.city === villeCand, texte: 'Être domicilié à ' + nomVille,
+        toast: ['Non domicilié', 'Vous devez être domicilié dans cette ville pour vous y présenter.'] }
+    : { cle: 'domicile', ok: (dom.country || state.country) === country, texte: 'Être domicilié dans le pays : ' + nomPays,
+        toast: ['Non domicilié', 'Vous devez être domicilié dans cet empire pour vous présenter.'] });
+  if ((poste?.minInf || 0) > 0) liste.push({ cle: 'influence', ok: (state.inf || 0) >= poste.minInf,
+    texte: 'Influence d’au moins ' + poste.minInf + ' (vous : ' + (state.inf || 0) + ')',
+    toast: ['Influence insuffisante', 'Il faut ' + poste.minInf + ' INF minimum pour ce poste.'] });
+  if (posteId === 'depute') liste.push({ cle: 'cumul', ok: !state.posteDepute, texte: 'Ne pas être déjà député',
+    toast: ['Deja depute', 'Vous etes deja depute.'] });
+  else if (posteId === 'president' || posteId === 'maire') {
+    const autre = posteId === 'president' ? 'maire' : 'president';
+    liste.push({ cle: 'cumul', ok: state.poste?.id !== autre, texte: 'Ne pas être ' + (autre === 'maire' ? 'maire' : 'président') + ' (les deux postes ne se cumulent pas)',
+      toast: ['Cumul interdit', 'Vous ne pouvez pas cumuler ' + (state.poste?.name || autre) + ' et ' + (poste?.name || posteId) + '.'] });
+  }
+  liste.push({ cle: 'deja_candidat', ok: !(cycle?.candidats || []).some(ca => ca.nom === nom), texte: 'Ne pas être déjà candidat à ce scrutin',
+    toast: ['Déjà candidat', 'Vous êtes déjà candidat à ce poste.'] });
+  liste.push({ cle: 'periode', ok: candidaturesOuvertes(cycle), texte: 'Déposer pendant la période de candidature',
+    toast: ['Candidatures closes', 'Les candidatures à ce scrutin sont closes. Elles rouvriront avec le prochain scrutin.'] });
+  const pa = ORDRE_DEPOT_CANDIDATURE.pa;
+  liste.push({ cle: 'pa', ok: (typeof TEST_MODE !== 'undefined' && TEST_MODE) || (Number(state.pa) || 0) >= pa, texte: 'Avoir ' + pa + ' PA (vous : ' + (Number(state.pa) || 0) + ')',
+    toast: ['Candidature refusee', 'Il vous faut ' + pa + ' PA pour deposer une candidature.'] });
+  return liste;
+}
+
+// Première condition rouge, ou null si toutes sont vertes.
+function refusCandidatureLocal(posteId, country, city) {
+  const poste = [...(POSTES_ELECTIFS.national), ...(POSTES_ELECTIFS.departemental), ...(POSTES_ELECTIFS.local)].find(p => p.id === posteId);
+  const cycle = CYCLES_ELECTORAUX[country]?.[getCleCycle(posteId, city)];
+  return conditionsCandidature(posteId, country, city, poste, cycle).find(x => !x.ok) || null;
+}
+// Le refus est nommé avec les titres et textes historiques (catalogues de traduction toastTitles / toastBodies).
+function emettreRefusCandidature(ko) {
+  const [titre, corps] = ko.toast;
+  const marquer = cle => globalThis.RPI18nPlateau?.markToast(cle, corps, undefined, titre);
+  if (ko.cle === 'domicile') { showToast('Non domicilié', corps, false); marquer(corps.includes('empire') ? 'toastBodies.bf265d197' : null); }
+  else if (ko.cle === 'influence') { showToast('Influence insuffisante', corps, false); marquer(null); }
+  else if (ko.cle === 'deja_candidat') { showToast('Déjà candidat', corps, false); marquer('toastBodies.bc53bba10'); }
+  else if (ko.cle === 'periode') { showToast('Candidatures closes', corps, false); marquer('toastBodies.b74624902'); }
+  else if (ko.cle === 'cumul' && titre === 'Deja depute') { showToast('Deja depute', corps, false); marquer('toastBodies.bc8b4bf94'); }
+  else if (ko.cle === 'cumul') { showToast('Cumul interdit', corps, false); marquer(null); }
+  else { showToast('Candidature refusee', corps, false); }
+}
+
+function htmlPeriodeCandidature(cycle) {
+  const d = ts => (typeof rpDateLisible === 'function') ? rpDateLisible(ts) : new Date(Number(ts)).toLocaleString('fr-FR');
+  const lignes = [];
+  if (cycle?.dateDebutCandidatures && cycle?.dateDebutCampagne)
+    lignes.push('Candidatures : du ' + d(cycle.dateDebutCandidatures) + ' au ' + d(cycle.dateDebutCampagne));
+  if (cycle?.dateDebutCampagne && cycle?.dateVote) lignes.push('Campagne : du ' + d(cycle.dateDebutCampagne) + ' au ' + d(cycle.dateVote));
+  if (cycle?.dateVote && cycle?.dateResultats) lignes.push('Vote : du ' + d(cycle.dateVote) + ' au ' + d(cycle.dateResultats));
+  if (!lignes.length) return '<p class="cpj-note hg-cand-periode">Dates de la période : pas encore fixées par le serveur.</p>';
+  return '<ul class="hg-cand-periode">' + lignes.map(l => '<li>' + escapeHtmlCandidature(l) + '</li>').join('') + '</ul>';
+}
+function escapeHtmlCandidature(v) {
+  return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
 // DONNER UNE CONFERENCE (Universite, amphi) — 2 branches : soutenir un candidat en campagne
@@ -1716,8 +1740,18 @@ async function confirmerConference(cle, candidatNom, pa, cost) {
 function ouvrirModalCandidature(posteId, country, poste, cycle, city) {
   const nom = state.char?.name;
   document.getElementById('postes-modal-title').textContent = '🗳️ Candidature — ' + poste.name;
+  const conditions = conditionsCandidature(posteId, country, city, poste, cycle);
+  const toutesVertes = conditions.every(x => x.ok);
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:.8rem 1rem">' +
+    // Conditions cochées en vert ou en rouge, puis les dates de la période (Fred, 24/11/2026, mission Purge A.7).
+    '<div class="hg-cand-titre">Conditions pour être candidat</div>' +
+    '<ul class="hg-cand-conditions">' + conditions.map(x =>
+      '<li class="' + (x.ok ? 'hg-cond-ok' : 'hg-cond-ko') + '" data-condition="' + x.cle + '"><span class="hg-cond-marque" aria-hidden="true">' + (x.ok ? '✓' : '✗') + '</span>'
+      + '<span class="hg-cond-texte">' + escapeHtmlCandidature(x.texte) + '</span><span class="hg-cond-lu">' + (x.ok ? ' (rempli)' : ' (non rempli)') + '</span></li>').join('') + '</ul>' +
+    (country === 'soviet' ? '<p class="cpj-note">En Sovarka, le serveur vérifie aussi les règles des partis (adhésion, investiture).</p>' : '') +
+    '<div class="hg-cand-titre">Dates de la période</div>' + htmlPeriodeCandidature(cycle) +
+    (toutesVertes ? '' : '<p class="cpj-note hg-cand-avertir">Une condition en rouge empêche le dépôt : rien ne sera débité.</p>') +
     '<div style="font-size:.78rem;color:#c0b090;margin-bottom:.4rem">Thème principal de votre campagne :</div>' +
     '<select id="prog-theme" style="width:100%;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,Georgia,serif;font-size:.85rem;margin-bottom:.6rem">' +
     '<option value="securite">Sécurité</option>' +
@@ -1758,6 +1792,9 @@ async function confirmerCandidature(el) {
   const programme = document.getElementById('prog-texte')?.value?.trim() || '';
   const theme = document.getElementById('prog-theme')?.value || 'economie';
   if (!programme) { showToast('Programme requis', 'Décrivez votre programme.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bc908cf4d", 'Décrivez votre programme.', undefined, 'Programme requis'); return; }
+  // Condition en rouge dans la fenêtre (mission Purge A.7) : refus nommé, aucun appel, rien de débité.
+  const refusLocal = refusCandidatureLocal(posteId, country, city);
+  if (refusLocal) { emettreRefusCandidature(refusLocal); return; }
 
   // Garde du cycle electoral (correctif Lot 2C) -- meme controle que deposerCandidature()
   // (ligne 592) : initialise le cycle s'il n'existe pas encore, AVANT la deduction PA. Un cycle
