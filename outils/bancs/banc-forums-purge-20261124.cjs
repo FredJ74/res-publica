@@ -112,3 +112,22 @@ test('B.4 dates lisibles, un seul format « 23/11 à 18 h 48 » (heure de Paris)
   assert.doesNotMatch(FORUM, /formatDateAffichage\(/, 'plus aucun autre format dans forum.js');
   assert.equal((FORUM.match(/dateForum\(/g) || []).length, 8, 'sujets, messages, mails reçus, envoyés, archivés, lecture');
 });
+
+test('B.5 l’éditeur ne publie plus les blocs vides ni l’amorce « Nouvelle zone de texte… »', () => {
+  const CANVAS = lire('forum-canvas.js');
+  const zone = (texte, html) => ({ type: 'text_zone', state: { x: 1, y: 2, width: 300, z: 1 }, el: null,
+    editor: { getText: () => texte, getHTML: () => html || ('<p>' + texte + '</p>') } });
+  const c = vm.createContext({ console, sanitizeRichHtml: h => h, document: { getElementById: () => ({ offsetWidth: 600 }) },
+    rpComposeElements: [zone('Bonjour camarades'), zone(''), zone('Nouvelle zone de texte…'), zone('   '),
+      { type: 'image', state: { x: 0, y: 0, width: 100, height: 50, z: 2 }, el: { querySelector: () => ({ src: 'https://exemple.test/a.webp', alt: '' }) } }] });
+  const ligneDe = debut => CANVAS.slice(CANVAS.indexOf(debut), CANVAS.indexOf('\n', CANVAS.indexOf(debut)));
+  vm.runInContext([ligneDe('const RP_ZONE_BG_SAFE_RE'), ligneDe('const RP_AMORCE_ZONE_RE'),
+    bloc(CANVAS, 'function rpCanvasZoneVide('), bloc(CANVAS, 'function rpCanvasSerializeCompose(')].join('\n'), c);
+  const layout = JSON.parse(JSON.stringify(c.rpCanvasSerializeCompose()));
+  assert.deepEqual(layout.elements.map(e => e.type), ['text_zone', 'image'], 'seuls le texte réel et l’image restent');
+  assert.equal(layout.elements[0].html_fallback, '<p>Bonjour camarades</p>');
+  c.rpComposeElements = [zone(''), zone('Nouvelle zone de texte...')];
+  assert.equal(c.rpCanvasSerializeCompose().elements.length, 0, 'tout vide : « Composition vide » refusée avant envoi');
+  assert.doesNotMatch(bloc(CANVAS, 'function rpCanvasAddTextZoneToCompose('), /Nouvelle zone de texte…<\/p>'\)/, 'la zone ajoutée naît vide');
+  assert.match(bloc(FORUM, 'async function submitComposeCanvas('), /layout\.elements\.length === 0/);
+});

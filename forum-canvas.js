@@ -756,7 +756,21 @@ function rpCanvasAddTextZoneToCompose() {
   if (!rpComposeController) return;
   const container = document.getElementById('rp-compose-canvas');
   if (!container) return;
-  rpCanvasCreateTextZone(rpComposeController, container, 40, 40, 260, '<p>Nouvelle zone de texte…</p>');
+  // Zone vide (Fred, 24/11/2026, mission Purge B.5) : l'ancien texte d'amorce « Nouvelle zone de texte… » était un vrai
+  // contenu, publié tel quel quand l'auteur n'y touchait pas. La zone naît vide, sélectionnée, le curseur dedans.
+  const zone = rpCanvasCreateTextZone(rpComposeController, container, 40, 40, 260, '<p></p>');
+  const entree = zone ? rpComposeElements[rpComposeElements.length - 1] : null;
+  if (entree && entree.el && entree.state) {
+    rpComposeController.selectElement(entree.el, entree.state);
+    if (entree.editor && typeof setTimeout === 'function') setTimeout(function () { try { entree.editor.commands.focus('end'); } catch (e) {} }, 0);
+  }
+}
+
+// Une zone de texte sans aucun texte (ou restée sur l'ancienne amorce) n'est jamais publiée (mission Purge B.5).
+const RP_AMORCE_ZONE_RE = /^\s*Nouvelle zone de texte(…|\.\.\.)?\s*$/;
+function rpCanvasZoneVide(texte) {
+  const t = String(texte == null ? '' : texte).replace(/\u00a0/g, ' ').trim();
+  return !t || RP_AMORCE_ZONE_RE.test(t);
 }
 
 // Création d'une zone de texte — reprise directe de createTextZone du prototype validé
@@ -1581,6 +1595,10 @@ function rpCanvasSerializeCompose() {
       const contentEl = entry.el && typeof entry.el.querySelector === 'function' ? entry.el.querySelector('.rp-zone-content') : null;
       if (contentEl) layout.contentHeight = contentEl.scrollHeight || 0;
       const rawHtml = entry.editor ? entry.editor.getHTML() : '';
+      // Bloc vide : retiré de la publication (B.5). Une composition sans aucun bloc est refusée plus loin (« Composition vide »).
+      const texteZone = entry.editor && typeof entry.editor.getText === 'function' ? entry.editor.getText()
+        : String(rawHtml).replace(/<[^>]*>/g, '');
+      if (rpCanvasZoneVide(texteZone)) return null;
       const html_fallback = typeof sanitizeRichHtml === 'function' ? sanitizeRichHtml(rawHtml) : '';
       // Fond de zone (lot de finitions) : propriété visuelle de la zone, pas géométrique --
       // au même niveau que html_fallback, pas dans layout (réservé aux propriétés de position/
