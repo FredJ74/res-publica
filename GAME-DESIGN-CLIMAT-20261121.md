@@ -157,3 +157,24 @@ Cette décision **remplace** tout ce qui précède sur la crue (fermeture des li
   fonctions serveur sont conservées mais refusent tant que le réglage MJ « État de catastrophe naturelle »
   (`climat_parametres.catastrophe_active`, crue) vaut non. Sans pertes de stock, il n'a plus rien à indemniser : son rôle est à
   redéfinir par Fred avant tout réveil.
+
+---
+
+## Décisions de Fred du 24/11/2026 (mission « Purge », bloc D), recopiées mot pour mot
+
+Elles **remplacent** ce qui précède sur ces points (heure de la canicule, chantiers arrêtés par l'orage et le blizzard, villes du
+blizzard et de la canicule, fontaine de Starovka).
+
+> D.1 La canicule n'a lieu qu'en journée (typiquement de 12 h à 18 h).
+> D.2 Seules la CANICULE et la CRUE arrêtent les chantiers. L'orage et le blizzard ne les arrêtent pas : corrige aussi la consigne d'alerte de l'orage. Le blizzard n'existe qu'à Starovka : vérifie le tirage.
+> D.3 L'arrêt doit réellement s'appliquer : la tâche de minuit passe avant la pose des effets. Banc.
+> D.4 Canicule : image dédiée, et bouton « Offrir 20 bouteilles d'eau aux ouvriers » (ouvert à tout joueur présent, avec « ? », inscrit au journal du chantier).
+> D.5 Starovka est exclue des canicules. Pas de fontaine à Starovka : retire-la avec redirections, et ajoute un banc.
+> D.6 Bouteille d'eau à 4 PSK l'unité dans toutes les boutiques « Équipements contre les intempéries » de Sovarka.
+
+### Mise en œuvre (Claude, 24/11/2026 ; migrations `20261124131000` à `20261124136000`, banc `outils/bancs/banc-purge-climat-pglite-20261124.cjs`)
+
+- **D.1** : une canicule commence à **12 h** (heure de Paris, réglage MJ `aliments_parametres.canicule_heure_debut`) et dure
+  `climat_parametres.duree_heures` (6 h) : 12 h → 18 h. Les reports « un seul événement à la fois par pays » retombent aussi à 12 h.
+  Les canicules déjà planifiées sont ramenées à 12 h le même jour (correction publiée si l'alerte était sortie). Les autres
+  événements gardent l'heure tirée au hasard (Q1 du 21/11).
