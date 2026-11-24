@@ -367,9 +367,9 @@ export const SCENES_PNJ = {
     "pays": "Republia",
     "ville": "Luthécia",
     "batiment": "Dispensaire Public de Luthecia",
-    "piece": "Salle d'attente",
+    "piece": "Accueil",
     "personnes": [
-      "Docteur Aspirine",
+      "Mathias Spirine",
       "Anne Tibiotique"
     ]
   },
