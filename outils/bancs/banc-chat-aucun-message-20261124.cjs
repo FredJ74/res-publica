@@ -24,7 +24,8 @@ test('la phrase « Aucun message pour le moment » disparaît au premier message
   let reponses = [[], [{ id: 'm1', auteur: 'Bernard', message: 'Bonjour', created_at: '2026-11-24T10:00:00Z' }]];
   const c = vm.createContext({ console, Date, state: { char: { name: 'Tom' } }, document: { getElementById: id => id === 'chat-messages-zone' ? zone : null },
     sbGetMessagesConversation: async () => reponses.shift() || [], chatMoiPour: () => 'Tom', chatLibelleParticipant: n => n,
-    verifierNotificationChat: () => {}, _conversationActuelle: { id: 'c1' } });
+    verifierNotificationChat: () => {}, _conversationActuelle: { id: 'c1' },
+    window: {} /* page sans PNJ guide (window.RPPnjGuide absent, A.10) */ });
   vm.runInContext('var _chatDernierMessage = null; var _conversationActuelle = { id: "c1" };\n' + src.slice(src.indexOf('let _chatLectureEnCours'), src.indexOf('let _chatLectureEnCours') + 40).split('\n')[0] + '\n' + bloc('async function rafraichirConversationActuelle('), c);
   await c.rafraichirConversationActuelle(true);
   assert.match(zone.html, /Aucun message pour le moment/);

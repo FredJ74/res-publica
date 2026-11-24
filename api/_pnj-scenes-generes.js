@@ -511,7 +511,8 @@ export const SCENES_PNJ = {
     "personnes": [
       "Jean-Pierre Bidoche",
       "Ginette Légume",
-      "Jodie Moitout"
+      "Jodie Moitout",
+      "Firmin Badaud"
     ]
   },
   "[\"republic\",\"capitale\",\"mairie-capitale\",\"hall_mairie\"]": {
@@ -1739,7 +1740,8 @@ export const SCENES_PNJ = {
     "piece": "Les Etals",
     "personnes": [
       "Mireille Legall",
-      "Bastien Leroux"
+      "Bastien Leroux",
+      "Yvonne Bigorneau"
     ]
   },
   "[\"republic\",\"ville_a\",\"musee-port-sainte-marie\",\"hall\"]": {
@@ -2415,7 +2417,8 @@ export const SCENES_PNJ = {
     "batiment": "Marché de Montrouge",
     "piece": "Etals du marche",
     "personnes": [
-      "Josette Betterave"
+      "Josette Betterave",
+      "Lucien Boulon"
     ]
   },
   "[\"republic\",\"ville_b\",\"cafe-gare-montrouge\",\"salle\"]": {
@@ -4689,7 +4692,8 @@ export const SCENES_PNJ = {
     "batiment": "Distribution Collective",
     "piece": "Etals du marche",
     "personnes": [
-      "Distributeur Équitable"
+      "Distributeur Équitable",
+      "Zinaïda Otcheredova"
     ]
   },
   "[\"soviet\",\"capitale\",\"mairie-capitale\",\"hall_mairie\"]": {
@@ -6362,7 +6366,8 @@ export const SCENES_PNJ = {
     "batiment": "Marché de Starovka",
     "piece": "Etals du marche",
     "personnes": [
-      "Tsypilma Dashieva"
+      "Tsypilma Dashieva",
+      "Bair Namsaraev"
     ]
   },
   "[\"soviet\",\"ville_a\",\"armurerie\",\"magasin\"]": {

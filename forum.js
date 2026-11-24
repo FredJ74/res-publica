@@ -3316,7 +3316,7 @@ async function forumPublierAvecJauges(topic,titre,contenu,blocs,miseEnPage,ident
   const forumId = currentForumId;
   // Controle du forum local juste avant l'envoi : un voyage peut rendre le
   // forum de l'editeur perime, meme si son affichage n'a pas encore change.
-  if (!forumId || (forumId.startsWith('local_') && !villesForumLocal().map(v => idForumLocal(v)).includes(forumId))) {
+  if (!forumId || (forumId.startsWith('local_') && !(typeof villesForumLocal === 'function' && villesForumLocal().map(v => idForumLocal(v)).includes(forumId)))) {
     showToast('Forum local à rouvrir', 'La ville du forum a changé. Rouvrez le forum local pour publier dans la bonne ville.', false); window.RPI18nPlateau?.markToast("forumFeedback.localForumChanged", 'La ville du forum a changé. Rouvrez le forum local pour publier dans la bonne ville.', undefined, "Forum local à rouvrir");
     return null;
   }

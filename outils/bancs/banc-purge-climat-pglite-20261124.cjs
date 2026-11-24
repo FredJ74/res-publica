@@ -182,8 +182,11 @@ const comme = async (db, qui, sql, p) => { await db.query("SELECT set_config('te
 let nreq = 0; const req = () => '00000000-0000-4000-8000-' + String(++nreq).padStart(12, '0');
 const bouteilles = async (db, qui) => Number((await un(db, "SELECT inventaire_quantite(inventory, 'bouteille_eau') q FROM personnages_donnees WHERE name = $1", [qui])).q);
 
-test('D.4 : « Offrir 20 bouteilles d’eau aux ouvriers » — tout joueur présent, une fois par canicule, au journal ; lève l’arrêt du chantier', async () => {
+test('D.4 : « Offrir 20 bouteilles d’eau aux ouvriers » — tout joueur présent, une fois par canicule, au journal ; avec le réglage MJ à 1, lève l’arrêt du chantier', async () => {
   const db = await base({ jusqua: 4 });
+  // Décision du 24/11 (agent principal, question posée à Fred) : l'eau n'a AUCUN effet par défaut ; le MJ peut l'activer (1).
+  assert.equal(Number((await un(db, "SELECT valeur FROM aliments_parametres WHERE cle = 'canicule_eau_leve_arret'")).valeur), 0);
+  await db.query("UPDATE aliments_parametres SET valeur = 1 WHERE cle = 'canicule_eau_leve_arret'");
   // Hors canicule : refus expliqué, rien retiré.
   assert.equal((await comme(db, 'Bob', 'SELECT chantier_canicule_offrir_eau($1, $2) r', [req(), 'terrain-a-batir-3'])).raison, 'pas_de_canicule');
   await evenement(db, 'canicule', 0, { heure: 0, heures: 1 });
@@ -216,9 +219,8 @@ test('D.4 : « Offrir 20 bouteilles d’eau aux ouvriers » — tout joueur pré
   assert.equal(r.climat, undefined); assert.ok(Number(r.avance) > 0);
 });
 
-test('D.4 : réglage MJ « l’eau lève l’arrêt » à 0 → l’eau est offerte et inscrite, mais le chantier reste arrêté', async () => {
-  const db = await base({ jusqua: 4 });
-  await db.query("UPDATE aliments_parametres SET valeur = 0 WHERE cle = 'canicule_eau_leve_arret'");
+test('D.4 : réglage MJ « l’eau lève l’arrêt » à 0 (défaut) → l’eau est offerte et inscrite, mais le chantier reste arrêté', async () => {
+  const db = await base({ jusqua: 4 }); // aucun réglage forcé : la valeur par défaut de la migration (0) s'applique
   await evenement(db, 'canicule', 0, { heure: 0, heures: 1 });
   await db.query("UPDATE climat_evenements SET debut = now() - interval '1 hour', fin = now() + interval '5 hours'");
   assert.equal((await comme(db, 'Bob', 'SELECT chantier_canicule_offrir_eau($1, $2) r', [req(), 'terrain-a-batir-3'])).ok, true);
