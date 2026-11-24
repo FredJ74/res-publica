@@ -403,6 +403,8 @@
   const gestionnaires = global.rpEvenementsPersonnageGestionnaires = global.rpEvenementsPersonnageGestionnaires || {};
   gestionnaires.accueil_bulle_pa = ev => afficherBullePa(Number(ev?.params?.pa) || 1);
   gestionnaires.accueil_etape = () => { charger().then(() => rafraichirObjectifs()); };
+  // Calendrier du nouveau venu (purge A.3) : le serveur déclare l'interview due ; l'écran relit et l'ouvre dès que libre.
+  gestionnaires.accueil_interview = () => { charger().then(() => verifier()); };
 
   // Un paiement qui baisse les PA alors que la bulle n'a jamais été vue : lire tout de suite le journal du serveur
   // (sans attendre le signal temps réel). Aucune décision locale : c'est le serveur qui a écrit, ou non, la bulle.
@@ -530,8 +532,18 @@
     }
     if (etat?.bienvenue?.a_voir) { ouvrirBienvenue(); return; }
     if (etat?.interview?.ouvrir_auto && !occupe()) {
+      // Calendrier du nouveau venu (purge A.3) : le serveur l'a déclarée due ; elle attend seulement que la fenêtre ouverte
+      // soit fermée (occupe), jamais plus. Ancien joueur : elle passe par le portier (une fenêtre automatique par connexion).
+      const portier = global.RPFenetresAuto;
+      const calendrier = !!(etat.calendrier && etat.calendrier.actif);
+      if (portier && calendrier && portier.fenetreOuverte()) return;
+      if (portier && !calendrier) {
+        const d = portier.decision('interview');
+        if (d === 'attendre') return;
+        if (d === 'badge') { etat.interview.ouvrir_auto = false; return; }   // elle reste dans « Mes objectifs »
+      }
       etat.interview.ouvrir_auto = false;
-      if (ouvrir()) rpc('accueil_interview_vue');
+      if (ouvrir()) { if (portier) portier.marquer('interview'); rpc('accueil_interview_vue'); }
     }
   }
 

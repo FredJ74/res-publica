@@ -1089,8 +1089,14 @@ window.addEventListener('DOMContentLoaded', () => {
       sessionStorage.setItem('journaliste_done', '1');
     }
   }, 5000);
-  // Journal du jour en dernier — après tous les autres
-  setTimeout(() => afficherJournalDuJour(), 8000);
+  // Journal du jour en dernier — après tous les autres. Portier des fenêtres automatiques (purge A.3, 24/11/2026) :
+  // jamais pendant la première heure d'un nouveau venu, une seule fenêtre automatique par connexion, sinon un badge.
+  setTimeout(() => {
+    if (!window.RPFenetresAuto) { afficherJournalDuJour(); return; }
+    window.RPFenetresAuto.demander('journal_du_jour', () => afficherJournalDuJour(), () => {
+      try { return !sessionStorage.getItem('journal_dujour_' + dateEditionAujourdhui(state.country)); } catch (_) { return true; }
+    });
+  }, 8000);
 
   // Forcer le rendu complet au chargement
   setTimeout(() => {

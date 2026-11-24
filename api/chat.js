@@ -392,6 +392,9 @@ export default async function handler(req, res) {
   // promesse plutot que d'afficher un cadeau inexistant. Les vrais dons ne
   // passent pas par cette route : ils exigent un ordre et une confirmation serveur.
   const reponse = filtrerReponseSquatteur(req.body.profil, r.texte, langueAutorisee);
+  // Calendrier du nouveau venu (purge A.3, 24/11/2026) : une conversation avec un PNJ repousse l'interview d'accueil.
+  // Le serveur note l'instant de jeu (accueil_pnj_parle, sous le jeton du joueur) ; un échec ne change pas la réponse.
+  await rpcJoueur('accueil_pnj_parle', {}, utilisateur.jeton).catch(() => null);
   if (guideMusee) {
     const c = await rpcGuideMusee('guide_musee_question_consommer', utilisateur.jeton);
     if (!c || c.ok !== true) return res.status(403).json({ error: 'Plus de question.', raison: c?.raison || 'indisponible' });

@@ -728,7 +728,7 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
 <script src="avatars.js?v=126"></script>
 <script src="world-map.js?v=126"></script>
 <!-- auth.js AVANT supabase.js : sbEnTetes() y lit le jeton de session a chaque requete. -->
-<script src="auth.js?v=logout-joueur-20261117-purge-20261124"></script>
+<script src="auth.js?v=logout-joueur-20261117-purge-20261124-purgeA3"></script>
 <script src="supabase.js?v=jets-serveur-20261105-sovarka-nuit-20261110-failles-20261117-nationalite-20261118-presence-permanente-20261120-inventaire-direct-20261122-purge-20261124"></script>
 <!-- Goulag de Sovarka : verrou d'ouverture lu au serveur, AVANT tout module du goulag (fermé par défaut). -->
 <script src="plateau-goulag-ouverture.js?v=goulag-verrou-20261117"></script>
@@ -893,7 +893,7 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
 <script src="plateau-construction-commandes.js?v=reprise-i18n-20261113-retours-i18n-20261113-2-chantier-unique-20261121"></script>
 <!-- Chantier « construction » : fenêtre unique, image par étape, surcouche, rafraîchissement (21/11/2026). APRÈS
      plateau-justice-economie.js (chargerTerrainState), plateau-navigation.js (enterRoom) et plateau-construction-commandes.js. -->
-<script src="plateau-chantier-vue.js?v=chantier-unique-20261121-crue-20261123"></script>
+<script src="plateau-chantier-vue.js?v=chantier-unique-20261121-crue-20261123-purgeA3"></script>
 <!-- Plan du lotissement en vignettes (étape J, 22/11/2026). APRÈS plateau-chantier-vue.js (images par étape). -->
 <script src="plateau-terrains-plan.js?v=terrains-plan-20261122"></script>
 <script src="i18n/occupation-resources.js?v=20261112"></script>
@@ -968,7 +968,9 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
 <!-- Santé : jauges Santé et Moral, médecin de terrain, montrer un objet (22/11/2026, points 12, 14, 22). -->
 <script src="plateau-medecin-montrer.js?v=sante-medecin-20261122-fiche-objet-panneau-20261123"></script>
 <!-- Accueil : interview de la première connexion, parcours dans Mes objectifs, bulle des PA (23/11/2026, points 23 à 26). -->
-<script src="plateau-accueil-interview.js?v=accueil-20261123-bloc1-20261123-purgeA2"></script>
+<!-- Portier des fenêtres automatiques : première heure du nouveau venu, une fenêtre par connexion, badges (purge A.3, 24/11/2026). -->
+<script src="plateau-fenetres-auto.js?v=purgeA3-20261124"></script>
+<script src="plateau-accueil-interview.js?v=accueil-20261123-bloc1-20261123-purgeA3"></script>
 <script src="plateau-temps-reel.js?v=1-inventaire-direct-20261122-sante-20261122"></script>
 <script src="plateau-universite.js?v=crim-lot9-20261120"></script>
 <script src="plateau-sovarka-heros-boite.js?v=heros-boite-20261113"></script>
