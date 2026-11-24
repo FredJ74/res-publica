@@ -124,7 +124,7 @@ Chaque point porte un banc qui l'empêche de revenir (liste dans RELAIS.md).
     local » mis en avant.
 32. **Centre d'affaires de Krasnov** : 4 bureaux (2 côté maison bleue, 2 côté hôpital) dans `sovarka_locaux`, plafond
     40 PSK/jour ; demande à la mairie au lieu de « Louer ce bureau (500 PSK/jour) » ; les 3 locaux fantômes du gabarit
-    sont retirés.
+    sont retirés. *Loyer de départ : 30 PSK par jour, réglable par le maire entre 0 et 40 (Fred, 24/11/2026, point H.2).*
 33. **« Chanter l'hymne au Tracteur »**, commun à toutes les églises de la Sainte-Moisson-Commune : karaoké de 5 à
     6 secondes (tracteur rouge qui cahote en bas de l'écran avec une fumée noire en rythme, étoile dorée qui saute de mot
     en mot, cierges, bouton « Passer »), puis exclamation du religieux du lieu (Krasnov, Kouzma : « PLUS FORT, MON
@@ -144,6 +144,8 @@ Chaque point porte un banc qui l'empêche de revenir (liste dans RELAIS.md).
 - 31 : encadré au-dessus des ordres de tout local de `sovarka_locaux` (centres, immeubles collectifs, locaux de Starovka) ;
   l'ordre `sovarka_demande_location` s'appelle désormais « Demander ce local à la mairie » partout.
 - 32 : loyer de départ 40 PSK (égal au plafond, comme les box des centres commerciaux de Krasnov) ; le maire le fixe.
+  **Décision de Fred du 24/11/2026 (mission « Purge », point H.2) : loyer de départ 30 PSK par jour, réglable par le maire
+  entre 0 et 40 PSK** (migration `20261124141000_ghe_h2_bureaux_krasnov_loyer_30`).
 - 33 : karaoké `plateau-hymne-tracteur.js`, branché sur l'ordre « prier » des églises de la Sainte-Moisson-Commune
   (`kolkhoze-spirituel`) ; paiement avant le chant, résultat après, serveur inchangé.
 - 34 : groupe électrogène seul (les bidons restent à l'ordre propre de la station) ; l'image fournie n'a pas été utilisée
