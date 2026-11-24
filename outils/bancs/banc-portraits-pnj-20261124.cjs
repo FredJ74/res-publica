@@ -41,12 +41,12 @@ const presents=[...groupes.values()];
 const orphelins=presents.filter(x=>!x.portrait_existant&&!x.a_produire);
 const listesNul=attendus.filter(a=>a.pays!=='Republia'&&a.pays!=='Sovarka'&&a.source==='audit 23/11'&&!presents.some(x=>x.nom===a.nom&&x.piece===a.piece&&x.batiment===a.batiment));
 const guides=[
- ['guide_zinaida_otcheredova','images/Sovarka/Novomirsk/guide-zinaida-otcheredova-portrait.webp'],
- ['guide_firmin_badaud','images/Republia/Luthecia/guide-firmin-badaud-portrait.webp'],
- ['guide_yvonne_bigorneau','images/Republia/Port-Sainte-Marie/guide-yvonne-bigorneau-portrait.webp'],
- ['guide_lucien_boulon','images/Republia/Montrouge/guide-lucien-boulon-portrait.webp'],
- ['guide_bair_namsaraev','images/Sovarka/Starovka/guide-bair-namsaraev-portrait.webp'],
- ['guide_fiodor_medvedkine','images/Sovarka/Krasnov/guide-fiodor-medvedkine-portrait.webp']
+ ['guide_zinaida_otcheredova','images/Sovarka/Novomirsk/guide-zinaida-otcheredova-portrait.webp','images/Sovarka/Novomirsk/Novomirsk_marche.webp'],
+ ['guide_firmin_badaud','images/Republia/Luthecia/guide-firmin-badaud-portrait.webp','images/marche.webp'],
+ ['guide_yvonne_bigorneau','images/Republia/Port-Sainte-Marie/guide-yvonne-bigorneau-portrait.webp','images/port-sainte-marie-marche.webp'],
+ ['guide_lucien_boulon','images/Republia/Montrouge/guide-lucien-boulon-portrait.webp','images/montrouge/montrouge-marche-exterieur.jpg'],
+ ['guide_bair_namsaraev','images/Sovarka/Starovka/guide-bair-namsaraev-portrait.webp','images/Sovarka/Starovka/Starovka_marche_marche_ext.webp'],
+ ['guide_fiodor_medvedkine','images/Sovarka/Krasnov/guide-fiodor-medvedkine-portrait.webp','images/Sovarka/Krasnov/Krasnov_marche_etals.webp']
 ];
 function chercherProfil(identifiant) {
   const vus=new WeakSet(), trouve=[];
@@ -59,17 +59,20 @@ function chercherProfil(identifiant) {
   parcourir(monde);parcourir(batiments);
   return trouve;
 }
-for(const [id,chemin] of guides){
+for(const [id,chemin,actuel] of guides){
+  const disponible=fs.existsSync(path.join(root,chemin));
+  const attendu=disponible?chemin:actuel;
+  assert.ok(fs.existsSync(path.join(root,attendu)),'Fichier guide absent: '+attendu);
+  if(!disponible) assert.ok(attendus.some(a=>a.fichier===chemin),'Guide sans portrait absent de la liste: '+id);
   const occurences=chercherProfil(id);
   if(!occurences.length){
     assert.equal(id,'guide_fiodor_medvedkine','Guide disparu du monde effectif: '+id);
     const source=lire('data.js').split('\n').find(line=>line.includes("profilId: '"+id+"'"));
-    assert.ok(source&&source.includes("photoUrl: '"+chemin+"'"),'Guide Fiodor: chemin déclaré non vérifié');
+    assert.ok(source&&source.includes("photoUrl: '"+attendu+"'"),'Guide Fiodor: chemin déclaré non vérifié');
     console.warn('HORS PORTRAITS : Fiodor déclaré dans la source mais absent du monde effectif à Krasnov');
     continue;
   }
-  for(const personnage of occurences) assert.equal(personnage.photoUrl,chemin,'Guide encore illustré par une image de lieu: '+id);
-  assert.ok(fs.existsSync(path.join(root,chemin))||attendus.some(a=>a.fichier===chemin),'Guide sans fichier et absent de la liste: '+id);
+  for(const personnage of occurences) assert.equal(personnage.photoUrl,attendu,'Raccordement guide incorrect: '+id);
 }
 const sortie={date:'2026-11-24',total_visible:presents.length,avec_portrait:presents.filter(x=>x.portrait_existant).length,a_produire:presents.filter(x=>!x.portrait_existant&&x.a_produire).length,orphelins,entrees_obsoletes:listesNul,apparitions:presents};
 if(process.env.PORTRAITS_AUDIT_OUT) fs.writeFileSync(path.resolve(process.env.PORTRAITS_AUDIT_OUT),JSON.stringify(sortie,null,2)+'\n');
@@ -77,4 +80,4 @@ console.log('Novomirsk:',sortie.total_visible,'visibles,',sortie.avec_portrait,'
 if(orphelins.length)console.error('PNJ sans portrait ni fiche à produire:',JSON.stringify(orphelins,null,2));
 assert.equal(orphelins.length,0,'Inventaire incomplet : compléter la liste avant fusion');
 assert.equal(listesNul.length,0,'Liste historique contenant des PNJ non visibles');
-console.log('Guides : six chemins dédiés contrôlés ; Fiodor signalé absent du monde effectif.');
+console.log('Guides : six raccordements existants ou portraits attendus contrôlés ; Fiodor signalé absent du monde effectif.');
