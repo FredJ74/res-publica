@@ -159,6 +159,7 @@
       '<p class="hg-acc-journal">' + esc(it.journal || '') + '</p></div></div>';
     if (it.etat === 'a_faire' || it.etat === 'ignoree') {
       h += '<p class="hg-acc-question">« ' + esc(it.question || '') + ' »</p>' +
+        '<p class="hg-acc-aide">Tu ne sais pas encore ce que tu veux devenir ? C’est normal, tu as tout le temps de te décider. Tu peux choisir « Plus tard » et continuer à explorer.</p>' +
         '<div class="hg-acc-chemins" role="radiogroup" aria-labelledby="hg-acc-titre">' +
         (etat.chemins || []).map(c => '<button type="button" role="radio" class="hg-acc-chemin" data-chemin="' + esc(c.id) + '" aria-checked="' +
           (choix === c.id) + '">' + esc(c.libelle) + '</button>').join('') + '</div>' +
