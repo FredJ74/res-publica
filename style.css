@@ -2697,3 +2697,79 @@ body.plateau-body .top-right {
 #actions-row-bat .sov-encadre-local{flex:1 1 100%;width:100%;box-sizing:border-box;border:1px solid #a98d56;border-radius:6px;
   background:#1b2531;color:#ecd8ac;padding:.7rem .8rem;margin:0 0 .5rem;line-height:1.45;font-size:1rem}
 #actions-row-bat .action-btn.action-en-tete{border-color:#C9A84C;box-shadow:0 0 0 2px #C9A84C inset;color:#f0e2b0;font-weight:600}
+
+/* CHANTIER — fenêtre simplifiée (mission Purge, bloc C, Fred, 24/11/2026 ; plateau-chantier-vue.js).
+   C.1 : résumé permanent en haut (heures du jour, matériaux du jour) ; rond « ? » ; emplacement du climat (bloc D). */
+#chantier-fenetre .cj-resume-haut{border:1px solid #a98d56;border-radius:8px;background:#1b2531;padding:.6rem .75rem;margin:0 0 .7rem}
+#chantier-fenetre .cj-resume-heures{margin:0;font-size:1.15rem!important;color:#e2e9f1;display:flex;align-items:center;flex-wrap:wrap;gap:.4rem}
+#chantier-fenetre .cj-resume-heures b{color:#e5c477;font-size:1.3rem}
+#chantier-fenetre .cj-resume-mat{margin:.5rem 0 .25rem;display:flex;align-items:center;gap:.4rem;color:#aab8c8}
+#chantier-fenetre .cj-pastilles{display:flex;flex-wrap:wrap;gap:.35rem}
+#chantier-fenetre .cj-pastille{display:inline-block;padding:.2rem .55rem;border-radius:999px;border:1px solid #667c94;background:#253347;color:#e2e9f1;font-size:1rem}
+#chantier-fenetre .cj-pastille.cj-manque{border-color:#c98a5a;color:#f2c9a0}
+.cj-aide{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;min-width:28px;padding:0;border-radius:50%;
+  border:1px solid #e5c477;background:#344354;color:#e5c477;font-weight:700;font-size:1rem!important;line-height:1;cursor:help}
+.cj-aide:hover,.cj-aide:focus-visible{background:#455a70;outline:none}
+#chantier-fenetre .cj-zone-climat{margin:0 0 .7rem}
+#chantier-fenetre .cj-zone-climat[hidden]{display:none}
+/* C.2 : « Travailler sur ce chantier » — compteur − / + plafonné, gain affiché avant validation. */
+#chantier-fenetre .cj-carte{border:1px solid #53647a;border-radius:8px;padding:.7rem .8rem;margin:.6rem 0;background:#202a36}
+#chantier-fenetre .cj-carte-titre{margin:0 0 .4rem;font-family:'Bebas Neue',sans-serif;letter-spacing:.06em;font-size:1.35rem;font-weight:400;color:#e5c477}
+#chantier-fenetre .cj-ligne-aide{margin:.2rem 0 .5rem;display:flex;align-items:center;flex-wrap:wrap;gap:.4rem;color:#e2e9f1}
+#chantier-fenetre .cj-compteur{display:inline-flex;align-items:center;gap:.5rem;margin:.3rem 0}
+#chantier-fenetre .cj-pas{width:44px;height:44px;min-width:44px;padding:0;font-size:1.5rem!important;line-height:1;font-family:inherit}
+#chantier-fenetre .cj-valeur{min-width:4.5rem;text-align:center;font-size:1.3rem!important;color:#e5c477;font-weight:600}
+#chantier-fenetre .cj-action{display:block;width:100%;min-height:44px;margin-top:.5rem;font-size:1.1rem!important}
+#chantier-fenetre .cj-raison{color:#f2c9a0;margin:.4rem 0}
+#chantier-fenetre .cj-resume{color:#b9e3a6;margin:.4rem 0}
+/* C.3 : « Vendre mes matériaux au chantier » — une carte par matériau, un bouton par action (vendre, donner). */
+#chantier-fenetre .cj-vente > .cj-carte-titre{display:flex;align-items:center;gap:.4rem;flex-wrap:wrap}
+#chantier-fenetre .cj-mat{background:#1b2531;margin:.5rem 0}
+#chantier-fenetre .cj-mat-titre{margin:0 0 .2rem;color:#e2e9f1;font-size:1.1rem!important}
+/* C.4 : « Gérer mon chantier » — vue à part, une ligne par réglage. */
+#chantier-fenetre .cj-bouton-gerer{margin-top:.8rem}
+#chantier-fenetre .cj-retour{min-height:44px;margin:0 0 .4rem;font-size:1.05rem!important}
+#chantier-fenetre .cj-reglage{display:flex;flex-wrap:wrap;align-items:center;gap:.35rem .6rem;padding:.55rem 0;border-top:1px solid rgba(153,176,198,.22)}
+#chantier-fenetre .cj-reglage:first-of-type{border-top:0}
+#chantier-fenetre .cj-reglage-nom{flex:1 1 12rem;min-width:0;color:#e2e9f1}
+#chantier-fenetre .cj-reglage-val{color:#e5c477;font-size:1.1rem!important}
+#chantier-fenetre .cj-reglage-saisie{display:flex;align-items:center;gap:.4rem;flex-wrap:wrap}
+#chantier-fenetre .cj-champ{width:7rem;max-width:100%;min-height:40px;font-size:1.05rem!important;text-align:right}
+#chantier-fenetre .cj-reglage-saisie .cpj-touche{min-height:40px}
+/* C.5 : plus de tableau à colonnes, cartes lisibles sur téléphone, couleurs du jeu, onglets jamais coupés.
+   Texte jamais sous le texte courant : la règle commune des modales (.82rem !important) est relevée ici à 1 rem. */
+#modal-postes .modal-box #chantier-fenetre :is(p, label, button, input, li, span, output, b){font-size:1rem!important;line-height:1.45}
+#chantier-fenetre{font-size:1.08rem;line-height:1.45;color:#e2e9f1;padding:.3rem .2rem .6rem;max-width:100%;box-sizing:border-box;overflow-wrap:anywhere}
+#chantier-fenetre *{box-sizing:border-box}
+#chantier-fenetre .cj-onglets{display:flex;gap:.35rem;border-bottom:2px solid #a98d56;margin:0 0 .6rem}
+#chantier-fenetre .cj-onglets button{flex:1 1 0;min-width:0;white-space:normal;font-family:'Bebas Neue',sans-serif;letter-spacing:.06em;font-size:1.15rem!important;
+  padding:.45rem .5rem;min-height:44px;border:1px solid #667c94;border-bottom:none;border-radius:6px 6px 0 0;background:#253347;color:#aab8c8;cursor:pointer}
+#chantier-fenetre .cj-onglets button[aria-selected=true]{background:#344354;border-color:#e5c477;color:#ffe2a0}
+#chantier-fenetre .cj-image{display:block;width:100%;max-height:220px;object-fit:cover;border-radius:6px;border:1px solid #a98d56}
+#chantier-fenetre .cj-texte-ligne{margin:.2rem 0}
+#chantier-fenetre .cj-explication{margin:.6rem 0 0;font-style:italic;font-size:1rem!important}
+#chantier-fenetre .cj-journal{margin:.3rem 0 0 1.1rem;padding:0}
+/* Jauges du chantier (décision du 21/11/2026, soir) : cadre bronze en relief, carrés du rouge au vert (teinte --h posée par le JS). */
+.cj-jauge{display:flex;align-items:center;flex-wrap:wrap;gap:.4rem .7rem;margin:1.25rem 0 .5rem}
+.cj-cadre{position:relative;flex:1 1 12rem;min-width:0;padding:5px;border-radius:14px;background:linear-gradient(#6a4c22,#2a1c0c);border:1px solid #a98d56;
+  box-shadow:inset 0 2px 2px rgba(255,220,150,.3),inset 0 -2px 3px rgba(0,0,0,.6),0 2px 5px rgba(0,0,0,.6)}
+.cj-onglet{position:absolute;top:-19px;left:16px;max-width:calc(100% - 24px);padding:0 12px;font-family:'Bebas Neue',sans-serif;letter-spacing:.08em;font-size:.95rem;color:#ffe2a0;
+  transform:skewX(-14deg);background:repeating-linear-gradient(135deg,#7a5626 0 7px,#5e4019 7px 10px);border:1px solid #a98d56;border-bottom:none;border-radius:4px 4px 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cj-onglet span{display:inline-block;transform:skewX(14deg)}
+.cj-cases{position:relative;display:grid;gap:2px;height:24px;padding:3px;background:#100a05;border-radius:10px;overflow:hidden}
+.cj-cases.petite{height:16px}
+.cj-cases::after{content:"";position:absolute;left:3px;right:3px;top:3px;height:42%;border-radius:8px;background:linear-gradient(rgba(255,255,255,.38),rgba(255,255,255,0));pointer-events:none}
+.cj-case{border-radius:3px;background:#2c2218;box-shadow:inset 0 0 0 1px rgba(0,0,0,.4)}
+.cj-case.sep{box-shadow:inset 2px 0 0 #e5c477}
+.cj-case.on{background:linear-gradient(hsl(var(--h,120),85%,60%),hsl(var(--h,120),80%,40%));box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 0 4px rgba(255,200,80,.25);animation:cjAllume .45s ease both}
+.cj-case.on.sep{box-shadow:inset 2px 0 0 #e5c477,inset 0 1px 0 rgba(255,255,255,.5)}
+@keyframes cjAllume{from{opacity:0;transform:scaleY(.35)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){.cj-case.on{animation:none}}
+.cj-texte{min-width:5rem;font-size:1.05rem;color:#e2e9f1;white-space:nowrap}
+.cj-trois{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.4rem .8rem}
+@media (max-width:520px){
+  #chantier-fenetre{font-size:1.02rem}
+  #chantier-fenetre .cj-compteur{display:flex;width:100%;justify-content:space-between}
+  #chantier-fenetre .cj-reglage-saisie{width:100%}
+  #chantier-fenetre .cj-reglage-saisie .cpj-touche{flex:1 1 auto}
+}

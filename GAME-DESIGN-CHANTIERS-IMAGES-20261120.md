@@ -67,3 +67,33 @@ Constat : la vue des lots (Luthécia : « LOT 1 À VENDRE… LOT 5 À VENDRE »,
 - Convention de fichiers : images/terrains/<ville>/rue-etat-1.webp, rue-etat-2.webp, rue-etat-3.webp (ville = luthecia, montrouge, psm). Repli sur l'image actuelle si un fichier manque. Fred fournira les images.
 - Même principe pour Montrouge et Port-Sainte-Marie, avec leur lotissement respectif.
 - Bancs : aucune réception → état 1 ; une réception → état 2 ; toutes les réceptions → état 3 ; fichier manquant → repli.
+
+---
+
+# Mission « Purge » du 24/11/2026, bloc C : fenêtre du chantier simplifiée — consigne de Fred, mot pour mot
+
+Elle remplace, pour la fenêtre « Le chantier », le point 6 de GAME-DESIGN-MISSION-SOIR-20261121.md (quatre onglets État,
+Stock de matériaux, Main-d'œuvre, Gestion ; tableau du stock). Le reste (images, jauges, jour d'avance, commande de nuit) est inchangé.
+
+═══ BLOC C — CHANTIER (fenêtre à simplifier au maximum) ═══
+C.1 Résumé permanent en haut : « Encore X heures à faire aujourd'hui » + « ? », et les matériaux du jour.
+C.2 « Travailler sur ce chantier » dans la fenêtre principale : heures avec + et −, plafonnées, gain affiché avant validation.
+C.3 « Vendre mes matériaux au chantier » : un seul contrôle par action.
+C.4 Propriétaire : « Gérer mon chantier » dans une fenêtre à part, une ligne par réglage.
+C.5 Plus de tableaux à colonnes : cartes lisibles sur téléphone, couleurs du jeu, onglets non coupés.
+C.6 Lot 3 de Luthécia : « Lot de la Châtaigneraie (2 300 m²) » est incohérent, renomme-le « Terrain à bâtir ».
+
+Mise en œuvre (Claude, 24/11/2026, branche `claude/purge-c-20261124`) :
+- Le plafond d'heures, le salaire, les prix et les plafonds de vente viennent du serveur : nouvelle lecture sans effet
+  `chantier_fenetre_lire` (migration `20261124120000_chantier_fenetre_lire`), qui rejoue la vraie `chantier_travailler`
+  dans une sous-transaction annulée. Gain affiché = heures choisies × salaire renvoyé par le serveur.
+- Fenêtre : résumé en haut, emplacement du climat juste dessous (rempli par le module climat, bloc D), deux onglets
+  « Participer » (par défaut : travailler, vendre) et « Avancement » (ancien « État » : image, jauges, journal) ;
+  propriétaire : bouton « Gérer mon chantier », vue à part dans la même fenêtre (jamais une fenêtre par-dessus une autre),
+  une ligne par réglage avec son seul bouton, « ← Retour au chantier ».
+- Vente : une carte par matériau ; « Vendre … » et « Donner … gratuitement » sont deux boutons distincts (la case
+  « Donner au lieu de vendre » disparaît).
+- C.6 : le libellé n'existe que dans `data.js` (description de la pièce du lot 3) ; aucune donnée en base ni renvoi
+  (quêtes, aide, i18n, bancs) ne le cite.
+- Bancs : `banc-purge-c-chantier-20261124.cjs`, `banc-purge-c-chantier-navigateur-20261124.cjs` (390 et 1280 px),
+  `banc-purge-c-chantier-pglite-20261124.cjs`.

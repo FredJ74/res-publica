@@ -6729,7 +6729,8 @@ const BUILDINGS = {
       terrain: {
         name: "Terrain",
         imageBg: "linear-gradient(135deg,#0a0a05,#12120a)",
-        desc: "Lot de la Châtaigneraie (2300 m²) en bordure de la route principale, bonne visibilité.",
+        // Purge C.6 (Fred, 24/11/2026) : ancien libellé du lot (Châtaigneraie, 2 300 m²) incohérent ; renommé « Terrain à bâtir ».
+        desc: "Terrain à bâtir",
         imageUrl: "images/terrain-a-vendre-republic.webp",
         persons: [],
         orders: [
