@@ -29,6 +29,8 @@
   global.lireEvenementsPersonnage = lireEvenementsPersonnage;
   if (typeof document !== 'undefined') {
     setTimeout(lireEvenementsPersonnage, 6000);
-    setInterval(lireEvenementsPersonnage, 60000);
+    // Onglet masqué : aucune lecture périodique (#55/#60, 24/11/2026) ; relecture au retour sur l'onglet.
+    setInterval(() => { if (!document.hidden) lireEvenementsPersonnage(); }, 60000);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) lireEvenementsPersonnage(); });
   }
 })(typeof window !== 'undefined' ? window : globalThis);

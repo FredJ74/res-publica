@@ -204,6 +204,18 @@ async function rpAuthAssurerSession() {
   return RP_AUTH_PROMESSE;
 }
 
+/* --- RENOUVELLEMENT FORCÉ (#68, mission Purge, 24/11/2026) ----------------
+   Le serveur a refusé un jeton que ce navigateur croyait encore valable (ordinateur en veille, horloge
+   décalée) : on le renouvelle tout de suite par le refresh token, sans F5 ni nouveau compte. Rend true si un
+   jeton valable est disponible ensuite.                                                                  */
+async function rpAuthForcerRenouvellement() {
+  if (!RP_AUTH_SESSION) RP_AUTH_SESSION = rpAuthLireStockage();
+  if (!RP_AUTH_SESSION || !RP_AUTH_SESSION.refresh_token) return false;
+  if (!RP_AUTH_PROMESSE) RP_AUTH_SESSION = Object.assign({}, RP_AUTH_SESSION, { expire_le: 0 });
+  await rpAuthAssurerSession().catch(() => null);
+  return !!rpAuthJeton();
+}
+
 /* --- MEMOIRE D'IDENTITE (24 septembre 2026) ------------------------------
    Une trace MINUSCULE et non secrete -- une adresse, rien d'autre, aucun jeton, aucun mot de
    passe. Elle sert a une seule chose, mais essentielle : savoir qu'un compte porte des
@@ -605,4 +617,16 @@ async function rpAuthSeDeconnecterJoueur() {
   }
   window.location.assign('index.html?connexion=1');
   return true;
+}
+
+/* Retour sur l'onglet ou retour du réseau (#68, 24/11/2026) : le jeton périmé pendant la veille est renouvelé
+   avant la première action, sans F5. Aucune requête si le jeton est encore valable. */
+if (typeof document !== 'undefined' && document.addEventListener) {
+  const rpAuthRaviver = () => {
+    if (document.hidden) return;
+    if (!RP_AUTH_SESSION) RP_AUTH_SESSION = rpAuthLireStockage();
+    if (RP_AUTH_SESSION && RP_AUTH_SESSION.refresh_token && !rpAuthSessionValide(RP_AUTH_SESSION)) rpAuthAssurerSession().catch(() => null);
+  };
+  document.addEventListener('visibilitychange', rpAuthRaviver);
+  if (typeof window !== 'undefined' && window.addEventListener) window.addEventListener('online', rpAuthRaviver);
 }

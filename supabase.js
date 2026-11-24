@@ -61,7 +61,16 @@ function sbEnTetes() {
 //
 // `envoyee` dit si la requete a quitte le navigateur. C'est la seule donnee qui permette
 // d'affirmer a un joueur que son action n'a pas pu partir -- jamais qu'elle a echoue.
-async function sbTransportRest(methode, table, filtres, corps, preferResolution) {
+// SESSION EXPIRÉE SANS F5 (#68, mission Purge, 24/11/2026). Un refus 401 du serveur arrive avant toute exécution :
+// on renouvelle le jeton et l'on renvoie la même requête UNE seule fois. Si la session est définitivement perdue
+// (compte à identifiants), la fenêtre de reconnexion du jeu s'ouvre aussitôt, sans quitter le plateau.
+function sbSignalerSessionPerdue() {
+  const etat = (typeof rpAuthEtat === 'function') ? rpAuthEtat() : null;
+  if (etat === 'reconnexion_requise' && typeof afficherBandeauReconnexion === 'function') {
+    try { afficherBandeauReconnexion(); } catch (_) {}
+  }
+}
+async function sbTransportRest(methode, table, filtres, corps, preferResolution, dejaRenouvele) {
   // Voir sbRpc : on s'assure d'avoir une session avant toute requete, pour que les policies
   // RLS voient auth.uid() plutot que la cle anon partagee. Idempotent, un seul aller-retour.
   if (typeof rpAuthAssurerSession === 'function' && typeof rpAuthJeton === 'function' && !rpAuthJeton()) {
@@ -99,6 +108,11 @@ async function sbTransportRest(methode, table, filtres, corps, preferResolution)
     try { code = (JSON.parse(texte) || {}).code || null; } catch (e) { code = null; }
     console.error('sbTransportRest ' + methode + ' ' + table + ' -> ' + res.status, texte);
     if (res.status === 401) {
+      // Refus avant exécution : jeton renouvelé, même requête renvoyée une seule fois (#68, 24/11/2026).
+      if (!dejaRenouvele && typeof rpAuthForcerRenouvellement === 'function'
+          && await rpAuthForcerRenouvellement().catch(() => false))
+        return sbTransportRest(methode, table, filtres, corps, preferResolution, true);
+      if (typeof sbSignalerSessionPerdue === 'function') sbSignalerSessionPerdue();
       return { etat: 'session_perdue', raison: 'session_perdue', http: 401, code,
                message: texte, envoyee: true, donnees: null };
     }
@@ -534,7 +548,17 @@ async function sbNomPersonnageDisponible(nom) {
 async function sbSavePersonnage(charState) {
   if (charState.personnageChargeDepuisServeur === false) return;
   const data = sbPayloadPersonnage(charState);
-  return sbEnfilerEcriturePersonnage(charState, data);
+  const empreinte = sbEmpreinteSauvegarde(data);
+  const resultat = await sbEnfilerEcriturePersonnage(charState, data);
+  // Écriture acceptée : son empreinte permet au filet de 30 s de ne rien renvoyer tant que rien n'a changé (#55/#60).
+  if (resultat && !(typeof resultat === 'object' && resultat.ok === false)) charState._empreinteSauvegardee = empreinte;
+  return resultat;
+}
+
+// Empreinte de ce qu'une sauvegarde écrirait, sans l'horodatage (mission Purge, #55/#60, 24/11/2026).
+function sbEmpreinteSauvegarde(data) {
+  try { const { updated_at, ...reste } = data || {}; return JSON.stringify([reste, data && data.inventory]); }
+  catch (_) { return null; }
 }
 
 // Construction du payload, extraite de sbSavePersonnage (chantier B, 14 septembre 2026) pour
@@ -893,6 +917,10 @@ async function sbVerifierEtSauvegarderPersonnage(charState) {
   const uid = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
   const jeton = typeof rpAuthJeton === 'function' ? rpAuthJeton() : null;
   if (!nom || !repere || charState.personnageChargeDepuisServeur === false) return;
+  // Rien n'a changé depuis la dernière écriture acceptée : aucune requête (la plus grosse consommation mesurée le
+  // 24/11/2026 : une lecture de la fiche, une écriture de fiche et une d'inventaire par joueur toutes les 30 s).
+  const empreinte = sbEmpreinteSauvegarde(sbPayloadPersonnage(charState));
+  if (empreinte && empreinte === charState._empreinteSauvegardee) return;
   try {
     const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(nom)}&select=updated_at`);
     if (!Array.isArray(rows) || rows.length !== 1 || rows[0].updated_at !== repere
@@ -5332,7 +5360,8 @@ async function sbTransportRpc(fn, params, options) {
   let cle = null;
   try { cle = JSON.stringify([typeof rpAuthUid==='function'?rpAuthUid():null,typeof rpAuthSessionIdentifiant==='function'?rpAuthSessionIdentifiant():null,fn,params ?? null]); } catch (e) { cle = null; }
   if (cle && SB_RPC_EN_VOL.has(cle)) return SB_RPC_EN_VOL.get(cle);
-  const appel = sbTransportRpcBrut(fn, params, options).then(env => {
+  const appel = sbTransportRpcBrut(fn, params, options)
+    .then(env => {
     if (env && env.envoyee && (env.etat === 'reseau' || (Number(env.http) >= 500))) sbResynchroniserApresIncertitude();
     return env;
   });
@@ -5410,6 +5439,11 @@ async function sbTransportRpcBrut(fn, params, options) {
     // ou fonction non accordee au porteur de la requete. Le joueur doit se reconnecter, et
     // surtout ne pas lire que « rien n'a ete modifie » -- ce qui est vrai mais n'explique rien.
     if (res.status === 401) {
+      // Refus avant exécution : jeton renouvelé, même requête renvoyée une seule fois (#68, 24/11/2026).
+      if (!opts._renouvele && typeof rpAuthForcerRenouvellement === 'function'
+          && await rpAuthForcerRenouvellement().catch(() => false))
+        return sbTransportRpcBrut(fn, params, Object.assign({}, opts, { _renouvele: true }));
+      if (typeof sbSignalerSessionPerdue === 'function') sbSignalerSessionPerdue();
       return { etat: 'session_perdue', raison: 'session_perdue', http: 401, code: code,
                message: texte, envoyee: true };
     }

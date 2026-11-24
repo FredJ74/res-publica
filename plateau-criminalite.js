@@ -1138,9 +1138,14 @@ async function rafraichirStatutDiscretion() {
 }
 function demarrer() {
   setTimeout(lireEvenementsCrim, 8000);
-  setInterval(lireEvenementsCrim, 60000);
+  // Onglet masqué : aucune lecture périodique (#55/#60, 24/11/2026) ; relecture immédiate au retour sur l'onglet.
+  const visible = () => !(global.document && global.document.hidden);
+  setInterval(() => { if (visible()) lireEvenementsCrim(); }, 60000);
   setTimeout(rafraichirStatutDiscretion, 9000);
-  setInterval(rafraichirStatutDiscretion, 60000);
+  setInterval(() => { if (visible()) rafraichirStatutDiscretion(); }, 60000);
+  if (global.document && global.document.addEventListener) global.document.addEventListener('visibilitychange', () => {
+    if (visible()) { lireEvenementsCrim(); rafraichirStatutDiscretion(); }
+  });
 }
 if (global.document && global.setTimeout) {
   if (global.document.readyState !== 'loading') demarrer();

@@ -132,7 +132,14 @@ jobs:
       - name: Refus serveur des ajouts d'inventaire et reprise client sans écrasement
         run: node outils/bancs/banc-verrou-inventaire-client-20261031.cjs
       - name: Pilote joueur, fixtures locales sans compte ni Supabase
-        run: npm test --prefix outils/e2e
+        # Annotations publiques des tests en échec (24/11/2026) : les journaux ne sont lisibles qu'avec un jeton.
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p /tmp/hg-bancs
+          npm test --prefix outils/e2e 2>&1 | tee /tmp/hg-bancs/pilote-e2e.log || {
+            grep -E '^✖|AssertionError|Error:' /tmp/hg-bancs/pilote-e2e.log | head -20 | while IFS= read -r l; do echo "::error title=Pilote joueur::${l:0:300}"; done
+            exit 1; }
       - name: Collecte SQL Editor identique et plan 95 puis 318 et 324
         run: |
           python3 outils/livraison/export-sql-editor-219.py --verifier-sql

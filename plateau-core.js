@@ -991,8 +991,9 @@ window.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => recupererImpactsEnAttente(), 2400);
   setTimeout(() => verifierLancementQuete(), 2600);
   setInterval(() => lancerLectureFond('evenements', chargerEvenementsPartages), 90000);
-  setInterval(recupererDonsEnAttente, 90000);
-  setInterval(recupererImpactsEnAttente, 90000);
+  // Onglet masqué : pas de lecture périodique (#55/#60, 24/11/2026) ; la suivante rattrape au retour.
+  setInterval(() => lancerLectureFond('dons', recupererDonsEnAttente), 90000);
+  setInterval(() => lancerLectureFond('impacts', recupererImpactsEnAttente), 90000);
 
   // Présence en pièce — re-publier + rafraîchir les joueurs visibles toutes les 30 secondes
   setInterval(() => {
