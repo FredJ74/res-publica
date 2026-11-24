@@ -270,4 +270,24 @@
 ];
  for(const [index,lang]of locales.entries())if(global.RP_I18N_RESOURCES?.[lang]?.translation)
   global.RP_I18N_RESOURCES[lang].translation.organizationCreation=Object.fromEntries(rows.map(row=>[row[0],row[index+1]]));
+ // Le sens d’un champ suit la langue choisie, jamais son premier caractère saisi.
+ // Présentation uniquement : aucune reconstruction, aucun événement métier.
+ function sensSaisie(){
+  const langue=global.RPPlateauI18n?.language?.() || global.RPI18nPlateau?.locale?.() || 'fr';
+  for(const id of ['orga-nom-input','orga-desc-input']){
+   const champ=global.document?.getElementById(id);
+   if(!champ)continue;
+   const dir=langue==='ar'?'rtl':'ltr';
+   if(champ.getAttribute('dir')!==dir)champ.setAttribute('dir',dir);
+   if(champ.style.textAlign!=='start')champ.style.textAlign='start';
+  }
+ }
+ (global.RP_I18N_CHANGE_CALLBACKS=global.RP_I18N_CHANGE_CALLBACKS || []).push(sensSaisie);
+ function observerFormulaire(){
+  sensSaisie();
+  if(global.MutationObserver && global.document?.body)
+   new global.MutationObserver(sensSaisie).observe(global.document.body,{childList:true,subtree:true});
+ }
+ if(global.document?.readyState==='loading')global.document.addEventListener('DOMContentLoaded',observerFormulaire,{once:true});
+ else observerFormulaire();
 })(window);
