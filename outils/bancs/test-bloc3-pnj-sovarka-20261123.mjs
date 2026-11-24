@@ -59,7 +59,7 @@ test('26 — tout PNJ visible de Sovarka a une fiche de dialogue (relevé calcul
   // Les fiches citées par le point 26, chacune à sa place.
   for (const [nom, id, ville, batiment, piece] of [
     ['Grigori Zaitsev', 'grigori_zaitsev', 'ville_b', 'cafe-tabac-cheminots-montrouge', 'salle'],
-    ['L’habitué du Bar Sever', 'habitue_krasnov', 'ville_b', 'cafe-tabac-cheminots-montrouge', 'salle'],
+    ['Prokop Stakanov', 'habitue_krasnov', 'ville_b', 'cafe-tabac-cheminots-montrouge', 'salle'],
     ['Zoïa Biletova', 'zoia_biletova', 'ville_b', 'musee-novomirsk', 'hall'],
     ['Arkadi Pamiatnikov', 'arkadi_pamiatnikov', 'ville_b', 'musee-novomirsk', 'hall'],
     ['Matveï Starikov', 'matvei_starikov', 'ville_b', 'dispensaire-public-v', 'ehpad'],
@@ -85,7 +85,7 @@ test('26 — tout PNJ visible de Sovarka a une fiche de dialogue (relevé calcul
   assert.match(TOUS_PROFILS.grigori_zaitsev.caractere, /« Lui, il sait\. Offrez-lui un verre\. »/);
   assert.match(TOUS_PROFILS.grigori_zaitsev.caractere, /essuies toujours le même verre/);
   // Le serveur voit les mêmes personnes (scènes générées depuis data.js).
-  assert.ok(SCENES_PNJ[JSON.stringify(['soviet', 'ville_b', 'cafe-tabac-cheminots-montrouge', 'salle'])].personnes.includes('L’habitué du Bar Sever'));
+  assert.ok(SCENES_PNJ[JSON.stringify(['soviet', 'ville_b', 'cafe-tabac-cheminots-montrouge', 'salle'])].personnes.includes('Prokop Stakanov'));
   assert.ok(SCENES_PNJ[JSON.stringify(['soviet', 'ville_b', 'dispensaire-public-v', 'ehpad'])].personnes.includes('Matveï Starikov'));
 });
 
@@ -135,7 +135,7 @@ test('24 — « Acheter une information » : plus d’ordre de pièce, bouton su
 });
 
 test('25 — l’habitué du Bar Sever : visible, social, verre du jour au serveur, conclusion exacte', () => {
-  const h = trouver('L’habitué du Bar Sever');
+  const h = trouver('Prokop Stakanov');   // nom donné par Fred le 24/11/2026 (point H.4)
   assert.equal(h.length, 1);
   assert.equal(h[0].profilId, 'habitue_krasnov');
   assert.equal(h[0].photo, 'images/Sovarka/Krasnov/Krasnov_portrait_cafe-tabac-cheminots-montrouge_habitue.webp');
@@ -160,7 +160,7 @@ test('25 — entrée au Bar Sever : verre offert, Santé suivie, fiche ouverte a
   const ctx = vm.createContext({ console, window: {}, appels, fiches, journal });
   vm.runInContext(`let state = { char: { name: 'Tom' }, country: 'soviet', currentCity: 'ville_b', currentBuilding: 'cafe-tabac-cheminots-montrouge', currentRoom: 'salle', hp: 50 };
     var BUILDINGS = { 'cafe-tabac-cheminots-montrouge': { rooms: { salle: { persons: [] } } } };
-    function getBuildingContext() { return { roomOverrides: { salle: { persons: [{ name: 'Grigori Zaitsev (PNJ)' }, { name: 'L’habitué du Bar Sever (PNJ)', profilId: 'habitue_krasnov' }] } } }; }
+    function getBuildingContext() { return { roomOverrides: { salle: { persons: [{ name: 'Grigori Zaitsev (PNJ)' }, { name: 'Prokop Stakanov (PNJ)', profilId: 'habitue_krasnov' }] } } }; }
     function encodePnjSafe(p) { return JSON.stringify(p); }
     function openPnjModal(enc, o) { fiches.push([JSON.parse(enc).name, o.initialSpeech]); }
     function addJournalEntry(t) { journal.push(t); }
@@ -171,11 +171,11 @@ test('25 — entrée au Bar Sever : verre offert, Santé suivie, fiche ouverte a
     ` + lire('plateau-social-pnj.js') + `;this.__entree = pnjSocialEntreeZone; this.__state = () => state; this.__rep = (r) => { REPONSE = r; };`, ctx);
   await ctx.__entree('cafe-tabac-cheminots-montrouge', 'salle');
   assert.deepEqual(appels, ['habitue_krasnov_accueillir'], 'une seule porte serveur, pas de double comptage');
-  assert.equal(fiches[0][0], 'L’habitué du Bar Sever (PNJ)');
+  assert.equal(fiches[0][0], 'Prokop Stakanov (PNJ)');
   assert.match(fiches[0][1], /^Hé, toi ! Oui, toi, le nouveau\./);
   assert.match(fiches[0][1], /Ce verre m’a donné soif ! Et je ne dis pas ça pour que tu m’en offres un en retour, mais je ne te dirais pas non si tu le fais\.$/);
   assert.equal(ctx.__state().hp, 51, 'Santé du serveur');
-  assert.deepEqual(journal, ['L’habitué du Bar Sever vous offre un verre.']);
+  assert.deepEqual(journal, ['Prokop Stakanov, l’habitué du Bar Sever, vous offre un verre.']);
   ctx.__rep({ ok: true, mode: 'souvenir', nom: 'Tom', connu: true });
   await ctx.__entree('cafe-tabac-cheminots-montrouge', 'salle');
   assert.match(fiches[1][1], /^Ah, Tom ! Encore toi !/);

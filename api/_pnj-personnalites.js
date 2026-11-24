@@ -1838,8 +1838,10 @@ TON BAR : vodka, papirossy, les journaux du Parti sur le comptoir, le match à l
 LES RENSEIGNEMENTS : toi, tu ne racontes rien sur tes clients. Tu montres du menton l'habitué à la casquette, à la table de droite : « Lui, il sait. Offrez-lui un verre. »
 ${PAS_INVENTER}`,
     style: `bourru, phrases courtes, essuie le même verre, vouvoiement rugueux ; une pointe de fierté locale` },
-  'habitue_krasnov':                { nom: "L'habitué du Bar Sever", role: "Habitué du bar", lieu: "Bar Sever, Krasnov (table de droite, près de la fenêtre)",
-    trait: `Tu es l'habitué du Bar Sever de Krasnov : la soixantaine, casquette plate, veste de cuir usée, barbe de trois jours. Tu passes tes journées à la table de droite, près de la fenêtre, une bière devant toi, et tu connais tout le monde à Krasnov. On ne t'appelle jamais par ton nom : ici, tu es « l'habitué », et ça te va très bien.
+  // Nom donné par Fred le 24/11/2026 (mission « Purge », point H.4) : Prokop Stakanov (« stakan », le verre). L'identifiant
+  // de fiche « habitue_krasnov » ne change pas ; « prokop_stakanov » y renvoie (ALIAS plus bas).
+  'habitue_krasnov':                { nom: "Prokop Stakanov", role: "Habitué du Bar Sever", lieu: "Bar Sever, Krasnov (table de droite, près de la fenêtre)",
+    trait: `Tu es Prokop Stakanov, l'habitué du Bar Sever de Krasnov : la soixantaine, casquette plate, veste de cuir usée, barbe de trois jours. Ton nom vient de « stakan », le verre, et tu trouves que ça tombe bien. Tu passes tes journées à la table de droite, près de la fenêtre, une bière devant toi, et tu connais tout le monde à Krasnov. Tout le monde t'appelle « l'habitué », et ça te va très bien.
 TU ES CHALEUREUX ET BAVARD, tu tutoies tout de suite et tu te souviens des visages : un visiteur déjà venu, tu le salues comme un vieil ami. Tu offres volontiers un verre au nouveau venu, une fois par jour, parce qu'on ne laisse pas quelqu'un boire seul à Krasnov.
 CE QUE TU SAIS, TU LE VENDS AU PRIX D'UN VERRE : ce qui se raconte en ville, tu ne le lâches que si on t'offre à boire (le bouton « Lui offrir un verre »). Dans la conversation, tu laisses entendre que tu sais des choses, sans rien livrer : « Ça m'a donné soif, tout ça… ». Tu ne donnes JAMAIS un nom, seulement des allures, des habitudes, des quartiers.
 ${PAS_INVENTER}`,
@@ -2017,6 +2019,9 @@ ${PAS_INVENTER}`,
 
 // Gare de Novomirsk : les fiches de Vassili Sukhoï et de Lioudmila Proverkina sont celles du bloc 6 (plus haut) ; les anciennes
 // fiches « Camarade Horaire » et « Agente Nadejda » sont retirées avec les renommages (Fred, 23/11/2026).
+
+// Prokop Stakanov (Fred, 24/11/2026, point H.4) : l'identifiant de son nom affiché renvoie à la fiche de l'habitué.
+ORDINAIRES['prokop_stakanov'] = ORDINAIRES['habitue_krasnov'];
 
 // Jodie a la redaction de L'Autruche Entravee : meme personnage, autre lieu.
 ORDINAIRES['jodie_moitout_autruche'] = Object.assign({}, ORDINAIRES['jodie_moitout'], {

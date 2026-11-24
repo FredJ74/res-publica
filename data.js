@@ -13501,9 +13501,11 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     const liste = personnes(batiment, piece);
     if (!liste.some(x => x.name === personne.name)) liste.push(personne);
   }
-  // Point 25 : l'habitué du Bar Sever.
-  ajouter('cafe-tabac-cheminots-montrouge', 'salle', { name: 'L’habitué du Bar Sever (PNJ)', role: 'Habitué du bar', rel: 'friendly',
-    job: 'habitue', profilId: 'habitue_krasnov', nonRecrutable: true,
+  // Point 25 : l'habitué du Bar Sever. Il s'appelle Prokop Stakanov (Fred, 24/11/2026, mission « Purge », point H.4) ;
+  // l'identifiant technique « habitue_krasnov » (informateur, PNJ social, verre du jour, réglages MJ) ne change pas, et
+  // l'ancien nom affiché reste en `ancienNom`.
+  ajouter('cafe-tabac-cheminots-montrouge', 'salle', { name: 'Prokop Stakanov (PNJ)', role: 'Habitué du bar', rel: 'friendly',
+    ancienNom: 'L’habitué du Bar Sever', job: 'habitue', profilId: 'habitue_krasnov', nonRecrutable: true,
     photoUrl: dir + 'Krasnov_portrait_cafe-tabac-cheminots-montrouge_habitue.webp', photoPos: '50% 30%' });
   // Point 26 : musée de Krasnov (accueil).
   renommer('musee-novomirsk', 'hall', 'Hôtesse du musée de Krasnov', 'Zoïa Biletova', { profilId: 'zoia_biletova',

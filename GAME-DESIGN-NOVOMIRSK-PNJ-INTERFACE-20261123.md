@@ -82,7 +82,9 @@ Chaque point porte un banc qui l'empêche de revenir (liste dans RELAIS.md).
     compte dans la Santé) ; ensuite il accueille le PJ en se souvenant de lui. Il conclut : « Ce verre m'a donné soif !
     Et je ne dis pas ça pour que tu m'en offres un en retour, mais je ne te dirais pas non si tu le fais. » Bouton
     « Lui offrir un verre » (7 à 20 PSK, barème existant) → information. L'ordre « Offrir un verre à l'habitué » est
-    **supprimé**.
+    **supprimé**. **Nom (Fred, 24/11/2026, mission « Purge », point H.4) : Prokop Stakanov** ; 3 h entre deux visites, un
+    verre par jour (réglages MJ `habitue_krasnov_accueil_heures` = 3 et `habitue_krasnov_verres_par_jour` = 1 ; identifiant
+    technique `habitue_krasnov` inchangé).
 26. **Fiches de dialogue DeepSeek** :
     - **Grigori Zaitsev**, patron du Bar Sever : la cinquantaine, bourru mais pas méchant, essuie toujours le même
       verre, phrases courtes ; vodka, papirossy, journaux du Parti, match à la radio ; renvoie à l'habitué (« Lui, il

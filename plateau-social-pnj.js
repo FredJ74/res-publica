@@ -51,15 +51,15 @@ const RP_SOCIAL_LIEUX = {
 // jour (une fois par jour et par PJ, le verre compte dans la Santé) ou s'il accueille le PJ en se souvenant de lui
 // (habitue_krasnov_accueillir, migration 20261123210000). Ce fichier ne dit que les phrases.
 const RP_HABITUE_KRASNOV = { pays: 'soviet', ville: 'ville_b', batiment: 'cafe-tabac-cheminots-montrouge', piece: 'salle',
-  pnj: 'L’habitué du Bar Sever' };
+  pnj: 'Prokop Stakanov' };   // nom donné par Fred le 24/11/2026 (point H.4), identifiant habitue_krasnov inchangé
 // Conclusion exacte décidée par Fred (point 25).
 const RP_HABITUE_CONCLUSION = 'Ce verre m’a donné soif ! Et je ne dis pas ça pour que tu m’en offres un en retour, mais je ne te dirais pas non si tu le fais.';
 const RP_HABITUE_TEXTES = {
   verreInconnu: 'Hé, toi ! Oui, toi, le nouveau. Au Bar Sever, on ne laisse personne boire seul. Grigori, un verre pour mon ami ! Na zdorovie !',
   verreConnu: 'Te revoilà, {nom} ! Je me souviens de toi, va. Grigori, la même chose pour mon ami ! Na zdorovie !',
   souvenir: 'Ah, {nom} ! Encore toi ! Ton verre, tu l’as déjà eu aujourd’hui, camarade. Mais assieds-toi, on causera.',
-  journalVerre: 'L’habitué du Bar Sever vous offre un verre.',
-  journalSouvenir: 'L’habitué du Bar Sever vous reconnaît.'
+  journalVerre: 'Prokop Stakanov, l’habitué du Bar Sever, vous offre un verre.',
+  journalSouvenir: 'Prokop Stakanov, l’habitué du Bar Sever, vous reconnaît.'
 };
 function habitueTexte(cle, v) {
   return String(RP_HABITUE_TEXTES[cle] || '').replace(/\{(\w+)\}/g, (m, k) => (v && k in v) ? String(v[k]) : m);

@@ -75,7 +75,7 @@ function lignes() {
   }
   // L'habitué du Bar Sever de Krasnov (lot de Krasnov, point 8) : généraliste, piste du colonel Voronov au premier choix.
   out.push({ id: 'habitue_krasnov', pays: 'soviet', ville: 'ville_b', batiment: 'cafe-tabac-cheminots-montrouge', piece: null,
-    nom: 'L’habitué du Bar Sever', role: 'Habitué du bar', profil: 'generaliste', sujet: null });
+    nom: 'Prokop Stakanov', role: 'Habitué du bar', profil: 'generaliste', sujet: null });   // nom : Fred, 24/11/2026 (point H.4)
   return out.sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
 }
 
