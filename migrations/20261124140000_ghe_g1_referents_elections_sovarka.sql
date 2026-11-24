@@ -1,4 +1,4 @@
--- NON APPLIQUÉE — l'agent principal l'applique à la fusion (mission « Purge », 24/11/2026).
+-- APPLIQUÉE en production le 24/11/2026 (contrôlée en lecture) — l'agent principal l'applique à la fusion (mission « Purge », 24/11/2026).
 -- Point G.1 (Fred, 24/11/2026) : dans les trois villes de Sovarka, les secrétaires de mairie et les officiers des salles
 -- des partis deviennent des référents élections (ils expliquent comment se présenter ; fiches DeepSeek :
 -- api/_pnj-personnalites.js, SAVOIR_CANDIDATURE_SOVARKA). La liste fermée pnj_referents est celle que lit le PNJ guide

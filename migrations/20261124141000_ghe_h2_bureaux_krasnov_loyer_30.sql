@@ -1,4 +1,4 @@
--- NON APPLIQUÉE — l'agent principal l'applique à la fusion (mission « Purge », 24/11/2026).
+-- APPLIQUÉE en production le 24/11/2026 (contrôlée en lecture) — l'agent principal l'applique à la fusion (mission « Purge », 24/11/2026).
 -- Point H.2 (Fred, 23/11 au soir, consigne du 24/11/2026) : bureaux du centre d'affaires de Krasnov, loyer de départ
 -- 30 PSK par jour, réglable par le maire entre 0 et 40. Le plafond (40) et la porte du maire (sovarka_local_loyer :
 -- loyer entre 0 et le plafond) existent déjà (migrations 20261106133000, 20261123214000) ; seul le loyer de départ change,

@@ -1,4 +1,4 @@
--- NON APPLIQUÉE — l'agent principal l'applique à la fusion (mission « Purge », 24/11/2026).
+-- APPLIQUÉE en production le 24/11/2026 (contrôlée en lecture) — l'agent principal l'applique à la fusion (mission « Purge », 24/11/2026).
 -- Point H.3 (Fred, 24/11/2026) : au musée de Krasnov, Arkadi Pamiatnikov répond aux questions libres, 1 PA pour
 -- 3 questions, par salle et par jour, comme à Novomirsk (Ouliana au musée national, Ilia au musée municipal).
 -- Même compteur serveur (guide_musee_dialogues, guide_musee_dialogue_lire / _ouvrir / question_consommer, tarif

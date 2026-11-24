@@ -1,4 +1,4 @@
--- NON APPLIQUÉE — l'agent principal l'applique à la fusion (mission « Purge », 24/11/2026).
+-- APPLIQUÉE en production le 24/11/2026 (contrôlée en lecture) — l'agent principal l'applique à la fusion (mission « Purge », 24/11/2026).
 -- Point H.4 (Fred, 24/11/2026) : l'habitué du Bar Sever (Krasnov) s'appelle Prokop Stakanov ; 3 h entre deux visites,
 -- un verre par jour. L'identifiant technique « habitue_krasnov » ne change pas (informateur, relation sociale, verres
 -- offerts, réglages MJ, RPC habitue_krasnov_accueillir) : seuls le nom affiché du référentiel des informateurs et les

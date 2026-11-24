@@ -1,4 +1,4 @@
--- NON APPLIQUÉE — l'agent principal l'applique à la fusion (mission « Purge », 24/11/2026).
+-- APPLIQUÉE en production le 24/11/2026 (contrôlée en lecture) — l'agent principal l'applique à la fusion (mission « Purge », 24/11/2026).
 -- Point H.11 (Fred, 24/11/2026) : la quête active de Sovarka « Une affaire mystérieuse » (quetes_actives,
 -- id quete-1790260995706, pnj_actif « Armurier Militaire », caserne-militaire / armurerie_militaire) précise dans son TEXTE
 -- quel « Armurier Militaire » elle vise : le Sergent Bogdan Zatvorov (nom validé par Fred le 23/11, point 44), à
