@@ -9,6 +9,14 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Mission de nuit (Claude, 25/11/2026) — suivi : `docs/suivi-decisions.md`, section « Mission de nuit »
+- Bloc 1.1 (sur main) : Mathias Spirine (ex-Docteur Aspirine, commit 32e5b8d de Fred) — profil de dialogue, miroir des scènes,
+  banc de l'hôpital de Novomirsk (Luthécia garde ses images). Suite complète des bancs verte. CI : `workflow_dispatch` sur
+  « Cohérence client » ; sur une branche de chantier, les bancs liés à toute la branche (depuis main) sont rejoués.
+- Migrations écrites, **non appliquées** (Fred valide au matin, dans l'ordre) : 20261125100000 (Mathias Spirine dans
+  pnj_lieux_metiers), 20261125110000 (temps de jeu, page restée ouverte), 20261125120000 (Subtiliser des explosifs),
+  20261125130000 (chances réelles). Contrôles en lecture en tête de chaque fichier.
+
 ### Mission « Purge » (Claude, 24/11/2026) — tableau de suivi : `docs/suivi-decisions.md`
 - Tout est sur main (blocs 0, 1, A à H). Comptes rendus détaillés par bloc, migrations, questions de game design et **listes
   « Pour Codex »** (textes français nouveaux ou changés, à traduire à son retour le 27/11) : `docs/purge/BLOC-A.md`, `BLOC-B.md`,

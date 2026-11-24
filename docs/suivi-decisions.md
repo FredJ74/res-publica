@@ -270,3 +270,9 @@ et sur le registre de production jusqu'à `20261123222538 renommages_pnj_finale`
 | 24/11/2026 | A.4 / A.5 Interview signée par le journaliste du pays (Jodie Moitout en Républia, Vera Pravdina en Sovarka), presse filtrée par pays, article de Bernard re-signé ; question « que voulez-vous être… vous avez tout le temps de vous décider ». Migrations appliquées. | en ligne | 24/11/2026 | e6118464 | Mission Purge A.4-A.5 |
 | 24/11/2026 | A.8 Notifications navigateur du chat (bulle « ? », réglage serveur, une par interlocuteur, une par heure, nom et lieu seulement, jamais pendant la première heure ni pour le PNJ guide). Migration appliquée. | en ligne | 24/11/2026 | e6118464 | Mission Purge A.8 |
 | 24/11/2026 | A.10 PNJ guide (journaliste du pays + un habitant par ville : Firmin Badaud, Yvonne Bigorneau, Lucien Boulon, Zinaïda Otcheredova, Bair Namsaraev, Fiodor Medvedkine). Migration 20261124106000 appliquée le 24/11 sur demande de Fred (contrôlée : 6 habitants, 42 pistes). | en ligne | 24/11/2026 | e6118464 | Mission Purge A.10 |
+
+## Mission de nuit (25/11/2026)
+
+| Date | Décision | État | En ligne le | Commit | Source |
+|---|---|---|---|---|---|
+| 25/11/2026 | 1.1 Généraliste du dispensaire de Luthécia renommé Mathias Spirine (Fred, 32e5b8d) : profil de dialogue, miroir des scènes et bancs à jour ; images propres à Luthécia, salle d'attente et chambre séparées (H.1). Miroir serveur du casting : migration 20261125100000 écrite, non appliquée. | en cours |  |  | Mission de nuit 1.1 |

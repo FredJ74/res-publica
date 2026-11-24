@@ -8,6 +8,8 @@ on:
   # Contrôle nocturne (décision de Fred, 17/11/2026) : 3 h, heure de Paris en hiver.
   schedule:
     - cron: '0 2 * * *'
+  # Suite complète à la demande (mission de nuit 25/11/2026 : le commentaire l'annonçait, le déclencheur manquait).
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -285,8 +287,11 @@ jobs:
           AVANT: ${{ github.event.before }}
         run: |
           git fetch --no-tags origin main:refs/remotes/origin/main || true
-          if [ "$EVENEMENT" = "push" ]; then
+          if [ "$EVENEMENT" = "push" ] && [ "$GITHUB_REF" = "refs/heads/main" ]; then
             python3 outils/bancs/controler-client.py --rapport /tmp/hg-bancs --part ${{ matrix.part }}/6 --modifies-depuis "$AVANT"
+          elif [ "$EVENEMENT" = "push" ]; then
+            # Branche de chantier (25/11/2026) : tout ce que la branche change depuis main, pas seulement la dernière poussée.
+            python3 outils/bancs/controler-client.py --rapport /tmp/hg-bancs --part ${{ matrix.part }}/6 --modifies-depuis ""
           else
             python3 outils/bancs/controler-client.py --rapport /tmp/hg-bancs --part ${{ matrix.part }}/6
           fi
