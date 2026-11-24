@@ -1,0 +1,37 @@
+name: Accueil progressif nouveaux personnages
+on:
+  pull_request:
+    paths:
+      - 'plateau-accueil-progressif.js'
+      - 'plateau-accueil-interview.js'
+      - 'plateau-core.js'
+      - 'plateau-pnj.js'
+      - 'plateau-quete-accueil.js'
+      - 'plateau.html'
+      - 'outils/bancs/banc-accueil-progressif-20261124.cjs'
+      - '.github/workflows/accueil-progressif-20261124.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'plateau-accueil-progressif.js'
+      - 'plateau-accueil-interview.js'
+      - 'plateau-core.js'
+      - 'plateau-pnj.js'
+      - 'plateau-quete-accueil.js'
+      - 'plateau.html'
+      - 'outils/bancs/banc-accueil-progressif-20261124.cjs'
+      - '.github/workflows/accueil-progressif-20261124.yml'
+jobs:
+  accueil:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check plateau-accueil-progressif.js
+      - run: node --check plateau-accueil-interview.js
+      - run: node --check plateau-core.js
+      - run: node --check plateau-pnj.js
+      - run: node --check plateau-quete-accueil.js
+      - run: node --test outils/bancs/banc-accueil-progressif-20261124.cjs

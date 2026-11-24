@@ -107,7 +107,7 @@ window.RP_I18N_RESOURCES = {
       // AVANT de les demander, et on ne cache pas qu'un compte est reellement cree.
       auth: {
         title: "Avant de créer votre personnage",
-        intro: "Indiquez une adresse e-mail et choisissez un mot de passe. Ils vous permettront de retrouver votre personnage et de vous connecter à Res Publica depuis n'importe quel ordinateur, téléphone ou tablette.",
+        intro: "Indiquez une adresse e-mail et choisissez un mot de passe. Ils vous permettront de retrouver votre personnage et de vous connecter à Human Gambit depuis n'importe quel ordinateur, téléphone ou tablette.",
         promise: "Votre personnage vous suivra partout.",
         emailPlaceholder: "Votre adresse e-mail...",
         emailHint: "Cette adresse sécurise votre compte et permet de le retrouver. Elle ne sert à rien d'autre.",
@@ -358,7 +358,7 @@ window.RP_I18N_RESOURCES = {
       // them, without hiding that an account is really being created.
       auth: {
         title: "Before you create your character",
-        intro: "Enter an email address and choose a password. They will let you find your character again and sign in to Res Publica from any computer, phone or tablet.",
+        intro: "Enter an email address and choose a password. They will let you find your character again and sign in to Human Gambit from any computer, phone or tablet.",
         promise: "Your character goes wherever you do.",
         emailPlaceholder: "Your email address...",
         emailHint: "This address secures your account and lets you recover it. It is used for nothing else.",
@@ -1579,7 +1579,7 @@ window.RP_I18N_RESOURCES = {
     beta: { title: "HUMAN GAMBIT ABRE SUA BETA.", body: "Dois impérios abrem suas portas. Na Républia: três cidades, uma Assembleia, tribunais, um campeonato e algumas pessoas pouco recomendáveis. Na Sovarka: o Partido, seus kolkhozes, seus Heróis do Trabalho e uma floresta onde ronda um urso. Os impérios vizinhos aguardam sua vez. O que você fizer aqui — e o que nos contar sobre isso — vai moldar o que vem a seguir." }
   }, auth: {
       title: "Antes de criar seu personagem",
-      intro: "Informe seu e-mail e escolha uma senha. Assim você poderá recuperar seu personagem e entrar em Res Publica de qualquer dispositivo.",
+      intro: "Informe seu e-mail e escolha uma senha. Assim você poderá recuperar seu personagem e entrar em Human Gambit de qualquer dispositivo.",
       promise: "Seu personagem vai com você a qualquer lugar.",
       emailPlaceholder: "Seu endereço de e-mail...",
       emailHint: "Este endereço protege sua conta e permite recuperá-la. Não será usado para outra finalidade.",
@@ -1645,7 +1645,7 @@ window.RP_I18N_RESOURCES = {
     beta: { title: "HUMAN GAMBIT STARTET DIE BETA.", body: "Zwei Imperien öffnen ihre Tore. In Républia: drei Städte, eine Versammlung, Gerichte, eine Meisterschaft und ein paar zwielichtige Gestalten. In Sovarka: die Partei, ihre Kolchosen, ihre Helden der Arbeit und ein Wald, in dem ein Bär umherstreift. Die Nachbarimperien warten darauf, dass sie an der Reihe sind. Was Sie hier tun – und was Sie uns darüber erzählen – wird die Fortsetzung prägen." }
   }, auth: {
       title: "Bevor du deinen Charakter erstellst",
-      intro: "Gib deine E-Mail-Adresse ein und wähle ein Passwort. Damit kannst du deinen Charakter wiederfinden und dich von jedem Gerät bei Res Publica anmelden.",
+      intro: "Gib deine E-Mail-Adresse ein und wähle ein Passwort. Damit kannst du deinen Charakter wiederfinden und dich von jedem Gerät bei Human Gambit anmelden.",
       promise: "Dein Charakter begleitet dich überallhin.",
       emailPlaceholder: "Deine E-Mail-Adresse...",
       emailHint: "Diese Adresse schützt dein Konto und hilft bei der Wiederherstellung. Sie wird für nichts anderes verwendet.",

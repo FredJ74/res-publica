@@ -305,7 +305,7 @@
     "citizen": "Citizen",
     "streetHint": "In the street — Click a building to enter",
     "noItems": "No items",
-    "gameGuide": "Res Publica — Player guide"
+    "gameGuide": "Human Gambit — Player guide"
   },
   "es": {
     "building": "Edificio",
@@ -318,7 +318,7 @@
     "citizen": "Ciudadano",
     "streetHint": "En la calle — Haz clic en un edificio para entrar",
     "noItems": "Sin objetos",
-    "gameGuide": "Res Publica — Guía del jugador"
+    "gameGuide": "Human Gambit — Guía del jugador"
   },
   "zh-TW": {
     "building": "建築",
@@ -331,7 +331,7 @@
     "citizen": "公民",
     "streetHint": "街道上 — 點選建築即可進入",
     "noItems": "沒有物品",
-    "gameGuide": "Res Publica — 玩家指南"
+    "gameGuide": "Human Gambit — 玩家指南"
   },
   "ru": {
     "building": "Здание",
@@ -344,7 +344,7 @@
     "citizen": "Гражданин",
     "streetHint": "На улице — Нажмите на здание, чтобы войти",
     "noItems": "Нет предметов",
-    "gameGuide": "Res Publica — Руководство игрока"
+    "gameGuide": "Human Gambit — Руководство игрока"
   },
   "ko": {
     "building": "건물",
@@ -357,7 +357,7 @@
     "citizen": "시민",
     "streetHint": "거리 — 건물을 눌러 입장하세요",
     "noItems": "아이템 없음",
-    "gameGuide": "Res Publica — 플레이어 안내서"
+    "gameGuide": "Human Gambit — 플레이어 안내서"
   },
   "ar": {
     "building": "المبنى",
@@ -370,7 +370,7 @@
     "citizen": "مواطن",
     "streetHint": "في الشارع — انقر على مبنى للدخول إليه",
     "noItems": "لا توجد أغراض",
-    "gameGuide": "Res Publica — دليل اللاعب"
+    "gameGuide": "Human Gambit — دليل اللاعب"
   },
   "pt-BR": {
     "building": "Edifício",
@@ -383,7 +383,7 @@
     "citizen": "Cidadão",
     "streetHint": "Na rua — Clique em um edifício para entrar",
     "noItems": "Nenhum item",
-    "gameGuide": "Res Publica — Guia do jogador"
+    "gameGuide": "Human Gambit — Guia do jogador"
   },
   "de": {
     "building": "Gebäude",
@@ -396,7 +396,7 @@
     "citizen": "Bürger",
     "streetHint": "Auf der Straße — Klicke auf ein Gebäude, um es zu betreten",
     "noItems": "Keine Gegenstände",
-    "gameGuide": "Res Publica — Spielerhandbuch"
+    "gameGuide": "Human Gambit — Spielerhandbuch"
   }
 };
   for(const [locale,labels] of Object.entries(secondaryLabels)) Object.assign(translations[locale],labels);

@@ -1174,7 +1174,7 @@ function blocOrientation(p) {
 function profilReferent(p, savoir) {
   return {
     nom: p.nom,
-    identite: `Tu es ${p.nom}, ${p.role}. Ton lieu de travail : ${p.lieu}. Tu es un personnage de l'univers de Res Publica, jamais un assistant.`,
+    identite: `Tu es ${p.nom}, ${p.role}. Ton lieu de travail : ${p.lieu}. Tu es un personnage de l'univers de Human Gambit, jamais un assistant.`,
     caractere: [p.temperament, 'TA FACON DE PARLER : ' + p.style, 'TON HUMOUR : ' + p.humour]
                  .join('\n') + blocTics(p),
     savoir: [savoir, 'TON DOMAINE : ' + p.domaine].filter(Boolean).join('\n\n'),

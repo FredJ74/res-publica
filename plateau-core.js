@@ -729,7 +729,7 @@ window.addEventListener('load', () => {
   // 4 s : laisse la reconciliation asynchrone se terminer avant de dresser l'etat.
   setTimeout(() => {
     const d = window.__rpDiagId || { etapes: [] };
-    const texte = 'RES PUBLICA — diagnostic identite\n'
+    const texte = 'HUMAN GAMBIT — diagnostic identite\n'
       + 'bandeau present a l\'ecran : ' + (document.getElementById('bandeau-personnage-fantome') ? 'oui' : 'non') + '\n'
       + (d.etapes.length ? d.etapes.join('\n') : '(aucune etape consignee)');
     const boite = document.createElement('div');
@@ -1089,8 +1089,12 @@ window.addEventListener('DOMContentLoaded', () => {
       sessionStorage.setItem('journaliste_done', '1');
     }
   }, 5000);
-  // Journal du jour en dernier — après tous les autres
-  setTimeout(() => afficherJournalDuJour(), 8000);
+  // L'accès volontaire au journal reste immédiat ; seule sa présentation automatique
+  // attend une heure de présence active pour le nouveau PJ (sans empêcher les anciens joueurs).
+  setTimeout(() => {
+    if (window.RPAccueilProgressif) window.RPAccueilProgressif.programmerJournal(() => afficherJournalDuJour());
+    else afficherJournalDuJour();
+  }, 8000);
 
   // Forcer le rendu complet au chargement
   setTimeout(() => {
