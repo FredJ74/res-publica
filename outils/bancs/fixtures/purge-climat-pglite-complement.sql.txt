@@ -155,3 +155,10 @@ CREATE OR REPLACE FUNCTION public.achat_requete_ouvrir_interne(p_acteur text, p_
 $$ SELECT resultat || '{"rejeu":true}'::jsonb FROM public.requetes_test WHERE acteur = p_acteur AND requete = p_requete $$;
 CREATE OR REPLACE FUNCTION public.achat_requete_clore_interne(a text, r uuid, f text, p jsonb, v jsonb) RETURNS jsonb LANGUAGE sql AS
 $$ INSERT INTO public.requetes_test VALUES (a, r, v) RETURNING resultat $$;
+
+-- Points d'eau : forme de production (après 20261124130000) au lieu du bouchon du socle crue-chantier.
+DROP TABLE IF EXISTS public.climat_points_eau;
+CREATE TABLE public.climat_points_eau (id text PRIMARY KEY, pays text NOT NULL, ville text NOT NULL, noeud text NOT NULL, nom text NOT NULL,
+  image text, actif boolean NOT NULL DEFAULT true, batiment text, remplace_par text);
+INSERT INTO public.climat_points_eau (id, pays, ville, noeud, nom) VALUES
+  ('starovka-fontaine-mairie', 'soviet', 'ville_a', 'starovka-rue-mairie-marche', 'la fontaine de la place de la mairie, à Starovka');

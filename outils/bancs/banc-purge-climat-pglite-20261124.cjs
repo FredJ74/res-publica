@@ -227,3 +227,11 @@ test('D.4 : réglage MJ « l’eau lève l’arrêt » à 0 → l’eau est offe
   assert.equal((await nuit(db)).climat, 'canicule');
   await db.exec(lire('migrations/20261124134000_chantier_canicule_eau_ouvriers.sql'));
 });
+
+test('D.5 : Starovka exclue des canicules (création refusée, planifiées annulées) ; Krasnov reste possible', async () => {
+  let id;
+  const db = await base({ avantMigrations: async d => { id = await evenement(d, 'canicule', 9, { pays: 'soviet', ville: 'ville_a', effets: false }); } });
+  assert.equal((await un(db, 'SELECT annule FROM climat_evenements WHERE id = $1', [id])).annule, true);
+  assert.equal((await un(db, "SELECT climat_creer_interne('canicule','soviet','ville_a', (now() AT TIME ZONE 'Europe/Paris')::date + 5, 'T', 'mj') id")).id, null);
+  assert.notEqual((await un(db, "SELECT climat_creer_interne('canicule','soviet','ville_b', (now() AT TIME ZONE 'Europe/Paris')::date + 5, 'T', 'mj') id")).id, null);
+});

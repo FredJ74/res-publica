@@ -195,3 +195,7 @@ blizzard et de la canicule, fontaine de Starovka).
   inventaire ; ligne « eau offerte » au journal du chantier. **Effet choisi par Claude, à confirmer par Fred** : l'eau lève l'arrêt
   de canicule pour ce chantier (travail des joueurs accepté, la nuit suivante le chantier avance) — réglage MJ
   `canicule_eau_leve_arret` (1 = oui, 0 = geste sans effet sur l'arrêt).
+- **D.5** : Starovka est exclue des canicules (`climat_villes_exclues`, ligne canicule / Sovarka / Starovka ; aucune canicule
+  n'y avait de toute façon jamais été réglée). La fontaine de la place de la mairie de Starovka est **retirée** (désactivée) :
+  plus d'ordre « Puiser de l'eau » dans la vue `starovka-rue-mairie-marche`, la liste du navigateur ne la renvoie plus, le
+  message « pas de point d'eau ici » dit que Starovka n'en a pas. Starovka compte donc cinq villes sur six avec fontaine.

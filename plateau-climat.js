@@ -434,7 +434,7 @@ const EAU_TXT = {
   quantite: 'Nombre de bouteilles à puiser',
   bouton: 'Puiser',
   fermer: 'Fermer',
-  ailleurs: 'Il n’y a pas de point d’eau ici : chaque ville a sa fontaine, sur sa place principale (à Krasnov, la place de l’Ours ; à Luthécia, la place du Formulaire de la Liberté).',
+  ailleurs: 'Il n’y a pas de point d’eau ici : chaque ville a sa fontaine, sur sa place principale (à Krasnov, la place de l’Ours ; à Luthécia, la place du Formulaire de la Liberté), sauf Starovka, qui n’en a pas.',
   ancien: 'Ce bouton a été remplacé par l’ordre « Puiser de l’eau » de la place.',
 };
 function eauTxt(k, v) {

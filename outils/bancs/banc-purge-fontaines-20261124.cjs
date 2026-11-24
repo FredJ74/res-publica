@@ -2,6 +2,7 @@
 // Mission « Purge » du 24/11/2026, bloc F (images de fontaines) et D.5 (pas de fontaine à Starovka).
 // F.1 : la fontaine de Luthécia est déplacée du parvis de l'Hôtel de Ville vers la place du Formulaire de la Liberté, un lieu
 //       où l'on entre ; « Puiser de l'eau » s'y fait dans la pièce ; l'ancien emplacement est redirigé.
+// D.5 : pas de fontaine à Starovka (désactivée, aucun renvoi dans le vide).
 // F.2 : les images de Montrouge et de Port-Sainte-Marie sont branchées sur les fontaines déjà en base.
 // Partie PGlite (migration 20261124130000) : PGLITE_DIR=<dossier de @electric-sql/pglite> ; partie statique sans dépendance.
 const test = require('node:test'), assert = require('node:assert/strict'), fs = require('node:fs'), path = require('node:path');
@@ -40,7 +41,7 @@ if (!PGlite) { test('PGlite absent : partie serveur exécutée par son workflow 
 
 const TOM = '00000000-0000-0000-0000-000000000001';
 const MIGRATIONS = ['20261121170000_point_eau_puiser_mairie_krasnov', '20261122161000_points_eau_une_fontaine_par_ville',
-  '20261124130000_fontaine_luthecia_place_formulaire'];
+  '20261124130000_fontaine_luthecia_place_formulaire', '20261124135000_starovka_sans_canicule_ni_fontaine'];
 async function base({ jusqua = MIGRATIONS.length } = {}) {
   const db = new PGlite();
   await db.exec(lire('outils/bancs/fixtures/point-eau-pglite-socle.sql.txt'));
@@ -48,7 +49,8 @@ async function base({ jusqua = MIGRATIONS.length } = {}) {
     INSERT INTO public.rue_noeuds_serveur VALUES ('soviet','ville_b','krasnov-place-ours'), ('republic','capitale','luthecia-hotel-de-ville'),
       ('republic','capitale','luthecia-stade-multimodal'), ('republic','ville_b','montrouge-vue-7'), ('republic','ville_a','psm-hotel-mairie-place'),
       ('soviet','capitale','novomirsk-vue-1'), ('soviet','ville_a','starovka-rue-mairie-marche');
-    INSERT INTO public.rue_sorties_batiments VALUES ('republic','capitale','luthecia-stade-multimodal','place-formulaire-liberte');`);
+    INSERT INTO public.rue_sorties_batiments VALUES ('republic','capitale','luthecia-stade-multimodal','place-formulaire-liberte');
+    CREATE TABLE public.climat_evenements (id bigserial PRIMARY KEY, type text, pays text, ville text, debut timestamptz, annule boolean DEFAULT false);`);
   for (const m of MIGRATIONS.slice(0, jusqua)) await db.exec(lire('migrations/' + m + '.sql'));
   await db.query("UPDATE personnages_donnees SET country = 'republic', current_city = 'capitale', current_building = NULL, current_street = 'luthecia-hotel-de-ville', pa = 10 WHERE name = 'Tom'");
   return db;
@@ -100,4 +102,24 @@ test('F.1 : redirection de l’ancien emplacement, consigne de canicule, liste d
   assert.equal((await un(db, 'SELECT count(*)::int c FROM (SELECT 1 FROM climat_points_eau WHERE actif GROUP BY pays, ville HAVING count(*) > 1) x')).c, 0);
   await db.exec(lire('migrations/20261124130000_fontaine_luthecia_place_formulaire.sql'));
   assert.equal((await un(db, 'SELECT count(*)::int c FROM climat_points_eau')).c, 7);
+});
+
+test('D.5 avant / après : Starovka avait une fontaine sur la place de la mairie ; elle n’en a plus, sans renvoi dans le vide', async () => {
+  const avant = await base({ jusqua: 3 });
+  await avant.query("UPDATE personnages_donnees SET country = 'soviet', current_city = 'ville_a', current_street = 'starovka-rue-mairie-marche' WHERE name = 'Tom'");
+  assert.equal((await comme(avant, 'SELECT public.point_eau_etat() r')).r.ok, true, 'avant : fontaine de Starovka');
+  const db = await base();
+  await db.query("UPDATE personnages_donnees SET country = 'soviet', current_city = 'ville_a', current_street = 'starovka-rue-mairie-marche' WHERE name = 'Tom'");
+  const e = (await comme(db, 'SELECT public.point_eau_etat() r')).r;
+  assert.equal(e.ok, false); assert.equal(e.raison, 'pas_de_point_eau');
+  const l = (await un(db, 'SELECT public.climat_points_eau_lister() l')).l;
+  assert.ok(!l.points.some(x => x.ville === 'ville_a' && x.pays === 'soviet'), 'la liste du navigateur ne la renvoie plus');
+  assert.doesNotMatch((await un(db, "SELECT public.climat_consigne_interne('canicule','soviet','ville_a') c")).c || '', /fontaine/);
+  assert.equal((await un(db, "SELECT count(*)::int c FROM climat_villes_exclues WHERE type = 'canicule' AND pays = 'soviet' AND ville = 'ville_a'")).c, 1);
+  // Aucun renvoi ne pointe dans le vide ; les cinq autres villes gardent leur fontaine.
+  assert.equal((await un(db, `SELECT count(*)::int c FROM climat_points_eau p WHERE remplace_par IS NOT NULL AND NOT EXISTS
+    (SELECT 1 FROM climat_points_eau q WHERE q.id = p.remplace_par AND q.actif)`)).c, 0);
+  assert.equal((await un(db, 'SELECT count(DISTINCT (pays, ville))::int c FROM climat_points_eau WHERE actif')).c, 5);
+  assert.match(lire('plateau-climat.js'), /sauf Starovka, qui n’en a pas/);
+  await db.exec(lire('migrations/20261124135000_starovka_sans_canicule_ni_fontaine.sql'));
 });
