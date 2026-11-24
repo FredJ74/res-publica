@@ -75,7 +75,8 @@ test('fenêtre d’inspection : trois volets ; « Voler » en face du matériel 
   await ctx.ouvrirFenetreInspecter('installe');
   let [titre, h] = html.pop();
   assert.equal(titre, 'Inspecter la pièce');
-  for (const v of ['Ce qui est installé ici', 'Fouiller les lieux', 'Désinstaller']) assert.ok(h.includes('>' + v + '</button>'), v);
+  for (const v of ['Ce qui est installé ici <span class="hg-cout">· gratuit</span>', 'Fouiller les lieux <span class="hg-cout">· 1 PA</span>', 'Désinstaller <span class="hg-cout">· 2 PA</span>']) assert.ok(h.includes('>' + v + '</button>'), v);
+  assert.ok(h.includes('Passer d’un onglet à l’autre est gratuit.'), 'note des onglets');
   assert.match(h, /Ordinateur de Tom <span class="cpj-note">\(à quelqu’un d’autre\)<\/span><\/span><button type="button" class="cpj-touche" data-voler="e1">Voler \(2 PA\)<\/button>/, '« Voler (2 PA) » : coût affiché (23/11/2026)');
   assert.doesNotMatch(h, /data-voler="e2"/, 'pas de « Voler » pour son propre matériel');
   assert.doesNotMatch(h, /data-desinstaller/, 'pas de désinstallation dans le premier volet');
