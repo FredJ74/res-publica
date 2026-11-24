@@ -1,4 +1,4 @@
--- NON APPLIQUÉE — à appliquer par l'agent principal à la fusion (mission « Purge », bloc B, point B.1).
+-- APPLIQUÉE en production le 24/11/2026 (contrôlée : 3 raccords purge_b1) — à appliquer par l'agent principal à la fusion (mission « Purge », bloc B, point B.1).
 -- RÈGLES D'ACCÈS DES FORUMS (Fred, 24/11/2026 ; GAME-DESIGN-FORUMS.md, section « Règles d'accès du 24/11/2026 ») :
 --   - le forum national de son pays est toujours accessible (son pays = sa NATIONALITÉ, jamais sa position) ;
 --   - à l'étranger, le forum national du pays visité est en lecture seule ;
