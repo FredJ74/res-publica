@@ -646,32 +646,33 @@ async function ouvrirCalendrierElectoral() {
   const POSTE_GLOIRE = { id: 'gloire_partis', name: 'Semaine à la gloire des partis', niveau: 'national', gloire: true };
   const postesAffiches = (country === 'soviet' && CYCLES_ELECTORAUX[country]?.gloire_partis) ? [...postes, POSTE_GLOIRE] : postes;
 
-  const phaseLabelCourt = {
+  // CALENDRIER EN CARTES SIMPLES (Fred, 24/11/2026, mission « Purge », point G.2) : une carte par scrutin, l'étape en
+  // cours sur une ligne en gros, une frise Candidatures → Campagne → Vote → Résultats avec des dates courtes et les
+  // candidats ; la règle générale dans la bulle « ? » ; les heures exactes et le second tour derrière « Détails ».
+  // Couleurs : classes hg-cal-* de style.css (aucune couleur ici). Les dates sont celles des cycles du serveur.
+  const etapeEnCours = {
     [PHASES_ELECTORALES.MANDAT]:            'Mandat en cours',
-    [PHASES_ELECTORALES.CANDIDATURES]:      'Candidatures',
+    [PHASES_ELECTORALES.CANDIDATURES]:      'Candidatures ouvertes',
     [PHASES_ELECTORALES.CAMPAGNE]:          'Campagne',
-    [PHASES_ELECTORALES.VOTE]:              '🗳 Vote en cours',
-    [PHASES_ELECTORALES.SECOND_TOUR]:       'Campagne — second tour',
-    [PHASES_ELECTORALES.VOTE2]:             '🗳 Vote — second tour',
-    [PHASES_ELECTORALES.CAMPAGNE_3E_SIEGE]: 'Campagne — départage 3e siège',
-    [PHASES_ELECTORALES.VOTE3E_SIEGE]:      '🗳 Vote — départage 3e siège',
+    [PHASES_ELECTORALES.VOTE]:              'Vote en cours',
+    [PHASES_ELECTORALES.SECOND_TOUR]:       'Second tour — campagne',
+    [PHASES_ELECTORALES.VOTE2]:             'Second tour — vote en cours',
+    [PHASES_ELECTORALES.CAMPAGNE_3E_SIEGE]: 'Départage du 3e siège — campagne',
+    [PHASES_ELECTORALES.VOTE3E_SIEGE]:      'Départage du 3e siège — vote en cours',
     [PHASES_ELECTORALES.DEPOUILLEMENT]:     'Dépouillement',
-    [PHASES_ELECTORALES.VACANT]:            'Vacant',
+    [PHASES_ELECTORALES.VACANT]:            'Poste vacant — candidatures ouvertes',
   };
-  const phaseCouleurCourt = {
-    [PHASES_ELECTORALES.MANDAT]:            '#4a8a4a',
-    [PHASES_ELECTORALES.CANDIDATURES]:      '#4a6aaa',
-    [PHASES_ELECTORALES.CAMPAGNE]:          '#aa8a4a',
-    [PHASES_ELECTORALES.VOTE]:              '#4a8a4a',
-    [PHASES_ELECTORALES.SECOND_TOUR]:       '#8a6a4a',
-    [PHASES_ELECTORALES.VOTE2]:             '#4a8a4a',
-    [PHASES_ELECTORALES.CAMPAGNE_3E_SIEGE]: '#8a6a4a',
-    [PHASES_ELECTORALES.VOTE3E_SIEGE]:      '#4a8a4a',
-    [PHASES_ELECTORALES.DEPOUILLEMENT]:     '#6a6a8a',
-    [PHASES_ELECTORALES.VACANT]:            '#8a3a2a',
+  // Case de la frise allumée pour chaque phase (−1 : aucune, le mandat suit son cours).
+  const caseDeLaPhase = {
+    [PHASES_ELECTORALES.CANDIDATURES]: 0, [PHASES_ELECTORALES.VACANT]: 0,
+    [PHASES_ELECTORALES.CAMPAGNE]: 1, [PHASES_ELECTORALES.SECOND_TOUR]: 1, [PHASES_ELECTORALES.CAMPAGNE_3E_SIEGE]: 1,
+    [PHASES_ELECTORALES.VOTE]: 2, [PHASES_ELECTORALES.VOTE2]: 2, [PHASES_ELECTORALES.VOTE3E_SIEGE]: 2,
+    [PHASES_ELECTORALES.DEPOUILLEMENT]: 3
   };
+  const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  const dateCourte = ts => ts ? new Date(ts).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) : '—';
 
-  const lignes = postesAffiches.map(p => {
+  const lignes = postesAffiches.map((p, rang) => {
     const estLocal = posteEstLocal(p.id);
     const city = estLocal ? villeCourante : null;
     const cle = getCleCycle(p.id, city);
@@ -684,75 +685,118 @@ async function ouvrirCalendrierElectoral() {
     // La gloire se decompte en une fois a la proclamation (parti le plus suivi) : pas de second tour.
     if (p.gloire) detail.lignes = detail.lignes.filter(l => l.label !== 'Second tour éventuel');
 
+    // Frise : quatre étapes, dates courtes ; l'étape en cours est allumée, les passées sont cochées.
+    const actuelle = Object.prototype.hasOwnProperty.call(caseDeLaPhase, phase) ? caseDeLaPhase[phase] : -1;
+    const etapes = [['Candidatures', cycle?.dateDebutCandidatures], ['Campagne', cycle?.dateDebutCampagne],
+                    ['Vote', cycle?.dateVote], ['Résultats', cycle?.dateResultats]];
+    const frise = '<ol class="hg-cal-frise">' + etapes.map(([nom, ts], i) =>
+      '<li class="hg-cal-case' + (i === actuelle ? ' hg-cal-actuelle' : (actuelle > i ? ' hg-cal-passee' : '')) + '">' +
+        '<span class="hg-cal-case-nom">' + nom + '</span><span class="hg-cal-case-date">' + dateCourte(ts) + '</span></li>').join('') + '</ol>';
+
+    const candidats = nbCandidats > 0
+      ? '<div class="hg-cal-candidats">' + (p.gloire ? 'Partis' : 'Candidats') + ' : ' +
+          cycle.candidats.map(c => esc(c.nom) + (c.topicId
+            ? ' <a href="#" class="hg-cal-lien" onclick="ouvrirProgrammeCandidat(\'' + String(c.topicId).replace(/'/g, '') + '\');return false;">[voir le programme]</a>'
+            : '')).join(' · ') + '</div>'
+      : '<div class="hg-cal-candidats cpj-note">' + (p.gloire ? 'Aucun parti pour l’instant.' : 'Aucun candidat pour l’instant.') + '</div>';
+
+    // Détails : titulaire, heures exactes, second tour, prochaine échéance, accès au bureau de vote.
     const renderLigneDetail = l => {
       const contenu = l.texte ? l.texte : (l.fin ? ('du ' + formatDateHeure(l.debut) + ' au ' + formatDateHeure(l.fin)) : formatDateHeure(l.debut));
-      return '<div style="font-size:.75rem;color:#a89870;padding:.15rem 0"><span style="color:#c0b090">' + l.label + '</span> : ' + contenu + '</div>';
+      return '<div class="hg-cal-detail-ligne"><span class="hg-cal-detail-nom">' + l.label + '</span> : ' + contenu + '</div>';
     };
-
-    // Mise en evidence de la prochaine echeance utile (demande explicite du chantier) : la
-    // variable equivalente existait deja dans l'ancienne version de cet ecran mais n'etait
-    // jamais affichee -- corrige ici.
     const prochaineHtml = detail.prochaine
-      ? '<div style="margin-top:.35rem;padding:.35rem .5rem;background:#161206;border:1px solid #3a2a10;border-radius:3px;font-size:.75rem;color:#E8C97A">' +
-          '➜ ' + detail.prochaine.label + ' le ' + formatDateHeure(detail.prochaine.date) +
-          (diffCourt(detail.prochaine.date) ? ' <span style="color:#8a7a50">(' + diffCourt(detail.prochaine.date) + ')</span>' : '') +
-        '</div>'
+      ? '<div class="hg-cal-prochaine">➜ ' + detail.prochaine.label + ' le ' + formatDateHeure(detail.prochaine.date) +
+          (diffCourt(detail.prochaine.date) ? ' (' + diffCourt(detail.prochaine.date) + ')' : '') + '</div>'
       : '';
+    const idDetails = 'hg-cal-details-' + rang;
+    const details = '<div class="hg-cal-details" id="' + idDetails + '" hidden>' +
+        '<div class="hg-cal-detail-ligne">' + (p.gloire ? (titulaire ? '✦ Parti vainqueur : ' + esc(titulaire) : 'Les partis recrutent leurs partisans par les tracts')
+          : (titulaire ? '✦ ' + esc(titulaire) : 'Poste vacant')) + '</div>' +
+        detail.lignes.map(renderLigneDetail).join('') + prochaineHtml +
+        (p.gloire ? '' : '<button type="button" class="cpj-touche" onclick="ouvrirBureauDeVoteBtn(this)" data-poste="' + p.id + '" data-country="' + country + '" data-city="' + (city || '') + '">Bureau de vote →</button>') +
+      '</div>';
 
-    return '<div style="padding:.6rem .4rem;border-bottom:1px solid #1a1810">' +
-      '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.3rem">' +
-        '<div>' +
-          '<div style="font-family:Bebas Neue,sans-serif;font-size:.9rem;color:#e0d5b8">' + labelPoste + '</div>' +
-          '<div style="font-size:.75rem;color:#a89870">' +
-            (p.gloire ? (titulaire ? '✦ Parti vainqueur : ' + titulaire : 'Les partis recrutent leurs partisans par les tracts')
-              : (titulaire ? '✦ ' + titulaire : 'Poste vacant')) +
-          '</div>' +
-        '</div>' +
-        '<div style="text-align:right">' +
-          '<div style="font-size:.75rem;font-family:Bebas Neue,sans-serif;color:' + (phaseCouleurCourt[phase] || '#6a5a30') + ';letter-spacing:.06em">' + (phaseLabelCourt[phase] || phase || '?') + '</div>' +
-          '<div style="font-size:.72rem;color:#a89870">' + nbCandidats + (p.gloire ? ' parti(s)' : ' candidat(s)') + '</div>' +
-        '</div>' +
-      '</div>' +
-      // LE CALENDRIER DEVIENT LE TABLEAU DE BORD DE L'ELECTION (16 septembre 2026) : chaque
-      // candidat declare y figure, avec l'acces direct a son programme publie au forum.
-      (nbCandidats > 0
-        ? '<div style="font-size:.72rem;color:#c0b090;margin-bottom:.3rem">' + (p.gloire ? 'Partis' : 'Candidats') + ' : ' +
-          cycle.candidats.map(c => c.nom + (c.topicId
-            ? ' <a href="#" onclick="ouvrirProgrammeCandidat(\'' + String(c.topicId).replace(/'/g, '') + '\');return false;" style="color:#8aaaea;text-decoration:none;font-size:.68rem">[voir le programme]</a>'
-            : '')).join(' · ') + '</div>'
-        : '') +
-      // Détail calendaire réel (dates/heures) — plus un jargon de phase abstrait seul
-      (detail.lignes.length > 0
-        ? '<div style="background:#0a0907;border:1px solid #1a1810;border-radius:3px;padding:.3rem .5rem;margin-top:.3rem">' +
-          detail.lignes.map(renderLigneDetail).join('') +
-          '</div>'
-        : '') +
-      prochaineHtml +
-      // Boutons action (aucun pour la gloire : on y soutient un parti par les tracts, pas par un bulletin)
-      (p.gloire ? '' : '<div style="display:flex;gap:.4rem;margin-top:.4rem">' +
-        '<button onclick="ouvrirBureauDeVoteBtn(this)" data-poste="' + p.id + '" data-country="' + country + '" data-city="' + (city||'') + '" style="font-size:.7rem;font-family:Bebas Neue,sans-serif;padding:.25rem .6rem;border:1px solid #4a3a20;background:transparent;color:#b0a080;cursor:pointer">Détails →</button>' +
-        // « Se porter candidat » vit desormais ICI, et nulle part ailleurs. La condition est celle
-        // du jeu (candidaturesOuvertes), pas la seule phase CANDIDATURES -- c'est la meme regle
-        // que verifie le serveur. Un candidat deja declare ne se la voit pas proposer deux fois.
-        ((candidaturesOuvertes(cycle) && !(cycle.candidats || []).some(c => c.nom === state.char?.name)
-          && candidaturePossibleIci(p.id, country, city))
-          ? '<button onclick="ouvrirRedactionProgramme(this)" data-poste="' + p.id + '" data-country="' + country + '" data-city="' + (city||'') + '" style="font-size:.7rem;font-family:Bebas Neue,sans-serif;padding:.25rem .6rem;border:1px solid #5a7aca;background:transparent;color:#8aaaea;cursor:pointer">📋 Se porter candidat</button>'
+    const peutCandidater = !p.gloire && candidaturesOuvertes(cycle) && !(cycle.candidats || []).some(c => c.nom === state.char?.name)
+      && candidaturePossibleIci(p.id, country, city);
+
+    return '<section class="hg-cal-carte">' +
+      '<div class="hg-cal-titre">' + labelPoste + '</div>' +
+      '<div class="hg-cal-etape">' + (etapeEnCours[phase] || 'Aucun scrutin en cours') + '</div>' +
+      frise +
+      '<div class="hg-cal-compte cpj-note">' + nbCandidats + (p.gloire ? ' parti(s)' : ' candidat(s)') + '</div>' +
+      candidats +
+      '<div class="hg-cal-actions">' +
+        '<button type="button" class="cpj-touche hg-cal-bouton-details" aria-expanded="false" aria-controls="' + idDetails + '" ' +
+          'onclick="const d=document.getElementById(\'' + idDetails + '\');d.hidden=!d.hidden;this.setAttribute(\'aria-expanded\',String(!d.hidden));">Détails</button>' +
+        // « Se porter candidat » vit ICI, et nulle part ailleurs (16/09/2026). La condition est celle du jeu
+        // (candidaturesOuvertes), la même que vérifie le serveur ; un candidat déclaré ne se la voit pas proposer deux fois.
+        (peutCandidater
+          ? '<button type="button" class="cpj-touche cpj-primaire" onclick="ouvrirRedactionProgramme(this)" data-poste="' + p.id + '" data-country="' + country + '" data-city="' + (city || '') + '">📋 Se porter candidat</button>'
           : '') +
-      '</div>') +
-    '</div>';
+      '</div>' +
+      details +
+    '</section>';
   }).join('');
 
+  // Règle générale (audit E7, 02/11/2026) : dans la bulle « ? », deux phrases.
+  const regle = 'Un mandat dure 5 semaines : candidatures pendant les 4 premières, campagne la 5e. ' +
+    'On vote le dernier dimanche, résultat à minuit ; un second tour, si nécessaire, a lieu le dimanche suivant.';
   document.getElementById('postes-modal-title').textContent = '📅 Calendrier Électoral — ' + (co?.n || country);
   document.getElementById('postes-body').innerHTML =
-    '<div style="padding:.2rem .4rem;min-width:540px;max-width:680px">' +
-    // Regle du calendrier de succession (audit E7, 02/11/2026) : l'ancien bandeau annoncait
-    // encore « Candidatures : 7 jours · Campagne : 7 jours ».
-    '<div class="cpj-note" style="font-size:.72rem;padding:.3rem .4rem;margin-bottom:.3rem;font-style:italic">' +
-      'Mandat de 5 semaines · Candidatures pendant les 4 premières semaines · Gel et campagne la 5e · Vote le dernier dimanche, résultat à minuit · Second tour (si nécessaire) le dimanche suivant · Après une prolongation : 1 semaine de candidatures' +
-    '</div>' +
-    lignes +
+    '<div class="hg-cal">' +
+      '<div class="hg-cal-entete"><span>Les scrutins de ' + esc(co?.n || country) + (villeNom ? ' et de ' + esc(villeNom) : '') + '</span>' +
+        bulleAideHtml(regle) + '</div>' +
+      lignes +
     '</div>';
+  brancherBullesAide(document.getElementById('postes-body'));
   document.getElementById('modal-postes').classList.add('open');
+}
+
+// ROND « ? » (règle de la mission « Purge », 24/11/2026) : bulle de deux phrases au survol ET au toucher, même habillage
+// que les infobulles des jauges (classe hg-jauge-bulle de style.css). Une seule bulle à la fois, refermée en touchant
+// ailleurs, en faisant défiler ou par Échap.
+function bulleAideHtml(texte) {
+  const t = String(texte || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+  return '<button type="button" class="hg-aide-rond" aria-label="Aide : ' + t + '" data-aide="' + t + '">?</button>';
+}
+function brancherBullesAide(racine) {
+  if (!racine || typeof document === 'undefined' || !racine.querySelectorAll) return;
+  const bulle = () => {
+    let b = document.getElementById('hg-aide-bulle');
+    if (!b) { b = document.createElement('div'); b.id = 'hg-aide-bulle'; b.className = 'hg-jauge-bulle'; b.setAttribute('role', 'tooltip'); b.hidden = true; document.body.appendChild(b); }
+    return b;
+  };
+  const montrer = rond => {
+    const b = bulle(), r = rond.getBoundingClientRect(), vw = window.innerWidth || 1024, vh = window.innerHeight || 768;
+    if (b.hidden || b.dataset.source !== rond.dataset.aide) b.dataset.depuis = String(Date.now());
+    b.textContent = rond.dataset.aide || ''; b.dataset.source = rond.dataset.aide || ''; b.hidden = false;
+    const largeur = Math.min(300, vw - 32); b.style.maxWidth = largeur + 'px';
+    b.style.left = Math.max(16, Math.min(r.left, vw - largeur - 16)) + 'px'; b.style.top = (r.bottom + 8) + 'px';
+    const h = b.getBoundingClientRect().height;
+    if (r.bottom + 8 + h > vh - 8) b.style.top = Math.max(8, r.top - h - 8) + 'px';
+  };
+  const cacher = () => { const b = document.getElementById('hg-aide-bulle'); if (b) b.hidden = true; };
+  racine.querySelectorAll('.hg-aide-rond').forEach(rond => {
+    if (rond.dataset.branche) return;
+    rond.dataset.branche = '1';
+    rond.addEventListener('mouseenter', () => montrer(rond));
+    rond.addEventListener('mouseleave', cacher);
+    rond.addEventListener('focus', () => montrer(rond));
+    rond.addEventListener('blur', cacher);
+    rond.addEventListener('keydown', e => { if (e.key === 'Escape') cacher(); });
+    rond.addEventListener('click', e => {   // toucher : bascule (le toucher émet aussi focus juste avant)
+      e.stopPropagation();
+      const b = document.getElementById('hg-aide-bulle');
+      if (b && !b.hidden && b.dataset.source === rond.dataset.aide && Date.now() - Number(b.dataset.depuis || 0) > 600) { cacher(); return; }
+      montrer(rond);
+    });
+  });
+  if (!brancherBullesAide.global) {
+    brancherBullesAide.global = true;
+    document.addEventListener('click', e => { if (!e.target.closest || !e.target.closest('.hg-aide-rond')) cacher(); });
+    window.addEventListener('scroll', cacher, true);
+  }
 }
 
 // ==========================================================================================
