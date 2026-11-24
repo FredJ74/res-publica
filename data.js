@@ -806,7 +806,7 @@ const WORLD = {
         // pour commissariat-local/banque-locale/tribunal-local). persons top-level (hors
         // roomOverrides) reste le mecanisme deja en place pour la 1ere room (attente) -- Corinne
         // Titgoute (accueil) rejoint Betty Dine (infirmiere, conservee) plutot que de la
-        // remplacer, meme convention que Docteur Aspirine + Anne Tibiotique a Luthecia. orders non
+        // remplacer, meme convention que Mathias Spirine + Anne Tibiotique a Luthecia. orders non
         // touches : soin_public/vendre_ressource_medicale restent sur la base partagee.
         'dispensaire-public-v': {
           roomOverrides: {
@@ -11710,7 +11710,7 @@ function CHAMBRE_HOPITAL_ORDRES_SOVARKA() { return CHAMBRE_HOPITAL_ORDRES(); }
 // Sovarka (migration 20261114130000). Image provisoire de Montrouge, en attendant celles de Fred.
 (function () {
   const chambres = {
-    capitale: ['dispensaire-public', "Une chambre d'hôpital propre et calme, au bout du couloir du dispensaire. Le Docteur Aspirine y prescrit, évidemment, du repos."],
+    capitale: ['dispensaire-public', "Une chambre d'hôpital propre et calme, au bout du couloir du dispensaire. Le docteur Mathias Spirine y prescrit, évidemment, du repos."],
     ville_a: ['dispensaire-public-v', "Une petite chambre blanche qui sent l'iode et le linge propre. Par la fenêtre, on aperçoit les mâts du port."]
   };
   Object.entries(chambres).forEach(([ville, [batiment, desc]]) => {
