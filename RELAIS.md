@@ -16,6 +16,17 @@ Règles : voir `AGENTS.md`.
 - Migrations écrites, **non appliquées** (Fred valide au matin, dans l'ordre) : 20261125100000 (Mathias Spirine dans
   pnj_lieux_metiers), 20261125110000 (temps de jeu, page restée ouverte), 20261125120000 (Subtiliser des explosifs),
   20261125130000 (chances réelles). Contrôles en lecture en tête de chaque fichier.
+- **Fusion bloquée** : la poussée directe sur main a été refusée à l'agent (pas de `gh` ici). Chaîne linéaire à fusionner dans
+  cet ordre, chaque branche contenant la précédente : `claude/nuit-ci-20261125` (1.1) → `chatgpt/portraits-pnj-20261124`
+  (PR #1196, main de la nuit déjà intégré) → `claude/nuit-fiodor-20261125` (1.3) → `claude/nuit-temps-jeu-20261125` (2) →
+  `claude/nuit-explosifs-20261125` (3) → `claude/nuit-chances-20261125` (4). Fusionner la dernière suffit (avance rapide).
+- Bloc 2 : cause = page masquée sur téléphone (aucun envoi 19 h 45-20 h 20 UTC pour Han Watta Tsé) ; `accueil_reprise`.
+- Bloc 3 : l'ordre cliqué passe par `militaire_subtiliser_tenter` (pas `crime_acheter_explosifs`, marché noir, inchangé).
+- Bloc 4 : `ordres_chances_lire` (se cacher, subtiliser, explosifs, rumeur, neutraliser) ; `plateau-chances-reelles.js` ;
+  audit 4.2 : `docs/nuit/AUDIT-CHANCES-20261125.md` (écarts à trancher, aucune règle changée).
+- **Pour Codex** (français nouveau, à traduire) : description de « Subtiliser des explosifs » (data.js, clé de
+  `i18n/infobulles-communes-resources.js` à remplacer) ; motif « Vol d'explosifs militaires » ; « Vos chances réelles : X % »
+  (`plateau-chances-reelles.js`, `plateau-ordres-info.js`, `plateau-criminalite.js`).
 
 ### Mission « Purge » (Claude, 24/11/2026) — tableau de suivi : `docs/suivi-decisions.md`
 - Tout est sur main (blocs 0, 1, A à H). Comptes rendus détaillés par bloc, migrations, questions de game design et **listes
