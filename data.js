@@ -1982,7 +1982,7 @@ const WORLD = {
           // Seules leurs images et leurs personnes présentes sont propres à Novomirsk.
           roomOverrides: {
             accueil_police: {
-              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_Commissariat_acceuil.webp',
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_Commissariat_accueil.webp',
               persons: [
                 {name:'Gardien de la Paix (PNJ)', role:'Sergent d’accueil', rel:'neutral', job:'gardien_paix'}
               ]
@@ -2095,7 +2095,7 @@ const WORLD = {
             salle_attente: {
               name: 'Accueil',
               desc: "Un hall ancien mais bien entretenu. Une infirmière reçoit les patients, tandis qu'un médecin veille à leur orientation.",
-              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_hopital_acceuil.webp',
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_hopital_accueil.webp',
               persons: [
                 {name:'Infirmière de Novomirsk (PNJ)', role:'Infirmière d’accueil', rel:'neutral', job:'infirmier'},
                 {name:'Médecin de garde de Novomirsk (PNJ)', role:'Médecin', rel:'neutral', job:'medecin'}
@@ -2104,7 +2104,7 @@ const WORLD = {
             ehpad_tilleuls: {
               name: 'EHPAD de Novomirsk',
               desc: "Un service de long séjour très sommaire mais propre, où les personnes âgées sont accompagnées au quotidien.",
-              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_hopital_EPHAD.webp',
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_hopital_EHPAD.webp',
               persons: []
             }
           },
@@ -2726,7 +2726,7 @@ const WORLD = {
           name: 'Hôpital municipal de Krasnov',
           roomOverrides: {
             attente: { imageUrl: 'images/Sovarka/Krasnov/Krasnov_hopital_accueil.webp' },
-            ehpad: { imageUrl: 'images/Sovarka/Krasnov/Krasnov_hopital_EPHAD.webp' }
+            ehpad: { imageUrl: 'images/Sovarka/Krasnov/Krasnov_hopital_EHPAD.webp' }
           }
         },
         // Krasnov conserve les ordres de transport du socle, mais possède son propre hall.
@@ -7436,7 +7436,7 @@ const BUILDINGS = {
       bureau_republia_novomirsk: {
         name: "Ambassade de Républia",
         imageBg: "linear-gradient(135deg,#10141c,#161c26)",
-        imageUrl: "images/Sovarka/Novomirsk/Novomirsk_amabassades_Republia.webp",
+        imageUrl: "images/Sovarka/Novomirsk/Novomirsk_ambassades_Republia.webp",
         desc: "Le bureau de l'ambassadeur de Républia. On n'y est reçu que sur audience, demandée à l'accueil.",
         persons: [{name:'Hubert de La Courtoisie (PNJ)', role:"Ambassadeur de Républia", rel:'neutral', job:'ambassadeur'}],
         orders: [

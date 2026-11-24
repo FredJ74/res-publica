@@ -13,8 +13,8 @@ const source=vm.runInContext('BUILDINGS["dispensaire-public"]',scope);
 assert.equal(actual.name,'Hôpital public de Novomirsk');
 assert.deepEqual(Object.keys({...source.rooms,...actual.roomsExtra}),['salle_attente','ehpad_tilleuls','chambre']);
 for(const [key,file] of Object.entries({
-  salle_attente:'Novomirsk_hopital_acceuil.webp',
-  ehpad_tilleuls:'Novomirsk_hopital_EPHAD.webp',
+  salle_attente:'Novomirsk_hopital_accueil.webp',
+  ehpad_tilleuls:'Novomirsk_hopital_EHPAD.webp',
   chambre:'Novomirsk_hopital_chambre.webp',
 })){
   const salle=actual.roomOverrides[key]||actual.roomsExtra[key];

@@ -45,6 +45,26 @@
       "destination": "/images/arme-kalachnikov-soviet.webp"
     },
     {
+      "source": "/images/Sovarka/Novomirsk/Novomirsk_Commissariat_acceuil.webp",
+      "destination": "/images/Sovarka/Novomirsk/Novomirsk_Commissariat_accueil.webp"
+    },
+    {
+      "source": "/images/Sovarka/Novomirsk/Novomirsk_hopital_acceuil.webp",
+      "destination": "/images/Sovarka/Novomirsk/Novomirsk_hopital_accueil.webp"
+    },
+    {
+      "source": "/images/Sovarka/Novomirsk/Novomirsk_hopital_EPHAD.webp",
+      "destination": "/images/Sovarka/Novomirsk/Novomirsk_hopital_EHPAD.webp"
+    },
+    {
+      "source": "/images/Sovarka/Krasnov/Krasnov_hopital_EPHAD.webp",
+      "destination": "/images/Sovarka/Krasnov/Krasnov_hopital_EHPAD.webp"
+    },
+    {
+      "source": "/images/Sovarka/Novomirsk/Novomirsk_amabassades_Republia.webp",
+      "destination": "/images/Sovarka/Novomirsk/Novomirsk_ambassades_Republia.webp"
+    },
+    {
       "source": "/images/arme-makarov-soviet.png",
       "destination": "/images/arme-makarov-soviet.webp"
     },
