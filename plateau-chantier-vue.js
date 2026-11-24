@@ -242,7 +242,11 @@ const TXTC = {
   x_tresorerie_insuffisante: 'La trésorerie du chantier ne peut plus payer d’heures.', x_chantier_intemperies: 'Le chantier est arrêté par les intempéries.',
   x_pas_sur_place: 'Vous devez être sur le terrain pour travailler.', x_acteur_incapacite: 'Vous êtes hospitalisé : impossible de travailler.',
   x_acteur_detenu: 'Vous êtes détenu : impossible de travailler.', x_terrain_gele: 'Ce terrain est gelé (succession en cours).',
-  x_defaut: 'Le travail n’est pas possible pour l’instant.'
+  x_defaut: 'Le travail n’est pas possible pour l’instant.',
+  v_titre: 'Vendre mes matériaux au chantier', v_prix: '{m} : {p} {cur} l’unité', v_note: 'Le chantier en rachète encore {n} aujourd’hui. Vous en avez {a}.',
+  v_moins: 'Une unité de moins', v_plus: 'Une unité de plus', v_vendre: 'Vendre {q} {m} · {t} {cur}', v_donner: 'Donner {q} {m} gratuitement',
+  v_complet: 'Le besoin du jour en {m} est couvert.', v_aucun: 'Vous n’avez pas de {m}.', v_treso: 'Le chantier ne peut vous en payer que {n} : le reste peut être donné.',
+  v_ferme: 'Le chantier n’accepte plus de matériaux.', v_prix_aide: 'Le chantier rachète seulement ce qui manque pour la journée, au prix fixé par son propriétaire. Il paie avec sa trésorerie : si elle est vide, vous pouvez encore donner.'
 };
 const tc = (k, v) => String(TXTC[k] || TXT4[k] || TXT[k] || k).replace(/\{(\w+)\}/g, (m, c) => (v && v[c] != null) ? String(v[c]) : m);
 const t4 = (k, v) => String(TXT4[k] || k).replace(/\{(\w+)\}/g, (m, c) => (v && v[c] != null) ? String(v[c]) : m);
@@ -574,7 +578,46 @@ function chantierPas(cle, d) {
   const b = global.document.querySelector('#chantier-fenetre button[onclick="chantierPas(\'' + cle + '\',' + d + ')"]');
   if (b && !b.disabled) b.focus();
 }
-function ongletParticiper(ch) { return carteTravail(); }
+// C.3 — « Vendre mes matériaux au chantier » : une carte par matériau, un seul contrôle par action
+// (« Vendre … » ou « Donner … »), quantité avec − et +, plafonds et prix lus sur le serveur.
+function carteMateriau(m, L) {
+  const x = (L.materiaux || {})[m] || {}, c = cur(), nom = t('m_' + m).toLowerCase();
+  const maxV = Math.max(0, Math.floor(Number(x.max) || 0)), maxD = Math.max(0, Math.floor(Number(x.maxDon) || 0)), prix = Number(x.prix) || 0;
+  let corps = '';
+  if (maxD <= 0) corps = '<p class="cpj-note">' + esc(tc(L.accepteMateriaux === false ? 'v_ferme' : (Number(x.manque) || 0) <= 0 ? 'v_complet' : 'v_aucun', { m: nom })) + '</p>';
+  else {
+    const q = borne(m, maxD, maxV || maxD);
+    corps = '<p class="cpj-note">' + esc(tc('v_note', { n: fr(x.manque), a: fr(x.possede) })) + '</p>'
+      + compteur(m, q, maxD, tc('v_moins'), tc('v_plus'), fr(q))
+      + (q <= 0 ? '' : maxV > 0 && q <= maxV ? '<button type="button" class="cpj-touche cpj-primaire cj-action" id="cj-vendre-' + m + '" onclick="chantierVendre(\'' + m + '\',\'vente\')">' + esc(tc('v_vendre', { q: fr(q), m: nom, t: fr(q * prix), cur: c })) + '</button>'
+        : '<p class="cj-raison">' + esc(tc('v_treso', { n: fr(maxV) })) + '</p>')
+      + (q <= 0 ? '' : '<button type="button" class="cpj-touche cj-action" id="cj-donner-' + m + '" onclick="chantierVendre(\'' + m + '\',\'don\')">' + esc(tc('v_donner', { q: fr(q), m: nom })) + '</button>');
+  }
+  return '<div class="cj-carte cj-mat" data-m="' + m + '"><p class="cj-mat-titre"><b>' + esc(tc('v_prix', { m: t('m_' + m), p: fr(prix), cur: c })) + '</b></p>' + corps + '</div>';
+}
+function carteVente() {
+  const L = lectureCourante();
+  const corps = !L ? '<p class="cpj-note">' + esc(tc('r_heures_attente')) + '</p>' : !L.ok ? '<p class="cpj-note">' + esc(tc('r_lecture_ko')) + '</p>'
+    : MATS.map(m => carteMateriau(m, L)).join('');
+  return '<section class="cj-carte cj-vente"><h3 class="cj-carte-titre">' + esc(tc('v_titre')) + ' ' + aide('v_prix_aide') + '</h3>' + corps + '</section>';
+}
+async function chantierVendre(m, mode) {
+  const L = lectureCourante(), x = L && L.ok ? (L.materiaux || {})[m] : null;
+  const q = Math.floor(Number(saisie[m]) || 0), plafond = x ? Math.floor(Number(mode === 'don' ? x.maxDon : x.max) || 0) : 0;
+  if (!(q > 0) || q > plafond || validation) return;
+  validation = true;
+  try {
+    const doc = global.document, tmp = doc.createElement('div'); tmp.style.display = 'none';
+    // Le chemin existant (reçu, rejeu sûr, relecture de l'inventaire) lit #vente-matiere et #vente-quantite.
+    tmp.innerHTML = '<input id="vente-matiere" value="' + esc(m) + '"><input id="vente-quantite" value="' + esc(String(q)) + '">';
+    doc.body.appendChild(tmp);
+    try { await global.confirmerVenteMateriauxChantier(mode === 'don' ? 'don' : 'vente'); } finally { tmp.remove(); }
+    delete saisie[m];
+    // Un refus reste affiché dans la fenêtre (bandeau du chemin existant) : ne pas l'effacer par un nouveau rendu.
+    if (!doc.querySelector('#postes-body > .vente-refus')) await relireEtRouvrir();
+  } finally { validation = false; }
+}
+function ongletParticiper(ch) { return carteTravail() + carteVente(); }
 function fenetreOuverte() {
   const doc = global.document, m = doc && doc.getElementById('modal-postes');
   return !!(m && m.classList.contains('open') && doc.getElementById('chantier-fenetre'));
@@ -588,9 +631,10 @@ function ouvrirFenetreChantier(silencieux, onglet, sansLecture) {
   const gere = maitreOuvrage(t0);
   if (vue.onglet === 'main') vue.onglet = 'participer';
   if (vue.onglet === 'etat') vue.onglet = 'avancement';
-  const onglets = ['participer', 'stock', 'avancement'].concat(gere ? ['gestion'] : []);
+  if (vue.onglet === 'stock') vue.onglet = 'participer';
+  const onglets = ['participer', 'avancement'].concat(gere ? ['gestion'] : []);
   if (!onglets.includes(vue.onglet)) vue.onglet = 'participer';
-  const contenu = vue.onglet === 'stock' ? ongletStock(ch) : vue.onglet === 'participer' ? ongletParticiper(ch) : vue.onglet === 'gestion' ? ongletGestion(ch, t0) : ongletEtat(ch, t0);
+  const contenu = vue.onglet === 'participer' ? ongletParticiper(ch) : vue.onglet === 'gestion' ? ongletGestion(ch, t0) : ongletEtat(ch, t0);
   const html = '<div id="chantier-fenetre" class="cpj-dialogue" style="padding:.3rem .2rem .6rem">' + resumeChantier()
     + '<div class="cj-onglets" role="tablist">' + onglets.map(o => '<button type="button" role="tab" aria-selected="' + (o === vue.onglet) + '" onclick="chantierOnglet(\'' + o + '\')">' + esc(tc('o_' + o)) + '</button>').join('') + '</div>'
     + '<div role="tabpanel">' + contenu + '</div></div>';
@@ -604,7 +648,6 @@ function ouvrirFenetreChantier(silencieux, onglet, sansLecture) {
   doc.getElementById('modal-postes')?.classList.add('open');
   const f = doc.getElementById('chantier-fenetre'); if (f) brancherAides(f);
   remplirZoneClimat();
-  if (vue.onglet === 'stock') chantierStockTotaux();
   // Relecture du serveur, puis nouveau rendu (sans relancer de lecture) si la fenêtre est toujours ouverte.
   if (!sansLecture) lireServeur().then(() => { if (fenetreOuverte()) ouvrirFenetreChantier(true, null, true); });
 }
@@ -614,8 +657,8 @@ const entier = s => /^[0-9]{1,9}$/.test(s) ? Number(s) : null;
 let validation = false;
 async function relireEtRouvrir() {
   if (typeof global.chargerTerrainState === 'function') await global.chargerTerrainState(etat().currentBuilding);
-  const onglet = vue.onglet;
-  ouvrirFenetreChantier(false, onglet);
+  await lireServeur();
+  ouvrirFenetreChantier(false, vue.onglet, true);
 }
 async function chantierStockValider() {
   const v = chantierStockTotaux();
@@ -661,7 +704,7 @@ async function chantierGestion(a) {
 }
 // Ancienne API (verdictChoix, chantierChoisir, chantierTotaux, chantierValider) : conservée pour les écrans encore ouverts.
 function verdictChoix() { return choix.action ? { pa: 0 } : { refus: t('r_choisir') }; }
-function chantierChoisir(a) { choix.action = a; vue.onglet = a === 'travailler' ? 'participer' : (a === 'vendre' || a === 'donner') ? 'stock' : 'gestion'; ouvrirFenetreChantier(false, vue.onglet); }
+function chantierChoisir(a) { choix.action = a; vue.onglet = a === 'travailler' ? 'participer' : (a === 'vendre' || a === 'donner') ? 'participer' : 'gestion'; ouvrirFenetreChantier(false, vue.onglet); }
 function chantierTotaux() { return verdictChoix(); }
 async function chantierValider() { return null; }
 
@@ -675,5 +718,5 @@ if (global.document && global.document.readyState !== 'loading') demarrer();
 else if (global.document) global.document.addEventListener('DOMContentLoaded', demarrer);
 
 global.RPChantierVue = { TXT, TXT4, TXTC, lireServeur, lectureCourante, jauge, verdictStock, candidatsImage, imageImmediate, imageResolue, etapeDe, lignesSurcouche, rafraichirVueChantier, verdictChoix, _choix: choix, _existe: existe };
-Object.assign(global, { ouvrirFenetreChantier, chantierChoisir, chantierTotaux, chantierValider, chantierOnglet, chantierStockTotaux, chantierStockValider, chantierMainTotaux, chantierMainValider, chantierGestion, chantierPas, chantierImageImmediate: imageImmediate, rafraichirVueChantier });
+Object.assign(global, { ouvrirFenetreChantier, chantierChoisir, chantierTotaux, chantierValider, chantierOnglet, chantierStockTotaux, chantierStockValider, chantierMainTotaux, chantierMainValider, chantierGestion, chantierPas, chantierVendre, chantierImageImmediate: imageImmediate, rafraichirVueChantier });
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -2722,3 +2722,7 @@ body.plateau-body .top-right {
 #chantier-fenetre .cj-action{display:block;width:100%;min-height:44px;margin-top:.5rem;font-size:1.1rem!important}
 #chantier-fenetre .cj-raison{color:#f2c9a0;margin:.4rem 0}
 #chantier-fenetre .cj-resume{color:#b9e3a6;margin:.4rem 0}
+/* C.3 : « Vendre mes matériaux au chantier » — une carte par matériau, un bouton par action (vendre, donner). */
+#chantier-fenetre .cj-vente > .cj-carte-titre{display:flex;align-items:center;gap:.4rem;flex-wrap:wrap}
+#chantier-fenetre .cj-mat{background:#1b2531;margin:.5rem 0}
+#chantier-fenetre .cj-mat-titre{margin:0 0 .2rem;color:#e2e9f1;font-size:1.1rem!important}
