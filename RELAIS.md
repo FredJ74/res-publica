@@ -1218,6 +1218,7 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 
 - **Infobulle de l'argent** (Claude, 24/11/2026, branche `claude/infobulle-argent-20261124`) : la case « ARGENT » du panneau de gauche reste l'argent en poche (décision de Fred) ; son survol donne « Argent total : X (poche, banque, placements) » (`majInfobulleArgent`, plateau-core.js). Retour de Han Watta Tsé, qui croyait avoir perdu 2 500 PSK (ils étaient à la Banque nationale).
 - **Salle d'audience sans identifiant** (Claude, 24/11/2026, même branche) : « Assister a cette affaire » avec le champ vide ne lance plus une fenêtre bloquée sur « Chargement... » (message « Indiquez d'abord l'identifiant de l'affaire ») ; quand la liste est lisible et vide, la salle dit « Aucune audience ne se tient en ce moment » (plateau-justice-economie.js). Retour du même joueur.
+- **Téléphone : plus de chevauchement nom/image à l'entrée d'une pièce** (Claude, 24/11/2026, même branche) : en attendant le chargement de l'image, `plateau-mobile.js` pose tout de suite un cadre provisoire en 16/9, corrigé dès que les vraies proportions sont connues. Retour du même joueur.
 
 - **Inspecter la pièce : coûts sur les onglets** (Claude, 24/11/2026, branche `claude/inspecter-couts-pa-20261124`) : « Ce qui est installé ici · gratuit », « Fouiller les lieux · 1 PA », « Désinstaller · 2 PA », plus une ligne « Passer d'un onglet à l'autre est gratuit ». Signalé par Fred au musée de Krasnov. Bancs `test-fouiller-voler-ordre-20261111.mjs` et `banc-ordres-regroupes-navigateur-20261123.cjs` mis à jour.
 

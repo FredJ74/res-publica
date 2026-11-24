@@ -258,6 +258,10 @@
     const url = urlImage();
     if (!petit.matches || !url || cadre.dataset.musee === '1') { retirer(); return; }
     if (tailles.has(url)) { poser(tailles.get(url)); return; }
+    // PAS DE CHEVAUCHEMENT PENDANT LE CHARGEMENT (Fred, 24/11/2026, retour d'un nouveau joueur sur téléphone) : tant que
+    // l'image n'est pas chargée, le nom de la pièce s'affichait une seconde PAR-DESSUS l'image. On sépare tout de suite
+    // avec un cadre provisoire en 16/9 (format des images de pièce), corrigé dès que les vraies proportions sont connues.
+    poser({ w: 16, h: 9 });
     const mien = ++jeton;
     const img = new Image();
     img.onload = () => {
