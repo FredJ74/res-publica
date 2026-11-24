@@ -1464,6 +1464,9 @@ async function talkToPnj(encodedPnj, action) {
   if ((pnj.terrainPnjId === 'cadavre' || pnj.id === 'cadavre')) return;
 
   if (!action || action.trim() === '') return;
+  // La première discussion réelle retire la sollicitation automatique d'orientation,
+  // sans changer la réponse ni l'historique du PNJ.
+  window.RPAccueilProgressif?.noterDiscussionPnj();
 
   // Conseil immobilier commun : mêmes chiffres que le chantier réel, sans deuxième barème.
   // Les trois interlocuteurs compétents répondent aussi si l'IA est indisponible.

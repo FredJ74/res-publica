@@ -9,6 +9,14 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Accueil progressif des nouveaux personnages (ChatGPT, 24/11/2026) — PR #1188 / issue #1187
+- Branche `chatgpt/accueil-progressif-20261124` ; aucun fichier SQL, données de joueur ou RPC modifié.
+- `plateau-accueil-progressif.js` : popup bienvenue fermable par la croix uniquement, détection d'activité de l'onglet visible, temporisation 5 minutes de l'interview et 60 minutes de l'ouverture automatique du Journal du jour, dialogue avec PNJ = pas de relance automatique ; accès volontaire au journal/interview conservé.
+- Raccords : `plateau.html`, `plateau-accueil-interview.js`, `plateau-core.js`, `plateau-pnj.js`, `plateau-quete-accueil.js` (garde de Luthécia différé et reprenable après reconnexion). Banc `outils/bancs/banc-accueil-progressif-20261124.cjs`, workflow `accueil-progressif-20261124.yml`.
+- **Limites** : les temporisations de présentation sont mémorisées par appareil dans `localStorage`, pas encore synchronisées entre appareils ; besoin d'une décision de mise en œuvre côté serveur pour un état global. Textes de bienvenue français seulement (à internationaliser par Codex) ; aucun test authentifié sur téléphone physique.
+- **À vérifier avant fusion** : CI ciblée et banc d'interview existant, contrôle du déploiement Vercel puis recette connectée à Krasnov/Luthécia. Bug indépendant de l'article de Bernard en Sovarka (Jodie et forum de Républia) toujours à traiter côté serveur.
+- Ne pas toucher au goulag.
+
 ### Internationalisation de la formation universitaire (Codex, 23/11/2026) — PR #1183
 - Branche `codex/i18n-formation-20261123`, rebasée sans conflit sur **main 4291ec9f**. Aucun fichier des zones réservées à Claude, aucune écriture en base ni migration. PR #1184 distincte pour le sens de saisie des partis ; PR #1132 non reprise.
 - **Codé et publié, non fusionné** : 51 textes français couverts : 41 originaux strictement conservés et dix références réelles ; 368 traductions étrangères nouvelles et 40 réutilisées ; `plateau-universite.js` et nouveau catalogue `university-resources.js`, moteur i18next existant. Rafraîchissement passif sans reconstruction ni RPC ; Brotli régénéré et vérifié (87 catalogues sans perte).
