@@ -48,26 +48,22 @@ const guides=[
  ['guide_bair_namsaraev','images/Sovarka/Starovka/guide-bair-namsaraev-portrait.webp'],
  ['guide_fiodor_medvedkine','images/Sovarka/Krasnov/guide-fiodor-medvedkine-portrait.webp']
 ];
+function chercherProfil(identifiant) {
+  const vus=new WeakSet(), trouve=[];
+  const parcourir=v=>{
+    if(!v||typeof v!=='object'||vus.has(v))return;
+    vus.add(v);
+    if(v.profilId===identifiant)trouve.push(v);
+    for(const enfant of Object.values(v))parcourir(enfant);
+  };
+  parcourir(monde);parcourir(batiments);
+  return trouve;
+}
 for(const [id,chemin] of guides){
-  let trouve=null;
-  for(const pays of ['republic','soviet'])for(const villeId of ['capitale','ville_a','ville_b']){
-    const v=monde[pays][villeId];
-    for(const b of new Set([...(v.buildings||[]),...Object.keys(v.buildingContext||{})])){
-      const building=batiments[b],local=(v.buildingContext||{})[b]||{};
-      const rooms={...(building?.rooms||{}),...(local.roomsExtra||{})};
-      const first=Object.keys(building?.rooms||{})[0];
-      for(const [roomId,room] of Object.entries(rooms)){
-        const override=(local.roomOverrides||{})[roomId]||{};
-        const personnes=[...(override.persons||[]),...(local.persons||[]),...(room.persons||[])];
-        const p=personnes.find(v=>v.profilId===id);
-        if(p)trouve=p;
-      }
-    }
-  }
-  assert.ok(trouve,'Guide introuvable: '+id);
-  assert.equal(trouve.photoUrl,chemin,'Guide encore illustré par une image de lieu: '+id);
-  const existe=fs.existsSync(path.join(root,chemin));
-  assert.ok(existe||attendus.some(a=>a.fichier===chemin),'Guide sans fichier et absent de la liste: '+id);
+  const occurences=chercherProfil(id);
+  assert.ok(occurences.length,'Guide introuvable: '+id);
+  for(const personnage of occurences) assert.equal(personnage.photoUrl,chemin,'Guide encore illustré par une image de lieu: '+id);
+  assert.ok(fs.existsSync(path.join(root,chemin))||attendus.some(a=>a.fichier===chemin),'Guide sans fichier et absent de la liste: '+id);
 }
 const sortie={date:'2026-11-24',total_visible:presents.length,avec_portrait:presents.filter(x=>x.portrait_existant).length,a_produire:presents.filter(x=>!x.portrait_existant&&x.a_produire).length,orphelins,entrees_obsoletes:listesNul,apparitions:presents};
 if(process.env.PORTRAITS_AUDIT_OUT) fs.writeFileSync(path.resolve(process.env.PORTRAITS_AUDIT_OUT),JSON.stringify(sortie,null,2)+'\n');
