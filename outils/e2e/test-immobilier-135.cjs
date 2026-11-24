@@ -42,6 +42,10 @@ test('cinq terrains : rendu et formulaires réels dans Chromium, contreparties u
    window.getIndiceNationalCalcule=()=>40;
    window.finance135Reconcilier=async()=>{};
    for(const nom of ['sbRpc','sbRpcVerdict','sbSavePersonnage','finance135Acquerir','finance135ContracterPret'])window[nom]=(...args)=>{mutations.push(nom);throw Error('MUTATION_INTERDITE_DANS_LA_FIXTURE '+nom);};
+   // Seule exception : la LECTURE de la fenêtre du chantier (Purge C, chantier_fenetre_lire, sans écriture) ; sans serveur
+   // elle échoue proprement (« lecture impossible ») et n'est pas une mutation. Tout autre RPC reste interdit.
+   const rpcVerdictInterdit=window.sbRpcVerdict;window.lecturesChantier=[];
+   window.sbRpcVerdict=(fn,...args)=>fn==='chantier_fenetre_lire'?(lecturesChantier.push(fn),Promise.reject(Error('LECTURE_SANS_SERVEUR'))):rpcVerdictInterdit(fn,...args);
   `});
   for(const content of sources)await page.addScriptTag({content});
   // Cinq types (Fred, 22/11/2026) : le Logement n'est proposé qu'à partir de 2 000 m² de terrain.
@@ -76,11 +80,14 @@ test('cinq terrains : rendu et formulaires réels dans Chromium, contreparties u
     await preparer(numero,{proprietaire:'Recette fixture',constructionAutorisee:true});
     await page.evaluate(()=>ouvrirModalConstruire());assert.equal(await page.locator('#postes-body [onclick*="confirmerConstruction"]').count(),await typesAttendus());
     await preparer(numero,{proprietaire:'Recette fixture',chantier:{type:'construction',palier:'hangar',dureeJours:6,progressionJours:0,totalVerse:10500,coutTotal:30000,prixAchatPJ:{bois:6,minerai:11,metal:17}}});
-    // Fenêtre « Le chantier » (Fred, 21/11/2026) : l'approvisionnement est l'onglet « Stock de matériaux ».
+    // Fenêtre « Le chantier » (Purge C.4, 24/11/2026) : l'onglet « Stock de matériaux » n'existe plus ; les prix de rachat
+    // du chantier se lisent et se règlent dans « Gérer mon chantier » (propriétaire), une ligne par matériau, en FR.
     await page.getByRole('button',{name:'Le chantier',exact:true}).click();
-    await page.locator('#chantier-fenetre [role=tab]',{hasText:'Stock de matériaux'}).click();
-    const lignes=await page.locator('#chantier-fenetre .cj-stock-table tbody tr').allInnerTexts();
-    for(const [i,tarif] of [['Bois','6 FR'],['Minerai','11 FR'],['Métal','17 FR']].entries())assert.ok(lignes[i].includes(tarif[0])&&lignes[i].includes(tarif[1]),lignes.join(' | '));
+    await page.locator('#chantier-fenetre .cj-bouton-gerer').click();
+    for(const [m,prix] of [['bois','6'],['minerai','11'],['metal','17']]){
+     const ligne=page.locator('#chantier-fenetre .cj-reglage',{has:page.locator('#chantier-prix-'+m)});
+     assert.equal(await page.locator('#chantier-prix-'+m).inputValue(),prix,m);assert.match(await ligne.innerText(),/FR/,m);
+    }
    });
   }
   await t.test('prêt : renvoi au guichet puis formulaire national sans contrat',async()=>{
