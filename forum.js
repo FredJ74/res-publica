@@ -133,17 +133,43 @@ function idForumLocal(villeId) {
   return 'local_' + v;
 }
 
-// FORUMS ET NATIONALITÉ (Fred, 18/11/2026). Le joueur garde toujours les forums de SON pays ; à
-// l'étranger, il voit aussi ceux du pays où il se trouve (national en lecture seule, Local de la ville
-// où il est). `state.forumPays` mémorise le pays choisi ; par défaut, la nationalité.
+// RÈGLES D'ACCÈS DES FORUMS (Fred, 24/11/2026, mission Purge B.1 ; GAME-DESIGN-FORUMS.md) :
+//  - le forum national de son pays (sa NATIONALITÉ, jamais sa position) est toujours accessible ;
+//  - à l'étranger, le forum national du pays visité est en lecture seule ;
+//  - le forum local de sa ville de domiciliation est toujours accessible ;
+//  - le forum local d'une ville visitée est en lecture et en écriture ;
+//  - les sous-forums nationaux (Présidence, Assemblée, Gouvernement, Presse) suivent la règle du forum national,
+//    en plus de leurs propres réserves (création réservée, gouvernement…).
+// Le serveur décide (forum_lecture_autorisee / forum_ecriture_autorisee, migration 20261124110000) ; l'écran ne fait
+// que suivre. `state.forumPays` mémorise le pays affiché ; par défaut, la nationalité.
+function forumEstNational(forumId) { return ['national', 'presidence', 'assemblee', 'gouvernement', 'presse'].includes(forumId); }
+// Forum dont le contenu dépend du pays (colonne forum_topics.country) : nationaux et locaux.
+function forumEstTerritorial(forumId) {
+  return forumEstNational(forumId) || (typeof forumId === 'string' && forumId.startsWith('local_'));
+}
+// Pays dont l'écran peut afficher les forums : nationalité, pays où l'on se trouve, pays de son domicile.
+function paysForumsPossibles() {
+  if (typeof state === 'undefined') return [];
+  const nat = (typeof maNationalite === 'function' ? maNationalite() : null) || state.country;
+  return [...new Set([nat, state.country, state.domicile && state.domicile.country].filter(Boolean))];
+}
 function paysForums() {
   if (typeof state === 'undefined') return null;
   const nat = (typeof maNationalite === 'function' ? maNationalite() : null) || state.country;
   const choix = state.forumPays;
-  return (choix && (choix === nat || choix === state.country)) ? choix : nat;
+  return (choix && paysForumsPossibles().includes(choix)) ? choix : nat;
 }
-// Ville du forum Local : celle où l'on se trouve dans le pays où l'on est ; dans son pays vu de
-// l'étranger, sa ville de domicile (si elle est dans ce pays), sinon aucun Local.
+// Villes dont le forum local est accessible dans le pays affiché : la ville du domicile (toujours) et la ville où l'on
+// se trouve (ville visitée). Même règle que forum_lecture_autorisee.
+function villesForumLocal() {
+  if (typeof state === 'undefined') return [];
+  const p = paysForums(), villes = [];
+  if (state.domicile && state.domicile.country === p && state.domicile.city) villes.push(state.domicile.city);
+  if (p === state.country) villes.push(state.currentCity || 'capitale');
+  return [...new Set(villes)];
+}
+// Ville du forum Local par défaut (producteurs de contenu local) : celle où l'on se trouve dans le pays où l'on est,
+// sinon celle du domicile dans le pays affiché, sinon aucune.
 function villeForumLocal() {
   if (typeof state === 'undefined') return null;
   const p = paysForums();
@@ -152,7 +178,7 @@ function villeForumLocal() {
 }
 function forumNationalLectureSeule(forumId) {
   const nat = (typeof maNationalite === 'function' ? maNationalite() : null) || state.country;
-  return forumId === 'national' && paysForums() !== nat;
+  return forumEstNational(forumId) && paysForums() !== nat;
 }
 function choisirPaysForums(pays) {
   state.forumPays = pays;
@@ -160,14 +186,14 @@ function choisirPaysForums(pays) {
   if (typeof renderForumSidebar === 'function' && document.getElementById('forum-sidebar'))
     document.getElementById('forum-sidebar').innerHTML = renderForumSidebar();
 }
-// Sélecteur affiché seulement à l'étranger (nationalité différente du pays où l'on se trouve).
+// Sélecteur affiché seulement quand plusieurs pays sont possibles (à l'étranger, ou domicile hors de son pays).
 function htmlSelecteurPaysForums() {
-  const nat = (typeof maNationalite === 'function' ? maNationalite() : null) || state.country;
-  if (!nat || nat === state.country) return '';
+  const possibles = paysForumsPossibles();
+  if (possibles.length < 2) return '';
   const nom = c => (typeof COUNTRIES !== 'undefined' && COUNTRIES[c]?.n) || c;
   const actuel = paysForums();
   return '<div class="forum-pays-choix" style="display:flex;gap:.3rem;padding:.4rem .6rem;flex-wrap:wrap" dir="auto">'
-    + [nat, state.country].map(c => '<button type="button" class="cpj-touche' + (c === actuel ? ' cpj-primaire' : '') + '" onclick="choisirPaysForums(\'' + c + '\')">' + nom(c) + '</button>').join('')
+    + possibles.map(c => '<button type="button" class="cpj-touche' + (c === actuel ? ' cpj-primaire' : '') + '" onclick="choisirPaysForums(\'' + c + '\')">' + nom(c) + '</button>').join('')
     + '</div>';
 }
 
@@ -200,8 +226,13 @@ function getForums() {
   const villeNom = (typeof WORLD !== 'undefined' && typeof state !== 'undefined')
     ? (WORLD[state.country]?.[villeId]?.name || villeId)
     : villeId;
-  const villeLocal = villeForumLocal();
-  const villeLocalNom = villeLocal ? ((typeof WORLD !== 'undefined' && WORLD[paysForums()]?.[villeLocal]?.name) || villeLocal) : null;
+  const forumsLocaux = {};
+  villesForumLocal().forEach(v => {
+    const nomVille = (typeof WORLD !== 'undefined' && WORLD[paysForums()]?.[v]?.name) || v;
+    const domicile = state.domicile && state.domicile.country === paysForums() && state.domicile.city === v;
+    forumsLocaux[idForumLocal(v)] = { name: 'Forum local — ' + nomVille, icon: 'ti-home',
+      desc: 'Discussions de ' + nomVille + (domicile ? ' (votre ville de domicile)' : ' (ville visitée)'), private: false, cat: 'intra', local: true };
+  });
 
   const orgForums = {};
   ((typeof state !== 'undefined' && state.organisations) || []).forEach(o => {
@@ -218,10 +249,8 @@ function getForums() {
 
   return {
     ...FORUMS_BASE,
-    // Le Local de LA ville ou se trouve le joueur. Son libelle reste « Local » : le cloisonnement
-    // est une affaire de donnees, pas d'etiquette a rallonge dans la liste des forums.
-    ...(villeLocal ? { [idForumLocal(villeLocal)]: { name: 'Forum Local', icon: 'ti-home',
-      desc: 'Discussions de ' + villeLocalNom, private: false, cat: 'intra' } } : {}),
+    // Forums locaux accessibles (B.1) : ville du domicile et ville visitée ; le nom porte la ville, puisqu'il peut y en avoir deux.
+    ...forumsLocaux,
     [tribunalKey]: { name: '⚖️ Tribunal — ' + villeNom, icon: 'ti-gavel', desc: 'Plaintes et affaires judiciaires de ' + villeNom, private: false, cat: 'intra', sousGroupe: 'institutions' },
     ...orgForums
   };
@@ -271,7 +300,7 @@ function synchroniserCachesForumsTerritoriaux() {
   const avant=JSON.parse(precedent),apres=JSON.parse(contexte);
   const autreIdentite=avant.slice(0,3).some((v,i)=>v!==apres[i]);
   Object.keys(FORUM_TOPICS).filter(id=>autreIdentite || id.startsWith('local_') ||
-    id.startsWith('org_') || (id==='national'&&ancien!==pays)).forEach(id=> {
+    id.startsWith('org_') || (forumEstNational(id)&&ancien!==pays)).forEach(id=> {
     delete FORUM_TOPICS[id];
     delete FORUM_LECTURE_TERMINEE[id];
     delete FORUM_LECTURE_ECHOUEE[id];
@@ -768,7 +797,7 @@ function _cleDernierPassageForumId(forumId) {
   // Le local_<ville> et le national existent dans plusieurs pays. Ne jamais
   // réutiliser une marque de lecture d'un pays pour acquitter celle d'un autre.
   // Conserver la clé historique pour Républia (premier pays en production).
-  const territoire = forumId === 'national' || forumId.startsWith('local_');
+  const territoire = forumEstTerritorial(forumId);
   const pays = (typeof state !== 'undefined' && paysForums()) || 'republic';
   return cle + '_' + (territoire && pays !== 'republic' ? pays + '_' : '') + forumId;
 }
@@ -802,7 +831,7 @@ function _dernierPassageForumId(forumId) {
 
   // Migration douce de l'ancienne clé globale : conserver son horodatage.
   try {
-    const territorialisé = forumId === 'national' || forumId.startsWith('local_');
+    const territorialisé = forumEstTerritorial(forumId);
     const pays = (typeof state !== 'undefined' && paysForums()) || 'republic';
     // L'ancien marqueur global n'était pas séparé par pays : l'importer dans
     // un autre empire masquerait des publications jamais lues.
@@ -993,7 +1022,7 @@ function renderForumCategorieItems(cat) {
     const institutions = entries.filter(([id, f]) => f.sousGroupe === 'institutions');
     // Le forum local est local_<ville> ; l'ancien filtre "local" masquait
     // complètement sa rubrique, tout en laissant son point rouge actif.
-    const parLocal = directs.filter(([id]) => id === idForumLocal());
+    const parLocal = directs.filter(([id, f]) => f.local);
     const parNational = directs.filter(([id]) => id === 'national');
     const parPresse = directs.filter(([id]) => id === 'presse');
     return `<div class="forum-categorie-items">` +
@@ -1273,7 +1302,9 @@ function renderTopicList() {
   const topics = [...(FORUM_TOPICS[currentForumId] || [])].sort((a, b) =>
     parseGameTime(b.lastPostTime || b.time) - parseGameTime(a.lastPostTime || a.time)
   );
-  const peutCreerSujet = currentForumId !== 'presidence' || state.poste?.id === 'president';
+  // Forum national (ou sous-forum) d'un pays visité : lecture seule, dite en clair (mission Purge B.1).
+  const lectureSeule = forumNationalLectureSeule(currentForumId);
+  const peutCreerSujet = !lectureSeule && (currentForumId !== 'presidence' || state.poste?.id === 'president');
   return `
     <div class="forum-header-bar">
       <div>
@@ -1285,6 +1316,7 @@ function renderTopicList() {
         <i class="ti ti-pencil-plus"></i> ${rpForumLibelle('newTopic','Nouveau sujet')}
       </button>` : ''}
     </div>
+    ${lectureSeule ? htmlForumLectureSeule() : ''}
     ${topics.length === 0
       ? (FORUM_LECTURE_EN_COURS[currentForumId] || !FORUM_LECTURE_TERMINEE[currentForumId]
           ? `<div class="forum-empty">${rpForumLibelle('loadingTopics','Chargement des sujets depuis le serveur…')}</div>`
@@ -1294,7 +1326,7 @@ function renderTopicList() {
           ? `<div class="forum-empty">${rpForumLibelle('failedTopics',"Les sujets de cette rubrique n'ont pas pu être chargés.")}
              ${rpForumLibelle('failedTopicsDetail',"Ce n'est pas qu'elle est vide : la lecture du serveur a échoué ou a dépassé 12 secondes.")}
              <button class="forum-new-btn" onclick="rechargerForumActuel()">${rpForumLibelle('retry','Réessayer')}</button></div>`
-          : `<div class="forum-empty">${rpForumLibelle('noTopics','Aucun sujet.')} ${peutCreerSujet ? rpForumLibelle('firstTopic','Soyez le premier à en créer un !') : rpForumLibelle('presidentOnly',"Seul le Président peut s'exprimer ici.")}</div>`)
+          : `<div class="forum-empty">${rpForumLibelle('noTopics','Aucun sujet.')} ${peutCreerSujet ? rpForumLibelle('firstTopic','Soyez le premier à en créer un !') : lectureSeule ? '' : rpForumLibelle('presidentOnly',"Seul le Président peut s'exprimer ici.")}</div>`)
       : `<div class="forum-topics-list">
           <div class="forum-topics-header">
             <span>${rpForumLibelle('topicColumn','Sujet')}</span><span>${rpForumLibelle('authorColumn','Auteur')}</span><span>${rpForumLibelle('lastPostColumn','Dernier post')}</span><span>${rpForumLibelle('viewsColumn','Vues')}</span><span>${rpForumLibelle('repliesColumn','Rép.')}</span>
@@ -1399,12 +1431,19 @@ function renderTopicView() {
           </div>
         </div>`).join('')}
     </div>
-    <div class="forum-reply-bar">
+    ${forumNationalLectureSeule(currentForumId) ? htmlForumLectureSeule() : `<div class="forum-reply-bar">
       <button class="forum-new-btn" onclick="showComposeCanvasReply()">
         <i class="ti ti-corner-down-right"></i> ${rpForumLibelle('reply','Répondre')}
       </button>
-    </div>
+    </div>`}
   `;
+}
+
+// Lecture seule à l'étranger (Fred, 24/11/2026, mission Purge B.1) : la phrase dit pourquoi et qui peut écrire.
+function htmlForumLectureSeule() {
+  const nom = c => (typeof COUNTRIES !== 'undefined' && COUNTRIES[c]?.n) || c;
+  return '<div class="cpj-note forum-lecture-seule" role="note"><i class="ti ti-eye"></i> Lecture seule : vous êtes à l’étranger. '
+    + 'Seuls les citoyens de ' + escapeHtmlText(nom(paysForums())) + ' écrivent dans ce forum ; le forum local de la ville où vous êtes reste ouvert à tous.</div>';
 }
 
 // =====================
@@ -3269,16 +3308,16 @@ async function forumPublierAvecJauges(topic,titre,contenu,blocs,miseEnPage,ident
   const forumId = currentForumId;
   // Controle du forum local juste avant l'envoi : un voyage peut rendre le
   // forum de l'editeur perime, meme si son affichage n'a pas encore change.
-  if (!forumId || (forumId.startsWith('local_') && forumId !== idForumLocal())) {
+  if (!forumId || (forumId.startsWith('local_') && !villesForumLocal().map(v => idForumLocal(v)).includes(forumId))) {
     showToast('Forum local à rouvrir', 'La ville du forum a changé. Rouvrez le forum local pour publier dans la bonne ville.', false); window.RPI18nPlateau?.markToast("forumFeedback.localForumChanged", 'La ville du forum a changé. Rouvrez le forum local pour publier dans la bonne ville.', undefined, "Forum local à rouvrir");
     return null;
   }
-  // Forum national d'un pays visité : lecture seule (le serveur refuse aussi, forum_ecriture_autorisee).
+  // Forum national (et ses sous-forums) d'un pays visité : lecture seule (le serveur refuse aussi, forum_ecriture_autorisee).
   if (forumNationalLectureSeule(forumId)) {
     showToast('Forum National', (typeof texteNationalite === 'function' && texteNationalite('nationalite_requise')) || 'Lecture seule.', false);
     return null;
   }
-  const territorial = forumId === 'national' || forumId.startsWith('local_');
+  const territorial = forumEstTerritorial(forumId);
   const v=await executerOrdreJaugesServeur('forum_publier',{forum:forumId,topic,titre,contenu,blocs,mise_en_page:miseEnPage,organisation:identite.idOrga||null,secret:!!identite.authorSecret,icone:identite.orgIcon||null,...(territorial&&!topic?{pays:paysForums()}:{})});
   if(!v||typeof v.topic!=='string'||typeof v.post!=='string')return null;
   return v;

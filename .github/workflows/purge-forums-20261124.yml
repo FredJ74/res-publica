@@ -1,0 +1,25 @@
+name: "Purge B — accès aux forums (PGlite), jauge des PA, candidature, messages"
+on:
+  pull_request:
+    paths: [forum.js, supabase.js, plateau-politique.js, plateau-medecin-montrer.js, plateau-multijoueur.js, api/_pnj-personnalites.js, data.js, 'migrations/20261124110*', 'outils/bancs/banc-forums-*', 'outils/bancs/banc-pa-jauge-*', 'outils/bancs/banc-candidature-conditions-*', 'outils/bancs/banc-chat-aucun-message-*', 'outils/bancs/fixtures/forums-acces-*', .github/workflows/purge-forums-20261124.yml]
+  push:
+    branches: [main, 'claude/**']
+    paths: [forum.js, supabase.js, plateau-politique.js, plateau-medecin-montrer.js, plateau-multijoueur.js, api/_pnj-personnalites.js, data.js, 'migrations/20261124110*', 'outils/bancs/banc-forums-*', 'outils/bancs/banc-pa-jauge-*', 'outils/bancs/banc-candidature-conditions-*', 'outils/bancs/banc-chat-aucun-message-*', 'outils/bancs/fixtures/forums-acces-*', .github/workflows/purge-forums-20261124.yml]
+permissions:
+  contents: read
+jobs:
+  purge-b:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: for f in forum.js supabase.js plateau-politique.js plateau-medecin-montrer.js plateau-multijoueur.js; do node --check "$f"; done
+      - name: Bancs Node (jauge des PA, candidature, messages, forum)
+        run: node --test outils/bancs/banc-pa-jauge-infirmiere-20261124.cjs outils/bancs/banc-candidature-conditions-20261124.cjs outils/bancs/banc-chat-aucun-message-20261124.cjs
+      - name: PostgreSQL local (PGlite) — règles d'accès des forums
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund --prefix "$RUNNER_TEMP/pglite" @electric-sql/pglite@0.2.17
+          PGLITE_DIR="$RUNNER_TEMP/pglite" node --test outils/bancs/banc-forums-acces-pglite-20261124.cjs

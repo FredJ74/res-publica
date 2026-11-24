@@ -85,7 +85,7 @@ test('vote : même règle que election_voter, vérifiée avant l\'appel au serve
 });
 
 test('forums : pays de lecture (nationalité par défaut), Local de la bonne ville, national étranger en lecture seule', () => {
-  const src = extraire('forum.js', ['paysForums', 'villeForumLocal', 'forumNationalLectureSeule', 'idForumLocal']);
+  const src = extraire('forum.js', ['forumEstNational', 'paysForumsPossibles', 'paysForums', 'villeForumLocal', 'forumNationalLectureSeule', 'idForumLocal']);
   const ctx = ctxNat({ country: 'soviet', nationalite: 'republic', currentCity: 'ville_b', domicile: { country: 'republic', city: 'capitale' } });
   vm.runInContext(src, ctx);
   assert.equal(ctx.paysForums(), 'republic');

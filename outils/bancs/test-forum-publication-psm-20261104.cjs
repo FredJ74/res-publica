@@ -32,7 +32,7 @@ test('un refus de ville ou de texte est expliqué au joueur',()=>{
 });
 test('publication à PSM : un seul appel serveur au forum local_ville_a',async()=>{
  const calls=[],toasts=[],ctx={currentForumId:'local_ville_a',state:{currentCity:'ville_a'},
- idForumLocal:city=>'local_'+(city||ctx.state.currentCity),forumNationalLectureSeule:()=>false,paysForums:()=>'republic',showToast:(...a)=>toasts.push(a),
+ idForumLocal:city=>'local_'+(city||ctx.state.currentCity),villesForumLocal:()=>[ctx.state.currentCity],forumEstTerritorial:id=>id==='national'||id.startsWith('local_'),forumNationalLectureSeule:()=>false,paysForums:()=>'republic',showToast:(...a)=>toasts.push(a),
  executerOrdreJaugesServeur:async(...a)=>{calls.push(a);return {topic:'sujet-test',post:'message-test'};}};
  ctx.window=ctx;vm.createContext(ctx);vm.runInContext(publish,ctx);
  const r=await ctx.forumPublierAvecJauges(null,'Titre','Texte',[],null,{idOrga:null,authorSecret:false,orgIcon:null});
@@ -42,7 +42,7 @@ test('publication à PSM : un seul appel serveur au forum local_ville_a',async()
 });
 test('ville modifiée pendant la composition : aucun RPC ni faux sujet',async()=>{
  const calls=[],toasts=[],ctx={currentForumId:'local_capitale',state:{currentCity:'ville_a'},
- idForumLocal:city=>'local_'+(city||ctx.state.currentCity),forumNationalLectureSeule:()=>false,paysForums:()=>'republic',showToast:(...a)=>toasts.push(a),
+ idForumLocal:city=>'local_'+(city||ctx.state.currentCity),villesForumLocal:()=>[ctx.state.currentCity],forumEstTerritorial:id=>id==='national'||id.startsWith('local_'),forumNationalLectureSeule:()=>false,paysForums:()=>'republic',showToast:(...a)=>toasts.push(a),
  executerOrdreJaugesServeur:async(...a)=>{calls.push(a);return {topic:'faux',post:'faux'};}};
  ctx.window=ctx;vm.createContext(ctx);vm.runInContext(publish,ctx);
  const r=await ctx.forumPublierAvecJauges(null,'Titre','Texte',[],null,{idOrga:null,authorSecret:false,orgIcon:null});
