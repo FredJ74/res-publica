@@ -1,0 +1,22 @@
+name: "Mission de nuit 25/11 — explosifs, chances réelles (PGlite)"
+on:
+  pull_request:
+    paths: [data.js, plateau-core.js, plateau-ordres-info.js, supabase.js, 'migrations/20261125*', 'outils/bancs/*-20261125.*', .github/workflows/nuit-20261125.yml]
+  push:
+    branches: [main, 'claude/**']
+    paths: [data.js, plateau-core.js, plateau-ordres-info.js, supabase.js, 'migrations/20261125*', 'outils/bancs/*-20261125.*', .github/workflows/nuit-20261125.yml]
+permissions:
+  contents: read
+jobs:
+  nuit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: PostgreSQL local (PGlite)
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund --prefix "$RUNNER_TEMP/pglite" @electric-sql/pglite@0.2.17
+          PGLITE_DIR="$RUNNER_TEMP/pglite" node --test outils/bancs/*pglite-20261125.cjs
