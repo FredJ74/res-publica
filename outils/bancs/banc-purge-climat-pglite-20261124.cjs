@@ -141,3 +141,39 @@ test('D.2 : le blizzard n’est tiré qu’à Starovka ; les blizzards planifié
   await db.exec(lire('migrations/20261124132000_climat_chantiers_canicule_crue_blizzard_starovka.sql'));
   assert.equal((await un(db, 'SELECT count(*)::int n FROM climat_villes_exclues')).n, 2);
 });
+
+test('D.3 avant / après : après une canicule, la nuit du chantier avançait ; désormais elle n’avance pas (un jour de retard)', async () => {
+  // Canicule d'hier (heure de Paris), effets JAMAIS posés (effets_le NULL) : l'ordre minuit / pose des effets ne compte pas.
+  const avant = await base({ jusqua: 2, avantMigrations: d => evenement(d, 'canicule', -1, { effets: false }) });
+  const pa = (await lireCh(avant)).progressionJours;
+  await nuit(avant);
+  assert.equal((await lireCh(avant)).progressionJours, pa + 1, 'avant : la canicule n’arrêtait pas la nuit');
+  const db = await base({ jusqua: 3, avantMigrations: d => evenement(d, 'canicule', -1, { effets: false }) });
+  const av = await lireCh(db);
+  const r = await nuit(db);
+  assert.equal(r.ok, true); assert.equal(r.climat, 'canicule'); assert.equal(r.avance, 0); assert.equal(r.crue, false);
+  const c = await lireCh(db);
+  assert.equal(c.progressionJours, av.progressionJours); assert.equal(c.tresorerie, av.tresorerie); assert.deepEqual(c.stockMateriaux, av.stockMateriaux);
+  assert.deepEqual(c.evenements.map(e => e.cle), ['canicule'], 'ligne « canicule » au journal du chantier');
+  assert.equal((await nuit(db)).rejeu, true);
+});
+
+test('D.3 : canicule du jour → travail refusé jusqu’à minuit ; crue inchangée ; orage d’hier sans effet la nuit', async () => {
+  const db = await base({ jusqua: 3 });
+  // Canicule d'aujourd'hui 12 h – 18 h simulée terminée : le travail reste refusé jusqu'à minuit.
+  await evenement(db, 'canicule', 0, { heure: 0, heures: 1 });
+  await db.query("UPDATE climat_evenements SET debut = now() - interval '2 hours', fin = now() - interval '1 hour' ");
+  const memeJour = (await un(db, "SELECT ((now() - interval '2 hours') AT TIME ZONE 'Europe/Paris')::date = (now() AT TIME ZONE 'Europe/Paris')::date ok")).ok;
+  if (memeJour) {   // (juste après minuit, la canicule simulée tomberait la veille : contrôle sauté)
+    const r = await un(db, "SELECT chantier_travailler('Arnie', 'republic', 'terrain-a-batir-3', 1) r");
+    assert.equal(r.r.raison, 'chantier_intemperies');
+  }
+  await db.query('DELETE FROM climat_evenements');
+  await evenement(db, 'crue', -1);
+  assert.equal((await nuit(db)).climat, 'crue');
+  await db.query('DELETE FROM climat_evenements');
+  await db.query("UPDATE terrains_etat SET data = jsonb_set(data::jsonb, '{chantier,jourTraite}', '\"2000-01-01\"')::text");
+  await evenement(db, 'orage', -1);
+  const r = await nuit(db);
+  assert.equal(r.climat, undefined); assert.ok(Number(r.avance) > 0, 'l’orage n’arrête pas le chantier');
+});

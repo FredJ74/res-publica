@@ -183,3 +183,8 @@ blizzard et de la canicule, fontaine de Starovka).
   piratage, mais les chantiers continuent. Débranchez vos appareils électroniques. […] » (remplace « et les chantiers sont à
   l'arrêt » du point 7). Blizzard : table `climat_villes_exclues` (Novomirsk et Krasnov exclues) ; le tirage du mandat ne crée plus
   qu'un blizzard à Starovka ; ceux déjà planifiés à Novomirsk (28/11) et Krasnov (01/12) sont annulés.
+- **D.3** : la canicule arrête les chantiers **comme la crue** : travail des joueurs refusé du début de la canicule jusqu'à minuit,
+  et la nuit suivante le chantier n'avance pas (ligne « canicule » au journal du chantier, un jour de retard). La nuit lit la
+  **date** de début de l'événement, jamais la pose de ses effets : l'ordre entre la tâche de minuit (`api/cron-minuit.js`, non
+  modifié) et `climat_passe` (17 de chaque heure) ne compte plus. Cause constatée : la canicule de Luthécia du 22/11 (0 h – 6 h)
+  n'avait arrêté aucune nuit de chantier.

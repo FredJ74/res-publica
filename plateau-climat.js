@@ -112,6 +112,8 @@ const EXPLIC = { fr: {
   duree_h: '{h} h {m} min', duree_m: '{m} min',
   // Crue (Fred, 22/11/2026, point 30) : plus aucun lieu fermé ni « protégé par des sacs » ; seuls les chantiers s'arrêtent.
   chantiers_crue: 'Tous les chantiers de la ville sont à l’arrêt pour la journée : ils prennent un jour de retard. Tout le reste est ouvert.',
+  // Canicule (Fred, 24/11/2026, D.2 et D.3) : seules la crue et la canicule arrêtent les chantiers, pour la journée.
+  chantiers_canicule: 'Tous les chantiers de la ville sont à l’arrêt jusqu’à minuit : ils prennent un jour de retard.',
   r_sacs_retires: 'Les sacs de sable n’existent plus : la crue ne ferme plus aucun lieu.', r_catastrophe_en_sommeil: 'L’état de catastrophe naturelle est en sommeil.',
   pourquoi: 'Pourquoi cet effet sur l’image ?',
   annonce_crue: 'Crue annoncée {lieu}, à {heure} (heure du jeu).', annonce_orage: 'Orage annoncé {lieu}, à {heure} (heure du jeu).',
@@ -161,7 +163,7 @@ function ligneRestant(ev) {
 }
 function typeConnu(ev) { return TYPES.includes(ev && ev.type) ? ev.type : 'brouillard'; }
 // Crue : la seule conséquence (chantiers de la ville arrêtés une journée), dite dans la fenêtre d'explication.
-function chantiersCrue(ev) { return ev && ev.type === 'crue' ? explic('chantiers_crue') : ''; }
+function chantiersCrue(ev) { return ev && (ev.type === 'crue' || ev.type === 'canicule') ? explic('chantiers_' + ev.type) : ''; }
 // Fenêtre commune : explication d'un événement (bandeau des vues de rue, accueil du nouveau personnage).
 function fenetreExplication(ev, opts) {
   const doc = global.document;
