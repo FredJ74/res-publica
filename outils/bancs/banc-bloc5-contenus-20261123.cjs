@@ -31,7 +31,8 @@ test('35 : cartes postales de Krasnov et de Starovka, au client et dans la migra
   assert.match(sql, /WHERE cle = 'magasin-kolkhoze-starovka@soviet\.ville_a'/);
   assert.match(sql, /WHERE id = 'tabac-presse-soviet-ville_a-magasin-kolkhoze-starovka'/);
   assert.doesNotMatch(sql, /personnages_donnees/, 'les cartes possédées ne sont pas réécrites');
-  assert.match(lire('plateau-personnage.js'), /legende_carte_starovka_hiver: '',/);
+  // Légende donnée par Fred le 24/11/2026 (mission « Purge », point H.8 ; banc-ghe-h8-legendes-cartes-20261124.cjs).
+  assert.match(lire('plateau-personnage.js'), /legende_carte_starovka_hiver: 'Starovka — ici, la chaleur est dans les cœurs\.',/);
 });
 
 function charger() {
