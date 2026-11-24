@@ -239,6 +239,20 @@
   function programmerJournal(action, pertinent) { demander('journal_du_jour', action, pertinent); }
   // Conversation avec un PNJ : le serveur note l'instant de jeu (report de l'interview de 5 min, A.3).
   function noterDiscussionPnj() { if (calendrierActif() && !(cal().interview_due)) rpc('accueil_pnj_parle'); }
+  // Page revenue au premier plan sans rechargement (écran déverrouillé, retour d'un autre onglet) : le serveur crédite
+  // l'absence au temps de jeu, dans la limite qu'il fixe (mission de nuit 25/11/2026, bloc 2). Tant que la migration
+  // 20261125110000 n'est pas appliquée, la fonction n'existe pas : rpc() rend null en silence, comportement inchangé.
+  let masqueeDepuis = null;
+  function signalerReprise() {
+    const ms = masqueeDepuis == null ? 0 : Date.now() - masqueeDepuis;
+    masqueeDepuis = null;
+    if (ms > 0 && calendrierActif() && premiereHeure()) rpc('accueil_reprise', { p_masque_s: Math.round(ms / 1000) });
+  }
+  if (doc && typeof doc.addEventListener === 'function') {
+    doc.addEventListener('visibilitychange', () => { if (doc.hidden) masqueeDepuis = Date.now(); else signalerReprise(); });
+    if (typeof global.addEventListener === 'function') global.addEventListener('pagehide', () => { if (masqueeDepuis == null) masqueeDepuis = Date.now(); });
+    if (typeof global.addEventListener === 'function') global.addEventListener('pageshow', e => { if (e && e.persisted) signalerReprise(); });
+  }
 
   // Le serveur prévient (journal d'événements) : fin de la découverte, fin de la première heure → relire l'état.
   const gestionnaires = global.rpEvenementsPersonnageGestionnaires = global.rpEvenementsPersonnageGestionnaires || {};
@@ -257,7 +271,7 @@
     files: () => ({ journal: files.journal.map(x => x.type), meteo: files.meteo.map(x => x.type) }), montrees: () => montrees });
   global.RPFenetresAuto = portier;
   global.RPAccueilProgressif = Object.freeze({
-    initialiser, verifier, noterDiscussionPnj, programmerJournal,
+    initialiser, verifier, noterDiscussionPnj, signalerReprise, programmerJournal,
     entretienAutomatiqueAutorise, journalAutomatiqueAutorise, queteInitialeAutorisee,
     bienvenueEnCours, ouvrirBienvenue, marquer, demander, decision, fenetreOuverte,
     etat: () => (cal() ? Object.assign({}, cal()) : null), TXT
