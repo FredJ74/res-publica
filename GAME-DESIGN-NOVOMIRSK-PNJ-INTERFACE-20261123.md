@@ -68,8 +68,10 @@ Chaque point porte un banc qui l'empêche de revenir (liste dans RELAIS.md).
 21. **Journal des événements** : bouton « Rapports de combat » **supprimé** (les combats restent dans le fil) ; croix de
     fermeture plus grande, contrastée, vrai bouton ; plus d'entrées ni de sorties de bâtiments.
 22. **Boutons ronds du journal et du chat** : en bas à droite, l'un au-dessus de l'autre (essai).
-23. **Flèches des rues**, dans toutes les rues : « avancer » (↑) en bas de l'image, légèrement à gauche ; flèche
-    latérale (›) tout en bas à droite de l'image.
+23. **Flèches des rues — rue de l'hôpital de Krasnov SEULEMENT** (précision de Fred, 24/11/2026 : la consigne avait été
+    élargie à tort à toutes les rues) : cette rue n'a qu'une direction, sa flèche unique est placée tout en bas de l'image
+    (`flechesStyle` du nœud `krasnov-rue-hopital`). **Toutes les autres rues gardent l'ancienne disposition** des flèches.
+    Banc : `outils/bancs/banc-bloc2-journal-fleches-20261123.cjs`. Suivi : `docs/suivi-decisions.md`.
 
 ## Bloc 3 — PNJ
 

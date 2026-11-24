@@ -70,9 +70,9 @@ function noeudDepartRueCentrale(pays, ville) {
 // (voir stylesParDefaut dans afficherNoeudRue). Pour une ville dessinee en vues frontales,
 // "bas" doit etre en bas et "haut" en haut : ces deux constantes evitent de recopier la
 // meme chaine CSS dans chaque noeud, comme cela avait ete fait a la main pour Montrouge.
-// Positions imposées des flèches « avancer » et « droite » dans toutes les rues (Fred, 23/11/2026, point 23).
-const RC_FLECHE_AVANCER_BAS = 'bottom:14px; left:42%; transform:translateX(-50%);';
-const RC_FLECHE_DROITE_BAS = 'bottom:14px; right:14px;';
+// Point 23 du 23/11/2026 (flèche en bas de l'image) : il ne vise QUE la rue de l'hôpital de Krasnov, rue à une seule
+// direction (précision de Fred, 24/11/2026, docs/suivi-decisions.md). Les autres rues gardent leur ancienne disposition.
+const RC_FLECHE_HOPITAL_KRASNOV = 'bottom:14px; left:14px;';
 const RC_FLECHE_HAUT = 'top:10px; left:50%; transform:translateX(-50%);';
 const RC_FLECHE_BAS  = 'bottom:10px; left:50%; transform:translateX(-50%);';
 
@@ -1265,7 +1265,9 @@ const RUE_CENTRALE_NOEUDS = {
         { xPct: [40, 100], yPct: [6, 85], nom: 'Hôpital public de Krasnov', type: 'batiment', buildingId: 'dispensaire-public-v' }
       ],
       // Entrée par la droite depuis la rue des bureaux : retour par la gauche (Fred, 22/11/2026, point 9).
-      liens: { gauche: 'krasnov-rue-bureaux' }
+      liens: { gauche: 'krasnov-rue-bureaux' },
+      // Flèche unique, tout en bas de l'image (point 23 du 23/11/2026, limité à cette rue le 24/11/2026).
+      flechesStyle: { gauche: RC_FLECHE_HOPITAL_KRASNOV }
     },
 
     // Rue descendante : raccordement de la boucle jusqu'à l'église.
@@ -1932,22 +1934,20 @@ async function afficherNoeudRue(pays, noeudId, depuisNoeudId, positionDejaConfir
   // Position par defaut pour chaque direction, sauf si le noeud definit un
   // "flechesStyle" personnalise (utile quand la disposition standard ne convient
   // pas a une scene precise, ex: flèche "tout droit" en haut plutot qu'au centre).
-  // Toutes les rues (Fred, 23/11/2026, GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md, point 23) : « avancer » (↑) en bas de
-  // l'image, légèrement à gauche du centre ; la flèche latérale (›) tout en bas à droite. Ces deux positions s'imposent
-  // aux réglages particuliers d'une vue (flechesStyle), qui ne valent plus que pour « reculer » et « gauche ».
+  // Ancienne disposition rétablie dans toutes les rues (Fred, 24/11/2026) : le point 23 du 23/11 ne valait que pour la rue de
+  // l'hôpital de Krasnov, qui le porte dans son propre flechesStyle.
   const stylesParDefaut = {
     arriere:   'top:10px; left:50%; transform:translateX(-50%);',
     gauche:    'top:50%; left:14px; transform:translateY(-50%);',
-    toutDroit: RC_FLECHE_AVANCER_BAS,
-    droite:    RC_FLECHE_DROITE_BAS
+    toutDroit: 'top:50%; left:80%; transform:translate(-50%,-50%);',
+    droite:    'top:50%; right:14px; transform:translateY(-50%);'
   };
-  const imposees = { toutDroit: RC_FLECHE_AVANCER_BAS, droite: RC_FLECHE_DROITE_BAS };
   const fleches = [
     { dir: 'arriere',   icon: 'ti-arrow-down' },
     { dir: 'gauche',    icon: 'ti-chevron-left'  },
     { dir: 'toutDroit', icon: 'ti-arrow-up'      },
     { dir: 'droite',    icon: 'ti-chevron-right' }
-  ].map(f => ({ ...f, style: imposees[f.dir] || noeud.flechesStyle?.[f.dir] || stylesParDefaut[f.dir] }));
+  ].map(f => ({ ...f, style: noeud.flechesStyle?.[f.dir] || stylesParDefaut[f.dir] }));
   fleches.forEach(f => {
     if (liensActuels[f.dir]) {
       html += '<div class="rc-fleche" style="' + f.style + '" onclick="deplacerRueCentrale(\'' + pays + '\',\'' + f.dir + '\')">' +

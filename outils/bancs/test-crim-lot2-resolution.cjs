@@ -167,7 +167,7 @@ test('Écran : aucun calcul de taux pour Neutraliser ; cible masquée visée par
   assert.equal((js.match(/Math\.random/g) || []).length, 1);   // identifiant de requête de secours seulement
   assert.doesNotMatch(js, /neutraliserTaux/);
   assert.match(ill, /if \(!estDepute && !estSquatter && typeof ouvrirNeutraliser === 'function'\) \{ ouvrirNeutraliser\(encodedCible\); return; \}/);
-  assert.match(multi, /\.\.\.\(p\.masque \? \{ masque: true, jeton: p\.jeton \|\| null \} : \{\}\)/);
+  assert.match(multi, /\.\.\.\(masqueAnonyme\(p\) \? \{ masque: true, jeton: p\.jeton \|\| null \} : \{\}\)/);
   assert.match(pnj, /if \(pnj && pnj\.isPJ\) \{/);
   const appels = [];
   const ctx = { console, setTimeout() {}, setInterval() {}, NEUTRALISER_MODES: { mains: { label: 'À mains nues', paPJ: 2, sousTypes: null } },

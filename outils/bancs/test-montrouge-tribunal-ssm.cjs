@@ -12,7 +12,7 @@ test('image et aller-retour de la rue du tribunal de Montrouge', () => {
   const marche = rue.slice(rue.indexOf("'montrouge-vue-13':"), rue.indexOf("'montrouge-tribunal-ssm':"));
   assert.match(marche, /arriere: 'montrouge-tribunal-ssm'/);
   const scene = rue.slice(rue.indexOf("'montrouge-tribunal-ssm':"), rue.indexOf('// NOVOMIRSK'));
-  assert.match(scene, /image: 'images\/montrouge\/montrouge-rue-tribunal-ssm\.png'/);
+  assert.match(scene, /image: 'images\/montrouge\/montrouge-rue-tribunal-ssm\.webp'/);
   assert.match(scene, /arriere: 'montrouge-vue-13'/);
   assert.doesNotMatch(scene, /toutDroit:|gauche:|droite:/);
   for (const id of ['tribunal-local', 'services-sociaux-montrouge', 'parking-tribunal-montrouge']) {

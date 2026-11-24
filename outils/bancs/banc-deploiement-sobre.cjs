@@ -83,9 +83,14 @@ test('configuration raccordee au script teste, deploiements automatiques limites
  }
 });
 
-test('CI : Playwright installe une seule fois avant les bancs client et le pilote',()=>{
+test('CI : Playwright installé une fois par job, avant les bancs client et le pilote',()=>{
+ // Depuis le 24/11/2026, les bancs client tournent dans le job parallèle bancs-js (six parts) : chaque job installe une fois.
  const yaml=require('node:fs').readFileSync(path.join(root,'.github/workflows/coherence-client.yml'),'utf8');
- const installation=yaml.indexOf('npm ci --prefix outils/e2e '),client=yaml.indexOf('python3 outils/bancs/controler-client.py'),pilote=yaml.indexOf('npm test --prefix outils/e2e');
- assert.ok(installation>=0 && installation<client && client<pilote,'les imports Playwright exigent son installation avant le premier banc client');
- assert.equal((yaml.match(/npm ci --prefix outils\/e2e /g)||[]).length,1);
+ const coupe=yaml.indexOf('\n  bancs-js:');assert.ok(coupe>0,'job bancs-js présent');
+ const socle=yaml.slice(0,coupe),js=yaml.slice(coupe);
+ const i1=socle.indexOf('npm ci --prefix outils/e2e '),pilote=socle.indexOf('npm test --prefix outils/e2e');
+ assert.ok(i1>=0&&i1<pilote,'installation avant le pilote');
+ const i2=js.indexOf('npm ci --prefix outils/e2e '),client=js.indexOf('python3 outils/bancs/controler-client.py');
+ assert.ok(i2>=0&&i2<client,'les imports Playwright exigent son installation avant le premier banc client');
+ for(const part of [socle,js])assert.equal((part.match(/npm ci --prefix outils\/e2e /g)||[]).length,1);
 });

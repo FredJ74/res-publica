@@ -14,7 +14,8 @@ for(const [building,room,name] of map){
  assert.ok(b.length>10000);
 }
 assert.ok(ctx.B['locaux-starovka'].rooms.local_1.orders.some(o=>o.fn==='sovarka_demande_location'));
-assert.ok(ctx.B['locaux-starovka'].rooms.local_1.orders.some(o=>o.fn==='commerce_pj'));
+// « Ce commerce » (commerce_pj) retiré des locaux de Sovarka (Fred, 23/11/2026, point 31) : règle abandonnée, l'absence est vérifiée.
+assert.ok(!ctx.B['locaux-starovka'].rooms.local_1.orders.some(o=>o.fn==='commerce_pj'));
 assert.ok(ctx.B['locaux-starovka'].rooms.local_2===undefined||ctx.B['locaux-starovka'].rooms.local_2.imageUrl===undefined);
 assert.ok(ctx.B['presse-starovka'].rooms.presse.persons.some(x=>x.name.includes('Saran Batbayar')));
 assert.equal(ctx.B['presse-starovka'] && Object.keys(ctx.B['presse-starovka'].rooms).join(','),'presse');
