@@ -41,6 +41,10 @@
       if(detail&&!parts.includes(detail))parts.push(detail);
     }
     content.textContent=[...new Set(parts)].join('\n\n').replaceAll(' | ','\n\n');
+    // Chance réelle lue au serveur (plateau-chances-reelles.js, 25/11/2026) : en tête, en gros.
+    const chance=button.getAttribute('data-rp-chance');
+    if(chance){const ligne=doc.createElement('p');ligne.className='rp-chance-reelle-bulle';
+      ligne.textContent='Vos chances réelles : '+chance+' %';content.prepend(ligne);}
     restorePosition();
     const current=origin;
     global.requestAnimationFrame(()=>{if(dialog.open&&origin===current)restorePosition();});

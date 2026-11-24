@@ -2523,6 +2523,9 @@ textarea.cpj-champ,input[type="text"].cpj-champ{text-align:start}
 .rp-order-info-dialog::backdrop{background:rgba(0,0,0,.75)}
 .rp-order-info-dialog .modal-title{margin:0 0 .8rem;white-space:normal}
 .rp-order-info-content{white-space:pre-line;line-height:1.55;margin-bottom:1rem}
+/* « Vos chances réelles : X % » (mission de nuit 25/11/2026) : chance lue au serveur, sur le bouton et en tête de la bulle « i ». */
+.rp-chance-reelle{margin-left:.35rem;padding:0 .4rem;border:1px solid #a98d56;border-radius:.6rem;color:#e5c477;font-weight:700;font-size:.92rem;line-height:1.4}
+.rp-chance-reelle-bulle{margin:0 0 .8rem;color:#e5c477;font-size:1.35rem;font-weight:700;white-space:normal}
 .rp-order-info-dialog:not([open]){display:none}
 .rp-order-info-dialog button:focus-visible,.rp-order-info-button:focus-visible{outline:2px solid var(--gold-light);outline-offset:2px}
 /* Répertoire : noms propres et postes longs, sans élargir les fenêtres mobiles. */
