@@ -65,13 +65,8 @@ for(const [id,chemin,actuel] of guides){
   assert.ok(fs.existsSync(path.join(root,attendu)),'Fichier guide absent: '+attendu);
   if(!disponible) assert.ok(attendus.some(a=>a.fichier===chemin),'Guide sans portrait absent de la liste: '+id);
   const occurences=chercherProfil(id);
-  if(!occurences.length){
-    assert.equal(id,'guide_fiodor_medvedkine','Guide disparu du monde effectif: '+id);
-    const source=lire('data.js').split('\n').find(line=>line.includes("profilId: '"+id+"'"));
-    assert.ok(source&&source.includes("photoUrl: '"+attendu+"'"),'Guide Fiodor: chemin déclaré non vérifié');
-    console.warn('HORS PORTRAITS : Fiodor déclaré dans la source mais absent du monde effectif à Krasnov');
-    continue;
-  }
+  // Fiodor est présent au marché de Krasnov depuis la mission de nuit du 25/11/2026 (point 1.3) : plus d'exception.
+  assert.ok(occurences.length,'Guide disparu du monde effectif: '+id);
   for(const personnage of occurences) assert.equal(personnage.photoUrl,attendu,'Raccordement guide incorrect: '+id);
 }
 const sortie={date:'2026-11-24',total_visible:presents.length,avec_portrait:presents.filter(x=>x.portrait_existant).length,a_produire:presents.filter(x=>!x.portrait_existant&&x.a_produire).length,orphelins,entrees_obsoletes:listesNul,apparitions:presents};
@@ -80,4 +75,4 @@ console.log('Novomirsk:',sortie.total_visible,'visibles,',sortie.avec_portrait,'
 if(orphelins.length)console.error('PNJ sans portrait ni fiche à produire:',JSON.stringify(orphelins,null,2));
 assert.equal(orphelins.length,0,'Inventaire incomplet : compléter la liste avant fusion');
 assert.equal(listesNul.length,0,'Liste historique contenant des PNJ non visibles');
-console.log('Guides : six raccordements existants ou portraits attendus contrôlés ; Fiodor signalé absent du monde effectif.');
+console.log('Guides : six raccordements existants ou portraits attendus contrôlés, tous présents dans le monde effectif.');

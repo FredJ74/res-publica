@@ -7349,7 +7349,8 @@ export const SCENES_PNJ = {
     "batiment": "Marché de Krasnov",
     "piece": "Etals du marche",
     "personnes": [
-      "Nina Gorbounova"
+      "Nina Gorbounova",
+      "Fiodor Medvedkine"
     ]
   },
   "[\"soviet\",\"ville_b\",\"universite\",\"amphi\"]": {

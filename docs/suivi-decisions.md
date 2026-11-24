@@ -276,3 +276,4 @@ et sur le registre de production jusqu'à `20261123222538 renommages_pnj_finale`
 | Date | Décision | État | En ligne le | Commit | Source |
 |---|---|---|---|---|---|
 | 25/11/2026 | 1.1 Généraliste du dispensaire de Luthécia renommé Mathias Spirine (Fred, 32e5b8d) : profil de dialogue, miroir des scènes et bancs à jour ; images propres à Luthécia, salle d'attente et chambre séparées (H.1). Miroir serveur du casting : migration 20261125100000 écrite, non appliquée. | en cours |  |  | Mission de nuit 1.1 |
+| 25/11/2026 | 1.3 Fiodor Medvedkine, guide de Krasnov, présent au marché de Krasnov (avec Nina Gorbounova), comme les cinq autres guides dans leur ville ; banc banc-fiodor-krasnov-20261125.cjs. Aucune migration (le serveur le connaît déjà). | en cours |  |  | Mission de nuit 1.3 |

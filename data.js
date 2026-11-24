@@ -2833,8 +2833,7 @@ const WORLD = {
             rel: 'neutral', job: 'commercant', profilId: 'nina_gorbounova',
             photoUrl: 'images/Sovarka/Krasnov/Krasnov_marche_nina_gorbounova_portrait.webp',
             photoPos: '50% 24%'
-          }, { name: 'Fiodor Medvedkine (PNJ)', role: 'Apiculteur du kolkhoze — guide des nouveaux venus', rel: 'friendly', job: 'citoyen',
-               profilId: 'guide_fiodor_medvedkine', photoUrl: 'images/Sovarka/Krasnov/guide-fiodor-medvedkine-portrait.webp' }], // Habitant guide des nouveaux joueurs (purge A.10, 24/11/2026) : PNJ du chat, même image que le lieu.
+          }], // Fiodor Medvedkine, guide de Krasnov : déclaré plus bas avec Nina (contexte de Krasnov), sinon effacé (25/11/2026).
           roomOverrides: {
             // Marché de Krasnov, interface unique (lot de Krasnov, point 2, 22/11/2026) : une seule fenêtre pour acheter,
             // vendre et produire (graisse d'ours et eau comprises). Les anciens guichets du marché sont retirés ici seulement.
@@ -12192,7 +12191,10 @@ const ORDRES_RESERVES_AUX_HOSPITALISES = ['transfert_clinique_privee', 'repas_ho
   piece(contexte('ville_a', 'zone-production'), 'zone_recolte').imageUrl = 'images/Sovarka/Starovka/Starovka_champ_petrole.webp';
 
   // Krasnov.
-  Object.assign(contexte('ville_b', 'marche'), { name: 'Marché de Krasnov', desc: 'Les étals du kolkhoze : pommes, choux, miel et conserves maison, vendus sous les tilleuls.', persons: [pnj('Nina Gorbounova', 'Marchande', 'commercant')] });
+  // Habitant guide des nouveaux joueurs (purge A.10) : déclaré ici, avec Nina, car cette liste remplace celle du contexte
+  // plus haut (Fiodor y était déclaré mais absent du monde effectif ; mission de nuit 25/11/2026, point 1.3).
+  Object.assign(contexte('ville_b', 'marche'), { name: 'Marché de Krasnov', desc: 'Les étals du kolkhoze : pommes, choux, miel et conserves maison, vendus sous les tilleuls.', persons: [pnj('Nina Gorbounova', 'Marchande', 'commercant'),
+    { name: 'Fiodor Medvedkine (PNJ)', role: 'Apiculteur du kolkhoze — guide des nouveaux venus', rel: 'friendly', job: 'citoyen', profilId: 'guide_fiodor_medvedkine', photoUrl: 'images/Sovarka/Krasnov/guide-fiodor-medvedkine-portrait.webp' }] });
   Object.assign(contexte('ville_b', 'universite'), { name: 'École de Krasnov', desc: 'L\'école du kolkhoze : on y apprend à lire, à compter et à réciter les rendements de la récolte.' });
   // Seule PNJ de la classe (Fred, 14/11/2026) : l'institutrice de l'image, nom proposé par Claude (« gramota », savoir lire et écrire).
   Object.assign(piece(contexte('ville_b', 'universite'), 'amphi'), { name: 'Salle de classe', persons: [pnj('Alevtina Gramotova', 'Institutrice', 'professeur')],
