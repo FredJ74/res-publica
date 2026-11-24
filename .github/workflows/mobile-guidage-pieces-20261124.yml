@@ -1,0 +1,24 @@
+name: Mobile — guidage des pièces masquées
+on:
+  pull_request:
+    paths:
+      - 'plateau-quete-accueil.js'
+      - 'plateau-interieurs-mobile.js'
+      - 'outils/bancs/banc-mobile-guidage-pieces-20261124.cjs'
+      - '.github/workflows/mobile-guidage-pieces-20261124.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'plateau-quete-accueil.js'
+      - 'plateau-interieurs-mobile.js'
+      - 'outils/bancs/banc-mobile-guidage-pieces-20261124.cjs'
+      - '.github/workflows/mobile-guidage-pieces-20261124.yml'
+jobs:
+  guidage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test outils/bancs/banc-mobile-guidage-pieces-20261124.cjs
