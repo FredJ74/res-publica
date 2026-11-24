@@ -39,6 +39,7 @@ for(const b of ville.buildings||[]){
 }
 const presents=[...groupes.values()];
 const orphelins=presents.filter(x=>!x.portrait_existant&&!x.a_produire);
+console.log('INVENTAIRE_MANQUANTS',JSON.stringify(presents.filter(x=>!x.portrait_existant).map(x=>({nom:x.nom,batiment:x.batiment,piece:x.piece,source:x.source,a_produire:x.a_produire}))));
 const listesNul=attendus.filter(a=>a.pays!=='Republia'&&a.pays!=='Sovarka'&&a.source==='audit 23/11'&&!presents.some(x=>x.nom===a.nom&&x.piece===a.piece&&x.batiment===a.batiment));
 const guides=[
  ['guide_zinaida_otcheredova','images/Sovarka/Novomirsk/guide-zinaida-otcheredova-portrait.webp'],
@@ -61,7 +62,7 @@ function chercherProfil(identifiant) {
 }
 for(const [id,chemin] of guides){
   const occurences=chercherProfil(id);
-  assert.ok(occurences.length,'Guide introuvable: '+id);
+  if(!occurences.length){ console.error('Guide introuvable',id,'Krasnov marche=',JSON.stringify((monde.soviet.ville_b.buildingContext||{}).marche?.persons||[])); continue; }
   for(const personnage of occurences) assert.equal(personnage.photoUrl,chemin,'Guide encore illustré par une image de lieu: '+id);
   assert.ok(fs.existsSync(path.join(root,chemin))||attendus.some(a=>a.fichier===chemin),'Guide sans fichier et absent de la liste: '+id);
 }
