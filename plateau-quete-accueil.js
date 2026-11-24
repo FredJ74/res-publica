@@ -59,6 +59,13 @@ function queteAccueilAccepterJeremy() {
 function queteAccueilSurbrillance(selector, dureeMs) {
   const els = document.querySelectorAll(selector);
   if (!els.length) return;
+  // Sur mobile, les onglets de pièce sont rangés dans « Pièces » : révéler le panneau avant
+  // d'indiquer une pièce, sans sélectionner celle-ci ni déclencher d'action de jeu.
+  if (Array.from(els).some(el => el.matches('.piece-tab') && el.closest('#hg-room-list') && el.getClientRects().length === 0)) {
+    const acces = document.querySelector('#hg-room-primary [data-room-tab="0"]');
+    const panneau = document.getElementById('hg-room-list');
+    if (panneau?.hidden && acces && window.matchMedia('(max-width:1023px)').matches) acces.click();
+  }
   els.forEach(function(el) {
     el.classList.add('quete-accueil-surbrillance');
     // Retire la surbrillance des qu'on clique reellement dessus, plutot que d'attendre
