@@ -41,8 +41,19 @@
     auto: "Se coche d'elle-même quand le serveur voit passer cet ordre ; sinon, cochez-la.",
     bulle: 'Vous venez de dépenser {pa} PA. Les PA sont votre énergie du jour : chaque action en coûte. Dormir les recharge. À 0, c\'est l\'hôpital.',
     hrp: 'Hors jeu',
-    compris: 'Compris'
+    compris: 'Compris',
+    // Bienvenue (Fred, 24/11/2026, purge A.2) : texte exact, ville et pays de départ en variables.
+    bvTitre: 'Bienvenue à {ville} en {pays},',
+    bv1: "Ça doit faire bizarre d'arriver en terre inconnue, mais sache que tu n'es pas seul : on est là pour t'aider.",
+    bv2: "Demande aussi aux personnages que tu croiseras : ils seront très probablement en mesure de t'aider, de t'orienter.",
+    bv3: "Je te laisse découvrir un peu la ville, on reviendra vers toi très rapidement. Et si tu as besoin d'aide, n'oublie pas : on est là.",
+    bvFermer: 'Fermer le message de bienvenue',
+    bvAide: 'Aide'
   };
+  // Ville et pays de départ (identifiants de la fiche → noms affichés).
+  const VILLES = { republic: { capitale: 'Luthécia', ville_a: 'Port-Sainte-Marie', ville_b: 'Montrouge' },
+                   soviet: { capitale: 'Novomirsk', ville_a: 'Starovka', ville_b: 'Krasnov' } };
+  const PAYS = { republic: 'Républia', soviet: 'Sovarka' };
   // Portraits des deux journalistes (Vera Pravdina : portrait fourni par Fred le 23/11/2026, point 15 ; plus de pastille « V »).
   const PORTRAITS = { 'Jodie Moitout': 'images/jodie-moitout.webp', 'Vera Pravdina': 'images/Sovarka/Novomirsk/Novo_vera_pravdina_portrait.webp' };
   const f = (t, v) => String(t).replace(/\{(\w+)\}/g, (_, k) => (v && v[k] != null ? v[k] : ''));
@@ -102,6 +113,18 @@
       '#hg-bulle-pa .hg-bulle-hrp{display:inline-block;font-size:.95rem;color:#b8ffb8;border:1px solid #4a8a4a;border-radius:3px;padding:0 6px;margin-bottom:6px}',
       '#hg-bulle-pa p{margin:0 0 10px;font-size:1rem}',
       '#hg-bulle-pa button{min-height:44px;padding:6px 16px;border:1px solid #6ada6a;border-radius:4px;background:#173017;color:#f2fff2;font:inherit;font-size:1rem;cursor:pointer}',
+      // Bienvenue (A.2) : au-dessus de tout, croix seule, grande sur téléphone.
+      '#hg-bienvenue{position:fixed;inset:0;z-index:20000;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;background:rgba(6,12,20,.78)}',
+      '#hg-bienvenue .hg-bv-carte{position:relative;width:min(540px,100%);max-height:calc(100dvh - 32px);overflow-y:auto;box-sizing:border-box;padding:22px 22px 20px;font-size:1.05rem;line-height:1.55}',
+      '#hg-bienvenue .hg-bv-titre{margin:0 52px 12px 0;font-size:1.3rem}',
+      '#hg-bienvenue p{margin:0 0 12px;font-size:1.05rem}',
+      '#hg-bienvenue .hg-bv-aide{display:flex;justify-content:center;margin:4px 0 14px}',
+      '#hg-bienvenue .hg-bv-aide .forum-btn{pointer-events:none;cursor:default;font-size:1rem}',
+      '#hg-bienvenue .hg-bv-croix{position:absolute;top:8px;right:8px;width:48px;height:48px;min-height:48px;font-size:1.8rem!important;line-height:1;padding:0}',
+      '@media (max-width:520px){#hg-bienvenue .hg-bv-croix{width:60px;height:60px;min-height:60px;font-size:2.2rem!important;top:4px;right:4px}#hg-bienvenue .hg-bv-titre{margin-right:64px}}',
+      '#hg-bienvenue .hg-bv-signature{display:flex;align-items:center;gap:10px;min-height:1px;margin-top:6px}',
+      '#hg-bienvenue .hg-bv-signature:empty{display:none}',
+      '#hg-bienvenue .hg-bv-portrait{width:56px;height:56px;border-radius:50%;object-fit:cover}',
       '@media (prefers-reduced-motion:reduce){.hg-acc-carte.hg-acc-file{transition:opacity .2s}.hg-acc-cible,.hg-pa-allumee{animation:none}.hg-pa-allumee{box-shadow:0 0 0 2px #6ada6a}}'
     ].join('\n');
     doc.head.appendChild(s);
@@ -427,10 +450,71 @@
     }).observe(el, { childList: true, characterData: true, subtree: true });
   }
 
+  // ------------------------------------------------------------------ bienvenue (Fred, 24/11/2026, purge A.2)
+  // À la première connexion d'un nouveau personnage (le serveur dit « a_voir »). Elle ne se ferme QUE par la croix : ni clic
+  // à côté, ni Échap ; elle est au-dessus de tout et le portier des fenêtres automatiques (plateau-fenetres-auto.js) n'ouvre
+  // rien tant qu'elle est là. La signature (PNJ dédié à l'accueil, à créer par Fred) reste vide tant que le serveur n'en donne pas.
+  let bienvenue = null;
+  function iconeAide() {
+    // L'icône réelle du bouton d'aide de la barre du haut, recopiée telle quelle (inerte).
+    const vrai = doc.querySelector('#hg-menu-existant button[onclick="openRulesView()"]');
+    if (vrai) {
+      const c = vrai.cloneNode(true);
+      c.removeAttribute('onclick'); c.removeAttribute('id'); c.setAttribute('tabindex', '-1'); c.setAttribute('aria-hidden', 'true');
+      c.type = 'button';
+      return c.outerHTML;
+    }
+    return '<button type="button" class="forum-btn" tabindex="-1" aria-hidden="true"><i class="ti ti-book"></i> <span>' + esc(TXT.bvAide) + '</span></button>';
+  }
+  function ouvrirBienvenue() {
+    const bv = etat && etat.bienvenue;
+    if (!bv || !bv.a_voir || bienvenue || doc.getElementById('hg-bienvenue')) return false;
+    styles();
+    const ville = (VILLES[bv.pays] && VILLES[bv.pays][bv.ville]) || bv.ville || '';
+    const pays = PAYS[bv.pays] || '';
+    bienvenue = doc.createElement('div');
+    bienvenue.id = 'hg-bienvenue';
+    bienvenue.setAttribute('role', 'dialog');
+    bienvenue.setAttribute('aria-modal', 'true');
+    bienvenue.setAttribute('aria-labelledby', 'hg-bv-titre');
+    const signature = (bv.portrait ? '<img class="hg-bv-portrait" alt="" src="' + esc(bv.portrait) + '">' : '') +
+      (bv.signataire ? '<span class="hg-bv-signataire cpj-note">' + esc(bv.signataire) + '</span>' : '');
+    bienvenue.innerHTML = '<div class="hg-bv-carte modal-box cpj-dialogue">' +
+      '<button type="button" class="hg-bv-croix cpj-touche" aria-label="' + esc(TXT.bvFermer) + '">×</button>' +
+      '<h2 class="hg-bv-titre" id="hg-bv-titre">' + esc(f(TXT.bvTitre, { ville, pays })) + '</h2>' +
+      '<p>' + esc(TXT.bv1) + '</p>' +
+      '<div class="hg-bv-aide">' + iconeAide() + '</div>' +
+      '<p>' + esc(TXT.bv2) + '</p>' +
+      '<p>' + esc(TXT.bv3) + '</p>' +
+      '<div class="hg-bv-signature" data-bienvenue-signature>' + signature + '</div></div>';
+    const croix = bienvenue.querySelector('.hg-bv-croix');
+    croix.addEventListener('click', () => {
+      const b = bienvenue; bienvenue = null;
+      if (etat && etat.bienvenue) etat.bienvenue.a_voir = false;
+      b.remove();
+      rpc('accueil_bienvenue_vue');
+    });
+    // Ni Échap ni clic à côté ; le focus reste sur la croix.
+    bienvenue.addEventListener('keydown', e => {
+      if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); }
+      if (e.key === 'Tab') { e.preventDefault(); croix.focus({ preventScroll: true }); }
+    }, true);
+    bienvenue.addEventListener('click', e => { if (e.target === bienvenue) { e.preventDefault(); e.stopPropagation(); } });
+    doc.body.appendChild(bienvenue);
+    // Toujours au-dessus : une fenêtre ajoutée après elle ne la recouvre pas (elle repasse en dernier enfant).
+    const garde = new MutationObserver(() => {
+      if (!bienvenue) { garde.disconnect(); return; }
+      if (doc.body.lastElementChild !== bienvenue) doc.body.appendChild(bienvenue);
+    });
+    garde.observe(doc.body, { childList: true });
+    setTimeout(() => croix.focus({ preventScroll: true }), 30);
+    return true;
+  }
+
   // ------------------------------------------------------------------ démarrage (points 23 et 25)
   // Ne pas couvrir la quête d'accueil de Luthécia (garde du Palais, Jérémy) ni un dialogue de PNJ en cours.
   function occupe() {
-    if (doc.querySelector('#modal-quete-accueil.open, #modal-pnj.open, .modal-overlay.open, #hg-accueil-interview')) return true;
+    if (doc.querySelector('#hg-bienvenue, #modal-quete-accueil.open, #modal-pnj.open, .modal-overlay.open, #hg-accueil-interview')) return true;
     const e = global.state?.char?.queteAccueil?.etape;
     return e === 'garde_en_cours';
   }
@@ -444,13 +528,14 @@
       chargement = charger().finally(() => { chargement = null; });
       await chargement;
     }
+    if (etat?.bienvenue?.a_voir) { ouvrirBienvenue(); return; }
     if (etat?.interview?.ouvrir_auto && !occupe()) {
       etat.interview.ouvrir_auto = false;
       if (ouvrir()) rpc('accueil_interview_vue');
     }
   }
 
-  global.RPAccueil = Object.freeze({ charger, ouvrir, fermer, insererObjectifs, afficherBullePa, etat: () => etat, verifier, TXT });
+  global.RPAccueil = Object.freeze({ charger, ouvrir, fermer, insererObjectifs, afficherBullePa, ouvrirBienvenue, bienvenueOuverte: () => !!bienvenue, etat: () => etat, verifier, TXT });
   if (!global.__RP_ACCUEIL_SANS_MINUTERIE) {
     setTimeout(verifier, 2500);
     setInterval(verifier, 5000);
