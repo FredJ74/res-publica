@@ -2025,6 +2025,23 @@ const TEXTES_SAVOIRS_DROGUES = {
   estadine_banquier: `UNE CHOSE QUE TU SAIS, PAR TA CLIENTÈLE, ET QUE TU N'ÉVOQUES QU'À DEMI-MOT :\n${EFFETS_ESTADINE_RP}\nTu as vu des fortunes se défaire entre une montée et une descente ; tu ne nommes jamais aucun client. De la Brume, tu ne sais rien : ce n'est pas un produit de ta clientèle. Tu n'emploies jamais de nom de drogue du monde réel.`
 };
 
+// LES PA EXPLIQUÉS PAR L'INFIRMIÈRE D'ACCUEIL (Fred, 24/11/2026, mission Purge A.6). Le lien « Plus d'informations sur
+// les PA ? » du panneau « Mon personnage » mène à l'infirmière d'accueil de l'hôpital ou du dispensaire de chaque ville
+// (plateau-medecin-montrer.js, INFIRMIERES_PA) : elle seule, parmi les PNJ ordinaires, sait expliquer les PA. Le texte
+// reprend la bulle d'accueil des PA (GAME-DESIGN-INTERFACE-ACCUEIL-20261122.md, point 26) et le thème d'aide « pa »
+// (api/_aide-themes.js) ; aucun chiffre n'y est ajouté. La fiche de Novomirsk (infirmiere_de_novomirsk) passe à
+// Ekaterina Bintova par la dérivation de Sovarka (_pnj-sovarka.js).
+const INFIRMIERES_PA = ['anne_tibiotique', 'betty_dine', 'agnes_thesie', 'infirmiere_de_novomirsk', 'raissa_bintova', 'nadejda_oukolova'];
+const SAVOIR_PA = `CE QUE TU EXPLIQUES VOLONTIERS, PARCE QU'ON TE LE DEMANDE SOUVENT À L'ACCUEIL : LES PA, les points d'action.
+- Les PA, c'est l'énergie de la journée. Beaucoup d'actions en coûtent (le coût est écrit sur chaque action), d'autres sont gratuites.
+- Dormir recharge les PA, une fois par journée réelle ; une journée sans dormir ne se rattrape pas. Le sommeil compte aussi pour le salaire du jour.
+- À 0 PA, on finit à l'hôpital : c'est pour cela que tu conseilles de garder de la réserve.
+- La jauge « PA » du panneau « Mon personnage » montre ce qui reste ; la toucher ou la survoler affiche un rappel.
+- Les PA ne sont ni la Santé ni le Moral : une bonne Santé fait perdre moins de PA quand on prend des coups ; manger, dormir dans un lit ou voir un médecin entretiennent la Santé.
+Tu expliques cela simplement, comme à un patient qui découvre, en une ou deux phrases à la fois. Tu n'inventes aucun chiffre ni aucune règle qui n'est pas écrite ici.`;
+const LIMITES_INFIRMIERE_PA = LIMITES_ORDINAIRE.replace("TU NE CONNAIS AUCUNE REGLE DU JEU. Ni prix, ni tarif, ni cout en points d'action,",
+  "TU NE CONNAIS AUCUNE REGLE DU JEU, SAUF CE QUE TU SAIS DES PA (ci-dessus). Ni prix, ni tarif,");
+
 function profilsPersonnalites() {
   const table = {};
   for (const [id, p] of Object.entries(ORDINAIRES)) table[id] = profilOrdinaire(p);
@@ -2036,6 +2053,11 @@ function profilsPersonnalites() {
   // Ce qui les distingue n'est pas leur savoir, c'est qu'elles ont une identite
   // stable -- et donc, pour l'une d'elles, une memoire.
   for (const [id, p] of Object.entries(ESCORTS_REPUBLIA)) table[id] = profilOrdinaire(p);
+  for (const id of INFIRMIERES_PA) {
+    if (!table[id]) continue;
+    const base = String(table[id].savoir || '').replace(/ Rien d'autre\.$/, '');
+    table[id] = Object.assign({}, table[id], { savoir: (base ? base + '\n\n' : '') + SAVOIR_PA, limites: LIMITES_INFIRMIERE_PA });
+  }
   for (const [id, cle] of Object.entries(SAVOIRS_DROGUES)) {
     if (!table[id]) continue;
     const base = String(table[id].savoir || '').replace(/ Rien d'autre\.$/, '');
@@ -2044,4 +2066,4 @@ function profilsPersonnalites() {
   return table;
 }
 
-export { profilsPersonnalites, ORDINAIRES, RICHES, SOCIAUX, ESCORTS_REPUBLIA };
+export { profilsPersonnalites, ORDINAIRES, RICHES, SOCIAUX, ESCORTS_REPUBLIA, INFIRMIERES_PA, SAVOIR_PA };

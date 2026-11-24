@@ -284,12 +284,12 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
     </button>
     <!-- Ligne 1 : PA, Santé, Moral -->
     <div class="hg-jauges-ligne" style="display:flex;gap:.4rem;margin:.4rem 0;padding:0 .2rem">
-      <div style="flex:1;background:#0a0a07;border:1px solid #2a1a08;border-radius:3px;padding:.3rem .5rem;text-align:center">
-        <div style="font-size:.58rem;color:#4a8a4a;font-family:'Bebas Neue',sans-serif;letter-spacing:.08em">PA</div>
-        <div style="font-size:.85rem;color:#6ada6a;font-family:'Bebas Neue',sans-serif" id="r-pa">∞</div>
-        <div style="height:3px;background:#1a2a1a;border-radius:2px;margin-top:2px">
-          <div id="b-pa" style="height:100%;background:#4a8a4a;border-radius:2px;width:100%"></div>
-        </div>
+      <!-- Jauge des PA (Fred, 24/11/2026, mission Purge A.6) : comme Santé et Moral (curseur d'aide, bulle au survol et au
+           toucher). #r-pa et #b-pa restent les cases écrites par updateUI (plateau-core.js) : r-pa est enfant direct de la jauge. -->
+      <div class="hg-jauge" id="hg-jauge-pa" data-jauge="pa" tabindex="0" role="button" aria-describedby="hg-jauge-bulle">
+        <div class="hg-jauge-nom">PA</div>
+        <div class="hg-jauge-val" id="r-pa">∞</div>
+        <div class="hg-jauge-fond"><div class="hg-jauge-barre" id="b-pa" style="width:100%"></div></div>
       </div>
       <!-- Jauges Santé et Moral (Fred, 22/11/2026, GAME-DESIGN-SANTE-20261122.md, point 14) : infobulle au survol et au toucher
            (plateau-medecin-montrer.js), valeurs recopiées de r-hp et r-moral (état du serveur). -->
@@ -304,6 +304,9 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
         <div class="hg-jauge-fond"><div class="hg-jauge-barre" id="hg-jauge-moral-barre"></div></div>
       </div>
     </div>
+    <!-- « Plus d'informations sur les PA ? » (A.6) : ouvre la conversation avec l'infirmière d'accueil de l'hôpital ou du
+         dispensaire de la ville si le joueur est dans sa pièce, sinon dit où la trouver (plateau-medecin-montrer.js). -->
+    <button type="button" id="hg-pa-infos" class="hg-pa-infos" onclick="ouvrirInfirmierePa()">Plus d'informations sur les PA ?</button>
     <!-- Ligne 2 (point 16) : Influence, Popularité, Discrétion — mêmes petites jauges, valeurs recopiées de r-inf, r-pop, r-dis. -->
     <div class="hg-jauges-ligne" style="display:flex;gap:.4rem;margin:0 0 .4rem;padding:0 .2rem">
       <div class="hg-jauge" id="hg-jauge-influence" data-jauge="influence" tabindex="0" role="button" aria-describedby="hg-jauge-bulle">
@@ -966,7 +969,7 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
 <script src="plateau-criminalite.js?v=crim-lot1-20261119-victimes-journal-20261120-informateurs-20261122-sante-medecin-20261122-sante-suites-20261123-purge-20261124"></script>
 <script src="plateau-evenements-personnage.js?v=sante-20261122-purge-20261124"></script>
 <!-- Santé : jauges Santé et Moral, médecin de terrain, montrer un objet (22/11/2026, points 12, 14, 22). -->
-<script src="plateau-medecin-montrer.js?v=sante-medecin-20261122-fiche-objet-panneau-20261123"></script>
+<script src="plateau-medecin-montrer.js?v=sante-medecin-20261122-fiche-objet-panneau-20261123-purge-a6-20261124"></script>
 <!-- Accueil : interview de la première connexion, parcours dans Mes objectifs, bulle des PA (23/11/2026, points 23 à 26). -->
 <script src="plateau-accueil-interview.js?v=accueil-20261123-bloc1-20261123"></script>
 <script src="plateau-temps-reel.js?v=1-inventaire-direct-20261122-sante-20261122"></script>
