@@ -798,7 +798,9 @@ function brancherBullesAide(racine) {
   if (!brancherBullesAide.global) {
     brancherBullesAide.global = true;
     document.addEventListener('click', e => { if (!e.target.closest || !e.target.closest('.hg-aide-rond')) cacher(); });
-    window.addEventListener('scroll', cacher, true);
+    // Un défilement provoqué par l'ouverture elle-même (survol ou toucher qui amène le rond à l'écran) ne referme pas la bulle.
+    window.addEventListener('scroll', () => { const b = document.getElementById('hg-aide-bulle');
+      if (b && !b.hidden && Date.now() - Number(b.dataset.depuis || 0) < 400) return; cacher(); }, true);
   }
 }
 

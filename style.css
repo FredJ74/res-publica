@@ -2780,6 +2780,7 @@ body.plateau-body .top-right {
   #chantier-fenetre .cj-compteur{display:flex;width:100%;justify-content:space-between}
   #chantier-fenetre .cj-reglage-saisie{width:100%}
   #chantier-fenetre .cj-reglage-saisie .cpj-touche{flex:1 1 auto}
+}
 /* Calendrier électoral en cartes simples (Fred, 24/11/2026, mission « Purge », point G.2) — couleurs de la charte bleu-gris. */
 .hg-cal{display:flex;flex-direction:column;gap:.75rem;padding:.25rem;max-width:680px;width:100%;box-sizing:border-box}
 .hg-cal-entete{display:flex;align-items:center;justify-content:space-between;gap:.5rem;font-size:1rem;color:#e2e9f1}
