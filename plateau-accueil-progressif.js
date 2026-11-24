@@ -101,9 +101,16 @@
   function journalAutomatiqueAutorise() {
     return !!progression && (!debut || (progression.fermee && progression.ms >= UNE_HEURE && !fenetre));
   }
+  function queteInitialeAutorisee() {
+    return !!progression && (!debut || (progression.fermee && progression.ms >= CINQ_MINUTES && !fenetre));
+  }
   function verifier() {
     if (!progression) return;
     if (debut && !progression.fermee) ouvrirBienvenue();
+    if (queteInitialeAutorisee() && typeof global.queteAccueilAfficherGardeDifferee === 'function'
+        && !doc.querySelector('#hg-bienvenue, #hg-accueil-interview, #modal-quete-accueil.open, #modal-pnj.open, .modal-overlay.open')) {
+      global.queteAccueilAfficherGardeDifferee();
+    }
     if (journal && !progression.journal && journalAutomatiqueAutorise()) {
       if (doc.querySelector('#hg-accueil-interview, #hg-bienvenue, #modal-quete-accueil.open, .modal-overlay.open')) return;
       const action = journal;
@@ -141,7 +148,7 @@
   global.setInterval(tic, 1000);
   global.RPAccueilProgressif = Object.freeze({
     initialiser, verifier, noterDiscussionPnj, programmerJournal,
-    entretienAutomatiqueAutorise, journalAutomatiqueAutorise,
+    entretienAutomatiqueAutorise, journalAutomatiqueAutorise, queteInitialeAutorisee,
     etat: () => progression && {...progression}
   });
 })(typeof window !== 'undefined' ? window : globalThis);
