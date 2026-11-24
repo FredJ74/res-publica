@@ -531,8 +531,8 @@ const WORLD = {
         },
         'dispensaire-public': {
           name: "Dispensaire Public de Luthecia",
-          desc: "Docteur Aspirine prescrit du repos pour tout.",
-          persons: [{"name": "Docteur Aspirine (PNJ)", "role": "Généraliste", "rel": "neutral", "job": "medecin"}, {"name": "Anne Tibiotique (PNJ)", "role": "Infirmière", "rel": "neutral", "job": "infirmier"}]
+          desc: "Mathias Spirine consulte les dossiers médicaux.",
+          persons: [{"name": "Mathias Spirine (PNJ)", "role": "Généraliste", "rel": "neutral", "job": "medecin"}, {"name": "Anne Tibiotique (PNJ)", "role": "Infirmière", "rel": "neutral", "job": "infirmier"}]
         },
         'la-tribune': {
           name: "L'Autruche Entravée",
@@ -11768,6 +11768,22 @@ const ORDRES_RESERVES_AUX_HOSPITALISES = ['transfert_clinique_privee', 'repas_ho
     hopital.roomsExtra.chambre = Object.assign({}, hopital.roomsExtra.chambre,
       { orders: CHAMBRE_HOPITAL_ORDRES().concat(sortie ? [Object.assign({}, sortie)] : []) });
   }
+})();
+
+// IMAGES PROPRES AU DISPENSAIRE PUBLIC DE LUTHÉCIA (24/11/2026).
+// Ne jamais changer BUILDINGS['dispensaire-public'] ni la chambre générique
+// de Montrouge : ces objets sont partagés avec d'autres villes/pays.
+(function () {
+  const h = WORLD.republic.capitale.buildingContext['dispensaire-public'];
+  if (!h || !h.roomsExtra || !h.roomsExtra.chambre) throw new Error('Dispensaire de Luthécia incomplet');
+  h.roomOverrides = h.roomOverrides || {};
+  h.roomOverrides.salle_attente = Object.assign({}, h.roomOverrides.salle_attente || {}, {
+    name: 'Accueil',
+    imageUrl: 'images/luthecia-dispensaire-accueil.webp'
+  });
+  h.roomsExtra.chambre = Object.assign({}, h.roomsExtra.chambre, {
+    imageUrl: 'images/luthecia-dispensaire-chambre.webp'
+  });
 })();
 
 // STAROVKA ET KRASNOV : TEXTES DU GABARIT DE MONTROUGE (Claude, 09/11/2026, audit des deux villes).
