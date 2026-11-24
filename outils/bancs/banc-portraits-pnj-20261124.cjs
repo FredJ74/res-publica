@@ -52,7 +52,7 @@ for(const [id,chemin] of guides){
   let trouve=null;
   for(const pays of ['republic','soviet'])for(const villeId of ['capitale','ville_a','ville_b']){
     const v=monde[pays][villeId];
-    for(const b of v.buildings||[]){
+    for(const b of new Set([...(v.buildings||[]),...Object.keys(v.buildingContext||{})])){
       const building=batiments[b],local=(v.buildingContext||{})[b]||{};
       const rooms={...(building?.rooms||{}),...(local.roomsExtra||{})};
       const first=Object.keys(building?.rooms||{})[0];
