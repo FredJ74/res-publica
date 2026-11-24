@@ -140,6 +140,9 @@ Chaque point porte un banc qui l'empêche de revenir (liste dans RELAIS.md).
   salles ; la fenêtre d'Arkadi porte, pour qui a la feuille volante, le champ « Le dire à Arkadi » (RPC `krasnov_ecole_agir`,
   action `repondre_enigme`, inchangée). Les questions payantes au guide restent propres à Novomirsk ; la conversation libre
   passe par la fiche DeepSeek d'Arkadi (bloc 3).
+  **Décision de Fred du 24/11/2026 (mission « Purge », point H.3)** : Arkadi répond aussi aux questions libres, 1 PA pour 3
+  questions, par salle et par jour, comme à Novomirsk (même compteur serveur, salles « krasnov: », migration
+  `20261124142000` ; fenêtre « Écouter le guide », `plateau-guide-arkadi.js`).
 - 30 : à Krasnov seulement (voir `GAME-DESIGN-HOSPITALISATION.md`). **Étendu à tous les hôpitaux publics de Sovarka et de Républia par Fred le 24/11/2026 (mission « Purge », point H.1).**
 - 31 : encadré au-dessus des ordres de tout local de `sovarka_locaux` (centres, immeubles collectifs, locaux de Starovka) ;
   l'ordre `sovarka_demande_location` s'appelle désormais « Demander ce local à la mairie » partout.

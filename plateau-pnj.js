@@ -1441,8 +1441,8 @@ async function reponsePnjServeur(profil, message, historique) {
     })
   });
   if (!resp.ok) {
-    let raison = 'HTTP ' + resp.status;
-    try { const e = await resp.clone().json(); if (e?.error) raison += ' — ' + e.error; } catch (x) {}
+    let raison = 'HTTP ' + resp.status, motif = null;
+    try { const e = await resp.clone().json(); if (e?.error) raison += ' — ' + e.error; motif = e?.raison || null; } catch (x) {}
     console.warn('[PNJ] dialogue serveur indisponible (' + raison + ')');
     // UNE PANNE QUI SE REPARE TOUTE SEULE N'EST PAS UNE PANNE DEFINITIVE, et confondre les deux
     // fait mentir l'ecran (13 octobre 2026). Un 400 signifie que la REQUETE est irrecevable --
@@ -1453,6 +1453,7 @@ async function reponsePnjServeur(profil, message, historique) {
     // Un 401, un 502, un delai depasse ou une coupure reseau, eux, se reparent.
     const err = new Error(raison);
     err.definitif = (resp.status === 400);
+    err.raison = motif;   // refus nommé du serveur (ex. questions des guides de musée : 24/11/2026, point H.3)
     throw err;
   }
   const data = await resp.json();
@@ -1956,6 +1957,11 @@ function verifierSuccesMaxence(cle) {
     // personnage (29 septembre 2026), et une absence de dialogue ne se deguise pas en panne.
     const statusTraduit = (key, source) =>
       (typeof window!=='undefined' && window.RPPnjStatusI18n?.label?.(key,source)) || source;
+    // Guides de musée (Ouliana, Ilia, Arkadi : 24/11/2026, point H.3) : leurs questions se posent dans la fenêtre
+    // « Écouter le guide » (1 PA pour 3 questions par salle et par jour) ; le refus du serveur le dit.
+    const refusGuide = { dialogue_non_ouvert: "Le guide répond à vos questions dans sa fenêtre « Écouter le guide » : 1 PA pour trois questions dans cette salle, aujourd’hui.",
+      questions_epuisees: 'Vous avez posé vos trois questions dans cette salle aujourd’hui.' };
+    if (e && refusGuide[e.raison]) { speech.textContent = refusGuide[e.raison]; return; }
     speech.textContent = (e && e.definitif === true)
       ? statusTraduit('noConversation',"Ce personnage n'engage pas de conversation.")
       : statusTraduit('temporaryUnavailable','Discussion impossible momentanément. Veuillez réessayer dans quelques instants.');

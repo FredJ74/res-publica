@@ -49,7 +49,8 @@ test('profil IA : cinq récits connus, sans révéler l’énigme',()=>{
  for(const str of ['Sergueï IV','Sophia Nouiseteskaïa','Piotr Karassov','Grigori Pirogov']) assert.ok(facts.includes(str),str);
  assert.match(facts,/ne connais pas la solution de l'énigme/);
  const src=lire('api/chat.js');
- assert.match(src,/req\.body\.profil === 'veteran_ilia_krioukov'/);
+ // Depuis le 24/11/2026 (point H.3), la table GUIDES_MUSEE_PREFIXE lie chaque guide à son musée (Ilia : « novomirsk: »).
+ assert.match(src,/veteran_ilia_krioukov: 'novomirsk:'/);
  assert.match(src,/novomirsk:/);
 });
 test('scènes serveur connues dans les deux nouvelles salles',()=>{

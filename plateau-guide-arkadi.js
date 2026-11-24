@@ -76,24 +76,129 @@ function arkadiEnigmeHtml() {
     + echapper(ARKADI_ENIGME.bouton) + '</button>';
   return '<div class="guide-musee-questions" data-arkadi-enigme><h4>' + echapper(ARKADI_ENIGME.titre) + '</h4>' + corps + '</div>';
 }
+// QUESTIONS LIBRES À ARKADI (Fred, 24/11/2026, mission « Purge », point H.3) : comme Ouliana et Ilia à Novomirsk,
+// 1 PA ouvre trois questions, par salle et par jour. Le serveur tient le compte (guide_musee_dialogue_lire / _ouvrir,
+// salle « krasnov:<pièce> », migration 20261124142000) et /api/chat ne répond à Arkadi que dans son musée ; l'écran ne
+// fait qu'afficher ce que le serveur renvoie. Textes en français (Codex les traduira).
+const ARKADI_QUESTIONS = Object.freeze({
+  titre: 'Des questions pour Arkadi ?',
+  intro: 'Pour 1 PA, Arkadi répond à trois questions dans cette salle, aujourd’hui.',
+  ouvrir: 'Poser des questions (1 PA)',
+  placeholder: 'Votre question sur Krasnov…',
+  demander: 'Demander ({n} restantes)',
+  vous: 'Vous',
+  attente: 'Arkadi ajuste ses lunettes…',
+  fini: 'Je vous ai tout dit pour aujourd’hui dans cette salle. Bonne visite !',
+  r_pas_sur_place: 'Vous devez être dans le musée de Krasnov.',
+  r_dialogue_non_ouvert: 'Ouvrez d’abord les questions.',
+  r_questions_epuisees: 'Vous avez posé vos trois questions dans cette salle aujourd’hui.',
+  r_pa_insuffisants: 'Vous n’avez pas assez de PA.',
+  r_autre: 'Le guide ne peut pas répondre pour le moment.'
+});
+const arkadiEtat = {}, arkadiEchanges = {};
+let arkadiOccupe = false, arkadiRendu = null;
+function arkadiMotif(raison) {
+  return ARKADI_QUESTIONS['r_' + raison] || ARKADI_QUESTIONS.r_autre;
+}
+function arkadiQuestionsHtml(salle) {
+  const e = arkadiEtat[salle];
+  const messages = (arkadiEchanges[salle] || []).map(m => '<p class="' + (m.role === 'user' ? 'cpj-note' : '') + '"><strong>'
+    + echapper(m.role === 'user' ? ARKADI_QUESTIONS.vous : 'Arkadi') + ' :</strong> ' + echapper(m.content) + '</p>').join('');
+  let controles;
+  if (!e || !e.ouvert) {
+    controles = '<p class="cpj-note">' + echapper(ARKADI_QUESTIONS.intro) + '</p>'
+      + '<button class="cpj-touche cpj-primaire" onclick="arkadiOuvrirQuestions()">' + echapper(ARKADI_QUESTIONS.ouvrir) + '</button>';
+  } else if (e.restantes > 0) {
+    controles = '<textarea id="arkadi-question" class="cpj-champ" rows="2" maxlength="500" style="width:100%" dir="auto" placeholder="'
+      + echapper(ARKADI_QUESTIONS.placeholder) + '"></textarea>'
+      + '<button class="cpj-touche cpj-primaire" onclick="arkadiPoser()">' + echapper(ARKADI_QUESTIONS.demander.replace('{n}', e.restantes)) + '</button>';
+  } else {
+    controles = '<p class="cpj-note">' + echapper(ARKADI_QUESTIONS.fini) + '</p>';
+  }
+  return '<div class="guide-musee-questions" data-arkadi-questions><h4>' + echapper(ARKADI_QUESTIONS.titre) + '</h4>' + messages + controles + '</div>';
+}
 function arkadiFicheHtml(salle) {
   const texte = ARKADI_RECITS[salle] || ARKADI_RECITS.hall;
   return '<div class="guide-musee-fiche" data-arkadi-salle="' + echapper(salle) + '">'
     + '<img src="' + ARKADI_PORTRAIT + '" alt="" style="float:left;width:96px;height:96px;object-fit:cover;border-radius:50%;margin:0 .8rem .4rem 0">'
     + '<div data-arkadi-recit>' + texte.split('\n\n').map(p => '<p>' + echapper(p) + '</p>').join('') + '</div>'
-    + '<div style="clear:both"></div>' + arkadiEnigmeHtml() + '</div>';
+    + '<div style="clear:both"></div>' + arkadiQuestionsHtml(salle) + arkadiEnigmeHtml() + '</div>';
 }
 // Une seule fenêtre à la fois (R8) : la fenêtre commune #modal-postes est réutilisée.
-function arkadiEcouterGuide() {
+async function arkadiEcouterGuide() {
   const salle = global.state?.currentRoom;
   if (!arkadiSurPlace(salle)) return;
-  const html = arkadiFicheHtml(salle);
-  if (typeof global.sovModal === 'function') global.sovModal(ARKADI_TITRE, html);
-  else if (typeof global.vehModal === 'function') global.vehModal(ARKADI_TITRE, html);
+  const rendre = () => {
+    if (!arkadiSurPlace(salle) || global.state?.currentRoom !== salle) return;
+    const html = arkadiFicheHtml(salle);
+    if (typeof global.sovModal === 'function') global.sovModal(ARKADI_TITRE, html);
+    else if (typeof global.vehModal === 'function') global.vehModal(ARKADI_TITRE, html);
+  };
+  arkadiRendu = rendre;
+  rendre();
+  if (typeof global.sbRpcVerdict === 'function') {
+    const v = await global.sbRpcVerdict('guide_musee_dialogue_lire', {}).catch(() => null);
+    if (arkadiSurPlace(salle) && v?.ok === true && v.salle === 'krasnov:' + salle) {
+      arkadiEtat[salle] = { ouvert: v.ouvert === true, restantes: Number(v.restantes) || 0 };
+      rendre();
+    }
+  }
+}
+async function arkadiOuvrirQuestions() {
+  const salle = global.state?.currentRoom;
+  if (arkadiOccupe || !arkadiSurPlace(salle) || typeof global.sbRpcVerdict !== 'function') return;
+  arkadiOccupe = true;
+  try {
+    const v = await global.sbRpcVerdict('guide_musee_dialogue_ouvrir', {}).catch(() => null);
+    if (v?.ok !== true || v.salle !== 'krasnov:' + salle) {
+      if (typeof global.showToast === 'function') global.showToast(ARKADI_NOM, arkadiMotif(v?.raison), false);
+      return;
+    }
+    if (v.pa != null && typeof global.appliquerPaiementServeur === 'function') global.appliquerPaiementServeur({ pa: v.pa, liquide: v.liquide, arg: v.arg });
+    if (typeof global.updateUI === 'function') global.updateUI();
+    arkadiEtat[salle] = { ouvert: true, restantes: Number(v.restantes) || 0 };
+    if (arkadiRendu) arkadiRendu();
+  } finally { arkadiOccupe = false; }
+}
+async function arkadiPoser() {
+  const salle = global.state?.currentRoom, e = arkadiEtat[salle];
+  const champ = global.document?.getElementById('arkadi-question');
+  const question = String(champ?.value || '').trim().slice(0, 500);
+  if (!arkadiSurPlace(salle) || !question || !e || !(e.restantes > 0) || arkadiOccupe) return;
+  arkadiOccupe = true;
+  const bouton = champ?.nextElementSibling;
+  if (bouton) { bouton.disabled = true; bouton.textContent = ARKADI_QUESTIONS.attente; }
+  try {
+    if (typeof global.rpAuthAssurerSession === 'function') await global.rpAuthAssurerSession().catch(() => null);
+    const jeton = typeof global.rpAuthJeton === 'function' ? global.rpAuthJeton() : null;
+    const langue = typeof global.langueDuJeu === 'function' ? global.langueDuJeu() : 'fr';
+    const historique = (arkadiEchanges[salle] || []).slice(-6);
+    const resp = jeton ? await global.fetch('/api/chat', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jeton },
+      body: JSON.stringify({ profil: 'arkadi_pamiatnikov', lang: langue, message: question, historique })
+    }).catch(() => null) : null;
+    const d = resp ? await resp.json().catch(() => null) : null;
+    if (!resp?.ok || typeof d?.reponse !== 'string') {
+      if (d?.raison === 'questions_epuisees' || d?.raison === 'dialogue_non_ouvert')
+        arkadiEtat[salle] = { ouvert: d.raison === 'questions_epuisees', restantes: 0 };
+      if (typeof global.showToast === 'function') global.showToast(ARKADI_NOM, arkadiMotif(d?.raison), false);
+      if (arkadiRendu) arkadiRendu();
+      return;
+    }
+    (arkadiEchanges[salle] = arkadiEchanges[salle] || []).push({ role: 'user', content: question }, { role: 'assistant', content: d.reponse });
+    arkadiEtat[salle] = { ouvert: true, restantes: Math.max(0, Number(d.restantes) || 0) };
+    if (arkadiRendu) arkadiRendu();
+  } finally {
+    arkadiOccupe = false;
+    if (bouton && global.document?.body?.contains(bouton)) bouton.disabled = false;
+  }
 }
 
 global.ARKADI_RECITS = ARKADI_RECITS;
 global.ARKADI_NOM = ARKADI_NOM;
 global.arkadiEcouterGuide = arkadiEcouterGuide;
+global.arkadiOuvrirQuestions = arkadiOuvrirQuestions;
+global.arkadiPoser = arkadiPoser;
+global.ARKADI_QUESTIONS = ARKADI_QUESTIONS;
 global.arkadiEnigmeHtml = arkadiEnigmeHtml;
 })(typeof window !== 'undefined' ? window : globalThis);
