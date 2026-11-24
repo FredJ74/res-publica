@@ -1,10 +1,10 @@
 name: "Chantier « construction » — fenêtre unique, images par étape, accélération"
 on:
   pull_request:
-    paths: [plateau-chantier-vue.js, plateau-terrains-plan.js, style.css, 'outils/bancs/*terrains-plan*', plateau-chantiers.js, plateau-construction-commandes.js, plateau-politique.js, plateau-navigation.js, plateau.html, 'migrations/20261121140000_chantier_jour_avance.sql', 'migrations/20261122120000_chantier_heures_ouvertes_commande_nuit.sql', 'migrations/20261122130000_types_batiments_cinq.sql', 'outils/bancs/*types-batiments*', 'outils/bancs/fixtures/types-batiments-socle.sql.txt', plateau-justice-economie.js, plateau-immobilier.js, plateau-pnj.js, 'outils/bancs/fixtures/chantier-commande-entrepot.sql.txt', plateau-rue-centrale.js, 'images/chantiers/psm/**', 'images/terrains/**', 'outils/bancs/*chantier*', 'outils/bancs/fixtures/chantier-pglite-socle.sql.txt', .github/workflows/chantier-construction-20261121.yml]
+    paths: [plateau-chantier-vue.js, plateau-terrains-plan.js, style.css, 'outils/bancs/*terrains-plan*', plateau-chantiers.js, plateau-construction-commandes.js, plateau-politique.js, plateau-navigation.js, plateau.html, 'migrations/20261121140000_chantier_jour_avance.sql', 'migrations/20261122120000_chantier_heures_ouvertes_commande_nuit.sql', 'migrations/20261122130000_types_batiments_cinq.sql', 'migrations/20261124120000_chantier_fenetre_lire.sql', data.js, 'outils/bancs/*purge-c*', 'outils/bancs/*types-batiments*', 'outils/bancs/fixtures/types-batiments-socle.sql.txt', plateau-justice-economie.js, plateau-immobilier.js, plateau-pnj.js, 'outils/bancs/fixtures/chantier-commande-entrepot.sql.txt', plateau-rue-centrale.js, 'images/chantiers/psm/**', 'images/terrains/**', 'outils/bancs/*chantier*', 'outils/bancs/fixtures/chantier-pglite-socle.sql.txt', .github/workflows/chantier-construction-20261121.yml]
   push:
     branches: [main, 'claude/**']
-    paths: [plateau-chantier-vue.js, plateau-terrains-plan.js, style.css, 'outils/bancs/*terrains-plan*', plateau-chantiers.js, plateau-construction-commandes.js, plateau-politique.js, plateau-navigation.js, plateau.html, 'migrations/20261121140000_chantier_jour_avance.sql', 'migrations/20261122120000_chantier_heures_ouvertes_commande_nuit.sql', 'migrations/20261122130000_types_batiments_cinq.sql', 'outils/bancs/*types-batiments*', 'outils/bancs/fixtures/types-batiments-socle.sql.txt', plateau-justice-economie.js, plateau-immobilier.js, plateau-pnj.js, 'outils/bancs/fixtures/chantier-commande-entrepot.sql.txt', plateau-rue-centrale.js, 'images/chantiers/psm/**', 'images/terrains/**', 'outils/bancs/*chantier*', 'outils/bancs/fixtures/chantier-pglite-socle.sql.txt', .github/workflows/chantier-construction-20261121.yml]
+    paths: [plateau-chantier-vue.js, plateau-terrains-plan.js, style.css, 'outils/bancs/*terrains-plan*', plateau-chantiers.js, plateau-construction-commandes.js, plateau-politique.js, plateau-navigation.js, plateau.html, 'migrations/20261121140000_chantier_jour_avance.sql', 'migrations/20261122120000_chantier_heures_ouvertes_commande_nuit.sql', 'migrations/20261122130000_types_batiments_cinq.sql', 'migrations/20261124120000_chantier_fenetre_lire.sql', data.js, 'outils/bancs/*purge-c*', 'outils/bancs/*types-batiments*', 'outils/bancs/fixtures/types-batiments-socle.sql.txt', plateau-justice-economie.js, plateau-immobilier.js, plateau-pnj.js, 'outils/bancs/fixtures/chantier-commande-entrepot.sql.txt', plateau-rue-centrale.js, 'images/chantiers/psm/**', 'images/terrains/**', 'outils/bancs/*chantier*', 'outils/bancs/fixtures/chantier-pglite-socle.sql.txt', .github/workflows/chantier-construction-20261121.yml]
 permissions:
   contents: read
 jobs:
@@ -17,13 +17,13 @@ jobs:
         with:
           node-version: '24'
       - run: npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
-      - run: node --check plateau-chantier-vue.js && node --check plateau-terrains-plan.js && node --check plateau-rue-centrale.js && node --test outils/bancs/banc-construction-commandes.cjs outils/bancs/banc-chantier-rue-terrains-etats-20261122.cjs outils/bancs/banc-terrains-plan-20261122.cjs
+      - run: node --check plateau-chantier-vue.js && node --check plateau-terrains-plan.js && node --check plateau-rue-centrale.js && node --test outils/bancs/banc-construction-commandes.cjs outils/bancs/banc-chantier-rue-terrains-etats-20261122.cjs outils/bancs/banc-terrains-plan-20261122.cjs outils/bancs/banc-purge-c-chantier-20261124.cjs
       - name: Chromium réel
         env:
           HG_CHROMIUM: /usr/bin/google-chrome
         run: |
           set +e
-          node --test outils/bancs/banc-chantier-vue-navigateur-20261121.cjs outils/bancs/banc-terrains-plan-navigateur-20261122.cjs > "$RUNNER_TEMP/chantier.txt" 2>&1
+          node --test outils/bancs/banc-chantier-vue-navigateur-20261121.cjs outils/bancs/banc-terrains-plan-navigateur-20261122.cjs outils/bancs/banc-purge-c-chantier-navigateur-20261124.cjs > "$RUNNER_TEMP/chantier.txt" 2>&1
           code=$?
           cat "$RUNNER_TEMP/chantier.txt"
           grep -E "✖|Error|expected|actual" "$RUNNER_TEMP/chantier.txt" | head -10 | sed 's/^/::error::/'
@@ -32,5 +32,5 @@ jobs:
         run: |
           if [ -f migrations/20261121140000_chantier_jour_avance.sql ]; then
             npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund --prefix "$RUNNER_TEMP/pglite" @electric-sql/pglite@0.2.17
-            PGLITE_DIR="$RUNNER_TEMP/pglite" node --test outils/bancs/banc-chantier-avance-pglite-20261121.cjs outils/bancs/banc-chantier-commande-nuit-pglite-20261122.cjs outils/bancs/banc-types-batiments-pglite-20261122.cjs
+            PGLITE_DIR="$RUNNER_TEMP/pglite" node --test outils/bancs/banc-chantier-avance-pglite-20261121.cjs outils/bancs/banc-chantier-commande-nuit-pglite-20261122.cjs outils/bancs/banc-types-batiments-pglite-20261122.cjs outils/bancs/banc-purge-c-chantier-pglite-20261124.cjs
           fi

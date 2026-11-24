@@ -262,40 +262,8 @@ function stockPJ(m) { return (etat().inventory || []).filter(i => i && i.stackab
 function argentPJ() { const s = etat(); return Number(s.liquide ?? s.char?.liquide ?? s.money ?? 0) || 0; }
 function paPJ() { const s = etat(); return Number(s.pa ?? s.char?.pa ?? 0) || 0; }
 function besoinJour(ch) { try { return besoinMateriauxJourChantier(ch, numeroJourChantier(ch)) || {}; } catch (_) { return {}; } }
-function injecterStyleJauges() {
-  const doc = global.document;
-  if (!doc || doc.getElementById('chantier-jauges-style')) return;
-  const st = doc.createElement('style'); st.id = 'chantier-jauges-style';
-  st.textContent = '#chantier-fenetre{font-size:1.08rem;line-height:1.45;color:#ece4cc}'
-    + '#chantier-fenetre .cj-onglets{display:flex;gap:.3rem;flex-wrap:wrap;border-bottom:2px solid #5a4220;margin-bottom:.8rem}'
-    + '#chantier-fenetre .cj-onglets button{font-family:Bebas Neue,sans-serif;letter-spacing:.08em;font-size:1.1rem;padding:.35rem .8rem;border:1px solid #5a4220;border-bottom:none;border-radius:6px 6px 0 0;background:#1a140c;color:#b8a070;cursor:pointer}'
-    + '#chantier-fenetre .cj-onglets button[aria-selected=true]{background:linear-gradient(#6a4c22,#3a2a12);color:#ffe7a0}'
-    + '.cj-jauge{display:flex;align-items:center;gap:.7rem;margin:1.25rem 0 .5rem}'
-    + '.cj-cadre{position:relative;flex:1;padding:5px;border-radius:14px;background:linear-gradient(#6a4c22,#2a1c0c);border:1px solid #8a6a30;'
-    + 'box-shadow:inset 0 2px 2px rgba(255,220,150,.3),inset 0 -2px 3px rgba(0,0,0,.6),0 2px 5px rgba(0,0,0,.6)}'
-    + '.cj-onglet{position:absolute;top:-19px;left:16px;padding:0 12px;font-family:Bebas Neue,sans-serif;letter-spacing:.08em;font-size:.95rem;color:#ffe7a0;'
-    + 'transform:skewX(-14deg);background:repeating-linear-gradient(135deg,#7a5626 0 7px,#5e4019 7px 10px);border:1px solid #9a7a3a;border-bottom:none;border-radius:4px 4px 0 0}'
-    + '.cj-onglet span{display:inline-block;transform:skewX(14deg)}'
-    + '.cj-cases{position:relative;display:grid;gap:2px;height:24px;padding:3px;background:#100a05;border-radius:10px;overflow:hidden}'
-    + '.cj-cases.petite{height:16px}'
-    + '.cj-cases::after{content:"";position:absolute;left:3px;right:3px;top:3px;height:42%;border-radius:8px;background:linear-gradient(rgba(255,255,255,.38),rgba(255,255,255,0));pointer-events:none}'
-    + '.cj-case{border-radius:3px;background:#2c2218;box-shadow:inset 0 0 0 1px rgba(0,0,0,.4)}'
-    + '.cj-case.sep{box-shadow:inset 2px 0 0 #e6c870}'
-    + '.cj-case.on{box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 0 4px rgba(255,200,80,.25);animation:cjAllume .45s ease both}'
-    + '.cj-case.on.sep{box-shadow:inset 2px 0 0 #e6c870,inset 0 1px 0 rgba(255,255,255,.5)}'
-    + '@keyframes cjAllume{from{opacity:0;transform:scaleY(.35)}to{opacity:1;transform:none}}'
-    + '@media (prefers-reduced-motion: reduce){.cj-case.on{animation:none}}'
-    + '.cj-texte{min-width:6.5rem;font-size:1.05rem;color:#f4ead0;white-space:nowrap}'
-    + '.cj-trois{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.4rem .8rem}'
-    + '#chantier-fenetre table{width:100%;border-collapse:collapse;font-size:1rem}#chantier-fenetre th{text-align:left;color:#C9A84C;font-weight:600;padding:.3rem .25rem;border-bottom:1px solid #5a4220}'
-    + '#chantier-fenetre td{padding:.4rem .25rem;border-bottom:1px solid #2a2016;vertical-align:middle}#chantier-fenetre input[type=number]{width:5.5rem;font-size:1rem}'
-    + '#chantier-fenetre .cj-carte{border:1px solid #5a4220;border-radius:6px;padding:.6rem .7rem;margin:.6rem 0;background:#16110a}'
-    + '#chantier-fenetre .cj-tableau-bord{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:.5rem}'
-    + '#chantier-fenetre .cj-tableau-bord div{border:1px solid #5a4220;border-radius:6px;padding:.5rem;background:#1a140c}#chantier-fenetre .cj-tableau-bord b{display:block;font-size:1.2rem;color:#ffe7a0}'
-    + '#chantier-fenetre .cj-raison{color:#e0a040;margin:.4rem 0}#chantier-fenetre .cj-resume{color:#9fd08a;margin:.4rem 0}'
-    + '@media (max-width:520px){#chantier-fenetre .cj-stock-table thead{display:none}#chantier-fenetre .cj-stock-table tr{display:grid;grid-template-columns:1fr 1fr;gap:.2rem .6rem;padding:.4rem 0;border-bottom:1px solid #2a2016}#chantier-fenetre .cj-stock-table td{border:none;padding:.1rem}}';
-  doc.head.appendChild(st);
-}
+// Styles de la fenêtre et des jauges : style.css (« CHANTIER — fenêtre simplifiée »), plus de couleur en dur ici.
+function injecterStyleJauges() { const st = global.document && global.document.getElementById('chantier-jauges-style'); if (st) st.remove(); }
 // Jauge : n carrés, « on » allumés, dégradé rouge → orange → vert, séparateurs fins aux indices « seps ».
 function jauge(titre, n, on, texte, opts) {
   n = Math.max(1, Math.floor(n)); on = Math.max(0, Math.min(n, Math.floor(on)));
@@ -304,7 +272,7 @@ function jauge(titre, n, on, texte, opts) {
   for (let i = 0; i < n; i++) {
     const h = opts && opts.rouge ? 0 : (n === 1 ? 120 : Math.round(120 * i / (n - 1)));   // rouge : matériau manquant
     const allume = i < on;
-    cases += '<i class="cj-case' + (allume ? ' on' : '') + (seps.has(i) ? ' sep' : '') + '" style="' + (allume ? 'background:linear-gradient(hsl(' + h + ',85%,60%),hsl(' + h + ',80%,40%));animation-delay:' + (i * 28) + 'ms' : '') + '"></i>';
+    cases += '<i class="cj-case' + (allume ? ' on' : '') + (seps.has(i) ? ' sep' : '') + '"' + (allume ? ' style="--h:' + h + ';animation-delay:' + (i * 28) + 'ms"' : '') + '></i>';
   }
   return '<div class="cj-jauge" role="meter" aria-label="' + esc(titre) + '" aria-valuemin="0" aria-valuemax="' + n + '" aria-valuenow="' + on + '">'
     + '<div class="cj-cadre">' + (titre ? '<div class="cj-onglet"><span>' + esc(titre) + '</span></div>' : '')
@@ -349,7 +317,7 @@ function journalChantier(ch) {
     return null;
   }).filter(Boolean);
   if (!lignes.length) return '';
-  return '<div class="cj-carte"><b>' + esc(t4('j_journal')) + '</b><ul style="margin:.3rem 0 0 1rem;padding:0">' + lignes.map(l => '<li>' + esc(l) + '</li>').join('') + '</ul></div>';
+  return '<div class="cj-carte"><h3 class="cj-carte-titre">' + esc(t4('j_journal')) + '</h3><ul class="cj-journal">' + lignes.map(l => '<li>' + esc(l) + '</li>').join('') + '</ul></div>';
 }
 function ongletEtat(ch, t0) {
   const d = Math.max(1, Number(ch.dureeJours) || 1), prog = Math.floor(Number(ch.progressionJours) || 0), e = etapeDe(ch);
@@ -357,96 +325,21 @@ function ongletEtat(ch, t0) {
   const besoin = besoinJour(ch), st = ch.stockMateriaux || {};
   const img = imageImmediate(t0);
   const manques = MATS.filter(m => (Number(besoin[m]) || 0) > (Number(st[m]) || 0)).map(m => fr((Number(besoin[m]) || 0) - (Number(st[m]) || 0)) + ' ' + t('m_' + m).toLowerCase());
-  let h = (img ? '<img src="' + esc(img) + '" alt="" style="width:100%;max-height:220px;object-fit:cover;border-radius:6px;border:1px solid #5a4220">' : '')
+  let h = (img ? '<img class="cj-image" src="' + esc(img) + '" alt="">' : '')
     + jauge(t('etape_' + e), d, prog, t4('j_chantier', { x: Math.min(d, prog + 1), n: d, p: pct }), { seps: [Math.floor(d / 3), Math.floor(2 * d / 3)] })
-    + '<p style="margin:.2rem 0">' + (ch.attenteReception ? esc(t('attente_reception'))
+    + '<p class="cj-texte-ligne">' + (ch.attenteReception ? esc(t('attente_reception'))
         : (SUIVANTE[e] ? esc(t4('j_suivante', { e: t('etape_' + SUIVANTE[e]) })) + ' · ' : '') + esc(t4('j_fin', { date: dateFinPrevue(ch) }))) + '</p>'
     + (ch.arrete === 'financement' ? '<p class="cj-raison">' + esc(t('arret_fin', { m: fr(manqueFinancement(ch)), cur: cur() })) + '</p>' : '')
     + (ch.arrete === 'penurie_materiaux' ? '<p class="cj-raison">' + esc(t('arret_mat')) + '</p>' : '')
     + jauge(t4('j_heures'), 10, cap > 0 ? Math.round(10 * faites / cap) : 0, t4('j_jour', { f: faites, c: cap }))
-    + (avanceHeures(ch) > 0 ? '<p style="margin:.2rem 0">' + esc(t('avance_ouverte', { h: avanceHeures(ch), c: cap })) + '</p>' : '')
+    + (avanceHeures(ch) > 0 ? '<p class="cj-texte-ligne">' + esc(t('avance_ouverte', { h: avanceHeures(ch), c: cap })) + '</p>' : '')
     + (manques.length ? '<p class="cj-raison">' + esc(t4('j_manque', { ville: nomVilleChantier(), liste: listeQuantites(Object.fromEntries(MATS.map(m => [m, Math.max(0, (Number(besoin[m]) || 0) - (Number(st[m]) || 0))]))) })) + '</p>' : '')
     + '<div class="cj-trois">' + MATS.map(m => {
         const b = Number(besoin[m]) || 0, s0 = Number(st[m]) || 0;
         return jauge(t('m_' + m), 10, b > 0 ? Math.round(10 * Math.min(s0, b) / b) : 10, fr(s0) + ' / ' + fr(b), { petite: true, rouge: s0 < b });
       }).join('') + '</div>'
     + journalChantier(ch)
-    + '<p style="margin:.6rem 0 0;font-style:italic;color:#b8a888">' + esc(t('explication')) + '</p>';
-  return h;
-}
-function ligneStock(m, ch) {
-  const besoin = Number(besoinJour(ch)[m]) || 0, s0 = Number((ch.stockMateriaux || {})[m]) || 0, manque = Math.max(0, besoin - s0);
-  const prix = Number((ch.prixAchatPJ || {})[m]) || 0, a = stockPJ(m), max = Math.min(manque, a);
-  return '<tr data-m="' + m + '"><td><b>' + esc(t('m_' + m)) + '</b></td><td>' + fr(prix) + ' ' + cur() + '</td><td>' + fr(s0) + ' / ' + fr(besoin) + '</td>'
-    + '<td><input type="number" id="cj-q-' + m + '" min="0" max="' + max + '" step="1" value="0"' + (max <= 0 ? ' disabled' : '') + ' oninput="chantierStockTotaux()" aria-label="' + esc(t4('s_quantite')) + '">'
-    + '<div style="font-size:.8rem;color:#9a8a68">' + esc(manque <= 0 ? t4('s_complet', { m: t('m_' + m).toLowerCase() }) : t4('s_plafond', { n: max })) + '</div></td>'
-    + '<td><label style="white-space:nowrap"><input type="checkbox" id="cj-d-' + m + '" onchange="chantierStockTotaux()"> ' + esc(t4('s_donner')) + '</label></td>'
-    + '<td style="min-width:110px">' + jauge('', 10, besoin > 0 ? Math.round(10 * Math.min(s0, besoin) / besoin) : 10, '', { petite: true, rouge: s0 < besoin }) + '</td></tr>';
-}
-function ongletStock(ch) {
-  return '<table class="cj-stock-table"><thead><tr><th>' + esc(t4('s_materiau')) + '</th><th>' + esc(t4('s_prix')) + '</th><th>' + esc(t4('s_stock')) + '</th><th>' + esc(t4('s_quantite')) + '</th><th></th><th></th></tr></thead><tbody>'
-    + MATS.map(m => ligneStock(m, ch)).join('') + '</tbody></table>'
-    + '<p id="cj-stock-resume" class="cj-resume"></p><p id="cj-stock-raison" class="cj-raison"></p>'
-    + '<span id="cj-stock-env" style="display:inline-block"><button type="button" id="cj-stock-valider" class="cpj-touche cpj-primaire" onclick="chantierStockValider()">' + esc(t4('s_valider')) + '</button></span>';
-}
-function lignesStockSaisies() {
-  const t0 = ts(), ch = t0.chantier; if (!ch) return [];
-  return MATS.map(m => {
-    const el = global.document.getElementById('cj-q-' + m); if (!el) return null;
-    const besoin = Number(besoinJour(ch)[m]) || 0, s0 = Number((ch.stockMateriaux || {})[m]) || 0;
-    const max = Math.min(Math.max(0, besoin - s0), stockPJ(m));
-    let q = Math.floor(Number(el.value) || 0); if (q > max) { q = max; el.value = String(max); } if (q < 0) { q = 0; el.value = '0'; }
-    const don = !!global.document.getElementById('cj-d-' + m)?.checked;
-    return q > 0 ? { m, q, don, prix: don ? 0 : (Number((ch.prixAchatPJ || {})[m]) || 0) } : null;
-  }).filter(Boolean);
-}
-function verdictStock() {
-  const t0 = ts(), ch = t0.chantier, c = cur();
-  const l = lignesStockSaisies();
-  if (!l.length) return { refus: t4('s_rien'), lignes: l };
-  if (typeof chantierAccepteMateriaux === 'function' && !chantierAccepteMateriaux(ch)) return { refus: t('r_mat_refus'), lignes: l };
-  const total = l.reduce((a, x) => a + x.q * x.prix, 0);
-  if (total > (Number(ch.tresorerie) || 0)) return { refus: t('r_tresorerie_achat'), lignes: l };
-  const ventes = l.filter(x => !x.don), dons = l.filter(x => x.don);
-  const liste = xs => { const p = xs.map(x => fr(x.q) + ' ' + t('m_' + x.m).toLowerCase()); return p.length > 1 ? p.slice(0, -1).join(', ') + ' et ' + p[p.length - 1] : p[0]; };
-  const morceaux = [];
-  if (ventes.length) morceaux.push('vous vendez ' + liste(ventes) + ' pour ' + fr(total) + ' ' + c);
-  if (dons.length) morceaux.push('vous donnez ' + liste(dons));
-  let r = morceaux.join(' et ');
-  r = r.charAt(0).toUpperCase() + r.slice(1) + '.';
-  return { resume: r, lignes: l };
-}
-function chantierStockTotaux() {
-  const doc = global.document, v = verdictStock();
-  const res = doc.getElementById('cj-stock-resume'), rai = doc.getElementById('cj-stock-raison'), b = doc.getElementById('cj-stock-valider'), env = doc.getElementById('cj-stock-env');
-  if (res) res.textContent = v.resume || ''; if (rai) rai.textContent = v.refus || '';
-  if (b) b.disabled = !!v.refus; if (env) env.title = v.refus || '';
-  return v;
-}
-function ongletMain(ch) {
-  const c = cur(), cap = capacite(ch), rest = heuresPossibles(ch), taux = typeof tauxHoraireChantier === 'function' ? tauxHoraireChantier(ch) : 0;
-  const duJour = Math.min(rest, typeof heuresUtilesRestantes === 'function' ? heuresUtilesRestantes(ch) : rest), avance = Math.max(0, rest - duJour);
-  const payables = taux > 0 ? Math.floor((Number(ch.tresorerie) || 0) / taux) : 0;
-  const max = Math.max(0, Math.min(rest, paPJ(), payables));
-  const raison = rest <= 0 ? t4('m_aucune') : paPJ() < 1 ? t4('m_sans_pa') : payables < 1 ? t4('m_sans_treso') : '';
-  return '<div class="cj-carte"><p style="margin:0 0 .3rem;font-size:1.15rem">' + esc(t4('m_main', { r: duJour, c: cap })) + '</p>'
-    + jauge(t4('j_heures'), 10, cap > 0 ? Math.round(10 * (cap - Math.min(cap, duJour)) / cap) : 0, t4('j_jour', { f: Math.max(0, cap - duJour), c: cap }))
-    + (avance > 0 ? '<p style="margin:.2rem 0">' + esc(t4('m_avance', { h: avance })) + '</p>' : '')
-    + '<p style="margin:.3rem 0">' + esc(t4('m_salaire', { v: fr(taux), cur: c })) + '</p></div>'
-    + '<div style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin:.6rem 0">'
-    + '<label>' + esc(t4('m_nb')) + ' <input type="number" id="chantier-heures" min="1" max="' + max + '" step="1" value="' + Math.min(max, Math.max(1, max)) + '"' + (max <= 0 ? ' disabled' : '') + ' oninput="chantierMainTotaux()"></label>'
-    + '<span>' + esc(t4('m_pa')) + '</span>'
-    + '<span id="cj-main-env" style="display:inline-block" title="' + esc(raison) + '"><button type="button" id="cj-main-valider" class="cpj-touche cpj-primaire" onclick="chantierMainValider()"' + (max <= 0 ? ' disabled' : '') + '>' + esc(t4('m_travailler')) + '</button></span></div>'
-    + '<p id="cj-main-resume" class="cj-resume"></p>' + (raison ? '<p class="cj-raison">' + esc(raison) + '</p>' : '');
-}
-function chantierMainTotaux() {
-  const t0 = ts(), ch = t0.chantier, doc = global.document; if (!ch) return null;
-  const el = doc.getElementById('chantier-heures'); if (!el) return null;
-  const max = Number(el.max) || 0; let h = Math.floor(Number(el.value) || 0);
-  if (h > max) { h = max; el.value = String(max); }
-  const taux = typeof tauxHoraireChantier === 'function' ? tauxHoraireChantier(ch) : 0;
-  const res = doc.getElementById('cj-main-resume'); if (res) res.textContent = h > 0 ? t4('m_gain', { v: fr(h * taux), cur: cur(), h }) : '';
-  const b = doc.getElementById('cj-main-valider'); if (b) b.disabled = !(h > 0);
+    + '<p class="cpj-note cj-explication">' + esc(t('explication')) + '</p>';
   return h;
 }
 // C.4 — « Gérer mon chantier » (propriétaire) : vue à part dans la même fenêtre (jamais une fenêtre par-dessus une
@@ -534,7 +427,7 @@ function resumeChantier() {
     return '<span class="cj-pastille' + (s0 < b ? ' cj-manque' : '') + '">' + esc(tc('r_mat', { m: t('m_' + m), s: fr(s0), b: fr(b) })) + '</span>';
   }).join('') : '';
   return '<section class="cj-resume-haut" aria-live="polite">'
-    + '<p class="cj-resume-heures">' + heures + ' ' + aide('r_heures_aide') + '</p>'
+    + '<p class="cj-resume-heures"><span>' + heures + '</span> ' + aide('r_heures_aide') + '</p>'
     + (mats ? '<p class="cj-resume-mat"><span class="cj-resume-titre">' + esc(tc('r_materiaux')) + '</span> ' + aide('r_mat_aide') + '</p><div class="cj-pastilles">' + mats + '</div>' : '')
     + '</section>'
     // Emplacement réservé au climat (bloc D de la mission Purge : arrêt par canicule ou crue, « Offrir 20 bouteilles d’eau »).
@@ -552,8 +445,9 @@ function remplirZoneClimat() {
 // gain affiché avant validation (salaire horaire renvoyé par le serveur × heures choisies).
 const saisie = {};   // valeurs des compteurs − / + (heures, quantités), gardées d'un rendu à l'autre
 function borne(cle, max, defaut) {
+  if (!(max > 0)) { delete saisie[cle]; return 0; }   // rien à choisir : la valeur par défaut reviendra avec le plafond
   const v = saisie[cle] == null ? defaut : saisie[cle];
-  saisie[cle] = Math.max(max > 0 ? (cle === 'h' ? 1 : 0) : 0, Math.min(max, Math.floor(Number(v) || 0)));
+  saisie[cle] = Math.max(cle === 'h' ? 1 : 0, Math.min(max, Math.floor(Number(v) || 0)));
   return saisie[cle];
 }
 function compteur(cle, valeur, max, moins, plus, unite) {
@@ -655,7 +549,7 @@ function ouvrirFenetreChantier(silencieux, onglet, sansLecture) {
   if (!corps) return;
   if (titre) titre.textContent = vue.onglet === 'gerer' ? tc('g_gerer') : t('titre');
   const saisies = {};
-  if (silencieux === true) corps.querySelectorAll('#chantier-fenetre input').forEach(e => { if (e.id) saisies[e.id] = e.type === 'checkbox' ? e.checked : e.value; });
+  if (silencieux === true) corps.querySelectorAll('#chantier-fenetre input:not([type=hidden])').forEach(e => { if (e.id) saisies[e.id] = e.type === 'checkbox' ? e.checked : e.value; });
   corps.innerHTML = html;
   for (const [id, v] of Object.entries(saisies)) { const e = doc.getElementById(id); if (!e) continue; if (e.type === 'checkbox') e.checked = v; else e.value = v; }
   doc.getElementById('modal-postes')?.classList.add('open');
@@ -675,22 +569,6 @@ async function relireEtRouvrir() {
   if (typeof global.chargerTerrainState === 'function') await global.chargerTerrainState(etat().currentBuilding);
   await lireServeur();
   ouvrirFenetreChantier(false, vue.onglet, true);
-}
-async function chantierStockValider() {
-  const v = chantierStockTotaux();
-  if (v.refus || validation) return;
-  validation = true;
-  try {
-    const doc = global.document;
-    for (const l of v.lignes) {
-      // Le chemin existant (reçus, rejeu sûr) lit #vente-matiere et #vente-quantite.
-      const tmp = doc.createElement('div'); tmp.style.display = 'none';
-      tmp.innerHTML = '<input id="vente-matiere" value="' + esc(l.m) + '"><input id="vente-quantite" value="' + esc(String(l.q)) + '">';
-      doc.body.appendChild(tmp);
-      try { await global.confirmerVenteMateriauxChantier(l.don ? 'don' : 'vente'); } finally { tmp.remove(); }
-    }
-    await relireEtRouvrir();
-  } finally { validation = false; }
 }
 async function chantierMainValider() {
   const h = Math.floor(Number(global.document.getElementById('chantier-heures')?.value) || 0);
@@ -719,6 +597,12 @@ async function chantierGestion(a, mat) {
   else if (a === 'reception') { global.document.getElementById('modal-postes')?.classList.remove('open'); return global.receptionnerChantier(); }
 }
 // Ancienne API (verdictChoix, chantierChoisir, chantierTotaux, chantierValider) : conservée pour les écrans encore ouverts.
+// Ancien tableau « Stock de matériaux » et onglet « Main-d’œuvre » (21/11) remplacés par les cartes de « Participer » (Purge C.2,
+// C.3) : leurs noms globaux mènent à la nouvelle fenêtre.
+function chantierStockTotaux() { return { refus: null, lignes: [] }; }
+function verdictStock() { return chantierStockTotaux(); }
+async function chantierStockValider() { ouvrirFenetreChantier(false, 'participer'); }
+function chantierMainTotaux() { return Math.floor(Number(saisie.h) || 0); }
 function verdictChoix() { return choix.action ? { pa: 0 } : { refus: t('r_choisir') }; }
 function chantierChoisir(a) { choix.action = a; vue.onglet = a === 'travailler' ? 'participer' : (a === 'vendre' || a === 'donner') ? 'participer' : 'gerer'; ouvrirFenetreChantier(false, vue.onglet); }
 function chantierTotaux() { return verdictChoix(); }
