@@ -43,7 +43,8 @@ RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path TO 'publi
 DECLARE d record; v_rep integer; v_dis integer; v_rep_b integer; v_car integer; v_isn integer; v_sov integer; v_dissu integer;
         v_brut integer; v_taux integer;
 BEGIN
-  SELECT country, current_city, career, reputation_criminelle INTO d FROM public.personnages_donnees WHERE name = p_nom;
+  SELECT country, current_city, public.crim_carriere_interne(name) AS career /* même carrière que les autres crimes */, reputation_criminelle
+    INTO d FROM public.personnages_donnees WHERE name = p_nom;
   IF NOT FOUND THEN RETURN NULL; END IF;
   v_dis := public.crim_bonus_dis_interne(public.crim_stat_interne(p_nom, 'dis', 50));
   v_rep := greatest(0, least(100, coalesce(d.reputation_criminelle, 0)));

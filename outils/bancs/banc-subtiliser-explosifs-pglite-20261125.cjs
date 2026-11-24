@@ -38,6 +38,7 @@ CREATE TABLE indices_villes (id text PRIMARY KEY, data jsonb);
 CREATE TABLE banc_etat (nom text PRIMARY KEY, mode text DEFAULT 'decouvert', gardes integer DEFAULT 0);
 CREATE TABLE banc_arrestations (nom text, acte text, motif text, jours integer, qhs boolean);
 CREATE FUNCTION mon_personnage() RETURNS text LANGUAGE sql AS $$ SELECT current_setting('banc.moi', true) $$;
+CREATE FUNCTION crim_carriere_interne(p_nom text) RETURNS text LANGUAGE sql STABLE AS $$ SELECT career FROM personnages_donnees WHERE name = p_nom $$;
 CREATE FUNCTION crim_param_interne(p_cle text, p_defaut numeric DEFAULT 0) RETURNS numeric LANGUAGE sql STABLE AS $$
   SELECT coalesce((SELECT valeur FROM crim_parametres WHERE cle = p_cle), p_defaut) $$;
 CREATE FUNCTION crim_bonus_dis_interne(p_dis numeric) RETURNS integer LANGUAGE sql STABLE AS $$
