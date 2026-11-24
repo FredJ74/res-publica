@@ -8,6 +8,8 @@ on:
   # Contrôle nocturne (décision de Fred, 17/11/2026) : 3 h, heure de Paris en hiver.
   schedule:
     - cron: '0 2 * * *'
+  # Suite complète à la demande (mission de nuit 25/11/2026 : le commentaire l'annonçait, le déclencheur manquait).
+  workflow_dispatch:
 
 permissions:
   contents: read
