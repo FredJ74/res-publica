@@ -82,7 +82,9 @@ Chaque point porte un banc qui l'empêche de revenir (liste dans RELAIS.md).
     compte dans la Santé) ; ensuite il accueille le PJ en se souvenant de lui. Il conclut : « Ce verre m'a donné soif !
     Et je ne dis pas ça pour que tu m'en offres un en retour, mais je ne te dirais pas non si tu le fais. » Bouton
     « Lui offrir un verre » (7 à 20 PSK, barème existant) → information. L'ordre « Offrir un verre à l'habitué » est
-    **supprimé**.
+    **supprimé**. **Nom (Fred, 24/11/2026, mission « Purge », point H.4) : Prokop Stakanov** ; 3 h entre deux visites, un
+    verre par jour (réglages MJ `habitue_krasnov_accueil_heures` = 3 et `habitue_krasnov_verres_par_jour` = 1 ; identifiant
+    technique `habitue_krasnov` inchangé).
 26. **Fiches de dialogue DeepSeek** :
     - **Grigori Zaitsev**, patron du Bar Sever : la cinquantaine, bourru mais pas méchant, essuie toujours le même
       verre, phrases courtes ; vodka, papirossy, journaux du Parti, match à la radio ; renvoie à l'habitué (« Lui, il
@@ -102,8 +104,9 @@ Chaque point porte un banc qui l'empêche de revenir (liste dans RELAIS.md).
     - Tous les PNJ de Sovarka sans fiche de dialogue sont relevés et raccordés.
 27. **Ignat Lykov est fonctionnaire à la retraite, jamais trappeur.** **Kouzma Lapchine est le batiouchka** (depuis le
     15/11), plus « ancien sonneur de cloches ».
-28. **Matveï Rybakov** est le référent chasse et bûcheronnage de Krasnov, frère aîné de **Prokhor Rybakov** (douanes de
-    Novomirsk), dont il parle avec ironie : « mon frère, il fouille des valises toute la journée ».
+28. **Matveï Rybakov** est le référent chasse et bûcheronnage de Krasnov, **père** de **Prokhor Rybakov** (douanes de
+    Novomirsk), dont il parle avec ironie : « mon fils, il fouille des valises toute la journée ». *(Correction de Fred,
+    24/11/2026, mission « Purge », point H.5 : Matveï est le PÈRE de Prokhor, et non plus son frère aîné.)*
 
 ## Bloc 4 — lieux de Krasnov
 
@@ -124,7 +127,7 @@ Chaque point porte un banc qui l'empêche de revenir (liste dans RELAIS.md).
     local » mis en avant.
 32. **Centre d'affaires de Krasnov** : 4 bureaux (2 côté maison bleue, 2 côté hôpital) dans `sovarka_locaux`, plafond
     40 PSK/jour ; demande à la mairie au lieu de « Louer ce bureau (500 PSK/jour) » ; les 3 locaux fantômes du gabarit
-    sont retirés.
+    sont retirés. *Loyer de départ : 30 PSK par jour, réglable par le maire entre 0 et 40 (Fred, 24/11/2026, point H.2).*
 33. **« Chanter l'hymne au Tracteur »**, commun à toutes les églises de la Sainte-Moisson-Commune : karaoké de 5 à
     6 secondes (tracteur rouge qui cahote en bas de l'écran avec une fumée noire en rythme, étoile dorée qui saute de mot
     en mot, cierges, bouton « Passer »), puis exclamation du religieux du lieu (Krasnov, Kouzma : « PLUS FORT, MON
@@ -140,10 +143,15 @@ Chaque point porte un banc qui l'empêche de revenir (liste dans RELAIS.md).
   salles ; la fenêtre d'Arkadi porte, pour qui a la feuille volante, le champ « Le dire à Arkadi » (RPC `krasnov_ecole_agir`,
   action `repondre_enigme`, inchangée). Les questions payantes au guide restent propres à Novomirsk ; la conversation libre
   passe par la fiche DeepSeek d'Arkadi (bloc 3).
-- 30 : à Krasnov seulement (voir `GAME-DESIGN-HOSPITALISATION.md`).
+  **Décision de Fred du 24/11/2026 (mission « Purge », point H.3)** : Arkadi répond aussi aux questions libres, 1 PA pour 3
+  questions, par salle et par jour, comme à Novomirsk (même compteur serveur, salles « krasnov: », migration
+  `20261124142000` ; fenêtre « Écouter le guide », `plateau-guide-arkadi.js`).
+- 30 : à Krasnov seulement (voir `GAME-DESIGN-HOSPITALISATION.md`). **Étendu à tous les hôpitaux publics de Sovarka et de Républia par Fred le 24/11/2026 (mission « Purge », point H.1).**
 - 31 : encadré au-dessus des ordres de tout local de `sovarka_locaux` (centres, immeubles collectifs, locaux de Starovka) ;
   l'ordre `sovarka_demande_location` s'appelle désormais « Demander ce local à la mairie » partout.
 - 32 : loyer de départ 40 PSK (égal au plafond, comme les box des centres commerciaux de Krasnov) ; le maire le fixe.
+  **Décision de Fred du 24/11/2026 (mission « Purge », point H.2) : loyer de départ 30 PSK par jour, réglable par le maire
+  entre 0 et 40 PSK** (migration `20261124141000_ghe_h2_bureaux_krasnov_loyer_30`).
 - 33 : karaoké `plateau-hymne-tracteur.js`, branché sur l'ordre « prier » des églises de la Sainte-Moisson-Commune
   (`kolkhoze-spirituel`) ; paiement avant le chant, résultat après, serveur inchangé.
 - 34 : groupe électrogène seul (les bidons restent à l'ordre propre de la station) ; l'image fournie n'a pas été utilisée
@@ -162,8 +170,8 @@ Chaque point porte un banc qui l'empêche de revenir (liste dans RELAIS.md).
 37. **Gare** : « Camarade Horaire » devient **Vassili Sukhoï**, chef de gare, au hall principal (graphie « Sukhoï »
     **voulue**, clin d'œil à l'avion : ne pas « corriger » en Soukhoï). « Agente Nadejda » devient **Lioudmila
     Proverkina**, agente de contrôle, déplacée au hall des douanes. L'inspecteur **Prokhor Rybakov** reste aux douanes
-    (douanier à la loupe et au bocal de cornichons), frère cadet de Matveï Rybakov, parti réussir dans l'administration ;
-    il demande des nouvelles de son frère aux PJ venus de Krasnov. Images : hall des douanes = « Contrôle douanier sous
+    (douanier à la loupe et au bocal de cornichons), **fils** de Matveï Rybakov (correction de Fred du 24/11/2026, point H.5),
+    parti réussir dans l'administration ; il demande des nouvelles de son père aux PJ venus de Krasnov. Images : hall des douanes = « Contrôle douanier sous
     la neige » ; zone d'embarquement = « Aéroport soviétique sous la neige ».
 38. **Direction du Renseignement** : accueil, Sergent Viktor Muetov et Elena Diamentevia (nom gardé pour l'instant) ;
     salle des écoutes, nouvelle PNJ **Tamara Naouchnikova**, opératrice ; salle d'interrogatoire, **Colonel Oleg
@@ -171,7 +179,8 @@ Chaque point porte un banc qui l'empêche de revenir (liste dans RELAIS.md).
     voix, goût de la procédure) et **Fiodor Koulakov** (colosse au tablier, silencieux devant le Colonel, glisse aux
     détenus des conseils : « Le Colonel est de mauvaise humeur ce matin, faites attention, après c'est moi qui vais en
     pâtir. »). Comiques mais pas ridicules. Description de la salle réécrite d'après l'image (aucun miroir sans tain).
-39. **Église (Kolkhoze spirituel, Grange Sainte)** : portraits du Camarade Pontife Tractorenko et de Frère Kolkhoze ;
+39. **Église (Kolkhoze spirituel, Grange Sainte)** : portraits du Camarade Pontife Tractorenko et du **Diacre laborieux**
+    (anciennement « Frère Kolkhoze » ; renommé par Fred le 24/11/2026, mission « Purge », point H.7 ; image gardée telle quelle) ;
     animation de l'hymne (point 33).
 
 ## Bloc 7 — portraits des PNJ
@@ -198,6 +207,9 @@ Chaque point porte un banc qui l'empêche de revenir (liste dans RELAIS.md).
     accrédités restent génériques. Base : seuls les 7 informateurs relevés en lecture sont renommés par la migration
     `20261123230000_renommages_pnj_finale` ; les anciens noms restent en `aliasInformateur` côté client. Banc :
     `outils/bancs/banc-renommages-pnj-novomirsk-20261123.cjs`.
+    *Quête « Une affaire mystérieuse » de Sovarka (Fred, 24/11/2026, mission « Purge », point H.11) : son texte précise que
+    l'« Armurier Militaire » visé est le Sergent Bogdan Zatvorov, à l'Armurerie Militaire de la Caserne centrale de Novomirsk
+    (migration `20261124144000` ; mécanique de la quête inchangée).*
 45. Doublon « Le Maire » / « Le Maire de Novomirsk » : celui qui n'est pas utilisé est supprimé avec redirection.
 46. Relevé seulement des images à remplacer (Cercle des Camarades, rédaction de La Voix de Sovarka, amphithéâtre).
 47. Krasnov et Starovka : liste des PNJ sans portrait, recadrable ou absent.

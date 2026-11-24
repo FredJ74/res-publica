@@ -200,7 +200,7 @@
   {
    "fichier": "images/Sovarka/Krasnov/krasnov-matvei-starikov-portrait.webp",
    "pnj": "Matveï Starikov (résident le plus visible : un homme)",
-   "source": "images/Sovarka/Krasnov/Krasnov_hopital_EPHAD.webp",
+   "source": "images/Sovarka/Krasnov/Krasnov_hopital_EHPAD.webp",
    "cadre_x_y_largeur_hauteur": [
     230,
     212,
@@ -228,7 +228,7 @@
   {
    "fichier": "images/Sovarka/Novomirsk/novo-evgueni-sudakov-portrait.webp",
    "pnj": "Evgueni Sudakov",
-   "source": "images/Sovarka/Novomirsk/Novomirsk_hopital_EPHAD.webp",
+   "source": "images/Sovarka/Novomirsk/Novomirsk_hopital_EHPAD.webp",
    "cadre_x_y_largeur_hauteur": [
     412,
     272,
@@ -242,7 +242,7 @@
   {
    "fichier": "images/Sovarka/Novomirsk/novo-matvei-tcherkassov-portrait.webp",
    "pnj": "Matveï Tcherkassov",
-   "source": "images/Sovarka/Novomirsk/Novomirsk_hopital_EPHAD.webp",
+   "source": "images/Sovarka/Novomirsk/Novomirsk_hopital_EHPAD.webp",
    "cadre_x_y_largeur_hauteur": [
     1370,
     320,
@@ -256,7 +256,7 @@
   {
    "fichier": "images/Sovarka/Novomirsk/novo-nikolai-zakharov-portrait.webp",
    "pnj": "Nikolaï Zakharov",
-   "source": "images/Sovarka/Novomirsk/Novomirsk_hopital_EPHAD.webp",
+   "source": "images/Sovarka/Novomirsk/Novomirsk_hopital_EHPAD.webp",
    "cadre_x_y_largeur_hauteur": [
     1045,
     298,
@@ -270,7 +270,7 @@
   {
    "fichier": "images/Sovarka/Novomirsk/novo-antonina-doubrova-portrait.webp",
    "pnj": "Antonina Doubrova",
-   "source": "images/Sovarka/Novomirsk/Novomirsk_hopital_EPHAD.webp",
+   "source": "images/Sovarka/Novomirsk/Novomirsk_hopital_EHPAD.webp",
    "cadre_x_y_largeur_hauteur": [
     305,
     318,
@@ -452,7 +452,7 @@
   {
    "fichier": "images/Sovarka/Novomirsk/novo-infirmiere-hopital-portrait.webp",
    "pnj": "Infirmière de Novomirsk",
-   "source": "images/Sovarka/Novomirsk/Novomirsk_hopital_acceuil.webp",
+   "source": "images/Sovarka/Novomirsk/Novomirsk_hopital_accueil.webp",
    "cadre_x_y_largeur_hauteur": [
     1064,
     552,
@@ -466,7 +466,7 @@
   {
    "fichier": "images/Sovarka/Novomirsk/novo-medecin-de-garde-portrait.webp",
    "pnj": "Médecin de garde de Novomirsk",
-   "source": "images/Sovarka/Novomirsk/Novomirsk_hopital_acceuil.webp",
+   "source": "images/Sovarka/Novomirsk/Novomirsk_hopital_accueil.webp",
    "cadre_x_y_largeur_hauteur": [
     700,
     492,
@@ -803,7 +803,7 @@
   },
   {
    "fichier": "images/Sovarka/Novomirsk/planche5-case7.webp",
-   "pnj": "Frère Kolkhoze",
+   "pnj": "Diacre laborieux",
    "source": "fourni : Image ChatGPT 23 nov. 2026, 01_23_55-5.png",
    "cadre_x_y_largeur_hauteur": [
     10,

@@ -4018,14 +4018,20 @@ function ouvrirPopupArmoireSouvenirs(idx, tab) {
 // riche, autorise des balises : une carte postale est un texte simple, pas un editeur riche).
 // Textes de la carte postale et du tabac-presse (Fred, 22/11/2026, points 27 et 28) : français ici, Codex ajoute les
 // autres langues sous les mêmes clés ; repli sur le français tant qu'une langue manque. Une légende par carte de ville,
-// clé « legende_<modele> » : seule celle de Krasnov est décidée ; les autres cartes n'affichent rien tant que Fred
-// n'a pas donné leur texte (valeur vide).
+// clé « legende_<modele> ». Krasnov : 22/11/2026 ; les dix autres, mot pour mot (Fred, 24/11/2026, mission « Purge »,
+// point H.8).
 const TEXTES_CARTE_POSTALE = { fr: {
   legende_carte_krasnov_place_ours: 'Krasnov, capitale de l’ours',
-  legende_carte_starovka_hiver: '',
-  legende_carte_psm_notre_dame_mer: '', legende_carte_psm_touristique: '', legende_carte_psm_culture_marine: '',
-  legende_carte_montrouge_place_rail: '', legende_carte_montrouge_touristique: '', legende_carte_montrouge_musee_rail: '',
-  legende_carte_luthecia_institutions: '', legende_carte_luthecia_internationale: '', legende_carte_luthecia_culture: '',
+  legende_carte_starovka_hiver: 'Starovka — ici, la chaleur est dans les cœurs.',
+  legende_carte_psm_notre_dame_mer: 'Port-Sainte-Marie, sous la protection de Notre-Dame de la Mer.',
+  legende_carte_psm_touristique: 'Port-Sainte-Marie — le granit, les embruns et rien à déclarer.',
+  legende_carte_psm_culture_marine: 'Port-Sainte-Marie, où chaque marin a une histoire… et deux versions.',
+  legende_carte_montrouge_place_rail: "Montrouge, place du Rail — ici, même les statues sont à l'heure.",
+  legende_carte_montrouge_touristique: 'Bons baisers de Montrouge, la ville qui ne déraille jamais.',
+  legende_carte_montrouge_musee_rail: 'Musée du Rail de Montrouge — le progrès en marche, à 40 km/h.',
+  legende_carte_luthecia_institutions: 'Luthécia — la liberté, en trois exemplaires et dûment tamponnée.',
+  legende_carte_luthecia_internationale: 'Luthécia, capitale du monde (justificatif de séjour non fourni).',
+  legende_carte_luthecia_culture: 'Luthécia — la culture pour tous, sur réservation.',
   ecrire_titre: 'Écrire et envoyer', recto: 'Recto', destinataire: 'Destinataire', choisir: '— Choisir un personnage —',
   placeholder: 'Écrivez votre message ici...', envoyer: 'Envoyer', visuel_a_venir: 'Visuel à venir',
   retourner: 'Retourner la carte', retourner_aide: 'Cliquez sur la carte pour la retourner.',

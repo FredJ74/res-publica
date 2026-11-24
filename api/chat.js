@@ -130,6 +130,10 @@ async function lireMemoire(rpc, profilId, jeton) {
 // questions par salle et par jour). On lit le compte AVANT d'interroger l'IA, et on ne le consomme
 // qu'APRES une reponse obtenue : une panne du fournisseur ne coute aucune question au joueur.
 const PROFIL_GUIDE_MUSEE = 'ouliana_historiskaia';
+// Chaque guide et le préfixe de salle de SON musée (guide_musee_salle_interne) : '' = musée national de Novomirsk.
+const GUIDES_MUSEE_PREFIXE = { [PROFIL_GUIDE_MUSEE]: '', veteran_ilia_krioukov: 'novomirsk:', arkadi_pamiatnikov: 'krasnov:' };
+const museeDeLaSalle = (salle) => typeof salle !== 'string' ? null
+  : salle.startsWith('novomirsk:') ? 'novomirsk:' : salle.startsWith('krasnov:') ? 'krasnov:' : '';
 async function rpcGuideMusee(rpc, jeton) {
   const url = process.env.SUPABASE_URL || 'https://jxpwoosmmhohoihxpbuc.supabase.co';
   const anon = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp4cHdvb3NtbWhvaG9paHhwYnVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMjYyMDgsImV4cCI6MjA5NjYwMjIwOH0._NQsIrCS0U7czXAOIoNxs6omqj7whAq9FB572c4qflw';
@@ -321,13 +325,13 @@ export default async function handler(req, res) {
   });
   if (!utilisateur) return res.status(401).json({ error: 'Authentification requise.' });
 
-  const guideMusee = req.body.profil === PROFIL_GUIDE_MUSEE || req.body.profil === 'veteran_ilia_krioukov';
+  // Arkadi Pamiatnikov, guide du musée de Krasnov (Fred, 24/11/2026, point H.3) : même compteur, préfixe « krasnov: ».
+  const guideMusee = Object.prototype.hasOwnProperty.call(GUIDES_MUSEE_PREFIXE, req.body.profil);
   if (guideMusee) {
     const etat = await rpcGuideMusee('guide_musee_dialogue_lire', utilisateur.jeton);
     if (!etat || etat.ok !== true) return res.status(403).json({ error: 'Dialogue indisponible.', raison: etat?.raison || 'indisponible' });
-    // Un guide ne peut répondre aux questions payantes depuis l'autre musée.
-    const estMunicipal = typeof etat.salle === 'string' && etat.salle.startsWith('novomirsk:');
-    if ((req.body.profil === 'veteran_ilia_krioukov') !== estMunicipal)
+    // Un guide ne peut répondre aux questions payantes depuis un autre musée.
+    if (museeDeLaSalle(etat.salle) !== GUIDES_MUSEE_PREFIXE[req.body.profil])
       return res.status(403).json({ error: 'Guide absent de cette salle.', raison: 'pas_sur_place' });
     if (!(etat.restantes > 0)) return res.status(403).json({ error: 'Plus de question.', raison: etat.ouvert ? 'questions_epuisees' : 'dialogue_non_ouvert' });
   }

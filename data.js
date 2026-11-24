@@ -1982,7 +1982,7 @@ const WORLD = {
           // Seules leurs images et leurs personnes présentes sont propres à Novomirsk.
           roomOverrides: {
             accueil_police: {
-              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_Commissariat_acceuil.webp',
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_Commissariat_accueil.webp',
               persons: [
                 {name:'Gardien de la Paix (PNJ)', role:'Sergent d’accueil', rel:'neutral', job:'gardien_paix'}
               ]
@@ -2095,7 +2095,7 @@ const WORLD = {
             salle_attente: {
               name: 'Accueil',
               desc: "Un hall ancien mais bien entretenu. Une infirmière reçoit les patients, tandis qu'un médecin veille à leur orientation.",
-              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_hopital_acceuil.webp',
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_hopital_accueil.webp',
               persons: [
                 {name:'Infirmière de Novomirsk (PNJ)', role:'Infirmière d’accueil', rel:'neutral', job:'infirmier'},
                 {name:'Médecin de garde de Novomirsk (PNJ)', role:'Médecin', rel:'neutral', job:'medecin'}
@@ -2104,7 +2104,7 @@ const WORLD = {
             ehpad_tilleuls: {
               name: 'EHPAD de Novomirsk',
               desc: "Un service de long séjour très sommaire mais propre, où les personnes âgées sont accompagnées au quotidien.",
-              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_hopital_EPHAD.webp',
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_hopital_EHPAD.webp',
               persons: []
             }
           },
@@ -2726,7 +2726,7 @@ const WORLD = {
           name: 'Hôpital municipal de Krasnov',
           roomOverrides: {
             attente: { imageUrl: 'images/Sovarka/Krasnov/Krasnov_hopital_accueil.webp' },
-            ehpad: { imageUrl: 'images/Sovarka/Krasnov/Krasnov_hopital_EPHAD.webp' }
+            ehpad: { imageUrl: 'images/Sovarka/Krasnov/Krasnov_hopital_EHPAD.webp' }
           }
         },
         // Krasnov conserve les ordres de transport du socle, mais possède son propre hall.
@@ -7437,7 +7437,7 @@ const BUILDINGS = {
       bureau_republia_novomirsk: {
         name: "Ambassade de Républia",
         imageBg: "linear-gradient(135deg,#10141c,#161c26)",
-        imageUrl: "images/Sovarka/Novomirsk/Novomirsk_amabassades_Republia.webp",
+        imageUrl: "images/Sovarka/Novomirsk/Novomirsk_ambassades_Republia.webp",
         desc: "Le bureau de l'ambassadeur de Républia. On n'y est reçu que sur audience, demandée à l'accueil.",
         persons: [{name:'Hubert de La Courtoisie (PNJ)', role:"Ambassadeur de Républia", rel:'neutral', job:'ambassadeur'}],
         orders: [
@@ -8403,7 +8403,8 @@ const BUILDINGS = {
         imageUrl: "images/Sovarka/Novomirsk/Novomirsk_cathedrale_accueil.webp",
         persons: [
           {name:'Camarade Pontife Tractorenko (PNJ)', role:'Grand Prêtre du Tractorisme', rel:'neutral', job:'grand_pretre'},
-          {name:'Frère Kolkhoze (PNJ)', role:'PNJ - Enfant de chœur laborieux', rel:'neutral', job:'clerc'}
+          // « Frère Kolkhoze » devient « Diacre laborieux » (Fred, 24/11/2026, point H.7) ; portrait inchangé.
+          {name:'Diacre laborieux (PNJ)', role:'PNJ - Diacre du Tractorisme', rel:'neutral', job:'clerc', ancienNom:'Frère Kolkhoze'}
         ],
         orders: [
           {fn:'prier',           label:'Chanter l\'hymne au Tracteur', pa:1, cost:0,   type:'legal', icon:'ti-star',      successRate:100, desc:'+3 IP +2 Moral. Glorifier la production collective.'},
@@ -11699,27 +11700,6 @@ function CHAMBRE_HOPITAL_ORDRES_SOVARKA() { return CHAMBRE_HOPITAL_ORDRES(); }
   }
 })();
 
-// HÔPITAL DE KRASNOV : SALLE D'ATTENTE ET CHAMBRE SÉPARÉES (Fred, 23/11/2026, point 30 ;
-// GAME-DESIGN-HOSPITALISATION.md). Salle d'attente = visiteurs (centre antipoison, soin standard, fournir des
-// ressources médicales ; « Inspecter » et « Se cacher » sont des actions de pièce communes). Chambre = hospitalisés :
-// dormir, repas, transfert en clinique privée (0 PA, tarif du pays lu dans ordres_couts_pays : 400 PSK en Sovarka,
-// affiché sur le bouton), sortir. « Salle bondée. Patience requise. » est supprimé.
-(function () {
-  const ORDRES_RESERVES_AUX_HOSPITALISES = ['transfert_clinique_privee', 'repas_hopital', 'sortie_hopital'];
-  const cite = WORLD.soviet && WORLD.soviet.ville_b;
-  const hopital = cite && cite.buildingContext && cite.buildingContext['dispensaire-public-v'];
-  if (!hopital || !hopital.roomsExtra || !hopital.roomsExtra.chambre) throw new Error("Pièces de l'hôpital de Krasnov absentes");
-  hopital.roomOverrides = hopital.roomOverrides || {};
-  const attente = hopital.roomOverrides.attente = hopital.roomOverrides.attente || {};
-  attente.desc = "La salle d'attente de l'hôpital municipal : bancs de bois, poêle en fonte et affiches sur l'hygiène. On y vient en visiteur ; les patients hospitalisés restent dans leur chambre.";
-  attente.excludeOrders = Array.from(new Set((attente.excludeOrders || []).concat(ORDRES_RESERVES_AUX_HOSPITALISES)));
-  attente.orders = (attente.orders || []).filter(o => !ORDRES_RESERVES_AUX_HOSPITALISES.includes(o.fn));
-  const sortie = (BUILDINGS['dispensaire-public-v'].rooms.attente.orders || []).find(o => o.fn === 'sortie_hopital');
-  const chambre = hopital.roomsExtra.chambre;
-  // Le montant du socle (1000 FR) est remplacé à l'écran par le tarif national (tarifOrdrePays, montantDansTexte) et le sigle du pays.
-  chambre.orders = CHAMBRE_HOPITAL_ORDRES().concat(sortie ? [Object.assign({}, sortie)] : []);
-})();
-
 // CHAMBRES D'HÔPITAL DE LUTHÉCIA ET DE PORT-SAINTE-MARIE (Fred, 14/11/2026) : même pièce que Montrouge et
 // Sovarka (migration 20261114130000). Image provisoire de Montrouge, en attendant celles de Fred.
 (function () {
@@ -11743,6 +11723,45 @@ function CHAMBRE_HOPITAL_ORDRES_SOVARKA() { return CHAMBRE_HOPITAL_ORDRES(); }
       orders: CHAMBRE_HOPITAL_ORDRES()
     };
   });
+})();
+
+// SALLE D'ATTENTE ET CHAMBRE SÉPARÉES DANS TOUS LES HÔPITAUX PUBLICS DE RÉPUBLIA ET DE SOVARKA (Fred, 23/11/2026,
+// point 30, d'abord à Krasnov ; étendu à tous les hôpitaux par Fred le 24/11/2026, mission « Purge », point H.1 ;
+// GAME-DESIGN-HOSPITALISATION.md). Hôpital par hôpital (Luthécia, Port-Sainte-Marie, Montrouge, Novomirsk, Starovka,
+// Krasnov), même modèle que Krasnov : salle d'attente = visiteurs (centre antipoison, soin standard, fournir des
+// ressources médicales ; « Inspecter » et « Se cacher » sont des actions de pièce communes) ; chambre = hospitalisés :
+// dormir, repas, transfert en clinique privée (0 PA, tarif du pays lu dans ordres_couts_pays, affiché sur le bouton),
+// sortir. Le serveur conduit déjà tout hospitalisé dans la chambre (hospitalisation_lieu_rejoindre_interne, migration
+// 20261114130000 : les six hôpitaux ont leur pièce « chambre »). « Salle bondée. Patience requise. » est supprimé.
+const HOPITAUX_PUBLICS_SALLE_ET_CHAMBRE = [
+  ['republic', 'capitale', 'dispensaire-public', 'salle_attente'], ['republic', 'ville_a', 'dispensaire-public-v', 'attente'],
+  ['republic', 'ville_b', 'dispensaire-public-v', 'attente'], ['soviet', 'capitale', 'dispensaire-public', 'salle_attente'],
+  ['soviet', 'ville_a', 'dispensaire-public-v', 'attente'], ['soviet', 'ville_b', 'dispensaire-public-v', 'attente']
+];
+const ORDRES_RESERVES_AUX_HOSPITALISES = ['transfert_clinique_privee', 'repas_hopital', 'sortie_hopital'];
+(function () {
+  const VISITEURS = "On y vient en visiteur ; les patients hospitalisés restent dans leur chambre.";
+  const DESC_BONDEE = ["Salle bondee. Patience requise.", "La salle d'attente est bondee. Comptez plusieurs heures."];
+  for (const [pays, ville, batiment, salle] of HOPITAUX_PUBLICS_SALLE_ET_CHAMBRE) {
+    const cite = WORLD[pays] && WORLD[pays][ville];
+    const hopital = cite && cite.buildingContext && cite.buildingContext[batiment];
+    if (!hopital || !hopital.roomsExtra || !hopital.roomsExtra.chambre) throw new Error("Chambre d'hôpital absente : " + [pays, ville, batiment].join('/'));
+    hopital.roomOverrides = hopital.roomOverrides || {};
+    const attente = hopital.roomOverrides[salle] = Object.assign({}, hopital.roomOverrides[salle] || {});
+    const descBase = BUILDINGS[batiment].rooms[salle].desc;
+    if (pays === 'soviet' && ville === 'ville_b') {
+      attente.desc = "La salle d'attente de l'hôpital municipal : bancs de bois, poêle en fonte et affiches sur l'hygiène. " + VISITEURS;
+    } else if (!attente.desc && DESC_BONDEE.includes(descBase)) {
+      attente.desc = "La salle d'attente de l'hôpital. " + VISITEURS;
+    }
+    attente.excludeOrders = Array.from(new Set((attente.excludeOrders || []).concat(ORDRES_RESERVES_AUX_HOSPITALISES)));
+    attente.orders = (attente.orders || []).filter(o => !ORDRES_RESERVES_AUX_HOSPITALISES.includes(o.fn));
+    const sortie = (BUILDINGS[batiment].rooms[salle].orders || []).find(o => o.fn === 'sortie_hopital');
+    // Le montant du socle (1000 FR) est remplacé à l'écran par le tarif national (tarifOrdrePays, montantDansTexte).
+    hopital.roomsExtra = Object.assign({}, hopital.roomsExtra);
+    hopital.roomsExtra.chambre = Object.assign({}, hopital.roomsExtra.chambre,
+      { orders: CHAMBRE_HOPITAL_ORDRES().concat(sortie ? [Object.assign({}, sortie)] : []) });
+  }
 })();
 
 // STAROVKA ET KRASNOV : TEXTES DU GABARIT DE MONTROUGE (Claude, 09/11/2026, audit des deux villes).
@@ -13407,7 +13426,7 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     // Bloc 6 (point 39) : la nef de Novomirsk (Novomirsk_cathedrale_accueil.webp) ne montre personne ; les deux portraits
     // sont repris des cases 6 et 7 de la planche 5, en 512 × 512, sous leur nom définitif.
     ['kolkhoze-spirituel', 'grange_sainte', 'Camarade Pontife Tractorenko (PNJ)', 'novo-pontife-tractorenko-portrait.webp'],
-    ['kolkhoze-spirituel', 'grange_sainte', 'Frère Kolkhoze (PNJ)', 'novo-frere-kolkhoze-portrait.webp'],
+    ['kolkhoze-spirituel', 'grange_sainte', 'Diacre laborieux (PNJ)', 'novo-frere-kolkhoze-portrait.webp'],   // ex-Frère Kolkhoze (H.7), image gardée
     // Bloc 6 (points 37 et 38) : gare et Direction du Renseignement.
     ['centre-multinodal-luthecia', 'hall_gare', 'Vassili Sukhoï (PNJ)', 'novo-vassili-sukhoi-portrait.webp'],
     ['centre-multinodal-luthecia', 'hall_douanes', 'Lioudmila Proverkina (PNJ)', 'novo-lioudmila-proverkina-portrait.webp'],
@@ -13484,9 +13503,11 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     const liste = personnes(batiment, piece);
     if (!liste.some(x => x.name === personne.name)) liste.push(personne);
   }
-  // Point 25 : l'habitué du Bar Sever.
-  ajouter('cafe-tabac-cheminots-montrouge', 'salle', { name: 'L’habitué du Bar Sever (PNJ)', role: 'Habitué du bar', rel: 'friendly',
-    job: 'habitue', profilId: 'habitue_krasnov', nonRecrutable: true,
+  // Point 25 : l'habitué du Bar Sever. Il s'appelle Prokop Stakanov (Fred, 24/11/2026, mission « Purge », point H.4) ;
+  // l'identifiant technique « habitue_krasnov » (informateur, PNJ social, verre du jour, réglages MJ) ne change pas, et
+  // l'ancien nom affiché reste en `ancienNom`.
+  ajouter('cafe-tabac-cheminots-montrouge', 'salle', { name: 'Prokop Stakanov (PNJ)', role: 'Habitué du bar', rel: 'friendly',
+    ancienNom: 'L’habitué du Bar Sever', job: 'habitue', profilId: 'habitue_krasnov', nonRecrutable: true,
     photoUrl: dir + 'Krasnov_portrait_cafe-tabac-cheminots-montrouge_habitue.webp', photoPos: '50% 30%' });
   // Point 26 : musée de Krasnov (accueil).
   renommer('musee-novomirsk', 'hall', 'Hôtesse du musée de Krasnov', 'Zoïa Biletova', { profilId: 'zoia_biletova',

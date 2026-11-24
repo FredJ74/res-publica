@@ -36,7 +36,14 @@ traduction listées pour Codex dans RELAIS.md.
     Carte : écrite une seule fois par le serveur (carte_postale_envoyer), sas objets_recus et plafond commun des dons ; le bug
     venait de la fenêtre de détail de l'onglet Inventaire, qui n'avait pas l'action « Écrire et envoyer ». Recto (image et
     légende), un clic la retourne (message signé). Une clé de légende par carte de ville : seule Krasnov a son texte ; les neuf
-    autres attendent celui de Fred. Armoires : le critère serveur (souvenir_utilisable_interne) accepte cartes et revues lues,
+    autres attendent celui de Fred. **Légendes données par Fred le 24/11/2026 (mission « Purge », point H.8), mot pour mot : Starovka « Starovka — ici,
+    la chaleur est dans les cœurs. » ; PSM Notre-Dame « Port-Sainte-Marie, sous la protection de Notre-Dame de la Mer. » ; PSM
+    touristique « Port-Sainte-Marie — le granit, les embruns et rien à déclarer. » ; PSM culture marine « Port-Sainte-Marie, où
+    chaque marin a une histoire… et deux versions. » ; Montrouge place du Rail « Montrouge, place du Rail — ici, même les statues
+    sont à l'heure. » ; Montrouge touristique « Bons baisers de Montrouge, la ville qui ne déraille jamais. » ; Montrouge musée du
+    Rail « Musée du Rail de Montrouge — le progrès en marche, à 40 km/h. » ; Luthécia institutions « Luthécia — la liberté, en trois
+    exemplaires et dûment tamponnée. » ; Luthécia internationale « Luthécia, capitale du monde (justificatif de séjour non fourni). » ;
+    Luthécia culture « Luthécia — la culture pour tous, sur réservation. »** Armoires : le critère serveur (souvenir_utilisable_interne) accepte cartes et revues lues,
     mais le dépôt dans l'armoire n'est toujours pas codé (décision du 13/11). Revue : bonus de 24 h posé à l'achat
     (revue_ent_bonus, revue_ent_heures), non cumulable, revue gardée « lue » avec le numéro du mois.
 

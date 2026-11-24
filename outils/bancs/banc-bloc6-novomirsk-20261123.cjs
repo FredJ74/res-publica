@@ -1,8 +1,8 @@
 'use strict';
 // Bloc 6 de la mission « Novomirsk, PNJ, interface » (Fred, 23/11/2026, points 37 à 39) :
-// GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md. Gare (images, Prokhor Rybakov frère de Matveï), Direction du
+// GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md. Gare (images, Prokhor Rybakov fils de Matveï depuis le 24/11/2026, point H.5), Direction du
 // Renseignement (Tamara Naouchnikova, Colonel Oleg Doprossov, Fiodor Koulakov, salle sans miroir sans tain),
-// église (portraits du Pontife et de Frère Kolkhoze). Lit le VRAI data.js et la vraie résolution du casting par ville.
+// église (portraits du Pontife et du Diacre laborieux, ex-Frère Kolkhoze : point H.7 du 24/11/2026). Lit le VRAI data.js et la vraie résolution du casting par ville.
 const test = require('node:test'), assert = require('node:assert/strict'), fs = require('node:fs'), path = require('node:path'), vm = require('node:vm');
 const root = path.resolve(__dirname, '../..'), lire = f => fs.readFileSync(path.join(root, f), 'utf8');
 
@@ -41,14 +41,15 @@ test('gare de Novomirsk : les trois images fournies sont raccordées', () => {
   assert.match(piece(G, 'hall_douanes').desc, /Prokhor Rybakov/);
 });
 
-test('Prokhor Rybakov : aux douanes, portrait raccordé, frère cadet de Matveï, demande de ses nouvelles', () => {
+test('Prokhor Rybakov : aux douanes, portrait raccordé, fils de Matveï (H.5), demande de ses nouvelles', () => {
   const p = piece('centre-multinodal-luthecia', 'hall_douanes');
   assert.equal(photo(p, 'Inspecteur Prokhor Rybakov (PNJ)'), 'images/Sovarka/Novomirsk/novo-prokhor-rybakov-portrait.webp');
   assert.equal(p.persons.find(q => q.name === 'Inspecteur Prokhor Rybakov (PNJ)').profilId, 'sovarka_inspecteur_prokhor_rybakov');
   const f = fiche('sovarka_inspecteur_prokhor_rybakov');
-  assert.match(f, /FRÈRE CADET DE MATVEÏ RYBAKOV/);
+  assert.match(f, /FILS DE MATVEÏ RYBAKOV/);
+  assert.doesNotMatch(f, /FRÈRE|frère/);
   assert.match(f, /KRASNOV/);
-  assert.match(f, /nouvelles de ton frère/);
+  assert.match(f, /nouvelles de ton père/);
   assert.match(f, /loupe/); assert.match(f, /cornichons/);
 });
 
@@ -75,10 +76,10 @@ test("salle d'interrogatoire : description d'après l'image, aucun miroir sans t
   assert.match(d, /cave de pierre/); assert.match(d, /chaînes/); assert.match(d, /chaise de contention/);
 });
 
-test('église de Novomirsk : portraits du Pontife et de Frère Kolkhoze (512 × 512) et fiches', () => {
+test('église de Novomirsk : portraits du Pontife et du Diacre laborieux (512 × 512) et fiches', () => {
   const p = piece('kolkhoze-spirituel', 'grange_sainte'), D = 'images/Sovarka/Novomirsk/';
   for (const [nom, img, id] of [['Camarade Pontife Tractorenko (PNJ)', 'novo-pontife-tractorenko-portrait.webp', 'camarade_pontife_tractorenko'],
-                                ['Frère Kolkhoze (PNJ)', 'novo-frere-kolkhoze-portrait.webp', 'frere_kolkhoze']]) {
+                                ['Diacre laborieux (PNJ)', 'novo-frere-kolkhoze-portrait.webp', 'diacre_laborieux']]) {
     assert.equal(photo(p, nom), D + img); existe(D + img);
     // En-tête RIFF/WEBP ; dimensions lues dans le bloc VP8 (avec perte).
     const b = fs.readFileSync(path.join(root, D + img));

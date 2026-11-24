@@ -10,7 +10,7 @@ vm.runInContext(fs.readFileSync(path.join(root,'data.js'),'utf8')+';this.world=W
 const nov=ctx.world.soviet.capitale.buildingContext;
 const rooms={
  'commissariat': {
-   accueil_police:'Novomirsk_Commissariat_acceuil.webp',
+   accueil_police:'Novomirsk_Commissariat_accueil.webp',
    prison:'Novomirsk_commissariat_geoles.webp',
    bureau_commissaire:'Novomirsk_commissariat-bureau.webp'
  },

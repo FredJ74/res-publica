@@ -25,7 +25,7 @@ const ch=vm.runInContext("WORLD.soviet.ville_b.buildingContext['dispensaire-publ
 assert.ok(ch && ch.orders.some(o=>o.fn==='dormir') && ch.orders.some(o=>o.fn==='repas_hopital'));
 const kr=vm.runInContext("WORLD.soviet.ville_b.buildingContext['dispensaire-public-v']",ctx);
 assert.equal(kr.roomOverrides.attente.imageUrl,'images/Sovarka/Krasnov/Krasnov_hopital_accueil.webp');
-assert.equal(kr.roomOverrides.ehpad.imageUrl,'images/Sovarka/Krasnov/Krasnov_hopital_EPHAD.webp');
+assert.equal(kr.roomOverrides.ehpad.imageUrl,'images/Sovarka/Krasnov/Krasnov_hopital_EHPAD.webp');
 assert.equal(ch.imageUrl,'images/Sovarka/Krasnov/Krasnov_hopital_chambre.webp');
 const starovka=vm.runInContext("WORLD.soviet.ville_a.buildingContext['dispensaire-public-v'].roomsExtra.chambre",ctx);
 assert.notEqual(starovka.imageUrl,ch.imageUrl,'Starovka conserve sa chambre');

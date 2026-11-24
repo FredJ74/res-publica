@@ -614,7 +614,7 @@ mariée ; cette proximité l'emplit de joie, et quoi qu'il arrive, elle remercie
 n'ont pas eu droit à plus. **Kouzma apparaît à l'église et dans sa maison** (Fred). Le reste de leur portrait est gardé (Praskovia
 apicultrice ; Kouzma un peu sourd). Code : fiches de trinquer (`api/_reaction-habitant.js`), fiche de dialogue de Kouzma
 (`api/_pnj-personnalites.js`, à relire par Fred), `data.js` (église, maison, PNJ de l'église). Les deux PNJ hérités de Novomirsk
-dans l'église de Krasnov (Camarade Pontife Tractorenko, Frère Kolkhoze) laissent la place à Kouzma.
+dans l'église de Krasnov (Camarade Pontife Tractorenko, Diacre laborieux — ex-Frère Kolkhoze, renommé le 24/11/2026) laissent la place à Kouzma.
 
 **Secrétaire de mairie de Krasnov (Fred, 15/11/2026)** : **Galina Dokladova** (nom proposé par Claude, « doklad » : le rapport ;
 Fred laisse les noms à Claude), **aimable mais méfiante**. Fiche dans `api/_pnj-personnalites.js`, **à relire par Fred**.
@@ -1207,18 +1207,18 @@ Usines d'État de Sovarka : 25 matières par chaîne et par nuit → 50 produits
 
 Décisions complètes : `GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md`. Corrections à la source :
 - **Ignat Lykov** : fonctionnaire à la retraite, **jamais trappeur**. **Kouzma Lapchine** : batiouchka, plus sonneur de cloches.
-- **Matveï Rybakov** : référent chasse et bûcheronnage de Krasnov, frère aîné de **Prokhor Rybakov** (douanes de Novomirsk) :
-  « mon frère, il fouille des valises toute la journée ».
+- **Matveï Rybakov** : référent chasse et bûcheronnage de Krasnov, **père** de **Prokhor Rybakov** (douanes de Novomirsk) :
+  « mon fils, il fouille des valises toute la journée » (correction de Fred, 24/11/2026, point H.5 : plus son frère aîné).
 - **Gare** : « Camarade Horaire » → **Vassili Sukhoï** (graphie voulue, ne pas écrire Soukhoï), chef de gare au hall principal ;
   « Agente Nadejda » → **Lioudmila Proverkina**, agente de contrôle, au hall des douanes. « Taxi vers le QHS » masqué tant que
   le goulag est verrouillé. Le doublon « Nadejda Contrôle » (jamais affiché) est fondu dans Lioudmila Proverkina. L'inspecteur
-  **Prokhor Rybakov** reste aux douanes (loupe, bocal de cornichons), frère cadet de Matveï, parti réussir dans l'administration ;
-  il demande des nouvelles de son frère aux PJ venus de Krasnov. Images : hall principal = « Le chef de gare et l'heure des
+  **Prokhor Rybakov** reste aux douanes (loupe, bocal de cornichons), **fils** de Matveï (Fred, 24/11/2026), parti réussir dans l'administration ;
+  il demande des nouvelles de son père aux PJ venus de Krasnov. Images : hall principal = « Le chef de gare et l'heure des
   trains », hall des douanes = « Contrôle douanier sous la neige », zone d'embarquement = « Aéroport soviétique sous la neige ».
 - **Renseignement** : Tamara Naouchnikova (écoutes), Colonel Oleg Doprossov et Fiodor Koulakov (interrogatoire).
   La salle d'interrogatoire est une cave de pierre (chaînes, crochet, sangles, chaise de contention) : **aucun miroir sans tain**.
 - **Église (Kolkhoze spirituel)** : la nef de Novomirsk ne montre personne ; les portraits du Camarade Pontife Tractorenko et de
-  Frère Kolkhoze viennent de la planche 5 (`novo-pontife-tractorenko-portrait.webp`, `novo-frere-kolkhoze-portrait.webp`).
+  Diacre laborieux (ex-Frère Kolkhoze, point H.7 du 24/11/2026) viennent de la planche 5 (`novo-pontife-tractorenko-portrait.webp`, `novo-frere-kolkhoze-portrait.webp`).
 - **Musée de Krasnov** : plus de directeur ; le guide Arkadi Pamiatnikov juge l'énigme ; hôtesse Zoïa Biletova.
 - **Hôpital de Krasnov** : infirmière Nadejda Oukolova. **EHPAD de Krasnov** : un résident social (Matriona Starikova ou Matveï Starikov).
 - **Bar Sever** : Grigori Zaitsev (patron) et l'habitué (PNJ social qui offre un verre une fois par jour).

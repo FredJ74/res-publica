@@ -22,7 +22,7 @@ const NON_FONCTIONNAIRES = new Set([
   // Habitants des chalets de Starovka (Fred, 18/11/2026)
   'dolgor_tsybikova', 'zorigto_badmaev',
   // Krasnov (bloc 3, 23/11/2026) : habitants des petites maisons, pensionnaire de l'EHPAD, habitué du Bar Sever
-  'antonina_merkoulova', 'matvei_rybakov', 'ignat_lykov', 'stepan_kouznetsov', 'matvei_starikov', 'habitue_krasnov',
+  'antonina_merkoulova', 'matvei_rybakov', 'ignat_lykov', 'stepan_kouznetsov', 'matvei_starikov', 'habitue_krasnov', 'prokop_stakanov',
   // Habitués, saltimbanques, revendeurs, artisans et mécaniciens des centres
   'sovarka_ksenia_makarova', 'sovarka_tuya_sanjieva', 'sovarka_varvara_kozlova',
   'sovarka_arkhip_voronine', 'sovarka_altan_namsaraiev', 'sovarka_efim_iakovlev',
@@ -36,7 +36,7 @@ const NON_FONCTIONNAIRES = new Set([
   'sovarka_leonid_orlov', 'sovarka_lobbyiste_pavel_pistonov', 'sovarka_innokenti_partiiev',
   'meneur_des_supporters', 'sovarka_stiopa_le_tambour_ossipov', 'veteran_ilia_krioukov',
   // Loge, Église du Tractorisme, presse étrangère et ambassadeurs étrangers
-  'sovarka_venerable_maitre_dimitri_compassov', 'frere_gardien', 'camarade_pontife_tractorenko', 'frere_kolkhoze', 'kouzma_lapchine', 'praskovia_pakhomova',
+  'sovarka_venerable_maitre_dimitri_compassov', 'frere_gardien', 'camarade_pontife_tractorenko', 'diacre_laborieux', 'frere_kolkhoze', 'kouzma_lapchine', 'praskovia_pakhomova',
   'journalistes_accredites', 'hubert_de_la_courtoisie', 'cheikh_rachid_al_diplomi', 'don_esteban_cortesano'
 ]);
 

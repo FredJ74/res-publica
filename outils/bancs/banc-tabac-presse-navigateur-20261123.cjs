@@ -117,7 +117,7 @@ test('cigarettes : « Fumer » depuis l’inventaire, Moral recopié du serveur'
   assert.match(r.toasts[0].m, /\+2 Moral/);
 }));
 
-test('légendes : une clé par carte postale existante, seule Krasnov a son texte', () => {
+test('légendes : une clé par carte postale existante (textes de Fred : Krasnov le 22/11, les dix autres le 24/11)', () => {
   const s = fs.readFileSync(path.join(R, 'plateau-actions-illegales-rumeurs.js'), 'utf8');
   const cartes = [...s.matchAll(/^\s+(carte_[a-z_]+): \{\s*\n\s+id: '\1', label: 'Carte postale/gm)].map(m => m[1]);
   assert.equal(cartes.length, 11); // +1 le 23/11/2026 (mission Novomirsk, point 35) : carte de Starovka, légende vide en attendant Fred.

@@ -90,7 +90,7 @@ Le soin `soins_discrets` en clinique privée est une prestation confidentielle :
 - Les hôpitaux publics de Sovarka (Novomirsk, Starovka, Krasnov) ont une **chambre**. Le patient hospitalisé y est conduit directement : il arrive à 0 PA et ne peut pas bouger.
 - Dans la chambre : **Dormir** (récupération selon les règles ci-dessus) et **Prendre le repas de l'hôpital** (1 PA, +2 PA au prochain sommeil, à partir de J1).
 - Starovka et Krasnov utilisent pour l'instant l'image de la chambre de Novomirsk.
-- **Pas encore en Républia** : Fred veut être présent quand on le fera.
+- **Pas encore en Républia** : Fred veut être présent quand on le fera. *(Fait depuis : chambre partout le 14/11, salle et chambre séparées le 24/11, point H.1.)*
 - Migration `20261113020000_hopitaux_sovarka_chambre` (registre `hopitaux_sovarka_chambre_20261113020000`).
 
 ## Avertissement avant 0 PA : durée annoncée (Fred, 14/11/2026)
@@ -104,4 +104,5 @@ Décisions complètes : `GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md`. Point
 - **Chambre = hospitalisés** : dormir, repas, transfert en clinique privée, sortir. Le transfert, le repas et la sortie ne sont plus dans la salle d'attente.
 - **Transfert en clinique privée à 0 PA** (écran et serveur), tarif du pays affiché et prélevé depuis la chambre (Sovarka : 400 PSK, au lieu de « 1000 FR »).
 - « Salle bondée. Patience requise. » est supprimé.
-- **Mis en œuvre à l'hôpital de Krasnov** (bloc 4, `data.js`, banc `outils/bancs/banc-bloc4-krasnov-20261123.cjs`) : salle d'attente sans transfert, repas ni sortie ; chambre avec Dormir, repas, transfert (0 PA, tarif de la table MJ `ordres_couts_pays`, affiché sur le bouton et dans le journal) et « Sortir de l'hôpital ». Les autres hôpitaux (Starovka, Novomirsk, Républia) gardent leur salle d'attente actuelle : à étendre si Fred le confirme.
+- **Mis en œuvre à l'hôpital de Krasnov** (bloc 4, `data.js`, banc `outils/bancs/banc-bloc4-krasnov-20261123.cjs`) : salle d'attente sans transfert, repas ni sortie ; chambre avec Dormir, repas, transfert (0 PA, tarif de la table MJ `ordres_couts_pays`, affiché sur le bouton et dans le journal) et « Sortir de l'hôpital ».
+- **Étendu à tous les hôpitaux publics, en Sovarka et en Républia (décision de Fred, 24/11/2026, mission « Purge », point H.1)** : Luthécia, Port-Sainte-Marie, Montrouge, Novomirsk, Starovka et Krasnov suivent le modèle de Krasnov (`HOPITAUX_PUBLICS_SALLE_ET_CHAMBRE`, `data.js` ; banc `outils/bancs/banc-ghe-h1-hopitaux-20261124.cjs`). Le serveur conduisait déjà l'hospitalisé dans la chambre des six hôpitaux (migration `20261114130000`). El Estado et Al-Khalija, hors consigne, sont inchangés.

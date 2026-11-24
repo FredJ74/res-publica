@@ -4761,7 +4761,7 @@ export const SCENES_PNJ = {
     "piece": "La Grange Sainte",
     "personnes": [
       "Camarade Pontife Tractorenko",
-      "Frère Kolkhoze"
+      "Diacre laborieux"
     ]
   },
   "[\"soviet\",\"capitale\",\"centre-multinodal-luthecia\",\"hall_gare\"]": {
@@ -7424,7 +7424,7 @@ export const SCENES_PNJ = {
     "piece": "Salle",
     "personnes": [
       "Grigori Zaitsev",
-      "L’habitué du Bar Sever"
+      "Prokop Stakanov"
     ]
   },
   "[\"soviet\",\"ville_b\",\"station-radar-krasnov\",\"salle_ecoute\"]": {

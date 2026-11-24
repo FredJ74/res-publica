@@ -50,3 +50,16 @@ Fred testera l'exploration en groupe (Tom Tom et Arnie, groupés) à la recherch
 - Une rencontre avec l'ours ou les loups déclenche le combat en groupe existant, avec tous les membres présents.
 - Seul le chef du groupe (ou le membre qui clique, si les groupes n'ont pas de chef) déclenche les clics d'exploration et de retour ; les autres suivent automatiquement.
 Tests couvrant : tirage unique pour le groupe, même image pour tous, égarement commun au retour, combat de groupe contre l'ours. Signale dans ton rapport toute limite du système de groupe actuel qui empêcherait ce test.
+
+---
+
+## Décision de Fred du 24/11/2026 (mission « Purge », point H.6) : l'ours ne se chasse pas
+
+Pas d'ordre « Chasser ». L'ours se rencontre au hasard en explorant la forêt. Matveï, les bûcherons, Nina et le commissaire
+l'expliquent : « L'ours ne se chasse pas, c'est l'ours qui vous chasse… ».
+
+Mise en œuvre (Claude, 24/11/2026) : aucun ordre « Chasser » n'existe (vérifié dans le code et en base) ; la rencontre
+vient déjà de l'exploration (`sovarka_foret_rencontre_arrivee_interne`). La phrase est dans les fiches DeepSeek de Matveï
+Rybakov, Nina Gorbounova et du commissaire Egor Tikhonov (`OURS_NE_SE_CHASSE_PAS`, `api/_pnj-personnalites.js`). Aucun PNJ
+« bûcheron » n'existe dans le jeu : rien n'a été créé pour eux (question pour Fred). Banc :
+`outils/bancs/banc-ghe-h6-ours-20261124.cjs`.
