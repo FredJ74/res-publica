@@ -8402,7 +8402,8 @@ const BUILDINGS = {
         imageUrl: "images/Sovarka/Novomirsk/Novomirsk_cathedrale_accueil.webp",
         persons: [
           {name:'Camarade Pontife Tractorenko (PNJ)', role:'Grand Prêtre du Tractorisme', rel:'neutral', job:'grand_pretre'},
-          {name:'Frère Kolkhoze (PNJ)', role:'PNJ - Enfant de chœur laborieux', rel:'neutral', job:'clerc'}
+          // « Frère Kolkhoze » devient « Diacre laborieux » (Fred, 24/11/2026, point H.7) ; portrait inchangé.
+          {name:'Diacre laborieux (PNJ)', role:'PNJ - Diacre du Tractorisme', rel:'neutral', job:'clerc', ancienNom:'Frère Kolkhoze'}
         ],
         orders: [
           {fn:'prier',           label:'Chanter l\'hymne au Tracteur', pa:1, cost:0,   type:'legal', icon:'ti-star',      successRate:100, desc:'+3 IP +2 Moral. Glorifier la production collective.'},
@@ -13424,7 +13425,7 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     // Bloc 6 (point 39) : la nef de Novomirsk (Novomirsk_cathedrale_accueil.webp) ne montre personne ; les deux portraits
     // sont repris des cases 6 et 7 de la planche 5, en 512 × 512, sous leur nom définitif.
     ['kolkhoze-spirituel', 'grange_sainte', 'Camarade Pontife Tractorenko (PNJ)', 'novo-pontife-tractorenko-portrait.webp'],
-    ['kolkhoze-spirituel', 'grange_sainte', 'Frère Kolkhoze (PNJ)', 'novo-frere-kolkhoze-portrait.webp'],
+    ['kolkhoze-spirituel', 'grange_sainte', 'Diacre laborieux (PNJ)', 'novo-frere-kolkhoze-portrait.webp'],   // ex-Frère Kolkhoze (H.7), image gardée
     // Bloc 6 (points 37 et 38) : gare et Direction du Renseignement.
     ['centre-multinodal-luthecia', 'hall_gare', 'Vassili Sukhoï (PNJ)', 'novo-vassili-sukhoi-portrait.webp'],
     ['centre-multinodal-luthecia', 'hall_douanes', 'Lioudmila Proverkina (PNJ)', 'novo-lioudmila-proverkina-portrait.webp'],

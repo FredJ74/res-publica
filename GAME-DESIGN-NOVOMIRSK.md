@@ -614,7 +614,7 @@ mariée ; cette proximité l'emplit de joie, et quoi qu'il arrive, elle remercie
 n'ont pas eu droit à plus. **Kouzma apparaît à l'église et dans sa maison** (Fred). Le reste de leur portrait est gardé (Praskovia
 apicultrice ; Kouzma un peu sourd). Code : fiches de trinquer (`api/_reaction-habitant.js`), fiche de dialogue de Kouzma
 (`api/_pnj-personnalites.js`, à relire par Fred), `data.js` (église, maison, PNJ de l'église). Les deux PNJ hérités de Novomirsk
-dans l'église de Krasnov (Camarade Pontife Tractorenko, Frère Kolkhoze) laissent la place à Kouzma.
+dans l'église de Krasnov (Camarade Pontife Tractorenko, Diacre laborieux — ex-Frère Kolkhoze, renommé le 24/11/2026) laissent la place à Kouzma.
 
 **Secrétaire de mairie de Krasnov (Fred, 15/11/2026)** : **Galina Dokladova** (nom proposé par Claude, « doklad » : le rapport ;
 Fred laisse les noms à Claude), **aimable mais méfiante**. Fiche dans `api/_pnj-personnalites.js`, **à relire par Fred**.
@@ -1218,7 +1218,7 @@ Décisions complètes : `GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md`. Corre
 - **Renseignement** : Tamara Naouchnikova (écoutes), Colonel Oleg Doprossov et Fiodor Koulakov (interrogatoire).
   La salle d'interrogatoire est une cave de pierre (chaînes, crochet, sangles, chaise de contention) : **aucun miroir sans tain**.
 - **Église (Kolkhoze spirituel)** : la nef de Novomirsk ne montre personne ; les portraits du Camarade Pontife Tractorenko et de
-  Frère Kolkhoze viennent de la planche 5 (`novo-pontife-tractorenko-portrait.webp`, `novo-frere-kolkhoze-portrait.webp`).
+  Diacre laborieux (ex-Frère Kolkhoze, point H.7 du 24/11/2026) viennent de la planche 5 (`novo-pontife-tractorenko-portrait.webp`, `novo-frere-kolkhoze-portrait.webp`).
 - **Musée de Krasnov** : plus de directeur ; le guide Arkadi Pamiatnikov juge l'énigme ; hôtesse Zoïa Biletova.
 - **Hôpital de Krasnov** : infirmière Nadejda Oukolova. **EHPAD de Krasnov** : un résident social (Matriona Starikova ou Matveï Starikov).
 - **Bar Sever** : Grigori Zaitsev (patron) et l'habitué (PNJ social qui offre un verre une fois par jour).

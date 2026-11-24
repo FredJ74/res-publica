@@ -179,7 +179,8 @@ Chaque point porte un banc qui l'empêche de revenir (liste dans RELAIS.md).
     voix, goût de la procédure) et **Fiodor Koulakov** (colosse au tablier, silencieux devant le Colonel, glisse aux
     détenus des conseils : « Le Colonel est de mauvaise humeur ce matin, faites attention, après c'est moi qui vais en
     pâtir. »). Comiques mais pas ridicules. Description de la salle réécrite d'après l'image (aucun miroir sans tain).
-39. **Église (Kolkhoze spirituel, Grange Sainte)** : portraits du Camarade Pontife Tractorenko et de Frère Kolkhoze ;
+39. **Église (Kolkhoze spirituel, Grange Sainte)** : portraits du Camarade Pontife Tractorenko et du **Diacre laborieux**
+    (anciennement « Frère Kolkhoze » ; renommé par Fred le 24/11/2026, mission « Purge », point H.7 ; image gardée telle quelle) ;
     animation de l'hymne (point 33).
 
 ## Bloc 7 — portraits des PNJ

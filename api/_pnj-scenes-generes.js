@@ -4761,7 +4761,7 @@ export const SCENES_PNJ = {
     "piece": "La Grange Sainte",
     "personnes": [
       "Camarade Pontife Tractorenko",
-      "Frère Kolkhoze"
+      "Diacre laborieux"
     ]
   },
   "[\"soviet\",\"capitale\",\"centre-multinodal-luthecia\",\"hall_gare\"]": {
