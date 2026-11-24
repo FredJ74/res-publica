@@ -76,7 +76,8 @@ test('29 : fenêtre d’Arkadi — récit de la salle, réponse à l’énigme e
   assert.equal(vus.length, 3);
   // Le jugement reste celui du serveur : krasnov_ecole_agir, action repondre_enigme.
   assert.match(lire('plateau-enigme-krasnov.js'), /const v = await agir\('repondre_enigme', texte\);/);
-  assert.match(lire('plateau.html'), /<script src="plateau-guide-arkadi\.js\?v=bloc4-20261123"><\/script>/);
+  // Script chargé par plateau.html avec la clé de cache du bloc 4 ou une clé suffixée plus récente (H.3 du 24/11 : -ghe-h3).
+  assert.match(lire('plateau.html'), /<script src="plateau-guide-arkadi\.js\?v=bloc4-20261123(?:-[a-z0-9-]+)?"><\/script>/);
 });
 
 test('30 : hôpital de Krasnov — salle d’attente des visiteurs, chambre des hospitalisés', () => {
