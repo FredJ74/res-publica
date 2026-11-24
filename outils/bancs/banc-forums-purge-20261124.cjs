@@ -77,3 +77,26 @@ test('B.2 section « Forums locaux » séparée des « Forums nationaux »', () 
   assert.ok(iNat > 0 && iLoc > iNat && iInter > iLoc, 'Forums nationaux, puis Forums locaux, puis internationaux');
   assert.match(barre, /'localForums','Forums locaux'/);
 });
+
+function dates() {
+  const c = vm.createContext({ console, Intl, Date });
+  vm.runInContext([bloc(FORUM, 'function rpDecalageParisMs('), bloc(FORUM, 'function rpInstantForum('), bloc(FORUM, 'function rpDateLisible('),
+    bloc(FORUM, 'function parseGameTime(')].join('\n'), c);
+  return c;
+}
+test('B.3 sujets classés de la publication ou réponse la plus récente à la plus ancienne, tous formats confondus', () => {
+  const c = dates();
+  // Formats réellement présents en production le 24/11/2026 (forum_topics.time / last_post_time).
+  const sujets = [
+    { id: 'iso-z', time: '2026-11-16T17:33:38.901Z' },
+    { id: 'serveur', time: '21/11/2026 03:06', lastPostTime: '23/11/2026 22:51' },
+    { id: 'ancien', time: '22/11/2026 · 20h04' },
+    { id: 'pg', time: '2026-11-23 18:48:24.969+00' },
+    { id: 'jour', time: 'Jour 3 · 10h00' }
+  ];
+  const ordre = sujets.slice().sort((a, b) => c.parseGameTime(b.lastPostTime || b.time) - c.parseGameTime(a.lastPostTime || a.time)).map(t => t.id);
+  assert.deepEqual(ordre, ['serveur', 'pg', 'ancien', 'iso-z', 'jour'], 'la réponse du 23/11 à 22 h 51 remonte le sujet du 21/11 en tête');
+  // Les deux tris de forum.js lisent la dernière activité.
+  assert.match(bloc(FORUM, 'function renderTopicList('), /parseGameTime\(b\.lastPostTime \|\| b\.time\) - parseGameTime\(a\.lastPostTime \|\| a\.time\)/);
+  assert.match(bloc(FORUM, 'async function loadForumTopicsFromSB('), /sort\(\(a, b\) => parseGameTime\(b\.lastPostTime \|\| b\.time\) - parseGameTime\(a\.lastPostTime \|\| a\.time\)\)/);
+});

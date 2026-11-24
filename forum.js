@@ -2391,14 +2391,14 @@ function sanitizeRichHtml(html) {
   return tmp.innerHTML;
 }
 
+// Instant d'une date de sujet ou de message, pour classer les sujets (Fred, 24/11/2026, mission Purge B.3 : de la
+// publication ou réponse la plus récente à la plus ancienne). Le serveur écrit « 23/11/2026 22:51 » (heure de Paris),
+// d'anciens sujets portent « 23/11/2026 · 17h04 » ou un horodatage ISO : l'ancien analyseur ne lisait que le second,
+// et rangeait les autres tout en bas (instant 0). Tous passent désormais par rpInstantForum.
 function parseGameTime(str) {
   if (!str) return 0;
-  // Nouveau format : "DD/MM/YYYY · HHhMM"
-  const mDate = /(\d{2})\/(\d{2})\/(\d{4})\s*·\s*(\d{1,2})h(\d{2})?/.exec(str);
-  if (mDate) {
-    const [, dd, mm, yyyy, hh, mn] = mDate;
-    return new Date(parseInt(yyyy), parseInt(mm)-1, parseInt(dd), parseInt(hh), parseInt(mn||0)).getTime();
-  }
+  const instant = rpInstantForum(str);
+  if (instant != null) return instant;
   // Ancien format "Jour X · HHhMM" — retrocompatibilite avec les messages deja postes
   const mJour = /Jour\s*(\d+)\s*·\s*(\d{1,2})h(\d{2})?/.exec(str);
   if (mJour) return parseInt(mJour[1]||0) * 1440 + parseInt(mJour[2]||0) * 60 + parseInt(mJour[3]||0);
