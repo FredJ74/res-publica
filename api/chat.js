@@ -24,6 +24,7 @@
 import { construirePromptSysteme, profilExiste, maxTokensProfil, filtrerReponseSquatteur, langueDialogueAutorisee, TOUS_PROFILS } from './_pnj-profils.js';
 import { handlerAide } from './_aide.js';
 import { handlerReactionHabitant } from './_reaction-habitant.js';
+import { handlerGuide } from './_pnj-guide.js';
 import { appelDeepSeek, joueurAuthentifie, classerEchecFournisseur } from './_deepseek.js';
 import { sbTransport } from './_supabase.js';
 import { sceneDialogue } from './_pnj-localisation.js';
@@ -304,6 +305,8 @@ export default async function handler(req, res) {
   if (req.query && req.query.mode === 'aide') return handlerAide(req, res);
   // Réaction de l'habitant qui trinque (Sovarka, 13/11/2026) : même fonction, pour rester à 12.
   if (req.query && req.query.mode === 'trinquer') return handlerReactionHabitant(req, res);
+  // PNJ guide des nouveaux joueurs (purge A.10, 24/11/2026) : même fonction, pour rester à 12.
+  if (req.query && req.query.mode === 'guide') return handlerGuide(req, res);
   const origin = req.headers.origin;
   if (origin === ALLOWED_ORIGIN) {
     res.setHeader('Access-Control-Allow-Origin', ALLOWED_ORIGIN);
@@ -396,6 +399,9 @@ export default async function handler(req, res) {
   // promesse plutot que d'afficher un cadeau inexistant. Les vrais dons ne
   // passent pas par cette route : ils exigent un ordre et une confirmation serveur.
   const reponse = filtrerReponseSquatteur(req.body.profil, r.texte, langueAutorisee);
+  // Calendrier du nouveau venu (purge A.3, 24/11/2026) : une conversation avec un PNJ repousse l'interview d'accueil.
+  // Le serveur note l'instant de jeu (accueil_pnj_parle, sous le jeton du joueur) ; un échec ne change pas la réponse.
+  await rpcJoueur('accueil_pnj_parle', {}, utilisateur.jeton).catch(() => null);
   if (guideMusee) {
     const c = await rpcGuideMusee('guide_musee_question_consommer', utilisateur.jeton);
     if (!c || c.ok !== true) return res.status(403).json({ error: 'Plus de question.', raison: c?.raison || 'indisponible' });

@@ -159,7 +159,6 @@
       '<p class="hg-acc-journal">' + esc(it.journal || '') + '</p></div></div>';
     if (it.etat === 'a_faire' || it.etat === 'ignoree') {
       h += '<p class="hg-acc-question">« ' + esc(it.question || '') + ' »</p>' +
-        '<p class="hg-acc-aide">Tu ne sais pas encore ce que tu veux devenir ? C’est normal, tu as tout le temps de te décider. Tu peux choisir « Plus tard » et continuer à explorer.</p>' +
         '<div class="hg-acc-chemins" role="radiogroup" aria-labelledby="hg-acc-titre">' +
         (etat.chemins || []).map(c => '<button type="button" role="radio" class="hg-acc-chemin" data-chemin="' + esc(c.id) + '" aria-checked="' +
           (choix === c.id) + '">' + esc(c.libelle) + '</button>').join('') + '</div>' +
@@ -381,6 +380,8 @@
   const gestionnaires = global.rpEvenementsPersonnageGestionnaires = global.rpEvenementsPersonnageGestionnaires || {};
   gestionnaires.accueil_bulle_pa = ev => afficherBullePa(Number(ev?.params?.pa) || 1);
   gestionnaires.accueil_etape = () => { charger().then(() => rafraichirObjectifs()); };
+  // Calendrier du nouveau venu (purge A.3) : le serveur déclare l'interview due ; l'écran relit et l'ouvre dès que libre.
+  gestionnaires.accueil_interview = () => { charger().then(() => verifier()); };
 
   // Un paiement qui baisse les PA alors que la bulle n'a jamais été vue : lire tout de suite le journal du serveur
   // (sans attendre le signal temps réel). Aucune décision locale : c'est le serveur qui a écrit, ou non, la bulle.
@@ -431,7 +432,9 @@
   // ------------------------------------------------------------------ démarrage (points 23 et 25)
   // Ne pas couvrir la quête d'accueil de Luthécia (garde du Palais, Jérémy) ni un dialogue de PNJ en cours.
   function occupe() {
-    if (doc.querySelector('#modal-quete-accueil.open, #modal-pnj.open, .modal-overlay.open, #hg-accueil-interview')) return true;
+    if (doc.querySelector('#hg-bienvenue, #modal-quete-accueil.open, #modal-pnj.open, .modal-overlay.open, #hg-accueil-interview')) return true;
+    // Calendrier du nouveau venu (purge A.3) : seule une fenêtre réellement ouverte retarde l'interview due.
+    if (etat && etat.calendrier && etat.calendrier.actif) return false;
     const e = global.state?.char?.queteAccueil?.etape;
     return e === 'garde_en_cours';
   }
@@ -445,11 +448,14 @@
       chargement = charger().finally(() => { chargement = null; });
       await chargement;
     }
-    // La fenêtre de bienvenue et l'exploration libre précèdent l'interview automatique.
-    global.RPAccueilProgressif?.initialiser(etat);
-    if (etat?.interview?.ouvrir_auto && (global.RPAccueilProgressif?.entretienAutomatiqueAutorise() ?? true) && !occupe()) {
+    // Bienvenue, calendrier du nouveau venu et portier des fenêtres automatiques : plateau-accueil-progressif.js (#1188,
+    // repris par la purge A.2/A.3) ; le serveur seul décide du moment de l'interview (accueil_etat → ouvrir_auto).
+    const prog = global.RPAccueilProgressif;
+    if (prog) prog.initialiser(etat);
+    if (prog && prog.bienvenueEnCours()) return;
+    if (etat?.interview?.ouvrir_auto && (prog ? prog.entretienAutomatiqueAutorise() : true) && !occupe()) {
       etat.interview.ouvrir_auto = false;
-      if (ouvrir()) rpc('accueil_interview_vue');
+      if (ouvrir()) { if (prog) prog.marquer('interview'); rpc('accueil_interview_vue'); }
     }
   }
 

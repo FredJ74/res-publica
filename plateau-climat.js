@@ -217,8 +217,15 @@ async function accueillirNouveau() {
     // Le message du gouvernement du même événement ferait doublon.
     marquerVu(ev);
     fileAlertes = fileAlertes.filter(x => x.id !== ev.id);
-    fenetreExplication(ev, { titre: explic('accueil_titre', { ville }), intro: explic('accueil_intro', { evenement: explic('nom_' + typeConnu(ev)).toLowerCase() }),
-      bouton: explic('accueil_ok'), apres: () => { global.sbRpc('climat_accueil_vu', { p_evenement: ev.id }).catch(() => null); afficherSuivante(); } });
+    let montre = false;
+    const montrer = () => {
+      if (montre) return; montre = true;
+      fenetreExplication(ev, { titre: explic('accueil_titre', { ville }), intro: explic('accueil_intro', { evenement: explic('nom_' + typeConnu(ev)).toLowerCase() }),
+        bouton: explic('accueil_ok'), apres: () => { global.sbRpc('climat_accueil_vu', { p_evenement: ev.id }).catch(() => null); afficherSuivante(); } });
+    };
+    // Portier des fenêtres automatiques (purge A.3) : badge météo pendant la première heure ou après une autre fenêtre.
+    if (global.RPFenetresAuto) global.RPFenetresAuto.demander('climat_accueil', montrer, () => !montre);
+    else montrer();
   } finally { accueilEnCours = false; }
 }
 const VILLES = { republic: { capitale: 'Luthécia', ville_a: 'Port-Sainte-Marie', ville_b: 'Montrouge' },
@@ -256,9 +263,15 @@ const cleVu = (id, debut) => 'rp-climat-vu:' + (etat().char && etat().char.name 
 function dejaVu(ev) { try { return global.localStorage.getItem(cleVu(ev.id, ev.debut)) === '1'; } catch (_) { return false; } }
 function marquerVu(ev) { try { global.localStorage.setItem(cleVu(ev.id, ev.debut), '1'); } catch (_) {} }
 let fileAlertes = [];
-function afficherSuivante() {
+// Portier des fenêtres automatiques (purge A.3, 24/11/2026) : pas pendant la première heure d'un nouveau venu, une seule
+// fenêtre automatique par connexion ; sinon l'alerte attend derrière le badge météo (clic du joueur = « force »).
+function afficherSuivante(force) {
   const doc = global.document;
   if (!doc || doc.getElementById('climat-gouvernement') || doc.getElementById('climat-explication') || !fileAlertes.length) return;
+  if (force !== true && global.RPFenetresAuto) {
+    global.RPFenetresAuto.demander('climat', () => afficherSuivante(true), () => fileAlertes.length > 0);
+    return;
+  }
   const ev = fileAlertes.shift();
   const fond = doc.createElement('div');
   fond.id = 'climat-gouvernement';

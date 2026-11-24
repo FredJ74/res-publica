@@ -1,0 +1,30 @@
+name: "Purge A — accueil, fenêtres automatiques, notifications du chat, PNJ guide"
+on:
+  pull_request:
+    paths: [plateau-accueil-progressif.js, plateau-accueil-interview.js, plateau-notifications-chat.js, plateau-pnj-guide.js, plateau-multijoueur.js, plateau-climat.js, plateau-core.js, plateau.html, supabase.js, api/chat.js, api/_pnj-guide.js, api/_pnj-personnalites.js, api/cron-minuit.js, data.js, 'migrations/2026112410*', 'outils/bancs/*-20261124.*', .github/workflows/purge-a-accueil-guide-20261124.yml]
+  push:
+    branches: [main, 'claude/**']
+    paths: [plateau-accueil-progressif.js, plateau-accueil-interview.js, plateau-notifications-chat.js, plateau-pnj-guide.js, plateau-multijoueur.js, plateau-climat.js, plateau-core.js, plateau.html, supabase.js, api/chat.js, api/_pnj-guide.js, api/_pnj-personnalites.js, api/cron-minuit.js, data.js, 'migrations/2026112410*', 'outils/bancs/*-20261124.*', .github/workflows/purge-a-accueil-guide-20261124.yml]
+permissions:
+  contents: read
+jobs:
+  purge-a:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
+      - run: for f in plateau-accueil-progressif.js plateau-accueil-interview.js plateau-notifications-chat.js plateau-pnj-guide.js plateau-multijoueur.js plateau-climat.js plateau-core.js supabase.js api/chat.js api/_pnj-guide.js api/cron-minuit.js data.js; do node --check "$f"; done
+      - name: Bancs sans navigateur (accueil progressif, API du PNJ guide)
+        run: node --test outils/bancs/banc-accueil-progressif-20261124.cjs outils/bancs/banc-pnj-guide-api-20261124.mjs
+      - name: Chromium réel (bienvenue, portier, notifications, PNJ guide)
+        env:
+          HG_CHROMIUM: /usr/bin/google-chrome
+        run: node --test outils/bancs/banc-accueil-calendrier-navigateur-20261124.cjs outils/bancs/banc-notifications-chat-navigateur-20261124.cjs outils/bancs/banc-pnj-guide-navigateur-20261124.cjs outils/bancs/banc-accueil-interview-navigateur-20261123.cjs
+      - name: PostgreSQL local (PGlite)
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund --prefix "$RUNNER_TEMP/pglite" @electric-sql/pglite@0.2.17
+          PGLITE_DIR="$RUNNER_TEMP/pglite" node --test outils/bancs/banc-comptes-test-20261124.cjs outils/bancs/banc-accueil-calendrier-pglite-20261124.cjs outils/bancs/banc-interview-journaliste-pays-20261124.cjs outils/bancs/banc-pnj-guide-pglite-20261124.cjs outils/bancs/banc-accueil-interview-pglite-20261123.cjs

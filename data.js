@@ -614,7 +614,8 @@ const WORLD = {
         'marche': {
           name: "Marché Central de Luthecia",
           desc: "Marcel Bidoche vend de la viande et des informations. Ginette Légume sait tout sur tout le monde. Jodie Moitout tend son micro à n'importe qui.",
-          persons: [{"name": "Jean-Pierre Bidoche (PNJ)", "role": "Boucher", "rel": "neutral", "job": "commercant", "photoUrl": "images/marcel-bidoche.webp", "photoPos": "65% 30%"}, {"name": "Ginette Légume (PNJ)", "role": "Maraîchère", "rel": "neutral", "job": "commercant", "photoUrl": "images/ginette-legume.webp", "photoPos": "65% 25%"}, {"name": "Jodie Moitout (PNJ)", "role": "Journaliste micro-trottoir", "rel": "neutral", "job": "journaliste", "photoUrl": "images/jodie-moitout.webp", "photoPos": "62% 20%"}],
+          persons: [{"name": "Jean-Pierre Bidoche (PNJ)", "role": "Boucher", "rel": "neutral", "job": "commercant", "photoUrl": "images/marcel-bidoche.webp", "photoPos": "65% 30%"}, {"name": "Ginette Légume (PNJ)", "role": "Maraîchère", "rel": "neutral", "job": "commercant", "photoUrl": "images/ginette-legume.webp", "photoPos": "65% 25%"}, {"name": "Jodie Moitout (PNJ)", "role": "Journaliste micro-trottoir", "rel": "neutral", "job": "journaliste", "photoUrl": "images/jodie-moitout.webp", "photoPos": "62% 20%"},
+            {name: 'Firmin Badaud (PNJ)', role: 'Retraité, badaud du marché — guide des nouveaux venus', rel: 'friendly', job: 'citoyen', profilId: 'guide_firmin_badaud', photoUrl: 'images/marche.webp'}], // Habitant guide des nouveaux joueurs (purge A.10, 24/11/2026) : PNJ du chat, même image que le lieu.
           // Lot Marche (21 aout 2026) : ordres commerce generiques additifs, propres a Luthecia
           // uniquement (roomOverrides.orders, fusion additive avec le template de base partage
           // avec Montrouge -- jamais un remplacement, voir renderRoomActions()). Pas de
@@ -1199,7 +1200,8 @@ const WORLD = {
         'marche': {
           name: "Marché de Montrouge",
           desc: "Légumes pas chers, grèves annoncées à voix haute.",
-          persons: [{"name": "Josette Betterave (PNJ)", "role": "Marchande", "rel": "neutral", "job": "commercant"}],
+          persons: [{"name": "Josette Betterave (PNJ)", "role": "Marchande", "rel": "neutral", "job": "commercant"},
+            {name: 'Lucien Boulon (PNJ)', role: 'Cheminot retraité — guide des nouveaux venus', rel: 'friendly', job: 'citoyen', profilId: 'guide_lucien_boulon', photoUrl: 'images/montrouge/montrouge-marche-exterieur.jpg'}], // Habitant guide des nouveaux joueurs (purge A.10, 24/11/2026) : PNJ du chat, même image que le lieu.
           // Image de navigation interieure (distincte de la vue de rue 13, montrouge-place-marche-tabac-cafe.jpg,
           // qui n'est pas touchee). Le nom du fichier dit "exterieur" car la scene represente un marche en
           // plein air, mais c'est bien l'image affichee APRES entree dans le batiment.
@@ -2333,7 +2335,8 @@ const WORLD = {
           name: "Distribution Collective",
           roomOverrides: { marche_ext: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_marche.webp' } },
           desc: "Files organisées par ordre alphabétique.",
-          persons: [{"name": "Distributeur Équitable (PNJ)", "role": "Distributeur", "rel": "neutral", "job": "commercant"}]
+          persons: [{"name": "Distributeur Équitable (PNJ)", "role": "Distributeur", "rel": "neutral", "job": "commercant"},
+            {name: 'Zinaïda Otcheredova (PNJ)', role: 'Doyenne des files d’attente — guide des nouveaux venus', rel: 'friendly', job: 'citoyen', profilId: 'guide_zinaida_otcheredova', photoUrl: 'images/Sovarka/Novomirsk/Novomirsk_marche.webp'}] /* Habitant guide des nouveaux joueurs (purge A.10, 24/11/2026). */
         },
         // Librairie du Peuple (vue 1, Place du Peuple) : copie de l'Imprimerie-Librairie Gutenberg
         // de Port-Sainte-Marie (decision de Fred, 04/11/2026) -- memes pieces, memes ordres, meme
@@ -2830,7 +2833,8 @@ const WORLD = {
             rel: 'neutral', job: 'commercant', profilId: 'nina_gorbounova',
             photoUrl: 'images/Sovarka/Krasnov/Krasnov_marche_nina_gorbounova_portrait.webp',
             photoPos: '50% 24%'
-          }],
+          }, { name: 'Fiodor Medvedkine (PNJ)', role: 'Apiculteur du kolkhoze — guide des nouveaux venus', rel: 'friendly', job: 'citoyen',
+               profilId: 'guide_fiodor_medvedkine', photoUrl: 'images/Sovarka/Krasnov/Krasnov_marche_etals.webp' }], // Habitant guide des nouveaux joueurs (purge A.10, 24/11/2026) : PNJ du chat, même image que le lieu.
           roomOverrides: {
             // Marché de Krasnov, interface unique (lot de Krasnov, point 2, 22/11/2026) : une seule fenêtre pour acheter,
             // vendre et produire (graisse d'ours et eau comprises). Les anciens guichets du marché sont retirés ici seulement.
@@ -6245,7 +6249,9 @@ const BUILDINGS = {
         // PNJ.
         persons: [
           {name:'Mireille Legall (PNJ)', role:'Marchande de poisson', rel:'neutral', job:'commercant', photoUrl:'images/port-sainte-marie-marche-mireille-legall.webp', photoPos:'50% 15%'},
-          {name:'Bastien Leroux (PNJ)', role:'Vendeur de souvenirs', rel:'neutral', job:'commercant', photoUrl:'images/port-sainte-marie-marche-bastien-leroux.webp', photoPos:'50% 15%'}
+          {name:'Bastien Leroux (PNJ)', role:'Vendeur de souvenirs', rel:'neutral', job:'commercant', photoUrl:'images/port-sainte-marie-marche-bastien-leroux.webp', photoPos:'50% 15%'},
+          // Habitant guide des nouveaux joueurs (purge A.10, 24/11/2026) : PNJ du chat, même image que le lieu.
+          {name:'Yvonne Bigorneau (PNJ)', role:'Ancienne ramendeuse de filets — guide des nouveaux venus', rel:'friendly', job:'citoyen', profilId:'guide_yvonne_bigorneau', photoUrl:'images/port-sainte-marie-marche.webp'}
         ],
         // Lot 5A -- Faire des achats (24 aout 2026) : premier raccordement reel de ce marche
         // (orders vide jusqu'ici, jamais visite). Pas de se_nourrir/pouls_populaire a masquer --
@@ -12076,7 +12082,8 @@ const ORDRES_RESERVES_AUX_HOSPITALISES = ['transfert_clinique_privee', 'repas_ho
   if (agence) Object.assign(agence, { name: 'La Voix de Sovarka', desc: 'L\'agence officielle de La Voix de Sovarka, le journal du pays : nouvelles de la production, communiqués du Parti et censure à l\'étage.' });
 
   // Starovka.
-  Object.assign(contexte('ville_a', 'marche'), { name: 'Marché de Starovka', desc: 'Des étals couverts de bâches sur la place de la mairie : poisson gelé, viande de renne, thé et bonnets de fourrure.', persons: [pnj('Tsypilma Dashieva', 'Marchande', 'commercant')] });
+  Object.assign(contexte('ville_a', 'marche'), { name: 'Marché de Starovka', desc: 'Des étals couverts de bâches sur la place de la mairie : poisson gelé, viande de renne, thé et bonnets de fourrure.', persons: [pnj('Tsypilma Dashieva', 'Marchande', 'commercant'),
+    { name: 'Bair Namsaraev (PNJ)', role: 'Ancien pêcheur — guide des nouveaux venus', rel: 'friendly', job: 'citoyen', profilId: 'guide_bair_namsaraev', photoUrl: 'images/Sovarka/Starovka/Starovka_marche_marche_ext.webp' }] }); // Habitant guide des nouveaux joueurs (purge A.10, 24/11/2026) : PNJ du chat, même image que le lieu.
   Object.assign(contexte('ville_a', 'armurerie'), { name: 'Chasse et Pêche', desc: 'Le magasin de chasse de Starovka (« Охота и рыбалка ») : fusils, couteaux, filets et hameçons pour la pêche sous la glace.', persons: [pnj('Bato Tsyrenov', 'Armurier', 'commercant')] });
   Object.assign(contexte('ville_a', 'capitaine-sauvage'), { name: 'Restaurant « Entre terre et mer »', desc: 'Le restaurant de Starovka (« Между землёй и морем ») : poisson de la mer de glace et viande de renne, servis près du poêle.' });
   Object.assign(piece(contexte('ville_a', 'capitaine-sauvage'), 'salle_principale'), { persons: [pnj('Sesegma Badmaeva', 'Serveuse', 'serveur')] });

@@ -2095,6 +2095,8 @@ function chatMoiPour(conversationId) {
   return (_chatAliasMoi && parts.includes(_chatAliasMoi)) ? _chatAliasMoi : (state.char?.name || 'Anonyme');
 }
 function chatLibelleParticipant(id) {
+  // PNJ guide (purge A.10) : « pnj:<nom> » s'affiche sous son nom ; le badge « PNJ » est ajouté au rendu.
+  if (id && String(id).startsWith('pnj:')) return String(id).slice(4);
   if (!id || !String(id).startsWith('masque:')) return id;
   const jeton = String(id).slice(7);
   const present = (window._vraisJoueursPresents || []).find(p => p && p.masque && p.jeton === jeton);
@@ -2147,7 +2149,7 @@ async function ouvrirListeConversations() {
     html += '<div style="font-size:.72rem;color:#6a5a30;font-style:italic">Aucune conversation pour le moment.</div>';
   }
   conversationsPrivees.forEach(c => {
-    html += '<div data-conv="' + String(c.id).replace(/"/g,'') + '" data-label="' + String(c.label).replace(/"/g,'') + '" onclick="ouvrirConversationParId(this.dataset.conv, this.dataset.label)" style="padding:.4rem .6rem;background:#121005;border:1px solid #2a2010;cursor:pointer;font-size:.78rem;color:#e0d8c0">🔒 ' + c.label + '</div>';
+    html += '<div data-conv="' + String(c.id).replace(/"/g,'') + '" data-label="' + String(c.label).replace(/"/g,'') + '" onclick="ouvrirConversationParId(this.dataset.conv, this.dataset.label)" style="padding:.4rem .6rem;background:#121005;border:1px solid #2a2010;cursor:pointer;font-size:.78rem;color:#e0d8c0">🔒 ' + c.label + (window.RPPnjGuide && String(c.id).split('__').some(window.RPPnjGuide.estPnj) ? window.RPPnjGuide.badgeHtml() : '') + '</div>';
   });
   salons.forEach(s => {
     html += '<div onclick="ouvrirSalonChat(\'' + s.id + '\',\'' + s.nom.replace(/'/g,"\\'") + '\')" style="padding:.4rem .6rem;background:#121005;border:1px solid #2a2010;cursor:pointer;font-size:.78rem;color:#e0d8c0">💬 ' + s.nom + '</div>';
@@ -2155,6 +2157,8 @@ async function ouvrirListeConversations() {
   html += '<button onclick="ouvrirCreerSalonPrompt()" style="margin-top:.4rem;font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.08em;padding:.35rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">+ Créer un salon</button>';
   html += '</div>';
   document.getElementById('chat-piece-body').innerHTML = html;
+  // Réglage des notifications du chat (purge A.8) : en tête de la liste des conversations.
+  if (window.RPNotifChat) window.RPNotifChat.insererReglage(document.getElementById('chat-piece-body').firstElementChild);
 }
 
 function ouvrirCreerSalonPrompt() {
@@ -2235,11 +2239,12 @@ async function rafraichirConversationActuelle(reset) {
       zone.insertAdjacentHTML('beforeend',
         '<div style="margin-bottom:.4rem;text-align:' + (estMoi ? 'right' : 'left') + '">' +
         '<div style="display:inline-block;max-width:80%;padding:.35rem .6rem;border-radius:8px;background:#0f0d05;border:1px solid #2a2010">' +
-        '<div style="font-size:.9rem;color:#a08850">' + chatLibelleParticipant(m.auteur) + ' <span style="font-size:.72rem;color:#6a5a30">' + heureMsg + '</span>' +
+        '<div style="font-size:.9rem;color:#a08850">' + chatLibelleParticipant(m.auteur) + (window.RPPnjGuide && window.RPPnjGuide.estPnj(m.auteur) ? window.RPPnjGuide.badgeHtml() : '') + ' <span style="font-size:.72rem;color:#6a5a30">' + heureMsg + '</span>' +
         // Signaler (Fred, 20/11/2026) : sur les messages des autres, file de modération du MJ.
         (!estMoi && m.id && typeof rpSignalerMessage === 'function' ? ' <span data-signaler-id="' + String(m.id).replace(/[^A-Za-z0-9_-]/g, '') + '" onclick="rpSignalerMessage(\'conversation\', this.dataset.signalerId)" title="Signaler" data-i18n-title="reportMessage.button" style="cursor:pointer;font-size:.72rem;color:#6a5a30"><i class="ti ti-flag"></i></span>' : '') +
         '</div>' +
         '<div style="font-size:1rem;color:#e0d8c0">' + m.message + '</div>' +
+        (window.RPPnjGuide && window.RPPnjGuide.estPnj(m.auteur) ? window.RPPnjGuide.boutonHtml(m) : '') +
         '</div></div>'
       );
     });
@@ -2256,6 +2261,19 @@ async function envoyerMessageConversation() {
   const texte = input?.value?.trim();
   if (!texte || !_conversationActuelle) return;
   input.value = '';
+  // Conversation avec un PNJ guide (purge A.10) : le serveur pose le message et fait répondre le PNJ.
+  if (window.RPPnjGuide && _conversationActuelle.type !== 'salon' && String(_conversationActuelle.id).split('__').some(window.RPPnjGuide.estPnj)) {
+    const v = await window.RPPnjGuide.repondre(_conversationActuelle.id, texte);
+    if (!v || v.ok !== true) {
+      const zone = document.getElementById('chat-messages-zone');
+      if (zone) zone.insertAdjacentHTML('beforeend', '<div class="rp-chat-non-remis cpj-note" style="margin:.3rem 0;font-style:italic">' + String((v && v.texte) || '').replace(/[<>]/g, '') + '</div>');
+      if (v && v.raison === 'reponses_epuisees') { rafraichirConversationActuelle(false); return; }
+      if (input && !input.value) input.value = texte;
+      return;
+    }
+    rafraichirConversationActuelle(false);
+    return;
+  }
   if (typeof sbEnvoyerMessageChat === 'function') {
     const v = await sbEnvoyerMessageChat(_conversationActuelle.id, _conversationActuelle.type === 'salon' ? (state.char?.name || 'Anonyme') : chatMoiPour(_conversationActuelle.id), texte, _conversationActuelle.type === 'salon').catch(() => null);
     // Message non remis (proximité, 20/11/2026) : l'expéditeur le sait ; son texte lui est rendu.
@@ -2316,6 +2334,8 @@ async function verifierNotificationChat() {
     if (nonLu && nonLu.id && nonLu.id !== _dernierMessageNotifie && !dejaOuverte) {
       _dernierMessageNotifie = nonLu.id;
       afficherNotificationChat(nonLu);
+      // Notification du navigateur (purge A.8, 24/11/2026) : nom et lieu seulement, jamais le message ; jamais pour le PNJ guide.
+      if (window.RPNotifChat) window.RPNotifChat.messageRecu(nonLu, chatLibelleParticipant(nonLu.auteur));
     }
     if (!nonLu) { const n = document.getElementById('rp-notif-chat'); if (n) n.remove(); }
     _dernierEtatNonLuChat = !!nonLu;

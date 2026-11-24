@@ -1089,10 +1089,13 @@ window.addEventListener('DOMContentLoaded', () => {
       sessionStorage.setItem('journaliste_done', '1');
     }
   }, 5000);
-  // L'accès volontaire au journal reste immédiat ; seule sa présentation automatique
-  // attend une heure de présence active pour le nouveau PJ (sans empêcher les anciens joueurs).
+  // Journal du jour : portier des fenêtres automatiques (plateau-accueil-progressif.js, purge A.3, 24/11/2026) —
+  // jamais pendant la première heure d'un nouveau venu (temps tenu par le serveur), une seule fenêtre automatique par
+  // connexion, sinon un badge. L'accès volontaire au journal reste immédiat.
   setTimeout(() => {
-    if (window.RPAccueilProgressif) window.RPAccueilProgressif.programmerJournal(() => afficherJournalDuJour());
+    if (window.RPAccueilProgressif) window.RPAccueilProgressif.programmerJournal(() => afficherJournalDuJour(), () => {
+      try { return !sessionStorage.getItem('journal_dujour_' + dateEditionAujourdhui(state.country)); } catch (_) { return true; }
+    });
     else afficherJournalDuJour();
   }, 8000);
 

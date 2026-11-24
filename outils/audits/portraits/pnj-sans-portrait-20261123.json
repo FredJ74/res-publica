@@ -2,8 +2,8 @@
   "genere_par": "outils/bancs/banc-pnj-sans-portrait-20261123.cjs",
   "note": "Une ligne par apparition dans une pièce (un même PNJ peut figurer dans plusieurs pièces). PNJ du serveur (informateurs, agents, soldats) et PNJ ajoutés dynamiquement par les modules non compris.",
   "totaux": {
-    "apparitions_pnj": 939,
-    "avec_portrait": 509,
+    "apparitions_pnj": 944,
+    "avec_portrait": 514,
     "sans_portrait": 430,
     "pnj_distincts_sans_portrait": 420,
     "par_ville": {

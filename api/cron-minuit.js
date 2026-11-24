@@ -646,6 +646,31 @@ function resoudreScrutinDepute(cycle, fraudesActives) {
   return { scores, blancs, totalExprimes, elus: sorted.slice(0, 3).map(([n]) => n), egalite3eSiege: null, blancMajoritaire: false };
 }
 
+// COMPTES DE TEST (Fred, 24/11/2026, purge A.1) : exclus des elections. Le depouillement ignore leurs bulletins et leurs
+// candidatures. Les deux copies du moteur (ici et plateau-politique.js) restent identiques : on depouille une COPIE du
+// cycle filtree, jamais le blob enregistre (aucun bulletin n'est efface). Liste lue en base (comptes_test_noms).
+let _comptesTestServeur = null;
+async function comptesTestServeur() {
+  if (_comptesTestServeur) return _comptesTestServeur;
+  try {
+    const r = await sbRpc('comptes_test_noms', {}, HEADERS_SERVICE);
+    const liste = Array.isArray(r) && Array.isArray(r[0]) ? r[0] : (Array.isArray(r) ? r : []);
+    _comptesTestServeur = new Set(liste.filter(n => typeof n === 'string'));
+  } catch (_) { _comptesTestServeur = new Set(); }
+  return _comptesTestServeur;
+}
+function cycleSansComptesTest(cycle, comptesTest) {
+  if (!cycle || !comptesTest || comptesTest.size === 0) return cycle;
+  const filtrer = votes => Object.fromEntries(Object.entries(votes || {}).filter(([votant, choix]) => !comptesTest.has(votant) && !comptesTest.has(choix)));
+  const copie = Object.assign({}, cycle, {
+    votes: filtrer(cycle.votes),
+    votesPNJ: Object.fromEntries(Object.entries(cycle.votesPNJ || {}).filter(([, choix]) => !comptesTest.has(choix))),
+    candidats: (cycle.candidats || []).filter(c => !comptesTest.has(c && c.nom))
+  });
+  if (cycle._effetsTracts) Object.defineProperty(copie, '_effetsTracts', { value: cycle._effetsTracts, enumerable: false, writable: true, configurable: true });
+  return copie;
+}
+
 function departageCandidats(candidats, nomA, nomB) {
   const date = nom => { const c = (candidats || []).find(x => x.nom === nom); const d = Number(c && c.dateInscription); return isFinite(d) && d > 0 ? d : Infinity; };
   return (date(nomA) - date(nomB)) || (nomA < nomB ? -1 : (nomA > nomB ? 1 : 0));
@@ -6087,7 +6112,7 @@ export default async function handler(req, res) {
         // decision de game design. Ce qui part ici, c'est le depouillement mort -- il ne
         // protegeait rien, et il devait etre relu a chaque passage sur ce fichier.
         {
-          const resultatDepute = resoudreScrutinDepute(cycle, fraudesActives);
+          const resultatDepute = resoudreScrutinDepute(cycleSansComptesTest(cycle, await comptesTestServeur()), fraudesActives);
           if (!resultatDepute || resultatDepute.totalExprimes === 0) {
             // AUCUN BULLETIN. Les neuf sortants restent deputes, et le scrutin est rejoue.
             prolonger(PROLONGATION_SEMAINES, 'aucun_bulletin');
@@ -6123,7 +6148,7 @@ export default async function handler(req, res) {
         }
       } else {
         // ================= PRESIDENT / MAIRE / CHEF SYNDICAL : siege unique =================
-        const resultatSimple = resoudreScrutinSimple(cycle, fraudesActives);
+        const resultatSimple = resoudreScrutinSimple(cycleSansComptesTest(cycle, await comptesTestServeur()), fraudesActives);
         if (!resultatSimple || resultatSimple.totalExprimes === 0) {
           prolonger(PROLONGATION_SEMAINES, 'aucun_bulletin');
           evenementAPoser = { country, city: scope === 'local' ? ville : null,
