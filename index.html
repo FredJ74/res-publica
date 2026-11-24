@@ -171,11 +171,11 @@
   <div style="max-width:460px;width:100%;display:flex;flex-direction:column;gap:.55rem">
     <div class="sd" style="text-align:center;font-style:italic;margin-bottom:.2rem" data-i18n="auth.promise">Votre personnage vous suivra partout.</div>
 
-    <input id="auth-email" type="email" autocomplete="email" class="hg-champ"
+    <input id="auth-email" type="email" autocomplete="email" class="hg-champ" oninput="effacerErreurIdentifiants()"
            placeholder="Votre adresse e-mail..." data-i18n-placeholder="auth.emailPlaceholder"/>
     <div class="sd" style="font-size:.74rem;margin:-.2rem 0 .3rem" data-i18n="auth.emailHint">Cette adresse sécurise votre compte et permet de le retrouver. Elle ne sert à rien d'autre.</div>
 
-    <input id="auth-mdp" type="password" autocomplete="new-password" class="hg-champ"
+    <input id="auth-mdp" type="password" autocomplete="new-password" class="hg-champ" oninput="effacerErreurIdentifiants()"
            placeholder="Choisissez un mot de passe..." data-i18n-placeholder="auth.passwordPlaceholder"/>
     <div class="sd" style="font-size:.74rem;margin:-.2rem 0 .3rem" data-i18n="auth.passwordHint">Huit caractères au minimum.</div>
 
@@ -313,7 +313,7 @@
 <!-- auth.js AVANT supabase.js : sbEnTetes() y lit le jeton de session a chaque requete. -->
 <script src="auth.js?v=8"></script>
 <script src="supabase.js?v=jets-serveur-20261105-sovarka-nuit-20261110"></script>
-<script src="creation.js?v=retours-creation-20261120"></script>
+<script src="creation.js?v=retours-creation-20261120-erreur-20261124"></script>
   <link rel="stylesheet" href="rue-centrale.css">
 </body>
 </html>

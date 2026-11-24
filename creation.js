@@ -1094,6 +1094,15 @@ function rpMessageIdentifiants(cle, secours, variables) {
   return (typeof t === 'string' && t.trim() && t !== cle && !/\{\{[^}]+\}\}/.test(t)) ? t : secours;
 }
 
+// Le message d'une tentative précédente ne doit pas accuser une saisie corrigée (branche ChatGPT du 20/11, reprise le 24/11).
+function effacerErreurIdentifiants() {
+  const zone = document.getElementById('auth-msg');
+  if (!zone || zone.style.display === 'none') return;
+  zone.style.display = 'none';
+  zone.textContent = '';
+  zone.removeAttribute('data-i18n');
+}
+
 function afficherMessageIdentifiants(texte, cle) {
   const zone = document.getElementById('auth-msg');
   if (!zone) return;
