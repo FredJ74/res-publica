@@ -24,10 +24,20 @@ test('le référentiel de la migration est exactement celui que produit data.js'
   // … ou la migration finale des renommages (points 26, 37, 42 et 44, noms validés par Fred le 23/11/2026).
   const finale = 'migrations/20261123230000_renommages_pnj_finale.sql';
   const tousFragments = fragments + (fs.existsSync(path.join(root, finale)) ? '\n' + lire(finale) : '');
+  // … ou un renommage du seul nom affiché, identifiant inchangé, posé par une migration ultérieure
+  // (ex. H.4, Fred 24/11/2026 : habitue_krasnov -> « Prokop Stakanov », migration 20261124143000) : la ligne d'origine
+  // garde tous ses autres champs, et une migration contient « UPDATE public.informateurs_pnj SET nom = '<nom>' WHERE id = '<id>' ».
+  const dossierMig = path.join(root, 'migrations');
+  const migrations = fs.readdirSync(dossierMig).filter(f => f.endsWith('.sql') && f > path.basename(MIGRATION)).map(f => fs.readFileSync(path.join(dossierMig, f), 'utf8')).join('\n');
+  const echapRe = (t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   for (const x of l) {
-    const ligne = '(' + [x.id, x.pays, x.ville, x.batiment, x.piece, x.nom, x.role, x.profil, x.sujet].map(q).join(', ') + ')';
+    const champs = [x.id, x.pays, x.ville, x.batiment, x.piece, x.nom, x.role, x.profil, x.sujet].map(q);
+    const ligne = '(' + champs.join(', ') + ')';
     const enAttente = tousFragments.includes('SET id = ' + q(x.id)) && tousFragments.includes('nom = ' + q(x.nom)) && (x.piece === null || tousFragments.includes(q(x.piece)) || tousFragments.includes(':' + x.piece + ':'));
-    assert.ok(sql.includes(ligne) || enAttente, x.id);
+    const ligneAncienNom = new RegExp('^' + echapRe('(' + champs.slice(0, 5).join(', ') + ', ') + "'(?:[^']|'')*'" + echapRe(', ' + champs.slice(6).join(', ') + ')'), 'm');
+    const nomRenomme = ligneAncienNom.test(sql)
+      && new RegExp('UPDATE public\\.informateurs_pnj SET nom = ' + echapRe(q(x.nom)) + '\\s+WHERE id = ' + echapRe(q(x.id))).test(migrations);
+    assert.ok(sql.includes(ligne) || enAttente || nomRenomme, x.id);
   }
   assert.equal((sql.match(/^\('/gm) || []).length, l.length, 'aucune ligne en trop');
   const profils = new Set(l.map(x => x.profil));
