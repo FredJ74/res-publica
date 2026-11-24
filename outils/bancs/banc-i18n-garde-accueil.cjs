@@ -41,7 +41,8 @@ test('les quatre étapes de dialogue et les flèches restent celles du moteur fr
     'afficherPopupQueteAccueilEtape4','terminerEtapeGardeQueteAccueil']){
   assert.ok(scene.includes(name),name);
  }
- assert.ok(source.includes("state.char.queteAccueil = { etape: 'garde_en_cours' }"));
+ // Le garde peut être différé jusqu'à la fin de la découverte libre (accueil progressif, 24/11/2026) : marqueur en plus.
+ assert.match(source,/state\.char\.queteAccueil = \{ etape: 'garde_en_cours'(?:, gardeAttenteDecouverte: reporter)? \}/);
  assert.ok(source.includes("state.char.queteAccueil = { etape: 'guide_carrefour' }"));
  assert.ok(source.includes("afficherGuidageFleche('luthecia-palais-presidentiel', 'droite')"));
  assert.ok(page.indexOf('src="i18n/guard-welcome-resources.js')>0);
