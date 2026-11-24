@@ -112,3 +112,17 @@ test('Le code de production raccorde les trois portes sans changer le journal ma
   assert.match(accueil,/entretienAutomatiqueAutorise\(\)/);
   assert.match(pnj,/RPAccueilProgressif\?\.noterDiscussionPnj\(\)/);
 });
+
+test('Quête de Luthécia : le garde attend la fermeture et cinq minutes actives', () => {
+  const e = environnement();
+  e.ui.initialiser(e.accueilEtat);
+  let garde = 0;
+  e.window.queteAccueilAfficherGardeDifferee = () => garde++;
+  e.avance(5 * 60 * 1000);
+  assert.equal(garde, 0, 'bienvenue encore ouverte');
+  e.croix.listeners.click();
+  assert.ok(garde >= 1, 'garde autorisé après la bienvenue et cinq minutes');
+  const quete = fs.readFileSync(path.join(__dirname,'../../plateau-quete-accueil.js'),'utf8');
+  assert.match(quete,/gardeAttenteDecouverte: reporter/);
+  assert.match(quete,/function queteAccueilAfficherGardeDifferee\(\)/);
+});
