@@ -12,14 +12,20 @@
 
 Les portraits Valentina et Zinaïda étaient **déjà présents dans le dépôt** mais n'étaient pas raccordés à leur PNJ actuel. Ils ont été inspectés visuellement : front et menton intacts, visage et épaules visibles.
 
+## Résultat du banc du 24/11/2026
+- **140 apparitions de PNJ** contrôlées dans les pièces de Novomirsk (dont titulaires dans les salles).
+- **105 apparitions disposent d'un portrait sur disque**.
+- **35 apparitions attendent un portrait**, dont le guide Zinaïda Otcheredova. Le tableau ci-dessous contient les **34 autres**.
+- Deux lignes historiques du 23/11 ne sont plus présentes dans le parcours actuel : **Camarade Privilège** et **Caissier Méticuleux** (conservées dans le JSON en tant qu'archives, non comptées comme « portraits à produire »).
+- Vérification visuelle : les six bureaux des ministres, les trois ambassades, la salle d'audience, le bureau du maire et le bureau de l'entrepôt sont **vides** ; au garage, les mécaniciens sont trop petits pour une photo de profil. Au centre artisanal, les passants ne peuvent pas être attribués sans ambiguïté aux trois PNJ ; au club de supporters, aucun chef ne peut être identifié avec certitude.
+- **Point extérieur au chantier portraits** : Fiodor Medvedkine existe dans la déclaration source de `data.js` mais n'est pas présent dans `WORLD.soviet.ville_b.buildingContext.marche.persons` une fois le fichier chargé (liste effective : Nina Gorbounova seulement). Ne pas réintroduire Fiodor en modifiant sa présence dans cette PR.
+
 ## Portraits à produire — Novomirsk
 
 Les lignes ci-dessous viennent du relevé 23/11 et doivent être vérifiées contre l'exécution du banc sur le `main` actuel. Une pièce contenant une personne indistincte **n'est pas une preuve** qu'elle correspond à son PNJ ; aucune identité de figurant ne doit être inventée. Lorsqu'une fiche n'indique pas de physique, il est impossible d'en tirer honnêtement deux phrases descriptives d'apparence : la lacune est explicitement notée.
 
 | PNJ | Rôle | Bâtiment / pièce | Description factuelle |
 |---|---|---|---|
-| Camarade Privilège (PNJ) | Directeur | `banque-privee/bureau_prive` | Camarade Privilège (PNJ) exerce le rôle de Directeur dans Bureau prive. Sa fiche consultée ne donne pas de description physique certaine : un portrait original devra respecter son rôle sans lui attribuer le visage d'un figurant non identifié. |
-| Caissier Méticuleux (PNJ) | Caissier | `banque-nationale/accueil_banque` | Caissier Méticuleux (PNJ) exerce le rôle de Caissier dans Accueil. Sa fiche consultée ne donne pas de description physique certaine : un portrait original devra respecter son rôle sans lui attribuer le visage d'un figurant non identifié. |
 | Lieutenant Nestor Medalev (PNJ) | PNJ - Gardien de la memoire | `caserne-militaire/salle_faits_armes` | Lieutenant Nestor Medalev (PNJ) exerce le rôle de PNJ - Gardien de la memoire dans Salle des Faits d'Armes. Sa fiche consultée ne donne pas de description physique certaine : un portrait original devra respecter son rôle sans lui attribuer le visage d'un figurant non identifié. |
 | Genrikh Vlassov | Sécurité | `centre-artisanal/travees` | Genrikh Vlassov exerce le rôle de Sécurité dans Accueil du centre artisanal. Sa fiche consultée ne donne pas de description physique certaine : un portrait original devra respecter son rôle sans lui attribuer le visage d'un figurant non identifié. |
 | Kolia Titov | Dealer | `centre-artisanal/travees` | Kolia Titov exerce le rôle de Dealer dans Accueil du centre artisanal. Sa fiche consultée ne donne pas de description physique certaine : un portrait original devra respecter son rôle sans lui attribuer le visage d'un figurant non identifié. |
