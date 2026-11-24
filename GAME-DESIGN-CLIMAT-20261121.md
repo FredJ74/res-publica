@@ -188,3 +188,10 @@ blizzard et de la canicule, fontaine de Starovka).
   **date** de début de l'événement, jamais la pose de ses effets : l'ordre entre la tâche de minuit (`api/cron-minuit.js`, non
   modifié) et `climat_passe` (17 de chaque heure) ne compte plus. Cause constatée : la canicule de Luthécia du 22/11 (0 h – 6 h)
   n'avait arrêté aucune nuit de chantier.
+- **D.4** : pendant l'arrêt de canicule (du début de la canicule à minuit), la zone d'alerte climatique de la fenêtre du chantier
+  affiche l'image dédiée (`images/chantier-alea-canicule.webp`), l'heure de fin de l'arrêt et le bouton « Offrir 20 bouteilles
+  d'eau aux ouvriers » avec son « ? ». Ouvert à tout joueur présent sur le terrain (pas seulement le maître d'ouvrage), une fois
+  par chantier et par canicule, 0 PA ; les 20 bouteilles (réglage MJ `canicule_eau_ouvriers_bouteilles`) sortent de son
+  inventaire ; ligne « eau offerte » au journal du chantier. **Effet choisi par Claude, à confirmer par Fred** : l'eau lève l'arrêt
+  de canicule pour ce chantier (travail des joueurs accepté, la nuit suivante le chantier avance) — réglage MJ
+  `canicule_eau_leve_arret` (1 = oui, 0 = geste sans effet sur l'arrêt).

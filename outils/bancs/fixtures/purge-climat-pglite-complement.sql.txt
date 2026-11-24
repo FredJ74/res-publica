@@ -10,9 +10,8 @@ INSERT INTO public.climat_zones_inondables VALUES ('republic','capitale','entrep
 CREATE TABLE IF NOT EXISTS public.cycles_electoraux (country text, poste_id text, data text, updated_at timestamptz);
 CREATE TABLE IF NOT EXISTS public.journal_articles_en_attente (id text PRIMARY KEY, country text, rubrique text, titre text, texte text, statut text,
   origine text, priorite text, dedup_key text, created_at timestamptz);
-CREATE OR REPLACE FUNCTION public.inventaire_quantite(p_inv jsonb, p_cle text) RETURNS integer LANGUAGE sql IMMUTABLE AS $$
-  SELECT coalesce(sum(coalesce((e->>'qty')::integer, 1)), 0)::integer FROM jsonb_array_elements(coalesce(p_inv, '[]'::jsonb)) e
-   WHERE e->>'stackKey' = p_cle OR e->>'type' = p_cle $$;
+CREATE OR REPLACE FUNCTION public.inventaire_quantite(p_inv jsonb, p_cle text) RETURNS numeric LANGUAGE sql IMMUTABLE AS $$
+  SELECT coalesce((SELECT sum(coalesce((e->>'qty')::numeric,1)) FROM jsonb_array_elements(coalesce(p_inv,'[]'::jsonb)) e WHERE e->>'stackKey' = p_cle), 0) $$;
 CREATE OR REPLACE FUNCTION public.inventaire_retirer(p_inv jsonb, p_cle text, p_qte integer) RETURNS jsonb LANGUAGE sql IMMUTABLE AS $$
   SELECT coalesce(jsonb_agg(x) FILTER (WHERE coalesce((x->>'qty')::integer, 1) > 0), '[]'::jsonb) FROM (
     SELECT CASE WHEN e->>'stackKey' = p_cle OR e->>'type' = p_cle THEN jsonb_set(e, '{qty}', to_jsonb(coalesce((e->>'qty')::integer, 1) - p_qte)) ELSE e END x
@@ -149,3 +148,10 @@ BEGIN
   END LOOP;
   RETURN v_n;
 END $function$;
+
+-- Idempotence des requêtes (même contrat que la production : achat_requete_ouvrir_interne / achat_requete_clore_interne).
+CREATE TABLE IF NOT EXISTS public.requetes_test (acteur text, requete uuid, resultat jsonb, PRIMARY KEY (acteur, requete));
+CREATE OR REPLACE FUNCTION public.achat_requete_ouvrir_interne(p_acteur text, p_requete uuid, p_action text, p_parametres jsonb) RETURNS jsonb LANGUAGE sql AS
+$$ SELECT resultat || '{"rejeu":true}'::jsonb FROM public.requetes_test WHERE acteur = p_acteur AND requete = p_requete $$;
+CREATE OR REPLACE FUNCTION public.achat_requete_clore_interne(a text, r uuid, f text, p jsonb, v jsonb) RETURNS jsonb LANGUAGE sql AS
+$$ INSERT INTO public.requetes_test VALUES (a, r, v) RETURNING resultat $$;

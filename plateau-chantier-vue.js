@@ -315,6 +315,7 @@ function journalChantier(ch) {
     if (e.cle === 'manque_materiaux') return t4('j_manque', { ville, liste: listeQuantites(e.manque) });
     if (e.cle === 'journee' || e.cle === 'journee_avance') return t4('j_journee', { date: e.date || '', a: (Math.round((Number(e.avance) || 0) * 100) / 100).toString().replace('.', ',') });
     if (e.cle === 'crue') return t4('j_crue', { date: e.date || '' });   // crue (Fred, 22/11/2026) : un jour de retard
+    if (typeof global.climatJournalChantier === 'function' && global.climatJournalChantier(e)) return global.climatJournalChantier(e);   // canicule, eau offerte (Purge D.4)
     return null;
   }).filter(Boolean);
   if (!lignes.length) return '';

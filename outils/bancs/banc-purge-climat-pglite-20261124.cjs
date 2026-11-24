@@ -177,3 +177,53 @@ test('D.3 : canicule du jour → travail refusé jusqu’à minuit ; crue inchan
   const r = await nuit(db);
   assert.equal(r.climat, undefined); assert.ok(Number(r.avance) > 0, 'l’orage n’arrête pas le chantier');
 });
+
+const comme = async (db, qui, sql, p) => { await db.query("SELECT set_config('test.acteur', $1, false)", [qui]); return (await db.query(sql, p)).rows[0].r; };
+let nreq = 0; const req = () => '00000000-0000-4000-8000-' + String(++nreq).padStart(12, '0');
+const bouteilles = async (db, qui) => Number((await un(db, "SELECT inventaire_quantite(inventory, 'bouteille_eau') q FROM personnages_donnees WHERE name = $1", [qui])).q);
+
+test('D.4 : « Offrir 20 bouteilles d’eau aux ouvriers » — tout joueur présent, une fois par canicule, au journal ; lève l’arrêt du chantier', async () => {
+  const db = await base({ jusqua: 4 });
+  // Hors canicule : refus expliqué, rien retiré.
+  assert.equal((await comme(db, 'Bob', 'SELECT chantier_canicule_offrir_eau($1, $2) r', [req(), 'terrain-a-batir-3'])).raison, 'pas_de_canicule');
+  await evenement(db, 'canicule', 0, { heure: 0, heures: 1 });
+  await db.query("UPDATE climat_evenements SET debut = now() - interval '1 hour', fin = now() + interval '5 hours'");
+  const e = await comme(db, 'Bob', 'SELECT chantier_climat_etat($1) r', ['terrain-a-batir-3']);
+  assert.equal(e.canicule, true); assert.equal(e.requis, 20); assert.equal(e.possede, 25); assert.equal(e.present, true); assert.equal(e.eau_offerte, null);
+  // Le travail est refusé avant l'eau.
+  assert.equal((await un(db, "SELECT chantier_travailler('Arnie', 'republic', 'terrain-a-batir-3', 1) r")).r.raison, 'chantier_intemperies');
+  // Arnie (présent, mais sans eau) : refus, rien retiré.
+  const sans = await comme(db, 'Arnie', 'SELECT chantier_canicule_offrir_eau($1, $2) r', [req(), 'terrain-a-batir-3']);
+  assert.equal(sans.raison, 'bouteilles_insuffisantes'); assert.equal(sans.requis, 20); assert.equal(sans.possede, 0);
+  // Absent du terrain : refus.
+  await db.query("UPDATE personnages_donnees SET current_building = 'marche' WHERE name = 'Bob'");
+  assert.equal((await comme(db, 'Bob', 'SELECT chantier_canicule_offrir_eau($1, $2) r', [req(), 'terrain-a-batir-3'])).raison, 'pas_sur_le_chantier');
+  await db.query("UPDATE personnages_donnees SET current_building = 'terrain-a-batir-3' WHERE name = 'Bob'");
+  // Bob, présent, n'est pas le maître d'ouvrage : il peut offrir.
+  const id = req();
+  const ok = await comme(db, 'Bob', 'SELECT chantier_canicule_offrir_eau($1, $2) r', [id, 'terrain-a-batir-3']);
+  assert.equal(ok.ok, true); assert.equal(ok.bouteilles, 20);
+  assert.equal(await bouteilles(db, 'Bob'), 5);
+  assert.equal((await comme(db, 'Bob', 'SELECT chantier_canicule_offrir_eau($1, $2) r', [id, 'terrain-a-batir-3'])).rejeu, true, 'rejeu sans second retrait');
+  assert.equal(await bouteilles(db, 'Bob'), 5);
+  const j = (await lireCh(db)).evenements.filter(x => x.cle === 'eau_offerte');
+  assert.equal(j.length, 1); assert.equal(j[0].par, 'Bob'); assert.equal(j[0].bouteilles, 20);
+  assert.equal((await comme(db, 'Bob', 'SELECT chantier_canicule_offrir_eau($1, $2) r', [req(), 'terrain-a-batir-3'])).raison, 'deja_offerte');
+  // L'arrêt est levé pour ce chantier : travail accepté, et la nuit (veille = canicule) le chantier avance.
+  assert.notEqual((await un(db, "SELECT chantier_travailler('Arnie', 'republic', 'terrain-a-batir-3', 1) r")).r.raison, 'chantier_intemperies');
+  await db.query("UPDATE climat_evenements SET debut = debut - interval '1 day', fin = fin - interval '1 day'");
+  const r = await nuit(db);
+  assert.equal(r.climat, undefined); assert.ok(Number(r.avance) > 0);
+});
+
+test('D.4 : réglage MJ « l’eau lève l’arrêt » à 0 → l’eau est offerte et inscrite, mais le chantier reste arrêté', async () => {
+  const db = await base({ jusqua: 4 });
+  await db.query("UPDATE aliments_parametres SET valeur = 0 WHERE cle = 'canicule_eau_leve_arret'");
+  await evenement(db, 'canicule', 0, { heure: 0, heures: 1 });
+  await db.query("UPDATE climat_evenements SET debut = now() - interval '1 hour', fin = now() + interval '5 hours'");
+  assert.equal((await comme(db, 'Bob', 'SELECT chantier_canicule_offrir_eau($1, $2) r', [req(), 'terrain-a-batir-3'])).ok, true);
+  assert.equal((await un(db, "SELECT chantier_travailler('Arnie', 'republic', 'terrain-a-batir-3', 1) r")).r.raison, 'chantier_intemperies');
+  await db.query("UPDATE climat_evenements SET debut = debut - interval '1 day', fin = fin - interval '1 day'");
+  assert.equal((await nuit(db)).climat, 'canicule');
+  await db.exec(lire('migrations/20261124134000_chantier_canicule_eau_ouvriers.sql'));
+});
