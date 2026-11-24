@@ -444,7 +444,9 @@
       chargement = charger().finally(() => { chargement = null; });
       await chargement;
     }
-    if (etat?.interview?.ouvrir_auto && !occupe()) {
+    // La fenêtre de bienvenue et l'exploration libre précèdent l'interview automatique.
+    global.RPAccueilProgressif?.initialiser(etat);
+    if (etat?.interview?.ouvrir_auto && (global.RPAccueilProgressif?.entretienAutomatiqueAutorise() ?? true) && !occupe()) {
       etat.interview.ouvrir_auto = false;
       if (ouvrir()) rpc('accueil_interview_vue');
     }
