@@ -9,14 +9,6 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
-### Accueil progressif des nouveaux personnages (ChatGPT, 24/11/2026) — PR #1188 / issue #1187
-- Branche `chatgpt/accueil-progressif-20261124` ; aucun fichier SQL, données de joueur ou RPC modifié.
-- `plateau-accueil-progressif.js` : popup bienvenue fermable par la croix uniquement, détection d'activité de l'onglet visible, temporisation 5 minutes de l'interview et 60 minutes de l'ouverture automatique du Journal du jour, dialogue avec PNJ = pas de relance automatique ; accès volontaire au journal/interview conservé.
-- Raccords : `plateau.html`, `plateau-accueil-interview.js`, `plateau-core.js`, `plateau-pnj.js`, `plateau-quete-accueil.js` (garde de Luthécia différé et reprenable après reconnexion). Banc `outils/bancs/banc-accueil-progressif-20261124.cjs`, workflow `accueil-progressif-20261124.yml`.
-- **Limites** : les temporisations de présentation sont mémorisées par appareil dans `localStorage`, pas encore synchronisées entre appareils ; besoin d'une décision de mise en œuvre côté serveur pour un état global. Textes de bienvenue français seulement (à internationaliser par Codex) ; aucun test authentifié sur téléphone physique.
-- **À vérifier avant fusion** : CI ciblée et banc d'interview existant, contrôle du déploiement Vercel puis recette connectée à Krasnov/Luthécia. Bug indépendant de l'article de Bernard en Sovarka (Jodie et forum de Républia) toujours à traiter côté serveur.
-- Ne pas toucher au goulag.
-
 ### Internationalisation de la formation universitaire (Codex, 23/11/2026) — PR #1183
 - Branche `codex/i18n-formation-20261123`, rebasée sans conflit sur **main 4291ec9f**. Aucun fichier des zones réservées à Claude, aucune écriture en base ni migration. PR #1184 distincte pour le sens de saisie des partis ; PR #1132 non reprise.
 - **Codé et publié, non fusionné** : 51 textes français couverts : 41 originaux strictement conservés et dix références réelles ; 368 traductions étrangères nouvelles et 40 réutilisées ; `plateau-universite.js` et nouveau catalogue `university-resources.js`, moteur i18next existant. Rafraîchissement passif sans reconstruction ni RPC ; Brotli régénéré et vérifié (87 catalogues sans perte).
@@ -36,13 +28,6 @@ Règles : voir `AGENTS.md`.
 - Rebase sur **4291ec9f** : deux conflits d’insertion dans RELAIS seulement, résolus en conservant intégralement les sections Claude et en réinsérant la section Codex. Aucun conflit de code ni catalogue partagé ; contrôles ciblés et compression vérifiés avant publication.
 
 - Signalement Fred sur Bernard : journal main **45270169896** lu ; 12/13, échec d’accessibilité du bouton Envoyer à 390 px, pas une preuve d’instabilité Chromium. Les trois bancs ne couvrent pas Bernard/Sovarka/domicile Krasnov → Vera/forum Sovarka. Aucun lien causal établi, aucune correction du parcours réservé ; détail `outils/audits/i18n/INTERVIEW-ACCUEIL-VERIFICATION-20261123.md`.
-
-### Mobile — guidage des pièces de Jérémy (ChatGPT, 24/11/2026)
-- Branche `chatgpt/mobile-guidage-pieces-20261124`, PR #1186.
-- Régression : l'onglet « Pièces » masque sur téléphone la pièce surlignée par le parcours Jérémy. `queteAccueilSurbrillance` ouvre le panneau uniquement si la pièce visée est cachée, puis applique l'effet existant sans déclencher d'ordre.
-- Banc isolé `outils/bancs/banc-mobile-guidage-pieces-20261124.cjs` (trois scénarios), CI `.github/workflows/mobile-guidage-pieces-20261124.yml` ; dédié vert lors du premier push.
-- À terminer : CI complète PR, fusion, contrôle Vercel production. À tester en jeu sur vrai téléphone : chemin Jérémy à l'Hôtel de Ville de Luthécia jusqu'à la salle des élections.
-
 
 ### Bloc 4 — lieux de Krasnov (Claude, 23/11/2026) — points 29 à 34 de GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md
 - Branche `claude/bloc4-krasnov-20261123`. Banc : `outils/bancs/banc-bloc4-krasnov-20261123.cjs` (statique + vrai Chromium pour le karaoké).
@@ -1172,6 +1157,7 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 - La passe de nuit pose `cycle.dernierScrutin` à chaque proclamation : ne pas le retirer, la contestation en dépend.
 
 ### À vérifier en jeu (Fred, Angie, Vince)
+- **Recette nouvel accueil (24/11)** : personnage neuf Krasnov puis Luthécia sur téléphone 375–390 px et bureau ; vérifier fermeture exclusivement par la croix, cinq minutes sans sollicitation sauf PA, dialogue PNJ avant relance, garde de Luthécia différé, journal automatique après 60 minutes de jeu visible et reconnexion. Multidévice et langue étrangère non certifiés ; article interview Sovarka mal attribué signalé séparément. PR #1188 / issue #1187.
 - Chambre d'hôtel en Sovarka (Claude, 17/11/2026, 23 h 20) : à l'Hôtel des Voyageurs de Starovka (et à l'Hôtel du Kolkhoze de Krasnov), « Réserver une chambre » prélève 25 PSK et la réservation passe ; puis dormir dans la chambre.
 - Hôtel des Voyageurs de Starovka (Claude, 17/11/2026 ; reste à vérifier après le tour de Fred du 17/11) : réservation de chambre (après #1105), « Diner d'affaires », « Offrir à boire », « Recruter un informateur », « Lancer une rumeur » ; « Ecouter le barman » répond normalement « rien de croustillant » tant qu'aucune rumeur ne circule.
 - Starovka, ordres réservés à un rôle (reste à vérifier après le tour de Fred du 17/11) : logistique nationale du Commandant du Port (« Gérer la logistique nationale », Port Industriel), dotation du ministre ; vol d'archives au Poste de Vigilance Glaciale.
@@ -1216,6 +1202,8 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 - Aide HRP (PR #720) : **non certifiés** — réponses réelles DeepSeek dans les neuf langues, recette authentifiée, essais iPhone/Android. Sur téléphone : questions PA/but, fr→en→ko→fr, arabe RTL, clavier IME.
 
 ## Derniers chantiers
+
+- **Accueil progressif & guidage mobile (ChatGPT, 24/11/2026)** : #1186 fusionnée (geste Jérémy → onglet Pièces visible) et #1188 fusionnée au commit `71088a996`, déployée sur `human-gambit.com` (Vercel READY). Bienvenue fermée seulement par la croix, cinq minutes d'exploration avant orientation automatique, entretien non imposé après dialogue PNJ, garde initial de Luthécia différé, Journal du jour présenté automatiquement après une heure visible. Bancs dédiés verts sur les premières révisions et neuf scénarios sur la version finale exécutés en simulation ; prévisualisation Vercel du commit `001d9bbd` READY. CI `main` encore en file au moment de la livraison ; recette authentifiée sur téléphone physique non faite. Délais sauvegardés sur cet appareil uniquement ; internationalisation de la nouvelle bienvenue à confier à Codex. Voir #1187 pour les suites.
 
 - **Nom du jeu : Res Publica → Human Gambit** (Claude, 24/11/2026, branche `claude/nom-human-gambit-20261124`) : 38 occurrences visibles ou dites par les PNJ remplacées dans 17 fichiers (titre de l'onglet du forum, manifeste, écran d'inscription en quatre langues, guide du joueur en huit langues, consignes DeepSeek des PNJ, de la presse, de l'aide, de l'interview). Non touchés volontairement : clés de stockage `respublica_*`, adresses `res-publica.vercel.app` et du dépôt GitHub, commentaires de code. Catalogues i18n recompressés.
 
