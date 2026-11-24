@@ -1207,13 +1207,13 @@ Usines d'État de Sovarka : 25 matières par chaîne et par nuit → 50 produits
 
 Décisions complètes : `GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md`. Corrections à la source :
 - **Ignat Lykov** : fonctionnaire à la retraite, **jamais trappeur**. **Kouzma Lapchine** : batiouchka, plus sonneur de cloches.
-- **Matveï Rybakov** : référent chasse et bûcheronnage de Krasnov, frère aîné de **Prokhor Rybakov** (douanes de Novomirsk) :
-  « mon frère, il fouille des valises toute la journée ».
+- **Matveï Rybakov** : référent chasse et bûcheronnage de Krasnov, **père** de **Prokhor Rybakov** (douanes de Novomirsk) :
+  « mon fils, il fouille des valises toute la journée » (correction de Fred, 24/11/2026, point H.5 : plus son frère aîné).
 - **Gare** : « Camarade Horaire » → **Vassili Sukhoï** (graphie voulue, ne pas écrire Soukhoï), chef de gare au hall principal ;
   « Agente Nadejda » → **Lioudmila Proverkina**, agente de contrôle, au hall des douanes. « Taxi vers le QHS » masqué tant que
   le goulag est verrouillé. Le doublon « Nadejda Contrôle » (jamais affiché) est fondu dans Lioudmila Proverkina. L'inspecteur
-  **Prokhor Rybakov** reste aux douanes (loupe, bocal de cornichons), frère cadet de Matveï, parti réussir dans l'administration ;
-  il demande des nouvelles de son frère aux PJ venus de Krasnov. Images : hall principal = « Le chef de gare et l'heure des
+  **Prokhor Rybakov** reste aux douanes (loupe, bocal de cornichons), **fils** de Matveï (Fred, 24/11/2026), parti réussir dans l'administration ;
+  il demande des nouvelles de son père aux PJ venus de Krasnov. Images : hall principal = « Le chef de gare et l'heure des
   trains », hall des douanes = « Contrôle douanier sous la neige », zone d'embarquement = « Aéroport soviétique sous la neige ».
 - **Renseignement** : Tamara Naouchnikova (écoutes), Colonel Oleg Doprossov et Fiodor Koulakov (interrogatoire).
   La salle d'interrogatoire est une cave de pierre (chaînes, crochet, sangles, chaise de contention) : **aucun miroir sans tain**.

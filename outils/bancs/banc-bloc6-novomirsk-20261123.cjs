@@ -1,6 +1,6 @@
 'use strict';
 // Bloc 6 de la mission « Novomirsk, PNJ, interface » (Fred, 23/11/2026, points 37 à 39) :
-// GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md. Gare (images, Prokhor Rybakov frère de Matveï), Direction du
+// GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md. Gare (images, Prokhor Rybakov fils de Matveï depuis le 24/11/2026, point H.5), Direction du
 // Renseignement (Tamara Naouchnikova, Colonel Oleg Doprossov, Fiodor Koulakov, salle sans miroir sans tain),
 // église (portraits du Pontife et de Frère Kolkhoze). Lit le VRAI data.js et la vraie résolution du casting par ville.
 const test = require('node:test'), assert = require('node:assert/strict'), fs = require('node:fs'), path = require('node:path'), vm = require('node:vm');
@@ -41,14 +41,15 @@ test('gare de Novomirsk : les trois images fournies sont raccordées', () => {
   assert.match(piece(G, 'hall_douanes').desc, /Prokhor Rybakov/);
 });
 
-test('Prokhor Rybakov : aux douanes, portrait raccordé, frère cadet de Matveï, demande de ses nouvelles', () => {
+test('Prokhor Rybakov : aux douanes, portrait raccordé, fils de Matveï (H.5), demande de ses nouvelles', () => {
   const p = piece('centre-multinodal-luthecia', 'hall_douanes');
   assert.equal(photo(p, 'Inspecteur Prokhor Rybakov (PNJ)'), 'images/Sovarka/Novomirsk/novo-prokhor-rybakov-portrait.webp');
   assert.equal(p.persons.find(q => q.name === 'Inspecteur Prokhor Rybakov (PNJ)').profilId, 'sovarka_inspecteur_prokhor_rybakov');
   const f = fiche('sovarka_inspecteur_prokhor_rybakov');
-  assert.match(f, /FRÈRE CADET DE MATVEÏ RYBAKOV/);
+  assert.match(f, /FILS DE MATVEÏ RYBAKOV/);
+  assert.doesNotMatch(f, /FRÈRE|frère/);
   assert.match(f, /KRASNOV/);
-  assert.match(f, /nouvelles de ton frère/);
+  assert.match(f, /nouvelles de ton père/);
   assert.match(f, /loupe/); assert.match(f, /cornichons/);
 });
 

@@ -104,8 +104,9 @@ Chaque point porte un banc qui l'empêche de revenir (liste dans RELAIS.md).
     - Tous les PNJ de Sovarka sans fiche de dialogue sont relevés et raccordés.
 27. **Ignat Lykov est fonctionnaire à la retraite, jamais trappeur.** **Kouzma Lapchine est le batiouchka** (depuis le
     15/11), plus « ancien sonneur de cloches ».
-28. **Matveï Rybakov** est le référent chasse et bûcheronnage de Krasnov, frère aîné de **Prokhor Rybakov** (douanes de
-    Novomirsk), dont il parle avec ironie : « mon frère, il fouille des valises toute la journée ».
+28. **Matveï Rybakov** est le référent chasse et bûcheronnage de Krasnov, **père** de **Prokhor Rybakov** (douanes de
+    Novomirsk), dont il parle avec ironie : « mon fils, il fouille des valises toute la journée ». *(Correction de Fred,
+    24/11/2026, mission « Purge », point H.5 : Matveï est le PÈRE de Prokhor, et non plus son frère aîné.)*
 
 ## Bloc 4 — lieux de Krasnov
 
@@ -169,8 +170,8 @@ Chaque point porte un banc qui l'empêche de revenir (liste dans RELAIS.md).
 37. **Gare** : « Camarade Horaire » devient **Vassili Sukhoï**, chef de gare, au hall principal (graphie « Sukhoï »
     **voulue**, clin d'œil à l'avion : ne pas « corriger » en Soukhoï). « Agente Nadejda » devient **Lioudmila
     Proverkina**, agente de contrôle, déplacée au hall des douanes. L'inspecteur **Prokhor Rybakov** reste aux douanes
-    (douanier à la loupe et au bocal de cornichons), frère cadet de Matveï Rybakov, parti réussir dans l'administration ;
-    il demande des nouvelles de son frère aux PJ venus de Krasnov. Images : hall des douanes = « Contrôle douanier sous
+    (douanier à la loupe et au bocal de cornichons), **fils** de Matveï Rybakov (correction de Fred du 24/11/2026, point H.5),
+    parti réussir dans l'administration ; il demande des nouvelles de son père aux PJ venus de Krasnov. Images : hall des douanes = « Contrôle douanier sous
     la neige » ; zone d'embarquement = « Aéroport soviétique sous la neige ».
 38. **Direction du Renseignement** : accueil, Sergent Viktor Muetov et Elena Diamentevia (nom gardé pour l'instant) ;
     salle des écoutes, nouvelle PNJ **Tamara Naouchnikova**, opératrice ; salle d'interrogatoire, **Colonel Oleg

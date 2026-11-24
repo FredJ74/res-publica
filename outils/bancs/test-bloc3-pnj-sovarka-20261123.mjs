@@ -5,7 +5,7 @@
 //       « Offrir un verre à l'habitué » supprimé partout.
 //  26 — Tout PNJ visible de Sovarka a une fiche de dialogue (relevé calculé sur le vrai data.js, jamais recopié).
 //  27 — Ignat Lykov fonctionnaire à la retraite, jamais trappeur ; Kouzma Lapchine batiouchka, plus sonneur de cloches.
-//  28 — Matveï Rybakov, référent chasse et bûcheronnage, frère aîné de Prokhor Rybakov.
+//  28 — Matveï Rybakov, référent chasse et bûcheronnage, PÈRE de Prokhor Rybakov (correction de Fred, 24/11/2026, H.5).
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -214,16 +214,17 @@ test('27 — Ignat Lykov fonctionnaire à la retraite, jamais trappeur ; Kouzma 
   assert.match(lire('api/_reaction-habitant.js'), /'Kouzma Lapchine': "Tu es Kouzma Lapchine, le batiouchka/);
 });
 
-test('28 — Matveï Rybakov : référent chasse et bûcheronnage, frère aîné de Prokhor, ironie sur les valises', () => {
+test('28 — Matveï Rybakov : référent chasse et bûcheronnage, père de Prokhor (H.5), ironie sur les valises', () => {
   const m = TOUS_PROFILS.matvei_rybakov;
   assert.match(m.identite, /référent chasse et bûcheronnage de Krasnov/);
-  assert.match(m.caractere, /frère aîné de Prokhor Rybakov, inspecteur des douanes à Novomirsk/);
-  assert.match(m.caractere, /« Mon frère, il fouille des valises toute la journée\./);
+  assert.match(m.caractere, /tu es le père de Prokhor Rybakov, inspecteur des douanes à Novomirsk/);
+  assert.match(m.caractere, /« Mon fils, il fouille des valises toute la journée\./);
+  assert.doesNotMatch(m.caractere + m.savoir, /frère/i);
   assert.match(m.savoir, /Couper du bois » \(1 PA\) rapporte le double d'une récolte/);
   assert.match(m.savoir, /aucun ordre de chasse/);
-  assert.match(lire('api/_reaction-habitant.js'), /'Matveï Rybakov': "[^"]*référent de la ville pour la chasse et le bûcheronnage[^"]*frère aîné de Prokhor Rybakov[^"]*« mon frère, il fouille des valises toute la journée »/);
-  // Fusion avec le bloc 6 : Prokhor a sa propre fiche complète (frère cadet de Matveï) ; sinon le complément dérivé s'applique.
-  assert.match(TOUS_PROFILS.sovarka_inspecteur_prokhor_rybakov.caractere, /TON FRÈRE AÎNÉ, Matveï Rybakov|FRÈRE CADET DE MATVEÏ RYBAKOV/);
+  assert.match(lire('api/_reaction-habitant.js'), /'Matveï Rybakov': "[^"]*référent de la ville pour la chasse et le bûcheronnage[^"]*père de Prokhor Rybakov[^"]*« mon fils, il fouille des valises toute la journée »/);
+  // Fusion avec le bloc 6 : Prokhor a sa propre fiche complète (fils de Matveï) ; sinon le complément dérivé s'applique.
+  assert.match(TOUS_PROFILS.sovarka_inspecteur_prokhor_rybakov.caractere, /TON PÈRE, Matveï Rybakov|FILS DE MATVEÏ RYBAKOV/);
   assert.match(TOUS_PROFILS.sovarka_inspecteur_prokhor_rybakov.caractere, /il fouille des valises/);
   assert.match(lire('plateau-pnj.js'), /'matvei_rybakov',\n/);
   assert.match(lire(MIGRATION), /SELECT 'matvei_rybakov', 'chasse et bûcheronnage/);

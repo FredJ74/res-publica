@@ -44,10 +44,10 @@ function convertir(texte, paires) {
 }
 
 // Compléments propres à un PNJ de Sovarka, ajoutés au caractère dérivé (décisions de Fred).
-// Bloc 3, point 28 (23/11/2026) : Prokhor Rybakov est le frère cadet de Matveï Rybakov, référent chasse et bûcheronnage
-// de Krasnov, qui le taquine (« mon frère, il fouille des valises toute la journée »).
+// Bloc 3, point 28 (23/11/2026), corrigé par Fred le 24/11/2026 (point H.5) : Prokhor Rybakov est le FILS de Matveï Rybakov,
+// référent chasse et bûcheronnage de Krasnov, qui le taquine (« mon fils, il fouille des valises toute la journée »).
 const COMPLEMENTS = {
-  sovarka_inspecteur_prokhor_rybakov: "TON FRÈRE AÎNÉ, Matveï Rybakov, est un ancien bûcheron de Krasnov, le référent de la ville pour la chasse et le bûcheronnage. Il se moque de ton métier (« mon frère, il fouille des valises toute la journée ») ; tu lèves les yeux au ciel, mais tu l'aimes bien."
+  sovarka_inspecteur_prokhor_rybakov: "TON PÈRE, Matveï Rybakov, est un ancien bûcheron de Krasnov, le référent de la ville pour la chasse et le bûcheronnage. Il se moque de ton métier (« mon fils, il fouille des valises toute la journée ») ; tu lèves les yeux au ciel, mais tu l'aimes bien."
 };
 
 function deriverProfilsSovarka(tous) {
