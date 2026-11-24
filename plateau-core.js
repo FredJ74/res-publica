@@ -2202,8 +2202,10 @@ function majInfobulleArgent(cur) {
   const detail = [n(f.liquide) + ' en poche', n(f.comptes) + ' en banque'];
   if (Number(f.placements) > 0) detail.push(n(f.placements) + ' placés');
   const texte = 'Argent total : ' + n(f.poches) + ' ' + (cur || '') + ' (' + detail.join(', ') + '). Cliquez pour le détail.';
-  panneau.title = texte;
-  panneau.setAttribute('aria-label', texte);
+  try {
+    panneau.title = texte;
+    if (typeof panneau.setAttribute === 'function') panneau.setAttribute('aria-label', texte);
+  } catch (_) { /* écran de banc sans vrai DOM : sans effet */ }
 }
 
 // =====================
