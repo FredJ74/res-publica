@@ -1,3 +1,4 @@
+-- EN ATTENTE : application demandée le 24/11/2026, validation à l'écran non donnée (expirée). À appliquer par Fred.
 -- Purge, bloc A, point A.10 (Fred, 24/11/2026) : PNJ guide des nouveaux joueurs. NON APPLIQUÉE. Rejouable. Rien du goulag.
 -- Après 20261124100000 (comptes de test), 20261124101000/102000 (calendrier du nouveau venu).
 --

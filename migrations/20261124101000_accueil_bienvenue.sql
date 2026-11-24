@@ -1,3 +1,4 @@
+-- APPLIQUÉE en production le 24/11/2026 (contrôlée en lecture, mission Purge).
 -- Purge, bloc A, point A.2 (Fred, 24/11/2026) : nouvelle pop-up de bienvenue à la première connexion d'un nouveau
 -- personnage. Elle remplace le contenu de la fenêtre de première connexion (l'interview d'accueil, qui arrive désormais
 -- entre 5 et 10 minutes de jeu : point A.3, migration 20261124102000). NON APPLIQUÉE. Rejouable. Rien du goulag.

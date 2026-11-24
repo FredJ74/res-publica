@@ -1,3 +1,4 @@
+-- APPLIQUÉE en production le 24/11/2026 (contrôlée en lecture, mission Purge).
 -- Purge, bloc A, point A.3 (Fred, 24/11/2026) : calendrier du nouveau venu. NON APPLIQUÉE. Rejouable. Rien du goulag.
 -- Après 20261124101000_accueil_bienvenue (colonne calendrier).
 --

@@ -1,3 +1,4 @@
+-- APPLIQUÉE en production le 24/11/2026 (contrôlée en lecture, mission Purge).
 -- Purge, bloc A, point A.4 (Fred, 24/11/2026) : l'interview publiée au forum de presse est signée par le journaliste du
 -- PAYS de l'interview (Jodie Moitout en Républia, Vera Pravdina en Sovarka : table accueil_journalistes), et non plus
 -- « Jodie Moitout » en dur. NON APPLIQUÉE. Rejouable. Rien du goulag.

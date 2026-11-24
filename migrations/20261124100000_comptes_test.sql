@@ -1,3 +1,4 @@
+-- APPLIQUÉE en production le 24/11/2026 (contrôlée en lecture, mission Purge).
 -- Purge, bloc A, point A.1 (Fred, 24/11/2026) : comptes de test de Fred marqués en base, puis exclus des statistiques,
 -- des élections et des tirages au sort. NON APPLIQUÉE : l'agent principal l'applique à la fusion.
 -- Rejouable (IF NOT EXISTS, ON CONFLICT, remplacement contrôlé à marque). Rien du goulag. Aucune donnée de joueur modifiée.

@@ -1,3 +1,4 @@
+-- APPLIQUÉE en production le 24/11/2026 (contrôlée en lecture, mission Purge).
 -- Purge, bloc A, point A.8 (Fred, 24/11/2026) : notifications du navigateur, pour le chat uniquement. NON APPLIQUÉE.
 -- Rejouable. Rien du goulag. Pas de courriel.
 --  • notifications_chat (personnage, active, proposee_le) : le réglage du joueur (activer / couper) et la mémoire de la

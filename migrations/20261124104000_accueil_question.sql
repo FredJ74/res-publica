@@ -1,3 +1,4 @@
+-- APPLIQUÉE en production le 24/11/2026 (contrôlée en lecture, mission Purge).
 -- Purge, bloc A, point A.5 (Fred, 24/11/2026) : contenu de l'interview d'accueil. La journaliste demande au nouveau ce
 -- qu'il veut être, et précise que s'il ne le sait pas encore, c'est normal : il a le temps de se décider. Les six chemins
 -- existants restent proposés (accueil_chemins inchangé). Une interview fermée sans réponse reste dans « Mes objectifs »
