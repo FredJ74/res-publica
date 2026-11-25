@@ -10,9 +10,9 @@ const test = require('node:test'), assert = require('node:assert/strict'), fs = 
 const root = path.resolve(__dirname, '../..'), lire = f => fs.readFileSync(path.join(root, f), 'utf8');
 const MIG = 'migrations/20261125700000_premium_socle.sql';
 
-test('migration : en-tête NON APPLIQUÉE, contrôles, aucun prix écrit en dur, plancher de 2 €', () => {
+test('migration : en-tête (appliquée ou non), contrôles, aucun prix écrit en dur, plancher de 2 €', () => {
   const m = lire(MIG);
-  assert.match(m.split('\n')[0], /NON APPLIQUÉE/);
+  assert.match(m.split('\n')[0], /(NON APPLIQUÉE|APPLIQUÉE en production)/);
   assert.match(m, /Contrôles en lecture après application/);
   assert.match(m, /prix_centimes IS NULL OR prix_centimes >= 200/);
   // Les ancrages $a$…$a$ recopient l'ancien code de production (ce qui est remplacé) : hors de ces ancrages, aucun tarif.
