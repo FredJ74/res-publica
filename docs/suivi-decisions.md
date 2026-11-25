@@ -342,3 +342,12 @@ Décisions de Fred du 25/11 au soir : `docs/mission-soir-20261125.md` (cases coc
 | 25/11/2026 | 4.4 Paiement par un revendeur qui vend en son nom et gère la TVA (fournisseur pas encore arrêté par Fred) : interface serveur prête en mode test, faux fournisseur pour les bancs, aucun achat sous 2 €. | en cours |  |  | Mission du soir 4.4 |
 | 25/11/2026 | 4.5 Remise à zéro du 19/12 et offre des testeurs de la bêta : procédure préparée et documentée, non exécutée (Fred décide du moment). | en ligne | 25/11/2026 | 32d9b22b | Mission du soir 4.5 |
 | 25/11/2026 | 4.6 Reportage hebdomadaire, film mensuel au cinéma de Montrouge, portrait par IA, mini-jeux : hors mission, forme à trancher avec Fred. | décidé |  |  | Mission du soir 4.6 |
+
+## Mission de fin de soirée (25/11/2026)
+
+Décisions de Fred du 25/11 en fin de soirée : `docs/mission-soir2-20261125.md`.
+
+| Date | Décision | État | En ligne le | Commit | Source |
+|---|---|---|---|---|---|
+| 25/11/2026 | 1.2 Fin d'abonnement : tout ce qui a été activé reste acquis (déjà codé, `premium_bureau_option_valide_interne`, appartement premium) ; seuls les renouvellements d'image hebdomadaires et les exclusivités s'arrêtent. | en ligne | 25/11/2026 | ec3a7669 | Mission de fin de soirée 1.2 |
+| 25/11/2026 | 1.7 Souvenirs : prix de 8 à 45 validés ; le rôle « Vendeur de souvenirs » de Bastien Leroux et la mention des souvenirs dans la bible du gouvernement sont gardés (rien à changer). | en ligne | 25/11/2026 | ec3a7669 | Mission de fin de soirée 1.7 |
