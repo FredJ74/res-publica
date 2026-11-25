@@ -15,7 +15,8 @@ Règles : voir `AGENTS.md`.
   Fusionner la dernière suffit (avance rapide) ; l'agent fusionne lui-même si la poussée sur main lui est permise et la CI verte.
 - **Migrations écrites, NON appliquées** (Fred valide à son retour, dans l'ordre ; contrôles en lecture en tête de chaque fichier) :
   20261125140000 (guide : goût, relance de l'interview), 150000 (canicule : l'eau vaut pour la journée), 160000 (interrupteur
-  MJ des comptes de test aux élections), 170000 (forum du tribunal), 200000 (chronique de l'empire, lecture seule). Sans elles,
+  MJ des comptes de test aux élections), 170000 (forum du tribunal), 200000 (chronique de l'empire, lecture seule), 300000
+  (armoire à souvenirs : listes, contenu, dépôt, reprise, +1 PA, armoire à vider avant déplacement). Sans elles,
   le code garde le comportement actuel (l'onglet « L'empire » n'apparaît pas tant que 200000 n'est pas appliquée).
 - Bloc 1 : 1.3 (trois comptes de test) et 1.10 (blizzard) vérifiés en base, rien à changer ; 1.8 : `quetes_actives` n'est lue par
   aucun écran ; 1.7 : Grigori Toporkov (bûcheron, cour de l'exploitation forestière), aucune migration (miroir serveur des PNJ =
@@ -28,6 +29,10 @@ Règles : voir `AGENTS.md`.
   `api/_pnj-personnalites.js` fiche `grigori_toporkov` ; `admin-comptes-test.js` (page MJ).
 - Bloc 2 : `plateau-chronique-empire.js` (onglets du journal, phrases) ; `chronique_empire_lire` compose la chronique depuis les
   sources existantes (aucune table nouvelle) ; **Pour Codex** : tout l'objet `TXT` de `plateau-chronique-empire.js`.
+- Bloc 3 : `plateau-armoire-souvenirs.js` (fenêtre de l'armoire installée, ouverte depuis « Équipements du local ») ; tables
+  `souvenirs_listes`, `souvenirs_emplacements`, `armoires_contenus` ; raccords `pa_repos_nocturne` (armoire_confort_v1),
+  `desinstaller_materiel` et `equipement_desinstaller` (armoire_vide_v1). **Pour Codex** : objet `TXT` de
+  `plateau-armoire-souvenirs.js` ; noms de la liste 1 (déjà au catalogue côté écran) ; constat « Souvenir disparu » (migration).
 
 ### Mission de nuit (Claude, 25/11/2026) — suivi : `docs/suivi-decisions.md`, section « Mission de nuit »
 - Bloc 1.1 (sur main) : Mathias Spirine (ex-Docteur Aspirine, commit 32e5b8d de Fred) — profil de dialogue, miroir des scènes,

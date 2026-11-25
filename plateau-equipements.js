@@ -109,6 +109,8 @@ async function ouvrirModalEquipements() {
     const o = await sbRpc('organisation_materiel_lire', {}).catch(function () { return null; });
     peutCeder = !!(o && o.ok === true && Array.isArray(o.organisations) && o.organisations.length);
   }
+  // Armoire à souvenirs (Fred, 25/11/2026, bloc 3) : « Ouvrir l'armoire » seulement si le serveur la connaît (migration 20261125300000).
+  const armoireOk = typeof armoireDisponible === 'function' ? await armoireDisponible() : false;
   h += '<div class="cpj-titre">' + texteEquip('installes', 'Installés') + '</div>';
   if (!r.installes.length) h += '<p class="cpj-note">' + texteEquip('aucunEquip', 'Aucun équipement.') + '</p>';
   r.installes.forEach(function (e) {
@@ -120,6 +122,7 @@ async function ouvrirModalEquipements() {
       '</span><span style="display:flex;gap:.3rem">' +
       (e.serrure && e.serrure.a_cle ? equipementsBouton('serrureBasculer(\'' + e.serrure.id + '\',' + (!e.serrure.fermee) + ')', e.serrure.fermee ? texteEquip('ouvrir', 'Ouvrir') : texteEquip('fermerCle', 'Fermer à clé')) : '') +
       (e.a_moi && peutCeder ? equipementsBouton('materielCederChoisir(\'' + e.id + '\')', texteEquip('cederOrga', 'Céder à l\'organisation')) : '') +
+      (armoireOk && e.generique_id === 'armoire_souvenirs' ? equipementsBouton('ouvrirArmoireInstallee(\'' + e.id + '\')', ((window.RPArmoireSouvenirs && window.RPArmoireSouvenirs.TXT.ouvrir) || 'Ouvrir l’armoire'), true) : '') +
       (typeof boutonGroupeRemplir === 'function' ? boutonGroupeRemplir(e) : '') +
       (e.a_moi ? equipementsBouton('equipementDesinstaller(\'' + e.id + '\')', texteEquip('desinstaller', 'Désinstaller')) : '') + '</span></div>';
   });
