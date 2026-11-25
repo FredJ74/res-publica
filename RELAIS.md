@@ -10,9 +10,8 @@ Règles : voir `AGENTS.md`.
 ## En cours
 
 ### Mission de jour (Claude, 25/11/2026) — décisions : `GAME-DESIGN-MISSION-JOUR-20261125.md` ; suivi : `docs/suivi-decisions.md`, « Mission de jour »
-- Branches (chaîne linéaire, chacune contient la précédente) : `claude/jour-b1-20261125` (bloc 1, réponses aux questions de la Purge)
-  → `claude/jour-b2-20261125` (bloc 2, chronique de l'empire) → `claude/jour-b3-20261125` (bloc 3, armoire à souvenirs).
-  Fusionner la dernière suffit (avance rapide) ; l'agent fusionne lui-même si la poussée sur main lui est permise et la CI verte.
+- **Fusionné dans main le 25/11** (avance rapide, 71944623) : chaîne `claude/jour-b1-20261125` → `claude/jour-b2-20261125` →
+  `claude/jour-b3-20261125`, CI « Cohérence client » entièrement verte sur la tête. Ce qui dépend d'une migration attend Fred.
 - **Migrations écrites, NON appliquées** (Fred valide à son retour, dans l'ordre ; contrôles en lecture en tête de chaque fichier) :
   20261125140000 (guide : goût, relance de l'interview), 150000 (canicule : l'eau vaut pour la journée), 160000 (interrupteur
   MJ des comptes de test aux élections), 170000 (forum du tribunal), 200000 (chronique de l'empire, lecture seule), 300000
