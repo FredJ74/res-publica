@@ -11,6 +11,15 @@ Règles : voir `AGENTS.md`.
 
 ### Mission du soir (Claude, 25/11/2026) — cases : `docs/mission-soir-20261125.md` ; reprise : « Reprends docs/mission-soir-20261125.md au premier point non coché »
 - Étape zéro faite : les six migrations de la mission de jour sont appliquées et contrôlées (voir ci-dessous).
+- Blocs 1 à 4 codés en quatre branches, fusionnées en chaîne linéaire `claude/soir-b1a-20261125` → `b1b` → `b3` → `b4`
+  (branche de fusion `claude/soir-chaine-20261125`). Comptes rendus, « Pour Codex » et questions : `docs/soir/BLOC-1A.md`,
+  `BLOC-1B.md`, `BLOC-3.md`, `BLOC-4.md`.
+- **Migrations écrites, NON appliquées** (dans l'ordre ; contrôles en lecture en tête de chaque fichier) : 20261125400000
+  (audit des chances : fraudes 2/3/1 jours, contrebande 85 %, lieux poissonnière et quai de Novomirsk, chances de 18 ordres),
+  410000 (visiter un détenu), 500000 (jets du navigateur passés au serveur), 600000 (souvenirs, listes 2-4, frontières
+  fermées), 700000 (premium : droits, abonnements, publicités, paiement ; puis redéployer les fonctions Supabase
+  `commerce-decoration` et `logement-decoration`). Sans elles, le jeu garde le comportement actuel.
+- Remise à zéro du 19/12 : `docs/premium/REMISE-A-ZERO-20261219.md` (préparée, jamais exécutée ; 40 tables mixtes à écrire).
 
 ### Mission de jour (Claude, 25/11/2026) — décisions : `GAME-DESIGN-MISSION-JOUR-20261125.md` ; suivi : `docs/suivi-decisions.md`, « Mission de jour »
 - **Fusionné dans main le 25/11** (avance rapide, 71944623) : chaîne `claude/jour-b1-20261125` → `claude/jour-b2-20261125` →
