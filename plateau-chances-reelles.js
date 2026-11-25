@@ -22,6 +22,8 @@
     'ouvrir_enquete'];
   // Le bouton n'affiche jamais un pourcentage écrit en dur pour ces ordres : seulement la chance lue au serveur, s'il la donne.
   const sansTauxEcrit = fn => ORDRES.includes(fn) || SANS_JET.includes(fn) || SELON_CIBLE.includes(fn);
+  // Mission du soir (25/11/2026, 1.2) : ordres dont le jet est passé au serveur (migration 20261125500000).
+  ORDRES.push('article', 'etouffer', 'demander_parler_loge', 'corrompre_journaliste', 'fabriquer_scandale');
   const texte = x => 'Vos chances réelles : ' + x + ' %';
   let generation = 0, planifie = false;
 

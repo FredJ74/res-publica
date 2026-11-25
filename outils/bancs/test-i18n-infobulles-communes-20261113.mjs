@@ -59,7 +59,8 @@ test('inventaire : 237 descriptions communes affichées après isolation du goul
   // +15 le 25/11 au soir (mission du soir, bloc 1A, audit des chances) : descriptions alignées sur le serveur (rumeur, piège,
   // propagande, fuite, enquête, défense, soins sans trace, rébellion, évasion, campagne de sécurité ×2, contestation, trois
   // fraudes électorales, corruption du douanier), à traduire par Codex (liste dans docs/soir/BLOC-1A.md).
-  assert.ok(manquantes.length <= 25, 'nouvelles communes absentes du catalogue');
+  // +3 le 25/11 au soir (mission du soir, 1.2) : corrompre un journaliste, fabriquer un scandale, frapper à la loge, à traduire par Codex.
+  assert.ok(manquantes.length <= 28, 'nouvelles communes absentes du catalogue');
   // Français strictement identique : chaque texte du catalogue est une description exacte de data.js,
   // affichée dans au moins un pays (avec la fusion réelle, quelques-unes ne sont plus visibles qu'en Républia,
   // l'exclusion de Sovarka étant désormais prise en compte ; leur traduction y reste utile).
@@ -104,7 +105,14 @@ test('inventaire : 237 descriptions communes affichées après isolation du goul
     "+10 ISN local. Preleve sur budget mairie.",
     "Influencer massivement l'opinion publique. +POP.",
     "+10 ISN local. Deploiement de forces de l'ordre supplementaires. Preleve sur budget mairie.",
-    "Cibler un citoyen, un club sportif, une entreprise ou une organisation. Coute a la caisse du gouvernement."];
+    "Cibler un citoyen, un club sportif, une entreprise ou une organisation. Coute a la caisse du gouvernement.",
+    // Mission du soir (25/11/2026, 1.2) : descriptions alignées sur le serveur ; anciennes lignes livrées gardées.
+    "Accuser publiquement un PJ, sous votre nom. La rédaction accepte ou refuse (35 % + 15 si carrière presse, ou + 10 si ministre de l'Information, moins le malus de sécurité intérieure). Acceptation : 3 PA et 800 FR pour La Tribune, la cible perd 15 POP et 15 INF. Refus : rien n'est prélevé. Une tentative par jour.",
+    "Choisir une affaire judiciaire du jour puis demander à la rédaction de l'étouffer ou d'en publier un angle favorable. Accord : 2 PA et 500 FR pour La Tribune. Refus : rien n'est prélevé, mais la démarche laisse une trace. Le dossier judiciaire n'est jamais modifié.",
+    "Frapper a la porte et demander une audience. Reussite a 95%.",
+    "Contre-lobbying preventif visant une cible (PJ, organisation, local, gouvernement ou pays) : pendant 7 jours, un futur \"Placer un article favorable\" contre cette meme cible devient beaucoup plus difficile (base 10% au lieu de 75%). N'affecte jamais l'actualite reelle (scandales, condamnations, elections...). Reussite (70% + modificateurs) : 1000 FR preleves. Echec : aucun frais.",
+    "Choisir une cible (PJ, organisation, local, gouvernement ou pays) et indiquer le sujet/l'angle souhaite : la redaction redige elle-meme un veritable article favorable, vous n'apparaissez jamais comme commanditaire. Reussite (75% + modificateurs) : 500 FR preleves. Echec : la redaction refuse, aucun frais.",
+    "Choisir une cible (PJ, organisation, local, gouvernement ou pays) et indiquer le sujet/l'angle souhaite : la redaction redige elle-meme un veritable article favorable, vous n'apparaissez jamais comme commanditaire. Reussite (75% + modificateurs) : 500 FR preleves, article integre a une prochaine edition de La Tribune. Echec : la redaction refuse, aucun frais."];
   assert.deepEqual(cat.filter(d => !sov.has(d) && !rep.has(d) && !HISTORIQUES.includes(d)), [], 'textes du catalogue introuvables tels quels');
   assert.equal(new Set(cat).size, cat.length);
 });

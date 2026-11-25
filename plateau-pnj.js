@@ -2621,6 +2621,31 @@ async function validerLobbyingPresse() {
 
   const { pa, cost, type, cibleValue, cibleLabel, cibleCountry, angle, mode, successRate } = _lobbyingPresse;
 
+  // JET AU SERVEUR (mission du soir du 25/11/2026, 1.2) : presse_lobbying_tenter tire le de avec la meme formule
+  // (clamp(5, 95, base + 2 x (CHA - 13)), base 75 / 70, ou 10 si la cible est etouffee), prend le PA dans les deux cas et,
+  // en cas de reussite seulement, le prix (verse a la redaction du lieu), puis inscrit l'article ou l'etouffement, dans la
+  // meme transaction. L'ancien chemin ci-dessous ne sert que tant que la migration 20261125500000 n'est pas posee (PGRST202).
+  if (typeof sbRpcVerdict === 'function') {
+    if (!_lobbyingPresse.requete) _lobbyingPresse.requete = crypto.randomUUID();
+    const v = await sbRpcVerdict('presse_lobbying_tenter', { p_requete: _lobbyingPresse.requete, p_mode: mode,
+      p_cible_type: type, p_cible_value: cibleValue, p_cible_label: cibleLabel, p_angle: (angle || '').trim() || null });
+    if (!(v && v.transport && v.transport.code === 'PGRST202')) {
+      if (!v || v.ok !== true) {
+        _lobbyingPresse.soumission = false;
+        if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.textContent = cfg.verbe + ' — ' + pa + ' PA'; }
+        if (v && v.raison === 'angle_requis') { showToast('Angle requis', "Indiquez le sujet/l'angle souhaité.", false); return; }
+        signalerRefusCout(v || { raison: 'paiement_indisponible' });
+        return;
+      }
+      if (v.paie && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v.paie);
+      rendreIssueLobbyingPresse(mode, v.succes === true, v.cible_label || cibleLabel, Number(v.cout) || 0, v.redaction_ok);
+      _lobbyingPresse = null;
+      if (typeof advanceTime === 'function') advanceTime(Math.max(0, pa || 0));
+      updateUI();
+      return;
+    }
+  }
+
   // PA du au jet lui-meme, que la redaction accepte ou non ; l'argent (cost = 500 ou 1000) n'est
   // preleve que dans la branche succes plus bas, jamais ici (voir doctrine deduireCoutOrdre()).
   // Les fonds necessaires en cas de succes ont deja ete verifies EN AMONT par la garde standard
@@ -2720,6 +2745,34 @@ async function validerLobbyingPresse() {
   _lobbyingPresse = null;
   if (typeof advanceTime === 'function') advanceTime(Math.max(0, pa || 0));
   updateUI();
+}
+
+// Issue rendue par le serveur (presse_lobbying_tenter) : l'ecran affiche, il ne decide rien.
+function rendreIssueLobbyingPresse(mode, succes, cibleLabel, cout, redactionOk) {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const label = escapeHtmlText(cibleLabel || '');
+  const titre = document.getElementById('postes-modal-title'), corps = document.getElementById('postes-body');
+  const frais = redactionOk === false
+    ? 'Ce journal n\'a pas de caisse éditoriale : rien ne vous a été prélevé, à part le PA.'
+    : '-' + cout + ' ' + cur + ' · -1 PA';
+  if (succes && mode === 'article') {
+    titre.textContent = '📰 Article accepté';
+    corps.innerHTML = '<div class="cpj-dialogue"><p style="font-style:italic;line-height:1.7">La rédaction accepte de traiter ' + label
+      + ' sous un angle favorable. L\'article paraîtra dans une prochaine édition de La Tribune.</p><p class="cpj-note">' + frais
+      + ' · Vous n\'apparaissez pas comme commanditaire.</p></div>';
+    addJournalEntry('Article favorable obtenu pour ' + label + '. ' + frais + '.', 'event-good');
+  } else if (succes) {
+    titre.textContent = '📰 Article étouffé';
+    corps.innerHTML = '<div class="cpj-dialogue"><p style="font-style:italic;line-height:1.7">Pendant 7 jours, il sera beaucoup plus difficile de placer un article favorable sur '
+      + label + '. L\'actualité réelle (scandales, condamnations, élections...) n\'est jamais affectée.</p><p class="cpj-note">' + frais + '</p></div>';
+    addJournalEntry('Article étouffé contre ' + label + '. ' + frais + '.', 'event-good');
+  } else {
+    titre.textContent = '📰 Refus de la rédaction';
+    corps.innerHTML = '<div class="cpj-dialogue"><p style="font-style:italic;line-height:1.7">La rédaction refuse de rédiger un article en ce sens.</p>'
+      + '<p class="cpj-note">-1 PA, aucun argent prélevé.</p></div>';
+    addJournalEntry((mode === 'article' ? "Tentative d'article favorable" : "Tentative d'étouffement") + ' refusée par la rédaction pour ' + label + '. -1 PA.', 'event-bad');
+  }
+  document.getElementById('modal-postes').classList.add('open');
 }
 
 // =====================
