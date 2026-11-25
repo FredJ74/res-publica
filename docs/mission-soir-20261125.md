@@ -55,7 +55,7 @@ Branche de travail : `claude/soir-20261125` (worktree `~/ResPublica-soir`), issu
 
 ## Bloc 2 — PNJ guide
 
-- [ ] 2.1 Correspondance carrière → goût (guide_carrieres_criteres) validée par Fred telle que proposée : armée et
+- [x] 2.1 Correspondance carrière → goût (guide_carrieres_criteres) validée par Fred telle que proposée : armée et
   renseignement → uniforme ; affaires et médecin → affaires ; magistrat et ouvrier → politique ; presse et clergé →
   influence ; criminel → crime ; escort → belle vie ; enfant et sans expérience → pistes générales. Rien à changer : le
   noter dans le suivi.
