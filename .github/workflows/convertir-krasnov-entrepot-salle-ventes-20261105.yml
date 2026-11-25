@@ -28,7 +28,7 @@ jobs:
           from PIL import Image
           d=Path('images/Sovarka/Krasnov')
           assert not list(d.glob('*.png')), 'PNG restant'
-          p=d/'Krasnov_entrepot_salle ventes.webp'
+          p=d/'Krasnov_entrepot_salle_ventes.webp'
           assert p.stat().st_size>100
           with Image.open(p) as im:
               assert im.format=='WEBP'

@@ -187,6 +187,158 @@
     {
       "source": "/images/stade-olympique-luthecia.png",
       "destination": "/images/stade-olympique-luthecia.webp"
+    },
+    {
+      "source": "/images/Luthecia%20palais%20gouvernement%20salle%20presse.webp",
+      "destination": "/images/Luthecia_palais_gouvernement_salle_presse.webp"
+    },
+    {
+      "source": "/images/Sovarka/Krasnov/H%C3%B4pital%20municipal%20de%20Krasnov%20sous%20la%20neige.png",
+      "destination": "/images/Sovarka/Krasnov/Hopital_municipal_de_Krasnov_sous_la_neige.png"
+    },
+    {
+      "source": "/images/Sovarka/Krasnov/Krasnov%20centre%20artisanal.webp",
+      "destination": "/images/Sovarka/Krasnov/Krasnov_centre_artisanal.webp"
+    },
+    {
+      "source": "/images/Sovarka/Krasnov/Krasnov%20rue%20distillerie%20centre%20radar.webp",
+      "destination": "/images/Sovarka/Krasnov/Krasnov_rue_distillerie_centre_radar.webp"
+    },
+    {
+      "source": "/images/Sovarka/Krasnov/Krasnov%20rue%20entrep%C3%B4t.webp",
+      "destination": "/images/Sovarka/Krasnov/Krasnov_rue_entrepot.webp"
+    },
+    {
+      "source": "/images/Sovarka/Krasnov/Krasnov%20rue%20%C3%A9cole%20foret.webp",
+      "destination": "/images/Sovarka/Krasnov/Krasnov_rue_ecole_foret.webp"
+    },
+    {
+      "source": "/images/Sovarka/Krasnov/Krasnov%20rue%20%C3%A9glise.webp",
+      "destination": "/images/Sovarka/Krasnov/Krasnov_rue_eglise.webp"
+    },
+    {
+      "source": "/images/Sovarka/Krasnov/Krasnov%20rue%20gare.webp",
+      "destination": "/images/Sovarka/Krasnov/Krasnov_rue_gare.webp"
+    },
+    {
+      "source": "/images/Sovarka/Krasnov/Krasnov%20rue%20immeubles%20centre%20commercial.webp",
+      "destination": "/images/Sovarka/Krasnov/Krasnov_rue_immeubles_centre_commercial.webp"
+    },
+    {
+      "source": "/images/Sovarka/Krasnov/Krasnov%20rue%20mairie%20place.webp",
+      "destination": "/images/Sovarka/Krasnov/Krasnov_rue_mairie_place.webp"
+    },
+    {
+      "source": "/images/Sovarka/Krasnov/Krasnov%20rue%20maison.webp",
+      "destination": "/images/Sovarka/Krasnov/Krasnov_rue_maison.webp"
+    },
+    {
+      "source": "/images/Sovarka/Krasnov/Krasnov%20rue%20march%C3%A9%20ferme.webp",
+      "destination": "/images/Sovarka/Krasnov/Krasnov_rue_marche_ferme.webp"
+    },
+    {
+      "source": "/images/Sovarka/Krasnov/Krasnov%20rue%20stade%20commissariat.webp",
+      "destination": "/images/Sovarka/Krasnov/Krasnov_rue_stade_commissariat.webp"
+    },
+    {
+      "source": "/images/Sovarka/Krasnov/Krasnov%20rue%20station%20mus%C3%A9e.webp",
+      "destination": "/images/Sovarka/Krasnov/Krasnov_rue_station_musee.webp"
+    },
+    {
+      "source": "/images/Sovarka/Krasnov/Krasnov%20rue%20tabac%20bar.webp",
+      "destination": "/images/Sovarka/Krasnov/Krasnov_rue_tabac_bar.webp"
+    },
+    {
+      "source": "/images/Sovarka/Krasnov/Krasnov%20rue%20terrains.webp",
+      "destination": "/images/Sovarka/Krasnov/Krasnov_rue_terrains.webp"
+    },
+    {
+      "source": "/images/Sovarka/Krasnov/Krasnov_entrepot_salle%20ventes.webp",
+      "destination": "/images/Sovarka/Krasnov/Krasnov_entrepot_salle_ventes.webp"
+    },
+    {
+      "source": "/images/Sovarka/Novomirsk/Novomirsk.stade.bureau%20pr%C3%A9sident.webP",
+      "destination": "/images/Sovarka/Novomirsk/Novomirsk.stade.bureau_president.webp"
+    },
+    {
+      "source": "/images/Sovarka/Novomirsk/Novomirsk_Palais%20des%20Ambassades_hall.webp",
+      "destination": "/images/Sovarka/Novomirsk/Novomirsk_Palais_des_Ambassades_hall.webp"
+    },
+    {
+      "source": "/images/Sovarka/Novomirsk/Novomirsk_ambassades_Al%20Khalija.webp",
+      "destination": "/images/Sovarka/Novomirsk/Novomirsk_ambassades_Al_Khalija.webp"
+    },
+    {
+      "source": "/images/Sovarka/Novomirsk/Novomirsk_ambassades_El%20Estado.webp",
+      "destination": "/images/Sovarka/Novomirsk/Novomirsk_ambassades_El_Estado.webp"
+    },
+    {
+      "source": "/images/Sovarka/Novomirsk/Novomirsk_centre%20artisanal_accueil.webp",
+      "destination": "/images/Sovarka/Novomirsk/Novomirsk_centre_artisanal_accueil.webp"
+    },
+    {
+      "source": "/images/Sovarka/Novomirsk/Novomirsk_centre%20artisanal_grand%20atelier.webp",
+      "destination": "/images/Sovarka/Novomirsk/Novomirsk_centre_artisanal_grand_atelier.webp"
+    },
+    {
+      "source": "/images/Sovarka/Novomirsk/Novomirsk_centre%20artisanal_moyen%20local.webp",
+      "destination": "/images/Sovarka/Novomirsk/Novomirsk_centre_artisanal_moyen_local.webp"
+    },
+    {
+      "source": "/images/Sovarka/Novomirsk/Novomirsk_centre%20artisanal_petit%20local.webp",
+      "destination": "/images/Sovarka/Novomirsk/Novomirsk_centre_artisanal_petit_local.webp"
+    },
+    {
+      "source": "/images/Sovarka/Novomirsk/Novomirsk_mus%C3%A9e%20national_accueil.webp",
+      "destination": "/images/Sovarka/Novomirsk/Novomirsk_musee_national_accueil.webp"
+    },
+    {
+      "source": "/images/Sovarka/Novomirsk/Novomirsk_mus%C3%A9e%20national_salle%20artistes.webp",
+      "destination": "/images/Sovarka/Novomirsk/Novomirsk_musee_national_salle_artistes.webp"
+    },
+    {
+      "source": "/images/Sovarka/Novomirsk/Novomirsk_mus%C3%A9e%20national_salle%20crises.webp",
+      "destination": "/images/Sovarka/Novomirsk/Novomirsk_musee_national_salle_crises.webp"
+    },
+    {
+      "source": "/images/Sovarka/Novomirsk/Novomirsk_mus%C3%A9e%20national_salle%20des%20honneurs%20militaires.webp",
+      "destination": "/images/Sovarka/Novomirsk/Novomirsk_musee_national_salle_des_honneurs_militaires.webp"
+    },
+    {
+      "source": "/images/Sovarka/Novomirsk/Novomirsk_mus%C3%A9e%20national_salle%20expo%20tournantes.webp",
+      "destination": "/images/Sovarka/Novomirsk/Novomirsk_musee_national_salle_expo_tournantes.webp"
+    },
+    {
+      "source": "/images/Sovarka/Novomirsk/Novomirsk_mus%C3%A9e%20national_salle%20partis.webp",
+      "destination": "/images/Sovarka/Novomirsk/Novomirsk_musee_national_salle_partis.webp"
+    },
+    {
+      "source": "/images/Sovarka/Novomirsk/Novomirsk_mus%C3%A9e%20national_salle%20pr%C3%A9sidents.webp",
+      "destination": "/images/Sovarka/Novomirsk/Novomirsk_musee_national_salle_presidents.webp"
+    },
+    {
+      "source": "/images/Sovarka/Novomirsk/Novomirsk_mus%C3%A9e%20national_salle%20sportifs.webp",
+      "destination": "/images/Sovarka/Novomirsk/Novomirsk_musee_national_salle_sportifs.webp"
+    },
+    {
+      "source": "/images/Sovarka/Novomirsk/Novomirsk_mus%C3%A9e%20national_salle%20tractorisme.webp",
+      "destination": "/images/Sovarka/Novomirsk/Novomirsk_musee_national_salle_tractorisme.webp"
+    },
+    {
+      "source": "/images/Sovarka/Starovka/Starkova_rue_magasin%20chasse.webp",
+      "destination": "/images/Sovarka/Starovka/Starovka_rue_magasin_chasse.webp"
+    },
+    {
+      "source": "/images/Sovarka/Starovka/Starovka_rue_locaux%20a%20louer.webp",
+      "destination": "/images/Sovarka/Starovka/Starovka_rue_locaux_a_louer.webp"
+    },
+    {
+      "source": "/images/Sovarka/Starovka/Starovka_rue_logements%20collectifs.webp",
+      "destination": "/images/Sovarka/Starovka/Starovka_rue_logements_collectifs.webp"
+    },
+    {
+      "source": "/images/Sovarka/Starovka/Starovka_rue_port%20industriel.webp",
+      "destination": "/images/Sovarka/Starovka/Starovka_rue_port_industriel.webp"
     }
   ],
   "headers": [

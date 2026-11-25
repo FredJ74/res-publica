@@ -13,10 +13,10 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parents[2]
 DIR = ROOT / "images/Sovarka/Novomirsk"
 SOURCE = DIR / "Les cinq triomphes mondiaux du Dynamo Novomirsk.png"
-TARGET = DIR / "Novomirsk.stade.bureau président.webP"
+TARGET = DIR / "Novomirsk.stade.bureau_president.webp"
 EXPECTED_SHA = "b35f33313e7022d3ba2a045ef40fd3ab57bdfdb6"
 DATA = ROOT / "data.js"
-RELATIVE_TARGET = "images/Sovarka/Novomirsk/Novomirsk.stade.bureau président.webP"
+RELATIVE_TARGET = "images/Sovarka/Novomirsk/Novomirsk.stade.bureau_president.webp"
 
 def git_blob_sha(raw: bytes) -> str:
     return hashlib.sha1(b"blob " + str(len(raw)).encode() + b"\0" + raw).hexdigest()

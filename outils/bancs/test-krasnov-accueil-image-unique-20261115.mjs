@@ -28,7 +28,7 @@ test('Les images sont réellement des WebP et la source PNG a été supprimée',
  }
  const files=fs.readdirSync('images/Sovarka/Krasnov').map(x=>x.normalize('NFC'));
  assert.equal(files.includes('Réception chaleureuse du centre d’affaires.png'),false);
- assert.equal(files.includes('Hôpital municipal de Krasnov sous la neige.png'),true);
+ assert.equal(files.includes('Hopital_municipal_de_Krasnov_sous_la_neige.png'),true);
 });
 test('Le navigateur charge la nouvelle version des ressources',()=>{
  for(const n of ['style.css','plateau-navigation.js','data.js'])

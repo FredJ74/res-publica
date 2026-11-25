@@ -35,23 +35,23 @@ test('Krasnov : continuité de la gare au radar, toutes les flèches validées',
   })`,ctx);
   assert.equal(got.depart,'krasnov-rue-gare');
   assert.equal(got.nodeFromBuilding,'krasnov-rue-gare');
-  assert.equal(got.noeud.image,'images/Sovarka/Krasnov/Krasnov rue gare.webp');
+  assert.equal(got.noeud.image,'images/Sovarka/Krasnov/Krasnov_rue_gare.webp');
   assert.deepEqual(Object.keys(got.noeud.liens),['arriere']);
   assert.equal(got.noeud.liens.arriere,'krasnov-rue-entrepot');
   assert.equal(got.noeud.flechesStyle.arriere,got.bas);
-  assert.equal(got.entrepot.image,'images/Sovarka/Krasnov/Krasnov rue entrepôt.webp');
+  assert.equal(got.entrepot.image,'images/Sovarka/Krasnov/Krasnov_rue_entrepot.webp');
   assert.deepEqual(Object.keys(got.entrepot.liens).sort(),['droite','toutDroit']);
   assert.equal(got.entrepot.liens.toutDroit,'krasnov-rue-gare');
   assert.equal(got.entrepot.liens.droite,'krasnov-rue-maison');
   assert.equal(got.entrepot.flechesStyle.toutDroit,'top:10px; left:66.6667%; transform:translateX(-50%);');
   assert.equal(got.entrepot.flechesStyle.droite,'bottom:10px; right:10px;');
-  assert.equal(got.maison.image,'images/Sovarka/Krasnov/Krasnov rue maison.webp');
+  assert.equal(got.maison.image,'images/Sovarka/Krasnov/Krasnov_rue_maison.webp');
   assert.deepEqual(Object.keys(got.maison.liens).sort(),['droite','gauche']);
   assert.equal(got.maison.liens.gauche,'krasnov-rue-entrepot');
   assert.equal(got.maison.liens.droite,'krasnov-rue-terrains');
   assert.equal(got.maison.flechesStyle.gauche,'top:50%; left:10px; transform:translateY(-50%);');
   assert.equal(got.maison.flechesStyle.droite,'top:50%; right:10px; transform:translateY(-50%);');
-  assert.equal(got.terrains.image,'images/Sovarka/Krasnov/Krasnov rue terrains.webp');
+  assert.equal(got.terrains.image,'images/Sovarka/Krasnov/Krasnov_rue_terrains.webp');
   assert.deepEqual(Object.keys(got.terrains.liens).sort(),['droite','gauche','toutDroit']);
   assert.equal(got.terrains.liens.gauche,'krasnov-rue-maison');
   assert.equal(got.terrains.liens.toutDroit,'krasnov-rue-eglise');
@@ -60,19 +60,19 @@ test('Krasnov : continuité de la gare au radar, toutes les flèches validées',
   assert.equal(got.terrains.flechesStyle.toutDroit,'top:10px; left:50%; transform:translateX(-50%);');
   assert.equal(got.terrains.liensEnAttente,undefined);
   assert.equal(got.terrains.flechesStyle.droite,'top:66.6667%; right:10px; transform:translateY(-50%);');
-  assert.equal(got.marche.image,'images/Sovarka/Krasnov/Krasnov rue marché ferme.webp');
+  assert.equal(got.marche.image,'images/Sovarka/Krasnov/Krasnov_rue_marche_ferme.webp');
   assert.deepEqual(Object.keys(got.marche.liens).sort(),['droite','gauche']);
   assert.equal(got.marche.liens.gauche,'krasnov-rue-terrains');
   assert.equal(got.marche.liens.droite,'krasnov-centre-artisanal');
   assert.equal(got.marche.flechesStyle.gauche,'top:66.6667%; left:10px; transform:translateY(-50%);');
   assert.equal(got.marche.flechesStyle.droite,'top:66.6667%; right:10px; transform:translateY(-50%);');
-  assert.equal(got.artisanal.image,'images/Sovarka/Krasnov/Krasnov centre artisanal.webp');
+  assert.equal(got.artisanal.image,'images/Sovarka/Krasnov/Krasnov_centre_artisanal.webp');
   assert.deepEqual(Object.keys(got.artisanal.liens).sort(),['gauche','toutDroit']);
   assert.equal(got.artisanal.liens.gauche,'krasnov-rue-marche-ferme');
   assert.equal(got.artisanal.liens.toutDroit,'krasnov-rue-stade-commissariat');
   assert.equal(got.artisanal.flechesStyle.gauche,'top:66.6667%; left:10px; transform:translateY(-50%);');
   assert.equal(got.artisanal.flechesStyle.toutDroit,'top:10px; left:50%; transform:translateX(-50%);');
-  assert.equal(got.stade.image,'images/Sovarka/Krasnov/Krasnov rue stade commissariat.webp?v=20261121'); // image MILITSIYA (#1173), version de cache
+  assert.equal(got.stade.image,'images/Sovarka/Krasnov/Krasnov_rue_stade_commissariat.webp?v=20261121'); // image MILITSIYA (#1173), version de cache
   assert.deepEqual(Array.from(got.stade.zones, z=>z.buildingId), ['commissariat-local','stade']);
   assert.deepEqual(Array.from(got.stade.zones, z=>z.xPct.join('-')), ['0-42','57-100']);
   assert.ok(got.stade.zones.every(z=>z.type==='batiment'));
@@ -81,7 +81,7 @@ test('Krasnov : continuité de la gare au radar, toutes les flèches validées',
   assert.equal(got.stade.liens.toutDroit,'krasnov-rue-ecole-foret');
   assert.equal(got.stade.flechesStyle.arriere,'bottom:10px; left:50%; transform:translateX(-50%);');
   assert.equal(got.stade.flechesStyle.toutDroit,'top:10px; left:50%; transform:translateX(-50%);');
-  assert.equal(got.ecole.image,'images/Sovarka/Krasnov/Krasnov rue école foret.webp');
+  assert.equal(got.ecole.image,'images/Sovarka/Krasnov/Krasnov_rue_ecole_foret.webp');
   // Goulag fermé au chargement : pas de flèche vers la cour des bûcherons (posée par le verrou d'ouverture).
   assert.deepEqual(Object.keys(got.ecole.liens).sort(),['arriere','toutDroit']);
   assert.equal(got.ecole.liens.arriere,'krasnov-rue-stade-commissariat');
@@ -89,31 +89,31 @@ test('Krasnov : continuité de la gare au radar, toutes les flèches validées',
   assert.equal(got.ecole.liens.toutDroit,'krasnov-rue-distillerie-radar');
   assert.equal(got.ecole.flechesStyle.arriere,'bottom:10px; left:50%; transform:translateX(-50%);');
   assert.equal(got.ecole.flechesStyle.toutDroit,'top:10px; left:50%; transform:translateX(-50%);');
-  assert.equal(got.distillerie.image,'images/Sovarka/Krasnov/Krasnov rue distillerie centre radar.webp');
+  assert.equal(got.distillerie.image,'images/Sovarka/Krasnov/Krasnov_rue_distillerie_centre_radar.webp');
   assert.deepEqual(Object.keys(got.distillerie.liens).sort(),['arriere','toutDroit']);
   assert.equal(got.distillerie.liens.arriere,'krasnov-rue-ecole-foret');
   assert.equal(got.distillerie.liens.toutDroit,'krasnov-rue-immeubles-centre-commercial');
   assert.equal(got.distillerie.flechesStyle.arriere,'bottom:10px; left:50%; transform:translateX(-50%);');
   assert.equal(got.distillerie.flechesStyle.toutDroit,'top:10px; left:50%; transform:translateX(-50%);');
-  assert.equal(got.immeubles.image,'images/Sovarka/Krasnov/Krasnov rue immeubles centre commercial.webp');
+  assert.equal(got.immeubles.image,'images/Sovarka/Krasnov/Krasnov_rue_immeubles_centre_commercial.webp');
   assert.deepEqual(Object.keys(got.immeubles.liens).sort(),['arriere','toutDroit']);
   assert.equal(got.immeubles.liens.arriere,'krasnov-rue-distillerie-radar');
   assert.equal(got.immeubles.liens.toutDroit,'krasnov-rue-mairie-place');
   assert.equal(got.immeubles.flechesStyle.arriere,'bottom:10px; left:50%; transform:translateX(-50%);');
   assert.equal(got.immeubles.flechesStyle.toutDroit,'top:10px; left:50%; transform:translateX(-50%);');
-  assert.equal(got.mairie.image,'images/Sovarka/Krasnov/Krasnov rue mairie place.webp');
+  assert.equal(got.mairie.image,'images/Sovarka/Krasnov/Krasnov_rue_mairie_place.webp');
   assert.deepEqual(Object.keys(got.mairie.liens).sort(),['arriere','toutDroit']);
   assert.equal(got.mairie.liens.arriere,'krasnov-rue-immeubles-centre-commercial');
   assert.equal(got.mairie.liens.toutDroit,'krasnov-rue-tabac-bar');
   assert.equal(got.mairie.flechesStyle.arriere,'bottom:10px; left:50%; transform:translateX(-50%);');
   assert.equal(got.mairie.flechesStyle.toutDroit,'top:10px; left:50%; transform:translateX(-50%);');
-  assert.equal(got.tabac.image,'images/Sovarka/Krasnov/Krasnov rue tabac bar.webp');
+  assert.equal(got.tabac.image,'images/Sovarka/Krasnov/Krasnov_rue_tabac_bar.webp');
   assert.deepEqual(Object.keys(got.tabac.liens).sort(),['arriere','toutDroit']);
   assert.equal(got.tabac.liens.arriere,'krasnov-rue-mairie-place');
   assert.equal(got.tabac.liens.toutDroit,'krasnov-rue-station-musee');
   assert.equal(got.tabac.flechesStyle.arriere,'bottom:10px; left:50%; transform:translateX(-50%);');
   assert.equal(got.tabac.flechesStyle.toutDroit,'top:10px; left:50%; transform:translateX(-50%);');
-  assert.equal(got.station.image,'images/Sovarka/Krasnov/Krasnov rue station musée.webp');
+  assert.equal(got.station.image,'images/Sovarka/Krasnov/Krasnov_rue_station_musee.webp');
   assert.deepEqual(Object.keys(got.station.liens).sort(),['arriere','toutDroit']);
   assert.equal(got.station.liens.arriere,'krasnov-rue-tabac-bar');
   assert.equal(got.station.liens.toutDroit,'krasnov-rue-bureaux');
@@ -133,7 +133,7 @@ test('Krasnov : continuité de la gare au radar, toutes les flèches validées',
   assert.equal(got.descendante.liens.toutDroit,'krasnov-rue-eglise');
   assert.equal(got.descendante.flechesStyle.arriere,'bottom:10px; left:50%; transform:translateX(-50%);');
   assert.equal(got.descendante.flechesStyle.toutDroit,'top:10px; left:50%; transform:translateX(-50%);');
-  assert.equal(got.eglise.image,'images/Sovarka/Krasnov/Krasnov rue église.webp');
+  assert.equal(got.eglise.image,'images/Sovarka/Krasnov/Krasnov_rue_eglise.webp');
   assert.deepEqual(Object.keys(got.eglise.liens).sort(),['arriere','droite']);
   assert.equal(got.eglise.liens.droite,'krasnov-rue-descendante');
   assert.equal(got.eglise.liens.arriere,'krasnov-rue-terrains');
@@ -194,7 +194,7 @@ test('Krasnov : visuel WebP de la salle des ventes et ordres logistiques inchang
     bureau:BUILDINGS['entrepot-logistique-krasnov'].rooms.bureau_direction
   })`,ctx);
   assert.ok(got.city.buildings.includes('entrepot-logistique-krasnov'));
-  assert.equal(got.salle.imageUrl,'images/Sovarka/Krasnov/Krasnov_entrepot_salle ventes.webp');
+  assert.equal(got.salle.imageUrl,'images/Sovarka/Krasnov/Krasnov_entrepot_salle_ventes.webp');
   assert.ok(fs.statSync(path.join(root,got.salle.imageUrl)).size>100);
   assert.deepEqual(Array.from(got.salle.orders,o=>o.fn),
     ['receptionner_commande','acheter_ressources_entrepot']);

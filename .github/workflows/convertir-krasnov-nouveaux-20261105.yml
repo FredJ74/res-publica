@@ -28,7 +28,7 @@ jobs:
           from PIL import Image
           p=Path('images/Sovarka/Krasnov')
           assert not list(p.glob('*.png'))
-          for name in ('Krasnov rue mairie place.webp','Krasnov rue station musée.webp','Krasnov rue tabac bar.webp'):
+          for name in ('Krasnov_rue_mairie_place.webp','Krasnov_rue_station_musee.webp','Krasnov_rue_tabac_bar.webp'):
               with Image.open(p/name) as image:
                   assert image.format=='WEBP', name
                   image.verify()

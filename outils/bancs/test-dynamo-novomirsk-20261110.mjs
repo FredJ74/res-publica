@@ -36,7 +36,7 @@ test('six WebP valides et aucun PNG source dans les six pieces', () => {
   }
 });
 test('bureau du président : illustration unique du Dynamo, conversion contrôlée et PNG supprimé', () => {
-  const expected='images/Sovarka/Novomirsk/Novomirsk.stade.bureau président.webP';
+  const expected='images/Sovarka/Novomirsk/Novomirsk.stade.bureau_president.webp';
   assert.equal(context.roomOverrides?.bureau_president?.imageUrl, expected);
   assert.equal(context.roomOverrides?.bureau_president?.name, 'Bureau du président du Dynamo');
   const webp=path.join(root,expected);

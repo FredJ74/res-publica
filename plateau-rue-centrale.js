@@ -829,7 +829,7 @@ const RUE_CENTRALE_NOEUDS = {
 
     // Port industriel : seul retour vers la gare.
     'starovka-rue-port-industriel': {
-      image: 'images/Sovarka/Starovka/Starovka_rue_port industriel.webp',
+      image: 'images/Sovarka/Starovka/Starovka_rue_port_industriel.webp',
       // 06/11/2026 : l'entrepot (hangar a l'enseigne de Starovka, a gauche) et le port (grue et
       // brise-glace, a droite) ; sorties declarees dans rue_sorties_batiments (migration 20261106040500).
       zones: [
@@ -904,7 +904,7 @@ const RUE_CENTRALE_NOEUDS = {
     },
 
     'starovka-rue-logements-collectifs': {
-      image: 'images/Sovarka/Starovka/Starovka_rue_logements collectifs.webp',
+      image: 'images/Sovarka/Starovka/Starovka_rue_logements_collectifs.webp',
       zones: [],
       liens: {
         gauche: 'starovka-rue-raffinerie',
@@ -1018,7 +1018,7 @@ const RUE_CENTRALE_NOEUDS = {
     },
 
     'starovka-rue-magasin-chasse': {
-      image: 'images/Sovarka/Starovka/Starkova_rue_magasin chasse.webp',
+      image: 'images/Sovarka/Starovka/Starovka_rue_magasin_chasse.webp',
       zones: [],
       liens: {
         arriere: 'starovka-rue-bureaux-caserne',
@@ -1031,7 +1031,7 @@ const RUE_CENTRALE_NOEUDS = {
     },
 
     'starovka-rue-locaux-a-louer': {
-      image: 'images/Sovarka/Starovka/Starovka_rue_locaux a louer.webp',
+      image: 'images/Sovarka/Starovka/Starovka_rue_locaux_a_louer.webp',
       zones: [],
       liens: {
         arriere: 'starovka-rue-magasin-chasse',
@@ -1046,7 +1046,7 @@ const RUE_CENTRALE_NOEUDS = {
     // KRASNOV — la gare donne vers la rue de l'entrepôt par une seule flèche BAS.
     // Les autres directions restent non définies, conformément à l'arbitrage du game designer.
     'krasnov-rue-gare': {
-      image: 'images/Sovarka/Krasnov/Krasnov rue gare.webp',
+      image: 'images/Sovarka/Krasnov/Krasnov_rue_gare.webp',
       zones: [
         { xPct: [0, 48], yPct: [8, 76], nom: 'Gare de Krasnov', type: 'batiment', buildingId: 'centre-multinodal-montrouge' }
       ],
@@ -1055,7 +1055,7 @@ const RUE_CENTRALE_NOEUDS = {
     },
 
     'krasnov-rue-entrepot': {
-      image: 'images/Sovarka/Krasnov/Krasnov rue entrepôt.webp',
+      image: 'images/Sovarka/Krasnov/Krasnov_rue_entrepot.webp',
       zones: [
         { xPct: [0, 64], yPct: [2, 60], nom: 'Entrepôt Logistique de Krasnov', type: 'batiment', buildingId: 'entrepot-logistique-krasnov' }
       ],
@@ -1068,7 +1068,7 @@ const RUE_CENTRALE_NOEUDS = {
 
     // Rue des maisons : aucune direction supplémentaire tant que non définie.
     'krasnov-rue-maison': {
-      image: 'images/Sovarka/Krasnov/Krasnov rue maison.webp',
+      image: 'images/Sovarka/Krasnov/Krasnov_rue_maison.webp',
       // 10/11/2026 : maison de Stepan (hospitalité), migration 20261110094500.
       zones: [
         { xPct: [40, 90], yPct: [8, 76], nom: 'Maison de Stepan', type: 'batiment', buildingId: 'maison-krasnov' }
@@ -1082,7 +1082,7 @@ const RUE_CENTRALE_NOEUDS = {
 
     // Krasnov : l'image du marché fermé est disponible, son accès est actif.
     'krasnov-rue-terrains': {
-      image: 'images/Sovarka/Krasnov/Krasnov rue terrains.webp',
+      image: 'images/Sovarka/Krasnov/Krasnov_rue_terrains.webp',
       // 09/11/2026 : façade identifiée sur l'image, sortie serveur (migration 20261109004500).
       zones: [
         { xPct: [10, 58], yPct: [40, 64], nom: 'Terrain municipal', type: 'batiment', buildingId: 'terrain-a-batir-2' },
@@ -1098,7 +1098,7 @@ const RUE_CENTRALE_NOEUDS = {
     },
 
     'krasnov-rue-marche-ferme': {
-      image: 'images/Sovarka/Krasnov/Krasnov rue marché ferme.webp',
+      image: 'images/Sovarka/Krasnov/Krasnov_rue_marche_ferme.webp',
       zones: [],
       liens: { gauche: 'krasnov-rue-terrains', droite: 'krasnov-centre-artisanal' },
       flechesStyle: {
@@ -1108,7 +1108,7 @@ const RUE_CENTRALE_NOEUDS = {
     },
 
     'krasnov-centre-artisanal': {
-      image: 'images/Sovarka/Krasnov/Krasnov centre artisanal.webp',
+      image: 'images/Sovarka/Krasnov/Krasnov_centre_artisanal.webp',
       // 09/11/2026 : façade identifiée sur l'image, sortie serveur (migration 20261109004500).
       zones: [
         { xPct: [0, 35], yPct: [0, 62], nom: 'Centre artisanal de Krasnov', type: 'batiment', buildingId: 'centre-artisanal' }
@@ -1121,7 +1121,7 @@ const RUE_CENTRALE_NOEUDS = {
     },
 
     'krasnov-rue-stade-commissariat': {
-      image: 'images/Sovarka/Krasnov/Krasnov rue stade commissariat.webp?v=20261121',
+      image: 'images/Sovarka/Krasnov/Krasnov_rue_stade_commissariat.webp?v=20261121',
       zones: [
         // Façades identifiées sur l'image : police à gauche, stade à droite.
         // Les pièces et les ordres sont hérités des gabarits partagés, non dupliqués.
@@ -1136,7 +1136,7 @@ const RUE_CENTRALE_NOEUDS = {
     },
 
     'krasnov-rue-ecole-foret': {
-      image: 'images/Sovarka/Krasnov/Krasnov rue école foret.webp',
+      image: 'images/Sovarka/Krasnov/Krasnov_rue_ecole_foret.webp',
       zones: [],
       // La flèche « droite » vers la cour des bûcherons n'est posée que goulag ouvert (plateau-goulag-ouverture.js).
       liens: { arriere: 'krasnov-rue-stade-commissariat', toutDroit: 'krasnov-rue-distillerie-radar' },
@@ -1158,7 +1158,7 @@ const RUE_CENTRALE_NOEUDS = {
 
     // Krasnov : retour vers l'école / forêt, puis route vers les immeubles.
     'krasnov-rue-distillerie-radar': {
-      image: 'images/Sovarka/Krasnov/Krasnov rue distillerie centre radar.webp',
+      image: 'images/Sovarka/Krasnov/Krasnov_rue_distillerie_centre_radar.webp',
       // 10/11/2026 : station radar (centre d'écoute), sortie serveur (migration 20261110092000).
       zones: [
         { xPct: [55, 95], yPct: [8, 76], nom: 'Station radar de Krasnov', type: 'batiment', buildingId: 'station-radar-krasnov' }
@@ -1172,7 +1172,7 @@ const RUE_CENTRALE_NOEUDS = {
 
     // Rue des immeubles et du centre commercial : retour distillerie, puis mairie.
     'krasnov-rue-immeubles-centre-commercial': {
-      image: 'images/Sovarka/Krasnov/Krasnov rue immeubles centre commercial.webp',
+      image: 'images/Sovarka/Krasnov/Krasnov_rue_immeubles_centre_commercial.webp',
       // 09/11/2026 : façade identifiée sur l'image, sortie serveur (migration 20261109004500).
       zones: [
         { xPct: [0, 36], yPct: [12, 62], nom: 'Centre commercial de Krasnov', type: 'batiment', buildingId: 'centre-commercial' },
@@ -1189,7 +1189,7 @@ const RUE_CENTRALE_NOEUDS = {
     // L'immeuble à écriteaux (au centre, derrière la statue) est distinct de
     // celui qui fait face au centre commercial : ses futurs baux le seront aussi.
     'krasnov-rue-mairie-place': {
-      image: 'images/Sovarka/Krasnov/Krasnov rue mairie place.webp',
+      image: 'images/Sovarka/Krasnov/Krasnov_rue_mairie_place.webp',
       zones: [
         { xPct: [72, 100], yPct: [8, 68], nom: 'Mairie de Krasnov', type: 'batiment', buildingId: 'mairie' },
         { xPct: [54, 71], yPct: [19, 55], nom: "Immeuble de la place de l'Ours", type: 'batiment', buildingId: 'logements-krasnov-place-ours' },
@@ -1217,7 +1217,7 @@ const RUE_CENTRALE_NOEUDS = {
 
     // Rue du tabac/bar : retour à la mairie et progression vers station/musée.
     'krasnov-rue-tabac-bar': {
-      image: 'images/Sovarka/Krasnov/Krasnov rue tabac bar.webp',
+      image: 'images/Sovarka/Krasnov/Krasnov_rue_tabac_bar.webp',
       zones: [],
       liens: { arriere: 'krasnov-rue-mairie-place', toutDroit: 'krasnov-rue-station-musee' },
       flechesStyle: {
@@ -1228,7 +1228,7 @@ const RUE_CENTRALE_NOEUDS = {
 
     // Musée : retour tabac/bar et progression vers les bureaux.
     'krasnov-rue-station-musee': {
-      image: 'images/Sovarka/Krasnov/Krasnov rue station musée.webp',
+      image: 'images/Sovarka/Krasnov/Krasnov_rue_station_musee.webp',
       // Station-service de Krasnov (vehicules personnels, 05/11/2026) ; le musee reste a raccorder.
       zones: [
         { xPct: [66, 100], yPct: [33, 68], nom: 'Station-service de Krasnov', type: 'batiment', buildingId: 'station-service-krasnov' }
@@ -1287,7 +1287,7 @@ const RUE_CENTRALE_NOEUDS = {
 
     // Église : l'ancienne flèche droite en attente boucle vers la rue descendante.
     'krasnov-rue-eglise': {
-      image: 'images/Sovarka/Krasnov/Krasnov rue église.webp',
+      image: 'images/Sovarka/Krasnov/Krasnov_rue_eglise.webp',
       // 14/11/2026 : maison brune à droite de l'église (hospitalité, migration 20261114180000).
       zones: [
         { xPct: [71, 97], yPct: [38, 62], nom: 'Tserkovny dom du batiouchka', type: 'batiment', buildingId: 'maison-krasnov-eglise' }

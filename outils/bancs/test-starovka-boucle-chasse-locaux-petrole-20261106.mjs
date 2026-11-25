@@ -25,7 +25,7 @@ test('Starovka : chasse, locaux à louer et pétrole-ferme accessibles dans les 
  assert.equal(n.petrole.liens.toutDroit,'starovka-maisons-ferme');
  assert.equal(n.petrole.liens.droite,'starovka-rue-terrains');
  assert.equal(n.petrole.liensEnAttente?.arriere,undefined);
- assert.equal(n.locaux.image,'images/Sovarka/Starovka/Starovka_rue_locaux a louer.webp');
+ assert.equal(n.locaux.image,'images/Sovarka/Starovka/Starovka_rue_locaux_a_louer.webp');
  assert.ok(fs.statSync(path.join(root,n.locaux.image)).size>100);
  assert.ok(fs.statSync(path.join(root,n.chasse.image)).size>100);
  assert.ok(fs.statSync(path.join(root,n.petrole.image)).size>100);

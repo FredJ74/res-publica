@@ -30,13 +30,13 @@ jobs:
           p = Path('images/Sovarka/Krasnov')
           assert not list(p.glob('*.png')), 'PNG résiduel'
           expected = [
-            'Krasnov centre artisanal.webp',
-            'Krasnov rue distillerie centre radar.webp',
-            'Krasnov rue école foret.webp',
-            'Krasnov rue immeubles centre commercial.webp',
-            'Krasnov rue marché ferme.webp',
-            'Krasnov rue stade commissariat.webp',
-            'Krasnov rue tabac bar.webp',
+            'Krasnov_centre_artisanal.webp',
+            'Krasnov_rue_distillerie_centre_radar.webp',
+            'Krasnov_rue_ecole_foret.webp',
+            'Krasnov_rue_immeubles_centre_commercial.webp',
+            'Krasnov_rue_marche_ferme.webp',
+            'Krasnov_rue_stade_commissariat.webp',
+            'Krasnov_rue_tabac_bar.webp',
           ]
           for name in expected:
               with Image.open(p / name) as image:

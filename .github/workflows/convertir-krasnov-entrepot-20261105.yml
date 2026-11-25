@@ -27,7 +27,7 @@ jobs:
           from pathlib import Path
           from PIL import Image
           p=Path('images/Sovarka/Krasnov')
-          target=p/'Krasnov rue entrepôt.webp'
+          target=p/'Krasnov_rue_entrepot.webp'
           assert not (p/'Krasnov rue entrepôt.png').exists()
           with Image.open(target) as image:
               assert image.format=='WEBP'

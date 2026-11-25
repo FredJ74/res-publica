@@ -9,7 +9,7 @@ on:
       - '.github/workflows/installer-bureau-dynamo-webp.yml'
   pull_request:
     paths:
-      - 'images/Sovarka/Novomirsk/Novomirsk.stade.bureau président.webP'
+      - 'images/Sovarka/Novomirsk/Novomirsk.stade.bureau_president.webp'
       - 'images/Sovarka/Novomirsk/Les cinq triomphes mondiaux du Dynamo Novomirsk.png'
       - 'data.js'
       - 'outils/images/installer_bureau_president_dynamo_20261110.py'
@@ -38,7 +38,7 @@ jobs:
       - name: Commit des visuels convertis
         if: github.event_name == 'push'
         run: |
-          git add -A -- 'images/Sovarka/Novomirsk/Les cinq triomphes mondiaux du Dynamo Novomirsk.png' 'images/Sovarka/Novomirsk/Novomirsk.stade.bureau président.webP'
+          git add -A -- 'images/Sovarka/Novomirsk/Les cinq triomphes mondiaux du Dynamo Novomirsk.png' 'images/Sovarka/Novomirsk/Novomirsk.stade.bureau_president.webp'
           if ! git diff --cached --quiet; then
             git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'Installer l’image WebP du bureau du président et supprimer le PNG'
             git push origin HEAD:chatgpt/dynamo-bureau-president-webp-20261110

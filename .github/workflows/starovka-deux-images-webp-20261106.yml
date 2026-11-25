@@ -51,7 +51,7 @@ jobs:
           from pathlib import Path
           from PIL import Image
           root=Path('images/Sovarka/Starovka')
-          for n in ['Starkova_rue_magasin chasse.webp','Starovka_rue_locaux a louer.webp']:
+          for n in ['Starovka_rue_magasin_chasse.webp','Starovka_rue_locaux_a_louer.webp']:
               f=root/n
               assert f.is_file()
               with Image.open(f) as img:
@@ -61,7 +61,7 @@ jobs:
           PY
       - name: Commit conversion et suppression des PNG
         run: |
-          git add -A -- 'images/Sovarka/Starovka/Starkova_rue_magasin chasse.png' 'images/Sovarka/Starovka/Starkova_rue_magasin chasse.webp' 'images/Sovarka/Starovka/Starovka_rue_locaux a louer.png' 'images/Sovarka/Starovka/Starovka_rue_locaux a louer.webp'
+          git add -A -- 'images/Sovarka/Starovka/Starkova_rue_magasin chasse.png' 'images/Sovarka/Starovka/Starovka_rue_magasin_chasse.webp' 'images/Sovarka/Starovka/Starovka_rue_locaux a louer.png' 'images/Sovarka/Starovka/Starovka_rue_locaux_a_louer.webp'
           git diff --cached --check
           git diff --cached --quiet && exit 1
           git config user.name 'github-actions[bot]'

@@ -1809,7 +1809,7 @@ const WORLD = {
             },
             bureau_president: {
               name: 'Bureau du président du Dynamo',
-              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk.stade.bureau président.webP'
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk.stade.bureau_president.webp'
             },
             siege_supporters: {
               name: 'Club des supporters du Dynamo',
@@ -1891,19 +1891,19 @@ const WORLD = {
           roomOverrides: {
             travees: {
               name: 'Accueil du centre artisanal',
-              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_centre artisanal_accueil.webp'
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_centre_artisanal_accueil.webp'
             },
             echoppe_facade: {
               name: 'Grand atelier — Local à louer',
-              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_centre artisanal_grand atelier.webp'
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_centre_artisanal_grand_atelier.webp'
             },
             atelier_milieu: {
               name: 'Atelier moyen — Local à louer',
-              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_centre artisanal_moyen local.webp'
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_centre_artisanal_moyen_local.webp'
             },
             reserve_arriere: {
               name: 'Petit atelier — Local à louer',
-              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_centre artisanal_petit local.webp'
+              imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_centre_artisanal_petit_local.webp'
             }
           }
         },
@@ -2488,15 +2488,15 @@ const WORLD = {
           // navigation serveur. Les trois salles exclues ne sont pas détruites.
           roomsExclues: ['salle_tresor_national','salle_reussites_economiques','salle_criminels_pays'],
           roomOverrides: {
-            hall: { name: "Accueil", desc: "Accueil du musée national, avec la réceptionniste et la guide.", imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musée national_accueil.webp", persons: [GUIDE_MUSEE_NOVOMIRSK], orders: [ORDRE_ECOUTER_GUIDE_MUSEE] },
-            salle_presidents: { name: "Salle des présidents", desc: "Portraits des cinq présidents historiques de Sovarka et deux emplacements réservés aux futurs dirigeants.", imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musée national_salle présidents.webp", persons: [GUIDE_MUSEE_NOVOMIRSK], orders: [ORDRE_ECOUTER_GUIDE_MUSEE] },
-            salle_politiques: { name: "Salle des partis politiques victorieux", desc: "Les partis des présidents victorieux : PPP, Parti du Prolétariat Heureux et Parti du Progrès Nostalgique.", imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musée national_salle partis.webp", persons: [GUIDE_MUSEE_NOVOMIRSK], orders: [ORDRE_ECOUTER_GUIDE_MUSEE] },
-            salle_honneur_militaire_nationale: { name: "Salle des honneurs militaires", desc: "Hommages militaires et objets de mémoire du pays.", imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musée national_salle des honneurs militaires.webp", persons: [GUIDE_MUSEE_NOVOMIRSK], orders: [ORDRE_ECOUTER_GUIDE_MUSEE] },
-            salle_organisations: { name: "Salle du tractorisme", desc: "La religion du tractorisme et ses traditions.", imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musée national_salle tractorisme.webp", persons: [GUIDE_MUSEE_NOVOMIRSK], orders: [ORDRE_ECOUTER_GUIDE_MUSEE] },
-            salle_artistes_sportifs: { name: "Salle des sportifs de Sovarka", desc: "Les sportifs célébrés de Novomirsk, Krasnov et Starovka.", imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musée national_salle sportifs.webp", persons: [GUIDE_MUSEE_NOVOMIRSK], orders: [ORDRE_ECOUTER_GUIDE_MUSEE] },
-            salle_civils_intellectuels: { name: "Salle des artistes de Sovarka", desc: "Les poètes, musiciens, sculpteurs et peintres de Sovarka.", imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musée national_salle artistes.webp", persons: [GUIDE_MUSEE_NOVOMIRSK], orders: [ORDRE_ECOUTER_GUIDE_MUSEE] },
-            salle_grandes_villes: { name: "Salle des grandes crises de Sovarka", desc: "Famines, guerre, grève et défaite en finale de football contre El Estado en 1937.", imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musée national_salle crises.webp", persons: [GUIDE_MUSEE_NOVOMIRSK], orders: [ORDRE_ECOUTER_GUIDE_MUSEE] },
-            expositions_temporaires: { name: "Salle des expositions tournantes", desc: "Salle momentanément vide, réservée aux expositions tournantes.", imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musée national_salle expo tournantes.webp", persons: [GUIDE_MUSEE_NOVOMIRSK], orders: [ORDRE_ECOUTER_GUIDE_MUSEE] }
+            hall: { name: "Accueil", desc: "Accueil du musée national, avec la réceptionniste et la guide.", imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musee_national_accueil.webp", persons: [GUIDE_MUSEE_NOVOMIRSK], orders: [ORDRE_ECOUTER_GUIDE_MUSEE] },
+            salle_presidents: { name: "Salle des présidents", desc: "Portraits des cinq présidents historiques de Sovarka et deux emplacements réservés aux futurs dirigeants.", imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musee_national_salle_presidents.webp", persons: [GUIDE_MUSEE_NOVOMIRSK], orders: [ORDRE_ECOUTER_GUIDE_MUSEE] },
+            salle_politiques: { name: "Salle des partis politiques victorieux", desc: "Les partis des présidents victorieux : PPP, Parti du Prolétariat Heureux et Parti du Progrès Nostalgique.", imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musee_national_salle_partis.webp", persons: [GUIDE_MUSEE_NOVOMIRSK], orders: [ORDRE_ECOUTER_GUIDE_MUSEE] },
+            salle_honneur_militaire_nationale: { name: "Salle des honneurs militaires", desc: "Hommages militaires et objets de mémoire du pays.", imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musee_national_salle_des_honneurs_militaires.webp", persons: [GUIDE_MUSEE_NOVOMIRSK], orders: [ORDRE_ECOUTER_GUIDE_MUSEE] },
+            salle_organisations: { name: "Salle du tractorisme", desc: "La religion du tractorisme et ses traditions.", imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musee_national_salle_tractorisme.webp", persons: [GUIDE_MUSEE_NOVOMIRSK], orders: [ORDRE_ECOUTER_GUIDE_MUSEE] },
+            salle_artistes_sportifs: { name: "Salle des sportifs de Sovarka", desc: "Les sportifs célébrés de Novomirsk, Krasnov et Starovka.", imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musee_national_salle_sportifs.webp", persons: [GUIDE_MUSEE_NOVOMIRSK], orders: [ORDRE_ECOUTER_GUIDE_MUSEE] },
+            salle_civils_intellectuels: { name: "Salle des artistes de Sovarka", desc: "Les poètes, musiciens, sculpteurs et peintres de Sovarka.", imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musee_national_salle_artistes.webp", persons: [GUIDE_MUSEE_NOVOMIRSK], orders: [ORDRE_ECOUTER_GUIDE_MUSEE] },
+            salle_grandes_villes: { name: "Salle des grandes crises de Sovarka", desc: "Famines, guerre, grève et défaite en finale de football contre El Estado en 1937.", imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musee_national_salle_crises.webp", persons: [GUIDE_MUSEE_NOVOMIRSK], orders: [ORDRE_ECOUTER_GUIDE_MUSEE] },
+            expositions_temporaires: { name: "Salle des expositions tournantes", desc: "Salle momentanément vide, réservée aux expositions tournantes.", imageUrl: "images/Sovarka/Novomirsk/Novomirsk_musee_national_salle_expo_tournantes.webp", persons: [GUIDE_MUSEE_NOVOMIRSK], orders: [ORDRE_ECOUTER_GUIDE_MUSEE] }
           }
         }
       }
@@ -3593,7 +3593,7 @@ const BUILDINGS = {
         name: "Salle de Presse",
         imageBg: "linear-gradient(135deg,#0f0f18,#181820)",
         desc: "La salle de presse officielle du gouvernement. Microphones, cameras, journalistes accrédités.",
-        imageUrl: "images/Luthecia%20palais%20gouvernement%20salle%20presse.webp?v=20261102",
+        imageUrl: "images/Luthecia_palais_gouvernement_salle_presse.webp?v=20261102",
         persons: [
           // CORINNE TITE-DECLAZ (11 octobre 2026) remplace le « Porte-parole (PNJ) » anonyme. Meme
           // logique que le Porte-parole presidentiel livre la veille : referente de la COMMUNICATION
@@ -7429,7 +7429,7 @@ const BUILDINGS = {
       accueil_ambassades_novomirsk: {
         name: "Accueil du Palais des Ambassades",
         imageBg: "linear-gradient(135deg,#12100a,#1a1610)",
-        imageUrl: "images/Sovarka/Novomirsk/Novomirsk_Palais des Ambassades_hall.webp",
+        imageUrl: "images/Sovarka/Novomirsk/Novomirsk_Palais_des_Ambassades_hall.webp",
         desc: "Le hall d'accueil du palais diplomatique. Trois bureaux d'ambassadeurs, un portrait officiel par mur, et un employé du Parti qui note les allées et venues.",
         persons: [
           {name:'Hôtesse d\'Accueil (PNJ)', role:'PNJ - Accueil', rel:'neutral', job:'hotesse'},
@@ -7456,7 +7456,7 @@ const BUILDINGS = {
       bureau_khalija_novomirsk: {
         name: "Ambassade d'Al-Khalija",
         imageBg: "linear-gradient(135deg,#1a160c,#241e10)",
-        imageUrl: "images/Sovarka/Novomirsk/Novomirsk_ambassades_Al Khalija.webp",
+        imageUrl: "images/Sovarka/Novomirsk/Novomirsk_ambassades_Al_Khalija.webp",
         desc: "Le bureau de l'ambassadeur d'Al-Khalija. On n'y est reçu que sur audience, demandée à l'accueil.",
         persons: [{name:'Cheikh Rachid Al-Diplomi (PNJ)', role:"Ambassadeur d'Al-Khalija", rel:'neutral', job:'ambassadeur'}],
         orders: [
@@ -7469,7 +7469,7 @@ const BUILDINGS = {
       bureau_estado_novomirsk: {
         name: "Ambassade d'El Estado",
         imageBg: "linear-gradient(135deg,#1a0e0c,#241410)",
-        imageUrl: "images/Sovarka/Novomirsk/Novomirsk_ambassades_El Estado.webp",
+        imageUrl: "images/Sovarka/Novomirsk/Novomirsk_ambassades_El_Estado.webp",
         desc: "Le bureau de l'ambassadeur d'El Estado. On n'y est reçu que sur audience, demandée à l'accueil.",
         persons: [{name:'Don Esteban Cortesano (PNJ)', role:"Ambassadeur d'El Estado", rel:'neutral', job:'ambassadeur'}],
         orders: [
@@ -8495,7 +8495,7 @@ const BUILDINGS = {
       salle_ventes: {
         name: "Salle des Ventes",
         imageBg: "linear-gradient(135deg,#141210,#1c1815)",
-        imageUrl: "images/Sovarka/Krasnov/Krasnov_entrepot_salle ventes.webp",
+        imageUrl: "images/Sovarka/Krasnov/Krasnov_entrepot_salle_ventes.webp",
         desc: "Le quai de chargement et la salle des ventes. Le stock et les prix varient selon les livraisons du jour.",
         persons: [],
         orders: [{fn:'receptionner_commande', label:'Réceptionner une caisse', pa:1, cost:0, type:'legal', icon:'ti-package-import', successRate:100, desc:'Retirer les caisses livrées ici à votre nom (achats de trading, offres d\'achat servies).'}, {fn:'acheter_ressources_entrepot', label:'Acheter des ressources', pa: 0, cost:0, type:'legal', icon:'ti-shopping-cart', successRate:100, desc:'Choisir les ressources et quantités à acheter, selon le stock et le prix du moment.'}]

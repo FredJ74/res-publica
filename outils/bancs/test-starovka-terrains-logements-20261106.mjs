@@ -14,7 +14,7 @@ test('Starovka : terrains vers logements collectifs et retour',()=>{
   assert.equal(x.terrains.liens.droite,'starovka-rue-raffinerie');
   assert.equal(x.logements.liens.gauche,'starovka-rue-raffinerie');
   assert.match(x.terrains.flechesStyle.droite,/right:10px/);
-  assert.equal(x.logements.image,'images/Sovarka/Starovka/Starovka_rue_logements collectifs.webp');
+  assert.equal(x.logements.image,'images/Sovarka/Starovka/Starovka_rue_logements_collectifs.webp');
   assert.ok(fs.statSync(path.join(root,x.logements.image)).size>100);
   assert.equal(fs.existsSync(path.join(root,'images/Sovarka/Starovka/Starovka_rue_logements collectifs.png')),false);
 });

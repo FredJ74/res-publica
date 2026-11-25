@@ -47,7 +47,7 @@ jobs:
           git diff --check
       - name: Publier uniquement les images converties sur la branche
         run: |
-          git add -A -- 'images/Sovarka/Starovka/Starovka_rue_logements collectifs.png' 'images/Sovarka/Starovka/Starovka_rue_logements collectifs.webp'
+          git add -A -- 'images/Sovarka/Starovka/Starovka_rue_logements collectifs.png' 'images/Sovarka/Starovka/Starovka_rue_logements_collectifs.webp'
           git diff --cached --check
           git diff --cached --quiet && exit 0
           git config user.name 'github-actions[bot]'

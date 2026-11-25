@@ -28,7 +28,7 @@ jobs:
           from pathlib import Path
           from PIL import Image
           p=Path('images/Sovarka/Krasnov')
-          names=['Krasnov rue église.webp','Krasnov rue gare.webp','Krasnov rue maison.webp','Krasnov rue terrains.webp','Krasnov_gare_hall.webp']
+          names=['Krasnov_rue_eglise.webp','Krasnov_rue_gare.webp','Krasnov_rue_maison.webp','Krasnov_rue_terrains.webp','Krasnov_gare_hall.webp']
           assert not list(p.glob('*.png')), 'PNG résiduel'
           for name in names:
               assert (p/name).is_file(),name

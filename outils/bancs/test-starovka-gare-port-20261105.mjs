@@ -23,7 +23,7 @@ test('Starovka : gare en entrée, port terminus et hôtel raccordé', () => {
   assert.equal(result.depart, 'starovka-rue-gare');
   assert.equal(result.serveur, true);
   assert.equal(result.gare.image, 'images/Sovarka/Starovka/Starovka_rue_gare.webp');
-  assert.equal(result.port.image, 'images/Sovarka/Starovka/Starovka_rue_port industriel.webp');
+  assert.equal(result.port.image, 'images/Sovarka/Starovka/Starovka_rue_port_industriel.webp');
   assert.deepEqual(Object.keys(result.gare.liens), ['toutDroit','arriere']);
   assert.equal(result.gare.liens.toutDroit, 'starovka-rue-port-industriel');
   assert.equal(result.gare.liens.arriere,'starovka-rue-hotel');

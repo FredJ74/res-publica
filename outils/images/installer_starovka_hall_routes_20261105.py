@@ -60,7 +60,7 @@ old="""    // STAROVKA — ouverture de la navigation par la gare de fret.
 
     // PORT INDUSTRIEL — terminaison de la carte, retour unique vers la gare.
     'starovka-rue-port-industriel': {
-      image: 'images/Sovarka/Starovka/Starovka_rue_port industriel.webp',
+      image: 'images/Sovarka/Starovka/Starovka_rue_port_industriel.webp',
       zones: [],
       liens: { arriere: 'starovka-rue-gare' },
       flechesStyle: { arriere: RC_FLECHE_BAS }
@@ -77,7 +77,7 @@ new="""    // Starovka : la gare utilise le transport et les pièces du socle pa
 
     // Port industriel : seul retour vers la gare.
     'starovka-rue-port-industriel': {
-      image: 'images/Sovarka/Starovka/Starovka_rue_port industriel.webp',
+      image: 'images/Sovarka/Starovka/Starovka_rue_port_industriel.webp',
       zones: [],
       liens: { arriere: 'starovka-rue-gare' },
       flechesStyle: { arriere: RC_FLECHE_BAS }

@@ -113,7 +113,7 @@ jobs:
             with Image.open(f) as im: assert im.format=='WEBP'
           assert not list(Path('images/Sovarka/Krasnov').glob('Atelier artisanal sovie*.png'))
           assert not list(Path('images/Sovarka/Krasnov').glob('Atelier industriel chaleureux*.png'))
-          assert Path('images/Sovarka/Krasnov/Krasnov centre artisanal.webp').exists(), 'Ne pas supprimer la facade'
+          assert Path('images/Sovarka/Krasnov/Krasnov_centre_artisanal.webp').exists(), 'Ne pas supprimer la facade'
           # Le parcours commun provincial existant garde la demande en mairie, pas 'louer_local'.
           assert "for (const [batiment, pieces] of Object.entries(locaux))" in code
           assert "ordre('sovarka_demande_location', 'Demande de location'" in code

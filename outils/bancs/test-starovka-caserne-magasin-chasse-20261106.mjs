@@ -18,7 +18,7 @@ test('Starovka : flèche haute à gauche vers magasin de chasse, retour en bas',
   assert.match(n.caserne.flechesStyle.toutDroit,/left:43%/);
   assert.equal(n.chasse.liens.arriere,'starovka-rue-bureaux-caserne');
   assert.equal(n.chasse.flechesStyle.arriere,n.bas);
-  assert.equal(n.chasse.image,'images/Sovarka/Starovka/Starkova_rue_magasin chasse.webp');
+  assert.equal(n.chasse.image,'images/Sovarka/Starovka/Starovka_rue_magasin_chasse.webp');
   assert.ok(fs.statSync(path.join(root,n.chasse.image)).size>100);
 });
 

@@ -28,7 +28,7 @@ jobs:
           from PIL import Image
           directory=Path('images/Sovarka/Starovka')
           assert not list(directory.glob('*.png'))
-          for name in ('Starovka_rue_gare.webp','Starovka_rue_port industriel.webp'):
+          for name in ('Starovka_rue_gare.webp','Starovka_rue_port_industriel.webp'):
               file=directory/name
               assert file.stat().st_size>100
               with Image.open(file) as im:
