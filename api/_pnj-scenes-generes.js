@@ -367,9 +367,9 @@ export const SCENES_PNJ = {
     "pays": "Republia",
     "ville": "Luthécia",
     "batiment": "Dispensaire Public de Luthecia",
-    "piece": "Salle d'attente",
+    "piece": "Accueil",
     "personnes": [
-      "Docteur Aspirine",
+      "Mathias Spirine",
       "Anne Tibiotique"
     ]
   },
@@ -7349,7 +7349,8 @@ export const SCENES_PNJ = {
     "batiment": "Marché de Krasnov",
     "piece": "Etals du marche",
     "personnes": [
-      "Nina Gorbounova"
+      "Nina Gorbounova",
+      "Fiodor Medvedkine"
     ]
   },
   "[\"soviet\",\"ville_b\",\"universite\",\"amphi\"]": {

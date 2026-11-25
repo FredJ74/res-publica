@@ -9,6 +9,25 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Mission de nuit (Claude, 25/11/2026) — suivi : `docs/suivi-decisions.md`, section « Mission de nuit »
+- Bloc 1.1 (sur main) : Mathias Spirine (ex-Docteur Aspirine, commit 32e5b8d de Fred) — profil de dialogue, miroir des scènes,
+  banc de l'hôpital de Novomirsk (Luthécia garde ses images). Suite complète des bancs verte. CI : `workflow_dispatch` sur
+  « Cohérence client » ; sur une branche de chantier, les bancs liés à toute la branche (depuis main) sont rejoués.
+- Migrations écrites, **non appliquées** (Fred valide au matin, dans l'ordre) : 20261125100000 (Mathias Spirine dans
+  pnj_lieux_metiers), 20261125110000 (temps de jeu, page restée ouverte), 20261125120000 (Subtiliser des explosifs),
+  20261125130000 (chances réelles). Contrôles en lecture en tête de chaque fichier.
+- **Fusion bloquée** : la poussée directe sur main a été refusée à l'agent (pas de `gh` ici). Chaîne linéaire à fusionner dans
+  cet ordre, chaque branche contenant la précédente : `claude/nuit-ci-20261125` (1.1) → `chatgpt/portraits-pnj-20261124`
+  (PR #1196, main de la nuit déjà intégré) → `claude/nuit-fiodor-20261125` (1.3) → `claude/nuit-temps-jeu-20261125` (2) →
+  `claude/nuit-explosifs-20261125` (3) → `claude/nuit-chances-20261125` (4). Fusionner la dernière suffit (avance rapide).
+- Bloc 2 : cause = page masquée sur téléphone (aucun envoi 19 h 45-20 h 20 UTC pour Han Watta Tsé) ; `accueil_reprise`.
+- Bloc 3 : l'ordre cliqué passe par `militaire_subtiliser_tenter` (pas `crime_acheter_explosifs`, marché noir, inchangé).
+- Bloc 4 : `ordres_chances_lire` (se cacher, subtiliser, explosifs, rumeur, neutraliser) ; `plateau-chances-reelles.js` ;
+  audit 4.2 : `docs/nuit/AUDIT-CHANCES-20261125.md` (écarts à trancher, aucune règle changée).
+- **Pour Codex** (français nouveau, à traduire) : description de « Subtiliser des explosifs » (data.js, clé de
+  `i18n/infobulles-communes-resources.js` à remplacer) ; motif « Vol d'explosifs militaires » ; « Vos chances réelles : X % »
+  (`plateau-chances-reelles.js`, `plateau-ordres-info.js`, `plateau-criminalite.js`).
+
 ### Mission « Purge » (Claude, 24/11/2026) — tableau de suivi : `docs/suivi-decisions.md`
 - Tout est sur main (blocs 0, 1, A à H). Comptes rendus détaillés par bloc, migrations, questions de game design et **listes
   « Pour Codex »** (textes français nouveaux ou changés, à traduire à son retour le 27/11) : `docs/purge/BLOC-A.md`, `BLOC-B.md`,
@@ -1216,6 +1235,7 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 
 ## Derniers chantiers
 
+- **Portraits PNJ Novomirsk et guides (ChatGPT, 24/11/2026, PR #1196)** : recadrages existants de Valentina Petchatkina et Zinaïda Kvassova raccordés ; contrôle 140 apparitions = 105 portraits existants + 35 à produire, six guides sortis des images de marché et prompts/chemins réservés (`outils/audits/portraits/PORTRAITS-A-PRODUIRE-20261124.md`) ; Fiodor Medvedkine déclaré mais absent du monde effectif de Krasnov, hors périmètre portraits.
 - **Infobulle de l'argent** (Claude, 24/11/2026, branche `claude/infobulle-argent-20261124`) : la case « ARGENT » du panneau de gauche reste l'argent en poche (décision de Fred) ; son survol donne « Argent total : X (poche, banque, placements) » (`majInfobulleArgent`, plateau-core.js). Retour de Han Watta Tsé, qui croyait avoir perdu 2 500 PSK (ils étaient à la Banque nationale).
 - **Salle d'audience sans identifiant** (Claude, 24/11/2026, même branche) : « Assister a cette affaire » avec le champ vide ne lance plus une fenêtre bloquée sur « Chargement... » (message « Indiquez d'abord l'identifiant de l'affaire ») ; quand la liste est lisible et vide, la salle dit « Aucune audience ne se tient en ce moment » (plateau-justice-economie.js). Retour du même joueur.
 - **Téléphone : plus de chevauchement nom/image à l'entrée d'une pièce** (Claude, 24/11/2026, même branche) : en attendant le chargement de l'image, `plateau-mobile.js` pose tout de suite un cadre provisoire en 16/9, corrigé dès que les vraies proportions sont connues. Retour du même joueur.

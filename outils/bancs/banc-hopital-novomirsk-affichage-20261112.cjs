@@ -28,7 +28,10 @@ assert.equal(actual.roomOverrides.ehpad_tilleuls.persons.length,4);
 assert.ok(actual.roomOverrides.ehpad_tilleuls.persons.some(p=>p.name==='Evgueni Sudakov (PNJ)'));
 const sovarka=actual.roomOverrides.ehpad_tilleuls.persons.map(p=>p.name);
 assert.ok(sovarka.includes('Antonina Doubrova (PNJ)'));
-assert.equal(vm.runInContext('WORLD.republic.capitale.buildingContext["dispensaire-public"].roomOverrides?.salle_attente?.imageUrl',scope),undefined);
+// Luthécia garde ses propres images (accueil et chambre du dispensaire, Fred, 24/11/2026, commit 32e5b8d) : jamais celles de
+// Novomirsk, et la salle d'attente reste distincte de la chambre (décision H.1, mission Purge).
+assert.equal(vm.runInContext('WORLD.republic.capitale.buildingContext["dispensaire-public"].roomOverrides?.salle_attente?.imageUrl',scope),'images/luthecia-dispensaire-accueil.webp');
+assert.equal(vm.runInContext('WORLD.republic.capitale.buildingContext["dispensaire-public"].roomsExtra?.chambre?.imageUrl',scope),'images/luthecia-dispensaire-chambre.webp');
 const html=fs.readFileSync(path.join(root,'plateau.html'),'utf8');
 assert.match(html,/data\.js\?v=[^"]*hopital-novomirsk-doublon-corrige-20261112/);
 console.log('OK: 3 pièces visibles dans WORLD, 3 WebP présents, 2 soignants, 3 pensionnaires, Republia inchangée.');

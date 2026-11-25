@@ -1,0 +1,335 @@
+{
+  "date": "2026-11-24",
+  "base": "Banc GitHub Actions du 24/11/2026 : 140 apparitions, 105 avec portrait existant, 35 à produire (dont Zinaïda Otcheredova)",
+  "note": "Deux anciennes entrées du relevé 23/11 ne sont plus visibles dans le monde courant. Les descriptions physiques inconnues restent signalées, sans invention.",
+  "portraits_a_produire": [
+    {
+      "nom": "Lieutenant Nestor Medalev (PNJ)",
+      "role": "PNJ - Gardien de la memoire",
+      "batiment": "caserne-militaire",
+      "piece": "salle_faits_armes",
+      "source": "audit 23/11",
+      "description": "Lieutenant Nestor Medalev (PNJ) exerce le rôle de PNJ - Gardien de la memoire dans Salle des Faits d'Armes. Sa fiche consultée ne donne pas de description physique certaine : un portrait original devra respecter son rôle sans lui attribuer le visage d'un figurant non identifié."
+    },
+    {
+      "nom": "Genrikh Vlassov",
+      "role": "Sécurité",
+      "batiment": "centre-artisanal",
+      "piece": "travees",
+      "source": "audit 23/11",
+      "description": "Genrikh Vlassov exerce le rôle de Sécurité dans Accueil du centre artisanal. Sa fiche consultée ne donne pas de description physique certaine : un portrait original devra respecter son rôle sans lui attribuer le visage d'un figurant non identifié."
+    },
+    {
+      "nom": "Kolia Titov",
+      "role": "Dealer",
+      "batiment": "centre-artisanal",
+      "piece": "travees",
+      "source": "audit 23/11",
+      "description": "Kolia Titov exerce le rôle de Dealer dans Accueil du centre artisanal. Sa fiche consultée ne donne pas de description physique certaine : un portrait original devra respecter son rôle sans lui attribuer le visage d'un figurant non identifié."
+    },
+    {
+      "nom": "Sava Goussev",
+      "role": "Mécanicien",
+      "batiment": "centre-artisanal",
+      "piece": "travees",
+      "source": "audit 23/11",
+      "description": "Sava Goussev exerce le rôle de Mécanicien dans Accueil du centre artisanal. Sa fiche consultée ne donne pas de description physique certaine : un portrait original devra respecter son rôle sans lui attribuer le visage d'un figurant non identifié."
+    },
+    {
+      "nom": "Efim Zametkov (PNJ)",
+      "role": "PNJ - Journaliste",
+      "batiment": "centre-affaires",
+      "piece": "tribune_republia",
+      "source": "audit 23/11",
+      "description": "Efim Zametkov (PNJ) exerce le rôle de PNJ - Journaliste dans La Tribune de Republia — Antenne Locale. Sa fiche consultée ne donne pas de description physique certaine : un portrait original devra respecter son rôle sans lui attribuer le visage d'un figurant non identifié."
+    },
+    {
+      "nom": "Timofeï Fomine (PNJ)",
+      "role": "Detenu",
+      "batiment": "commissariat",
+      "piece": "prison",
+      "source": "audit 23/11",
+      "description": "Timofeï Fomine (PNJ) exerce le rôle de Detenu dans Cellules de garde a vue. Sa fiche consultée ne donne pas de description physique certaine : un portrait original devra respecter son rôle sans lui attribuer le visage d'un figurant non identifié."
+    },
+    {
+      "nom": "Boris Stockov (PNJ)",
+      "role": "Directeur de l'Entrepôt Logistique",
+      "batiment": "entrepot-logistique-novomirsk",
+      "piece": "bureau_direction",
+      "source": "audit 23/11",
+      "description": "Boris Stockov (PNJ) exerce le rôle de Directeur de l'Entrepôt Logistique dans Bureau de Direction. Sa fiche consultée ne donne pas de description physique certaine : un portrait original devra respecter son rôle sans lui attribuer le visage d'un figurant non identifié."
+    },
+    {
+      "nom": "Sergueï Zaptchastov (PNJ)",
+      "role": "Garagiste",
+      "batiment": "garage-novomirsk",
+      "piece": "atelier_garage",
+      "source": "audit 23/11",
+      "description": "Sergueï Zaptchastov (PNJ) exerce le rôle de Garagiste dans Atelier. Sa fiche consultée ne donne pas de description physique certaine : un portrait original devra respecter son rôle sans lui attribuer le visage d'un figurant non identifié."
+    },
+    {
+      "nom": "Vera Pravdina (PNJ)",
+      "role": "Journaliste de La Voix de Sovarka",
+      "batiment": "la-tribune",
+      "piece": "accueil_tribune",
+      "source": "audit 23/11",
+      "description": "Vera Pravdina (PNJ) exerce le rôle de Journaliste de La Voix de Sovarka dans Accueil. Sa fiche consultée ne donne pas de description physique certaine : un portrait original devra respecter son rôle sans lui attribuer le visage d'un figurant non identifié."
+    },
+    {
+      "nom": "Rostislav Censurov",
+      "role": "PNJ - Redacteur en chef",
+      "batiment": "la-tribune",
+      "piece": "redaction",
+      "source": "audit 23/11",
+      "description": "Rostislav Censurov exerce le rôle de PNJ - Redacteur en chef dans Redaction. Sa fiche consultée ne donne pas de description physique certaine : un portrait original devra respecter son rôle sans lui attribuer le visage d'un figurant non identifié."
+    },
+    {
+      "nom": "Le Maire de Novomirsk (PNJ)",
+      "role": "Maire de la Capitale",
+      "batiment": "mairie-capitale",
+      "piece": "bureau_maire",
+      "source": "audit 23/11",
+      "description": "Le Maire de Novomirsk (PNJ) exerce le rôle de Maire de la Capitale dans Bureau du Maire. Sa fiche consultée ne donne pas de description physique certaine : un portrait original devra respecter son rôle sans lui attribuer le visage d'un figurant non identifié."
+    },
+    {
+      "nom": "Cheikh Rachid Al-Diplomi (PNJ)",
+      "role": "Ambassadeur d'Al-Khalija",
+      "batiment": "palais-ambassades-novomirsk",
+      "piece": "bureau_khalija_novomirsk",
+      "source": "audit 23/11",
+      "description": "Cheikh Rachid Al-Diplomi (PNJ) exerce le rôle de Ambassadeur d'Al-Khalija dans Ambassade d'Al-Khalija. Sa fiche consultée ne donne pas de description physique certaine : un portrait original devra respecter son rôle sans lui attribuer le visage d'un figurant non identifié."
+    },
+    {
+      "nom": "Don Esteban Cortesano (PNJ)",
+      "role": "Ambassadeur d'El Estado",
+      "batiment": "palais-ambassades-novomirsk",
+      "piece": "bureau_estado_novomirsk",
+      "source": "audit 23/11",
+      "description": "Don Esteban Cortesano (PNJ) exerce le rôle de Ambassadeur d'El Estado dans Ambassade d'El Estado. Sa fiche consultée ne donne pas de description physique certaine : un portrait original devra respecter son rôle sans lui attribuer le visage d'un figurant non identifié."
+    },
+    {
+      "nom": "Hubert de La Courtoisie (PNJ)",
+      "role": "Ambassadeur de Républia",
+      "batiment": "palais-ambassades-novomirsk",
+      "piece": "bureau_republia_novomirsk",
+      "source": "audit 23/11",
+      "description": "Hubert de La Courtoisie (PNJ) exerce le rôle de Ambassadeur de Républia dans Ambassade de Républia. Sa fiche consultée ne donne pas de description physique certaine : un portrait original devra respecter son rôle sans lui attribuer le visage d'un figurant non identifié."
+    },
+    {
+      "nom": "Evgueni Gromov (PNJ)",
+      "role": "PNJ - Ministre de l'Amitié entre les Peuples",
+      "batiment": "palais-gouvernement",
+      "piece": "bureau_min_ae",
+      "source": "audit 23/11",
+      "description": "Evgueni Gromov (PNJ) exerce le rôle de PNJ - Ministre de l'Amitié entre les Peuples dans Bureau - Ministre de l'Amitié entre les Peuples. Sa fiche consultée ne donne pas de description physique certaine : un portrait original devra respecter son rôle sans lui attribuer le visage d'un figurant non identifié."
+    },
+    {
+      "nom": "Stanislav Roublov (PNJ)",
+      "role": "PNJ - Ministre de l'Économie collective",
+      "batiment": "palais-gouvernement",
+      "piece": "bureau_min_fin",
+      "source": "audit 23/11",
+      "description": "Stanislav Roublov (PNJ) exerce le rôle de PNJ - Ministre de l'Économie collective dans Bureau - Ministre de l'Économie collective. Sa fiche consultée ne donne pas de description physique certaine : un portrait original devra respecter son rôle sans lui attribuer le visage d'un figurant non identifié."
+    },
+    {
+      "nom": "Rodion Tankov (PNJ)",
+      "role": "PNJ - Ministre de la Défense de la Patrie",
+      "batiment": "palais-gouvernement",
+      "piece": "bureau_min_def",
+      "source": "audit 23/11",
+      "description": "Rodion Tankov (PNJ) exerce le rôle de PNJ - Ministre de la Défense de la Patrie dans Bureau - Ministre de la Défense de la Patrie. Sa fiche consultée ne donne pas de description physique certaine : un portrait original devra respecter son rôle sans lui attribuer le visage d'un figurant non identifié."
+    },
+    {
+      "nom": "Galina Sergueïeva (PNJ)",
+      "role": "PNJ - Ministre de la Justice prolétarienne",
+      "batiment": "palais-gouvernement",
+      "piece": "bureau_min_just",
+      "source": "audit 23/11",
+      "description": "Galina Sergueïeva (PNJ) exerce le rôle de PNJ - Ministre de la Justice prolétarienne dans Bureau - Ministre de la Justice prolétarienne. Sa fiche consultée ne donne pas de description physique certaine : un portrait original devra respecter son rôle sans lui attribuer le visage d'un figurant non identifié."
+    },
+    {
+      "nom": "Gleb Nikitine (PNJ)",
+      "role": "PNJ - Ministre de la Sécurité du Peuple",
+      "batiment": "palais-gouvernement",
+      "piece": "bureau_min_int",
+      "source": "audit 23/11",
+      "description": "Gleb Nikitine (PNJ) exerce le rôle de PNJ - Ministre de la Sécurité du Peuple dans Bureau - Ministre de la Sécurité du Peuple. Sa fiche consultée ne donne pas de description physique certaine : un portrait original devra respecter son rôle sans lui attribuer le visage d'un figurant non identifié."
+    },
+    {
+      "nom": "Zinaïda Propagandova (PNJ)",
+      "role": "PNJ - Ministre de la Vérité officielle",
+      "batiment": "palais-gouvernement",
+      "piece": "bureau_min_info",
+      "source": "audit 23/11",
+      "description": "Zinaïda Propagandova (PNJ) exerce le rôle de PNJ - Ministre de la Vérité officielle dans Bureau - Ministre de la Vérité officielle. Sa fiche consultée ne donne pas de description physique certaine : un portrait original devra respecter son rôle sans lui attribuer le visage d'un figurant non identifié."
+    },
+    {
+      "nom": "Oleg Morozov (PNJ)",
+      "role": "PNJ - Chef de cabinet du Président du Conseil du Peuple",
+      "batiment": "palais-gouvernement",
+      "piece": "bureaux",
+      "source": "audit 23/11",
+      "description": "Oleg Morozov (PNJ) exerce le rôle de PNJ - Chef de cabinet du Président du Conseil du Peuple dans Bureau du Président du Conseil du Peuple. Sa fiche consultée ne donne pas de description physique certaine : un portrait original devra respecter son rôle sans lui attribuer le visage d'un figurant non identifié."
+    },
+    {
+      "nom": "Secrétaire Tamara Volkova",
+      "role": "PNJ - Accueil officiel",
+      "batiment": "palais-gouvernement",
+      "piece": "hall",
+      "source": "audit 23/11",
+      "description": "Secrétaire Tamara Volkova exerce le rôle de PNJ - Accueil officiel dans Hall d'entree. Sa fiche consultée ne donne pas de description physique certaine : un portrait original devra respecter son rôle sans lui attribuer le visage d'un figurant non identifié."
+    },
+    {
+      "nom": "Journalistes accrédités (PNJ)",
+      "role": "PNJ - Presse nationale accréditée",
+      "batiment": "palais-gouvernement",
+      "piece": "salle_presse",
+      "source": "audit 23/11",
+      "description": "Journalistes accrédités (PNJ) exerce le rôle de PNJ - Presse nationale accréditée dans Salle de Presse. Sa fiche consultée ne donne pas de description physique certaine : un portrait original devra respecter son rôle sans lui attribuer le visage d'un figurant non identifié."
+    },
+    {
+      "nom": "Raïssa Communiqueva (PNJ)",
+      "role": "PNJ - Porte-parole du Conseil du Peuple",
+      "batiment": "palais-gouvernement",
+      "piece": "salle_presse",
+      "source": "audit 23/11",
+      "description": "Raïssa Communiqueva (PNJ) exerce le rôle de PNJ - Porte-parole du Conseil du Peuple dans Salle de Presse. Sa fiche consultée ne donne pas de description physique certaine : un portrait original devra respecter son rôle sans lui attribuer le visage d'un figurant non identifié."
+    },
+    {
+      "nom": "Le Président (PNJ)",
+      "role": "PNJ - Président de Sovarka",
+      "batiment": "palais-presidentiel",
+      "piece": "bureau_president",
+      "source": "audit 23/11",
+      "description": "Le Président (PNJ) exerce le rôle de PNJ - Président de Sovarka dans Bureau du President. Sa fiche consultée ne donne pas de description physique certaine : un portrait original devra respecter son rôle sans lui attribuer le visage d'un figurant non identifié."
+    },
+    {
+      "nom": "Nadejda Lebedeva (PNJ)",
+      "role": "PNJ - Secretaire general de la presidence",
+      "batiment": "palais-presidentiel",
+      "piece": "bureau_president",
+      "source": "audit 23/11",
+      "description": "Nadejda Lebedeva (PNJ) exerce le rôle de PNJ - Secretaire general de la presidence dans Bureau du President. Sa fiche consultée ne donne pas de description physique certaine : un portrait original devra respecter son rôle sans lui attribuer le visage d'un figurant non identifié."
+    },
+    {
+      "nom": "Rodion Glasnov (PNJ)",
+      "role": "PNJ - Porte-parole de la presidence",
+      "batiment": "palais-presidentiel",
+      "piece": "salle_presse_elysee",
+      "source": "audit 23/11",
+      "description": "Rodion Glasnov (PNJ) exerce le rôle de PNJ - Porte-parole de la presidence dans Salle de Presse. Sa fiche consultée ne donne pas de description physique certaine : un portrait original devra respecter son rôle sans lui attribuer le visage d'un figurant non identifié."
+    },
+    {
+      "nom": "Anatoli Sokolov (PNJ)",
+      "role": "PNJ - Chef du protocole presidentiel",
+      "batiment": "palais-presidentiel",
+      "piece": "salle_reception",
+      "source": "audit 23/11",
+      "description": "Anatoli Sokolov (PNJ) exerce le rôle de PNJ - Chef du protocole presidentiel dans Salle de restaurant. Sa fiche consultée ne donne pas de description physique certaine : un portrait original devra respecter son rôle sans lui attribuer le visage d'un figurant non identifié."
+    },
+    {
+      "nom": "Meneur des Supporters (PNJ)",
+      "role": "PNJ - Chef de Tribune",
+      "batiment": "stade",
+      "piece": "siege_supporters",
+      "source": "audit 23/11",
+      "description": "Meneur des Supporters (PNJ) exerce le rôle de PNJ - Chef de Tribune dans Club des supporters du Dynamo. Sa fiche consultée ne donne pas de description physique certaine : un portrait original devra respecter son rôle sans lui attribuer le visage d'un figurant non identifié."
+    },
+    {
+      "nom": "Entraineur Local (PNJ)",
+      "role": "PNJ - Entraineur",
+      "batiment": "stade",
+      "piece": "terrain",
+      "source": "audit 23/11",
+      "description": "Entraineur Local (PNJ) exerce le rôle de PNJ - Entraineur dans Terrain — Dynamo de Novomirsk. Sa fiche consultée ne donne pas de description physique certaine : un portrait original devra respecter son rôle sans lui attribuer le visage d'un figurant non identifié."
+    },
+    {
+      "nom": "Camarade Juge Pravdine (PNJ)",
+      "role": "Juge Populaire",
+      "batiment": "tribunal",
+      "piece": "salle_audience",
+      "source": "audit 23/11",
+      "description": "Camarade Juge Pravdine (PNJ) exerce le rôle de Juge Populaire dans Salle d'audience. Sa fiche consultée ne donne pas de description physique certaine : un portrait original devra respecter son rôle sans lui attribuer le visage d'un figurant non identifié."
+    },
+    {
+      "nom": "Assistante Propagande (PNJ)",
+      "role": "Assistante",
+      "batiment": "universite",
+      "piece": "amphi",
+      "source": "audit 23/11",
+      "description": "Assistante Propagande (PNJ) exerce le rôle de Assistante dans Amphitheatre. Sa fiche consultée ne donne pas de description physique certaine : un portrait original devra respecter son rôle sans lui attribuer le visage d'un figurant non identifié."
+    },
+    {
+      "nom": "Professeur Dialectique (PNJ)",
+      "role": "Doyen",
+      "batiment": "universite",
+      "piece": "amphi",
+      "source": "audit 23/11",
+      "description": "Professeur Dialectique (PNJ) exerce le rôle de Doyen dans Amphitheatre. Sa fiche consultée ne donne pas de description physique certaine : un portrait original devra respecter son rôle sans lui attribuer le visage d'un figurant non identifié."
+    },
+    {
+      "nom": "Boris Kovaliov (PNJ)",
+      "role": "Directeur de l'usine Pharmanov",
+      "batiment": "usine-pharmaceutique-luthecia",
+      "piece": "bureau_direction",
+      "source": "audit 23/11",
+      "description": "Boris Kovaliov (PNJ) exerce le rôle de Directeur de l'usine Pharmanov dans Bureau de Direction. Sa fiche consultée ne donne pas de description physique certaine : un portrait original devra respecter son rôle sans lui attribuer le visage d'un figurant non identifié."
+    }
+  ],
+  "anciens_pnj_non_visibles_dans_le_monde_actuel": [
+    {
+      "nom": "Camarade Privilège (PNJ)",
+      "role": "Directeur",
+      "batiment": "banque-privee",
+      "piece": "bureau_prive",
+      "source": "audit 23/11",
+      "description": "Camarade Privilège (PNJ) exerce le rôle de Directeur dans Bureau prive. Sa fiche consultée ne donne pas de description physique certaine : un portrait original devra respecter son rôle sans lui attribuer le visage d'un figurant non identifié."
+    },
+    {
+      "nom": "Caissier Méticuleux (PNJ)",
+      "role": "Caissier",
+      "batiment": "banque-nationale",
+      "piece": "accueil_banque",
+      "source": "audit 23/11",
+      "description": "Caissier Méticuleux (PNJ) exerce le rôle de Caissier dans Accueil. Sa fiche consultée ne donne pas de description physique certaine : un portrait original devra respecter son rôle sans lui attribuer le visage d'un figurant non identifié."
+    }
+  ],
+  "guides_livres": [
+    {
+      "nom": "Zinaïda Otcheredova (PNJ)",
+      "ville": "Novomirsk",
+      "fichier": "images/Sovarka/Novomirsk/guide-zinaida-otcheredova-portrait.webp",
+      "commit": "f4080645489471fe28989b107bc62cd205233ee6"
+    },
+    {
+      "nom": "Firmin Badaud (PNJ)",
+      "ville": "Luthecia",
+      "fichier": "images/Republia/Luthecia/guide-firmin-badaud-portrait.webp",
+      "commit": "f4080645489471fe28989b107bc62cd205233ee6"
+    },
+    {
+      "nom": "Yvonne Bigorneau (PNJ)",
+      "ville": "Port-Sainte-Marie",
+      "fichier": "images/Republia/Port-Sainte-Marie/guide-yvonne-bigorneau-portrait.webp",
+      "commit": "f4080645489471fe28989b107bc62cd205233ee6"
+    },
+    {
+      "nom": "Lucien Boulon (PNJ)",
+      "ville": "Montrouge",
+      "fichier": "images/Republia/Montrouge/guide-lucien-boulon-portrait.webp",
+      "commit": "f4080645489471fe28989b107bc62cd205233ee6"
+    },
+    {
+      "nom": "Bair Namsaraev (PNJ)",
+      "ville": "Starovka",
+      "fichier": "images/Sovarka/Starovka/guide-bair-namsaraev-portrait.webp",
+      "commit": "f4080645489471fe28989b107bc62cd205233ee6"
+    },
+    {
+      "nom": "Fiodor Medvedkine (PNJ)",
+      "ville": "Krasnov",
+      "fichier": "images/Sovarka/Krasnov/guide-fiodor-medvedkine-portrait.webp",
+      "commit": "f4080645489471fe28989b107bc62cd205233ee6"
+    }
+  ]
+}

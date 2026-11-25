@@ -615,7 +615,7 @@ const WORLD = {
           name: "Marché Central de Luthecia",
           desc: "Marcel Bidoche vend de la viande et des informations. Ginette Légume sait tout sur tout le monde. Jodie Moitout tend son micro à n'importe qui.",
           persons: [{"name": "Jean-Pierre Bidoche (PNJ)", "role": "Boucher", "rel": "neutral", "job": "commercant", "photoUrl": "images/marcel-bidoche.webp", "photoPos": "65% 30%"}, {"name": "Ginette Légume (PNJ)", "role": "Maraîchère", "rel": "neutral", "job": "commercant", "photoUrl": "images/ginette-legume.webp", "photoPos": "65% 25%"}, {"name": "Jodie Moitout (PNJ)", "role": "Journaliste micro-trottoir", "rel": "neutral", "job": "journaliste", "photoUrl": "images/jodie-moitout.webp", "photoPos": "62% 20%"},
-            {name: 'Firmin Badaud (PNJ)', role: 'Retraité, badaud du marché — guide des nouveaux venus', rel: 'friendly', job: 'citoyen', profilId: 'guide_firmin_badaud', photoUrl: 'images/marche.webp'}], // Habitant guide des nouveaux joueurs (purge A.10, 24/11/2026) : PNJ du chat, même image que le lieu.
+            {name: 'Firmin Badaud (PNJ)', role: 'Retraité, badaud du marché — guide des nouveaux venus', rel: 'friendly', job: 'citoyen', profilId: 'guide_firmin_badaud', photoUrl: 'images/Republia/Luthecia/guide-firmin-badaud-portrait.webp'}], // Habitant guide des nouveaux joueurs (purge A.10, 24/11/2026) : PNJ du chat, même image que le lieu.
           // Lot Marche (21 aout 2026) : ordres commerce generiques additifs, propres a Luthecia
           // uniquement (roomOverrides.orders, fusion additive avec le template de base partage
           // avec Montrouge -- jamais un remplacement, voir renderRoomActions()). Pas de
@@ -806,7 +806,7 @@ const WORLD = {
         // pour commissariat-local/banque-locale/tribunal-local). persons top-level (hors
         // roomOverrides) reste le mecanisme deja en place pour la 1ere room (attente) -- Corinne
         // Titgoute (accueil) rejoint Betty Dine (infirmiere, conservee) plutot que de la
-        // remplacer, meme convention que Docteur Aspirine + Anne Tibiotique a Luthecia. orders non
+        // remplacer, meme convention que Mathias Spirine + Anne Tibiotique a Luthecia. orders non
         // touches : soin_public/vendre_ressource_medicale restent sur la base partagee.
         'dispensaire-public-v': {
           roomOverrides: {
@@ -1201,7 +1201,7 @@ const WORLD = {
           name: "Marché de Montrouge",
           desc: "Légumes pas chers, grèves annoncées à voix haute.",
           persons: [{"name": "Josette Betterave (PNJ)", "role": "Marchande", "rel": "neutral", "job": "commercant"},
-            {name: 'Lucien Boulon (PNJ)', role: 'Cheminot retraité — guide des nouveaux venus', rel: 'friendly', job: 'citoyen', profilId: 'guide_lucien_boulon', photoUrl: 'images/montrouge/montrouge-marche-exterieur.jpg'}], // Habitant guide des nouveaux joueurs (purge A.10, 24/11/2026) : PNJ du chat, même image que le lieu.
+            {name: 'Lucien Boulon (PNJ)', role: 'Cheminot retraité — guide des nouveaux venus', rel: 'friendly', job: 'citoyen', profilId: 'guide_lucien_boulon', photoUrl: 'images/Republia/Montrouge/guide-lucien-boulon-portrait.webp'}], // Habitant guide des nouveaux joueurs (purge A.10, 24/11/2026) : PNJ du chat, même image que le lieu.
           // Image de navigation interieure (distincte de la vue de rue 13, montrouge-place-marche-tabac-cafe.jpg,
           // qui n'est pas touchee). Le nom du fichier dit "exterieur" car la scene represente un marche en
           // plein air, mais c'est bien l'image affichee APRES entree dans le batiment.
@@ -2336,7 +2336,7 @@ const WORLD = {
           roomOverrides: { marche_ext: { imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_marche.webp' } },
           desc: "Files organisées par ordre alphabétique.",
           persons: [{"name": "Distributeur Équitable (PNJ)", "role": "Distributeur", "rel": "neutral", "job": "commercant"},
-            {name: 'Zinaïda Otcheredova (PNJ)', role: 'Doyenne des files d’attente — guide des nouveaux venus', rel: 'friendly', job: 'citoyen', profilId: 'guide_zinaida_otcheredova', photoUrl: 'images/Sovarka/Novomirsk/Novomirsk_marche.webp'}] /* Habitant guide des nouveaux joueurs (purge A.10, 24/11/2026). */
+            {name: 'Zinaïda Otcheredova (PNJ)', role: 'Doyenne des files d’attente — guide des nouveaux venus', rel: 'friendly', job: 'citoyen', profilId: 'guide_zinaida_otcheredova', photoUrl: 'images/Sovarka/Novomirsk/guide-zinaida-otcheredova-portrait.webp'}] /* Habitant guide des nouveaux joueurs (purge A.10, 24/11/2026). */
         },
         // Librairie du Peuple (vue 1, Place du Peuple) : copie de l'Imprimerie-Librairie Gutenberg
         // de Port-Sainte-Marie (decision de Fred, 04/11/2026) -- memes pieces, memes ordres, meme
@@ -2833,8 +2833,7 @@ const WORLD = {
             rel: 'neutral', job: 'commercant', profilId: 'nina_gorbounova',
             photoUrl: 'images/Sovarka/Krasnov/Krasnov_marche_nina_gorbounova_portrait.webp',
             photoPos: '50% 24%'
-          }, { name: 'Fiodor Medvedkine (PNJ)', role: 'Apiculteur du kolkhoze — guide des nouveaux venus', rel: 'friendly', job: 'citoyen',
-               profilId: 'guide_fiodor_medvedkine', photoUrl: 'images/Sovarka/Krasnov/Krasnov_marche_etals.webp' }], // Habitant guide des nouveaux joueurs (purge A.10, 24/11/2026) : PNJ du chat, même image que le lieu.
+          }], // Fiodor Medvedkine, guide de Krasnov : déclaré plus bas avec Nina (contexte de Krasnov), sinon effacé (25/11/2026).
           roomOverrides: {
             // Marché de Krasnov, interface unique (lot de Krasnov, point 2, 22/11/2026) : une seule fenêtre pour acheter,
             // vendre et produire (graisse d'ours et eau comprises). Les anciens guichets du marché sont retirés ici seulement.
@@ -6251,7 +6250,7 @@ const BUILDINGS = {
           {name:'Mireille Legall (PNJ)', role:'Marchande de poisson', rel:'neutral', job:'commercant', photoUrl:'images/port-sainte-marie-marche-mireille-legall.webp', photoPos:'50% 15%'},
           {name:'Bastien Leroux (PNJ)', role:'Vendeur de souvenirs', rel:'neutral', job:'commercant', photoUrl:'images/port-sainte-marie-marche-bastien-leroux.webp', photoPos:'50% 15%'},
           // Habitant guide des nouveaux joueurs (purge A.10, 24/11/2026) : PNJ du chat, même image que le lieu.
-          {name:'Yvonne Bigorneau (PNJ)', role:'Ancienne ramendeuse de filets — guide des nouveaux venus', rel:'friendly', job:'citoyen', profilId:'guide_yvonne_bigorneau', photoUrl:'images/port-sainte-marie-marche.webp'}
+          {name:'Yvonne Bigorneau (PNJ)', role:'Ancienne ramendeuse de filets — guide des nouveaux venus', rel:'friendly', job:'citoyen', profilId:'guide_yvonne_bigorneau', photoUrl:'images/Republia/Port-Sainte-Marie/guide-yvonne-bigorneau-portrait.webp'}
         ],
         // Lot 5A -- Faire des achats (24 aout 2026) : premier raccordement reel de ce marche
         // (orders vide jusqu'ici, jamais visite). Pas de se_nourrir/pouls_populaire a masquer --
@@ -6969,7 +6968,7 @@ const BUILDINGS = {
           // catalogue, seul l'appelant client manquait. Sans lui, la tente du repos, les jumelles
           // de la detection et les radios de commandement restaient dans l'armurerie.
           {fn:'retirer_equipement_militaire', label:'Retirer de l\'équipement',  pa:0, cost:0, type:'legal',   icon:'ti-backpack', successRate:100, requiresPost:'lieutenant', desc:'Reserve au chef de section. Gilets, radios, tentes, jumelles et tenues de camouflage, sur le stock reel de l\'armurerie. Inscrit au registre.'},
-          {fn:'acheter_bombe_illegale',       label:'Subtiliser des explosifs', pa:2, cost:0, type:'illegal', icon:'ti-eye-off', successRate:35,  desc:'Voler un explosif dans le stock de la caserne. 35% de base, module par la discretion, l\'ISN et la reputation criminelle. Echec detecte : QHS.'}
+          {fn:'acheter_bombe_illegale',       label:'Subtiliser des explosifs', pa:2, cost:0, type:'illegal', icon:'ti-eye-off', successRate:35,  desc:'Voler un explosif dans le stock de la caserne. Vos chances dépendent de votre discrétion, de votre réputation criminelle, d\'un bonus de carrière criminelle, de l\'ISN de la ville, d\'un malus en Sovarka et des hommes armés présents. Un échec ne vous fait rechercher que si la garde vous a repéré (en Sovarka : Quartier Haute Sécurité).'}
         ]
       },
       // Refectoire (13 septembre 2026, chantier Effort de guerre). Volontairement SANS
@@ -11710,7 +11709,7 @@ function CHAMBRE_HOPITAL_ORDRES_SOVARKA() { return CHAMBRE_HOPITAL_ORDRES(); }
 // Sovarka (migration 20261114130000). Image provisoire de Montrouge, en attendant celles de Fred.
 (function () {
   const chambres = {
-    capitale: ['dispensaire-public', "Une chambre d'hôpital propre et calme, au bout du couloir du dispensaire. Le Docteur Aspirine y prescrit, évidemment, du repos."],
+    capitale: ['dispensaire-public', "Une chambre d'hôpital propre et calme, au bout du couloir du dispensaire. Le docteur Mathias Spirine y prescrit, évidemment, du repos."],
     ville_a: ['dispensaire-public-v', "Une petite chambre blanche qui sent l'iode et le linge propre. Par la fenêtre, on aperçoit les mâts du port."]
   };
   Object.entries(chambres).forEach(([ville, [batiment, desc]]) => {
@@ -12099,7 +12098,7 @@ const ORDRES_RESERVES_AUX_HOSPITALISES = ['transfert_clinique_privee', 'repas_ho
 
   // Starovka.
   Object.assign(contexte('ville_a', 'marche'), { name: 'Marché de Starovka', desc: 'Des étals couverts de bâches sur la place de la mairie : poisson gelé, viande de renne, thé et bonnets de fourrure.', persons: [pnj('Tsypilma Dashieva', 'Marchande', 'commercant'),
-    { name: 'Bair Namsaraev (PNJ)', role: 'Ancien pêcheur — guide des nouveaux venus', rel: 'friendly', job: 'citoyen', profilId: 'guide_bair_namsaraev', photoUrl: 'images/Sovarka/Starovka/Starovka_marche_marche_ext.webp' }] }); // Habitant guide des nouveaux joueurs (purge A.10, 24/11/2026) : PNJ du chat, même image que le lieu.
+    { name: 'Bair Namsaraev (PNJ)', role: 'Ancien pêcheur — guide des nouveaux venus', rel: 'friendly', job: 'citoyen', profilId: 'guide_bair_namsaraev', photoUrl: 'images/Sovarka/Starovka/guide-bair-namsaraev-portrait.webp' }] }); // Habitant guide des nouveaux joueurs (purge A.10, 24/11/2026) : PNJ du chat, même image que le lieu.
   Object.assign(contexte('ville_a', 'armurerie'), { name: 'Chasse et Pêche', desc: 'Le magasin de chasse de Starovka (« Охота и рыбалка ») : fusils, couteaux, filets et hameçons pour la pêche sous la glace.', persons: [pnj('Bato Tsyrenov', 'Armurier', 'commercant')] });
   Object.assign(contexte('ville_a', 'capitaine-sauvage'), { name: 'Restaurant « Entre terre et mer »', desc: 'Le restaurant de Starovka (« Между землёй и морем ») : poisson de la mer de glace et viande de renne, servis près du poêle.' });
   Object.assign(piece(contexte('ville_a', 'capitaine-sauvage'), 'salle_principale'), { persons: [pnj('Sesegma Badmaeva', 'Serveuse', 'serveur')] });
@@ -12192,7 +12191,10 @@ const ORDRES_RESERVES_AUX_HOSPITALISES = ['transfert_clinique_privee', 'repas_ho
   piece(contexte('ville_a', 'zone-production'), 'zone_recolte').imageUrl = 'images/Sovarka/Starovka/Starovka_champ_petrole.webp';
 
   // Krasnov.
-  Object.assign(contexte('ville_b', 'marche'), { name: 'Marché de Krasnov', desc: 'Les étals du kolkhoze : pommes, choux, miel et conserves maison, vendus sous les tilleuls.', persons: [pnj('Nina Gorbounova', 'Marchande', 'commercant')] });
+  // Habitant guide des nouveaux joueurs (purge A.10) : déclaré ici, avec Nina, car cette liste remplace celle du contexte
+  // plus haut (Fiodor y était déclaré mais absent du monde effectif ; mission de nuit 25/11/2026, point 1.3).
+  Object.assign(contexte('ville_b', 'marche'), { name: 'Marché de Krasnov', desc: 'Les étals du kolkhoze : pommes, choux, miel et conserves maison, vendus sous les tilleuls.', persons: [pnj('Nina Gorbounova', 'Marchande', 'commercant'),
+    { name: 'Fiodor Medvedkine (PNJ)', role: 'Apiculteur du kolkhoze — guide des nouveaux venus', rel: 'friendly', job: 'citoyen', profilId: 'guide_fiodor_medvedkine', photoUrl: 'images/Sovarka/Krasnov/guide-fiodor-medvedkine-portrait.webp' }] });
   Object.assign(contexte('ville_b', 'universite'), { name: 'École de Krasnov', desc: 'L\'école du kolkhoze : on y apprend à lire, à compter et à réciter les rendements de la récolte.' });
   // Seule PNJ de la classe (Fred, 14/11/2026) : l'institutrice de l'image, nom proposé par Claude (« gramota », savoir lire et écrire).
   Object.assign(piece(contexte('ville_b', 'universite'), 'amphi'), { name: 'Salle de classe', persons: [pnj('Alevtina Gramotova', 'Institutrice', 'professeur')],
@@ -13424,6 +13426,7 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     ['caserne-militaire', 'refectoire', 'Caporal Vassili Kachaev', 'novo-vassili-kachaev-portrait.webp'],
     ['salon-coiffure-novomirsk', 'salon_coiffure', 'Ludmila Egorova (PNJ)', 'novo-ludmila-egorova-portrait.webp'],
     ['mairie-capitale', 'hall_mairie', 'Varvara Nakhodkina (PNJ)', 'novo-hotesse-objets-trouves-portrait.webp'],
+    ['mairie-capitale', 'hall_mairie', 'Valentina Petchatkina', 'novo-secretaire-municipale-portrait.webp'],
     ['mairie-capitale', 'salle_archives', 'Ksenia Arkhipova (PNJ)', 'novo-archiviste-municipale-portrait.webp'],
     ['mairie-capitale', 'salle_elections', 'Ivan Tarassov (PNJ)', 'novo-ivan-tarassov-portrait.webp'],
     ['palais-presidentiel', 'accueil_elysee', 'Konstantin Lvovitch Orlov (PNJ)', 'novo-konstantin-orlov-portrait.webp'],
@@ -13440,6 +13443,7 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     ['stade', 'vestiaires', 'Entraineur Adjoint du Dynamo (PNJ)', 'novo-entraineur-adjoint-dynamo-portrait.webp'],
     ['stade', 'guichet_paris', 'Arkadi Stavkov (PNJ)', 'novo-bookmaker-officiel-portrait.webp'],
     ['stade', 'boutique', 'Alla Charfova (PNJ)', 'novo-vendeuse-dynamo-portrait.webp'],
+    ['stade', 'buvette', 'Zinaïda Kvassova (PNJ)', 'novo-tenanciere-buvette-dynamo-portrait.webp'],
     ['imprimerie-librairie', 'atelier', 'Platon Chriftov (PNJ)', 'Novo_typographe_portrait.webp'],
     ['pharmacie-officielle-novomirsk', 'comptoir_pharmacie', 'Valentina Pilioulkina (PNJ)', 'novo-valentina-pilioulkina-portrait.webp'],
     ['poissonniere-novomirsk', 'etal_poissonniere', 'Galina Karpova (PNJ)', 'novo-galina-karpova-portrait.webp'],

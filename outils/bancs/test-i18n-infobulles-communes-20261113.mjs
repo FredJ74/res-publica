@@ -76,7 +76,10 @@ test('inventaire : 237 descriptions communes affichées après isolation du goul
     'Préparer boissons et snacks pour le service (consomme les matières en stock, rémunéré en FR).',
     'Preparer bieres, boissons et snacks pour le service (consomme le stock, remunere en FR).',
     'Une fois par jour, servi au chevet. +4 PA à votre prochain sommeil.',
-    'Réservé aux patients hospitalisés, une fois par jour. +2 PA à votre prochain sommeil.'];
+    'Réservé aux patients hospitalisés, une fois par jour. +2 PA à votre prochain sommeil.',
+    // « Subtiliser des explosifs » (mission de nuit du 25/11/2026, bloc 3) : nouvelle description fidèle au serveur ;
+    // l'ancienne ligne livrée reste au catalogue jusqu'à la traduction de la nouvelle par Codex.
+    "Voler un explosif dans le stock de la caserne. 35% de base, module par la discretion, l'ISN et la reputation criminelle. Echec detecte : QHS."];
   assert.deepEqual(cat.filter(d => !sov.has(d) && !rep.has(d) && !HISTORIQUES.includes(d)), [], 'textes du catalogue introuvables tels quels');
   assert.equal(new Set(cat).size, cat.length);
 });

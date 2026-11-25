@@ -377,11 +377,22 @@ function ouvrirNeutraliser(enc) {
   let html = '<div class="cpj-dialogue"><p class="cpj-note">' + esc(texte('nIntro')) + '</p>';
   for (const [cle, m] of Object.entries(modes)) {
     const dispo = possedeArme(m);
-    html += '<button class="cpj-touche" ' + (dispo ? '' : 'disabled ') + 'onclick="crimNeutraliserConfirmer(\'' + enc + '\',\'' + cle + '\')">'
+    html += '<button class="cpj-touche" data-rp-mode="' + esc(cle) + '" ' + (dispo ? '' : 'disabled ') + 'onclick="crimNeutraliserConfirmer(\'' + enc + '\',\'' + cle + '\')">'
       + esc(texte('nMode', { label: m.label, pa: m.paPJ })) + (cle === 'feu' ? esc(texte('nFeu')) : '') + (dispo ? '' : esc(texte('nArmeAbsente'))) + '</button>';
   }
   global.document.getElementById('postes-body').innerHTML = html + '</div>';
   global.document.getElementById('modal-postes').classList.add('open');
+  // « Vos chances réelles » (25/11/2026) : lues au serveur pour cette cible ; sans la migration, rien ne s'affiche.
+  rpc('ordres_chances_lire', { p_fns: ['neutraliser'], p_cible: identifiantCible(c) }).then(r => {
+    const ch = r && r.ok === true && r.chances && r.chances.neutraliser;
+    if (!ch) return;
+    global.document.querySelectorAll('#postes-body [data-rp-mode]').forEach(b => {
+      const t = ch[b.getAttribute('data-rp-mode')];
+      if (typeof t !== 'number') return;
+      const s = global.document.createElement('span'); s.className = 'rp-chance-reelle'; s.textContent = 'Vos chances réelles : ' + t + ' %';
+      b.appendChild(s);
+    });
+  }).catch(() => {});
 }
 async function crimNeutraliserConfirmer(enc, mode) {
   fermerModale();
