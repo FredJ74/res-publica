@@ -78,28 +78,36 @@ Deno.serve(async(req)=>{
  if(action==="retouch"&&(!existing?.preview_path||existing.retouches>=2))return reply({error:"Deux retouches maximum"},400);
  // Remplacer une image déjà posée = renouvellement d'image, décidé par le serveur (la première image vient avec
  // l'appartement premium, activé sous droit). Sans la migration 20261125700000 : comportement de bêta.
+ let decompte=false;
+ // Point 1.3 (fin de soirée du 25/11/2026) : un renouvellement d'image décompté avant la génération est RENDU si la
+ // génération échoue (premium_renouvellement_rendre_service ; sans la migration 20261125800000, l'appel est sans effet).
+ const echec=async(corps:any,statut:number)=>{
+  if(decompte){try{await db.rpc("premium_renouvellement_rendre_service",{p_user:user.id,p_type:"logement",p_objet:cle});}catch(_){}}
+  return reply({...corps,...(decompte?{renouvellement_rendu:true}:{})},statut);
+ };
  if(action==="start"&&existing?.image_path){
   const {data:droit,error:de}=await db.rpc("premium_renouvellement_autoriser_service",{p_user:user.id,p_type:"logement",p_objet:cle});
   if(!de&&droit&&droit.ok===false)return reply({error:"Renouvellement d'image a acheter",raison:droit.raison,produit:"renouvellement_image"},402);
+  decompte=!de&&droit?.ok===true;
  }
  const prompt=String(body.prompt||"").trim().slice(0,1500);
- if(prompt.length<10)return reply({error:"Decrivez votre decoration plus precisement"},400);
- const key=Deno.env.get("OPENAI_API_KEY");if(!key)return reply({error:"Cle OpenAI absente du serveur"},503);
+ if(prompt.length<10)return await echec({error:"Decrivez votre decoration plus precisement"},400);
+ const key=Deno.env.get("OPENAI_API_KEY");if(!key)return await echec({error:"Cle OpenAI absente du serveur"},503);
  let bytes:Uint8Array;
  if(action==="retouch"){
   const {data,error}=await db.storage.from("commerce-decors").download(existing.preview_path);
-  if(error||!data)return reply({error:"Apercu introuvable"},404);
+  if(error||!data)return await echec({error:"Apercu introuvable"},404);
   bytes=new Uint8Array(await data.arrayBuffer());
  }else{
   const base=String(body.baseImage||"");
-  if(!/^data:image\/(png|jpeg|webp);base64,/.test(base)||base.length>9500000)return reply({error:"Image originale invalide"},400);
-  try{bytes=Uint8Array.from(atob(base.split(",")[1]),c=>c.charCodeAt(0))}catch{return reply({error:"Image invalide"},400)}
+  if(!/^data:image\/(png|jpeg|webp);base64,/.test(base)||base.length>9500000)return await echec({error:"Image originale invalide"},400);
+  try{bytes=Uint8Array.from(atob(base.split(",")[1]),c=>c.charCodeAt(0))}catch{return await echec({error:"Image invalide"},400)}
  }
- if(bytes.length>7000000)return reply({error:"Image trop volumineuse"},413);
+ if(bytes.length>7000000)return await echec({error:"Image trop volumineuse"},413);
  const webpIn=bytes.length>=12&&String.fromCharCode(...bytes.slice(0,4))==="RIFF"&&String.fromCharCode(...bytes.slice(8,12))==="WEBP";
  const pngIn=bytes.length>=8&&bytes[0]===137&&bytes[1]===80&&bytes[2]===78&&bytes[3]===71;
  const jpegIn=bytes.length>=3&&bytes[0]===255&&bytes[1]===216&&bytes[2]===255;
- if(!webpIn&&!pngIn&&!jpegIn)return reply({error:"Format du decor source invalide"},400);
+ if(!webpIn&&!pngIn&&!jpegIn)return await echec({error:"Format du decor source invalide"},400);
  const form=new FormData();
  form.append("model","gpt-image-1.5");
  form.append("size","1536x1024");
@@ -113,26 +121,27 @@ Deno.serve(async(req)=>{
    :{data:[]};
  for(const source of sources||[]){
   const {data:file,error}=await db.storage.from("publicites-premium-sources").download(source.chemin);
-  if(error||!file)return reply({error:"Image de référence manquante"},409);
+  if(error||!file)return await echec({error:"Image de référence manquante"},409);
   form.append("image",new File([await file.arrayBuffer()],"reference."+(source.type_mime==="image/jpeg"?"jpg":source.type_mime==="image/webp"?"webp":"png"),{type:source.type_mime}));
  }
- const response=await fetch("https://api.openai.com/v1/images/edits",{method:"POST",headers:{Authorization:"Bearer "+key},body:form});
+ const response=await fetch("https://api.openai.com/v1/images/edits",{method:"POST",headers:{Authorization:"Bearer "+key},body:form}).catch(()=>null);
+ if(!response)return await echec({error:"Generateur d'images injoignable"},502);
  const result=await response.json().catch(()=>({}));
- if(!response.ok)return reply({error:"OpenAI: "+String(result.error?.message||response.status).slice(0,250)},502);
+ if(!response.ok)return await echec({error:"OpenAI: "+String(result.error?.message||response.status).slice(0,250)},502);
  const encoded=result.data?.[0]?.b64_json;
- if(!encoded)return reply({error:"Aucune image recue"},502);
+ if(!encoded)return await echec({error:"Aucune image recue"},502);
  const webp=Uint8Array.from(atob(encoded),c=>c.charCodeAt(0));
  if(webp.length<12||String.fromCharCode(...webp.slice(0,4))!=="RIFF"||String.fromCharCode(...webp.slice(8,12))!=="WEBP")
-   return reply({error:"Format WebP invalide retourne par le generateur"},502);
+   return await echec({error:"Format WebP invalide retourne par le generateur"},502);
  const path="logement-"+propre(pays+"-"+ville+"-"+batiment+"-"+piece,200)+"-"+crypto.randomUUID()+".webp";
  const {error:uploadError}=await db.storage.from("commerce-decors").upload(path,webp,{contentType:"image/webp",upsert:false});
- if(uploadError)return reply({error:"Sauvegarde image impossible"},500);
+ if(uploadError)return await echec({error:"Sauvegarde image impossible"},500);
  const retouches=action==="retouch"?(existing?.retouches||0)+1:0;
  const payload={cle,pays,ville,batiment,piece,owner_user_id:user.id,image_path:existing?.image_path||null,preview_path:path,retouches,generations:(existing?.generations||0)+1,updated_at:new Date().toISOString()};
  const save=action==="retouch"
    ?await db.from("logements_decors").update(payload).eq("cle",cle).eq("preview_path",existing.preview_path).eq("retouches",existing.retouches).is("retiree_le",null).select("cle").maybeSingle()
    :await db.from("logements_decors").upsert(payload).select("cle").maybeSingle();
- if(save.error||!save.data)return reply({error:"Enregistrement impossible"},500);
+ if(save.error||!save.data)return await echec({error:"Enregistrement impossible"},500);
  if(sources?.length)await db.from("logements_decors_sources").update({utilisee_pour:path}).in("id",sources.map((x:any)=>x.id));
  await db.from("visuels_versions").insert({type_visuel:"logement",objet_id:cle,image_path:path,auteur_user_id:user.id,action});
  return reply({ok:true,path,retouches});

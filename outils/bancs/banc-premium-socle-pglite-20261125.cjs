@@ -12,7 +12,7 @@ const MIG = 'migrations/20261125700000_premium_socle.sql';
 
 test('migration : en-tête NON APPLIQUÉE, contrôles, aucun prix écrit en dur, plancher de 2 €', () => {
   const m = lire(MIG);
-  assert.match(m.split('\n')[0], /NON APPLIQUÉE/);
+  assert.match(m.split('\n')[0], /APPLIQUÉE/);   // NON APPLIQUÉE à l'écriture, APPLIQUÉE depuis le 25/11 en fin de soirée
   assert.match(m, /Contrôles en lecture après application/);
   assert.match(m, /prix_centimes IS NULL OR prix_centimes >= 200/);
   // Les ancrages $a$…$a$ recopient l'ancien code de production (ce qui est remplacé) : hors de ces ancrages, aucun tarif.
