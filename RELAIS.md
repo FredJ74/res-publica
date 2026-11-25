@@ -9,6 +9,23 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Mission de jour (Claude, 25/11/2026) — décisions : `GAME-DESIGN-MISSION-JOUR-20261125.md` ; suivi : `docs/suivi-decisions.md`, « Mission de jour »
+- Branches (chaîne linéaire, chacune contient la précédente) : `claude/jour-b1-20261125` (bloc 1, réponses aux questions de la Purge)
+  → `claude/jour-b2-20261125` (bloc 2, chronique de l'empire) → `claude/jour-b3-20261125` (bloc 3, armoire à souvenirs).
+  Fusionner la dernière suffit (avance rapide) ; l'agent fusionne lui-même si la poussée sur main lui est permise et la CI verte.
+- **Migrations écrites, NON appliquées** (Fred valide à son retour, dans l'ordre ; contrôles en lecture en tête de chaque fichier) :
+  20261125140000 (guide : goût, relance de l'interview), 150000 (canicule : l'eau vaut pour la journée), 160000 (interrupteur
+  MJ des comptes de test aux élections), 170000 (forum du tribunal). Sans elles, le code garde le comportement actuel.
+- Bloc 1 : 1.3 (trois comptes de test) et 1.10 (blizzard) vérifiés en base, rien à changer ; 1.8 : `quetes_actives` n'est lue par
+  aucun écran ; 1.7 : Grigori Toporkov (bûcheron, cour de l'exploitation forestière), aucune migration (miroir serveur des PNJ =
+  Républia seulement) ; 1.9 : 38 images renommées (`outils/bancs/fixtures/images-espaces-renommees-20261125.json`).
+- **Pour Codex** (français nouveau ou changé, à traduire) : `plateau-pnj-guide.js` TXT `reprendre`, `refuser`, `refusee` ; texte
+  `guide_relance_interview` (migration 20261125140000) ; `plateau-climat.js` CHANTIER_CANICULE_TXT `aide`, `offerte`,
+  `r_deja_offerte` ; `forum.js` « Lecture seule : seuls les parties aux affaires et les juges de ce tribunal y écrivent. »,
+  titre de notification « Tribunal », « Vos affaires au tribunal de {ville} » ; format de date « {jj}/{mm} à {hh} h {mn} » du journal
+  et du chat (`formaterHorodatageJournal`) ; `data.js` « Lot 3 — Terrain à bâtir », Grigori Toporkov (rôle) ;
+  `api/_pnj-personnalites.js` fiche `grigori_toporkov` ; `admin-comptes-test.js` (page MJ).
+
 ### Mission de nuit (Claude, 25/11/2026) — suivi : `docs/suivi-decisions.md`, section « Mission de nuit »
 - Bloc 1.1 (sur main) : Mathias Spirine (ex-Docteur Aspirine, commit 32e5b8d de Fred) — profil de dialogue, miroir des scènes,
   banc de l'hôpital de Novomirsk (Luthécia garde ses images). Suite complète des bancs verte. CI : `workflow_dispatch` sur

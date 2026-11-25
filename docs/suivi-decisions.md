@@ -282,3 +282,24 @@ et sur le registre de production jusqu'à `20261123222538 renommages_pnj_finale`
 | 24/11/2026 | 3.2 Motif « Vol d'explosifs militaires » (table des infractions, plateau-core.js, arrestation de la caserne). Base : migration 20261125120000, appliquée et contrôlée le 25/11. | en ligne | 25/11/2026 | 899aa615 | Mission de nuit 3.2 |
 | 24/11/2026 | 4.1 « Vos chances réelles : X % » avant le clic, calculées par le serveur avec la formule qui tranche l'ordre (ordres_chances_lire) : se cacher, subtiliser des explosifs, utiliser des explosifs, lancer une rumeur, neutraliser (selon la cible). Pastille sur le bouton, ligne en tête de la bulle « i ». Migration 20261125130000 appliquée et contrôlée le 25/11. | en ligne | 25/11/2026 | 899aa615 | Mission de nuit 4.1 |
 | 24/11/2026 | 4.2 Audit de vérité des ordres à chance (descriptions contre serveur) : docs/nuit/AUDIT-CHANCES-20261125.md, aucune règle changée, écarts à trancher par Fred. | en cours |  |  | Mission de nuit 4.2 |
+
+## Mission de jour (25/11/2026)
+
+Décisions de Fred du 25/11 au matin, mot pour mot : `GAME-DESIGN-MISSION-JOUR-20261125.md`. Migrations écrites, **non appliquées** (Fred les valide à son retour) ; le code poussé fonctionne sans elles.
+
+| Date | Décision | État | En ligne le | Commit | Source |
+|---|---|---|---|---|---|
+| 25/11/2026 | 1.1 PNJ guide : le « goût » du nouveau est le chemin choisi à l'interview, à défaut sa carrière (table `guide_carrieres_criteres`, réglable). | en cours (migration 20261125140000 à appliquer) |  | da0a315e | Mission de jour 1.1 |
+| 25/11/2026 | 1.1 Interview fermée sans réponse : la journaliste écrit quand même, au plus tôt le lendemain, une fois (« Vous m'avez filé entre les doigts l'autre jour… on reprend quand vous voulez ? »), et son message mène à « Mes objectifs ». | en cours (migration 20261125140000 à appliquer) |  | da0a315e | Mission de jour 1.1 |
+| 25/11/2026 | 1.1 Choix « Ne plus me proposer d'interview d'accueil » : coupe la relance pour de bon ; ne vaut que pour l'interview d'accueil. | en cours (migration 20261125140000 à appliquer) |  | da0a315e | Mission de jour 1.1 |
+| 25/11/2026 | 1.2 Canicule : les 20 bouteilles offertes lèvent l'arrêt du chantier pour la journée en cours seulement ; arrêt de nouveau le lendemain si la canicule continue ; réglage MJ `canicule_eau_leve_arret` à 1 par défaut. | en cours (migration 20261125150000 à appliquer) |  | b1d48071 | Mission de jour 1.2 |
+| 25/11/2026 | 1.3 Comptes de test : seuls Arnie, Tom Tom et Bernard Bernardov (vérifié en base : ce sont les trois seuls marqués ; aucun autre marqué). | en ligne | 25/11/2026 | 27cdd4ed | Mission de jour 1.3 |
+| 25/11/2026 | 1.3 Interrupteur MJ qui réintègre les comptes de test dans le dépouillement des élections le temps d'un test (exclus par défaut, extinction automatique). | en cours (migration 20261125160000 à appliquer) |  | 27cdd4ed | Mission de jour 1.3 |
+| 25/11/2026 | 1.4 Forum du tribunal : parties à l'affaire et juges y lisent et écrivent où qu'ils soient ; les autres lisent sans écrire (contrôle serveur). | en cours (migration 20261125170000 à appliquer) |  | 601c7df5 | Mission de jour 1.4 |
+| 25/11/2026 | 1.5 Format de date unique « 23/11 à 18 h 48 » aussi au chat et au journal. | en cours (branche) |  | ea343b03 | Mission de jour 1.5 |
+| 25/11/2026 | 1.6 Lot 3 de Luthécia : « Lot 3 — Terrain à bâtir » ; bouton « Donner » gardé, discret, sous « Vendre mes matériaux au chantier ». | en cours (branche) |  | fe34d9bb | Mission de jour 1.6 |
+| 25/11/2026 | 1.7 Forêt de Krasnov : PNJ bûcheron Grigori Toporkov au campement (visible sur l'image de la cour), fiche DeepSeek, portrait recadré. | en cours (branche) |  | f8d01849 | Mission de jour 1.7 |
+| 25/11/2026 | 1.8 Quêtes « Une affaire mystérieuse » (trois ébauches de septembre et octobre) : restent en sommeil, invisibles ; aucun écran de quêtes (vérifié : aucun écran ni API ne lit `quetes_actives`). | en ligne | 25/11/2026 |  | Mission de jour 1.8 |
+| 25/11/2026 | 1.9 Images à espaces : les 38 renommées (espaces → _, sans accents), références à jour, anciennes adresses réécrites dans vercel.json. | en cours (branche) |  | 09b93bdb | Mission de jour 1.9 |
+| 25/11/2026 | 1.10 Blizzard une fois par mandat, à Starovka seulement : vérifié en base (planification par mandat, Novomirsk et Krasnov refusées) ; rien à changer. | en ligne | 25/11/2026 |  | Mission de jour 1.10 |
+| 25/11/2026 | 1.11 En-têtes des quatre migrations de la nuit : « appliquée le 25/11/2026 ». | en cours (branche) |  | 8598927f | Mission de jour 1.11 |
