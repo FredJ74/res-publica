@@ -18,6 +18,7 @@ INSERT INTO public.ordres_couts (fn,pa,cost) VALUES
   ('acheter_relique',0,500),
   ('acheter_ressources_entrepot',0,0),
   ('acheter_sels_ammoniaque',0,0),
+  ('acheter_souvenir',0,0),
   ('acheter_spiritueux_local',0,0),
   ('acheter_terrain',2,18000),
   ('acheter_terrain',2,19800),
