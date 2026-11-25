@@ -1,4 +1,5 @@
-// Publicite premium presse : atelier beta. Aucun paiement n'est demande.
+// Publicite premium presse : atelier. Droit d'option (ou crédit d'annonce) vérifié par le serveur (publicite_premium_creer_beta,
+// socle premium du 25/11/2026) ; aucun tarif écrit ici.
 function pubT(key,fr,vars){const tr=window.RPPremiumAdsI18n?.text;return typeof tr==='function'?tr(key,fr,vars):String(fr).replace(/\{([a-z]+)\}/g,(m,k)=>Object.hasOwn(vars||{},k)?String(vars[k]):m)}
 function pubHT(key,fr,vars){const str=pubT(key,fr,vars);return typeof escapeHtmlText==='function'?escapeHtmlText(str):str.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function ouvrirPublicitePremium() {
@@ -9,11 +10,11 @@ function ouvrirPublicitePremium() {
   if(titre)titre.textContent=pubT('title',"Publicité premium — L’Autruche Entravée");
   corps.innerHTML='<div style="padding:1rem;max-width:680px;margin:auto">'+
     '<h3 data-premium-i18n="fullPage">'+pubHT("fullPage","Votre pleine page publicitaire")+'</h3>'+
-    '<p data-premium-i18n="beta">'+pubHT("beta","Offre bêta : création gratuite. La facturation Stripe sera activée ultérieurement.")+'</p>'+
+    '<p data-premium-i18n="beta">'+pubHT("beta","Offre bêta : création gratuite.")+'</p>'+
     '<label for="pub-premium-formule" data-premium-i18n="campaign">'+pubHT("campaign","Campagne")+'</label>'+
     '<select id="pub-premium-formule" style="display:block;width:100%;padding:.6rem;margin:.4rem 0 1rem">'+
-    '<option value="cinq" data-premium-i18n="five">'+pubHT("five","5 parutions — gratuit en bêta (futur tarif 4,99 €)")+'</option>'+
-    '<option value="dix" data-premium-i18n="ten">'+pubHT("ten","10 parutions — gratuit en bêta (futur tarif 7,99 €)")+'</option></select>'+
+    '<option value="cinq" data-premium-i18n="five">'+pubHT("five","5 parutions — gratuit en bêta")+'</option>'+
+    '<option value="dix" data-premium-i18n="ten">'+pubHT("ten","10 parutions — gratuit en bêta")+'</option></select>'+
     '<label for="pub-premium-texte" data-premium-i18n="describe">'+pubHT("describe","Décrivez votre publicité")+'</label>'+
     '<textarea id="pub-premium-texte" rows="5" maxlength="1500" style="display:block;width:100%;padding:.6rem;margin:.4rem 0 1rem" placeholder="'+pubHT("placeholder","Commerce, organisation, slogan, message, ambiance graphique...")+'"></textarea>'+
     '<label style="display:block;margin-bottom:1rem"><input id="pub-premium-assistance" type="checkbox" checked> <span data-premium-i18n="assist">'+pubHT("assist","Assistance IA pour concevoir la page")+'</span></label>'+
@@ -24,7 +25,9 @@ function ouvrirPublicitePremium() {
     '<input type="file" id="pub-premium-affiche" accept="image/png,image/jpeg,image/webp" style="display:block;margin:.5rem 0 1rem">' +
     '<p style="opacity:.8" data-premium-i18n="previewNote">'+pubHT("previewNote","La création comprendra un aperçu et jusqu’à deux retouches. Les parutions commenceront le lendemain de la commande validée.")+'</p>'+
     '<button type="button" onclick="publicitePremiumEnregistrerBrouillon()" style="padding:.7rem 1rem;cursor:pointer" data-premium-i18n="prepare">'+pubHT("prepare","Préparer ma publicité gratuite")+'</button>'+
-    '<div id="pub-premium-retour" role="status" style="margin-top:.8rem"></div></div>';
+    '<div id="pub-premium-retour" role="status" style="margin-top:.8rem"></div>'+
+    (typeof window.ouvrirPublicitesJoueur==='function'?'<p style="margin-top:1rem"><button type="button" onclick="ouvrirPublicitesJoueur()">'+pubHT("otherMedia","Autres supports : la rue et le cinéma de Montrouge")+'</button></p>':'')+
+    '</div>';
   modal.classList.add('open');
 }
 async function publicitePremiumEnregistrerBrouillon(){

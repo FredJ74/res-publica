@@ -89,6 +89,6 @@ test('aucune modification des appels, tarifs et plafonds métier',()=>{
  assert.match(source,/remaining=2-data\.retouches/);
  assert.match(source,/p_formule:formule/);
  assert.match(source,/p_assistance:assistance/);
- assert.match(html,/i18n\/premium-ads-resources\.js\?v=20261112/);
- assert.match(html,/plateau-publicite-premium\.js\?v=i18n-20261112/);
+ assert.match(html,/i18n\/premium-ads-resources\.js\?v=20261125/);
+ assert.match(html,/plateau-publicite-premium\.js\?v=premium-20261125/);
 });

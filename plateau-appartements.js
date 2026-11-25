@@ -350,7 +350,7 @@ async function logementOuvrirAtelier() {
     const rows = await sbGet('logements_decors', 'cle=eq.' + encodeURIComponent(state.country + '|' + state.currentCity + '|' + state.currentBuilding + '|' + state.currentRoom) + '&select=preview_path,retouches');
     if (rows && rows[0] && rows[0].preview_path) { ATELIER.preview = rows[0].preview_path; ATELIER.retouches = Number(rows[0].retouches) || 0; }
   } catch (e) {}
-  let h = note(texteAppart('atelier.intro', 'Décrivez l\'ambiance souhaitée : les murs, portes et fenêtres de la pièce sont conservés. Une génération et deux retouches, gratuites pendant la bêta (ensuite 0,99 € la nouvelle génération).'));
+  let h = note(texteAppart('atelier.intro', 'Décrivez l\'ambiance souhaitée : les murs, portes et fenêtres de la pièce sont conservés. Une génération et deux retouches, gratuites pendant la bêta.'));
   h += '<textarea id="logement-atelier-demande" class="cpj-champ" maxlength="1500" rows="4" style="width:100%" placeholder="' + esc(texteAppart('atelier.placeholder', 'Ambiance, mobilier, couleurs, textiles, éclairage…')) + '"></textarea>';
   if (!ATELIER.preview) {
     h += '<label for="logement-atelier-sources" class="cpj-note" style="display:block;margin-top:.5rem">' + texteAppart('atelier.sources', 'Images de référence (facultatif, 5 maximum, 5 Mo chacune)') + '</label>';

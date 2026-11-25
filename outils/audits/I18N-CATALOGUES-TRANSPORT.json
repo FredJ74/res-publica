@@ -22,10 +22,10 @@
     {
       "source": "i18n/appartements-resources.js",
       "packed": "i18n/packed/appartements-resources.js.br",
-      "sourceBytes": 55314,
-      "packedBytes": 17137,
-      "sourceSha256": "3c722afc1f71c9552645ec0e3ad5296a9a86f74b3381e8a46802f16b29e69c91",
-      "packedSha256": "6b94c467f5e2b66a1b79d87de1d9a736f0c696046e09ade81ce0afd43f9c86a1"
+      "sourceBytes": 54975,
+      "packedBytes": 16973,
+      "sourceSha256": "828eed4b4c45fc9b017a5a37627fef0c75848b84faca70a53833610d96fd5f15",
+      "packedSha256": "e3e497f1b0aeba64f17dc7ace86af8eb01f197b0f764316e7a30380f8007419a"
     },
     {
       "source": "i18n/character-sheet-resources.js",
@@ -454,10 +454,10 @@
     {
       "source": "i18n/premium-ads-resources.js",
       "packed": "i18n/packed/premium-ads-resources.js.br",
-      "sourceBytes": 25582,
-      "packedBytes": 7512,
-      "sourceSha256": "07d0f7c8d0fc29b8e9e31c0138d4fceea210060ba265c93a977d7e0f378a15de",
-      "packedSha256": "567eacc53dc9da2bb5005664d3c8bdfd3199bab4ec7a80e5b13d250f8fa32cb4"
+      "sourceBytes": 24738,
+      "packedBytes": 7240,
+      "sourceSha256": "82603c5b8b5d9f958ea11b1964e111fefc7a6e16927bf9b5d459224ce54f17b4",
+      "packedSha256": "e0d386ae86d559f3e88cfa6e3ff1b94fc0eb3559f0c8ee2be250864e5751f618"
     },
     {
       "source": "i18n/product-sheet-resources.js",

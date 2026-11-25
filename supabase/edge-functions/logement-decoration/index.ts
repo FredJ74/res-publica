@@ -3,7 +3,8 @@
 // une génération et deux retouches par pièce. Le droit de décorer une pièce est décidé par le
 // serveur (logement_decor_droit_interne) : titulaire seul = tout ; en colocation, le colocataire
 // sa chambre, le titulaire sa chambre et le salon ; époux = toutes les pièces.
-// Bêta : aucun paiement ; la nouvelle génération sera facturée 0,99 € lors de la session premium.
+// Premium (25/11/2026 au soir) : une nouvelle génération est un renouvellement d'image, décidé par le serveur
+// (premium_renouvellement_autoriser_service : bêta libre, un par semaine pour l'abonné, sinon à l'unité).
 // Images de référence (décision de Fred, 13/11/2026) : jusqu'à 5 images du joueur, comme l'atelier du
 // Commerce Premium, conservées en privé pour la traçabilité (logements_decors_sources, bucket
 // publicites-premium-sources) ; jointes à la génération (start), pas aux retouches (coût OpenAI).
@@ -75,6 +76,12 @@ Deno.serve(async(req)=>{
  }
  if(action==="start"&&existing?.preview_path)return reply({error:"Terminez ou recommencez votre projet actuel"},409);
  if(action==="retouch"&&(!existing?.preview_path||existing.retouches>=2))return reply({error:"Deux retouches maximum"},400);
+ // Remplacer une image déjà posée = renouvellement d'image, décidé par le serveur (la première image vient avec
+ // l'appartement premium, activé sous droit). Sans la migration 20261125700000 : comportement de bêta.
+ if(action==="start"&&existing?.image_path){
+  const {data:droit,error:de}=await db.rpc("premium_renouvellement_autoriser_service",{p_user:user.id,p_type:"logement",p_objet:cle});
+  if(!de&&droit&&droit.ok===false)return reply({error:"Renouvellement d'image a acheter",raison:droit.raison,produit:"renouvellement_image"},402);
+ }
  const prompt=String(body.prompt||"").trim().slice(0,1500);
  if(prompt.length<10)return reply({error:"Decrivez votre decoration plus precisement"},400);
  const key=Deno.env.get("OPENAI_API_KEY");if(!key)return reply({error:"Cle OpenAI absente du serveur"},503);
