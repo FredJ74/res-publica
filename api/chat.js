@@ -25,6 +25,7 @@ import { construirePromptSysteme, profilExiste, maxTokensProfil, filtrerReponseS
 import { handlerAide } from './_aide.js';
 import { handlerReactionHabitant } from './_reaction-habitant.js';
 import { handlerGuide } from './_pnj-guide.js';
+import { handlerPaiement } from './_paiement.js';
 import { appelDeepSeek, joueurAuthentifie, classerEchecFournisseur } from './_deepseek.js';
 import { sbTransport } from './_supabase.js';
 import { sceneDialogue } from './_pnj-localisation.js';
@@ -307,6 +308,9 @@ export default async function handler(req, res) {
   if (req.query && req.query.mode === 'trinquer') return handlerReactionHabitant(req, res);
   // PNJ guide des nouveaux joueurs (purge A.10, 24/11/2026) : même fonction, pour rester à 12.
   if (req.query && req.query.mode === 'guide') return handlerGuide(req, res);
+  // Paiement des options premium (mission du soir du 25/11/2026, bloc 4.4) : commande et webhook signé du revendeur,
+  // même fonction pour rester à 12. Le webhook lit le corps BRUT : le corps ne doit être lu par rien avant cette ligne.
+  if (req.query && (req.query.mode === 'paiement' || req.query.mode === 'paiement_webhook')) return handlerPaiement(req, res);
   const origin = req.headers.origin;
   if (origin === ALLOWED_ORIGIN) {
     res.setHeader('Access-Control-Allow-Origin', ALLOWED_ORIGIN);
