@@ -38,7 +38,10 @@ test('chaque ligne reclassée est une description effectivement affichée dans l
   const fnsDe=d=>{const f=new Set();for(const b of Object.values(c.BUILDINGS))for(const r of Object.values(b.rooms||{}))for(const o of r.orders||[])if(o?.desc===d)f.add(o.fn);return [...f];};
   // Plus de banques en Sovarka (décision de Fred, 15/11/2026) : une ligne qui n'existe que dans des banques n'y est plus affichée.
   const batimentsDe=d=>Object.entries(c.BUILDINGS).filter(([,b])=>Object.values(b.rooms||{}).some(r=>(r.orders||[]).some(o=>o?.desc===d))).map(([id])=>id);
-  for(const row of sources){const fns=fnsDe(row[0]);if(country==='soviet'&&fns.length&&fns.every(fn=>exclusSovarka.has(fn)))continue;
+  // Audit des chances (mission du soir, 25/11/2026, bloc 1A) : description de la campagne de sécurité alignée sur le serveur ;
+  // la ligne livrée reste au catalogue jusqu'à la traduction de la nouvelle par Codex.
+  const REMPLACEES=new Set(['+10 ISN local. Preleve sur budget mairie.']);
+  for(const row of sources){if(REMPLACEES.has(row[0]))continue;const fns=fnsDe(row[0]);if(country==='soviet'&&fns.length&&fns.every(fn=>exclusSovarka.has(fn)))continue;
    const bats=batimentsDe(row[0]);if(country==='soviet'&&bats.length&&bats.every(id=>id.startsWith('banque-')))continue;assert.ok(descs.has(row[0]),country+': '+row[0]);}
  }
 });

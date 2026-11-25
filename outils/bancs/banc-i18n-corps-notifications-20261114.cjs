@@ -67,6 +67,8 @@ test('provenance des phrases actives et des phrases retirées documentées',()=>
  const CRIM_LOT5=['Vous devez être dans un bâtiment pour tenter ceci.','Le feu ne prend pas. Rien ne se passe.',"Vous n'avez pas d'explosifs dans votre inventaire. Procurez-vous en à l'armurerie.","Vous n'avez pas d'explosifs dans votre inventaire.",'Le dispositif vous explose entre les mains. Vous êtes blessé(e).','Vous devez d\'abord réussir l\'ordre "Se cacher" dans cette pièce.',"Vous n'avez pas d'objet poison dans votre inventaire. Procurez-vous en dans votre empire.",'Aucun PJ dans cette pièce.',"Vous n'avez pas d'objet poison dans votre inventaire.","L'empoisonnement n'a pas pu avoir lieu.",'Un témoin vous a vu(e). Vous êtes désormais recherché(e).',"L'empoisonnement a échoué. Objet perdu. Vous avez été identifié(e)."];
  // 20/11/2026 (criminalité lot 6) : la rébellion matée n'envoie plus au QHS (§ 14) ; son toast vient de plateau-criminalite.js (T.fr).
  const CRIM_LOT6=['Transfere au QHS. -25 PV, -15 DIS.'];
+ // Audit des chances (mission du soir, 25/11/2026, bloc 1A) : la contrebande dit l'issue réelle, la visite passe par le serveur.
+ const AUDIT_CHANCES=['La douane a repéré la manœuvre.',"Ce détenu n'est plus détenu au QHS."];
  // 20/11/2026 (criminalité lot 7) : corruption — doCorruption, l'accélération du permis, du rendez-vous notarial et du chantier
  // sont supprimées (« le temps ne s'achète pas ») ; le directeur et le gardien du QHS passent par plateau-criminalite.js (T.fr).
  const CRIM_LOT7=["Vous n'avez pas de rendez-vous en attente ici.",'Le navigateur ne peut pas conserver la référence de cet ordre.','Le service a ete obtenu. -5 DIS.',
@@ -118,7 +120,7 @@ test('provenance des phrases actives et des phrases retirées documentées',()=>
   assert.ok(avantCarte.includes(fr)||avantCarte.includes(fr.replace(/'/g,"\\'")),'provenance carte postale : '+fr);
   assert.equal(present(fr),false,'ancienne phrase de carte postale non réactivée : '+fr);
  }
- assert.deepEqual(rows.map(r=>r[0]).filter(fr=>!present(fr)),[retire,'Maximum 2 récoltes par jour.','+5 DIS.','Vous ne pouvez pas voter dans cet empire.','Cette prestation ne peut pas être vendue à emporter.',...CRIM_LOT5,...CRIM_LOT6,...CRIM_LOT7,...INTERVIEW_ACCUEIL,...INFORMATEURS_REFONTE,...SANTE_PV,...CARTE_POSTALE_SERVEUR].filter(fr=>rows.some(r=>r[0]===fr)).sort((a,b)=>rows.findIndex(r=>r[0]===a)-rows.findIndex(r=>r[0]===b)));
+ assert.deepEqual(rows.map(r=>r[0]).filter(fr=>!present(fr)),[retire,'Maximum 2 récoltes par jour.','+5 DIS.','Vous ne pouvez pas voter dans cet empire.','Cette prestation ne peut pas être vendue à emporter.',...CRIM_LOT5,...CRIM_LOT6,...CRIM_LOT7,...INTERVIEW_ACCUEIL,...INFORMATEURS_REFONTE,...SANTE_PV,...CARTE_POSTALE_SERVEUR,...AUDIT_CHANCES].filter(fr=>rows.some(r=>r[0]===fr)).sort((a,b)=>rows.findIndex(r=>r[0]===a)-rows.findIndex(r=>r[0]===b)));
 });
 
 test('aucun recouvrement avec les catalogues déjà raccordés (pas de double traduction ni de markToast contrarié)',()=>{

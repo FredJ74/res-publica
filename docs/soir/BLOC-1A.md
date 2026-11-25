@@ -84,9 +84,13 @@ réécriture complète d'`ordres_chances_lire` par le bloc 1B effacerait la bran
 - Nouveau : `outils/bancs/banc-audit-chances-soir-pglite-20261125.cjs` (11 tests, PGlite : fraudes, contrebande, évasion,
   rébellion, rumeurs chez Galina, quai de Novomirsk, contester / falsifier / vol de chantier / corruption QHS / incendier /
   ordres génériques, visite au parloir ; écran : descriptions, pourcentages, mobiliser, visite, messages).
-- Adaptés : `test-i18n-infobulles-communes-20261113.mjs` (anciennes lignes livrées gardées au catalogue, plafond des
+- Adaptés : `banc-i18n-communes-partage-20261113.cjs` et `banc-i18n-corps-notifications-20261114.cjs` (lignes et phrases
+  remplacées documentées), plans de recette (`preparer-recette97-219.py`, `preparer-livraison-complete-219.py` : la coupe
+  historique garde « mobiliser » à 2 PA), `test-i18n-infobulles-communes-20261113.mjs` (anciennes lignes livrées gardées au catalogue, plafond des
   descriptions en attente de traduction), `test-i18n-sovarka-infobulles-20261113.mjs` (rumeur glissée à Galina en attente).
-- Verts en local : `node --test outils/bancs/test-*.mjs` (441 tests), chances réelles, inspection des cargaisons, catalogue
+- Contrôleur de la CI en local (`controler-client.py --modifies-depuis ""`, 323 bancs liés) : tous verts sauf 21 bancs qui
+  échouent de même sur main 985d1c94 dans les mêmes conditions (bancs historiques lisant l'ancienne copie
+  `~/ResPublica`, Chromium local). Verts aussi : `node --test outils/bancs/test-*.mjs` (441 tests), chances réelles, inspection des cargaisons, catalogue
   des ordres, ordres tactiles (Chromium), cambriolage, justice lot 6, climat.
 
 ## Pour Codex (français nouveau ou changé, à traduire)
