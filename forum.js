@@ -181,6 +181,33 @@ function villeForumLocal() {
   if (p === state.country) return state.currentCity || 'capitale';
   return (state.domicile && state.domicile.country === p) ? state.domicile.city : null;
 }
+// FORUM DU TRIBUNAL (Fred, 25/11/2026, mission de jour 1.4 ; migration 20261125170000) : les parties aux affaires et
+// les juges y écrivent où qu'ils soient ; les autres le lisent. Le serveur tranche (forum_ecriture_autorisee) ; l'écran lit
+// ses droits (forum_tribunal_droits) pour montrer les tribunaux où l'on écrit et dire « lecture seule ». Sans la migration
+// (droits inconnus), l'écran garde le comportement d'avant.
+let DROITS_TRIBUNAL = null;
+async function chargerDroitsTribunal() {
+  if (typeof sbRpc !== 'function') return;
+  try {
+    const r = await sbRpc('forum_tribunal_droits', {});
+    const v = Array.isArray(r) ? r[0] : r;
+    DROITS_TRIBUNAL = v && v.ok === true ? v : null;
+  } catch (_) { DROITS_TRIBUNAL = null; }
+}
+function forumTribunalLectureSeule(forumId) {
+  if (typeof forumId !== 'string' || !forumId.startsWith('tribunal_') || !DROITS_TRIBUNAL) return false;
+  const ville = forumId.slice(9), ici = DROITS_TRIBUNAL.ici || {};
+  if (ici.ville === ville && ici.pays === state.country && ici.ecriture) return false;
+  return !(DROITS_TRIBUNAL.tribunaux || []).some(t => t && t.ville === ville);
+}
+// Pays d'un forum de tribunal : celui de la ville où l'on se trouve, sinon celui de l'affaire ou du poste (droits serveur).
+function paysTribunal(forumId) {
+  const ville = String(forumId || '').slice(9), ici = DROITS_TRIBUNAL && DROITS_TRIBUNAL.ici;
+  if (ville === (state.currentCity || 'capitale')) return state.country;
+  const t = DROITS_TRIBUNAL && (DROITS_TRIBUNAL.tribunaux || []).find(x => x && x.ville === ville);
+  return (t && t.pays) || (ici && ici.pays) || state.country;
+}
+function forumLectureSeule(forumId) { return forumNationalLectureSeule(forumId) || forumTribunalLectureSeule(forumId); }
 function forumNationalLectureSeule(forumId) {
   const nat = (typeof maNationalite === 'function' ? maNationalite() : null) || state.country;
   return forumEstNational(forumId) && paysForums() !== nat;
@@ -239,6 +266,14 @@ function getForums() {
       desc: 'Discussions de ' + nomVille + (domicile ? ' (votre ville de domicile)' : ' (ville visitée)'), private: false, cat: 'local', local: true };
   });
 
+  // Tribunaux d'autres villes où le joueur est partie à une affaire, ou juge (droits lus au serveur).
+  const tribunauxDistants = {};
+  ((DROITS_TRIBUNAL && DROITS_TRIBUNAL.tribunaux) || []).forEach(t => {
+    if (!t || !t.ville || 'tribunal_' + t.ville === tribunalKey) return;
+    const nomV = (typeof WORLD !== 'undefined' && WORLD[t.pays]?.[t.ville]?.name) || t.ville;
+    tribunauxDistants['tribunal_' + t.ville] = { name: '⚖️ Tribunal — ' + nomV, icon: 'ti-gavel', desc: 'Vos affaires au tribunal de ' + nomV, private: false, cat: 'intra', sousGroupe: 'institutions' };
+  });
+
   const orgForums = {};
   ((typeof state !== 'undefined' && state.organisations) || []).forEach(o => {
     if (!o?.id || !estMembreOrganisationForum(o)) return;
@@ -256,6 +291,7 @@ function getForums() {
     ...FORUMS_BASE,
     // Forums locaux accessibles (B.1) : ville du domicile et ville visitée ; le nom porte la ville, puisqu'il peut y en avoir deux.
     ...forumsLocaux,
+    ...tribunauxDistants,
     [tribunalKey]: { name: '⚖️ Tribunal — ' + villeNom, icon: 'ti-gavel', desc: 'Plaintes et affaires judiciaires de ' + villeNom, private: false, cat: 'intra', sousGroupe: 'institutions' },
     ...orgForums
   };
@@ -719,6 +755,7 @@ async function confirmerAdhesionsForums() {
     return false;
   }
   synchroniserCachesForumsTerritoriaux();
+  await chargerDroitsTribunal();
   return true;
 }
 
@@ -1311,7 +1348,7 @@ function renderTopicList() {
     parseGameTime(b.lastPostTime || b.time) - parseGameTime(a.lastPostTime || a.time)
   );
   // Forum national (ou sous-forum) d'un pays visité : lecture seule, dite en clair (mission Purge B.1).
-  const lectureSeule = forumNationalLectureSeule(currentForumId);
+  const lectureSeule = forumLectureSeule(currentForumId);
   const peutCreerSujet = !lectureSeule && (currentForumId !== 'presidence' || state.poste?.id === 'president');
   return `
     <div class="forum-header-bar">
@@ -1324,7 +1361,7 @@ function renderTopicList() {
         <i class="ti ti-pencil-plus"></i> ${rpForumLibelle('newTopic','Nouveau sujet')}
       </button>` : ''}
     </div>
-    ${lectureSeule ? htmlForumLectureSeule() : ''}
+    ${lectureSeule ? htmlForumLectureSeule(currentForumId) : ''}
     ${topics.length === 0
       ? (FORUM_LECTURE_EN_COURS[currentForumId] || !FORUM_LECTURE_TERMINEE[currentForumId]
           ? `<div class="forum-empty">${rpForumLibelle('loadingTopics','Chargement des sujets depuis le serveur…')}</div>`
@@ -1439,7 +1476,7 @@ function renderTopicView() {
           </div>
         </div>`).join('')}
     </div>
-    ${forumNationalLectureSeule(currentForumId) ? htmlForumLectureSeule() : `<div class="forum-reply-bar">
+    ${forumLectureSeule(currentForumId) ? htmlForumLectureSeule(currentForumId) : `<div class="forum-reply-bar">
       <button class="forum-new-btn" onclick="showComposeCanvasReply()">
         <i class="ti ti-corner-down-right"></i> ${rpForumLibelle('reply','Répondre')}
       </button>
@@ -1448,7 +1485,9 @@ function renderTopicView() {
 }
 
 // Lecture seule à l'étranger (Fred, 24/11/2026, mission Purge B.1) : la phrase dit pourquoi et qui peut écrire.
-function htmlForumLectureSeule() {
+function htmlForumLectureSeule(forumId) {
+  if (forumTribunalLectureSeule(forumId))
+    return '<div class="cpj-note forum-lecture-seule" role="note"><i class="ti ti-eye"></i> Lecture seule : seuls les parties aux affaires et les juges de ce tribunal y écrivent.</div>';
   const nom = c => (typeof COUNTRIES !== 'undefined' && COUNTRIES[c]?.n) || c;
   return '<div class="cpj-note forum-lecture-seule" role="note"><i class="ti ti-eye"></i> Lecture seule : vous êtes à l’étranger. '
     + 'Seuls les citoyens de ' + escapeHtmlText(nom(paysForums())) + ' écrivent dans ce forum ; le forum local de la ville où vous êtes reste ouvert à tous.</div>';
@@ -3321,12 +3360,16 @@ async function forumPublierAvecJauges(topic,titre,contenu,blocs,miseEnPage,ident
     return null;
   }
   // Forum national (et ses sous-forums) d'un pays visité : lecture seule (le serveur refuse aussi, forum_ecriture_autorisee).
+  if (typeof forumTribunalLectureSeule === 'function' && forumTribunalLectureSeule(forumId)) {
+    showToast('Tribunal', 'Lecture seule : seuls les parties aux affaires et les juges de ce tribunal y écrivent.', false);
+    return null;
+  }
   if (forumNationalLectureSeule(forumId)) {
     showToast('Forum National', (typeof texteNationalite === 'function' && texteNationalite('nationalite_requise')) || 'Lecture seule.', false);
     return null;
   }
   const territorial = forumEstTerritorial(forumId);
-  const v=await executerOrdreJaugesServeur('forum_publier',{forum:forumId,topic,titre,contenu,blocs,mise_en_page:miseEnPage,organisation:identite.idOrga||null,secret:!!identite.authorSecret,icone:identite.orgIcon||null,...(territorial&&!topic?{pays:paysForums()}:{})});
+  const v=await executerOrdreJaugesServeur('forum_publier',{forum:forumId,topic,titre,contenu,blocs,mise_en_page:miseEnPage,organisation:identite.idOrga||null,secret:!!identite.authorSecret,icone:identite.orgIcon||null,...(territorial&&!topic?{pays:paysForums()}:{}),...(!topic&&forumId.startsWith('tribunal_')&&typeof paysTribunal==='function'?{pays:paysTribunal(forumId)}:{})});
   if(!v||typeof v.topic!=='string'||typeof v.post!=='string')return null;
   return v;
 }

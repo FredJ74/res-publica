@@ -60,8 +60,10 @@ test('B.1 domicile hors de son pays : le pays du domicile est proposé et son fo
 });
 
 test('B.1 raccords : lecture seule dite en clair, publication bornée aux forums locaux accessibles', () => {
-  assert.match(bloc(FORUM, 'function renderTopicList('), /lectureSeule \? htmlForumLectureSeule\(\) : ''/);
-  assert.match(bloc(FORUM, 'function renderTopicView('), /forumNationalLectureSeule\(currentForumId\) \? htmlForumLectureSeule\(\)/);
+  // Mission de jour 25/11 (1.4) : la même lecture seule couvre aussi le tribunal (forumLectureSeule), phrase propre au forum.
+  assert.match(bloc(FORUM, 'function renderTopicList('), /lectureSeule \? htmlForumLectureSeule\(currentForumId\) : ''/);
+  assert.match(bloc(FORUM, 'function renderTopicView('), /forumLectureSeule\(currentForumId\) \? htmlForumLectureSeule\(currentForumId\)/);
+  assert.match(FORUM, /function forumLectureSeule\(forumId\) \{ return forumNationalLectureSeule\(forumId\) \|\| forumTribunalLectureSeule\(forumId\); \}/);
   assert.match(bloc(FORUM, 'async function forumPublierAvecJauges('), /villesForumLocal\(\)\.map\(v => idForumLocal\(v\)\)\.includes\(forumId\)/);
   assert.match(bloc(FORUM, 'async function forumPublierAvecJauges('), /const territorial = forumEstTerritorial\(forumId\)/);
   assert.match(lire('GAME-DESIGN-FORUMS.md'), /Règles d'accès du 24\/11\/2026/);
