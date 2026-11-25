@@ -597,7 +597,6 @@ function switchSelfTab(tab, el) {
     html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:1rem;margin-bottom:.8rem">';
     html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.15em;color:#8a6a20;margin-bottom:.6rem">' + rpCharSheetLabel('tacticalActions','ACTIONS TACTIQUES') + '</div>';
 
-    const malusISN = getMalusISN();
     const groupSize = getGroupSize ? getGroupSize() : 1;
     const tauxBlocus = Math.min(90, 25 + (groupSize - 1));
 
@@ -640,10 +639,17 @@ function switchSelfTab(tab, el) {
       html += '<span><i class="ti ti-shield" style="font-size:.85rem"></i> Réprimer un blocus syndical</span><span style="font-family:Bebas Neue,sans-serif;font-size:.68rem">2 PA</span></button>';
     }
 
-    const tauxIncendie = Math.max(5, 30 - malusISN);
-    html += '<button onclick="doOrder(\'incendier\',3,0,\'Incendier\',\'Vous mettez le feu.\','+tauxIncendie+');closeSelfView()" style="display:flex;justify-content:space-between;align-items:center;padding:.5rem .8rem;border:1px solid #4a1a08;background:#100805;color:#aa5a30;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">';
-    const isnAffiche = (typeof getIndiceVille === 'function') ? getIndiceVille(state.country, state.currentCity || 'capitale', 'isn') : (INDICES_NATIONAUX[state.country]?.ISN||30);
-    html += '<span><i class="ti ti-flame" style="font-size:.85rem"></i> Incendier</span><span style="font-family:Bebas Neue,sans-serif;font-size:.68rem;color:#8a3a10">' + tauxIncendie + '% · 3 PA · ISN:' + isnAffiche + '</span></button>';
+    // Audit des chances (Fred, 25/11 au soir) : plus de « 30 − ISN » calculé ici (l'ISN ne compte pas au serveur) ; la chance
+    // affichée est lue au serveur (ordres_chances_lire, même formule que crime_incendier), sinon rien n'est affiché.
+    html += '<button onclick="doOrder(\'incendier\',3,0,\'Incendier\',\'Vous mettez le feu.\');closeSelfView()" style="display:flex;justify-content:space-between;align-items:center;padding:.5rem .8rem;border:1px solid #4a1a08;background:#100805;color:#aa5a30;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">';
+    html += '<span><i class="ti ti-flame" style="font-size:.85rem"></i> Incendier</span><span style="font-family:Bebas Neue,sans-serif;font-size:.68rem;color:#8a3a10"><span id="rp-chance-incendier"></span>3 PA</span></button>';
+    if (typeof sbRpc === 'function') {
+      sbRpc('ordres_chances_lire', { p_fns: ['incendier'] }).then(r => {
+        const taux = r && r.ok === true && r.chances ? r.chances.incendier : null;
+        const el = document.getElementById('rp-chance-incendier');
+        if (el && typeof taux === 'number') { el.textContent = taux + '% · '; el.title = 'Vos chances réelles : ' + taux + ' %'; }
+      }).catch(() => {});
+    }
 
     // Utiliser des explosifs — jusqu'ici entierement construite (doUtiliserExplosifs) et
     // routee, mais sans aucun bouton nulle part pour y acceder. Corrige le 5 aout 2026.

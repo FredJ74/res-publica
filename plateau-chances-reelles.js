@@ -7,7 +7,21 @@
   const doc = global.document;
   if (!doc) return;
   // Ordres dont le serveur sait lire la chance avant le clic (voir ordres_chances_lire).
-  const ORDRES = ['se_cacher', 'acheter_bombe_illegale', 'utiliser_explosifs', 'lancer_rumeur_cible'];
+  // Mission du soir (25/11, bloc 1A) : ordres de l'audit des chances (migration 20261125400000, ordres_chances_audit_interne).
+  const ORDRES = ['se_cacher', 'acheter_bombe_illegale', 'utiliser_explosifs', 'lancer_rumeur_cible',
+    'bourrer_urnes', 'falsifier_listes_electorales', 'truquer_depouillement', 'contrebande_port', 'tentative_evasion',
+    'se_rebeller', 'ecouter_rumeurs', 'inspecter_cargaisons', 'contester_resultats', 'falsifier_document',
+    'voler_materiel_chantier', 'corrompre_fonct', 'corrompre_gardien', 'fuite_info', 'soins_discrets'];
+  // Ordres sans jet de réussite (le serveur vend, accorde ou exécute à coup sûr) : aucun pourcentage n'est affiché.
+  const SANS_JET = ['acheter_ghb', 'acheter_vipere', 'campagne_securite', 'propagande_etat', 'emprunter', 'visiter_prisonnier',
+    'mobiliser'];
+  // Ordres dont la chance dépend d'une cible ou d'un tiers choisi ensuite : pas de pourcentage écrit en dur sur le bouton,
+  // la fenêtre de l'ordre ou sa description dit de quoi dépend la chance.
+  const SELON_CIBLE = ['blocus_portuaire', 'corrompre_douanier', 'defense', 'escort_piege', 'greffe_corrompre_dossier',
+    'greffe_corrompre_faux_casier', 'marchander_vote', 'faire_disparaitre_cadavre', 'negocier_squatteurs', 'donner_argent_pnj',
+    'ouvrir_enquete'];
+  // Le bouton n'affiche jamais un pourcentage écrit en dur pour ces ordres : seulement la chance lue au serveur, s'il la donne.
+  const sansTauxEcrit = fn => ORDRES.includes(fn) || SANS_JET.includes(fn) || SELON_CIBLE.includes(fn);
   const texte = x => 'Vos chances réelles : ' + x + ' %';
   let generation = 0, planifie = false;
 
@@ -69,5 +83,5 @@
     return true;
   }
   if (!brancher()) doc.addEventListener('DOMContentLoaded', brancher, { once: true });
-  global.RPChancesReelles = Object.freeze({ annoter, texte, ORDRES });
+  global.RPChancesReelles = Object.freeze({ annoter, texte, ORDRES, SANS_JET, SELON_CIBLE, sansTauxEcrit });
 })(typeof window !== 'undefined' ? window : globalThis);

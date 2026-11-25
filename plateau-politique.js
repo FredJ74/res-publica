@@ -4498,11 +4498,16 @@ function renderRoomActions(room, buildingId, roomId) {
     if (ef.dis < 0)   riskSpec.push([String(ef.dis), 'DIS']);
     if (ef.pop < 0)   riskSpec.push([String(ef.pop), 'POP']);
     const rate = o.fn === 'se_confesser' ? null : (o.successRate || 70);
+    // Audit des chances (Fred, 25/11 au soir) : plus de pourcentage écrit en dur pour les ordres dont le serveur donne la
+    // chance réelle (pastille « Vos chances réelles : X % »), pour les ordres sans jet et pour ceux dont la chance dépend
+    // d'une cible choisie ensuite. `rate` reste transmis tel quel à doOrder (anciens chemins).
+    const rpChances = (typeof window !== 'undefined' && window.RPChancesReelles) || null;
+    const rateAffiche = (rate !== null && rpChances && typeof rpChances.sansTauxEcrit === 'function' && rpChances.sansTauxEcrit(o.fn)) ? null : rate;
     // Infobulle : description (propre à Sovarka : traduite, devise et tarif national réappliqués),
     // gains, risques, réussite. Descripteur gardé sur le bouton pour la bascule de langue.
     const infobulleI18n = (typeof window !== 'undefined' && window.RPSovarkaInfobullesI18n) || null;
     const tipSpec = { d: ordreSource.desc || '', q: ordreSource.descriptionKey || '', a: o.desc || '', c: ordreSource.cost, p: ordreSource.pa, v: deviseOrdre,
-      n: tarifNational ? { cost: tarifNational.cost, pa: tarifNational.pa } : null, g: gainSpec, r: riskSpec, s: rate };
+      n: tarifNational ? { cost: tarifNational.cost, pa: tarifNational.pa } : null, g: gainSpec, r: riskSpec, s: rateAffiche };
     const gainStr = infobulleI18n ? infobulleI18n.gains(gainSpec)
       : gainSpec.map(e => e[0] + ' ' + (e[1] === 'sante' ? 'Sante' : e[1] === 'moral' ? 'Moral' : e[1])).join(' · ');
     let tooltip;
@@ -4513,7 +4518,7 @@ function renderRoomActions(room, buildingId, roomId) {
       if (o.desc) tooltipParts.push(o.desc);
       if (gainStr) tooltipParts.push('Gain: ' + gainStr);
       if (riskStr) tooltipParts.push('Risque: ' + riskStr);
-      if (rate !== null) tooltipParts.push('Reussite: ' + rate + '%');
+      if (rateAffiche !== null) tooltipParts.push('Reussite: ' + rateAffiche + '%');
       tooltip = tooltipParts.join(' | ');
     }
 

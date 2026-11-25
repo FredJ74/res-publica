@@ -320,7 +320,7 @@ INSERT INTO public.ordres_couts (fn,pa,cost) VALUES
   ('mobilisation_nationale',2,0),
   ('mobilisation_nationale',3,0),
   ('mobilisation_nationale',4,0),
-  ('mobiliser',2,0),
+  ('mobiliser',0,0),
   ('mobiliser_police',2,0),
   ('modifier_plan_chantier',0,0),
   ('negocier_squatteurs',1,0),

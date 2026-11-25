@@ -56,7 +56,10 @@ test('inventaire : 237 descriptions communes affichées après isolation du goul
   // +1 le 20/11 : « Suivre une formation » ouvert (criminalité lot 9), nouvelle description française à traduire par Codex.
   // +3 le 22/11 (Santé, consommation) : service d'étage (plat du jour), soins accélérés (+25) et soins sans trace (+15), à traduire par Codex.
   // +2 le 22/11 au soir (Santé, Suites, point 3) : repas de l'hôpital (+4 Santé) et de la clinique (+5 Santé), à traduire par Codex.
-  assert.ok(manquantes.length <= 10, 'nouvelles communes absentes du catalogue');
+  // +15 le 25/11 au soir (mission du soir, bloc 1A, audit des chances) : descriptions alignées sur le serveur (rumeur, piège,
+  // propagande, fuite, enquête, défense, soins sans trace, rébellion, évasion, campagne de sécurité ×2, contestation, trois
+  // fraudes électorales, corruption du douanier), à traduire par Codex (liste dans docs/soir/BLOC-1A.md).
+  assert.ok(manquantes.length <= 25, 'nouvelles communes absentes du catalogue');
   // Français strictement identique : chaque texte du catalogue est une description exacte de data.js,
   // affichée dans au moins un pays (avec la fusion réelle, quelques-unes ne sont plus visibles qu'en Républia,
   // l'exclusion de Sovarka étant désormais prise en compte ; leur traduction y reste utile).
@@ -79,7 +82,29 @@ test('inventaire : 237 descriptions communes affichées après isolation du goul
     'Réservé aux patients hospitalisés, une fois par jour. +2 PA à votre prochain sommeil.',
     // « Subtiliser des explosifs » (mission de nuit du 25/11/2026, bloc 3) : nouvelle description fidèle au serveur ;
     // l'ancienne ligne livrée reste au catalogue jusqu'à la traduction de la nouvelle par Codex.
-    "Voler un explosif dans le stock de la caserne. 35% de base, module par la discretion, l'ISN et la reputation criminelle. Echec detecte : QHS."];
+    "Voler un explosif dans le stock de la caserne. 35% de base, module par la discretion, l'ISN et la reputation criminelle. Echec detecte : QHS.",
+    // Audit des chances (mission du soir, 25/11/2026, bloc 1A) : descriptions alignées sur le serveur ; les lignes livrées
+    // restent au catalogue jusqu'à la traduction des nouvelles par Codex.
+    "Piéger un adversaire politique. Risque de scandale.",
+    "Influence massive de l'opinion publique. +POP important.",
+    "Faire fuiter un document secret.",
+    "Procedure simplifiee, reservee aux faits les plus legers (2 jours de reference au plus, hors crime). Un avocat commis d'office plaide pour vous ; le tribunal tranche sur le champ. Le jugement est definitif et sans appel.",
+    "Reserve aux emprisonnes. Defi bruyant aux gardiens : succes = +DIS mais peine allongee, echec = transfert au QHS. Endommage les grilles dans tous les cas.",
+    "Tres risque, une tentative par jour. Succes : liberte. Echec : transferement en prison.",
+    "Rediger une rumeur visant un PJ, une organisation, un local, un gouvernement ou un pays. Succes (75%) : effet selon la cible. Echec : retour de bâton limite + risque de detection.",
+    "Dans les 24h suivant la proclamation, pour tout electeur habilite pour ce scrutin. Peut reveler une fraude.",
+    "Reserve au maire ou a l'adjoint au maire sortant de cette ville. Ajoute 1 a 10 voix frauduleuses a un candidat.",
+    "Pendant les 24h de vote, pour tout electeur inscrit sur ce scrutin. Ajoute 1 a 3 voix frauduleuses.",
+    "Reserve au commissaire ou au juge. Ajoute ou retire 1 a 10 voix a un candidat.",
+    "Éviter le contrôle. DUP/10 + INF/10. +20% zone transport.",
+    "Rendre visite a un detenu du QHS. Necessite autorisation.",
+    "Taux tres faible. Consequence severe si echec.",
+    "Tres difficile. Obtenir des privileges ou informations.",
+    "Quasi impossible, une tentative par jour. Echec = peine aggravee de 7 jours.",
+    "+10 ISN local. Preleve sur budget mairie.",
+    "Influencer massivement l'opinion publique. +POP.",
+    "+10 ISN local. Deploiement de forces de l'ordre supplementaires. Preleve sur budget mairie.",
+    "Cibler un citoyen, un club sportif, une entreprise ou une organisation. Coute a la caisse du gouvernement."];
   assert.deepEqual(cat.filter(d => !sov.has(d) && !rep.has(d) && !HISTORIQUES.includes(d)), [], 'textes du catalogue introuvables tels quels');
   assert.equal(new Set(cat).size, cat.length);
 });

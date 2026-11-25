@@ -85,7 +85,9 @@ test('toute description et mention « Bientôt » propre à Sovarka affichée pa
     // Pavillon des ambassadeurs, buvettes des trois stades).
     'Un repas par jour, gratuit pour le Président ; chaque invité présent coûte 60 PSK à la caisse présidentielle. Effets pour chacun : +5 Santé (modulée par le Moral), +2 Moral, +5 INF, +3 PA au prochain Dormir.',
     'Préparer boissons et zakouski pour le service (consomme les matières en stock, rémunéré en FR).',
-    'Préparer bières, boissons et zakouski pour le service (consomme le stock, rémunéré en FR).'];
+    'Préparer bières, boissons et zakouski pour le service (consomme le stock, rémunéré en FR).',
+    // Audit des chances (mission du soir, 25/11/2026, bloc 1A) : rumeur glissée à Galina, description alignée sur le serveur.
+    "Galina la répétera à toute la ville. Réussite : effet selon la cible. Échec : retour de bâton limité ; un échec sur dix est critique (vous êtes identifié, -5 POP, annonce publique). Même réussie, la rumeur peut être remontée jusqu'à vous."];
   assert.deepEqual(descs.filter(d => !textes.has(d) && !ATTENTE_CODEX.includes(d)), []);
   assert.deepEqual(bientot.filter(d => !textes.has(d)), []);
 });

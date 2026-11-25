@@ -3072,11 +3072,18 @@ async function doContrebandePort(pa, cost) {
   const v = await appelerCrimeServeur('crime_contrebande', { p_pa: pa, p_cost: cost });
   if (!v || v.ok !== true) { signalerRefusCout(v || { raison: 'paiement_indisponible' }); return; }
   adopterEtatCrimeServeur(v);
+  // Audit des chances (Fred, 25/11 au soir) : la douane peut repérer la manœuvre qu'elle réussisse ou non ; un échec repéré
+  // fait saisir la contrebande portée sur soi. L'écran dit ce que le serveur a décidé, rien de plus.
   if (v.reussi) {
-    showToast('Contrebande réussie !', 'Cargaison ajoutée à votre inventaire. -5 DIS.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b1b17c880", 'Cargaison ajoutée à votre inventaire. -5 DIS.', undefined, 'Contrebande réussie !');
-    addJournalEntry('Contrebande portuaire réussie.', 'event-bad');
+    const corps = 'Cargaison ajoutée à votre inventaire. -5 DIS.' + (v.repere ? ' Mais la douane vous a repéré : vous êtes recherché.' : '');
+    showToast('Contrebande réussie !', corps, true, true);
+    addJournalEntry('Contrebande portuaire réussie' + (v.repere ? ', mais repérée par la douane.' : '.'), 'event-bad');
+  } else if (v.repere) {
+    const corps = 'La douane a repéré la manœuvre : vous êtes recherché.' + (v.saisie > 0 ? ' Votre contrebande est saisie.' : '');
+    showToast('Échec !', corps, false);
+    addJournalEntry('Contrebande portuaire manquée et repérée par la douane' + (v.saisie > 0 ? ' : contrebande saisie.' : '.'), 'event-bad');
   } else {
-    showToast('Échec !', 'La douane a repéré la manœuvre.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bf4e666fe", 'La douane a repéré la manœuvre.', undefined, 'Échec !');
+    showToast('Échec', 'La manœuvre a échoué, sans que la douane ne vous repère.', false);
   }
   adopterDetectionServeur(v, 'contrebande_port');
   updateUI();

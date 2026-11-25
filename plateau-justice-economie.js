@@ -2117,12 +2117,14 @@ async function doTentativeEvasion(pa, cost) {
     state.estEmprisonne = null;
     const reliquat = Number(r.reliquat_jours || 0);
     showToast('Evasion reussie !', 'Vous etes libre ! Restez discret.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b4f1290a3", 'Vous etes libre ! Restez discret.', undefined, 'Evasion reussie !');
-    addJournalEntry('Evasion reussie ! Peine non purgee : reliquat de ' + reliquat + ' jour(s) + 2 jours pour evasion, exigibles a une prochaine arrestation.', 'event-good');
+    addJournalEntry('Evasion reussie ! Peine non purgee : reliquat de ' + reliquat + ' jour(s), plus la peine prévue pour l\'évasion, exigibles a une prochaine arrestation.', 'event-good');
   } else {
     const cur = COUNTRIES[state.country]?.cur || 'FR';
     const amende = Number(r.amende || 0);
-    showToast('Evasion echouee', 'Tentative echouee. +1 jour de detention, -' + amende + ' ' + cur + '.', false);
-    addJournalEntry('Tentative d\'evasion echouee. Peine aggravee de 1 jour, amende de ' + amende + ' ' + cur + '.', 'event-bad');
+    // Jours ajoutés lus au serveur (1, ou 2 en Sovarka, barème crim_peine_jours_interne) : jamais écrits en dur.
+    const joursEv = Number(r.jours_ajoutes || 0);
+    showToast('Evasion echouee', 'Tentative echouee. +' + joursEv + ' jour(s) de detention, -' + amende + ' ' + cur + '.', false);
+    addJournalEntry('Tentative d\'evasion echouee. Peine aggravee de ' + joursEv + ' jour(s), amende de ' + amende + ' ' + cur + '.', 'event-bad');
   }
   updateUI();
 }
@@ -2149,8 +2151,9 @@ async function doSeRebeller(pa, cost) {
     // Perte de Santé arrêtée par le serveur (robustesse, Fred 22/11/2026 au soir) ; 10 avant robustesse.
     const santePerdue = Number.isFinite(Number(r.sante_perdue)) ? Number(r.sante_perdue) : 10;
     if (Number.isInteger(r.hp)) state.hp = r.hp;
-    showToast('Rebellion !', 'Vous avez tenu tete aux gardiens. +6 DIS, mais +1 jour de detention et -' + santePerdue + ' Santé.', true, true);
-    addJournalEntry('Rebellion en cellule reussie. Grilles endommagees (-' + degats + '). +1 jour de peine, -' + santePerdue + ' Santé.', 'event-info');
+    const joursReb = Number(r.jours_ajoutes || 0);
+    showToast('Rebellion !', 'Vous avez tenu tete aux gardiens. +6 DIS, mais +' + joursReb + ' jour(s) de detention et -' + santePerdue + ' Santé.', true, true);
+    addJournalEntry('Rebellion en cellule reussie. Grilles endommagees (-' + degats + '). +' + joursReb + ' jour(s) de peine, -' + santePerdue + ' Santé.', 'event-info');
     if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('rebellion_cellule', ville);
   } else {
     // Criminalite lot 6 (§ 14) : rebellion matee = +4 jours d'office (bareme), plus de QHS automatique, aucun degat aux grilles.
@@ -2169,39 +2172,64 @@ async function doSeRebeller(pa, cost) {
   }
 }
 
+// Visiter un détenu (audit des chances, décision de Fred du 25/11 au soir) : aucun jet ; le serveur vérifie que le détenu
+// est dans CETTE prison, une visite par jour et par détenu, et au quartier de haute sécurité seuls l'avocat et la famille
+// déclarée entrent (prison_visite_detenus, prison_visiter, migration 20261125410000). La visite ouvre une conversation privée.
+// Sans la migration, le parloir est dit fermé et rien n'est débité.
+const VISITE_REFUS = {
+  pas_dans_cette_prison: "Ce détenu n'est pas détenu dans cette prison.",
+  qhs_avocat_famille: 'Au quartier de haute sécurité, seuls son avocat et sa famille déclarée peuvent le voir.',
+  deja_visite_aujourdhui: 'Vous avez déjà rendu visite à ce détenu aujourd’hui.',
+  detenu_introuvable: "Ce détenu n'est plus en détention.",
+  visiteur_detenu: 'Un détenu ne rend pas visite aux autres détenus.'
+};
+let _visiteDetenus = [];
+const visiteEchapper = t => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 async function ouvrirVisiterPrisonnier(pa, cost) {
-  const pays = state.country || 'republic';
   document.getElementById('postes-modal-title').textContent = 'Visiter un détenu';
-  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Chargement...</div>';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem" class="cpj-note">Chargement...</div>';
   document.getElementById('modal-postes').classList.add('open');
-
-  const prisonniers = await sbGetPrisonniersQHS(pays).catch(() => []);
+  let r = null;
+  try { r = await sbRpc('prison_visite_detenus', {}); } catch (_) { r = null; }
+  if (Array.isArray(r)) r = r[0];
   let html = '<div style="padding:1rem">';
-  if (prisonniers.length === 0) {
-    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucun détenu au QHS actuellement.</div>';
+  if (!r || r.ok !== true) {
+    html += '<div class="cpj-note">Le parloir est fermé pour l’instant.</div>';
+  } else if (!(r.detenus || []).length) {
+    html += '<div class="cpj-note">Aucun détenu dans cette prison actuellement.</div>';
   } else {
-    html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Choisir un détenu à visiter :</div>';
-    prisonniers.forEach(p => {
-      html += '<div onclick="confirmerVisitePrisonnier(\'' + p.id + '\',' + pa + ',' + cost + ')" style="display:flex;align-items:center;gap:.6rem;border:1px solid #2a2010;background:#0f0d05;padding:.5rem .7rem;margin-bottom:.4rem;cursor:pointer">';
-      html += p.photoUrl ? '<img src="' + p.photoUrl + '" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:1px solid #4a3a1a"/>' : '<div style="width:36px;height:36px;border-radius:50%;background:#1a1610;display:flex;align-items:center;justify-content:center"><i class="ti ti-user" style="color:#5a5040"></i></div>';
-      html += '<div><div style="font-size:.85rem;color:#e0d5b8">' + p.nom + '</div><div style="font-size:.7rem;color:#a89870">' + p.raison + '</div></div>';
-      html += '</div>';
+    html += '<div class="cpj-note" style="margin-bottom:.8rem">Choisir un détenu à visiter (1 PA, une visite par jour et par détenu) :</div>';
+    _visiteDetenus = r.detenus.map(p => String(p.nom || ''));
+    r.detenus.forEach((p, i) => {
+      const nom = String(p.nom || '');
+      const bloque = !p.autorise || p.deja_visite;
+      const note = !p.autorise ? 'Quartier de haute sécurité : avocat et famille seulement.' : (p.deja_visite ? 'Déjà visité aujourd’hui.' : (p.raison || ''));
+      html += '<button class="cpj-touche" style="display:block;width:100%;text-align:left;margin-bottom:.4rem' + (bloque ? ';opacity:.5' : '') + '"'
+        + (bloque ? ' disabled' : ' onclick="confirmerVisitePrisonnier(' + i + ')"') + '>'
+        + visiteEchapper(nom) + '<div class="cpj-note">' + visiteEchapper(note) + '</div></button>';
     });
   }
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
 }
 
-async function confirmerVisitePrisonnier(prisonnierId, pa, cost) {
-  const rows = await sbGet('prisonniers_qhs', `id=eq.${encodeURIComponent(prisonnierId)}`).catch(() => []);
-  const row = rows?.[0];
-  if (!row || row.statut !== 'detenu') { showToast('Détenu introuvable', 'Ce détenu n\'est plus détenu au QHS.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b447f4ec0", 'Ce détenu n\'est plus détenu au QHS.', undefined, 'Détenu introuvable'); return; }
-  const p = row.data;
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
+async function confirmerVisitePrisonnier(i) {
+  const nom = _visiteDetenus[i];
+  if (!nom) return;
+  let v = null;
+  try { v = await sbRpc('prison_visiter', { p_requete: crypto.randomUUID(), p_detenu: nom }); } catch (_) { v = null; }
+  if (Array.isArray(v)) v = v[0];
+  if (!v) { showToast('Parloir fermé', 'Le parloir est fermé pour l’instant.', false); return; }
+  if (v.ok !== true) {
+    if (VISITE_REFUS[v.raison]) showToast('Visite refusée', VISITE_REFUS[v.raison], false);
+    else signalerRefusCout(v);
+    return;
+  }
+  if (typeof v.pa === 'number') state.pa = v.pa;
   document.getElementById('modal-postes').classList.remove('open');
-  showToast('Visite effectuée', 'Vous avez rendu visite à ' + p.nom + ' au QHS.', true, true);
-  addJournalEntry('Visite à ' + p.nom + ' au QHS.', 'event-info');
+  addJournalEntry('Visite au parloir : ' + nom + '.', 'event-info');
+  if (typeof updateUI === 'function') updateUI();
+  if (typeof ouvrirConversationAvec === 'function') ouvrirConversationAvec(nom);
 }
 
 function getBudgetInstitution(inst) {

@@ -918,7 +918,9 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'renseignement') { ouvrirModalRenseignement(pa, cost); return; }
   if (fn === 'renseignement_militaire') { ouvrirRenseignementMilitaire(); return; }
   if (fn === 'planifier_operation') { ouvrirModalTexteLibre('planifier_operation', 'Planifier une operation', 'Decrivez l\'operation...'); return; }
-  if (fn === 'mobiliser') { doMobiliserPolice(fn); return; }
+  // Siège syndical (audit des chances, 25/11) : « Mobiliser les membres » ouvre les actions de l'organisation syndicale du
+  // joueur (manifestation, grève), chacune à son coût ; ce n'est plus l'intervention de police du commissaire.
+  if (fn === 'mobiliser') { doMobiliserMembresSyndicat(); return; }
   if (fn === 'dissoudre_assemblee') { doDissoudreAssemblee(pa, cost); return; }
   if (fn === 'negocier') { showToast('Ordre contact', 'Utilisez les ordres contact en cliquant sur le personnage cible.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b3c7668c3", 'Utilisez les ordres contact en cliquant sur le personnage cible.', undefined, 'Ordre contact'); return; }
   if (fn === 'parler_pnj') { showToast('Ordre contact', 'Cliquez directement sur le personnage pour interagir.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.ba40084ac", 'Cliquez directement sur le personnage pour interagir.', undefined, 'Ordre contact'); return; }
