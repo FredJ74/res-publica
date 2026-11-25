@@ -48,7 +48,10 @@ test('141 descriptions du catalogue Républia : françaises exactes et réelleme
  assert.equal(rows.length,141);
  // Lignes livrées dont l'ordre est supprimé (criminalité lot 7, 20/11 : le temps ne s'achète pas) : gardées au catalogue.
  // Refonte des informateurs (22/11/2026) : « Écouter le patron » (Marin Dulac) retiré ; sa ligne livrée reste au catalogue.
- const HISTORIQUES=["Marin Dulac entend tout ce qui se dit au bar. Revele une rumeur vraie ou generee selon le contexte.","Réduit de moitié le délai restant avant le rendez-vous notarial d'un achat direct.","Reduit de moitie la duree d'instruction restante. Risque de decouverte.","Réduit de moitié la durée d'instruction restante du permis. Risque de découverte."];
+ // Mission du soir (25/11/2026, 1.2) : descriptions de l'article favorable alignées sur le serveur ; lignes livrées gardées
+ // au catalogue jusqu'à la traduction des nouvelles par Codex.
+ const HISTORIQUES_SOIR=["Choisir une cible (PJ, organisation, local, gouvernement ou pays) et indiquer le sujet/l'angle souhaite : la redaction redige elle-meme un veritable article favorable, vous n'apparaissez jamais comme commanditaire. Reussite (75% + modificateurs) : 500 FR preleves. Echec : la redaction refuse, aucun frais.","Choisir une cible (PJ, organisation, local, gouvernement ou pays) et indiquer le sujet/l'angle souhaite : la redaction redige elle-meme un veritable article favorable, vous n'apparaissez jamais comme commanditaire. Reussite (75% + modificateurs) : 500 FR preleves, article integre a une prochaine edition de La Tribune. Echec : la redaction refuse, aucun frais."];
+ const HISTORIQUES=[...HISTORIQUES_SOIR,"Marin Dulac entend tout ce qui se dit au bar. Revele une rumeur vraie ou generee selon le contexte.","Réduit de moitié le délai restant avant le rendez-vous notarial d'un achat direct.","Reduit de moitie la duree d'instruction restante. Risque de decouverte.","Réduit de moitié la durée d'instruction restante du permis. Risque de découverte."];
  for(const line of rows){assert.equal(line.length,9,line[0]);assert.ok(rep.has(line[0])||HISTORIQUES.includes(line[0]),line[0]);}
  assert.equal(new Set(rows.map(l=>l[0])).size,141);
 });
