@@ -9314,7 +9314,13 @@ async function censurer(media, pa, cost) {
   const v = await executerOrdreJaugesServeur('censurer_media', { media });
   if (!v) return;
   if (v.rejeu) { updateUI(); return; }
-  INDICES_NATIONAUX[state.country].IS = Math.max(0, INDICES_NATIONAUX[state.country].IS - 8);
+  // −8 à l'indice social : posé par le serveur (mission du soir 25/11/2026, 1.2) sur les villes dont il tient l'indice ;
+  // l'écran relit. Sans la migration 20261125500000, ancien reflet local (affichage seulement).
+  if (v.indice_social_serveur === true) {
+    if (typeof chargerIndicesRepublia === 'function') await chargerIndicesRepublia().catch(() => {});
+  } else if (typeof v.indice_social !== 'number') {
+    INDICES_NATIONAUX[state.country].IS = Math.max(0, INDICES_NATIONAUX[state.country].IS - 8);
+  }
   if (v.scandale === true) {
     addExternalEvent('SCANDALE : La censure de ' + media + ' a ete revelee ! -20 POP.');
     updateUI();
@@ -10070,7 +10076,9 @@ async function doConsulterDossiersGouv(pa, cost) {
   const contexte=contexteGroupePj();
   const r = await executerOrdreJaugesServeur('consulter_dossiers_gouv');
   if (!r||!contexteGroupePjValide(contexte)) return;
-  const dossier = DOSSIERS_GOUVERNEMENTAUX[Math.floor(Math.random() * DOSSIERS_GOUVERNEMENTAUX.length)];
+  // Dossier tiré par le serveur (dossier_rang, mission du soir 25/11/2026, 1.2) ; tirage local seulement sans la migration.
+  const dossier = DOSSIERS_GOUVERNEMENTAUX[Number.isInteger(r.dossier_rang) && DOSSIERS_GOUVERNEMENTAUX[r.dossier_rang] !== undefined
+    ? r.dossier_rang : Math.floor(Math.random() * DOSSIERS_GOUVERNEMENTAUX.length)];
   document.getElementById('postes-modal-title').textContent = 'Dossier confidentiel';
   const html = '<div style="padding:1rem;font-size:.85rem;color:#c0b090;line-height:1.6;font-style:italic">« ' + dossier + ' »</div>';
   document.getElementById('postes-body').innerHTML = html;

@@ -11067,33 +11067,66 @@ async function confirmerMenerEnquete(pa, cost) {
   const pays = state.country;
   const ville = juridiction.ville;
   const buildingId = getBuildingIdCommissariat(ville);
-  const rEnquete = await deduireCoutOrdre({ pa, cost, payeur: { type: 'institution', pays, buildingId } });
-  if (!rEnquete.ok) {
-    showToast(rEnquete.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Caisse insuffisante',
-      rEnquete.raison === 'pa_insuffisants' ? '' : 'La caisse du commissariat ne couvre pas le cout de l enquete.', false);
-    return;
+  // PAIEMENT ET JET AU SERVEUR (mission du soir du 25/11/2026, 1.2) : commissaire_enquete_mener (forme a requete) preleve
+  // la caisse du commissariat et les 2 PA AVANT le jet, dans la meme transaction (plus de relance gratuite) ; sans trace
+  // contre la cible, l'enquete est infructueuse au serveur. Ancien chemin seulement si la migration 20261125500000 manque.
+  let gav = null, taux = null, candidats = [], serveur = null;
+  if (typeof sbRpcVerdict === 'function') {
+    // Lecture avant le jet : la transmission au tribunal cite l'acte trouve (comme l'ancien chemin).
+    const tous = typeof sbGetActionsTracables === 'function' ? await sbGetActionsTracables(pays, ville, state.day || 1).catch(() => []) : [];
+    const avant = (tous || []).filter(a => a.auteur === cible && !a.decouvert);
+    const benedictionSrv = (typeof consommerBonusBenediction === 'function') && consommerBonusBenediction(0) > 0;
+    const v = await sbRpcVerdict('commissaire_enquete_mener', { p_requete: crypto.randomUUID(), p_cible: cible, p_benediction: benedictionSrv });
+    if (!(v && v.transport && v.transport.code === 'PGRST202')) {
+      if (!v || v.paye !== true) {
+        showToast(v && v.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Enquête impossible',
+          v && v.raison === 'caisse_institution_insuffisante' ? 'La caisse du commissariat ne couvre pas le cout de l enquete.'
+            : (v && v.raison === 'hors_juridiction' ? 'Vous ne pouvez agir que depuis le commissariat de votre propre ville.' : ''), false);
+        return;
+      }
+      serveur = v; gav = v; taux = v.taux; candidats = avant.length ? avant : [{}];
+      if (v.paie && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v.paie);
+      if (v.sans_trace) {
+        addJournalEntry('Enquete menee contre ' + cible + ' : rien de compromettant trouve. -250 FR.', 'event-info');
+        showToast('Enquete infructueuse', 'Rien de compromettant trouve sur ' + cible + '.', false);
+        return;
+      }
+      if (v.abouti === false) {
+        addJournalEntry('Enquete menee contre ' + cible + ' : indices insuffisants pour aboutir. -250 FR.', 'event-info');
+        showToast('Enquete infructueuse', 'Le dossier n a pas abouti cette fois (' + taux + '% de chances).', false);
+        return;
+      }
+    }
   }
+  if (!serveur) {
+    const rEnquete = await deduireCoutOrdre({ pa, cost, payeur: { type: 'institution', pays, buildingId } });
+    if (!rEnquete.ok) {
+      showToast(rEnquete.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Caisse insuffisante',
+        rEnquete.raison === 'pa_insuffisants' ? '' : 'La caisse du commissariat ne couvre pas le cout de l enquete.', false);
+      return;
+    }
 
-  const toutes = typeof sbGetActionsTracables === 'function' ? await sbGetActionsTracables(pays, ville, state.day || 1).catch(() => []) : [];
-  const candidats = (toutes || []).filter(a => a.auteur === cible && !a.decouvert);
+    const toutes = typeof sbGetActionsTracables === 'function' ? await sbGetActionsTracables(pays, ville, state.day || 1).catch(() => []) : [];
+    candidats = (toutes || []).filter(a => a.auteur === cible && !a.decouvert);
 
-  if (candidats.length === 0) {
-    addJournalEntry('Enquete menee contre ' + cible + ' : rien de compromettant trouve. -250 FR.', 'event-info');
-    showToast('Enquete infructueuse', 'Rien de compromettant trouve sur ' + cible + '.', false);
-    return;
-  }
+    if (candidats.length === 0) {
+      addJournalEntry('Enquete menee contre ' + cible + ' : rien de compromettant trouve. -250 FR.', 'event-info');
+      showToast('Enquete infructueuse', 'Rien de compromettant trouve sur ' + cible + '.', false);
+      return;
+    }
 
-  // JET AU SERVEUR (05/11/2026) : commissaire_enquete_mener tire le de, puis seulement en cas de
-  // reussite instruit l'enquete (commissaire_enqueter n'est plus appelable directement).
-  const benediction = (typeof consommerBonusBenediction === 'function') && consommerBonusBenediction(0) > 0;
-  const rGav = (typeof sbRpc === 'function')
-    ? await sbRpc('commissaire_enquete_mener', { p_cible: cible, p_benediction: benediction }).catch(() => null) : null;
-  const gav = Array.isArray(rGav) ? rGav[0] : rGav;
-  const taux = gav?.taux;
-  if (gav && gav.ok === true && gav.abouti === false) {
-    addJournalEntry('Enquete menee contre ' + cible + ' : indices insuffisants pour aboutir. -250 FR.', 'event-info');
-    showToast('Enquete infructueuse', 'Le dossier n a pas abouti cette fois (' + taux + '% de chances).', false);
-    return;
+    // JET AU SERVEUR (05/11/2026) : commissaire_enquete_mener tire le de, puis seulement en cas de
+    // reussite instruit l'enquete (commissaire_enqueter n'est plus appelable directement).
+    const benediction = (typeof consommerBonusBenediction === 'function') && consommerBonusBenediction(0) > 0;
+    const rGav = (typeof sbRpc === 'function')
+      ? await sbRpc('commissaire_enquete_mener', { p_cible: cible, p_benediction: benediction }).catch(() => null) : null;
+    gav = Array.isArray(rGav) ? rGav[0] : rGav;
+    taux = gav?.taux;
+    if (gav && gav.ok === true && gav.abouti === false) {
+      addJournalEntry('Enquete menee contre ' + cible + ' : indices insuffisants pour aboutir. -250 FR.', 'event-info');
+      showToast('Enquete infructueuse', 'Le dossier n a pas abouti cette fois (' + taux + '% de chances).', false);
+      return;
+    }
   }
 
   const action = candidats[0];
@@ -11206,25 +11239,50 @@ async function confirmerOrganiserFilature(pa, cost) {
   const pays = state.country;
   const ville = juridiction.ville;
   const buildingId = getBuildingIdCommissariat(ville);
-  const rFilature = await deduireCoutOrdre({ pa, cost, payeur: { type: 'institution', pays, buildingId } });
-  if (!rFilature.ok) {
-    showToast(rFilature.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Caisse insuffisante',
-      rFilature.raison === 'pa_insuffisants' ? '' : 'La caisse du commissariat ne couvre pas le cout de la filature.', false);
-    return;
+  // PAIEMENT ET JET AU SERVEUR (mission du soir du 25/11/2026, 1.2) : filature_mener (forme a requete) preleve la caisse
+  // du commissariat et les 2 PA AVANT le jet, dans la meme transaction (plus de relance gratuite). Ancien chemin seulement
+  // si la migration 20261125500000 n'est pas posee (PGRST202).
+  let rFil = null, serveurFil = false;
+  if (typeof sbRpcVerdict === 'function') {
+    const benedictionSrv = (typeof consommerBonusBenediction === 'function') && consommerBonusBenediction(0) > 0;
+    const v = await sbRpcVerdict('filature_mener', { p_requete: crypto.randomUUID(), p_cible: cible, p_benediction: benedictionSrv });
+    if (!(v && v.transport && v.transport.code === 'PGRST202')) {
+      if (!v || v.paye !== true) {
+        showToast(v && v.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Filature impossible',
+          v && v.raison === 'caisse_institution_insuffisante' ? 'La caisse du commissariat ne couvre pas le cout de la filature.'
+            : (v && v.raison === 'hors_juridiction' ? 'Vous ne pouvez agir que depuis le commissariat de votre propre ville.' : ''), false);
+        return;
+      }
+      serveurFil = true; rFil = v;
+      if (v.paie && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v.paie);
+      if (v.abouti === false) {
+        addJournalEntry('Filature de ' + cible + ' : la cible a seme la filature. -150 FR.', 'event-info');
+        showToast('Filature echouee', 'Vous avez perdu la trace de ' + cible + ' (' + v.taux + '% de chances).', false);
+        return;
+      }
+    }
   }
+  if (!serveurFil) {
+    const rFilature = await deduireCoutOrdre({ pa, cost, payeur: { type: 'institution', pays, buildingId } });
+    if (!rFilature.ok) {
+      showToast(rFilature.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Caisse insuffisante',
+        rFilature.raison === 'pa_insuffisants' ? '' : 'La caisse du commissariat ne couvre pas le cout de la filature.', false);
+      return;
+    }
 
-  // JET AU SERVEUR (05/11/2026) : filature_mener tire le de (formule doctrine V2 :
-  // 50 + 2*(PER-13) - (PER_cible-13) + (ISN-50)/5 + (INF-INF_cible)*0.3) puis, en cas de reussite
-  // seulement, rend le registre des deplacements (filature_deplacements n'est plus appelable seule).
-  const benediction = (typeof consommerBonusBenediction === 'function') && consommerBonusBenediction(0) > 0;
-  const rFil = (typeof sbRpc === 'function')
-    ? await sbRpc('filature_mener', { p_cible: cible, p_benediction: benediction })
-        .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
-    : null;
-  if (rFil && rFil.ok === true && rFil.abouti === false) {
-    addJournalEntry('Filature de ' + cible + ' : la cible a seme la filature. -150 FR.', 'event-info');
-    showToast('Filature echouee', 'Vous avez perdu la trace de ' + cible + ' (' + rFil.taux + '% de chances).', false);
-    return;
+    // JET AU SERVEUR (05/11/2026) : filature_mener tire le de (formule doctrine V2 :
+    // 50 + 2*(PER-13) - (PER_cible-13) + (ISN-50)/5 + (INF-INF_cible)*0.3) puis, en cas de reussite
+    // seulement, rend le registre des deplacements (filature_deplacements n'est plus appelable seule).
+    const benediction = (typeof consommerBonusBenediction === 'function') && consommerBonusBenediction(0) > 0;
+    rFil = (typeof sbRpc === 'function')
+      ? await sbRpc('filature_mener', { p_cible: cible, p_benediction: benediction })
+          .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
+      : null;
+    if (rFil && rFil.ok === true && rFil.abouti === false) {
+      addJournalEntry('Filature de ' + cible + ' : la cible a seme la filature. -150 FR.', 'event-info');
+      showToast('Filature echouee', 'Vous avez perdu la trace de ' + cible + ' (' + rFil.taux + '% de chances).', false);
+      return;
+    }
   }
   // null quand la lecture a echoue ou que l'autorite a ete refusee, [] seulement quand la cible ne
   // s'est reellement pas deplacee (chantier 5) : la filature a DEJA ete payee.
@@ -11247,7 +11305,8 @@ async function confirmerOrganiserFilature(pa, cost) {
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 
-  addJournalEntry('Filature reussie contre ' + cible + ' (' + taux + '% de chances). -150 FR.', 'event-good');
+  // `taux` n'existait pas ici (ReferenceError apres chaque filature reussie) : la chance est celle rendue par le serveur.
+  addJournalEntry('Filature reussie contre ' + cible + ' (' + (rFil && rFil.taux) + '% de chances). -150 FR.', 'event-good');
 }
 
 function doOrganiserChasseHomme(pa, cost) {

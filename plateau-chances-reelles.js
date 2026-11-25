@@ -8,6 +8,8 @@
   if (!doc) return;
   // Ordres dont le serveur sait lire la chance avant le clic (voir ordres_chances_lire).
   const ORDRES = ['se_cacher', 'acheter_bombe_illegale', 'utiliser_explosifs', 'lancer_rumeur_cible'];
+  // Mission du soir (25/11/2026, 1.2) : ordres dont le jet est passé au serveur (migration 20261125500000).
+  ORDRES.push('article', 'etouffer', 'demander_parler_loge', 'corrompre_journaliste', 'fabriquer_scandale');
   const texte = x => 'Vos chances réelles : ' + x + ' %';
   let generation = 0, planifie = false;
 

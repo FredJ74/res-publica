@@ -656,7 +656,8 @@ async function confirmerCorrompreJournaliste(pa, cost) {
         deja_tente: 'Vous avez déjà approché la rédaction sur cette affaire.',
         affaire_non_eligible: 'Cette affaire n\'est plus en jeu pour la prochaine édition.',
         pa_insuffisants: COUT_PA_CORRUPTION_PRESSE + ' PA sont nécessaires.',
-        fonds_insuffisants: COUT_FR_CORRUPTION_PRESSE + ' ' + cur + ' sont nécessaires.'
+        fonds_insuffisants: COUT_FR_CORRUPTION_PRESSE + ' ' + cur + ' sont nécessaires.',
+        blocus_syndical: 'Un blocus syndical paralyse ce lieu : la rédaction ne reçoit personne.'
       };
       showToast('Approche impossible', motifs[res.raison] || 'La démarche a été refusée.', false);
       return;
@@ -668,12 +669,18 @@ async function confirmerCorrompreJournaliste(pa, cost) {
       showToast('Le journaliste refuse', 'Votre proposition est repoussée. Rien ne vous est prélevé, mais votre démarche laisse des traces.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b5db06875", 'Votre proposition est repoussée. Rien ne vous est prélevé, mais votre démarche laisse des traces.', undefined, 'Le journaliste refuse');
       addJournalEntry('Tentative de corruption de la rédaction au sujet de ' + res.affaire_pj + ' — refusée.', 'event-bad');
     } else {
-      const r = await deduireCoutOrdre({ pa: COUT_PA_CORRUPTION_PRESSE, cost: COUT_FR_CORRUPTION_PRESSE });
-      if (!r.ok) { signalerRefusCout(r); return; }
-      const montantDebite = r.montantPreleve || 0;
-      // Recette EDITORIALE : caisse du JOURNAL du lieu, jamais celle de l'atelier.
-      if (montantDebite > 0 && typeof encaisserRecetteRedaction === 'function') {
-        await encaisserRecetteRedaction(montantDebite, 'la corruption de la rédaction');
+      // Mission du soir (25/11/2026, 1.2) : avec la migration 20261125500000, le serveur a deja preleve 2 PA et 500 et les a
+      // verses a la redaction, dans la transaction du jet (res.paye) ; l'ecran adopte. Sinon, ancien chemin.
+      if (res.paye === true) {
+        if (res.paie && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(res.paie);
+      } else {
+        const r = await deduireCoutOrdre({ pa: COUT_PA_CORRUPTION_PRESSE, cost: COUT_FR_CORRUPTION_PRESSE });
+        if (!r.ok) { signalerRefusCout(r); return; }
+        const montantDebite = r.montantPreleve || 0;
+        // Recette EDITORIALE : caisse du JOURNAL du lieu, jamais celle de l'atelier.
+        if (montantDebite > 0 && typeof encaisserRecetteRedaction === 'function') {
+          await encaisserRecetteRedaction(montantDebite, 'la corruption de la rédaction');
+        }
       }
       showToast('Accord conclu', option === 'etouffer'
         ? 'L\'affaire concernant ' + res.affaire_pj + ' ne sera pas publiée. Le dossier judiciaire, lui, reste intact.'
@@ -806,6 +813,7 @@ async function confirmerScandale(pa, cost) {
         pa_insuffisants: COUT_PA_SCANDALE + ' PA sont nécessaires.',
         fonds_insuffisants: COUT_FR_SCANDALE + ' ' + cur + ' sont nécessaires.',
         cible_introuvable: 'Cette personne n\'existe plus.',
+        blocus_syndical: 'Un blocus syndical paralyse ce lieu : la rédaction ne reçoit personne.',
         parametres_invalides: 'Choisissez une autre personne et rédigez votre accusation.'
       };
       showToast('Refusé', motifs[res.raison] || 'La rédaction a refusé.', false);
@@ -818,13 +826,21 @@ async function confirmerScandale(pa, cost) {
       showToast('La rédaction refuse', 'Le rédacteur en chef juge l\'accusation trop risquée pour la crédibilité du journal. Rien ne vous est prélevé, mais votre tentative du jour est utilisée.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b7fd665c2", 'Le rédacteur en chef juge l\'accusation trop risquée pour la crédibilité du journal. Rien ne vous est prélevé, mais votre tentative du jour est utilisée.', undefined, 'La rédaction refuse');
       addJournalEntry('Scandale proposé contre ' + cible + ' — refusé par la rédaction.', '');
     } else {
-      const r = await deduireCoutOrdre({ pa: COUT_PA_SCANDALE, cost: COUT_FR_SCANDALE });
-      if (!r.ok) { signalerRefusCout(r); return; }
-      const montantDebite = r.montantPreleve || 0;
-      // Recette EDITORIALE : elle va dans la caisse du JOURNAL du lieu, jamais dans celle de
-      // l'atelier d'impression. Si ce journal n'a pas de caisse editoriale, l'argent est rendu.
-      if (montantDebite > 0 && typeof encaisserRecetteRedaction === 'function') {
-        await encaisserRecetteRedaction(montantDebite, 'la publication du scandale');
+      // Mission du soir (25/11/2026, 1.2) : avec la migration 20261125500000, le serveur a deja preleve 3 PA et 800 et les a
+      // verses a la redaction, dans la transaction du jet (res.paye) ; l'ecran adopte. Sinon, ancien chemin.
+      let montantDebite = 0;
+      if (res.paye === true) {
+        if (res.paie && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(res.paie);
+        montantDebite = Number(res.cout) || 0;
+      } else {
+        const r = await deduireCoutOrdre({ pa: COUT_PA_SCANDALE, cost: COUT_FR_SCANDALE });
+        if (!r.ok) { signalerRefusCout(r); return; }
+        montantDebite = r.montantPreleve || 0;
+        // Recette EDITORIALE : elle va dans la caisse du JOURNAL du lieu, jamais dans celle de
+        // l'atelier d'impression. Si ce journal n'a pas de caisse editoriale, l'argent est rendu.
+        if (montantDebite > 0 && typeof encaisserRecetteRedaction === 'function') {
+          await encaisserRecetteRedaction(montantDebite, 'la publication du scandale');
+        }
       }
       const article = await redigerScandale(state.char.name, cible, accusation);
       const pub = await sbScandalePublier(res.scandale_id, article).catch(() => null);

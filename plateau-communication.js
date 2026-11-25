@@ -1175,10 +1175,23 @@ async function confirmerDistribuerTractCalomnieux(cible, pnjName, encodedPnj) {
 }
 
 async function doLogePortail(pa, cost) {
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  const roll = Math.floor(Math.random() * 100) + 1;
-  if (roll <= 95) {
+  // JET AU SERVEUR (mission du soir du 25/11/2026, 1.2) : loge_frapper prend le PA et tire la reponse (95 %) dans la meme
+  // transaction. Ancien chemin seulement tant que la migration 20261125500000 n'est pas posee (PGRST202).
+  let reponse = null;
+  if (typeof sbRpcVerdict === 'function') {
+    const v = await sbRpcVerdict('loge_frapper', { p_requete: crypto.randomUUID() });
+    if (!(v && v.transport && v.transport.code === 'PGRST202')) {
+      if (!v || v.ok !== true) { signalerRefusCout(v || { raison: 'paiement_indisponible' }); return; }
+      if (v.paie && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v.paie);
+      reponse = v.reponse === true;
+    }
+  }
+  if (reponse === null) {
+    const r = await deduireCoutOrdre({ pa, cost });
+    if (!r.ok) { signalerRefusCout(r); return; }
+    reponse = (Math.floor(Math.random() * 100) + 1) <= 95;
+  }
+  if (reponse) {
     // Trouver le portier de la loge
     const portier = { name: 'Le Portier', role: 'PNJ - Gardien de la Loge', rel: 'neutral', job: 'portier' };
     openPnjModal(encodePnjSafe(portier));
