@@ -2500,7 +2500,9 @@ export const SCENES_PNJ = {
     "ville": "Montrouge",
     "batiment": "Cinéma de Montrouge",
     "piece": "Hall",
-    "personnes": []
+    "personnes": [
+      "Simone Aiguillard"
+    ]
   },
   "[\"republic\",\"ville_b\",\"cinema-montrouge\",\"salle_1\"]": {
     "pays": "Republia",

@@ -8972,7 +8972,11 @@ const BUILDINGS = {
     bgColor: "#100810",
     desc: "Le cinéma de Montrouge.",
     rooms: {
-      salle: { name: "Hall", desc: "Affiches de films, guichet.", imageBg: "linear-gradient(135deg,#100810,#180c18)", imageUrl: "images/montrouge/montrouge-cinema-accueil.jpg", persons: [], orders: [] },
+      // Caissière du guichet (Fred, 25/11/2026, mission de fin de soirée 1.5) : le PNJ suit l'image du hall ; portrait recadré de
+      // cette image. Fiche DeepSeek simone_aiguillard (api/_pnj-personnalites.js).
+      salle: { name: "Hall", desc: "Affiches de films, guichet.", imageBg: "linear-gradient(135deg,#100810,#180c18)", imageUrl: "images/montrouge/montrouge-cinema-accueil.jpg",
+        persons: [{ name: 'Simone Aiguillard (PNJ)', role: 'Caissière du cinéma', rel: 'neutral', job: 'commercant',
+          profilId: 'simone_aiguillard', photoUrl: 'images/Republia/Montrouge/montrouge-cinema-caissiere-simone-aiguillard.webp' }], orders: [] },
       salle_1: { name: "Salle 1", desc: "Une des deux salles de projection du cinéma de Montrouge.", imageBg: "linear-gradient(135deg,#100810,#180c18)", imageUrl: "images/montrouge/montrouge-cinema-salle-1.jpg", persons: [], orders: [] },
       salle_2: { name: "Salle 2", desc: "L'autre salle de projection du cinéma de Montrouge.", imageBg: "linear-gradient(135deg,#100810,#180c18)", imageUrl: "images/montrouge/montrouge-cinema-salle-2.jpg", persons: [], orders: [] }
     }
