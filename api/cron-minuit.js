@@ -650,13 +650,23 @@ function resoudreScrutinDepute(cycle, fraudesActives) {
 // candidatures. Les deux copies du moteur (ici et plateau-politique.js) restent identiques : on depouille une COPIE du
 // cycle filtree, jamais le blob enregistre (aucun bulletin n'est efface). Liste lue en base (comptes_test_noms).
 let _comptesTestServeur = null;
+// Interrupteur du MJ (Fred, 25/11/2026, migration 20261125160000) : comptes_test_noms_elections rend une liste vide le temps
+// d'un test ; sans cette migration, repli sur comptes_test_noms (comptes de test exclus, comme avant).
 async function comptesTestServeur() {
   if (_comptesTestServeur) return _comptesTestServeur;
-  try {
-    const r = await sbRpc('comptes_test_noms', {}, HEADERS_SERVICE);
-    const liste = Array.isArray(r) && Array.isArray(r[0]) ? r[0] : (Array.isArray(r) ? r : []);
-    _comptesTestServeur = new Set(liste.filter(n => typeof n === 'string'));
-  } catch (_) { _comptesTestServeur = new Set(); }
+  // Appel direct (pas sbRpc) : une fonction absente avant la migration ne doit pas compter comme un échec de la nuit.
+  const lire = async fn => {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, { method: 'POST', headers: { ...HEADERS_SERVICE, 'Prefer': 'return=representation' }, body: '{}' });
+    if (!res.ok) throw new Error(fn + ' : ' + res.status);
+    const r = await res.json();
+    if (!Array.isArray(r)) throw new Error(fn + ' : réponse inattendue');
+    const liste = Array.isArray(r[0]) ? r[0] : r;
+    return new Set(liste.filter(n => typeof n === 'string'));
+  };
+  try { _comptesTestServeur = await lire('comptes_test_noms_elections'); }
+  catch (_) {
+    try { _comptesTestServeur = await lire('comptes_test_noms'); } catch (_e) { _comptesTestServeur = new Set(); }
+  }
   return _comptesTestServeur;
 }
 function cycleSansComptesTest(cycle, comptesTest) {
