@@ -311,6 +311,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'gerer_visites_chambre') { doGererVisitesChambre(pa, cost); return; }
   if (fn === 'ouvrir_chambres_clinique') { doOuvrirChambresClinique(pa, cost); return; }
   if (fn === 'clinique_reserver_nuit') { reserverNuiteeClinique(); return; }
+  // Souvenirs des villes (Fred, 25/11/2026 au soir, 3.1) : fenêtre d'achat ; le serveur tranche (souvenir_acheter).
+  if (fn === 'acheter_souvenir') { if (typeof ouvrirSouvenirs === 'function') ouvrirSouvenirs(); return; }
   if (fn === 'clinique_dormir') { doDormir(); return; }
   if (fn === 'reserver_chambre_hotel') { doReserverChambreHotel(pa); return; }
   if (fn === 'dormir_chambre') { if (String(state.currentBuilding || '').startsWith('maison-') && typeof dormirChezHabitant === 'function') dormirChezHabitant(); else doDormirChambre(); return; }
