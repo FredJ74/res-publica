@@ -3440,13 +3440,18 @@ const MOIS_FR_JOURNAL = ['janvier','février','mars','avril','mai','juin','juill
 // ne JAMAIS deriver cet affichage de state.day (doctrine "Confort de lecture", 18 aout 2026 :
 // state.day est une convention de jeu, pas une date reelle, et ne doit jamais servir a afficher
 // une date au joueur).
+// UN SEUL FORMAT DE DATE PARTOUT (Fred, 25/11/2026, mission de jour 1.5, après la Purge B.4) : « 23/11 à 18 h 48 », heure de
+// Paris (l'horloge commune du jeu) — journal, chat, forum et courrier. Même rendu que rpDateLisible (forum.js).
 function formaterHorodatageJournal(iso) {
-  if (!iso) return null;
+  if (iso == null || iso === '') return null;
   const d = new Date(iso);
   if (isNaN(d.getTime())) return null;
-  const h = String(d.getHours()).padStart(2, '0');
-  const m = String(d.getMinutes()).padStart(2, '0');
-  return `${d.getDate()} ${MOIS_FR_JOURNAL[d.getMonth()]} ${d.getFullYear()} · ${h}h${m}`;
+  try {
+    const parts = new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', day: '2-digit', month: '2-digit',
+      hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(d);
+    const g = t => (parts.find(p => p.type === t) || {}).value || '';
+    return g('day') + '/' + g('month') + ' à ' + g('hour') + ' h ' + g('minute');
+  } catch (_) { return null; }
 }
 
 function addJournalEntry(text, cls) {
@@ -3487,7 +3492,9 @@ function restaurerJournal(char) {
     // entry.ts n'existe que pour les entrees creees apres l'introduction de l'horodatage reel
     // (18 aout 2026) -- repli honnete sur "Jour X" pour les entrees anciennes, sans rien inventer.
     const h = String(entry.hour ?? 0).padStart(2, '0');
-    const horodatage = formaterHorodatageJournal(entry.ts) || (entry.date ? `${entry.date} · ${h}h00` : 'Date indisponible');
+    const jm = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(entry.date || ''));
+    const horodatage = formaterHorodatageJournal(entry.ts)
+      || (jm ? `${jm[3]}/${jm[2]} à ${h} h 00` : (entry.date ? `${entry.date} · ${h}h00` : 'Date indisponible'));
     const div = document.createElement('div');
     div.className = 'journal-entry';
     div.innerHTML = `<span class="journal-time">${horodatage}</span>

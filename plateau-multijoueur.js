@@ -2235,7 +2235,8 @@ async function rafraichirConversationActuelle(reset) {
     zone.querySelectorAll('.rp-chat-vide').forEach(el => el.remove());
     messages.forEach(m => {
       const estMoi = m.auteur === moi;
-      const heureMsg = m.created_at ? new Date(m.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '';
+      // Un seul format partout (Fred, 25/11/2026, 1.5) : « 23/11 à 18 h 48 », heure de Paris.
+      const heureMsg = m.created_at ? ((typeof formaterHorodatageJournal === 'function' && formaterHorodatageJournal(m.created_at)) || '') : '';
       zone.insertAdjacentHTML('beforeend',
         '<div style="margin-bottom:.4rem;text-align:' + (estMoi ? 'right' : 'left') + '">' +
         '<div style="display:inline-block;max-width:80%;padding:.35rem .6rem;border-radius:8px;background:#0f0d05;border:1px solid #2a2010">' +
