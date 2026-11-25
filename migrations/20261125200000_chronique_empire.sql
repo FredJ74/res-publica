@@ -1,4 +1,4 @@
--- Mission de jour du 25/11/2026 (Claude), bloc 2 — NON APPLIQUÉE : Fred la valide à son retour.
+-- Mission de jour du 25/11/2026 (Claude), bloc 2 — APPLIQUÉE en production le 25/11/2026 au soir (feu vert de Fred, contrôlée en lecture).
 -- CHRONIQUE DE L'EMPIRE (décision de Fred, 25/11/2026) : le journal des événements s'ouvre sur deux onglets, « Mes événements »
 -- (le journal actuel) et « L'empire » : la chronique publique du pays du joueur (sa nationalité), comme les faits divers et la
 -- vie publique. Lue côté serveur, filtrée par pays, de la plus récente à la plus ancienne. Elle ne révèle rien qu'un joueur ne

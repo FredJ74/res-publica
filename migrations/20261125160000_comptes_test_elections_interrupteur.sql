@@ -1,4 +1,4 @@
--- Mission de jour du 25/11/2026 (Claude), bloc 1.3 — NON APPLIQUÉE : Fred la valide à son retour. Après 20261124100000.
+-- Mission de jour du 25/11/2026 (Claude), bloc 1.3 — APPLIQUÉE en production le 25/11/2026 au soir (feu vert de Fred, contrôlée en lecture). Après 20261124100000.
 -- Décision de Fred (A.1) : seuls Arnie, Tom Tom et Bernard Bernardov sont des comptes de test (relevé en lecture le 25/11 :
 -- ce sont bien les trois seules lignes de comptes_test ; aucun autre compte n'est marqué, cette migration n'en marque aucun).
 -- Interrupteur de MJ qui RÉINTÈGRE les comptes de test dans le dépouillement des élections le temps d'un test ; par défaut,

@@ -1,4 +1,4 @@
--- Mission de jour du 25/11/2026 (Claude), bloc 1.2 — NON APPLIQUÉE : Fred la valide à son retour. Après 20261124134000.
+-- Mission de jour du 25/11/2026 (Claude), bloc 1.2 — APPLIQUÉE en production le 25/11/2026 au soir (feu vert de Fred, contrôlée en lecture). Après 20261124134000.
 -- Décision de Fred (D.4) : les 20 bouteilles d'eau offertes aux ouvriers lèvent l'arrêt du chantier pour la JOURNÉE EN COURS
 -- seulement. Si la canicule continue, le chantier s'arrête de nouveau le lendemain. Le réglage MJ passe à ce comportement par
 -- défaut : aliments_parametres.canicule_eau_leve_arret = 1 (0 = l'eau n'est qu'un geste inscrit au journal).

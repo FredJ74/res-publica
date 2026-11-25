@@ -1,4 +1,4 @@
--- Mission de jour du 25/11/2026 (Claude), bloc 3 (H.9) — NON APPLIQUÉE : Fred la valide à son retour.
+-- Mission de jour du 25/11/2026 (Claude), bloc 3 (H.9) — APPLIQUÉE en production le 25/11/2026 au soir (feu vert de Fred, contrôlée en lecture).
 -- ARMOIRE À SOUVENIRS : DÉPÔT ET COLLECTION, partie serveur, fidèle aux règles déjà écrites (guide du jeu, rubrique « ARMOIRE À
 -- SOUVENIRS » de plateau-personnage.js ; GAME-DESIGN-SERRURES.md ; GAME-DESIGN-CRIMINALITE.md § 8 ; GAME-DESIGN-APPARTEMENTS.md).
 -- • Listes en base (elles n'étaient qu'en code navigateur, LISTES_SOUVENIRS) : souvenirs_listes, souvenirs_emplacements (douze

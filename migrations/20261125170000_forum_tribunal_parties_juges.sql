@@ -1,4 +1,4 @@
--- Mission de jour du 25/11/2026 (Claude), bloc 1.4 — NON APPLIQUÉE : Fred la valide à son retour. Après 20261124110000.
+-- Mission de jour du 25/11/2026 (Claude), bloc 1.4 — APPLIQUÉE en production le 25/11/2026 au soir (feu vert de Fred, contrôlée en lecture). Après 20261124110000.
 -- Décision de Fred (question B de la Purge) : forum du tribunal (tribunal_<ville>, sujets rangés par pays dans
 -- forum_topics.country) — les PARTIES à l'affaire et les JUGES y lisent et écrivent où qu'ils soient ; tous les autres
 -- joueurs le lisent sans y écrire (suivre un procès à distance, rappeler les jours d'audience). Règle tenue par le serveur.

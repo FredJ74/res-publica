@@ -9,14 +9,16 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Mission du soir (Claude, 25/11/2026) — cases : `docs/mission-soir-20261125.md` ; reprise : « Reprends docs/mission-soir-20261125.md au premier point non coché »
+- Étape zéro faite : les six migrations de la mission de jour sont appliquées et contrôlées (voir ci-dessous).
+
 ### Mission de jour (Claude, 25/11/2026) — décisions : `GAME-DESIGN-MISSION-JOUR-20261125.md` ; suivi : `docs/suivi-decisions.md`, « Mission de jour »
 - **Fusionné dans main le 25/11** (avance rapide, 71944623) : chaîne `claude/jour-b1-20261125` → `claude/jour-b2-20261125` →
   `claude/jour-b3-20261125`, CI « Cohérence client » entièrement verte sur la tête. Ce qui dépend d'une migration attend Fred.
-- **Migrations écrites, NON appliquées** (Fred valide à son retour, dans l'ordre ; contrôles en lecture en tête de chaque fichier) :
-  20261125140000 (guide : goût, relance de l'interview), 150000 (canicule : l'eau vaut pour la journée), 160000 (interrupteur
-  MJ des comptes de test aux élections), 170000 (forum du tribunal), 200000 (chronique de l'empire, lecture seule), 300000
-  (armoire à souvenirs : listes, contenu, dépôt, reprise, +1 PA, armoire à vider avant déplacement). Sans elles,
-  le code garde le comportement actuel (l'onglet « L'empire » n'apparaît pas tant que 200000 n'est pas appliquée).
+- **Migrations APPLIQUÉES en production le 25/11 au soir** (feu vert de Fred, à l'écran, dans l'ordre ; registre
+  20261125184058 à 20261125184440) : 20261125140000 (guide), 150000 (canicule), 160000 (comptes de test), 170000 (forum du
+  tribunal), 200000 (chronique de l'empire), 300000 (armoire à souvenirs). Les contrôles en lecture en tête de chaque fichier
+  donnent tous le résultat attendu ; lignes du suivi passées « en ligne ».
 - Bloc 1 : 1.3 (trois comptes de test) et 1.10 (blizzard) vérifiés en base, rien à changer ; 1.8 : `quetes_actives` n'est lue par
   aucun écran ; 1.7 : Grigori Toporkov (bûcheron, cour de l'exploitation forestière), aucune migration (miroir serveur des PNJ =
   Républia seulement) ; 1.9 : 38 images renommées (`outils/bancs/fixtures/images-espaces-renommees-20261125.json`).

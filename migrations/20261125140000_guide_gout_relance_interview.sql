@@ -1,4 +1,4 @@
--- Mission de jour du 25/11/2026 (Claude), bloc 1.1 — NON APPLIQUÉE : Fred la valide à son retour. Après 20261124106000 (PNJ guide).
+-- Mission de jour du 25/11/2026 (Claude), bloc 1.1 — APPLIQUÉE en production le 25/11/2026 au soir (feu vert de Fred, contrôlée en lecture). Après 20261124106000 (PNJ guide).
 -- Réponses de Fred aux questions de la Purge (PNJ guide) :
 --   1. Le « goût » du nouveau pour le tirage du commerce (et le choix de la piste) est le CHEMIN choisi à l'interview ;
 --      à défaut de chemin, c'est sa CARRIÈRE (table guide_carrieres_criteres, réglable par le MJ) ; à défaut, 'defaut'.
