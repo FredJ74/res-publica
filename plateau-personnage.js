@@ -3990,7 +3990,9 @@ function ouvrirPopupArmoireSouvenirs(idx, tab) {
     html += '<div style="display:flex;flex-direction:column;gap:.35rem">';
     (liste ? liste.souvenirs : []).forEach(s => {
       const present = contenu.includes(s.nom);
-      html += '<div style="font-size:.82rem;color:' + (present ? '#e0d8c0' : '#5a5040') + '"><i class="ti ' + (present ? 'ti-square-check' : 'ti-square') + '" style="margin-right:.5rem"></i>' + s.ville + ' — ' + s.nom + '</div>';
+      html += '<div style="font-size:.82rem;color:' + (present ? '#e0d8c0' : '#5a5040') + '"><i class="ti ' + (present ? 'ti-square-check' : 'ti-square') + '" style="margin-right:.5rem"></i>' + s.ville + ' — ' + s.nom +
+        // Empires fermés (Fred, 25/11/2026 au soir, 3.3).
+        (s.fermee ? '<div class="cpj-note" style="margin-left:1.4rem">Cette ville ouvrira ses portes au premier trimestre 2027.</div>' : '') + '</div>';
     });
     html += '</div>';
   }

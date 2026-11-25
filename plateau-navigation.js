@@ -2951,6 +2951,7 @@ async function commanderTransportServeur(mode,pays,ville) {
    const motifs={
     controle_douanier_requis:'Le contrôle douanier doit être confirmé avant ce voyage.',
     starovka_train_seulement:"Starovka n'est reliée aux autres villes qu'en train.",
+    frontiere_fermee:'Frontière fermée, ouverture au premier trimestre 2027',
     chef_de_groupe_requis:'Seul le chef du groupe peut engager ce voyage.',fonds_insuffisants:'Le chef du groupe ne dispose pas des fonds nécessaires pour tous les voyageurs.',
     pa_insuffisants:'Le chef du groupe ne dispose pas des PA nécessaires.'};
    showToast('Voyage non confirmé',motifs[v?.raison]||'Le voyage n’est pas confirmé. Le même reçu sera utilisé si vous réessayez.',false);

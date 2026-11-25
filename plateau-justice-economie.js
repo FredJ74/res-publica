@@ -6334,12 +6334,65 @@ const LISTES_SOUVENIRS = {
       { ville: 'Novomirsk',        nom: 'Poupée traditionnelle de Novomirsk' },
       { ville: 'Starovka',         nom: 'Flasque métallique gravée « Starovka »' },
       { ville: 'Krasnov',          nom: 'Insigne émaillé des hauts-fourneaux de Krasnov' },
-      { ville: 'Ciudad Roja',      nom: 'Petit masque rouge du carnaval de Ciudad Roja' },
-      { ville: 'Puerto Negro',     nom: 'Jeton du casino de Puerto Negro' },
-      { ville: 'Villa Sangre',     nom: 'Crâne décoratif peint de Villa Sangre' },
-      { ville: 'Al Madina',        nom: "Petite lampe ouvragée d'Al Madina" },
-      { ville: 'Oasis City',       nom: 'Boule à neige « Oasis City »' },
-      { ville: 'Al-Petrol',        nom: 'Miniature de baril de pétrole doré' }
+      { ville: 'Ciudad Roja',      nom: 'Petit masque rouge du carnaval de Ciudad Roja', fermee: true },
+      { ville: 'Puerto Negro',     nom: 'Jeton du casino de Puerto Negro', fermee: true },
+      { ville: 'Villa Sangre',     nom: 'Crâne décoratif peint de Villa Sangre', fermee: true },
+      { ville: 'Al Madina',        nom: "Petite lampe ouvragée d'Al Madina", fermee: true },
+      { ville: 'Oasis City',       nom: 'Boule à neige « Oasis City »', fermee: true },
+      { ville: 'Al-Petrol',        nom: 'Miniature de baril de pétrole doré', fermee: true }
+    ]
+  },
+  // Listes 2, 3 et 4 (Fred, 25/11/2026 au soir, mission du soir 3.2 ; provisoires, relues le 12/12). Affichage seulement :
+  // la liste qui fait foi est en base (souvenirs_emplacements, migration 20261125600000). fermee : ville d'un empire fermé.
+  2: {
+    nom: 'Collection n°2',
+    souvenirs: [
+      { ville: "Luthécia", nom: "Tampon encreur officiel « Approuvé — en trois exemplaires »" },
+      { ville: "Montrouge", nom: "Carte postale « Montrouge, place du Rail — ici, même les statues sont à l'heure »" },
+      { ville: "Port-Sainte-Marie", nom: "Bocal de sel des marais" },
+      { ville: "Novomirsk", nom: "Ticket n° 1 de la file d'attente de la Distribution Collective, encadré" },
+      { ville: "Starovka", nom: "Bonnet en laine de renne de la ferme" },
+      { ville: "Krasnov", nom: "Guide des baies sauvages" },
+      { ville: "Ciudad Roja", nom: "Maracas rouges du carnaval", fermee: true },
+      { ville: "Puerto Negro", nom: "Mignonnette de rhum « Puerto Negro »", fermee: true },
+      { ville: "Villa Sangre", nom: "Bougie votive peinte", fermee: true },
+      { ville: "Al Madina", nom: "Sachet d'épices du souk", fermee: true },
+      { ville: "Oasis City", nom: "Flacon de sable de l'oasis", fermee: true },
+      { ville: "Al-Petrol", nom: "Porte-clés en forme de derrick doré", fermee: true }
+    ]
+  },
+  3: {
+    nom: 'Collection n°3',
+    souvenirs: [
+      { ville: "Luthécia", nom: "Carte postale « Luthécia — la liberté, en trois exemplaires et dûment tamponnée »" },
+      { ville: "Montrouge", nom: "Sifflet de chef de gare du musée du Rail" },
+      { ville: "Port-Sainte-Marie", nom: "Carte postale « Port-Sainte-Marie, sous la protection de Notre-Dame de la Mer »" },
+      { ville: "Novomirsk", nom: "Médaille commémorative du Tractorisme" },
+      { ville: "Starovka", nom: "Carte postale « Starovka — ici, la chaleur est dans les cœurs »" },
+      { ville: "Krasnov", nom: "Casque miniature de fondeur des hauts-fourneaux" },
+      { ville: "Ciudad Roja", nom: "Foulard rouge brodé", fermee: true },
+      { ville: "Puerto Negro", nom: "Dé en os des tripots du port", fermee: true },
+      { ville: "Villa Sangre", nom: "Statuette du saint protecteur de la ville", fermee: true },
+      { ville: "Al Madina", nom: "Théière miniature ciselée", fermee: true },
+      { ville: "Oasis City", nom: "Datte en sucre dans sa boîte dorée", fermee: true },
+      { ville: "Al-Petrol", nom: "Fiole décorative scellée « pétrole brut »", fermee: true }
+    ]
+  },
+  4: {
+    nom: 'Collection n°4',
+    souvenirs: [
+      { ville: "Luthécia", nom: "Formulaire vierge de la Liberté, encadré" },
+      { ville: "Montrouge", nom: "Carte postale « Bons baisers de Montrouge, la ville qui ne déraille jamais »" },
+      { ville: "Port-Sainte-Marie", nom: "Bouée miniature « Port-Sainte-Marie »" },
+      { ville: "Novomirsk", nom: "Exemplaire relié de La Voix de Sovarka" },
+      { ville: "Starovka", nom: "Bois de renne sculpté" },
+      { ville: "Krasnov", nom: "Pendentif « L'ours ne se chasse pas » (fausse griffe d'ours)" },
+      { ville: "Ciudad Roja", nom: "Affiche du carnaval", fermee: true },
+      { ville: "Puerto Negro", nom: "Boussole de contrebandier", fermee: true },
+      { ville: "Villa Sangre", nom: "Chapelet de perles noires", fermee: true },
+      { ville: "Al Madina", nom: "Babouches brodées miniatures", fermee: true },
+      { ville: "Oasis City", nom: "Chameau en peluche « Oasis City »", fermee: true },
+      { ville: "Al-Petrol", nom: "Casque de chantier pétrolier dédicacé", fermee: true }
     ]
   }
 };
