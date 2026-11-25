@@ -21,8 +21,7 @@ Deno.serve(async(req)=>{
  if(!owner||!noms.has(owner)||fonds?.data?.statut==="inactif")return reply({error:"Vous ne possedez pas ce commerce"},403);
  const {data:existing}=await db.from("commerce_decors").select("*").eq("fonds_id",fondsId).maybeSingle();
  if(existing?.retiree_le)return reply({error:"Visuel retire par moderation"},403);
- // Beta only: no real-money charge is made here. Stripe entitlement will
- // replace this beta gate before commercial release.
+ // Premium (mission du soir du 25/11/2026) : le droit à une génération est décidé par le serveur (voir « start » plus bas).
  if(action==="restart"){
   if(!existing)return reply({error:"Aucun projet a recommencer"},400);
   if(!existing.preview_path && !existing.image_path)return reply({error:"Aucune decoration existante"},409);
@@ -64,6 +63,16 @@ Deno.serve(async(req)=>{
  }
  if(action==="start"&&existing?.preview_path)return reply({error:"Terminez ou recommencez votre projet actuel"},409);
  if(action==="retouch"&&(!existing?.preview_path||existing.retouches>=2))return reply({error:"Deux retouches maximum"},400);
+ // Première image du local = option de personnalisation (comprise dans le commerce premium) ; remplacer une image déjà
+ // posée = renouvellement d'image (bêta libre, un par semaine pour l'abonné, sinon à l'unité). Sans la migration
+ // 20261125700000, la RPC n'existe pas : comportement de bêta (aucune erreur pour le joueur).
+ if(action==="start"){
+  const renouveler=!!(existing?.image_path);
+  const {data:droit,error:de}=renouveler
+   ?await db.rpc("premium_renouvellement_autoriser_service",{p_user:user.id,p_type:"commerce",p_objet:fondsId})
+   :await db.rpc("premium_personnalisation_autoriser_service",{p_user:user.id,p_produit:"personnalisation_local",p_cible:fondsId});
+  if(!de&&droit&&droit.ok===false)return reply({error:droit.raison==="renouvellement_a_payer"?"Renouvellement d'image a acheter":"Option premium requise",raison:droit.raison,produit:droit.produit},402);
+ }
  const prompt=String(body.prompt||"").trim().slice(0,1500);
  if(prompt.length<10)return reply({error:"Decrivez votre decoration plus precisement"},400);
  const key=Deno.env.get("OPENAI_API_KEY");if(!key)return reply({error:"Cle OpenAI absente du serveur"},503);

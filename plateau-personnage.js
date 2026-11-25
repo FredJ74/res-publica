@@ -2092,6 +2092,9 @@ async function doDormir() {
   const bonusLogement = vRepos?.logement ? { moral: Number(vRepos.logement.moral) || 0 } : { moral: 0 };
   if (vRepos?.logement) addJournalEntry('Nuit dans votre appartement : +' + (Number(vRepos.logement.pa) || 0) + ' PA.', 'event-good');
   sommeilSanteServeur(vRepos);
+  // Publicité des annonceurs extérieurs au réveil (premium, 25/11/2026) : le serveur décide (réglage MJ éteint par défaut,
+  // jamais pour un abonné, une par jour) ; sans annonce, rien ne s'affiche. Jamais attendue : aucun effet sur le repos.
+  if (typeof window !== 'undefined' && typeof window.premiumPubExterneAuDormir === 'function') window.premiumPubExterneAuDormir();
 
   // Empoisonnement (Fred, 20/11/2026 : une seule réalité, celle du serveur) : pa_repos_nocturne a déjà divisé les PV
   // par deux et, sous 20, hospitalisé d'urgence (crim_poison_nuit_interne). L'écran ne fait que relire et annoncer.
