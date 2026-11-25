@@ -7281,7 +7281,9 @@ export const SCENES_PNJ = {
     "ville": "Krasnov",
     "batiment": "Exploitation forestière de Krasnov",
     "piece": "Entrée de la forêt",
-    "personnes": []
+    "personnes": [
+      "Grigori Toporkov"
+    ]
   },
   "[\"soviet\",\"ville_b\",\"zone-production\",\"foret_vue_1\"]": {
     "pays": "Sovarka",
