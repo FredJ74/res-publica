@@ -31,18 +31,22 @@
     const m = /doOrder\('([a-z0-9_]+)'/.exec(b.getAttribute('onclick') || '');
     return m ? m[1] : null;
   }
-  function poser(b, taux) {
+  // Fin de soirée du 25/11 (choix 2.3) : fuite d'information et soins sans trace affichent aussi la chance du demi-effet,
+  // rendue par le serveur sous la clé « <ordre>_demi » (migration 20261125820000).
+  const texteDemi = y => 'demi-effet : ' + y + ' %';
+  function poser(b, taux, demi) {
     let pastille = b.querySelector('.rp-chance-reelle');
     if (!pastille) {
       pastille = doc.createElement('span');
       pastille.className = 'rp-chance-reelle';
       b.appendChild(pastille);
     }
-    pastille.textContent = taux + ' %';
-    pastille.title = texte(taux);
+    const aDemi = typeof demi === 'number';
+    pastille.textContent = taux + ' %' + (aDemi ? ' · ½ ' + demi + ' %' : '');
+    pastille.title = texte(taux) + (aDemi ? ' (' + texteDemi(demi) + ')' : '');
     // Infobulle d'ordinateur et bulle « i » : la chance réelle en tête, la réussite déclarée remplacée.
-    const titre = (b.getAttribute('title') || '').replace(/^Vos chances réelles : \d+ % \| /, '').replace(/Reussite: \d+%/, 'Reussite: ' + taux + '%');
-    b.setAttribute('title', texte(taux) + ' | ' + titre);
+    const titre = (b.getAttribute('title') || '').replace(/^Vos chances réelles : \d+ %( \(demi-effet : \d+ %\))? \| /, '').replace(/Reussite: \d+%/, 'Reussite: ' + taux + '%');
+    b.setAttribute('title', texte(taux) + (aDemi ? ' (' + texteDemi(demi) + ')' : '') + ' | ' + titre);
     const brut = b.getAttribute('data-rp-tip');
     if (brut) {
       try {
@@ -72,7 +76,8 @@
     if (g !== generation || !r || r.ok !== true || !r.chances) return;
     for (const fn of fns) {
       const taux = r.chances[fn];
-      if (typeof taux === 'number') parOrdre[fn].forEach(b => { if (b.isConnected) poser(b, taux); });
+      const demi = r.chances[fn + '_demi'];
+      if (typeof taux === 'number') parOrdre[fn].forEach(b => { if (b.isConnected) poser(b, taux, demi); });
     }
   }
   function planifier() { if (!planifie) { planifie = true; global.setTimeout(annoter, 0); } }
@@ -85,5 +90,5 @@
     return true;
   }
   if (!brancher()) doc.addEventListener('DOMContentLoaded', brancher, { once: true });
-  global.RPChancesReelles = Object.freeze({ annoter, texte, ORDRES, SANS_JET, SELON_CIBLE, sansTauxEcrit });
+  global.RPChancesReelles = Object.freeze({ annoter, texte, texteDemi, ORDRES, SANS_JET, SELON_CIBLE, sansTauxEcrit });
 })(typeof window !== 'undefined' ? window : globalThis);

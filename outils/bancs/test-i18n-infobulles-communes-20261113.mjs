@@ -48,7 +48,7 @@ test('inventaire : 237 descriptions communes affichées après isolation du goul
   // catalogue (trou antérieur, chantier de traduction à venir, consigné dans RELAIS.md). Le plafond
   // autorise la seule description de gestion de caserne rétablie à Sovarka ;
   // elle doit rejoindre le catalogue partagé dans le prochain lot i18n.
-  assert.equal(communesJeu.length, 229, // -1 le 23/11 (bloc 4, point 32) : « +6 INF +5 DIS +1 POP. » (location des bureaux de Krasnov) disparaît, les bureaux se demandent à la mairie ; -1 le 23/11 (mission Novomirsk, point 5) : « Taxi vers le QHS » masqué en Sovarka tant que le goulag est fermé, sa description n'y est plus affichée ; -2 le 22/11 au soir (Santé, Suites, point 1) : « boissons et snacks » du bar du Grand Hôtel et des buvettes de stade devient « en-cas » en Républia et « zakouski » en Sovarka, ces deux descriptions ne sont plus communes ; -6 le 22/11 : refonte des informateurs (« Écouter le barman / la serveuse », « Recruter un informateur », ordres d'informateurs de la loge retirés) ; -1 le 21/11 : boycott des supporters retiré en Sovarka (lot de Krasnov, point 6), sa description n'est plus affichée qu'en Républia ; +1 le 19/11 : boutique climat (lot 5) ; +1 le 18/11 : furet renifleur (maladies lot 2c) ; +1 le 18/11 : pharmacie de Républia (maladies lot 1).  Le 16/11 : 245 -> 237 ; les ordres hérités du QHS de Républia disparaissent du goulag de Sovarka (entrée, cellules et salles républicaines), sans retirer leurs traductions encore nécessaires en Républia.
+  assert.equal(communesJeu.length, 230, // +1 le 25/11 en fin de soirée (Fred, 1.8) : « Visiter un détenu » aussi au commissariat, sa description devient commune ; -1 le 23/11 (bloc 4, point 32) : « +6 INF +5 DIS +1 POP. » (location des bureaux de Krasnov) disparaît, les bureaux se demandent à la mairie ; -1 le 23/11 (mission Novomirsk, point 5) : « Taxi vers le QHS » masqué en Sovarka tant que le goulag est fermé, sa description n'y est plus affichée ; -2 le 22/11 au soir (Santé, Suites, point 1) : « boissons et snacks » du bar du Grand Hôtel et des buvettes de stade devient « en-cas » en Républia et « zakouski » en Sovarka, ces deux descriptions ne sont plus communes ; -6 le 22/11 : refonte des informateurs (« Écouter le barman / la serveuse », « Recruter un informateur », ordres d'informateurs de la loge retirés) ; -1 le 21/11 : boycott des supporters retiré en Sovarka (lot de Krasnov, point 6), sa description n'est plus affichée qu'en Républia ; +1 le 19/11 : boutique climat (lot 5) ; +1 le 18/11 : furet renifleur (maladies lot 2c) ; +1 le 18/11 : pharmacie de Républia (maladies lot 1).  Le 16/11 : 245 -> 237 ; les ordres hérités du QHS de Républia disparaissent du goulag de Sovarka (entrée, cellules et salles républicaines), sans retirer leurs traductions encore nécessaires en Républia.
     'nombre de descriptions communes affichées après exclusions ministérielles spécifiques à Sovarka');
   const manquantes = communesJeu.filter(d => !cat.includes(d));
   t.diagnostic('Descriptions communes manquantes : ' + JSON.stringify(manquantes));
@@ -60,7 +60,8 @@ test('inventaire : 237 descriptions communes affichées après isolation du goul
   // propagande, fuite, enquête, défense, soins sans trace, rébellion, évasion, campagne de sécurité ×2, contestation, trois
   // fraudes électorales, corruption du douanier), à traduire par Codex (liste dans docs/soir/BLOC-1A.md).
   // +3 le 25/11 au soir (mission du soir, 1.2) : corrompre un journaliste, fabriquer un scandale, frapper à la loge, à traduire par Codex.
-  assert.ok(manquantes.length <= 28, 'nouvelles communes absentes du catalogue');
+  // +2 le 25/11 en fin de soirée (agent B) : visiter un détenu (désormais commune) et censurer un média (Sovarka), à traduire par Codex.
+  assert.ok(manquantes.length <= 30, 'nouvelles communes absentes du catalogue');
   // Français strictement identique : chaque texte du catalogue est une description exacte de data.js,
   // affichée dans au moins un pays (avec la fusion réelle, quelques-unes ne sont plus visibles qu'en Républia,
   // l'exclusion de Sovarka étant désormais prise en compte ; leur traduction y reste utile).
@@ -106,6 +107,8 @@ test('inventaire : 237 descriptions communes affichées après isolation du goul
     "Influencer massivement l'opinion publique. +POP.",
     "+10 ISN local. Deploiement de forces de l'ordre supplementaires. Preleve sur budget mairie.",
     "Cibler un citoyen, un club sportif, une entreprise ou une organisation. Coute a la caisse du gouvernement.",
+    // Fin de soirée du 25/11 (agent B) : censure réécrite (effet en Sovarka) ; ligne livrée gardée jusqu'à la traduction.
+    "Interdire un organe de presse. -liberte +controle.",
     // Mission du soir (25/11/2026, 1.2) : descriptions alignées sur le serveur ; anciennes lignes livrées gardées.
     "Accuser publiquement un PJ, sous votre nom. La rédaction accepte ou refuse (35 % + 15 si carrière presse, ou + 10 si ministre de l'Information, moins le malus de sécurité intérieure). Acceptation : 3 PA et 800 FR pour La Tribune, la cible perd 15 POP et 15 INF. Refus : rien n'est prélevé. Une tentative par jour.",
     "Choisir une affaire judiciaire du jour puis demander à la rédaction de l'étouffer ou d'en publier un angle favorable. Accord : 2 PA et 500 FR pour La Tribune. Refus : rien n'est prélevé, mais la démarche laisse une trace. Le dossier judiciaire n'est jamais modifié.",

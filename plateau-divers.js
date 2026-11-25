@@ -497,8 +497,27 @@ async function doPrier(pa, cost) {
     if (!v) return;
     excommunie = !!v.excommunie;
   } else {
-    const r = await deduireCoutOrdre({ pa, cost });
-    if (!r.ok) { signalerRefusCout(r); return; }
+    // Grange Sainte de Novomirsk (Fred, 25/11 fin de soirée) : le chant y passe par le serveur, qui paie l'ordre et offre la
+    // médaille du Tractorisme au premier chant, une fois par personnage (migration 20261125820000). Sans elle, ancien chemin.
+    let medaille = null;
+    const grangeSainte = pays === 'soviet' && state.currentCity === 'capitale' && state.currentBuilding === 'kolkhoze-spirituel';
+    let serveurChant = null;
+    if (grangeSainte && typeof sbRpcVerdict === 'function') {
+      serveurChant = await sbRpcVerdict('tractorisme_chanter_hymne', { p_requete: crypto.randomUUID() }).catch(() => null);
+      if (serveurChant && serveurChant.transport && serveurChant.transport.code === 'PGRST202') serveurChant = null;
+      else if (!serveurChant || serveurChant.ok !== true) { signalerRefusCout(serveurChant || { raison: 'paiement_indisponible' }); return; }
+    }
+    if (serveurChant) {
+      if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(serveurChant);
+      if (Array.isArray(serveurChant.inventory)) {
+        state.inventory = serveurChant.inventory;
+        if (typeof renderInventory === 'function') { try { renderInventory(); } catch (_) {} }
+      }
+      if (serveurChant.medaille === true) medaille = serveurChant.message;
+    } else {
+      const r = await deduireCoutOrdre({ pa, cost });
+      if (!r.ok) { signalerRefusCout(r); return; }
+    }
     modifierIP(3);
     state.moral = Math.min(100, state.moral + 2);
     updateUI();
@@ -506,6 +525,10 @@ async function doPrier(pa, cost) {
     // exclamation du religieux du lieu, puis le résultat ci-dessous. L'ordre et ses effets ne changent pas.
     if (pays === 'soviet' && state.currentBuilding === 'kolkhoze-spirituel' && typeof jouerHymneTracteur === 'function') {
       try { await jouerHymneTracteur(); } catch (e) { /* l'animation ne doit jamais bloquer le résultat */ }
+    }
+    if (medaille) {
+      showToast('Médaille du Tractorisme', medaille, true, true);
+      addJournalEntry(medaille, 'event-good');
     }
   }
   const msgs = {
@@ -750,10 +773,27 @@ async function doDemanderBenedictionContact(pnjNom) {
     showToast('Bénédiction refusée', pnjNom + ' ne peut rien pour vous : vous êtes excommunié(e).', false);
     return;
   }
-  const r = await deduireCoutOrdre({ pa: 1, cost: 0 });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  const roll = Math.floor(Math.random() * 100) + 1;
-  if (roll <= 80) {
+  // Bénédiction tenue par le serveur (fin de soirée du 25/11, choix 2.1) : 1 PA, 80 %, 24 h, et les jets du commissaire la
+  // lisent au serveur (migration 20261125820000). Sans elle, ancien chemin local.
+  let benie = null;
+  if (typeof sbRpcVerdict === 'function') {
+    const v = await sbRpcVerdict('benediction_contact_demander', { p_requete: crypto.randomUUID(), p_pnj: pnjNom }).catch(() => null);
+    if (!(v && v.transport && v.transport.code === 'PGRST202')) {
+      if (!v || v.ok !== true) {
+        if (v && v.raison === 'excommunie') showToast('Bénédiction refusée', pnjNom + ' ne peut rien pour vous : vous êtes excommunié(e).', false);
+        else signalerRefusCout(v || { raison: 'paiement_indisponible' });
+        return;
+      }
+      if (typeof v.pa === 'number') state.pa = v.pa;
+      benie = v.benie === true;
+    }
+  }
+  if (benie === null) {
+    const r = await deduireCoutOrdre({ pa: 1, cost: 0 });
+    if (!r.ok) { signalerRefusCout(r); return; }
+    benie = (Math.floor(Math.random() * 100) + 1) <= 80;
+  }
+  if (benie) {
     state.char.benediction = { actif: true, expire: (state.day || 1) + 1 };
     if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
     updateUI();

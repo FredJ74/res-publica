@@ -2178,7 +2178,7 @@ async function doSeRebeller(pa, cost) {
 // Sans la migration, le parloir est dit fermé et rien n'est débité.
 const VISITE_REFUS = {
   pas_dans_cette_prison: "Ce détenu n'est pas détenu dans cette prison.",
-  qhs_avocat_famille: 'Au quartier de haute sécurité, seuls son avocat et sa famille déclarée peuvent le voir.',
+  qhs_avocat_famille: 'Au quartier de haute sécurité, seuls un avocat inscrit au barreau et le conjoint du détenu peuvent le voir.',
   deja_visite_aujourdhui: 'Vous avez déjà rendu visite à ce détenu aujourd’hui.',
   detenu_introuvable: "Ce détenu n'est plus en détention.",
   visiteur_detenu: 'Un détenu ne rend pas visite aux autres détenus.'
@@ -2203,7 +2203,7 @@ async function ouvrirVisiterPrisonnier(pa, cost) {
     r.detenus.forEach((p, i) => {
       const nom = String(p.nom || '');
       const bloque = !p.autorise || p.deja_visite;
-      const note = !p.autorise ? 'Quartier de haute sécurité : avocat et famille seulement.' : (p.deja_visite ? 'Déjà visité aujourd’hui.' : (p.raison || ''));
+      const note = !p.autorise ? 'Quartier de haute sécurité : réservé aux avocats inscrits au barreau et au conjoint du détenu.' : (p.deja_visite ? 'Déjà visité aujourd’hui.' : (p.raison || ''));
       html += '<button class="cpj-touche" style="display:block;width:100%;text-align:left;margin-bottom:.4rem' + (bloque ? ';opacity:.5' : '') + '"'
         + (bloque ? ' disabled' : ' onclick="confirmerVisitePrisonnier(' + i + ')"') + '>'
         + visiteEchapper(nom) + '<div class="cpj-note">' + visiteEchapper(note) + '</div></button>';
