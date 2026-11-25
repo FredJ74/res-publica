@@ -22,6 +22,8 @@ Règles : voir `AGENTS.md`.
   attendu. Fonctions Supabase redéployées : `commerce-decoration` (v14), `logement-decoration` (v3). Aucun compte de paiement
   ni aucune clé : le fournisseur n'est pas arrêté.
 - Remise à zéro du 19/12 : `docs/premium/REMISE-A-ZERO-20261219.md` (préparée, jamais exécutée ; 40 tables mixtes à écrire).
+  Le script et son modèle sont rangés dans `historique/preparations-lancement/` (règle des trois maisons du SQL, 26/11) ;
+  le générateur reste `outils/lancement/generer-remise-a-zero.py`.
 
 ### Mission de jour (Claude, 25/11/2026) — décisions : `GAME-DESIGN-MISSION-JOUR-20261125.md` ; suivi : `docs/suivi-decisions.md`, « Mission de jour »
 - **Fusionné dans main le 25/11** (avance rapide, 71944623) : chaîne `claude/jour-b1-20261125` → `claude/jour-b2-20261125` →

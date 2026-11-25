@@ -13,8 +13,8 @@ Mission du soir du 25/11/2026, bloc 4.5. **Préparée, jamais exécutée.** Fred
 
 | Fichier | Rôle |
 |---|---|
-| `outils/lancement/remise-a-zero-20261219.sql` | le script, **généré** (ne pas l'éditer à la main) |
-| `outils/lancement/remise-a-zero.modele.sql` | son modèle (garde-fous, relevé, effacement, offre) |
+| `historique/preparations-lancement/remise-a-zero-20261219.sql` | le script, **généré** (ne pas l'éditer à la main) |
+| `historique/preparations-lancement/remise-a-zero.modele.sql` | son modèle (garde-fous, relevé, effacement, offre) |
 | `outils/lancement/generer-remise-a-zero.py` | le générateur (`--verifier` : échoue si le script n'est pas à jour) |
 | `baseline/classification-donnees.csv` | classement historique des tables (A, B : garder ; C : vider ; D : réinitialiser) |
 | `outils/lancement/classement-complementaire-20261125.csv` | tables nouvelles et corrections (prioritaire) |
@@ -54,7 +54,7 @@ Mission du soir du 25/11/2026, bloc 4.5. **Préparée, jamais exécutée.** Fred
    ```sql
    SET human_gambit.remise_a_zero = 'JE-CONFIRME-LA-REMISE-A-ZERO-DU-19-12-2026';
    SET human_gambit.remise_reinitialisations = 'faites';
-   -- puis tout le contenu de outils/lancement/remise-a-zero-20261219.sql
+   -- puis tout le contenu de historique/preparations-lancement/remise-a-zero-20261219.sql
    ```
    Tout se passe dans une seule transaction : au moindre refus (date, table inconnue non vide, clé étrangère inattendue),
    **rien n'est effacé**.

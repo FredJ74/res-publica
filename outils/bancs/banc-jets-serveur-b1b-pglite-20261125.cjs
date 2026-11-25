@@ -454,7 +454,8 @@ test('corruption refusée : rien n’est prélevé ; blocus : refus avant le jet
   const db = await base(); await moi(db, 'Jo');
   let r, n = 0;
   do {
-    await db.exec('DELETE FROM corruptions_presse; DELETE FROM requetes');
+    // Une réussite coûte 2 PA : on rend les PA avant chaque essai pour ne mesurer que l'échec final.
+    await db.exec("DELETE FROM corruptions_presse; DELETE FROM requetes; UPDATE personnages_donnees SET pa = 20 WHERE name = 'Jo'");
     r = (await un(db, "SELECT corruption_presse_tenter($1, 'Jo', 'aff1', 'etouffer', 0) r", ['d' + (n++)])).r;
   } while (r.reussi && n < 80);
   assert.equal(r.reussi, false); assert.equal(r.paye, false);

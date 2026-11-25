@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Génère outils/lancement/remise-a-zero-20261219.sql (mission du soir du 25/11/2026, bloc 4.5).
+"""Génère historique/preparations-lancement/remise-a-zero-20261219.sql (mission du soir du 25/11/2026, bloc 4.5).
 
 Sources : baseline/classification-donnees.csv (A, B → garder ; C → vider ; D → réinitialiser ; hors_baseline → garder)
           outils/lancement/classement-complementaire-20261125.csv (tables nouvelles et corrections ; prioritaire).
@@ -17,11 +17,11 @@ dec.update(comp)
 assert set(dec.values()) <= {'garder', 'vider', 'reinitialiser', 'a_verifier'}, set(dec.values())
 listes = {k: sorted(t for t, v in dec.items() if v == k) for k in ('garder', 'vider', 'reinitialiser', 'a_verifier')}
 arr = lambda l: 'ARRAY[' + ', '.join("'" + t + "'" for t in l) + ']::text[]'
-modele = (R / 'outils/lancement/remise-a-zero.modele.sql').read_text(encoding='utf8')
+modele = (R / 'historique/preparations-lancement/remise-a-zero.modele.sql').read_text(encoding='utf8')
 sortie = (modele.replace('/*GARDER*/', arr(listes['garder'])).replace('/*VIDER*/', arr(listes['vider']))
           .replace('/*REINITIALISER*/', arr(listes['reinitialiser'])).replace('/*A_VERIFIER*/', arr(listes['a_verifier']))
           .replace('/*COMPTES*/', ' ; '.join(f'{k} {len(v)}' for k, v in listes.items())))
-cible = R / 'outils/lancement/remise-a-zero-20261219.sql'
+cible = R / 'historique/preparations-lancement/remise-a-zero-20261219.sql'
 if '--verifier' in sys.argv:
     if cible.read_text(encoding='utf8') != sortie:
         sys.exit('remise-a-zero-20261219.sql n\'est pas à jour : relancer le générateur')
