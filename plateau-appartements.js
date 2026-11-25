@@ -255,6 +255,8 @@ async function ouvrirMonLogement() {
 
 async function appel(fn, args, succes) {
   const r = await sbRpc(fn, args || {}).catch(() => null);
+  // Hors bêta, sans droit (socle premium du 25/11/2026) : la fenêtre premium propose l'option au lieu d'un refus sec.
+  if (r && r.raison === 'option_premium_requise' && typeof ouvrirPremium === 'function') { ouvrirPremium(r.produit || 'personnalisation_local', null); return null; }
   if (!r || r.ok !== true) { showToast(texteAppart('refuse', 'Refusé'), refus(r), false); return null; }
   if (typeof r.pa === 'number') { state.pa = r.pa; if (typeof updateUI === 'function') updateUI(); }
   if (succes) showToast(succes[0], succes[1], true);
