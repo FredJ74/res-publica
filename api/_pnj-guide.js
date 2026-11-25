@@ -124,6 +124,8 @@ export function creerHandlerGuide(deps = {}) {
     if (b.action === 'prochain') {
       const r = un(await rpc('guide_reserver', {}, { jeton: u.jeton }));
       if (!r || r.ok !== true) return res.status(200).json({ ok: false, raison: (r && r.raison) || 'indisponible' });
+      // Relance de l'interview (migration 20261125140000) : texte fixe, déjà publié par le serveur SQL, sans IA.
+      if (r.publie === true) return res.status(200).json({ ok: true, pnj: r.pnj, voix: r.voix, conversation: r.conversation, source: 'serveur' });
       const noms = await nomsInterdits();
       if (!noms) return res.status(503).json({ ok: false, raison: 'filtre_indisponible' });
       const d = decrirePiste(r.piste);
