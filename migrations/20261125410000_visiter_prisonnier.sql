@@ -1,4 +1,4 @@
--- Mission du soir du 25/11/2026 (Claude), bloc 1A (point 1.4e) — NON APPLIQUÉE. Après 20261125400000.
+-- Mission du soir du 25/11/2026 (Claude), bloc 1A (point 1.4e) — APPLIQUÉE en production le 25/11/2026 en fin de soirée (feu vert de Fred, contrôlée en lecture). Après 20261125400000.
 -- « Visiter un détenu » (décision de Fred, 25/11 au soir) : aucun jet ; le serveur contrôle tout.
 --   • Le détenu doit être détenu dans CETTE prison : le visiteur se trouve dans le pays, la ville et le bâtiment de la
 --     détention (qhs → qhs-prison ; capitale → commissariat ; autre ville → commissariat-local, comme detention_ouvrir_interne).

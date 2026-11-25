@@ -1,4 +1,4 @@
--- Mission du soir du 25/11/2026 (Claude), bloc 1A (points 1.1, 1.3, 1.4) — NON APPLIQUÉE. Après 20261125130000 (chances réelles).
+-- Mission du soir du 25/11/2026 (Claude), bloc 1A (points 1.1, 1.3, 1.4) — APPLIQUÉE en production le 25/11/2026 en fin de soirée (feu vert de Fred, contrôlée en lecture). Après 20261125130000 (chances réelles).
 -- Audit des chances (docs/nuit/AUDIT-CHANCES-20261125.md), décisions de Fred du 25/11 au soir :
 --   • 1.3e Falsifier les listes électorales : un échec coûte 2 jours de détention (au lieu de 20).
 --   • 1.4b Truquer le dépouillement : un échec coûte 3 jours (au lieu de 20) ; Bourrer les urnes reste à 1 jour.

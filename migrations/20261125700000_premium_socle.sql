@@ -1,4 +1,4 @@
--- Mission du soir du 25/11/2026 (Claude), bloc 4 — NON APPLIQUÉE : Fred la valide devant l'écran.
+-- Mission du soir du 25/11/2026 (Claude), bloc 4 — APPLIQUÉE en production le 25/11/2026 en fin de soirée (feu vert de Fred, contrôlée en lecture).
 -- PREMIUM : LE SOCLE (décisions de Fred du 25/11 au soir). Jamais de pay-to-win : mêmes statistiques en gratuit et en premium.
 -- • Options à achat unique et durables : commerce premium (3 familles / 10 articles au lieu de 2 / 4), bureau à 6 emplacements,
 --   personnalisation du local ou du bâtiment privé, publicités de joueurs. Chaque renouvellement d'image se paie à l'unité.

@@ -1,4 +1,4 @@
--- Mission du soir du 25/11/2026 (Claude), bloc 1.2 — NON APPLIQUÉE. Après 20261125130000 (chances réelles, appliquée).
+-- Mission du soir du 25/11/2026 (Claude), bloc 1.2 — APPLIQUÉE en production le 25/11/2026 en fin de soirée (feu vert de Fred, contrôlée en lecture). Après 20261125130000 (chances réelles, appliquée).
 -- Les jets encore tirés dans le NAVIGATEUR passent au SERVEUR, avec la MÊME formule, et le coût est payé dans la MÊME
 -- transaction que le jet (audit docs/nuit/AUDIT-CHANCES-20261125.md). Aucune règle de jeu ne change.
 --   • « Placer un article favorable » (article) et « Contrer une campagne de presse » (etouffer) : presse_lobbying_tenter.

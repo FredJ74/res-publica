@@ -1,4 +1,4 @@
--- Mission du soir du 25/11/2026 (Claude), bloc 3 — NON APPLIQUÉE. Après 20261125300000 (armoire à souvenirs, appliquée le 25/11).
+-- Mission du soir du 25/11/2026 (Claude), bloc 3 — APPLIQUÉE en production le 25/11/2026 en fin de soirée (feu vert de Fred, contrôlée en lecture). Après 20261125300000 (armoire à souvenirs, appliquée le 25/11).
 -- Décisions de Fred (25/11/2026 au soir, docs/mission-soir-20261125.md, points 3.1 à 3.3) :
 -- 3.1 Chaque souvenir des listes devient un objet du jeu, acheté SUR PLACE auprès d'un PNJ existant, dans un lieu de sa ville
 --     cohérent avec l'objet (l'image du lieu montre un comptoir ou un étal). Le jeu n'indique JAMAIS où le trouver : la table des

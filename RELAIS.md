@@ -16,11 +16,11 @@ Règles : voir `AGENTS.md`.
   fusion : listes historiques des recettes (`acheter_souvenir` 0/0, `mobiliser` gardé à 2 PA dans la coupe), bancs i18n des
   descriptions remplacées, Chromium des bancs à 60 s (20 s faisaient échouer la CI, main compris). Comptes rendus, « Pour Codex » et questions : `docs/soir/BLOC-1A.md`,
   `BLOC-1B.md`, `BLOC-3.md`, `BLOC-4.md`.
-- **Migrations écrites, NON appliquées** (dans l'ordre ; contrôles en lecture en tête de chaque fichier) : 20261125400000
-  (audit des chances : fraudes 2/3/1 jours, contrebande 85 %, lieux poissonnière et quai de Novomirsk, chances de 18 ordres),
-  410000 (visiter un détenu), 500000 (jets du navigateur passés au serveur), 600000 (souvenirs, listes 2-4, frontières
-  fermées), 700000 (premium : droits, abonnements, publicités, paiement ; puis redéployer les fonctions Supabase
-  `commerce-decoration` et `logement-decoration`). Sans elles, le jeu garde le comportement actuel.
+- **Migrations APPLIQUÉES en production le 25/11 en fin de soirée** (feu vert de Fred, dans l'ordre ; registre
+  20261125213758 à 20261125214807) : 20261125400000 (audit des chances), 410000 (visite d'un détenu), 500000 (jets au serveur),
+  600000 (souvenirs, listes 2-4, frontières fermées), 700000 (premium). Les cinq contrôles en lecture donnent le résultat
+  attendu. Fonctions Supabase redéployées : `commerce-decoration` (v14), `logement-decoration` (v3). Aucun compte de paiement
+  ni aucune clé : le fournisseur n'est pas arrêté.
 - Remise à zéro du 19/12 : `docs/premium/REMISE-A-ZERO-20261219.md` (préparée, jamais exécutée ; 40 tables mixtes à écrire).
 
 ### Mission de jour (Claude, 25/11/2026) — décisions : `GAME-DESIGN-MISSION-JOUR-20261125.md` ; suivi : `docs/suivi-decisions.md`, « Mission de jour »
