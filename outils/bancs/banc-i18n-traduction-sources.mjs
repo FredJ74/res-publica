@@ -1,8 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { SOURCES,validerSource } from '../../api/_traduction-sources.js';
-test('seules les trois sources lisibles par RLS sont admises sont admises',()=>{
- assert.deepEqual(Object.keys(SOURCES),['forum_post','forum_topic','chat_message']);
+test('seules les sources lisibles par RLS sont admises',()=>{
+ // +annonce_publique le 25/11/2026 (texte des rumeurs de la chronique de l'empire, lecture publique sous RLS).
+ assert.deepEqual(Object.keys(SOURCES),['forum_post','forum_topic','chat_message','annonce_publique']);
  for(const [type,source] of Object.entries(SOURCES)){
   for(const field of source.fields) {
    const value=validerSource(type,'fixture-id',field);
@@ -30,4 +31,6 @@ test('forums de ville, pays et organisations : RLS obligatoire, jamais publics p
  assert.equal(SOURCES.forum_post.privacy,'rls_via_forum_topic');
  assert.equal(SOURCES.forum_topic.privacy,'rls_forum_lecture_autorisee');
  assert.equal(SOURCES.chat_message.privacy,'rls_chat_participe');
+ assert.equal(SOURCES.annonce_publique.privacy,'rls_evenements_globaux_lecture_publique');
+ assert.equal(validerSource('annonce_publique','12','auteur'),null);
 });

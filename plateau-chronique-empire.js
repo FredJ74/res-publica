@@ -20,6 +20,10 @@
     // Actes illégaux : sans auteur connu / avec auteur connu.
     acte_voler: ['Un vol a été commis {lieu}.', '{auteur} a commis un vol {lieu}.'],
     acte_rumeur: ['Une rumeur calomnieuse{sur} circule {lieu}.', '{auteur} a lancé une rumeur calomnieuse{sur} {lieu}.'],
+    // Rumeur citée en toutes lettres (Fred, 25/11/2026, mission de fin de soirée 3.1 ; migration 20261125860000).
+    acte_rumeur_texte: ['Une rumeur circule {lieu} : « {texte} »', '{auteur} fait circuler une rumeur {lieu} : « {texte} »'],
+    original: 'Voir l’original',
+    traduction: 'Voir la traduction',
     acte_neutraliser: ['Quelqu’un a été agressé {lieu}.', '{auteur} a agressé quelqu’un {lieu}.'],
     acte_effraction: ['Une porte a été forcée {lieu}.', '{auteur} a forcé une porte {lieu}.'],
     acte_explosifs: ['Une explosion a secoué {lieu}.', '{auteur} a fait sauter une charge {lieu}.'],
@@ -83,7 +87,15 @@
     const ville = esc(nomVille(fait.ville));
     switch (fait.cat) {
       case 'acte': {
-        const t = TXT[cleActe(fait.cle)];
+        const cle = cleActe(fait.cle);
+        // Le texte d'une rumeur est un texte de joueur : échappé ici, puis confié à l'affichage des textes de joueurs
+        // (traduction automatique et « Voir l'original ») une fois la ligne posée (voir textesJoueurs).
+        if (cle === 'acte_rumeur' && p.texte) {
+          const q = '<q class="hg-chron-rumeur" data-ref="' + esc(fait.ref) + '">' + esc(court(p.texte, 600)) + '</q>' +
+            ' <button type="button" class="hg-chron-original" data-ref="' + esc(fait.ref) + '" hidden></button>';
+          return f(TXT.acte_rumeur_texte[auteur ? 1 : 0], { auteur, lieu: lieu(fait), texte: q });
+        }
+        const t = TXT[cle];
         return f(t[auteur ? 1 : 0], { auteur, lieu: lieu(fait), sur: p.cible ? f(TXT.sur, { cible: esc(p.cible) }) : '' });
       }
       case 'arrestation':
@@ -119,6 +131,36 @@
     if (!h) h = '<p class="cpj-note hg-chron-vide">' + esc(message || TXT.vide) + '</p>';
     else if (!fin) h += '<button type="button" class="cpj-touche hg-chron-plus">' + esc(TXT.plus) + '</button>';
     z.innerHTML = h;
+    textesJoueurs(z);
+  }
+  // Textes de joueurs (rumeurs) : affichage commun i18n/texte-joueur.js. La traduction vient du service de traduction des
+  // textes de joueurs (source « annonce_publique » = l'annonce de la rumeur) s'il est branché ; sinon l'original reste affiché
+  // et le lien « Voir l'original » reste caché (rien à basculer).
+  function langue() { try { return (global.RPPlateauI18n && global.RPPlateauI18n.language && global.RPPlateauI18n.language()) || 'fr'; } catch (_) { return 'fr'; } }
+  function textesJoueurs(z) {
+    const PT = global.RPPlayerText;
+    if (!PT || typeof PT.attachToggle !== 'function') return;
+    const parRef = new Map(faits.map(x => [String(x.ref), x]));
+    z.querySelectorAll('q.hg-chron-rumeur').forEach(el => {
+      const fait = parRef.get(el.dataset.ref);
+      const btn = Array.from(z.querySelectorAll('.hg-chron-original')).find(b => b.dataset.ref === el.dataset.ref);
+      if (!fait || !btn) return;
+      const p = fait.params || {}, loc = langue();
+      const record = { original: court(p.texte, 600), originalLanguage: null, translation: null, translationLanguage: null };
+      const libelles = { showOriginal: TXT.original, showTranslation: TXT.traduction };
+      let bascule = PT.attachToggle(el, btn, record, loc, libelles);
+      const service = global.RPTraductionTexteJoueur;
+      if (p.annonce != null && service && typeof service.traduire === 'function') {
+        Promise.resolve(service.traduire({ type: 'annonce_publique', id: String(p.annonce), field: 'texte', langueCible: loc }))
+          .then(r => {
+            if (!r || r.ok !== true || typeof r.traduit !== 'string' || !el.isConnected) return;
+            // L'annonce porte le préfixe « 🗯 » de la place publique : il ne fait pas partie du texte du joueur.
+            record.translation = r.traduit.replace(/^\s*🗯\s*/u, ''); record.translationLanguage = loc;
+            if (bascule && bascule.detach) bascule.detach();
+            bascule = PT.attachToggle(el, btn, record, loc, libelles);
+          }).catch(() => {});
+      }
+    });
   }
   async function charger(suite) {
     if (chargement) return;

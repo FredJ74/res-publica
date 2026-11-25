@@ -3849,7 +3849,7 @@ const BUILDINGS = {
                    photoPos:'50% 20%'}],
         orders: [
           {fn:'propagande_etat',      label:'Campagne de propagande',       pa:3, cost:500, type:'grey',    icon:'ti-broadcast',      successRate:75,  requiresPost:'min_info', desc:'Influencer massivement l\'opinion publique : +POP, payé par la caisse du ministère. Aucun jet ; la campagne coûte 5 points de diplomatie au pays.'},
-          {fn:'censurer_media',       label:'Censurer un media',            pa:2, cost:0,   type:'grey',    icon:'ti-eye-off',        successRate:70,  requiresPost:'min_info', desc:'Interdire un organe de presse. -liberte +controle.'},
+          {fn:'censurer_media',       label:'Censurer un media',            pa:2, cost:0,   type:'grey',    icon:'ti-eye-off',        successRate:70,  requiresPost:'min_info', desc:'Interdire un organe de presse. Républia : -8 à l\'indice social des villes. Sovarka : la popularité du parti au pouvoir monte de 3. Trois fois sur dix, la censure est révélée : scandale, -20 POP pour vous, et en Sovarka le parti au pouvoir perd 5 points au lieu d\'en gagner.'},
           {fn:'commanditer_sondage',  label:'Commanditer un sondage',       pa:1, cost:200, type:'legal',   icon:'ti-chart-bar',      successRate:100, requiresPost:'min_info', desc:'Publier un sondage favorable. +INF si bien fait.'},
           {fn:'dementi',              label:'Dementi officiel',             pa:2, cost:0,   type:'legal',   icon:'ti-x',              successRate:80,  requiresPost:'min_info', desc:'Contredire une information defavorable.'}
         ]
@@ -4562,6 +4562,8 @@ const BUILDINGS = {
           {name:'Gardien de la Paix (PNJ)', role:'Agent d\'accueil', rel:'neutral', job:'gardien_paix', photoUrl:'images/commissariat-gardien-paix.webp', photoPos:'50% 15%'}
         ],
         orders: [
+          // Fin de soirée du 25/11 (Fred, 1.8) : on visite aussi un détenu au commissariat (le serveur l'accepte déjà).
+          {fn:'visiter_prisonnier', label:'Visiter un detenu',          pa:1, cost:0,   type:'legal',   icon:'ti-users',    successRate:70,  desc:'Rendre visite à un détenu de cette prison : aucun jet, une visite par jour et par détenu. Au quartier de haute sécurité, seuls un avocat inscrit au barreau et le conjoint du détenu entrent. La visite ouvre une conversation privée avec le détenu.'},
           {fn:'plainte_police',   label:'Porter plainte',         pa:1, cost:0,   type:'legal',   icon:'ti-file-text', successRate:100, desc:'Ouvre un dossier transmis au commissaire de la ville. C\'est lui qui decide de classer ou d\'enqueter.'},
           {fn:'archives_police',  label:'Consulter les archives', pa:1, cost:0,   type:'legal',   icon:'ti-archive',   successRate:100, desc:'Archives judiciaires et detentions passees, consultables par tous. Ne contient aucune information policiere operationnelle.'},
           {fn:'arreter',          label:"Arrestation d'urgence",  pa:3, cost:0,   type:'legal',   icon:'ti-handcuffs', successRate:100, requiresPost:['president','min_int','min_just','commissaire'], desc:'Pouvoir extrajudiciaire : place immediatement une personne en detention 1 jour, sans condamnation. Securite +1, indice social -1 dans la ville.'},
@@ -6026,6 +6028,8 @@ const BUILDINGS = {
         // gerer_effectifs_police, plateau-justice-economie.js) -- aucun handler duplique par
         // ville, isolation garantie par (pays, ville) a l'interieur des fonctions elles-memes.
         orders: [
+          // Fin de soirée du 25/11 (Fred, 1.8) : on visite aussi un détenu au commissariat (le serveur l'accepte déjà).
+          {fn:'visiter_prisonnier', label:'Visiter un detenu',          pa:1, cost:0,   type:'legal',   icon:'ti-users',    successRate:70,  desc:'Rendre visite à un détenu de cette prison : aucun jet, une visite par jour et par détenu. Au quartier de haute sécurité, seuls un avocat inscrit au barreau et le conjoint du détenu entrent. La visite ouvre une conversation privée avec le détenu.'},
           {fn:'plainte_police',   label:'Porter plainte',      pa:1, cost:0,   type:'legal',   icon:'ti-file-text', successRate:100},
           // MÊMES POUVOIRS QUE LUTHÉCIA (décision de Fred, 29/10/2026 : « chaque commissaire dispose des
           // mêmes pouvoirs »). Handlers et portes serveur déjà bornés à la ville du commissaire.
@@ -8263,7 +8267,7 @@ const BUILDINGS = {
           {name:'Philippe Cognedur (PNJ)', role:'PNJ - Gardien Chef',     rel:'neutral', job:'gardien_qhs'}
         ],
         orders: [
-          {fn:'visiter_prisonnier', label:'Visiter un detenu',          pa:1, cost:0,   type:'legal',   icon:'ti-users',    successRate:70,  desc:'Rendre visite à un détenu de cette prison : aucun jet, une visite par jour et par détenu. Au quartier de haute sécurité, seuls son avocat et sa famille déclarée entrent. La visite ouvre une conversation privée avec le détenu.'},
+          {fn:'visiter_prisonnier', label:'Visiter un detenu',          pa:1, cost:0,   type:'legal',   icon:'ti-users',    successRate:70,  desc:'Rendre visite à un détenu de cette prison : aucun jet, une visite par jour et par détenu. Au quartier de haute sécurité, seuls un avocat inscrit au barreau et le conjoint du détenu entrent. La visite ouvre une conversation privée avec le détenu.'},
           {fn:'archives_police',   label:'Consulter le registre',       pa:1, cost:0,   type:'legal',   icon:'ti-archive',  successRate:100, requiresPost:'magistrat', desc:'Liste des detenus actuels. Acces magistrats/commissaires.'}
         ]
       },
@@ -8972,7 +8976,11 @@ const BUILDINGS = {
     bgColor: "#100810",
     desc: "Le cinéma de Montrouge.",
     rooms: {
-      salle: { name: "Hall", desc: "Affiches de films, guichet.", imageBg: "linear-gradient(135deg,#100810,#180c18)", imageUrl: "images/montrouge/montrouge-cinema-accueil.jpg", persons: [], orders: [] },
+      // Caissière du guichet (Fred, 25/11/2026, mission de fin de soirée 1.5) : le PNJ suit l'image du hall ; portrait recadré de
+      // cette image. Fiche DeepSeek simone_aiguillard (api/_pnj-personnalites.js).
+      salle: { name: "Hall", desc: "Affiches de films, guichet.", imageBg: "linear-gradient(135deg,#100810,#180c18)", imageUrl: "images/montrouge/montrouge-cinema-accueil.jpg",
+        persons: [{ name: 'Simone Aiguillard (PNJ)', role: 'Caissière du cinéma', rel: 'neutral', job: 'commercant',
+          profilId: 'simone_aiguillard', photoUrl: 'images/Republia/Montrouge/montrouge-cinema-caissiere-simone-aiguillard.webp' }], orders: [] },
       salle_1: { name: "Salle 1", desc: "Une des deux salles de projection du cinéma de Montrouge.", imageBg: "linear-gradient(135deg,#100810,#180c18)", imageUrl: "images/montrouge/montrouge-cinema-salle-1.jpg", persons: [], orders: [] },
       salle_2: { name: "Salle 2", desc: "L'autre salle de projection du cinéma de Montrouge.", imageBg: "linear-gradient(135deg,#100810,#180c18)", imageUrl: "images/montrouge/montrouge-cinema-salle-2.jpg", persons: [], orders: [] }
     }
@@ -9296,7 +9304,7 @@ const BUILDINGS = {
           {fn:'prendre_bateau', label:'Prendre le bateau', pa:5, cost:100, type:'legal', icon:'ti-ship', successRate:100, desc:'100 FR. 5 PA. Transport inter-empire.'},
           {fn:'expedier_colis', label:'Expédier un colis', pa:2, cost:200, type:'legal', icon:'ti-package-export', successRate:100, desc:'Envoyer un objet à un PJ autre empire. Délai 24h.'},
           {fn:'receptionner_commande', label:'Réceptionner une commande', pa:1, cost:0, type:'legal', icon:'ti-package-import', successRate:100, desc:'Récupérer un objet commandé.'},
-          {fn:'contrebande_port', label:'Contrebande portuaire', pa:3, cost:0, type:'illegal', icon:'ti-package-off', successRate:35, desc:'Très risqué à Sovarka. Chance selon votre discrétion, votre duplicité (DUP) et la sécurité de la ville, réduite en Sovarka, au plus 85 %. Réussite : une cargaison de contrebande, -5 DIS. Réussie ou non, la douane peut vous repérer : vous êtes alors recherché, et un échec repéré fait saisir la contrebande que vous portez.'},
+          {fn:'contrebande_port', label:'Contrebande portuaire', pa:3, cost:0, type:'illegal', icon:'ti-package-off', successRate:35, desc:'Très risqué à Sovarka. Chance selon votre discrétion, votre duplicité (DUP) et la sécurité de la ville, réduite en Sovarka, au plus 85 %. Réussite : une cargaison de contrebande, -5 DIS. Réussie ou non, la douane peut vous repérer : vous êtes alors recherché, et un échec repéré vous coûte une amende égale au gain qu\'aurait rapporté la contrebande.'},
           {fn:'inspecter_cargaisons', label:'Inspecter les cargaisons', pa:2, cost:0, type:'legal', icon:'ti-search', successRate:90, requiresPost:'min_def', desc:'Prérogative du ministre de la Défense. Chance selon l\'intelligence (INT) de votre groupe, meilleure en Sovarka. Réussite : +5 INF et, quatre fois sur dix, une contrebande est découverte. Échec : -3 INF.'}
         ]
       }
@@ -9324,7 +9332,7 @@ const BUILDINGS = {
           {fn:'prendre_bateau', label:'Prendre le bateau', pa:5, cost:100, type:'legal', icon:'ti-ship', successRate:100, desc:'100 FR. 5 PA. Transport inter-empire.'},
           {fn:'expedier_colis', label:'Expédier un colis', pa:2, cost:200, type:'legal', icon:'ti-package-export', successRate:100, desc:'Envoyer un objet à un PJ autre empire.'},
           {fn:'receptionner_commande', label:'Réceptionner une commande', pa:1, cost:0, type:'legal', icon:'ti-package-import', successRate:100, desc:'Récupérer un objet commandé.'},
-          {fn:'contrebande_port', label:'Contrebande portuaire', pa:3, cost:0, type:'illegal', icon:'ti-package-off', successRate:75, desc:'Facile à El Estado. Chance selon votre discrétion, votre duplicité (DUP) et la sécurité de la ville, meilleure à El Estado, au plus 85 %. Réussite : une cargaison de contrebande, -5 DIS. Réussie ou non, la douane peut vous repérer : vous êtes alors recherché, et un échec repéré fait saisir la contrebande que vous portez.'},
+          {fn:'contrebande_port', label:'Contrebande portuaire', pa:3, cost:0, type:'illegal', icon:'ti-package-off', successRate:75, desc:'Facile à El Estado. Chance selon votre discrétion, votre duplicité (DUP) et la sécurité de la ville, meilleure à El Estado, au plus 85 %. Réussite : une cargaison de contrebande, -5 DIS. Réussie ou non, la douane peut vous repérer : vous êtes alors recherché, et un échec repéré vous coûte une amende égale au gain qu\'aurait rapporté la contrebande.'},
           {fn:'acheter_ghb', label:'Acheter du GHB', pa: 0, cost:300, type:'illegal', icon:'ti-flask', successRate:80, desc:'Objet poison d\'El Estado, à usage unique, vendu seulement ici. L\'achat est assuré : aucun jet.'},
           {fn:'blocus_portuaire', label:'Blocus portuaire', pa:3, cost:0, type:'grey', icon:'ti-barrier-block', successRate:65, desc:'Réservé au chef du syndicat du port. Paralyse le commerce du port pendant 24 h. La chance dépend du nombre de syndiqués qui participent et de la puissance du syndicat ; chaque participant paie 2 PA.'}
         ]
@@ -9353,7 +9361,7 @@ const BUILDINGS = {
           {fn:'prendre_bateau', label:'Prendre le bateau', pa:5, cost:100, type:'legal', icon:'ti-ship', successRate:100, desc:'100 FR. 5 PA. Transport inter-empire.'},
           {fn:'expedier_colis', label:'Expédier un colis', pa:2, cost:200, type:'legal', icon:'ti-package-export', successRate:100, desc:'Envoyer un objet à un PJ autre empire.'},
           {fn:'receptionner_commande', label:'Réceptionner une commande', pa:1, cost:0, type:'legal', icon:'ti-package-import', successRate:100, desc:'Récupérer un objet commandé.'},
-          {fn:'contrebande_port', label:'Contrebande portuaire', pa:3, cost:0, type:'illegal', icon:'ti-package-off', successRate:60, desc:'Possible mais discret. Chance selon votre discrétion, votre duplicité (DUP) et la sécurité de la ville, un peu meilleure à Al-Khalija, au plus 85 %. Réussite : une cargaison de contrebande, -5 DIS. Réussie ou non, la douane peut vous repérer : vous êtes alors recherché, et un échec repéré fait saisir la contrebande que vous portez.'},
+          {fn:'contrebande_port', label:'Contrebande portuaire', pa:3, cost:0, type:'illegal', icon:'ti-package-off', successRate:60, desc:'Possible mais discret. Chance selon votre discrétion, votre duplicité (DUP) et la sécurité de la ville, un peu meilleure à Al-Khalija, au plus 85 %. Réussite : une cargaison de contrebande, -5 DIS. Réussie ou non, la douane peut vous repérer : vous êtes alors recherché, et un échec repéré vous coûte une amende égale au gain qu\'aurait rapporté la contrebande.'},
           {fn:'acheter_vipere', label:'Acheter une Vipère des sables', pa: 0, cost:350, type:'grey', icon:'ti-bug', successRate:85, desc:'Objet poison d\'Al-Khalija, à usage unique, vendu seulement ici. L\'achat est assuré : aucun jet.'},
           {fn:'inspecter_cargaisons', label:'Inspecter les cargaisons', pa:2, cost:0, type:'legal', icon:'ti-search', successRate:80, requiresPost:'min_def', desc:'Prérogative du ministre de la Défense. Chance selon l\'intelligence (INT) de votre groupe. Réussite : +5 INF et, quatre fois sur dix, une contrebande est découverte. Échec : -3 INF.'}
         ]

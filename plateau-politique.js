@@ -9326,12 +9326,16 @@ async function censurer(media, pa, cost) {
   } else if (typeof v.indice_social !== 'number') {
     INDICES_NATIONAUX[state.country].IS = Math.max(0, INDICES_NATIONAUX[state.country].IS - 8);
   }
+  // Sovarka (Fred, 25/11 fin de soirée, migration 20261125820000) : la censure agit sur la popularité du parti au pouvoir,
+  // en hausse sans scandale, en baisse si la censure est révélée. L'écran dit ce que le serveur a décidé.
+  const regime = (state.country === 'soviet' && typeof v.regime_delta === 'number' && v.regime_delta !== 0)
+    ? ' Parti au pouvoir : ' + (v.regime_delta > 0 ? '+' : '') + v.regime_delta + ' de popularité.' : '';
   if (v.scandale === true) {
-    addExternalEvent('SCANDALE : La censure de ' + media + ' a ete revelee ! -20 POP.');
+    addExternalEvent('SCANDALE : La censure de ' + media + ' a ete revelee ! -20 POP.' + regime);
     updateUI();
   } else {
-    showToast('Media censure', media + ' suspendu. -8 IS.', false);
-    addJournalEntry('Censure de ' + media, 'event-bad');
+    showToast('Media censure', media + ' suspendu.' + (state.country === 'soviet' ? regime : ' -8 IS.'), false);
+    addJournalEntry('Censure de ' + media + (regime ? '.' + regime : ''), 'event-bad');
   }
 }
 

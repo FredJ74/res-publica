@@ -8,5 +8,6 @@ aucun outil ne les rejoue.
 |---|---|
 | `remise-a-zero-20261219.sql` | remise à zéro du 19/12/2026, **généré** par `outils/lancement/generer-remise-a-zero.py` (ne pas l'éditer à la main) |
 | `remise-a-zero.modele.sql` | son modèle (garde-fous, relevé, effacement, offre des testeurs) |
+| `reinitialisations.modele.sql` | remise à l'état initial des tables mixtes, table par table (insérée dans le modèle par le générateur) |
 
 Mode d'emploi et banc : `docs/premium/REMISE-A-ZERO-20261219.md`.

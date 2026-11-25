@@ -40,8 +40,8 @@ test('chaque ligne reclassée est une description effectivement affichée dans l
   const batimentsDe=d=>Object.entries(c.BUILDINGS).filter(([,b])=>Object.values(b.rooms||{}).some(r=>(r.orders||[]).some(o=>o?.desc===d))).map(([id])=>id);
   // Audit des chances (mission du soir, 25/11/2026, bloc 1A) : description de la campagne de sécurité alignée sur le serveur ;
   // la ligne livrée reste au catalogue jusqu'à la traduction de la nouvelle par Codex.
-  // Mission du soir (25/11, blocs 1A et 1B) : autres descriptions de l'audit réécrites, mêmes raisons.
-  const REMPLACEES=new Set(["+10 ISN local. Deploiement de forces de l'ordre supplementaires. Preleve sur budget mairie.", "+10 ISN local. Preleve sur budget mairie.", "Cibler un citoyen, un club sportif, une entreprise ou une organisation. Coute a la caisse du gouvernement.", "Influencer massivement l'opinion publique. +POP."]);
+  // Fin de soirée du 25/11 (agent B) : description de la censure réécrite (Sovarka). Mission du soir (25/11, blocs 1A et 1B) : autres descriptions de l'audit réécrites, mêmes raisons.
+  const REMPLACEES=new Set(["+10 ISN local. Deploiement de forces de l'ordre supplementaires. Preleve sur budget mairie.", "+10 ISN local. Preleve sur budget mairie.", "Cibler un citoyen, un club sportif, une entreprise ou une organisation. Coute a la caisse du gouvernement.", "Influencer massivement l'opinion publique. +POP.", "Interdire un organe de presse. -liberte +controle."]);
   for(const row of sources){if(REMPLACEES.has(row[0]))continue;const fns=fnsDe(row[0]);if(country==='soviet'&&fns.length&&fns.every(fn=>exclusSovarka.has(fn)))continue;
    const bats=batimentsDe(row[0]);if(country==='soviet'&&bats.length&&bats.every(id=>id.startsWith('banque-')))continue;assert.ok(descs.has(row[0]),country+': '+row[0]);}
  }

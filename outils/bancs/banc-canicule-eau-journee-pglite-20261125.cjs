@@ -70,7 +70,11 @@ const decalerHier = db => db.exec(`UPDATE climat_evenements SET debut = debut - 
     THEN jsonb_set(e, '{date}', to_jsonb((((now() AT TIME ZONE 'Europe/Paris')::date) - 1)::text)) ELSE e END), '[]'::jsonb)
     FROM jsonb_array_elements(data::jsonb->'chantier'->'evenements') e))::text`);
 const canicule = async db => { const id = await evenement(db, 'canicule', 0, { heure: 0, heures: 1 });
-  await db.query("UPDATE climat_evenements SET debut = now() - interval '1 hour', fin = now() + interval '5 hours' WHERE id = $1", [id]); return id; };
+  // Début borné au minuit du jour (heure de Paris) : lancé entre minuit et une heure, « now() − 1 h » tombait la veille et
+  // le banc échouait selon l'heure (CI du 26/11 à 00 h 20).
+  await db.query(`UPDATE climat_evenements SET debut = greatest(now() - interval '1 hour',
+      (date_trunc('day', now() AT TIME ZONE 'Europe/Paris') AT TIME ZONE 'Europe/Paris') + interval '1 second'),
+    fin = now() + interval '5 hours' WHERE id = $1`, [id]); return id; };
 
 test('par défaut, l’eau lève l’arrêt aujourd’hui : travail accepté, et la nuit de ce jour le chantier avance', async () => {
   const db = await base();

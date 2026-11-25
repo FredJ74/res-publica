@@ -8035,10 +8035,12 @@ function doOrganiserManifestationSyndicat() {
 // syndicale du joueur (demander l'autorisation de manifester, lancer ou finir une grève), toutes tenues par le serveur avec
 // leur propre coût. Rien n'est débité ici.
 function doMobiliserMembresSyndicat() {
-  const orga = getMesOrgasPays(state.country).find(o => o.type === 'syndicale'
-    && (o.chef === state.char?.name || (o.membres || []).some(m => m.nom === state.char?.name)));
+  // Fin de soirée du 25/11 (Fred, 1.9) : le bouton ouvre le syndicat du joueur, où qu'il se trouve (celui du pays où il est
+  // d'abord, sinon n'importe lequel de ses syndicats) ; sans syndicat, refus expliqué.
+  const estMien = o => o.type === 'syndicale' && (o.chef === state.char?.name || (o.membres || []).some(m => m.nom === state.char?.name));
+  const orga = getMesOrgasPays(state.country).find(estMien) || (state.organisations || []).find(estMien);
   if (!orga) {
-    showToast('Aucun syndicat', "Vous n'êtes membre d'aucune organisation syndicale dans ce pays. Fondez-en une ou rejoignez-en une pour mobiliser ses membres.", false);
+    showToast('Aucun syndicat', "Vous n'êtes membre d'aucune organisation syndicale. Fondez-en une ou rejoignez-en une pour mobiliser ses membres.", false);
     return;
   }
   ouvrirOrdresOrga(orga.id);

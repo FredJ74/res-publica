@@ -370,6 +370,9 @@ test('article favorable : réussite = 1 PA + 500 à la rédaction + chronique ; 
   const db = await base(); await moi(db, 'Jo');
   const vus = { succes: 0, echec: 0 };
   for (let i = 0; i < 60 && (!vus.succes || !vus.echec); i++) {
+    // PA et argent remis à niveau : dix réussites de suite (75 % chacune) épuisaient les 5 000 et faisaient échouer le
+    // banc au hasard sur « fonds insuffisants » (25/11).
+    await db.exec("UPDATE personnages_donnees SET pa = 20, liquide = 5000, arg = 5000 WHERE name = 'Jo'");
     const avant = await un(db, "SELECT pa, liquide FROM personnages_donnees WHERE name = 'Jo'");
     const caisseAvant = Number((await un(db, "SELECT data->>'caisse' c FROM caisses")).c);
     const req = uuid();
@@ -454,9 +457,11 @@ test('corruption refusée : rien n’est prélevé ; blocus : refus avant le jet
   const db = await base(); await moi(db, 'Jo');
   let r, n = 0;
   do {
-    // Une réussite coûte 2 PA : on rend les PA avant chaque essai pour ne mesurer que l'échec final.
+    // Une tentative acceptée paie 2 PA : on repart de 20 PA avant chaque essai, sinon un accord tiré avant le refus
+    // (28 % de chances par essai) faisait lire 18 PA et échouer le banc au hasard (signalé par Fred, 25/11).
     await db.exec("DELETE FROM corruptions_presse; DELETE FROM requetes; UPDATE personnages_donnees SET pa = 20 WHERE name = 'Jo'");
     r = (await un(db, "SELECT corruption_presse_tenter($1, 'Jo', 'aff1', 'etouffer', 0) r", ['d' + (n++)])).r;
+    if (!r.reussi) assert.equal(r.pa, 0, 'refus : aucun PA annoncé');
   } while (r.reussi && n < 80);
   assert.equal(r.reussi, false); assert.equal(r.paye, false);
   assert.equal((await un(db, "SELECT pa FROM personnages_donnees WHERE name = 'Jo'")).pa, 20);

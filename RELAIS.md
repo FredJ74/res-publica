@@ -9,6 +9,20 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Mission de fin de soirée (Claude, 25/11/2026) — cases : `docs/mission-soir2-20261125.md`
+- Étape zéro : les cinq migrations du soir sont appliquées et contrôlées (voir la mission du soir ci-dessous).
+- Trois branches enchaînées `claude/soir2-a-20261125` → `b` → `c` (fusion `claude/soir2-chaine-20261125`). Comptes rendus,
+  « Pour Codex » et questions : `docs/soir2/BLOC-A.md`, `BLOC-B.md`, `BLOC-C.md`.
+- **Migrations écrites, NON appliquées** (dans l'ordre ; contrôles en tête de chaque fichier) : 20261125800000 (renouvellement
+  d'image rendu ; puis redéployer `commerce-decoration` et `logement-decoration`), 810000 (presse : une campagne à la fois,
+  durée MJ ; puis déployer `publicite-premium`, désormais versionnée), 820000 (contrebande à l'amende, médaille du Tractorisme,
+  censure en Sovarka, bénédiction et charisme au serveur, demi-effet), 850000 (Simone Aiguillard, caissière du cinéma de
+  Montrouge, et ticket au cinéma), 860000 (texte des rumeurs dans la chronique). Sans elles, comportement actuel.
+- Banc `banc-jets-serveur-b1b-pglite` (signalé par Fred : 18 PA au lieu de 20) : le serveur ne prélève rien sur un refus
+  de corruption (paiement seulement dans la branche d'accord, vérifié en production) ; le banc était aléatoire (PA non
+  remis à 20 après un accord tiré dans sa boucle ; argent épuisé après dix articles réussis). Corrigé, 25/25 en local.
+- Service de traduction des textes de joueurs : aucune route ouverte ; la rumeur s'affiche en original tant qu'il ne l'est pas.
+
 ### Mission du soir (Claude, 25/11/2026) — cases : `docs/mission-soir-20261125.md` ; reprise : « Reprends docs/mission-soir-20261125.md au premier point non coché »
 - Étape zéro faite : les six migrations de la mission de jour sont appliquées et contrôlées (voir ci-dessous).
 - Blocs 1 à 4 codés en quatre branches, fusionnées en chaîne linéaire `claude/soir-b1a-20261125` → `b1b` → `b3` → `b4`

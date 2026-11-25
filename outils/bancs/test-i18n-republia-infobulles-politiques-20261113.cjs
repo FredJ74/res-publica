@@ -45,7 +45,8 @@ test('141 descriptions du catalogue Républia : françaises exactes et réelleme
  // 165 → 166 le 23/11 (bloc 4, point 32) : « +6 INF +5 DIS +1 POP. » n'est plus affichée à Krasnov (bureaux demandés à la mairie), donc propre à Républia.
  // 166 → 167 le 25/11 au soir (mission du soir, bloc 1A, audit des chances) : descriptions réécrites fidèles au serveur ; 15 nouvelles
  // descriptions propres à Républia remplacent 14 anciennes (la rébellion et l'évasion se décrivent désormais selon le quartier).
- assert.equal(spec.length,167,'inventaire réel après séparation du goulag de Sovarka et du QHS républicain');
+ // 167 → 166 le 25/11 en fin de soirée (Fred, 1.8) : « Visiter un détenu » aussi au commissariat (les deux pays), sa description devient commune.
+ assert.equal(spec.length,166,'inventaire réel après séparation du goulag de Sovarka et du QHS républicain');
  const rows=setup('republic','fr').RP_INFOBULLES_REPUBLIA;
  assert.equal(rows.length,141);
  // Lignes livrées dont l'ordre est supprimé (criminalité lot 7, 20/11 : le temps ne s'achète pas) : gardées au catalogue.
