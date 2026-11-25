@@ -1,4 +1,4 @@
--- Mission de nuit du 25/11/2026 (Claude), bloc 3 — NON APPLIQUÉE : à valider par Fred.
+-- Mission de nuit du 25/11/2026 (Claude), bloc 3 — APPLIQUÉE en production le 25/11/2026 (feu vert de Fred, contrôlée en lecture).
 -- « Subtiliser des explosifs » (caserne, fn acheter_bombe_illegale) : le serveur applique ce que promet la description
 -- (décision de Fred du 24/11 au soir).
 --

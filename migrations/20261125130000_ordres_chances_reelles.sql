@@ -1,4 +1,4 @@
--- Mission de nuit du 25/11/2026 (Claude), bloc 4 — NON APPLIQUÉE : à valider par Fred. Après 20261125120000 (bloc 3).
+-- Mission de nuit du 25/11/2026 (Claude), bloc 4 — APPLIQUÉE en production le 25/11/2026 (feu vert de Fred, contrôlée en lecture). Après 20261125120000 (bloc 3).
 -- « Vos chances réelles : X % » (décision de Fred du 24/11 au soir) : avant le clic, la chance d'un ordre est calculée par le
 -- SERVEUR, par la même formule que celle qui tranche l'ordre. Aucune règle de jeu ne change.
 --

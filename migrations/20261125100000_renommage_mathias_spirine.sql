@@ -1,4 +1,4 @@
--- Mission de nuit du 25/11/2026 (Claude), bloc 1.1 — NON APPLIQUÉE : à valider par Fred.
+-- Mission de nuit du 25/11/2026 (Claude), bloc 1.1 — APPLIQUÉE en production le 25/11/2026 (feu vert de Fred, contrôlée en lecture).
 -- Le commit 32e5b8d (Fred, 24/11) renomme le généraliste du Dispensaire Public de Luthécia :
 -- « Docteur Aspirine » -> « Mathias Spirine ». Le miroir serveur du casting (pnj_lieux_metiers, généré depuis data.js)
 -- garde l'ancien nom : tant que cette migration n'est pas appliquée, un don d'argent ou d'objet à Mathias Spirine

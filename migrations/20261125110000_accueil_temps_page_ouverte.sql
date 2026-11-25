@@ -1,4 +1,4 @@
--- Mission de nuit du 25/11/2026 (Claude), bloc 2 — NON APPLIQUÉE : à valider par Fred.
+-- Mission de nuit du 25/11/2026 (Claude), bloc 2 — APPLIQUÉE en production le 25/11/2026 (feu vert de Fred, contrôlée en lecture).
 -- Temps de jeu du calendrier d'accueil (A.3) : la page restée ouverte compte.
 --
 -- Constat (Han Watta Tsé, créé le 24/11 à 19 h 33 UTC à Novomirsk, sur téléphone Android) : 484 s de jeu à 20 h 22.
