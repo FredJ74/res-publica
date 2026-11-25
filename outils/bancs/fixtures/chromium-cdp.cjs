@@ -24,7 +24,9 @@ function lireVersionLocale(port, delai) {
 function erreur(code, message, logs) {
   return Object.assign(new Error(`${message}${logs ? '\nChromium (fin des journaux) : '+logs : ''}`), { code });
 }
-async function lancerChromium({ executable, profil, delaiDemarrage = 20000, spawnImpl = spawn }) {
+// 60 s par défaut (25/11/2026) : sur les exécutants GitHub chargés, 20 s ne suffisaient pas toujours (nuit du 25/11 sur main,
+// chaîne du soir) ; plusieurs bancs passaient déjà 60 000 ms.
+async function lancerChromium({ executable, profil, delaiDemarrage = 60000, spawnImpl = spawn }) {
   let logs = '', fin = null, erreurSpawn = null, ferme = false;
   const p = spawnImpl(executable, ['--headless','--no-sandbox','--disable-gpu','--disable-background-networking',
     '--remote-debugging-port=0','--user-data-dir='+profil,'about:blank'],
