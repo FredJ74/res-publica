@@ -6,15 +6,17 @@
 --
 -- Ce que fait le script, dans UNE transaction (tout ou rien) :
 --   1. garde-fous : phrase de confirmation posée dans la session, date de Paris ≥ 19/12/2026, aucune table « à vérifier »,
---      aucune table inconnue non vide, tables « à réinitialiser » déclarées traitées ;
+--      aucune table inconnue non vide ;
 --   2. relève les comptes de la bêta (comptes ayant un personnage, comptes de test exclus) dans lancement_comptes_beta ;
---   3. vide les tables d'état vivant (TRUNCATE sans CASCADE : une clé étrangère inattendue fait échouer, rien n'est effacé) ;
---   4. accorde l'offre des testeurs : personnalisation d'un commerce, une annonce dans la presse, une publicité dans la rue.
+--   3. vide les tables d'état vivant (TRUNCATE sans CASCADE ; une table référencée par une table gardée est vidée par DELETE,
+--      qui applique la règle de la clé : une clé étrangère inattendue fait échouer, rien n'est effacé) ;
+--   4. remet les tables mixtes à leur état initial, table par table (outils/lancement/reinitialisations.modele.sql) ;
+--   5. accorde l'offre des testeurs : personnalisation d'un commerce, une annonce dans la presse, une publicité dans la rue.
+-- Tous les personnages disparaissent (décision de Fred du 25/11/2026 en fin de soirée) : chacun recrée le sien.
 -- Les comptes de connexion (auth.users), les accès du MJ, les achats premium payés et les référentiels sont gardés.
 --
 -- Pour l'exécuter (Fred décide du moment) :
 --   SET human_gambit.remise_a_zero = 'JE-CONFIRME-LA-REMISE-A-ZERO-DU-19-12-2026';
---   SET human_gambit.remise_reinitialisations = 'faites';   -- après l'étape « réinitialiser » de la procédure
 --   puis ce fichier entier.
 BEGIN;
 
@@ -39,9 +41,6 @@ BEGIN
   SELECT * INTO l FROM rz_listes;
   IF cardinality(l.a_verifier) > 0 THEN
     RAISE EXCEPTION 'REMISE À ZÉRO REFUSÉE : tables encore « à vérifier » : %', array_to_string(l.a_verifier, ', ');
-  END IF;
-  IF cardinality(l.reinitialiser) > 0 AND current_setting('human_gambit.remise_reinitialisations', true) IS DISTINCT FROM 'faites' THEN
-    RAISE EXCEPTION 'REMISE À ZÉRO REFUSÉE : tables à réinitialiser non déclarées traitées : %', array_to_string(l.reinitialiser, ', ');
   END IF;
   -- Une table créée depuis la préparation : vide, elle est simplement ignorée ; non vide, la remise est refusée.
   FOR t IN SELECT c.relname::text FROM pg_class c WHERE c.relnamespace = 'public'::regnamespace AND c.relkind IN ('r', 'p')
@@ -73,18 +72,30 @@ SELECT p.user_id, array_agg(p.name ORDER BY p.name)
 ON CONFLICT (user_id) DO NOTHING;
 
 -- 3. Effacement de l'état vivant. -------------------------------------------------------------------------------------
+-- TRUNCATE d'un seul tenant ; une table référencée par une table gardée (journaux.cree_par → personnages_donnees, ON DELETE
+-- SET NULL) ne peut pas être tronquée : elle est vidée ensuite par DELETE, qui applique la règle de sa clé.
 DO $vider$
-DECLARE l record; v_existantes text[];
+DECLARE l record; v_tronquer text[]; v_supprimer text[]; t text;
 BEGIN
   SELECT * INTO l FROM rz_listes;
-  SELECT array_agg(format('public.%I', c.relname) ORDER BY c.relname) INTO v_existantes
-    FROM pg_class c WHERE c.relnamespace = 'public'::regnamespace AND c.relkind IN ('r', 'p') AND c.relname::text = ANY (l.vider);
-  IF v_existantes IS NOT NULL THEN
-    EXECUTE 'TRUNCATE ' || array_to_string(v_existantes, ', ') || ' RESTART IDENTITY';
+  SELECT array_agg(c.relname::text ORDER BY c.relname) INTO v_supprimer
+    FROM pg_class c WHERE c.relnamespace = 'public'::regnamespace AND c.relkind IN ('r', 'p') AND c.relname::text = ANY (l.vider)
+     AND EXISTS (SELECT 1 FROM pg_constraint k WHERE k.contype = 'f' AND k.confrelid = c.oid
+                  AND NOT ((SELECT e.relname::text FROM pg_class e WHERE e.oid = k.conrelid) = ANY (l.vider)));
+  SELECT array_agg(format('public.%I', c.relname) ORDER BY c.relname) INTO v_tronquer
+    FROM pg_class c WHERE c.relnamespace = 'public'::regnamespace AND c.relkind IN ('r', 'p') AND c.relname::text = ANY (l.vider)
+     AND NOT (c.relname::text = ANY (coalesce(v_supprimer, '{}')));
+  IF v_tronquer IS NOT NULL THEN
+    EXECUTE 'TRUNCATE ' || array_to_string(v_tronquer, ', ') || ' RESTART IDENTITY';
   END IF;
+  FOREACH t IN ARRAY coalesce(v_supprimer, '{}') LOOP
+    EXECUTE format('DELETE FROM public.%I', t);
+  END LOOP;
 END $vider$;
 
--- 4. Offre ponctuelle des testeurs de la bêta (décision de Fred du 25/11/2026 au soir). --------------------------------
+/*REINITIALISATIONS*/
+
+-- 5. Offre ponctuelle des testeurs de la bêta (décision de Fred du 25/11/2026 au soir). --------------------------------
 INSERT INTO public.premium_droits (user_id, produit, cible, source, note)
 SELECT b.user_id, o.produit, NULL, 'offre_lancement', 'Merci d''avoir testé la bêta'
   FROM public.lancement_comptes_beta b

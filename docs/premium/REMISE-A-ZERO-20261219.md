@@ -1,10 +1,11 @@
 # Remise à zéro du lancement (19/12/2026) — procédure
 
-Mission du soir du 25/11/2026, bloc 4.5. **Préparée, jamais exécutée.** Fred décide du moment ; personne ne la lance sans lui.
+Mission du soir du 25/11/2026, bloc 4.5 ; complétée en fin de soirée (point 1.1, décisions de Fred). **Préparée, jamais exécutée.** Fred décide du moment ; personne ne la lance sans lui.
 
 ## Ce que veut Fred
 
-- Le jour du lancement, le jeu repart de zéro : **tous repartent sans rien**.
+- Le jour du lancement, le jeu repart de zéro : **tous repartent sans rien**. **Tous les personnages disparaissent**, et
+  chacun recrée le sien, comme au premier jour (décision de Fred, 25/11 en fin de soirée).
 - Les testeurs de la bêta reçoivent, après la remise à zéro, une **offre ponctuelle** : la personnalisation d'un commerce,
   une annonce dans la presse et une publicité dans la rue (pop-up). Les **comptes de test** (Arnie, Tom Tom,
   Bernard Bernardov) n'y ont pas droit.
@@ -15,6 +16,7 @@ Mission du soir du 25/11/2026, bloc 4.5. **Préparée, jamais exécutée.** Fred
 |---|---|
 | `outils/lancement/remise-a-zero-20261219.sql` | le script, **généré** (ne pas l'éditer à la main) |
 | `outils/lancement/remise-a-zero.modele.sql` | son modèle (garde-fous, relevé, effacement, offre) |
+| `outils/lancement/reinitialisations.modele.sql` | la remise à l'état initial des tables mixtes, table par table (inséré par le générateur) |
 | `outils/lancement/generer-remise-a-zero.py` | le générateur (`--verifier` : échoue si le script n'est pas à jour) |
 | `baseline/classification-donnees.csv` | classement historique des tables (A, B : garder ; C : vider ; D : réinitialiser) |
 | `outils/lancement/classement-complementaire-20261125.csv` | tables nouvelles et corrections (prioritaire) |
@@ -22,41 +24,51 @@ Mission du soir du 25/11/2026, bloc 4.5. **Préparée, jamais exécutée.** Fred
 
 ## Ce qui est effacé, ce qui est gardé
 
-- **Effacé (« vider », 309 tables)** : tout l'état vivant de la bêta — personnages et leurs fiches, inventaires, comptes en
+- **Effacé (« vider », 432 tables)** : tout l'état vivant de la bêta — personnages et leurs fiches, inventaires, comptes en
   banque, commerces des joueurs, affaires judiciaires, détentions, messages, forums, journaux, élections, historiques,
-  publicités de joueurs, etc. Les personnages disparaissent : chaque joueur recrée le sien au lancement.
-- **Gardé (« garder », 152 tables)** : les référentiels et réglages du MJ (ordres et coûts, catalogues, PNJ et leurs lieux,
+  publicités de joueurs, etc. ; aussi `blocus_ordres_batiments` et `climat_evenements` (décision de Fred : vidées au lancement,
+  le calendrier climatique se replanifie par mandat). Relevé du 25/11 en fin de soirée : les 129 tables créées depuis le
+  classement sont classées (126 vidées, 3 gardées : `frontieres_fermees`, `souvenirs_objets`, `sovarka_urbanisme`).
+  Une table référencée par une table gardée (`journaux.cree_par` → `personnages_donnees`) est vidée par DELETE : la clé met
+  la référence à NULL.
+- **Gardé (« garder », 155 tables)** : les référentiels et réglages du MJ (ordres et coûts, catalogues, PNJ et leurs lieux,
   villes, rues, santé, climat, criminalité, accueil, guide…), les accès du MJ (`administrateurs`), les comptes de test,
   les réglages premium, et **tout ce qui touche à l'argent réel** (`premium_achats`, `premium_abonnements`,
   `premium_droits`, `premium_renouvellements`) — aucun pendant la bêta, mais jamais effacé.
 - **Les comptes de connexion** (`auth.users`) ne sont pas touchés : les joueurs gardent leur identifiant.
-- **À réinitialiser (« reinitialiser », 40 tables)** : l'état du monde semé au départ (bâtiments, caisses et budgets
-  publics, locaux de Sovarka, titres des murs, stocks des marchés, des ports et des pharmacies, PNJ membres et possessions,
-  postes tenus par des PNJ, catalogues mixtes…). Ces tables ne se vident pas : elles se **remettent à leur état initial**.
-  Le script ne les touche pas et refuse de tourner tant que l'opérateur n'a pas déclaré cette étape faite.
-- **À vérifier (2 tables)** : `blocus_ordres_batiments` (974 lignes : référentiel ou trace ?) et `climat_evenements`
-  (calendrier planifié par mandat : à vider puis replanifier, ou à garder ?). Le script refuse de tourner tant qu'elles
-  ne sont pas classées.
+- **Remis à l'état initial (« reinitialiser », 45 tables)**, par le script lui-même (bloc « RÉINITIALISATIONS », une entrée
+  par table, relevé en lecture de la production le 25/11) :
+  - *aucune action* (17) : référentiels qu'aucune fonction n'écrit (catalogues, recettes, barèmes, entrepôts par ville,
+    structures médicales, règles des terrains), `rp_transitions` (comportement à conserver), `lois_assemblee` (table morte),
+    `dotations_amorcage_caisses` (journal d'un amorçage déjà fait) ; et deux configurations gardées : `budgets_nationaux`,
+    `ports_commerce` ;
+  - *vidées* (état recréé à la demande) : stocks des dealers, niveaux des prisons, caisse du kolkhoze, énigme du trésor des
+    Tsars, échéanciers de loyers, stocks de médicaments et des ports, possessions des PNJ, postes pris par des joueurs ;
+  - *filtrées* : PNJ attachés à un joueur retirés (leurs métiers suivent par cascade), organisations fondées par des joueurs
+    retirées (celles dirigées par un PNJ restent, sans membres ni caisse), commerces des joueurs retirés ;
+  - *colonnes remises à blanc* : locaux de Sovarka (demandes, commerces de joueurs), murs (à la commune, sans offre),
+    terrains (sans propriétaire, permis ni chantier), sièges de l'Assemblée (plus d'endormis), caisses des clubs (0),
+    taux foncier des mairies (0,05) ;
+  - *semis rejoué* : stock du marché de Krasnov (migration 20261122160000), caisses arbitrées de Républia et trois entrepôts
+    logistiques (seeds `baseline/seeds/92_mixte/`).
 
 ## Pas à pas (le jour J)
 
 1. **Sauvegarde** : dans Supabase, vérifier la sauvegarde automatique du jour et, si le plan le permet, noter l'heure pour
    une restauration à un instant (PITR). Exporter aussi `personnages` et `premium_*` (CSV) par prudence.
 2. **Mettre le jeu en pause** (message d'accueil, cron de minuit désactivé pour la nuit dans Vercel).
-3. **Classer les tables « à vérifier »** dans `classement-complementaire-20261125.csv`, puis
-   `python3 outils/lancement/generer-remise-a-zero.py` et le banc
-   (`PGLITE_DIR=… node --test outils/bancs/banc-remise-a-zero-pglite-20261125.cjs`).
-4. **Réinitialiser les 40 tables mixtes** : pour chacune, rejouer son état initial (migrations de semis, seeds de
-   `baseline/seeds/`, ou remise à blanc des colonnes d'occupant). *Cette étape reste à écrire table par table avant le
-   12/12 ; c'est le seul morceau non automatisé.* Le relevé d'une table nouvelle se fait en lecture
-   (`SELECT count(*)`), jamais en écriture.
+3. **Reclasser les tables créées depuis le 25/11** (relevé en lecture de `pg_class`, jamais en écriture) dans
+   `classement-complementaire-20261125.csv`, puis `python3 outils/lancement/generer-remise-a-zero.py` et le banc
+   (`PGLITE_DIR=… node --test outils/bancs/banc-remise-a-zero-pglite-20261125.cjs`). Une table non classée et non vide
+   fait refuser le script.
+4. **Relire le bloc « RÉINITIALISATIONS »** du script généré (une ligne « ▸ table : stratégie » par table mixte).
 5. **Lancer le script** dans l'éditeur SQL de Supabase, d'un seul tenant :
    ```sql
    SET human_gambit.remise_a_zero = 'JE-CONFIRME-LA-REMISE-A-ZERO-DU-19-12-2026';
-   SET human_gambit.remise_reinitialisations = 'faites';
    -- puis tout le contenu de outils/lancement/remise-a-zero-20261219.sql
    ```
-   Tout se passe dans une seule transaction : au moindre refus (date, table inconnue non vide, clé étrangère inattendue),
+   Tout se passe dans une seule transaction (effacement, réinitialisations, offre) : au moindre refus (date, table inconnue
+   non vide, clé étrangère inattendue),
    **rien n'est effacé**.
 6. **Basculer le premium** : page MJ → Premium → « Terminer la gratuité » (`beta_tout_gratuit = 0`) et fixer les prix
    (aucun sous 2 €). Sans prix fixé, les options affichent « Bientôt disponible ».
@@ -82,10 +94,19 @@ Chaque crédit s'utilise une fois. Le relevé `lancement_comptes_beta` empêche 
 
 - Avant le `COMMIT` : rien n'est fait (transaction unique).
 - Après : restaurer la sauvegarde du jour (ou PITR à l'heure notée à l'étape 1) depuis le tableau de bord Supabase.
-  Les achats payés éventuels entre-temps se retrouvent chez le revendeur (Paddle) et se rejouent par ses webhooks.
+  Les achats payés éventuels entre-temps se retrouvent chez le revendeur de paiement (fournisseur pas encore arrêté) et se rejouent par ses webhooks.
+
+## Décisions de Fred (25/11/2026, fin de soirée)
+
+- Tous les personnages disparaissent ; chacun recrée le sien.
+- `blocus_ordres_batiments` et `climat_evenements` sont vidées au lancement.
 
 ## Questions pour Fred
 
-- « Repartent sans rien » : les **personnages** disparaissent-ils (chacun recrée le sien), ou chacun garde-t-il son
-  personnage, remis à zéro (argent, objets, postes) ? La procédure prépare la première lecture.
-- Les deux tables « à vérifier » ci-dessus.
+- Commerces tenus par des PNJ (33) : leur stock et leur caisse de départ ne sont décrits nulle part ; le script les garde tels
+  qu'en fin de bêta. Faut-il un état initial (stock et caisse) par commerce ?
+- Caisses publiques non arbitrées (celles de Sovarka et une partie de Républia) et bâtiments hors entrepôts : gardés tels
+  qu'en fin de bêta, faute d'état initial décrit. Faut-il des montants de départ ?
+- `budgets_nationaux` (réserve du jour, taux, répartition) et `ports_commerce` (douanes, quotas, prix) : configurations
+  gardées telles que réglées pendant la bêta. Faut-il revenir à des valeurs de départ ?
+- PNJ des institutions (125 : douaniers, gardes, agents…) : gardés, car ils ne naissent qu'à la création de l'institution.
