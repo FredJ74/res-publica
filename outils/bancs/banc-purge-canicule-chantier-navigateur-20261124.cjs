@@ -89,7 +89,7 @@ for (const largeur of [390, 1280]) {
     await page.locator('#climat-offrir-eau').click();
     await page.waitForFunction(() => __appels.includes('chantier_canicule_offrir_eau'));
     await page.evaluate(() => ouvrirFenetreChantier());
-    await page.waitForFunction(() => /Bob a offert 20 bouteilles d’eau aux ouvriers : le travail reprend\./.test(document.getElementById('chantier-zone-climat').innerText));
+    await page.waitForFunction(() => /Bob a offert 20 bouteilles d’eau aux ouvriers : le travail reprend pour aujourd’hui\./.test(document.getElementById('chantier-zone-climat').innerText));
     assert.equal(await page.locator('#climat-offrir-eau').count(), 0, 'plus de bouton après le don');
     assert.deepEqual(await page.evaluate(() => __toasts.at(-1)), ['Canicule : chantier à l’arrêt', 'Merci ! Les ouvriers ont reçu 20 bouteilles d’eau.', true]);
     await page.locator('[role=tab]', { hasText: /Avancement/i }).click();
