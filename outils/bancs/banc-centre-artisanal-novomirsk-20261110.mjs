@@ -21,7 +21,8 @@ const rooms = {
 test('Novomirsk : accueil et trois locaux WebP réellement présents et décodables', () => {
   assert.equal(Object.keys(batiment.roomOverrides).length, 4);
   for (const [piece, identifiant] of Object.entries(rooms)) {
-    const url = 'images/Sovarka/Novomirsk/Novomirsk_centre artisanal_' + identifiant + '.webp';
+    // Noms sans espaces depuis le 25/11/2026 (mission de jour 1.9).
+    const url = 'images/Sovarka/Novomirsk/Novomirsk_centre_artisanal_' + identifiant.replace(/ /g, '_') + '.webp';
     assert.equal(batiment.roomOverrides[piece].imageUrl, url);
     assert.ok(fs.existsSync(path.join(racine, url)), 'WebP absent : ' + url);
     assert.equal(fs.existsSync(path.join(racine, url.replace(/\.webp$/, '.png'))), false);
@@ -38,7 +39,7 @@ test('Pas de nouvelle pièce ou de bail : les trois identifiants du socle demeur
   }
 });
 test('Aucun image locale de Novomirsk propagée à Republia ni aux autres villes', () => {
-  const nouveau = 'Novomirsk_centre artisanal_';
+  const nouveau = 'Novomirsk_centre_artisanal_';
   for (const [pays, villes] of Object.entries(monde)) {
     for (const [ville, villeData] of Object.entries(villes)) {
       if (pays === 'soviet' && ville === 'capitale') continue;

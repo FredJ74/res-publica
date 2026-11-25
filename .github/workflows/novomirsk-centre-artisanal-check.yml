@@ -4,7 +4,7 @@ on:
     paths:
       - 'data.js'
       - 'plateau.html'
-      - 'images/Sovarka/Novomirsk/Novomirsk_centre artisanal_*'
+      - 'images/Sovarka/Novomirsk/Novomirsk_centre_artisanal_*'
       - 'outils/bancs/banc-centre-artisanal-novomirsk-20261110.mjs'
       - '.github/workflows/novomirsk-centre-artisanal-check.yml'
 permissions:

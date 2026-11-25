@@ -77,7 +77,7 @@ jobs:
           with Image.open(p) as img: assert img.format == 'WEBP'
           assert not list(Path('images/Sovarka/Krasnov').glob('*automne*bouleaux*.png'))
           # La facade du marche de Krasnov doit rester intacte.
-          assert list(Path('images/Sovarka/Krasnov').glob('Krasnov rue march*.webp'))
+          assert list(Path('images/Sovarka/Krasnov').glob('Krasnov_rue_march*.webp'))
           PY
           git diff --check
       - name: Publier conversion et liaison sur main

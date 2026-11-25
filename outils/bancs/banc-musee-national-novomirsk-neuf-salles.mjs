@@ -35,15 +35,16 @@ test('Neuf salles de musée sovarkiennes sur identifiants existants', () => {
   assert.equal(Object.keys(socle.rooms).length-local.roomsExclues.length,9);
 });
 test('Chaque scène référence un WebP présent, sans PNG restant', () => {
-  const prefix='images/Sovarka/Novomirsk/Novomirsk_musée national_';
+  const prefix='images/Sovarka/Novomirsk/Novomirsk_musee_national_';
   for (const [id,[,suffixe]] of Object.entries(images)) {
-    const src=prefix+suffixe+'.webp';
+    // Noms sans espaces ni accents depuis le 25/11/2026 (mission de jour 1.9).
+    const src=prefix+suffixe.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ /g,'_')+'.webp';
     assert.equal(local.roomOverrides[id].imageUrl,src);
     const bytes=fs.readFileSync(path.join(root,src));
     assert.equal(bytes.toString('ascii',0,4),'RIFF');
     assert.equal(bytes.toString('ascii',8,12),'WEBP');
     assert.ok(bytes.length>100000);
-    assert.ok(!fs.existsSync(path.join(root,prefix+suffixe+'.png')));
+    assert.ok(!fs.existsSync(path.join(root,src.replace(/\.webp$/,'.png'))));
   }
 });
 test('Sovarka isolée, ressources audios françaises et visuels empruntés désactivés',()=>{
