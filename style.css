@@ -2734,6 +2734,9 @@ textarea.cpj-champ,input[type="text"].cpj-champ{text-align:start}
 #chantier-fenetre .cj-pas{width:44px;height:44px;min-width:44px;padding:0;font-size:1.5rem!important;line-height:1;font-family:inherit}
 #chantier-fenetre .cj-valeur{min-width:4.5rem;text-align:center;font-size:1.3rem!important;color:#e5c477;font-weight:600}
 #chantier-fenetre .cj-action{display:block;width:100%;min-height:44px;margin-top:.5rem;font-size:1.1rem!important}
+/* « Donner » gardé, discret, sous la vente (Fred, 25/11/2026, 1.6) : un lien, pas un grand bouton. */
+#chantier-fenetre .cj-donner-discret{display:block;margin:.45rem auto 0;min-height:36px;padding:.2rem .4rem;background:none;border:none;color:#a9b6c4;font-size:.95rem;text-decoration:underline;cursor:pointer}
+#chantier-fenetre .cj-donner-discret:hover,#chantier-fenetre .cj-donner-discret:focus-visible{color:#e5c477}
 #chantier-fenetre .cj-raison{color:#f2c9a0;margin:.4rem 0}
 #chantier-fenetre .cj-resume{color:#b9e3a6;margin:.4rem 0}
 /* C.3 : « Vendre mes matériaux au chantier » — une carte par matériau, un bouton par action (vendre, donner). */

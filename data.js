@@ -6724,8 +6724,9 @@ const BUILDINGS = {
   },
 
   'terrain-a-batir-3': {
-    name: "Terrain a batir - Lot 3 (La Châtaigneraie)",
-    shortName: "Lot 3 — Châtaigneraie",
+    // Mission de jour 25/11/2026 (Fred, 1.6, suite de la Purge C.6) : le bâtiment devient « Lot 3 — Terrain à bâtir ».
+    name: "Lot 3 — Terrain à bâtir",
+    shortName: "Lot 3 — Terrain à bâtir",
     cat: "Immobilier",
     icon: "ti-fence",
     bgColor: "#0a0a05",

@@ -763,7 +763,7 @@ export const SCENES_PNJ = {
   "[\"republic\",\"capitale\",\"terrain-a-batir-3\",\"terrain\"]": {
     "pays": "Republia",
     "ville": "Luthécia",
-    "batiment": "Terrain a batir - Lot 3 (La Châtaigneraie)",
+    "batiment": "Lot 3 — Terrain à bâtir",
     "piece": "Terrain",
     "personnes": []
   },
@@ -3789,7 +3789,7 @@ export const SCENES_PNJ = {
   "[\"narco\",\"ville_a\",\"terrain-a-batir-3\",\"terrain\"]": {
     "pays": "El Estado",
     "ville": "Puerto Negro",
-    "batiment": "Terrain a batir - Lot 3 (La Châtaigneraie)",
+    "batiment": "Lot 3 — Terrain à bâtir",
     "piece": "Terrain",
     "personnes": []
   },
@@ -8698,7 +8698,7 @@ export const SCENES_PNJ = {
   "[\"khalija\",\"ville_a\",\"terrain-a-batir-3\",\"terrain\"]": {
     "pays": "Al-Khalija",
     "ville": "Oasis City",
-    "batiment": "Terrain a batir - Lot 3 (La Châtaigneraie)",
+    "batiment": "Lot 3 — Terrain à bâtir",
     "piece": "Terrain",
     "personnes": []
   },

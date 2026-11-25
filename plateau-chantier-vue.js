@@ -482,6 +482,7 @@ function chantierPas(cle, d) {
   const b = global.document.querySelector('#chantier-fenetre button[onclick="chantierPas(\'' + cle + '\',' + d + ')"]');
   if (b && !b.disabled) b.focus();
 }
+// Mission de jour 25/11/2026 (Fred, 1.6) : « Donner » reste, discret (lien sous la vente), dans « Vendre mes matériaux au chantier ».
 // C.3 — « Vendre mes matériaux au chantier » : une carte par matériau, un seul contrôle par action
 // (« Vendre … » ou « Donner … »), quantité avec − et +, plafonds et prix lus sur le serveur.
 function carteMateriau(m, L) {
@@ -495,7 +496,7 @@ function carteMateriau(m, L) {
       + compteur(m, q, maxD, tc('v_moins'), tc('v_plus'), fr(q))
       + (q <= 0 ? '' : maxV > 0 && q <= maxV ? '<button type="button" class="cpj-touche cpj-primaire cj-action" id="cj-vendre-' + m + '" onclick="chantierVendre(\'' + m + '\',\'vente\')">' + esc(tc('v_vendre', { q: fr(q), m: nom, t: fr(q * prix), cur: c })) + '</button>'
         : '<p class="cj-raison">' + esc(tc('v_treso', { n: fr(maxV) })) + '</p>')
-      + (q <= 0 ? '' : '<button type="button" class="cpj-touche cj-action" id="cj-donner-' + m + '" onclick="chantierVendre(\'' + m + '\',\'don\')">' + esc(tc('v_donner', { q: fr(q), m: nom })) + '</button>');
+      + (q <= 0 ? '' : '<button type="button" class="cj-donner-discret" id="cj-donner-' + m + '" onclick="chantierVendre(\'' + m + '\',\'don\')">' + esc(tc('v_donner', { q: fr(q), m: nom })) + '</button>');
   }
   return '<div class="cj-carte cj-mat" data-m="' + m + '"><p class="cj-mat-titre"><b>' + esc(tc('v_prix', { m: t('m_' + m), p: fr(prix), cur: c })) + '</b></p>' + corps + '</div>';
 }
