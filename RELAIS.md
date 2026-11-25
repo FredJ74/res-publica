@@ -1270,6 +1270,8 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 
 ## Derniers chantiers
 
+- **« Plus d'informations sur les PA ? » pose la question** (Claude, 25/11/2026, branche `claude/pa-infirmiere-20261125`) : en arrivant par le lien chez l'infirmière d'accueil, la question « pouvez-vous m'expliquer ce que sont les PA… » est envoyée à sa place, au lieu de l'accueil générique (plateau-medecin-montrer.js). Texte nouveau pour Codex : `paInfosQuestion`.
+
 - **Portraits PNJ Novomirsk et guides (ChatGPT, 24/11/2026, PR #1196)** : recadrages existants de Valentina Petchatkina et Zinaïda Kvassova raccordés ; contrôle 140 apparitions = 105 portraits existants + 35 à produire, six guides sortis des images de marché et prompts/chemins réservés (`outils/audits/portraits/PORTRAITS-A-PRODUIRE-20261124.md`) ; Fiodor Medvedkine déclaré mais absent du monde effectif de Krasnov, hors périmètre portraits.
 - **Infobulle de l'argent** (Claude, 24/11/2026, branche `claude/infobulle-argent-20261124`) : la case « ARGENT » du panneau de gauche reste l'argent en poche (décision de Fred) ; son survol donne « Argent total : X (poche, banque, placements) » (`majInfobulleArgent`, plateau-core.js). Retour de Han Watta Tsé, qui croyait avoir perdu 2 500 PSK (ils étaient à la Banque nationale).
 - **Salle d'audience sans identifiant** (Claude, 24/11/2026, même branche) : « Assister a cette affaire » avec le champ vide ne lance plus une fenêtre bloquée sur « Chargement... » (message « Indiquez d'abord l'identifiant de l'affaire ») ; quand la liste est lisible et vide, la salle dit « Aucune audience ne se tient en ce moment » (plateau-justice-economie.js). Retour du même joueur.
