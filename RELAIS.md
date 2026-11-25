@@ -12,7 +12,9 @@ Règles : voir `AGENTS.md`.
 ### Mission du soir (Claude, 25/11/2026) — cases : `docs/mission-soir-20261125.md` ; reprise : « Reprends docs/mission-soir-20261125.md au premier point non coché »
 - Étape zéro faite : les six migrations de la mission de jour sont appliquées et contrôlées (voir ci-dessous).
 - Blocs 1 à 4 codés en quatre branches, fusionnées en chaîne linéaire `claude/soir-b1a-20261125` → `b1b` → `b3` → `b4`
-  (branche de fusion `claude/soir-chaine-20261125`). Comptes rendus, « Pour Codex » et questions : `docs/soir/BLOC-1A.md`,
+  (branche de fusion `claude/soir-chaine-20261125`), **fusionnée dans main le 25/11 (32d9b22b), CI verte**. Correctifs de
+  fusion : listes historiques des recettes (`acheter_souvenir` 0/0, `mobiliser` gardé à 2 PA dans la coupe), bancs i18n des
+  descriptions remplacées, Chromium des bancs à 60 s (20 s faisaient échouer la CI, main compris). Comptes rendus, « Pour Codex » et questions : `docs/soir/BLOC-1A.md`,
   `BLOC-1B.md`, `BLOC-3.md`, `BLOC-4.md`.
 - **Migrations écrites, NON appliquées** (dans l'ordre ; contrôles en lecture en tête de chaque fichier) : 20261125400000
   (audit des chances : fraudes 2/3/1 jours, contrebande 85 %, lieux poissonnière et quai de Novomirsk, chances de 18 ordres),

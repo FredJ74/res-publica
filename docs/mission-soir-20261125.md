@@ -125,7 +125,7 @@ Principes : jamais de pay-to-win, mêmes statistiques en gratuit et en premium.
 
 ## Fin de mission
 
-- [ ] CI verte, toutes les cases cochées.
-- [ ] Rapport court en français : 1) ce qui est en ligne ; 2) migrations à valider, dans l'ordre, avec leur contrôle ;
+- [x] CI verte, toutes les cases cochées. → chaîne fusionnée dans main le 25/11 (32d9b22b), CI « Cohérence client » verte.
+- [x] Rapport court en français : 1) ce qui est en ligne ; 2) migrations à valider, dans l'ordre, avec leur contrôle ;
   3) fournisseur de paiement recommandé et ce que Fred doit faire ; 4) ce qui reste en attente, et pourquoi ; 5) questions de
   game design, une par ligne.
