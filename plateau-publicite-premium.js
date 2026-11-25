@@ -11,10 +11,12 @@ function ouvrirPublicitePremium() {
   corps.innerHTML='<div style="padding:1rem;max-width:680px;margin:auto">'+
     '<h3 data-premium-i18n="fullPage">'+pubHT("fullPage","Votre pleine page publicitaire")+'</h3>'+
     '<p data-premium-i18n="beta">'+pubHT("beta","Offre bêta : création gratuite.")+'</p>'+
-    '<label for="pub-premium-formule" data-premium-i18n="campaign">'+pubHT("campaign","Campagne")+'</label>'+
-    '<select id="pub-premium-formule" style="display:block;width:100%;padding:.6rem;margin:.4rem 0 1rem">'+
-    '<option value="cinq" data-premium-i18n="five">'+pubHT("five","5 parutions — gratuit en bêta")+'</option>'+
-    '<option value="dix" data-premium-i18n="ten">'+pubHT("ten","10 parutions — gratuit en bêta")+'</option></select>'+
+    // Point 2.4 (fin de soirée du 25/11/2026) : plus de formules à cinq ou dix parutions ; une campagne à la fois, durée
+    // réglée par le MJ (le serveur la fixe). La valeur envoyée reste « cinq » pour l'ancienne fonction (sans la migration
+    // 20261125810000) ; la nouvelle l'ignore.
+    '<p data-premium-i18n="campaign"><strong>'+pubHT("campaign","Campagne")+'</strong></p>'+
+    '<p data-premium-i18n="campaignModel">'+pubHT("campaignModel","Une campagne à la fois : elle paraît chaque jour à partir du lendemain de sa validation, pendant la durée fixée par le MJ.")+'</p>'+
+    '<input type="hidden" id="pub-premium-formule" value="cinq">'+
     '<label for="pub-premium-texte" data-premium-i18n="describe">'+pubHT("describe","Décrivez votre publicité")+'</label>'+
     '<textarea id="pub-premium-texte" rows="5" maxlength="1500" style="display:block;width:100%;padding:.6rem;margin:.4rem 0 1rem" placeholder="'+pubHT("placeholder","Commerce, organisation, slogan, message, ambiance graphique...")+'"></textarea>'+
     '<label style="display:block;margin-bottom:1rem"><input id="pub-premium-assistance" type="checkbox" checked> <span data-premium-i18n="assist">'+pubHT("assist","Assistance IA pour concevoir la page")+'</span></label>'+
