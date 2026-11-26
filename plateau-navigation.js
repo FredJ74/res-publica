@@ -461,6 +461,36 @@ function rpBuildingHeaderText(node, key, original, values) {
   globalThis.RPI18nPlateau?.apply?.(node);
 }
 
+// CAISSE DES ENTREPOTS PUBLICS (correctif du 26/11/2026). Depuis le 8 octobre, la tresorerie d'un
+// entrepot vit dans caisses_batiments.<pays>_entrepot_<ville> ; l'en-tete lisait encore l'ancien
+// emplacement (etat.entrepot.caisse) et affichait 0. Lecture canonique seule, pour les six
+// entrepots de Republia et de Sovarka ; un echec affiche « indisponible », jamais un faux zero ;
+// une reponse arrivee apres un changement de batiment, de ville ou de pays est ignoree.
+const RP_ENTREPOTS_CAISSE_VISIBLE = new Set(['entrepot-logistique-luthecia', 'entrepot-logistique-psm',
+  'entrepot-logistique-montrouge', 'entrepot-logistique-novomirsk', 'entrepot-logistique-starovka',
+  'entrepot-logistique-krasnov']);
+let rpCaisseEntrepotJeton = 0;
+function rpAfficherCaisseEntrepot() {
+  const buildingId = state.currentBuilding, pays = state.country, ville = state.currentCity;
+  const elCaisse = document.getElementById('bat-caisse');
+  if (!elCaisse || !RP_ENTREPOTS_CAISSE_VISIBLE.has(buildingId) || !pays || !ville) return Promise.resolve(null);
+  const jeton = ++rpCaisseEntrepotJeton;
+  const aJour = () => jeton === rpCaisseEntrepotJeton && state.currentBuilding === buildingId
+    && state.country === pays && state.currentCity === ville;
+  const indisponible = () => { if (aJour()) rpBuildingHeaderText(elCaisse, 'buildingCashUnavailable', 'Caisse : indisponible'); return null; };
+  elCaisse.style.display = 'block';
+  if (typeof sbGetCaisseBatiment !== 'function') return Promise.resolve(indisponible());
+  return sbGetCaisseBatiment(pays + '_entrepot_' + ville, { strict: true }).then(data => {
+    const solde = data && typeof data.solde === 'number' && Number.isFinite(data.solde) ? data.solde : null;
+    if (solde === null) return indisponible();
+    if (!aJour()) return null;
+    const cur = COUNTRIES[pays]?.cur || 'FR';
+    const rpHeaderAmount = solde.toLocaleString('fr-FR');
+    rpBuildingHeaderText(elCaisse, 'buildingCashAmount', 'Caisse : ' + rpHeaderAmount + ' ' + cur, { amount: rpHeaderAmount, currency: cur });
+    return solde;
+  }).catch(indisponible);
+}
+
 function enterBuilding(buildingId, skipAutoRoom) {
   // Batiment ferme a cle (decision de Fred du 04/11) : seul un detenteur de cle entre ; le serveur
   // refuse de toute facon (navigation_interieure : porte_fermee_a_cle).
@@ -575,13 +605,8 @@ function enterBuilding(buildingId, skipAutoRoom) {
   globalThis.RPNavigationI18n?.markCategory?.(document.getElementById('bat-cat'),displayCat);
 
   // Pas de transparence sur la caisse des commerces privés ni des usines.
-  // Seuls les entrepôts PUBLICS conservent ici leur bandeau institutionnel.
-  const BATIMENTS_CAISSE_VISIBLE = {
-    'entrepot-logistique-luthecia': 'entrepot',
-    'entrepot-logistique-psm': 'entrepot',
-    'entrepot-logistique-montrouge': 'entrepot'
-  };
-  const cleCaisse = BATIMENTS_CAISSE_VISIBLE[buildingId];
+  // Seuls les entrepôts PUBLICS conservent ici leur bandeau institutionnel (rpAfficherCaisseEntrepot).
+  const cleCaisse = RP_ENTREPOTS_CAISSE_VISIBLE.has(buildingId);
   const elCaisse = document.getElementById('bat-caisse');
   const elStock = document.getElementById('bat-stock');
   if (elCaisse) { elCaisse.style.display = 'none'; elCaisse.onclick = null; elCaisse.style.cursor = 'default'; elCaisse.title = ''; elCaisse.removeAttribute('data-i18n-title'); }
@@ -608,17 +633,7 @@ function enterBuilding(buildingId, skipAutoRoom) {
   } else if (cleCaisse && elCaisse) {
     elCaisse.style.display = 'block';
     rpBuildingHeaderText(elCaisse, 'buildingCashLoading', 'Caisse : ...');
-    if (typeof sbGetBatimentEtat === 'function') {
-      const paysRequete = state.country, villeRequete = state.currentCity;
-      sbGetBatimentEtat(paysRequete, villeRequete, buildingId).then(etat => {
-        if (state.currentBuilding !== buildingId || state.country !== paysRequete ||
-            state.currentCity !== villeRequete) return;
-        const solde = etat?.[cleCaisse]?.caisse ?? 0;
-        const cur = COUNTRIES[state.char?.country || 'republic']?.cur || 'FR';
-        const rpHeaderAmount = solde.toLocaleString('fr-FR');
-        rpBuildingHeaderText(elCaisse, 'buildingCashAmount', 'Caisse : ' + rpHeaderAmount + ' ' + cur, { amount: rpHeaderAmount, currency: cur });
-      }).catch(() => { rpBuildingHeaderText(elCaisse, 'buildingCashUnavailable', 'Caisse : indisponible'); });
-    }
+    rpAfficherCaisseEntrepot();
   } else if (buildingId === 'commissariat' || buildingId === 'commissariat-local') {
     // CAISSE DU COMMISSARIAT — AFFICHEE DANS L'EN-TETE, POUR LE SEUL COMMISSAIRE (16 sept. 2026).
     // L'ordre « Consulter la caisse » a ete retire : un bouton grise pour la quasi-totalite des

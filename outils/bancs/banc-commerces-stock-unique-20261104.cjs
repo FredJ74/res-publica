@@ -73,7 +73,7 @@ async function main() {
  check('Scierie : ordre vendre conservé',data.includes("fn:'vendre_matiere_usine'"));
  check('Anciennes routes caisse/stock supprimées',!router.includes("fn === 'consulter_caisse_usine'")&&!router.includes("fn === 'consulter_stock_usine'"));
  check('Caisses usines non publiées dans l’en-tête',!nav.includes("'usine-pharmaceutique-luthecia': 'usine'"));
- check('Caisses entrepôts publics conservées',nav.includes("'entrepot-logistique-luthecia': 'entrepot'"));
+ check('Caisses entrepôts publics conservées',/RP_ENTREPOTS_CAISSE_VISIBLE = new Set\(\['entrepot-logistique-luthecia'/.test(nav));
  console.log(n+'/'+n+' contrôles réussis');
 }
 main().catch(e=>{console.error(e.stack||e);process.exitCode=1});

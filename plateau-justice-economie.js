@@ -5661,6 +5661,8 @@ async function confirmerAchatEntrepot(buildingId, pa, cost) {
 
   document.getElementById('modal-postes')?.classList.remove('open');
   updateUI();
+  // La caisse de l'entrepot vient d'encaisser : l'en-tete la relit sans rechargement (26/11/2026).
+  if (typeof rpAfficherCaisseEntrepot === 'function') rpAfficherCaisseEntrepot();
   showToast('Achat effectué !', '-' + Math.round(v.paye) + ' ' + cur + '.', true, true);
   addJournalEntry('Achat à l\'entrepôt logistique : ' + (v.lignes || []).map(function (l) {
     return l.qte + ' ' + (RESSOURCES_ECONOMIE[l.cle]?.label || l.cle);

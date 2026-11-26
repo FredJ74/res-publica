@@ -1865,8 +1865,11 @@ async function sbCaisseCollective(rpc, params, intention) {
   return r;
 }
 
-async function sbGetCaisseBatiment(key) {
+// opts.strict (26/11/2026) : un echec de lecture LEVE une erreur au lieu de rendre null, pour qu'un
+// affichage ne confonde jamais « lecture impossible » avec « caisse vide ».
+async function sbGetCaisseBatiment(key, opts) {
   const rows = await sbGet('caisses_batiments', `id=eq.${encodeURIComponent(key)}`);
+  if (!rows && opts && opts.strict) throw new Error('caisse_lecture_impossible');
   if (!rows || rows.length === 0) return null;
   return rows[0].data;
 }

@@ -39,6 +39,11 @@ Règles : voir `AGENTS.md`.
   traduit. Migration 20261126300000 (cache 7 jours, quota par compte : 200 traductions et 120 000 caractères par jour,
   interrupteur et plafonds dans la page MJ « Traduction des textes de joueurs ») ; sans elle, l'original reste affiché.
   **Pour Codex** : `forum.js` libellés `translate`, `translationUnavailable`, `showOriginal`, `showTranslation`.
+- **Correctif caisse des entrepôts (26/11, fait)** : l'en-tête des six entrepôts publics (Républia et Sovarka) lit la caisse
+  canonique `caisses_batiments.<pays>_entrepot_<ville>` (`rpAfficherCaisseEntrepot`, plateau-navigation.js) au lieu de
+  l'ancien `etat.entrepot.caisse` (abandonné le 08/10), qui affichait 0 ; relue après un achat réussi
+  (`confirmerAchatEntrepot`) ; échec de lecture : « Caisse : indisponible » (`sbGetCaisseBatiment(cle, { strict: true })`) ;
+  réponse tardive ignorée. Aucun solde touché, les 150 FR de Fred non recrédités. Banc `test-caisse-entrepot-20261126.mjs`.
 - **Bloc F (fait)** : les dix migrations du 26/11 sont appliquées et contrôlées (registre 20261126145029 à 20261126181515 :
   800000, 810000, 820000, 850000, 860000, puis 100000, 400000, 300000, 200000) ; fonctions Supabase redéployées
   (`commerce-decoration` v15, `logement-decoration` v4, `publicite-premium` v11) ; blocs A à E fusionnés dans main (CI
