@@ -19,6 +19,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Installer pglast (lecture des SELECT d'introspection par verifier-workflow.py)
+        run: python3 -m pip install -r outils/bancs/requirements-postgres-local.txt
       - name: Maintenir minuit Paris et reparer une configuration saisonniere perimee
         run: python3 outils/ajuster-cron-vercel.py
       - name: Verifier que la configuration reste deployable
