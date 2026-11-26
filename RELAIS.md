@@ -64,7 +64,10 @@ Règles : voir `AGENTS.md`.
 - Étape zéro : les cinq migrations du soir sont appliquées et contrôlées (voir la mission du soir ci-dessous).
 - Trois branches enchaînées `claude/soir2-a-20261125` → `b` → `c` (fusion `claude/soir2-chaine-20261125`). Comptes rendus,
   « Pour Codex » et questions : `docs/soir2/BLOC-A.md`, `BLOC-B.md`, `BLOC-C.md`.
-- **Migrations écrites, NON appliquées** (dans l'ordre ; contrôles en tête de chaque fichier) : 20261125800000 (renouvellement
+- **Mission close le 26/11** : toutes les cases cochées, CI verte ; les cinq migrations ci-dessous ont été **appliquées et
+  contrôlées le 26/11** (feu vert de la mission « décisions du 26/11 », bloc A), fonctions redéployées ; aucune question de
+  game design ouverte.
+- Migrations (historique ; contrôles en tête de chaque fichier) : 20261125800000 (renouvellement
   d'image rendu ; puis redéployer `commerce-decoration` et `logement-decoration`), 810000 (presse : une campagne à la fois,
   durée MJ ; puis déployer `publicite-premium`, désormais versionnée), 820000 (contrebande à l'amende, médaille du Tractorisme,
   censure en Sovarka, bénédiction et charisme au serveur, demi-effet), 850000 (Simone Aiguillard, caissière du cinéma de
@@ -1337,6 +1340,7 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 
 ## Derniers chantiers
 
+- **Caisse des entrepôts dans l'en-tête** (Claude, 26/11/2026, branche `claude/caisse-entrepot-20261126`, fusion 8330abc5) : bug de Fred (achat de 150 FR à Luthécia, caisse affichée à 0). L'en-tête lisait l'ancien `etat.entrepot.caisse`, abandonné le 08/10 ; il lit désormais `caisses_batiments.<pays>_entrepot_<ville>` (`rpAfficherCaisseEntrepot`, `plateau-navigation.js`) pour les six entrepôts de Républia et de Sovarka, se relit après un achat réussi (`confirmerAchatEntrepot`), affiche « Caisse : indisponible » si la lecture échoue (jamais un faux zéro) et ignore une réponse arrivée après un changement de lieu. Aucun solde modifié, 150 FR non recrédités. Vérifié en bêta : le site sert le nouveau code ; la lecture du client renvoie 5 150 FR pour Luthécia. Bancs `test-caisse-entrepot-20261126.mjs`, `banc-i18n-building-header-20261116.cjs` adapté. PR impossible avec le jeton local (« Resource not accessible by personal access token ») : fusion par avance rapide après CI verte (29/29).
 - **Image de la caisse de fret** (Claude, 26/11/2026, branche `claude/fret-image-caisse-20261126`) : caisse en bois fournie par Fred (`images/fret-caisse-bois.webp`, 384×384) affichée en tête des trois écrans de l'expédition au port (réserver une caisse, remplir la caisse ouverte, caisses fermées prêtes à partir), `plateau-justice-economie.js`. Contexte : décision de Fred du 26/11, l'ordre « Contrebande portuaire » sera supprimé (pas encore codé, en attente du feu vert du lot) ; la contrebande se joue par fausse déclaration au fret.
 - **Portrait de Boris Kovaliov** (Claude, 26/11/2026, branche `claude/portrait-kovaliov-20261126`) : image livrée par Fred (ChatGPT), convertie en `images/Sovarka/Novomirsk/novo-boris-kovaliov-portrait.webp` (512×512) et raccordée dans `PORTRAITS_PNJ_NOVOMIRSK` (`data.js`, usine Pharmanov, bureau du directeur). Dernier portrait manquant de Novomirsk. Chantier d'image seule.
 - **Bilan de la nuit à l'ordre Dormir** (Claude, 26/11/2026, branche `claude/journal-dormir-20261126`, PR #1206) : `doDormir` relève PA, Santé, Moral, liquide et fortune avant le sommeil puis, après tous les effets (serveur et suites du réveil), écrit au journal une ligne « Bilan de la nuit : +12 PA (PA 16) · +10 Santé (Santé 80) · +1 Moral (Moral 61) · +150 FR en liquide. » ; les lignes de détail (logement, poison, hôpital, caserne, repas) restent. Banc `test-bilan-nuit-20261126.cjs`. **Pour Codex** : la phrase « Bilan de la nuit » et ses libellés (PA, Santé, Moral, en liquide) dans `doDormir`.

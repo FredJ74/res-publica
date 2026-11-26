@@ -59,6 +59,6 @@ Feu vert de Fred donné avec la consigne. Une case par point, cochée au moment 
 
 ## Fin de mission
 
-- [ ] CI verte, toutes les cases cochées.
-- [ ] Rapport court en français : 1) en ligne ; 2) migrations à valider, dans l'ordre, avec leur contrôle ; 3) en attente et
+- [x] CI verte, toutes les cases cochées.
+- [x] Rapport court en français (RELAIS.md, « Mission de fin de soirée », 26/11) : 1) en ligne ; 2) migrations à valider, dans l'ordre, avec leur contrôle ; 3) en attente et
   pourquoi ; 4) questions de game design, une par ligne.
