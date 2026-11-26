@@ -1997,7 +1997,9 @@ const MOTIFS_REFUS_SALAIRE = {
   caisse_payeuse_non_declaree: ['Caisse introuvable', "La caisse qui doit vous payer n'est pas déclarée. Signalez-le : ce n'est pas normal."],
   caisse_insuffisante: ['Caisse vide', "L'institution qui vous emploie n'a pas les fonds pour vous payer aujourd'hui."],
   // Le motif que rend reellement salaire_civil_percevoir (l'ancien nom ci-dessus reste lu).
-  caisse_vide: ['Caisse vide', "Votre employeur n'a pas les fonds pour vous payer aujourd'hui : aucun salaire n'est versé."]
+  caisse_vide: ['Caisse vide', "Votre employeur n'a pas les fonds pour vous payer aujourd'hui : aucun salaire n'est versé."],
+  // Revenu universel (décision de Fred, 26/11, migration 20261126100000) : versé seulement pendant les premiers jours.
+  revenu_universel_termine: ['Revenu universel terminé', "Le revenu universel n'est versé que pendant vos premiers jours, pour vous aider à démarrer. Trouvez un emploi ou un poste pour être payé."]
 };
 
 function signalerRefusSalaire(r) {
@@ -2008,6 +2010,11 @@ function signalerRefusSalaire(r) {
     return;
   }
   const connu = MOTIFS_REFUS_SALAIRE[r.raison];
+  // La fin du revenu universel ne s'annonce qu'une fois par personnage (sinon chaque nuit).
+  if (r.raison === 'revenu_universel_termine') {
+    const cle = 'hg_revenu_universel_termine_' + (state.char?.name || '');
+    try { if (localStorage.getItem(cle)) return; localStorage.setItem(cle, '1'); } catch (_) {}
+  }
   if (connu) {
     showToast(connu[0], connu[1], false);
   } else {

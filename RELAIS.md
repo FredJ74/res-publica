@@ -19,6 +19,11 @@ Règles : voir `AGENTS.md`.
   **Pour Codex** : `plateau-premium.js` TXT `pubCourte`, `pubLongue` ; `plateau-publicite-premium.js` clés `campaignShort`,
   `campaignLong` (nouvelles) et `campaignModel` (texte changé) du catalogue premiumAds ; description de « Censurer un média »
   (data.js) ; phrase `acte_rumeur_ratee` de `plateau-chronique-empire.js`.
+- **Bloc B (fait)** : revenu universel — migration 20261126100000 **appliquée et contrôlée le 26/11** (Sovarka 45 PSK, Républia
+  150 FR, 10 premiers jours, dates de Paris, jour de création compris) ; `salaire_civil_percevoir` refuse ensuite
+  « revenu_universel_termine » (salaires de poste et emplois inchangés) ; page MJ « Revenu universel »
+  (`admin-revenu-universel.js`). Banc `banc-revenu-universel-pglite-20261126.cjs` (copie md5 de la fonction de production),
+  workflow `decisions-20261126.yml`. **Pour Codex** : motif `revenu_universel_termine` de `plateau-personnage.js`.
 
 ### Décisions du 26/11/2026 (séance avec Fred) — cases : `docs/mission-decisions-20261126.md` ; reprise : « Reprends docs/mission-decisions-20261126.md au premier point non coché »
 - Feu vert donné pour coder l'ensemble. Les migrations 800000 à 860000 de la fin de soirée restent **non appliquées** : 810000, 820000 et 860000 sont à adapter d'abord (case A).

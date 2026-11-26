@@ -47,7 +47,7 @@ au serveur, demi-effet, Simone Aiguillard au guichet du cinéma) : ne pas les re
       amende de contrebande versée à la caisse de la douane), 860000 (phrase de la rumeur ratée). Puis appliquer
       800000, 810000, 820000, 850000, 860000 dans l'ordre, redéployer `commerce-decoration`, `logement-decoration`,
       `publicite-premium`, et contrôler.
-- [ ] B. Revenu universel : Sovarka 45 PSK, limite aux 10 premiers jours d'un personnage dans les deux empires,
+- [x] B. Revenu universel : Sovarka 45 PSK, limite aux 10 premiers jours d'un personnage dans les deux empires,
       paramètres MJ ; banc.
 - [ ] C. Remise à zéro : dotations initiales des commerces (PNJ compris) et des caisses publiques, réglables par le MJ ;
       tables du point technique ci-dessus ; mettre à jour `docs/premium/REMISE-A-ZERO-20261219.md`, le générateur et
