@@ -2320,8 +2320,8 @@ const WORLD = {
           persons: [{"name": "Zoïa Glazounova (PNJ)", "role": "Journaliste de La Voix de Sovarka", "rel": "neutral", "job": "journaliste", "photoUrl": "images/Sovarka/Novomirsk/Novo_zoia_glazounova_portrait.webp"},
                     {"name": "Capitaine Arseni Petchatnikov (PNJ)", "role": "Officier de censure", "rel": "neutral", "job": "censeur", "photoUrl": "images/Sovarka/Novomirsk/Novo_arseni_petchatnikov_portrait.webp"},
                     // Vera Pravdina (Fred, 22/11/2026, GAME-DESIGN-INTERFACE-ACCUEIL-20261122.md, point 23) : journaliste qui interviewe
-                    // les nouveaux arrivants de Sovarka. Portrait à fournir par Fred : images/Sovarka/Novomirsk/Novo_vera_pravdina_portrait.webp.
-                    {"name": "Vera Pravdina (PNJ)", "role": "Journaliste de La Voix de Sovarka", "rel": "neutral", "job": "journaliste"}],
+                    // les nouveaux arrivants de Sovarka. Portrait branché le 26/11/2026 (le même que dans l'interview d'accueil).
+                    {"name": "Vera Pravdina (PNJ)", "role": "Journaliste de La Voix de Sovarka", "rel": "neutral", "job": "journaliste", "photoUrl": "images/Sovarka/Novomirsk/Novo_vera_pravdina_portrait.webp"}],
           // article/etouffer exclus (chantier "lobbying presse", 4 septembre 2026) : cet organe du
           // Parti a Sovarka est distinct de La Tribune de Republia (Republic uniquement) -- ces deux
           // ordres n'ont de sens qu'aupres de cette derniere. Le reste (produire_fuite/
@@ -13477,6 +13477,39 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     ['siege-renseignement', 'salle_interrogatoire_renseignement', 'Colonel Oleg Doprossov (PNJ)', 'novo-oleg-doprossov-portrait.webp'],
     ['siege-renseignement', 'salle_interrogatoire_renseignement', 'Fiodor Koulakov (PNJ)', 'novo-fiodor-koulakov-portrait.webp'],
     ['la-tribune', 'redaction', 'Macha Scoopova', 'planche6-case1.webp'],
+    // Portraits livrés le 26/11/2026 (ChatGPT, 32 portraits vérifiés par Fred ; relevé : outils/audits/portraits/PORTRAITS-A-PRODUIRE-20261124.md).
+    ['caserne-militaire', 'salle_faits_armes', 'Lieutenant Nestor Medalev (PNJ)', 'novo-lieutenant-nestor-medalev-portrait.webp'],
+    ['centre-artisanal', 'travees', 'Genrikh Vlassov', 'novo-genrikh-vlassov-portrait.webp'],
+    ['centre-artisanal', 'travees', 'Kolia Titov', 'novo-kolia-titov-portrait.webp'],
+    ['centre-artisanal', 'travees', 'Sava Goussev', 'novo-sava-goussev-portrait.webp'],
+    ['centre-affaires', 'tribune_republia', 'Efim Zametkov (PNJ)', 'novo-efim-zametkov-portrait.webp'],
+    ['commissariat', 'prison', 'Timofeï Fomine (PNJ)', 'novo-timofei-fomine-portrait.webp'],
+    ['entrepot-logistique-novomirsk', 'bureau_direction', 'Boris Stockov (PNJ)', 'novo-boris-stockov-portrait.webp'],
+    ['garage-novomirsk', 'atelier_garage', 'Sergueï Zaptchastov (PNJ)', 'novo-serguei-zaptchastov-portrait.webp'],
+    ['la-tribune', 'redaction', 'Rostislav Censurov', 'novo-rostislav-censurov-portrait.webp'],
+    ['mairie-capitale', 'bureau_maire', 'Le Maire de Novomirsk (PNJ)', 'novo-maire-de-novomirsk-portrait.webp'],
+    ['palais-ambassades-novomirsk', 'bureau_khalija_novomirsk', 'Cheikh Rachid Al-Diplomi (PNJ)', 'novo-rachid-al-diplomi-portrait.webp'],
+    ['palais-ambassades-novomirsk', 'bureau_estado_novomirsk', 'Don Esteban Cortesano (PNJ)', 'novo-esteban-cortesano-portrait.webp'],
+    ['palais-ambassades-novomirsk', 'bureau_republia_novomirsk', 'Hubert de La Courtoisie (PNJ)', 'novo-hubert-de-la-courtoisie-portrait.webp'],
+    ['palais-gouvernement', 'bureau_min_ae', 'Evgueni Gromov (PNJ)', 'novo-evgueni-gromov-portrait.webp'],
+    ['palais-gouvernement', 'bureau_min_fin', 'Stanislav Roublov (PNJ)', 'novo-stanislav-roublov-portrait.webp'],
+    ['palais-gouvernement', 'bureau_min_def', 'Rodion Tankov (PNJ)', 'novo-rodion-tankov-portrait.webp'],
+    ['palais-gouvernement', 'bureau_min_just', 'Galina Sergueïeva (PNJ)', 'novo-galina-sergueieva-portrait.webp'],
+    ['palais-gouvernement', 'bureau_min_int', 'Gleb Nikitine (PNJ)', 'novo-gleb-nikitine-portrait.webp'],
+    ['palais-gouvernement', 'bureau_min_info', 'Zinaïda Propagandova (PNJ)', 'novo-zinaida-propagandova-portrait.webp'],
+    ['palais-gouvernement', 'bureaux', 'Oleg Morozov (PNJ)', 'novo-oleg-morozov-portrait.webp'],
+    ['palais-gouvernement', 'hall', 'Secrétaire Tamara Volkova', 'novo-tamara-volkova-portrait.webp'],
+    ['palais-gouvernement', 'salle_presse', 'Journalistes accrédités (PNJ)', 'novo-journalistes-accredites-portrait.webp'],
+    ['palais-gouvernement', 'salle_presse', 'Raïssa Communiqueva (PNJ)', 'novo-raissa-communiqueva-portrait.webp'],
+    ['palais-presidentiel', 'bureau_president', 'Le Président (PNJ)', 'novo-president-sovarka-portrait.webp'],
+    ['palais-presidentiel', 'bureau_president', 'Nadejda Lebedeva (PNJ)', 'novo-nadejda-lebedeva-portrait.webp'],
+    ['palais-presidentiel', 'salle_presse_elysee', 'Rodion Glasnov (PNJ)', 'novo-rodion-glasnov-portrait.webp'],
+    ['palais-presidentiel', 'salle_reception', 'Anatoli Sokolov (PNJ)', 'novo-anatoli-sokolov-portrait.webp'],
+    ['stade', 'siege_supporters', 'Meneur des Supporters (PNJ)', 'novo-meneur-des-supporters-portrait.webp'],
+    ['stade', 'terrain', 'Entraineur Local (PNJ)', 'novo-entraineur-local-portrait.webp'],
+    ['tribunal', 'salle_audience', 'Camarade Juge Pravdine (PNJ)', 'novo-juge-pravdine-portrait.webp'],
+    ['universite', 'amphi', 'Assistante Propagande (PNJ)', 'novo-assistante-propagande-portrait.webp'],
+    ['universite', 'amphi', 'Professeur Dialectique (PNJ)', 'novo-professeur-dialectique-portrait.webp'],
   ];
   const cite = WORLD.soviet.capitale;
   cite.buildingContext = cite.buildingContext || {};

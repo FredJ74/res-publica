@@ -2,10 +2,10 @@
   "genere_par": "outils/bancs/banc-pnj-sans-portrait-20261123.cjs",
   "note": "Une ligne par apparition dans une pièce (un même PNJ peut figurer dans plusieurs pièces). PNJ du serveur (informateurs, agents, soldats) et PNJ ajoutés dynamiquement par les modules non compris.",
   "totaux": {
-    "apparitions_pnj": 944,
-    "avec_portrait": 514,
-    "sans_portrait": 430,
-    "pnj_distincts_sans_portrait": 420,
+    "apparitions_pnj": 947,
+    "avec_portrait": 554,
+    "sans_portrait": 393,
+    "pnj_distincts_sans_portrait": 383,
     "par_ville": {
       "Al Khalija / Al Madina": 48,
       "Al Khalija / Al-Petrol": 33,
@@ -18,13 +18,13 @@
       "El Estado / Puerto Negro": 33,
       "El Estado / Villa Sangre": 33,
       "Républia / Caserne Militaire de Republia": 6,
-      "Républia / Luthécia": 54,
+      "Républia / Luthécia": 52,
       "Républia / Montrouge": 37,
       "Républia / Port-Sainte-Marie": 29,
       "Républia / Quartier Haute Securite": 4,
       "Sovarka / Garnison du Peuple": 8,
       "Sovarka / Krasnov": 2,
-      "Sovarka / Novomirsk": 38,
+      "Sovarka / Novomirsk": 3,
       "Sovarka / Starovka": 4
     }
   },
@@ -994,12 +994,6 @@
             "Sophie Stiquay (PNJ) — Infirmière"
           ]
         },
-        "Dispensaire Public de Luthecia [dispensaire-public]": {
-          "Salle d'attente [salle_attente]": [
-            "Anne Tibiotique (PNJ) — Infirmière",
-            "Docteur Aspirine (PNJ) — Généraliste"
-          ]
-        },
         "Entrepôt Logistique de Luthécia [entrepot-logistique-luthecia]": {
           "Bureau de Direction [bureau_direction]": [
             "Marcel Silo (PNJ) — Directeur de l'Entrepôt Logistique"
@@ -1447,129 +1441,6 @@
         "Caisse d'État de Stalinova [banque-nationale]": {
           "Accueil [accueil_banque]": [
             "Caissier Méticuleux (PNJ) — Caissier"
-          ]
-        },
-        "Caserne centrale de Novomirsk [caserne-militaire]": {
-          "Salle des Faits d'Armes [salle_faits_armes]": [
-            "Lieutenant Nestor Medalev (PNJ) — PNJ - Gardien de la memoire"
-          ]
-        },
-        "Centre artisanal de Novomirsk [centre-artisanal]": {
-          "Accueil du centre artisanal [travees]": [
-            "Genrikh Vlassov — Sécurité",
-            "Kolia Titov — Dealer",
-            "Sava Goussev — Mécanicien"
-          ]
-        },
-        "Centre d'affaires de Novomirsk [centre-affaires]": {
-          "La Tribune de Republia — Antenne Locale [tribune_republia]": [
-            "Efim Zametkov (PNJ) — PNJ - Journaliste"
-          ]
-        },
-        "Commissariat du Peuple [commissariat]": {
-          "Cellules de garde a vue [prison]": [
-            "Timofeï Fomine (PNJ) — Detenu"
-          ]
-        },
-        "Entrepôt Logistique de Novomirsk [entrepot-logistique-novomirsk]": {
-          "Bureau de Direction [bureau_direction]": [
-            "Boris Stockov (PNJ) — Directeur de l'Entrepôt Logistique"
-          ]
-        },
-        "Garage de Novomirsk [garage-novomirsk]": {
-          "Atelier [atelier_garage]": [
-            "Sergueï Zaptchastov (PNJ) — Garagiste"
-          ]
-        },
-        "La Voix de Sovarka [la-tribune]": {
-          "Accueil [accueil_tribune]": [
-            "Vera Pravdina (PNJ) — Journaliste de La Voix de Sovarka"
-          ],
-          "Redaction [redaction]": [
-            "Rostislav Censurov — PNJ - Redacteur en chef"
-          ]
-        },
-        "Mairie de Novomirsk [mairie-capitale]": {
-          "Bureau du Maire [bureau_maire]": [
-            "Le Maire de Novomirsk (PNJ) — Maire de la Capitale"
-          ],
-          "Hall d'accueil [hall_mairie]": [
-            "Valentina Petchatkina — Secrétaire municipale"
-          ]
-        },
-        "Palais des Ambassades [palais-ambassades-novomirsk]": {
-          "Ambassade d'Al-Khalija [bureau_khalija_novomirsk]": [
-            "Cheikh Rachid Al-Diplomi (PNJ) — Ambassadeur d'Al-Khalija"
-          ],
-          "Ambassade d'El Estado [bureau_estado_novomirsk]": [
-            "Don Esteban Cortesano (PNJ) — Ambassadeur d'El Estado"
-          ],
-          "Ambassade de Républia [bureau_republia_novomirsk]": [
-            "Hubert de La Courtoisie (PNJ) — Ambassadeur de Républia"
-          ]
-        },
-        "Palais du Gouvernement de Sovarka [palais-gouvernement]": {
-          "Bureau - Ministre de l'Amitié entre les Peuples [bureau_min_ae]": [
-            "Evgueni Gromov (PNJ) — PNJ - Ministre de l'Amitié entre les Peuples"
-          ],
-          "Bureau - Ministre de l'Économie collective [bureau_min_fin]": [
-            "Stanislav Roublov (PNJ) — PNJ - Ministre de l'Économie collective"
-          ],
-          "Bureau - Ministre de la Défense de la Patrie [bureau_min_def]": [
-            "Rodion Tankov (PNJ) — PNJ - Ministre de la Défense de la Patrie"
-          ],
-          "Bureau - Ministre de la Justice prolétarienne [bureau_min_just]": [
-            "Galina Sergueïeva (PNJ) — PNJ - Ministre de la Justice prolétarienne"
-          ],
-          "Bureau - Ministre de la Sécurité du Peuple [bureau_min_int]": [
-            "Gleb Nikitine (PNJ) — PNJ - Ministre de la Sécurité du Peuple"
-          ],
-          "Bureau - Ministre de la Vérité officielle [bureau_min_info]": [
-            "Zinaïda Propagandova (PNJ) — PNJ - Ministre de la Vérité officielle"
-          ],
-          "Bureau du Président du Conseil du Peuple [bureaux]": [
-            "Oleg Morozov (PNJ) — PNJ - Chef de cabinet du Président du Conseil du Peuple"
-          ],
-          "Hall d'entree [hall]": [
-            "Secrétaire Tamara Volkova — PNJ - Accueil officiel"
-          ],
-          "Salle de Presse [salle_presse]": [
-            "Journalistes accrédités (PNJ) — PNJ - Presse nationale accréditée",
-            "Raïssa Communiqueva (PNJ) — PNJ - Porte-parole du Conseil du Peuple"
-          ]
-        },
-        "Palais présidentiel [palais-presidentiel]": {
-          "Bureau du President [bureau_president]": [
-            "Le Président (PNJ) — PNJ - Président de Sovarka",
-            "Nadejda Lebedeva (PNJ) — PNJ - Secretaire general de la presidence"
-          ],
-          "Salle de Presse [salle_presse_elysee]": [
-            "Rodion Glasnov (PNJ) — PNJ - Porte-parole de la presidence"
-          ],
-          "Salle de restaurant [salle_reception]": [
-            "Anatoli Sokolov (PNJ) — PNJ - Chef du protocole presidentiel"
-          ]
-        },
-        "Stade du Dynamo de Novomirsk [stade]": {
-          "Buvette des tribunes [buvette]": [
-            "Zinaïda Kvassova (PNJ) — Tenancière de la buvette"
-          ],
-          "Club des supporters du Dynamo [siege_supporters]": [
-            "Meneur des Supporters (PNJ) — PNJ - Chef de Tribune"
-          ],
-          "Terrain — Dynamo de Novomirsk [terrain]": [
-            "Entraineur Local (PNJ) — PNJ - Entraineur"
-          ]
-        },
-        "Tribunal Populaire [tribunal]": {
-          "Salle d'audience [salle_audience]": [
-            "Camarade Juge Pravdine (PNJ) — Juge Populaire"
-          ]
-        },
-        "Université du Parti [universite]": {
-          "Amphitheatre [amphi]": [
-            "Assistante Propagande (PNJ) — Assistante",
-            "Professeur Dialectique (PNJ) — Doyen"
           ]
         },
         "Usine pharmaceutique Pharmanov [usine-pharmaceutique-luthecia]": {
