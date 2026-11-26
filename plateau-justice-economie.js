@@ -9909,7 +9909,7 @@ async function ouvrirExpedierColis(pa, cost) {
     ? await sbGet('caisses_fret', 'leader=eq.' + encodeURIComponent(moi) + '&building_origine=eq.' + encodeURIComponent(buildingId) + '&statut=eq.fermee').catch(() => [])
     : [];
   if (fermees && fermees.length > 0) {
-    let h = '<div style="padding:1rem">';
+    let h = '<div style="padding:1rem">' + '<img src="images/fret-caisse-bois.webp" alt="Caisse de fret" style="display:block;width:160px;height:160px;object-fit:cover;margin:0 auto .8rem;border:1px solid #a98d56">';
     h += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Caisse(s) fermée(s), prêtes à partir. Le transport dure 1 jour.</div>';
     fermees.forEach(c => {
       h += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.6rem .8rem;margin-bottom:.4rem">'
@@ -9928,7 +9928,7 @@ async function ouvrirExpedierColis(pa, cost) {
   }
 
   if (!caisses || caisses.length === 0) {
-    let html = '<div style="padding:1rem">';
+    let html = '<div style="padding:1rem">' + '<img src="images/fret-caisse-bois.webp" alt="Caisse de fret" style="display:block;width:160px;height:160px;object-fit:cover;margin:0 auto .8rem;border:1px solid #a98d56">';
     html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">' + pa + ' PA · ' + cost + ' FR. Réserve une caisse de fret (500 unités max, transport 1 jour). Vous pourrez y déposer plusieurs marchandises et inviter des chargeurs avant de la fermer et l\'expédier.</div>';
     html += '<button onclick="confirmerReservationCaisseFret(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Réserver une caisse</button>';
     html += '</div>';
@@ -10006,7 +10006,7 @@ async function afficherGestionCaisseOuverteFret(caisseId) {
 
   const eligibles = (state.inventory || []).filter(i => !estObjetInterditFret(i));
 
-  let html = '<div style="padding:1rem">';
+  let html = '<div style="padding:1rem">' + '<img src="images/fret-caisse-bois.webp" alt="Caisse de fret" style="display:block;width:160px;height:160px;object-fit:cover;margin:0 auto .8rem;border:1px solid #a98d56">';
   html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.6rem">Remplissage : ' + total + ' / ' + CAPACITE_MAX_CAISSE_FRET + ' unités.</div>';
 
   html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">CONTENU ACTUEL</div>';
