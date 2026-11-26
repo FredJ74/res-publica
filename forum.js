@@ -1431,7 +1431,48 @@ function getAvatarHtmlPost(estOrg, icone, author, taille) {
   return typeof getAvatarHtmlPourNom === 'function' ? getAvatarHtmlPourNom(author, t) : '<i class="ti ti-user" style="font-size:1.2rem;color:#C9A84C"></i>';
 }
 
+// TRADUCTION DES MESSAGES (décision n° 10 de Fred, 26/11/2026 : le forum en priorité). Le texte n'est jamais envoyé : le
+// serveur relit le message sous les droits du lecteur (i18n/traduction-texte-joueur.js → /api/traduction). La traduction
+// s'affiche en texte simple à la place du message, avec « Voir l'original ». Automatique pour un lecteur dont l'interface
+// n'est pas en français (20 messages au plus par sujet affiché) ; sinon bouton « Traduire » sur chaque message.
+function forumLangueLecteur() {
+  try { return (window.RPPlateauI18n && window.RPPlateauI18n.language && window.RPPlateauI18n.language()) || 'fr'; } catch (_) { return 'fr'; }
+}
+async function forumTraduirePost(id, auto) {
+  const boite = Array.from(document.querySelectorAll('[data-traduction-post]')).find(x => x.dataset.traductionPost === String(id));
+  const orig = Array.from(document.querySelectorAll('[data-original-post]')).find(x => x.dataset.originalPost === String(id));
+  if (!boite || !orig || typeof RPTraductionTexteJoueur === 'undefined') return;
+  if (boite.dataset.etat === 'charge' || boite.dataset.etat === 'en-cours') return;
+  boite.dataset.etat = 'en-cours';
+  const r = await RPTraductionTexteJoueur.traduire({ type: 'forum_post', id: String(id), field: 'content', langueCible: forumLangueLecteur() });
+  if (!boite.isConnected) return;
+  if (!r || r.ok !== true || typeof r.traduit !== 'string' || !r.traduit.trim()) {
+    boite.dataset.etat = '';
+    if (!auto && typeof showToast === 'function') showToast(rpForumLibelle('translate', 'Traduire'), rpForumLibelle('translationUnavailable', 'Traduction indisponible pour le moment.'), false);
+    return;
+  }
+  boite.dataset.etat = 'charge';
+  boite.querySelector('.forum-traduction-texte').textContent = r.traduit;
+  const bascule = boite.querySelector('.forum-traduction-bascule');
+  const montrer = traduction => {
+    boite.querySelector('.forum-traduction-texte').hidden = !traduction;
+    orig.hidden = traduction;
+    bascule.textContent = traduction ? rpForumLibelle('showOriginal', 'Voir l’original') : rpForumLibelle('showTranslation', 'Voir la traduction');
+  };
+  bascule.onclick = () => montrer(orig.hidden === false ? true : false);
+  boite.hidden = false; montrer(true);
+}
+function forumTraductionsAuto() {
+  if (forumView !== 'topic' || forumLangueLecteur() === 'fr' || typeof RPTraductionTexteJoueur === 'undefined') return;
+  Array.from(document.querySelectorAll('[data-traduction-post]')).slice(0, 20).forEach(b => forumTraduirePost(b.dataset.traductionPost, true));
+}
+if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') document.addEventListener('click', e => {
+  const b = e.target && e.target.closest ? e.target.closest('[data-traduire-post]') : null;
+  if (b) forumTraduirePost(b.dataset.traduirePost, false);
+});
+
 function renderTopicView() {
+  if (typeof setTimeout === 'function') setTimeout(forumTraductionsAuto, 0);
   const topics = FORUM_TOPICS[currentForumId] || [];
   const topic = topics.find(t => t.id === currentTopicId);
   if (!topic) return renderTopicList();
@@ -1467,12 +1508,17 @@ function renderTopicView() {
               <button onclick="quotePost(${i})" style="background:transparent;border:none;color:#8a8060;cursor:pointer;font-size:.75rem;padding:.2rem .4rem" title="${rpForumLibelle('quote','Citer')}">
                 <i class="ti ti-quote"></i>
               </button>
+              ${p.id && !p.content_layout && typeof RPTraductionTexteJoueur !== 'undefined' ? `
+                <button data-traduire-post="${escapeHtmlText(String(p.id))}" style="background:transparent;border:none;color:#8a8060;cursor:pointer;font-size:.75rem;padding:.2rem .4rem" title="${rpForumLibelle('translate','Traduire')}">
+                  <i class="ti ti-language"></i>
+                </button>` : ''}
               ${(p.authorReal || p.author) !== myName && p.id && typeof rpSignalerMessage === 'function' ? `
                 <button data-signaler-id="${escapeHtmlText(String(p.id))}" onclick="rpSignalerMessage('forum', this.dataset.signalerId)" style="background:transparent;border:none;color:#8a8060;cursor:pointer;font-size:.75rem;padding:.2rem .4rem" title="${rpForumLibelle('report','Signaler')}">
                   <i class="ti ti-flag"></i>
                 </button>` : ''}
             </div>
-            <div class="forum-post-content">${p.content_layout ? renderComposedPost(p.content_layout) : ((p.blocks && p.blocks.length > 0) ? sanitizeRichHtml(renderBlocks(p.blocks)) : sanitizeRichHtml(p.content))}</div>
+            <div class="forum-post-content" data-original-post="${escapeHtmlText(String(p.id || ''))}">${p.content_layout ? renderComposedPost(p.content_layout) : ((p.blocks && p.blocks.length > 0) ? sanitizeRichHtml(renderBlocks(p.blocks)) : sanitizeRichHtml(p.content))}</div>
+            ${p.id && !p.content_layout ? `<div class="forum-post-traduction" data-traduction-post="${escapeHtmlText(String(p.id))}" hidden><div class="forum-traduction-texte" style="white-space:pre-wrap"></div><button type="button" class="forum-traduction-bascule" style="background:transparent;border:none;color:#8a8060;cursor:pointer;font-size:.75rem;padding:.2rem 0;text-decoration:underline"></button></div>` : ''}
           </div>
         </div>`).join('')}
     </div>

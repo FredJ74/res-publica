@@ -32,6 +32,14 @@ Règles : voir `AGENTS.md`.
   générateur et banc à jour. **Migration 20261126200000 NON appliquée** : la confirmation à l'écran a expiré (Fred absent) ;
   à appliquer quand Fred est là (contrôles en tête du fichier). Sans elle, rien ne change avant le 19/12, mais la remise à
   zéro ne peut pas s'exécuter (tables des dotations absentes).
+- **Bloc D (fait)** : traduction des textes de joueurs — route `/api/traduction` (greffée sur `api/chat.js`, mode
+  `traduction`, toujours 12 fonctions) qui relit l'original sous le JWT du lecteur et les RLS, sans entamer le quota d'IA des
+  dialogues ; service écran `i18n/traduction-texte-joueur.js` (`RPTraductionTexteJoueur`, déjà attendu par la chronique) ;
+  **forum** : bouton « Traduire » sur chaque message, traduction automatique (20 messages au plus) pour un lecteur dont
+  l'interface n'est pas en français, affichage en texte simple avec « Voir l'original » ; seul le texte lisible du HTML est
+  traduit. Migration 20261126300000 (cache 7 jours, quota par compte : 200 traductions et 120 000 caractères par jour,
+  interrupteur et plafonds dans la page MJ « Traduction des textes de joueurs ») ; sans elle, l'original reste affiché.
+  **Pour Codex** : `forum.js` libellés `translate`, `translationUnavailable`, `showOriginal`, `showTranslation`.
 
 ### Décisions du 26/11/2026 (séance avec Fred) — cases : `docs/mission-decisions-20261126.md` ; reprise : « Reprends docs/mission-decisions-20261126.md au premier point non coché »
 - Feu vert donné pour coder l'ensemble. Les migrations 800000 à 860000 de la fin de soirée restent **non appliquées** : 810000, 820000 et 860000 sont à adapter d'abord (case A).

@@ -52,7 +52,7 @@ au serveur, demi-effet, Simone Aiguillard au guichet du cinéma) : ne pas les re
 - [x] C. Remise à zéro : dotations initiales des commerces (PNJ compris) et des caisses publiques, réglables par le MJ ;
       tables du point technique ci-dessus ; mettre à jour `docs/premium/REMISE-A-ZERO-20261219.md`, le générateur et
       son banc.
-- [ ] D. Traduction : raccorder le forum (priorité), puis les rumeurs de la chronique.
+- [x] D. Traduction : raccorder le forum (priorité), puis les rumeurs de la chronique.
 - [ ] E. Correctifs techniques : bénédiction au serveur, Mobiliser à l'étranger.
 - [ ] F. Contrôle final : CI verte, déploiement, compte rendu dans `RELAIS.md`.
 

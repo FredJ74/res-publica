@@ -45,6 +45,10 @@
       "destination": "/api/chat?mode=paiement"
     },
     {
+      "source": "/api/traduction",
+      "destination": "/api/chat?mode=traduction"
+    },
+    {
       "source": "/admin",
       "destination": "/admin.html"
     },
