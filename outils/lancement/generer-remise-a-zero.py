@@ -34,8 +34,8 @@ def seed_upsert(fichier, colonnes, cle, jsonb_col=None):
                    ', '.join(f'{c} = EXCLUDED.{c}' for c in colonnes) + ', updated_at = now();')
     if not out: sys.exit('seed vide : ' + fichier)
     return '\n'.join(out)
-reinit = (reinit.replace('/*SEED_CAISSES*/', seed_upsert('baseline/seeds/92_mixte/caisses_batiments.sql', ['data'], 'id'))
-               .replace('/*SEED_ENTREPOTS*/', seed_upsert('baseline/seeds/92_mixte/batiments_etat.sql', ['country', 'city', 'building_id', 'data'], 'id', 'data')))
+# Caisses publiques : dotations réglables par le MJ (lancement_dotations_caisses, décision du 26/11) — plus de seed ici.
+reinit = (reinit.replace('/*SEED_ENTREPOTS*/', seed_upsert('baseline/seeds/92_mixte/batiments_etat.sql', ['country', 'city', 'building_id', 'data'], 'id', 'data')))
 modele = modele.replace('/*REINITIALISATIONS*/', reinit.rstrip('\n'))
 sortie = (modele.replace('/*GARDER*/', arr(listes['garder'])).replace('/*VIDER*/', arr(listes['vider']))
           .replace('/*REINITIALISER*/', arr(listes['reinitialiser'])).replace('/*A_VERIFIER*/', arr(listes['a_verifier']))

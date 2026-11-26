@@ -40,7 +40,7 @@ CREATE TABLE ordres_couts (fn text PRIMARY KEY);
 CREATE TABLE premium_produits (produit text PRIMARY KEY);
 CREATE TABLE premium_achats (id uuid PRIMARY KEY);
 CREATE TABLE premium_droits (id bigserial PRIMARY KEY, user_id uuid, produit text REFERENCES premium_produits, cible text, source text, note text);
-INSERT INTO premium_produits VALUES ('personnalisation_local'), ('credit_publicite_presse'), ('credit_publicite_rue');
+INSERT INTO premium_produits VALUES ('personnalisation_local'), ('campagne_publicite_courte');
 INSERT INTO personnages VALUES ('Olga', '00000000-0000-0000-0000-000000000001'), ('Olga2', '00000000-0000-0000-0000-000000000001'),
   ('Ivan', '00000000-0000-0000-0000-000000000002'), ('Arnie', '00000000-0000-0000-0000-000000000003'), ('PNJ', NULL);
 INSERT INTO personnages_donnees VALUES ('Olga'), ('Ivan');
@@ -98,7 +98,7 @@ test('exécution : état vivant effacé, référentiels, MJ et achats gardés ; 
   const o = (await db.query(`SELECT user_id::text u, produit, source FROM premium_droits ORDER BY 1, 2`)).rows;
   assert.equal(o.length, 6);
   assert.ok(o.every(x => x.source === 'offre_lancement'));
-  assert.deepEqual(o.filter(x => x.u.endsWith('1')).map(x => x.produit), ['credit_publicite_presse', 'credit_publicite_rue', 'personnalisation_local']);
+  assert.deepEqual(o.filter(x => x.u.endsWith('1')).map(x => x.produit), ['campagne_publicite_courte', 'campagne_publicite_courte', 'personnalisation_local']);
   // Rejouée par erreur : aucune seconde offre.
   await db.exec(`INSERT INTO personnages VALUES ('Nouveau', '00000000-0000-0000-0000-000000000009')`);
   await db.exec(corpsEssai(lire(SCRIPT)));
@@ -129,6 +129,17 @@ CREATE TABLE budgets_municipaux (id text PRIMARY KEY, data jsonb, updated_at tim
 CREATE TABLE marche_krasnov_stock (cle text PRIMARY KEY, qte int);
 CREATE TABLE caisses_batiments (id text PRIMARY KEY, data jsonb, updated_at timestamptz DEFAULT now());
 CREATE TABLE batiments_etat (id text PRIMARY KEY, country text, city text, building_id text, data jsonb, updated_at timestamptz DEFAULT now());
+DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon') THEN CREATE ROLE anon; END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'authenticated') THEN CREATE ROLE authenticated; END IF; END $$;
+CREATE TABLE budgets_nationaux (id text PRIMARY KEY, data jsonb, updated_at timestamptz);
+CREATE TABLE ports_commerce (pays text PRIMARY KEY, nom text NOT NULL, caisse_id text NOT NULL, entrepots text[] NOT NULL DEFAULT '{}',
+  taux_douane numeric NOT NULL DEFAULT 10, repartition jsonb NOT NULL DEFAULT '{}'::jsonb, prix_cession jsonb NOT NULL DEFAULT '{}'::jsonb,
+  prix_export jsonb NOT NULL DEFAULT '{}'::jsonb, quotas_import jsonb NOT NULL DEFAULT '{}'::jsonb, quotas_export jsonb NOT NULL DEFAULT '{}'::jsonb,
+  dotation_jour numeric NOT NULL DEFAULT 0, pnj_couvre_deficit boolean NOT NULL DEFAULT false, modifie_par text, updated_at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE admin_journal (admin_user_id uuid, admin_libelle text, action text, parametres jsonb, resultat jsonb, ok boolean);
+CREATE OR REPLACE FUNCTION admin_exiger() RETURNS void LANGUAGE sql AS $f$ SELECT $f$;
+CREATE SCHEMA IF NOT EXISTS auth;
+CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $f$ SELECT NULL::uuid $f$;
 INSERT INTO drogues_stocks_dealers VALUES ('Brume', 'estadine', 2, 9);
 INSERT INTO niveaux_prison VALUES ('republic_capitale', '{"niveau": 40}');
 INSERT INTO kolkhoze_caisse VALUES ('soviet', 'ville_b', 'oeufs', 12, '{}');
@@ -143,7 +154,13 @@ INSERT INTO pnj_soldats_metier VALUES ('soldat-1'), ('garde-1');
 INSERT INTO postes_attribues VALUES ('republic_maire_capitale', 'Olga');
 INSERT INTO organisations VALUES ('orga_1', '{"nom": "La Main Noire", "fondateur": "Olga", "membres": ["Olga"]}'),
   ('orga_dockers', '{"nom": "Dockers", "chefEstPnj": true, "membres": ["Ivan"], "demandesAdhesion": ["Olga"], "caisse": 900}');
-INSERT INTO entreprises VALUES ('bar-olga', '{"proprietaire": "pj:Olga"}'), ('salon-pnj', '{"proprietaire": "PNJ Salon"}');
+INSERT INTO entreprises VALUES ('bar-olga', '{"proprietaire": "pj:Olga"}'),
+  ('salon-pnj', '{"proprietaire": "PNJ Salon", "country": "republic", "type": "salon-coiffure", "caisse": 9, "stockMatieres": {"textile": 0}, "stockProduits": {"coupe": 1}, "historique": [1]}'),
+  ('garage-pnj', '{"proprietaire": "PNJ Garage", "country": "soviet", "type": "garage", "caisse": 20000, "stockMatieres": {"metal": 0, "textile": 3}, "stockProduits": {"voiture": 3}}');
+INSERT INTO budgets_nationaux VALUES ('soviet', '{"refectoire": {"rations": 4}, "reserveJour": 900, "tauxNational": 25, "tauxMunicipal": 30, "tauxMainOeuvre": 12,
+  "lotsMilitaires": {"radio": [{"lot": "dotation-initiale", "qte": 2}, {"lot": "achat-beta", "qte": 5}], "tente": [{"lot": "achat-beta", "qte": 1}]},
+  "caserneMatieres": {"viande": 7}, "stockArmurerieMilitaire": {"radio": 7, "tente": 1}, "derniereDistribJourReel": "2026-11-20", "couvreFeu": {"actif": true}}', now());
+INSERT INTO ports_commerce VALUES ('republic', 'Port de Port-Sainte-Marie', 'republic_port-sainte-marie', '{entrepot}', 22, '{"a": 1}', '{"bois": 4}', '{}', '{}', '{}', 500, true, 'Olga', now());
 INSERT INTO sovarka_locaux VALUES ('bureau_1', 'bar-olga', 'dem-1'), ('salon', 'salon-pnj', NULL);
 INSERT INTO terrains_etat VALUES ('t1', 'Olga', 'Ivan', 'fondations', 33000,
   '{"city": "capitale", "surface": 2150, "valeur_totale": 25800, "constructionAutorisee": true, "pnj": null, "permis": {"statut": "valide"}, "chantier": {"x": 1}, "occupationInitialisee": true}', now());
@@ -151,7 +168,8 @@ INSERT INTO assemblee_sieges VALUES ('s1', 'Gamma 1', true, now(), 'Olga', now()
 INSERT INTO budgets_clubs VALUES ('club_1', '{"caisse": 4200, "salaires": {"joueur": 50}, "historique": [1], "derniereSubventionJour": 9}', now());
 INSERT INTO budgets_municipaux VALUES ('republic_capitale', '{"key": "republic_capitale", "tauxFoncier": 0.2, "derniereMaj": 3, "indices": {"a": 1}}', now());
 INSERT INTO marche_krasnov_stock VALUES ('oeufs', 0), ('caviar', 4);
-INSERT INTO caisses_batiments VALUES ('republic_assemblee', '{"solde": 123456, "historique": [1]}', now()), ('soviet_mairie_capitale', '{"solde": 77}', now());
+INSERT INTO caisses_batiments VALUES ('republic_assemblee', '{"solde": 123456, "historique": [1]}', now()), ('soviet_mairie-capitale', '{"solde": 77}', now()),
+  ('republic_commissariat_ville_a', '{"solde": 113636}', now()), ('soviet_inconnue_ville_b', '{"solde": 5}', now()), ('narco_mairie-capitale', '{"solde": 7992}', now());
 INSERT INTO batiments_etat VALUES ('republic_ville_a_entrepot-logistique-psm', 'republic', 'ville_a', 'entrepot-logistique-psm', '{"entrepot": {"stock": {"bois": 1}}}', now()),
   ('republic_capitale_banque', 'republic', 'capitale', 'banque', '{"x": 1}', now());
 `;
@@ -161,8 +179,8 @@ test('réinitialisations : chaque table mixte revient à son état initial (1.1,
   const bloc = /-- DÉBUT DES RÉINITIALISATIONS([\s\S]*?)-- FIN DES RÉINITIALISATIONS/.exec(s)[1];
   const reinit = /(ARRAY\[[^\]]*\])::text\[\] AS reinitialiser/.exec(s)[1].match(/'[a-z0-9_]+'/g).map(x => x.slice(1, -1));
   for (const t of reinit) assert.match(bloc, new RegExp('-- ▸ ' + t + ' :'), t + ' : une entrée par table à réinitialiser');
-  const db = new PGlite(); await db.exec(MIXTES);
-  await db.exec(bloc);
+  const db = new PGlite(); await db.exec(MIXTES); await db.exec(lire('migrations/20261126200000_dotations_lancement.sql'));
+  await db.exec('BEGIN'); await db.exec(bloc); await db.exec('COMMIT');
   const n = async t => (await db.query(`SELECT count(*)::int n FROM ${t}`)).rows[0].n;
   for (const t of ['drogues_stocks_dealers', 'niveaux_prison', 'kolkhoze_caisse', 'enigme_tresor_tsars', 'murs_loyers',
                    'medicaments_stocks', 'ports_stock', 'postes_attribues']) assert.equal(await n(t), 0, t + ' vidée');
@@ -173,7 +191,12 @@ test('réinitialisations : chaque table mixte revient à son état initial (1.1,
   assert.deepEqual(o.map(r => r.id), ['orga_dockers'], 'organisations des joueurs retirées');
   const d = JSON.parse(o[0].data);
   assert.deepEqual([d.membres, d.demandesAdhesion, d.caisse, d.nom], [[], [], 0, 'Dockers']);
-  assert.deepEqual((await db.query('SELECT id FROM entreprises')).rows.map(r => r.id), ['salon-pnj'], 'commerces des joueurs retirés');
+  const ent = Object.fromEntries((await db.query('SELECT id, data FROM entreprises')).rows.map(r => [r.id, r.data]));
+  assert.deepEqual(Object.keys(ent).sort(), ['garage-pnj', 'salon-pnj'], 'commerces des joueurs retirés');
+  // Décision n° 5 (26/11) : tous les commerces restants repartent de la dotation du MJ (type, sinon « * » du pays).
+  assert.equal(ent['salon-pnj'].caisse, 2000); assert.deepEqual(ent['salon-pnj'].stockMatieres, { textile: 10 });
+  assert.deepEqual(ent['salon-pnj'].stockProduits, { coupe: 6 }); assert.deepEqual(ent['salon-pnj'].historique, []);
+  assert.equal(ent['garage-pnj'].caisse, 600); assert.deepEqual(ent['garage-pnj'].stockMatieres, { metal: 10, textile: 10 });
   assert.deepEqual((await db.query('SELECT piece, entreprise_id, demande_id FROM sovarka_locaux ORDER BY piece')).rows,
     [{ piece: 'bureau_1', entreprise_id: null, demande_id: null }, { piece: 'salon', entreprise_id: 'salon-pnj', demande_id: null }]);
   assert.deepEqual((await db.query("SELECT proprietaire, offre FROM murs_titres ORDER BY id")).rows,
@@ -187,9 +210,17 @@ test('réinitialisations : chaque table mixte revient à son état initial (1.1,
   const m = Object.fromEntries((await db.query('SELECT cle, qte FROM marche_krasnov_stock')).rows.map(r => [r.cle, r.qte]));
   assert.equal(m.oeufs, 10); assert.equal(m.bouteille_eau, 30); assert.equal(m.caviar, undefined); assert.equal(Object.keys(m).length, 15);
   const c = Object.fromEntries((await db.query('SELECT id, data FROM caisses_batiments')).rows.map(r => [r.id, r.data]));
-  assert.deepEqual(c.republic_assemblee, { solde: 5000 }, 'caisse arbitrée : montant décidé');
-  assert.deepEqual(c.soviet_mairie_capitale, { solde: 77 }, 'caisse sans état initial décrit : gardée');
-  assert.ok(Object.keys(c).length > 30, 'les caisses arbitrées existent toutes');
+  // Décision n° 6 (26/11) : toutes les caisses publiques de Républia et de Sovarka repartent de leur dotation (catégorie, sinon « * »).
+  assert.deepEqual(c.republic_assemblee, { solde: 5000 }, 'Républia : montant arbitré le 05/10');
+  assert.deepEqual(c['soviet_mairie-capitale'], { solde: 1500 }, 'Sovarka : dotation par catégorie');
+  assert.deepEqual(c.republic_commissariat_ville_a, { solde: 200 }, 'catégorie sans la ville');
+  assert.deepEqual(c.soviet_inconnue_ville_b, { solde: 60 }, 'catégorie inconnue : « * » du pays');
+  assert.deepEqual(c['narco_mairie-capitale'], { solde: 7992 }, 'empires fermés : non touchés');
+  const bn = (await db.query("SELECT data FROM budgets_nationaux WHERE id = 'soviet'")).rows[0].data;
+  assert.deepEqual(bn, { tauxNational: 2, reserveJour: 0, refectoire: {}, caserneMatieres: {}, tauxMunicipal: 10, tauxMainOeuvre: 10,
+    lotsMilitaires: { radio: [{ lot: 'dotation-initiale', qte: 2 }], tente: [] }, stockArmurerieMilitaire: { radio: 2, tente: 0 } }, 'budget national : valeurs de départ');
+  const pc = (await db.query('SELECT taux_douane, repartition, prix_cession, dotation_jour, pnj_couvre_deficit, modifie_par, entrepots FROM ports_commerce')).rows[0];
+  assert.deepEqual(pc, { taux_douane: '10', repartition: {}, prix_cession: {}, dotation_jour: '0', pnj_couvre_deficit: true, modifie_par: null, entrepots: ['entrepot'] }, 'port : valeurs de départ');
   const b = Object.fromEntries((await db.query('SELECT id, data FROM batiments_etat')).rows.map(r => [r.id, r.data]));
   assert.equal(b['republic_ville_a_entrepot-logistique-psm'].entrepot.stock.bois, 750, 'entrepôt : stock décidé');
   assert.equal(b['republic_capitale_entrepot-logistique-luthecia'].entrepot.stock.metal, 200);

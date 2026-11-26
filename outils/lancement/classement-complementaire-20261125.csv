@@ -264,3 +264,9 @@ pnj_employes_metier;reinitialiser;suit pnj_membres par cascade : métiers des PN
 pnj_militants_metier;reinitialiser;suit pnj_membres par cascade : métiers des PNJ gardés, ceux des PNJ retirés disparaissent avec eux
 pnj_force_publique_metier;reinitialiser;suit pnj_membres par cascade : métiers des PNJ gardés, ceux des PNJ retirés disparaissent avec eux
 garde_republicaine_effectifs;reinitialiser;suit pnj_membres par cascade : métiers des PNJ gardés, ceux des PNJ retirés disparaissent avec eux
+admin_journal;garder;journal du MJ gardé au lancement (décision technique de Claude, 26/11, dans la ligne de la remise à zéro)
+tractorisme_medailles;vider;médailles remises pendant la bêta (personnages disparus)
+benedictions;vider;bénédictions de la bêta (personnages disparus)
+revenu_universel_parametres;garder;réglage MJ du revenu universel (26/11)
+lancement_dotations_commerces;garder;réglage MJ des dotations initiales des commerces (26/11)
+lancement_dotations_caisses;garder;réglage MJ des dotations initiales des caisses publiques (26/11)

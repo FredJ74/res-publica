@@ -49,7 +49,7 @@ au serveur, demi-effet, Simone Aiguillard au guichet du cinéma) : ne pas les re
       `publicite-premium`, et contrôler.
 - [x] B. Revenu universel : Sovarka 45 PSK, limite aux 10 premiers jours d'un personnage dans les deux empires,
       paramètres MJ ; banc.
-- [ ] C. Remise à zéro : dotations initiales des commerces (PNJ compris) et des caisses publiques, réglables par le MJ ;
+- [x] C. Remise à zéro : dotations initiales des commerces (PNJ compris) et des caisses publiques, réglables par le MJ ;
       tables du point technique ci-dessus ; mettre à jour `docs/premium/REMISE-A-ZERO-20261219.md`, le générateur et
       son banc.
 - [ ] D. Traduction : raccorder le forum (priorité), puis les rumeurs de la chronique.

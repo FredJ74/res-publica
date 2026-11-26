@@ -56,9 +56,24 @@ UPDATE public.organisations
    SET data = (data::jsonb || jsonb_build_object('membres', '[]'::jsonb, 'demandesAdhesion', '[]'::jsonb, 'caisse', 0))::text
  WHERE data IS JSON OBJECT;
 
--- ▸ entreprises : filtrer (les commerces des joueurs disparaissent ; ceux des PNJ restent : leur état initial — stock,
---   caisse — n'est décrit nulle part, voir les questions de la procédure)
+-- ▸ entreprises : filtrer puis doter (les commerces des joueurs disparaissent ; TOUS les commerces restants, ceux des PNJ,
+--   repartent de leur dotation initiale — décision n° 5 de Fred, 26/11 : caisse, et quantité de chaque matière et de chaque
+--   produit qu'ils tiennent, lues dans lancement_dotations_commerces (type du commerce, sinon « * » du pays), réglables dans
+--   la page MJ ; historique vidé)
 DELETE FROM public.entreprises WHERE coalesce(data ->> 'proprietaire', '') NOT LIKE 'PNJ%';
+CREATE TEMP TABLE rp_dot_commerce ON COMMIT DROP AS
+  SELECT e.id, d.caisse, d.matieres_qte, d.produits_qte
+    FROM public.entreprises e
+    CROSS JOIN LATERAL (SELECT x.caisse, x.matieres_qte, x.produits_qte FROM public.lancement_dotations_commerces x
+                         WHERE x.pays = e.data ->> 'country' AND x.type IN (e.data ->> 'type', '*')
+                         ORDER BY (x.type = '*') LIMIT 1) d;
+UPDATE public.entreprises e
+   SET data = e.data || jsonb_build_object('caisse', r.caisse, 'historique', '[]'::jsonb,
+         'stockMatieres', coalesce((SELECT jsonb_object_agg(k, r.matieres_qte) FROM jsonb_object_keys(
+            CASE WHEN jsonb_typeof(e.data -> 'stockMatieres') = 'object' THEN e.data -> 'stockMatieres' ELSE '{}'::jsonb END) k), '{}'::jsonb),
+         'stockProduits', coalesce((SELECT jsonb_object_agg(k, r.produits_qte) FROM jsonb_object_keys(
+            CASE WHEN jsonb_typeof(e.data -> 'stockProduits') = 'object' THEN e.data -> 'stockProduits' ELSE '{}'::jsonb END) k), '{}'::jsonb))
+  FROM rp_dot_commerce r WHERE r.id = e.id;
 
 -- ▸ sovarka_locaux : colonnes (plus de demande en cours ; un local tenu par un commerce de joueur redevient libre)
 UPDATE public.sovarka_locaux SET demande_id = NULL WHERE demande_id IS NOT NULL;
@@ -89,10 +104,38 @@ UPDATE public.budgets_clubs
 -- ▸ budgets_municipaux : colonnes (taux foncier de départ, 0,05 FR/m²/jour : valeur par défaut de taxe_fonciere_prelever)
 UPDATE public.budgets_municipaux SET data = (data - 'derniereMaj') || jsonb_build_object('tauxFoncier', 0.05), updated_at = now();
 
--- ▸ budgets_nationaux : aucune (configuration des empires — réserve du jour, taux, répartition — sans état initial décrit ;
---   la garder telle que réglée en fin de bêta, voir les questions de la procédure)
--- ▸ ports_commerce : aucune (configuration des ports — taux de douane, quotas, prix — réglée par les ministres ; gardée,
---   voir les questions de la procédure)
+-- ▸ budgets_nationaux : colonnes (retour aux valeurs de départ, décision technique du 26/11 : celles que pose le serveur à la
+--   création d'un budget — budgets_nationaux_ecran_fusionner : taux national 2, réserve du jour 0 — ; réfectoire et matières
+--   de la caserne vides ; seuls les lots militaires de la « dotation-initiale » restent, et le stock de l'armurerie militaire
+--   en est la somme ; les dates des derniers traitements, le couvre-feu, la mobilisation, l'effort de guerre, le régime
+--   d'exception, la recherche militaire et la préemption disparaissent ; les taux municipal et de main-d'œuvre de Sovarka
+--   reviennent à 10)
+CREATE TEMP TABLE rp_lots_initiaux ON COMMIT DROP AS
+  SELECT b.id,
+         coalesce(jsonb_object_agg(o.k, o.lots) FILTER (WHERE o.k IS NOT NULL), '{}'::jsonb) AS lots,
+         coalesce(jsonb_object_agg(o.k, o.qte) FILTER (WHERE o.k IS NOT NULL), '{}'::jsonb) AS stock
+    FROM public.budgets_nationaux b
+    LEFT JOIN LATERAL (
+      SELECT t.k,
+             coalesce((SELECT jsonb_agg(x) FROM jsonb_array_elements(CASE WHEN jsonb_typeof(t.v) = 'array' THEN t.v ELSE '[]'::jsonb END) x
+                        WHERE x ->> 'lot' = 'dotation-initiale'), '[]'::jsonb) AS lots,
+             coalesce((SELECT sum((x ->> 'qte')::numeric) FROM jsonb_array_elements(CASE WHEN jsonb_typeof(t.v) = 'array' THEN t.v ELSE '[]'::jsonb END) x
+                        WHERE x ->> 'lot' = 'dotation-initiale'), 0) AS qte
+        FROM jsonb_each(CASE WHEN jsonb_typeof(b.data -> 'lotsMilitaires') = 'object' THEN b.data -> 'lotsMilitaires' ELSE '{}'::jsonb END) t(k, v)) o ON true
+   GROUP BY b.id;
+UPDATE public.budgets_nationaux b
+   SET data = jsonb_strip_nulls(jsonb_build_object(
+         'tauxNational', 2, 'reserveJour', 0, 'refectoire', '{}'::jsonb, 'caserneMatieres', '{}'::jsonb,
+         'tauxMunicipal', CASE WHEN b.data ? 'tauxMunicipal' THEN 10 END,
+         'tauxMainOeuvre', CASE WHEN b.data ? 'tauxMainOeuvre' THEN 10 END,
+         'lotsMilitaires', l.lots, 'stockArmurerieMilitaire', l.stock)),
+       updated_at = now()
+  FROM rp_lots_initiaux l WHERE l.id = b.id;
+-- ▸ ports_commerce : colonnes (retour aux valeurs de départ, décision technique du 26/11 : celles de la création des ports —
+--   valeurs par défaut des colonnes, migration 20261116113000 — ; nom, caisse, lieu, entrepôts et prise en charge du déficit
+--   par les PNJ restent ; la caisse du port repart de sa dotation, avec les caisses publiques ci-dessous)
+UPDATE public.ports_commerce SET taux_douane = DEFAULT, repartition = DEFAULT, prix_cession = DEFAULT, prix_export = DEFAULT,
+       quotas_import = DEFAULT, quotas_export = DEFAULT, dotation_jour = DEFAULT, modifie_par = NULL, updated_at = now();
 
 -- ▸ marche_krasnov_stock : semis (valeurs de la migration 20261122160000_krasnov_marche_unique)
 TRUNCATE public.marche_krasnov_stock;
@@ -101,10 +144,16 @@ INSERT INTO public.marche_krasnov_stock (cle, qte) VALUES
   ('bouteille_eau', 30), ('graisse_ours', 10), ('confiture', 8), ('pain_noir', 10), ('goulash', 6), ('chemise', 4),
   ('tenue_ninja', 2), ('masque_carnaval', 2);
 
--- ▸ caisses_batiments : semis (les caisses de Républia dont la dotation est arbitrée reprennent leur montant décidé —
---   seed baseline/seeds/92_mixte/caisses_batiments.sql ; les autres caisses de Républia et celles de Sovarka n'ont pas
---   d'état initial décrit : elles sont gardées, voir les questions de la procédure)
-/*SEED_CAISSES*/
+-- ▸ caisses_batiments : dotation (TOUTES les caisses publiques de Républia et de Sovarka repartent de leur dotation initiale —
+--   décision n° 6 de Fred, 26/11 — lue dans lancement_dotations_caisses par catégorie, sinon « * » du pays, réglable dans la
+--   page MJ ; les défauts de Républia sont les montants arbitrés le 05/10 ; le reste du contenu de la caisse est effacé).
+--   Les caisses des empires fermés ne sont pas touchées.
+UPDATE public.caisses_batiments c
+   SET data = jsonb_build_object('solde', (SELECT x.montant FROM public.lancement_dotations_caisses x
+                 WHERE x.pays = split_part(c.id, '_', 1) AND x.categorie IN (public.lancement_caisse_categorie(c.id), '*')
+                 ORDER BY (x.categorie = '*') LIMIT 1)), updated_at = now()
+ WHERE split_part(c.id, '_', 1) IN ('republic', 'soviet')
+   AND EXISTS (SELECT 1 FROM public.lancement_dotations_caisses x WHERE x.pays = split_part(c.id, '_', 1));
 
 -- ▸ batiments_etat : semis (les trois entrepôts logistiques de Républia reprennent leur stock décidé — seed
 --   baseline/seeds/92_mixte/batiments_etat.sql ; les autres bâtiments, sans état initial décrit, sont gardés)

@@ -97,9 +97,12 @@ END $vider$;
 
 -- 5. Offre ponctuelle des testeurs de la bêta (décision de Fred du 25/11/2026 au soir). --------------------------------
 INSERT INTO public.premium_droits (user_id, produit, cible, source, note)
-SELECT b.user_id, o.produit, NULL, 'offre_lancement', 'Merci d''avoir testé la bêta'
+SELECT b.user_id, o.produit, NULL, 'offre_lancement', 'Merci d''avoir testé la bêta : ' || o.usage
   FROM public.lancement_comptes_beta b
- CROSS JOIN (VALUES ('personnalisation_local'), ('credit_publicite_presse'), ('credit_publicite_rue')) o(produit)
+ -- Publicités (décision du 26/11) : campagnes vendues pour tous les supports ; l'offre en donne deux courtes, prévues pour
+ -- une annonce dans la presse et une publicité dans la rue.
+ CROSS JOIN (VALUES ('personnalisation_local', 'personnalisation d''un commerce'), ('campagne_publicite_courte', 'une annonce dans la presse'),
+                    ('campagne_publicite_courte', 'une publicité dans la rue')) o(produit, usage)
  WHERE b.offre_accordee_le IS NULL;
 UPDATE public.lancement_comptes_beta SET offre_accordee_le = now() WHERE offre_accordee_le IS NULL;
 

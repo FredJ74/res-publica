@@ -24,14 +24,14 @@ Mission du soir du 25/11/2026, bloc 4.5 ; complétée en fin de soirée (point 1
 
 ## Ce qui est effacé, ce qui est gardé
 
-- **Effacé (« vider », 432 tables)** : tout l'état vivant de la bêta — personnages et leurs fiches, inventaires, comptes en
+- **Effacé (« vider », 433 tables)** : tout l'état vivant de la bêta — personnages et leurs fiches, inventaires, comptes en
   banque, commerces des joueurs, affaires judiciaires, détentions, messages, forums, journaux, élections, historiques,
   publicités de joueurs, etc. ; aussi `blocus_ordres_batiments` et `climat_evenements` (décision de Fred : vidées au lancement,
   le calendrier climatique se replanifie par mandat). Relevé du 25/11 en fin de soirée : les 129 tables créées depuis le
   classement sont classées (126 vidées, 3 gardées : `frontieres_fermees`, `souvenirs_objets`, `sovarka_urbanisme`).
   Une table référencée par une table gardée (`journaux.cree_par` → `personnages_donnees`) est vidée par DELETE : la clé met
   la référence à NULL.
-- **Gardé (« garder », 155 tables)** : les référentiels et réglages du MJ (ordres et coûts, catalogues, PNJ et leurs lieux,
+- **Gardé (« garder », 159 tables)** : le journal du MJ (`admin_journal`, décision du 26/11), les référentiels et réglages du MJ (ordres et coûts, catalogues, PNJ et leurs lieux,
   villes, rues, santé, climat, criminalité, accueil, guide…), les accès du MJ (`administrateurs`), les comptes de test,
   les réglages premium, et **tout ce qui touche à l'argent réel** (`premium_achats`, `premium_abonnements`,
   `premium_droits`, `premium_renouvellements`) — aucun pendant la bêta, mais jamais effacé.
@@ -40,17 +40,28 @@ Mission du soir du 25/11/2026, bloc 4.5 ; complétée en fin de soirée (point 1
   par table, relevé en lecture de la production le 25/11) :
   - *aucune action* (17) : référentiels qu'aucune fonction n'écrit (catalogues, recettes, barèmes, entrepôts par ville,
     structures médicales, règles des terrains), `rp_transitions` (comportement à conserver), `lois_assemblee` (table morte),
-    `dotations_amorcage_caisses` (journal d'un amorçage déjà fait) ; et deux configurations gardées : `budgets_nationaux`,
-    `ports_commerce` ;
+    `dotations_amorcage_caisses` (journal d'un amorçage déjà fait) ;
   - *vidées* (état recréé à la demande) : stocks des dealers, niveaux des prisons, caisse du kolkhoze, énigme du trésor des
     Tsars, échéanciers de loyers, stocks de médicaments et des ports, possessions des PNJ, postes pris par des joueurs ;
   - *filtrées* : PNJ attachés à un joueur retirés (leurs métiers suivent par cascade), organisations fondées par des joueurs
     retirées (celles dirigées par un PNJ restent, sans membres ni caisse), commerces des joueurs retirés ;
+  - *dotations du MJ* (décisions n° 5 et 6 du 26/11) : **tous les commerces restants** (ceux des PNJ) repartent de leur
+    dotation initiale — caisse, et quantité de chaque matière et de chaque produit qu'ils tiennent — lue dans
+    `lancement_dotations_commerces` (type, sinon « * » du pays) ; **toutes les caisses publiques** de Républia et de Sovarka
+    repartent de leur dotation (`lancement_dotations_caisses`, par catégorie, sinon « * » ; défauts : montants arbitrés le
+    05/10 pour Républia, × 0,3 pour Sovarka, ports à 20 000) ; les deux tables se règlent dans la page MJ, section
+    « Dotations du lancement » (migration 20261126200000) ; les caisses des empires fermés ne sont pas touchées ;
+  - *valeurs de départ* (décision technique du 26/11) : `budgets_nationaux` (taux national 2, réserve 0, réfectoire et
+    matières de la caserne vides, seuls les lots militaires de la « dotation-initiale », dates et décisions de la bêta
+    effacées) ; `ports_commerce` (taux, quotas, prix, répartition et dotation du jour à leurs valeurs de création) ;
+  - les tables `avocats_barreau` et `compagnies_militaires` sont vidées (classement historique C) ;
   - *colonnes remises à blanc* : locaux de Sovarka (demandes, commerces de joueurs), murs (à la commune, sans offre),
     terrains (sans propriétaire, permis ni chantier), sièges de l'Assemblée (plus d'endormis), caisses des clubs (0),
     taux foncier des mairies (0,05) ;
-  - *semis rejoué* : stock du marché de Krasnov (migration 20261122160000), caisses arbitrées de Républia et trois entrepôts
-    logistiques (seeds `baseline/seeds/92_mixte/`).
+  - *semis rejoué* : stock du marché de Krasnov (migration 20261122160000) et trois entrepôts logistiques
+    (seed `baseline/seeds/92_mixte/batiments_etat.sql`).
+- **Offre des testeurs de la bêta** : la personnalisation d'un commerce et deux campagnes de publicité courtes (une annonce
+  dans la presse, une publicité dans la rue).
 
 ## Pas à pas (le jour J)
 
@@ -86,8 +97,8 @@ Mission du soir du 25/11/2026, bloc 4.5 ; complétée en fin de soirée (point 1
 Trois droits par compte de la bêta (`premium_droits`, source `offre_lancement`) :
 - `personnalisation_local`, sans cible : il s'attache au **premier commerce** (ou local) que le joueur personnalise
   (atelier de décoration) ;
-- `credit_publicite_presse` : une annonce dans la presse (atelier de presse) ;
-- `credit_publicite_rue` : une publicité dans la rue (pop-up), une campagne.
+- `campagne_publicite_courte` (deux fois) : une annonce dans la presse et une publicité dans la rue (pop-up) ; depuis le
+  26/11, une campagne se vend pour tous les supports, courte (5 jours) ou longue (10 jours).
 Chaque crédit s'utilise une fois. Le relevé `lancement_comptes_beta` empêche une seconde offre si le script était rejoué.
 
 ## Retour arrière
@@ -103,10 +114,7 @@ Chaque crédit s'utilise une fois. Le relevé `lancement_comptes_beta` empêche 
 
 ## Questions pour Fred
 
-- Commerces tenus par des PNJ (33) : leur stock et leur caisse de départ ne sont décrits nulle part ; le script les garde tels
-  qu'en fin de bêta. Faut-il un état initial (stock et caisse) par commerce ?
-- Caisses publiques non arbitrées (celles de Sovarka et une partie de Républia) et bâtiments hors entrepôts : gardés tels
-  qu'en fin de bêta, faute d'état initial décrit. Faut-il des montants de départ ?
-- `budgets_nationaux` (réserve du jour, taux, répartition) et `ports_commerce` (douanes, quotas, prix) : configurations
-  gardées telles que réglées pendant la bêta. Faut-il revenir à des valeurs de départ ?
+Tranchées le 26/11 (`docs/mission-decisions-20261126.md`) : dotations des commerces et des caisses publiques, valeurs de
+départ des budgets nationaux et des ports, journal du MJ gardé, barreau et compagnies vidés. Il ne reste que :
+
 - PNJ des institutions (125 : douaniers, gardes, agents…) : gardés, car ils ne naissent qu'à la création de l'institution.

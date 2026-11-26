@@ -24,6 +24,14 @@ Règles : voir `AGENTS.md`.
   « revenu_universel_termine » (salaires de poste et emplois inchangés) ; page MJ « Revenu universel »
   (`admin-revenu-universel.js`). Banc `banc-revenu-universel-pglite-20261126.cjs` (copie md5 de la fonction de production),
   workflow `decisions-20261126.yml`. **Pour Codex** : motif `revenu_universel_termine` de `plateau-personnage.js`.
+- **Bloc C (fait, une migration en attente)** : remise à zéro du 19/12 — dotations initiales réglables par le MJ
+  (`lancement_dotations_commerces` par pays et type, `lancement_dotations_caisses` par pays et catégorie ; défauts : Républia =
+  arbitrage du 05/10, Sovarka × 0,3, ports 20 000), lues par la procédure (tous les commerces PNJ ; toutes les caisses de
+  Républia et de Sovarka) ; budgets nationaux et ports aux valeurs de départ ; `admin_journal` gardé ; offre des testeurs =
+  personnalisation + deux campagnes courtes. Page MJ « Dotations du lancement » (`admin-dotations-lancement.js`). Procédure,
+  générateur et banc à jour. **Migration 20261126200000 NON appliquée** : la confirmation à l'écran a expiré (Fred absent) ;
+  à appliquer quand Fred est là (contrôles en tête du fichier). Sans elle, rien ne change avant le 19/12, mais la remise à
+  zéro ne peut pas s'exécuter (tables des dotations absentes).
 
 ### Décisions du 26/11/2026 (séance avec Fred) — cases : `docs/mission-decisions-20261126.md` ; reprise : « Reprends docs/mission-decisions-20261126.md au premier point non coché »
 - Feu vert donné pour coder l'ensemble. Les migrations 800000 à 860000 de la fin de soirée restent **non appliquées** : 810000, 820000 et 860000 sont à adapter d'abord (case A).
