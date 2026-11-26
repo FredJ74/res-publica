@@ -14,7 +14,7 @@ test('écran et descriptions : chaque règle est annoncée telle que le serveur 
   const contrebande = desc('contrebande_port');
   assert.equal(contrebande.length, 3);
   for (const d of contrebande) { assert.match(d, /amende égale au gain/); assert.doesNotMatch(d, /saisir/); }
-  for (const d of desc('censurer_media')) { assert.match(d, /Sovarka : la popularité du parti au pouvoir monte/); assert.match(d, /perd 5 points/); }
+  for (const d of desc('censurer_media')) { assert.match(d, /Sovarka : censure normale, sans effet sur le gouvernement ni sur les indices, et jamais de scandale/); assert.doesNotMatch(d, /parti au pouvoir/); }
   const visites = desc('visiter_prisonnier');
   assert.equal(visites.length, 3, 'QHS, commissariat central et commissariats locaux');
   for (const d of visites) assert.match(d, /seuls un avocat inscrit au barreau et le conjoint du détenu/);
@@ -28,7 +28,7 @@ test('écran et descriptions : chaque règle est annoncée telle que le serveur 
   assert.match(div, /sbRpcVerdict\('benediction_contact_demander'/);
   assert.equal((div.match(/PGRST202/g) || []).length >= 2, true);
   assert.match(lire('plateau-navigation.js'), /v\.amende_payee/);
-  assert.match(lire('plateau-politique.js'), /v\.regime_delta/);
+  assert.doesNotMatch(lire('plateau-politique.js'), /v\.regime_delta/);
   // Demi-effet : la pastille lit « <ordre>_demi ».
   const cr = lire('plateau-chances-reelles.js');
   assert.match(cr, /r\.chances\[fn \+ '_demi'\]/);
@@ -115,7 +115,17 @@ CREATE FUNCTION sovarka_parti_pop_interne(p_parti text, p_delta numeric) RETURNS
 DECLARE v numeric;
 BEGIN SELECT least(100, greatest(0, coalesce((data::jsonb ->> 'pop')::numeric, 0) + p_delta)) INTO v FROM organisations WHERE id = p_parti;
   UPDATE organisations SET data = jsonb_set(data::jsonb, '{pop}', to_jsonb(v))::text WHERE id = p_parti; RETURN v; END $$;
-CREATE FUNCTION presse_censure_indice_interne(p text) RETURNS void LANGUAGE sql AS $$ SELECT $$;
+CREATE TABLE indices_villes (id text PRIMARY KEY, social numeric);
+CREATE FUNCTION presse_censure_indice_interne(p_pays text) RETURNS void LANGUAGE sql AS $$ SELECT $$;
+CREATE FUNCTION indice_ville_ajuster_interne(p_pays text, p_ville text, p_cle text, p_delta numeric) RETURNS void LANGUAGE sql AS $$
+  UPDATE indices_villes SET social = social + p_delta WHERE id = p_pays || '_' || p_ville $$;
+CREATE TABLE caisses_batiments (id text PRIMARY KEY, data jsonb, updated_at timestamptz);
+CREATE FUNCTION caisse_institution_mouvement(p_id text, p_delta numeric, p_exiger_existant boolean DEFAULT false) RETURNS jsonb LANGUAGE plpgsql AS $$
+BEGIN
+  IF current_setting('rp.caisse_interne', true) IS DISTINCT FROM 'on' THEN RETURN jsonb_build_object('ok', false, 'raison', 'caisse_inexistante'); END IF;
+  INSERT INTO caisses_batiments VALUES (p_id, jsonb_build_object('solde', p_delta), now())
+  ON CONFLICT (id) DO UPDATE SET data = jsonb_build_object('solde', (caisses_batiments.data ->> 'solde')::numeric + p_delta);
+  RETURN jsonb_build_object('ok', true); END $$;
 CREATE FUNCTION crim_stat_interne(p_nom text, p_stat text, p_def numeric) RETURNS numeric LANGUAGE sql AS $$
   SELECT coalesce((SELECT (stats ->> p_stat)::numeric FROM personnages_donnees WHERE name = p_nom), p_def) $$;
 CREATE FUNCTION presse_cha_effectif_interne(p_nom text) RETURNS numeric LANGUAGE sql AS $$ SELECT 0::numeric $$;
@@ -134,7 +144,7 @@ BEGIN
     publication:=jsonb_build_object('scandale',v_detecte);
   IF p_ordre='censurer_media' THEN
     PERFORM public.presse_censure_indice_interne(a.country);
-    publication:=coalesce(publication,'{}'::jsonb);
+    publication:=coalesce(publication,'{}'::jsonb)||jsonb_build_object('indice_social',-8,'indice_social_serveur',a.country='republic');
   END IF;
   RETURN publication;
 END $function$;
@@ -196,6 +206,8 @@ test('contrebande : un échec repéré coûte une amende égale au gain (dans la
   assert.equal(v.reussi, false); assert.equal(v.repere, true);
   assert.equal(Number(v.amende), 500); assert.equal(Number(v.amende_payee), 300, 'pris dans la limite du liquide');
   assert.equal(Number((await un(db, "SELECT liquide FROM personnages_donnees WHERE name = 'Jo'")).liquide), 0);
+  const douane = async id => Number((await un(db, `SELECT data->>'solde' s FROM caisses_batiments WHERE id = '${id}'`))?.s ?? 0);
+  assert.equal(await douane('republic_douane'), 300, 'amende versée à la caisse de la douane (Fred, 26/11)');
   // Non repéré : aucune amende.
   await db.exec("UPDATE personnages_donnees SET liquide = 900 WHERE name = 'Jo'; SELECT set_config('banc.repere', 'false', false)");
   v = (await un(db, 'SELECT crime_contrebande(3, 0) AS v')).v;
@@ -213,6 +225,7 @@ test('contrebande : un échec repéré coûte une amende égale au gain (dans la
   v = (await un(db, 'SELECT crime_contrebande(3, 0) AS v')).v;
   assert.equal(Number(v.amende), 100); assert.equal(Number(v.amende_payee), 100);
   assert.equal(Number((await un(db, "SELECT solde FROM comptes_bancaires WHERE id = 'c1'")).solde), 940);
+  assert.equal(await douane('soviet_douane'), 100, 'caisse de la douane de Sovarka');
 });
 
 test('médaille du Tractorisme : offerte au premier chant à la Grange Sainte de Novomirsk, jamais une seconde fois', async () => {
@@ -249,20 +262,19 @@ test('médaille : inventaire plein au premier chant, la médaille attend le chan
   assert.equal(v.medaille, true);
 });
 
-test('censure : en Sovarka, +3 au parti au pouvoir sans scandale, −5 si le scandale éclate ; rien en Républia', async () => {
+test('censure : en Sovarka aucun effet ni scandale (Fred, 26/11) ; −8 à l’indice social en Républia seulement', async () => {
   const db = await base();
-  await db.exec("SELECT set_config('banc.parti', 'parti1', false)");
-  const pop = async () => Number(JSON.parse((await un(db, "SELECT data FROM organisations WHERE id = 'parti1'")).data).pop);
+  await db.exec("INSERT INTO indices_villes VALUES ('soviet_capitale', 50), ('republic_capitale', 50)");
+  const social = async id => Number((await un(db, `SELECT social FROM indices_villes WHERE id = '${id}'`)).social);
   await moi(db, 'Ivan');
-  await db.exec("INSERT INTO crim_parametres VALUES ('censure_scandale_taux', 0) ON CONFLICT (cle) DO UPDATE SET valeur = 0");
-  let v = (await un(db, `SELECT jauges_ordre_executer('censurer_media', '${req()}', '{}') AS v`)).v;
-  assert.equal(v.scandale, false); assert.equal(Number(v.regime_delta), 3); assert.equal(await pop(), 53);
-  await db.exec("UPDATE crim_parametres SET valeur = 100 WHERE cle = 'censure_scandale_taux'");
-  v = (await un(db, `SELECT jauges_ordre_executer('censurer_media', '${req()}', '{}') AS v`)).v;
-  assert.equal(v.scandale, true, 'le scandale peut désormais éclater en Sovarka'); assert.equal(Number(v.regime_delta), -5); assert.equal(await pop(), 48);
+  for (let i = 0; i < 20; i++) {
+    const v = (await un(db, `SELECT jauges_ordre_executer('censurer_media', '${req()}', '{}') AS v`)).v;
+    assert.equal(v.scandale, false, 'jamais de scandale en Sovarka'); assert.equal(Number(v.indice_social), 0); assert.equal(v.regime_delta, undefined);
+  }
+  assert.equal(await social('soviet_capitale'), 50, 'aucun indice touché en Sovarka');
   await moi(db, 'Jo');
-  v = (await un(db, `SELECT jauges_ordre_executer('censurer_media', '${req()}', '{}') AS v`)).v;
-  assert.equal(v.regime_delta, undefined, 'Républia : pas de parti au pouvoir touché'); assert.equal(await pop(), 48);
+  const v = (await un(db, `SELECT jauges_ordre_executer('censurer_media', '${req()}', '{}') AS v`)).v;
+  assert.equal(Number(v.indice_social), -8); assert.equal(await social('republic_capitale'), 42);
 });
 
 test('bénédiction : accordée au serveur (1 PA, 80 %), refusée à l’excommunié, consommée par un seul jet du commissaire', async () => {
@@ -313,7 +325,7 @@ test('migration rejouable : les marques empêchent un second raccord', async () 
   const db = await base();
   await db.exec(lire(MIG));
   const d = (await un(db, "SELECT pg_get_functiondef('public.jauges_ordre_executer(text,uuid,jsonb)'::regprocedure) AS d")).d;
-  assert.equal((d.match(/censure_sovarka_regime_v1/g) || []).length, 1);
+  assert.equal((d.match(/censure_sovarka_sans_effet_v1/g) || []).length, 1);
   const o = (await un(db, "SELECT pg_get_functiondef('public.ordres_chances_lire(text[],text)'::regprocedure) AS d")).d;
   assert.equal((o.match(/demi_effet_v1/g) || []).length, 1);
 });

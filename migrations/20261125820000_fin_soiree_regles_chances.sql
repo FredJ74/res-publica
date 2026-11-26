@@ -8,9 +8,9 @@
 --   liste 3 ne change pas). Offerte à coup sûr au PREMIER chant de « Chanter l'hymne au Tracteur » à la Grange Sainte de
 --   Novomirsk, une seule fois par personnage (tractorisme_medailles). Le chant y passe par tractorisme_chanter_hymne (paiement
 --   de l'ordre « prier » et remise dans la même transaction). Inventaire plein : la médaille attend le chant suivant.
--- • 1.10 Censure : le scandale peut éclater aussi en Sovarka (même chance, réglage MJ censure_scandale_taux, 30). En Sovarka, la
---   censure agit sur la POPULARITÉ DU PARTI AU POUVOIR (sovarka_parti_pop_interne, l'indice serveur le plus proche de la
---   popularité du régime) : +3 sans scandale (réglage censure_sovarka_hausse), −5 si le scandale éclate (censure_sovarka_baisse).
+-- • 1.10 Censure en Sovarka (décision de Fred, 26/11, remplace celle du 25/11) : normale, AUCUN effet sur le gouvernement ni
+--   sur les indices, jamais de scandale. Le −8 à l'indice social ne vaut plus qu'en Républia.
+-- • Contrebande (décision de Fred, 26/11) : l'amende est versée à la caisse de la douane du pays (<pays>_douane).
 -- • 2.1 Bénédiction : accordée et tenue par le serveur (benedictions ; benediction_contact_demander : 1 PA, 80 %, 24 h, non
 --   cumulable) ; les jets du commissaire (enquête, filature) la consomment au serveur, le paramètre p_benediction de l'écran
 --   est ignoré.
@@ -24,8 +24,9 @@
 --   SELECT valeur FROM public.crim_parametres WHERE cle IN ('contrebande_gain', 'contrebande_gain_soviet') ORDER BY cle;           -- 500, 100
 --   SELECT achetable FROM public.souvenirs_objets WHERE cle = 'souv_novomirsk_medaille';                                            -- faux
 --   SELECT has_function_privilege('authenticated', 'public.tractorisme_chanter_hymne(uuid)', 'EXECUTE');                            -- vrai
---   SELECT position('censure_sovarka_v1' in d) > 0 AND position('censure_sovarka_regime_v1' in d) > 0
---     FROM (SELECT pg_get_functiondef('public.jauges_ordre_executer(text,uuid,jsonb)'::regprocedure) d) x;                          -- vrai
+--   SELECT position('censure_sovarka_sans_effet_v1' in pg_get_functiondef('public.jauges_ordre_executer(text,uuid,jsonb)'::regprocedure)) > 0
+--      AND position('censure_sovarka_sans_effet_v1' in pg_get_functiondef('public.presse_censure_indice_interne(text)'::regprocedure)) > 0;  -- vrai
+--   SELECT position('contrebande_amende_douane_v1' in pg_get_functiondef('public.crime_contrebande(integer,integer)'::regprocedure)) > 0;  -- vrai
 --   SELECT position('benediction_serveur_v1' in pg_get_functiondef('public.commissaire_enquete_mener(uuid,text,boolean)'::regprocedure)) > 0
 --      AND position('benediction_serveur_v1' in pg_get_functiondef('public.filature_mener(uuid,text,boolean)'::regprocedure)) > 0;  -- vrai
 --   SELECT has_function_privilege('authenticated', 'public.benediction_contact_demander(uuid,text)', 'EXECUTE');                    -- vrai
@@ -93,6 +94,12 @@ BEGIN
     -- Échec repéré (décision de Fred, 25/11 fin de soirée) : amende égale au gain qu'aurait rapporté la contrebande,
     -- prise sur le liquide puis le compte national, dans la limite de ce que le joueur possède.
     v_amende := public.argent_debiter_interne(v_moi, v_gain, 'liquide_puis_nationale');
+    -- L'amende va à la caisse de la douane du pays (décision de Fred, 26/11) ; sans dette au-delà de l'argent du joueur.
+    IF coalesce(v_amende, 0) > 0 THEN
+      PERFORM set_config('rp.caisse_interne', 'on', true);
+      PERFORM public.caisse_institution_mouvement((SELECT country FROM public.personnages_donnees WHERE name = v_moi) || '_douane', v_amende, false);
+      PERFORM set_config('rp.caisse_interne', 'off', true); /* contrebande_amende_douane_v1 */
+    END IF;
   END IF;
   RETURN jsonb_build_object('ok', true, 'reussi', v_roll <= v_taux, 'repere', v_repere, 'saisie', 0,
     'amende', CASE WHEN v_repere AND v_roll > v_taux THEN v_gain ELSE 0 END, 'amende_payee', v_amende, 'gain', v_gain,
@@ -147,33 +154,24 @@ END $$;
 REVOKE ALL ON FUNCTION public.tractorisme_chanter_hymne(uuid) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.tractorisme_chanter_hymne(uuid) TO authenticated;
 
--- ── 1.10 Censure : scandale possible partout ; en Sovarka, popularité du parti au pouvoir ──────────────────────────
-INSERT INTO public.crim_parametres (cle, valeur) VALUES ('censure_scandale_taux', 30), ('censure_sovarka_hausse', 3), ('censure_sovarka_baisse', 5)
-ON CONFLICT (cle) DO NOTHING;
-
-CREATE OR REPLACE FUNCTION public.censure_sovarka_regime_interne(p_scandale boolean)
-RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public', 'pg_temp' AS $$
-DECLARE v_parti text := public.sovarka_parti_au_pouvoir(); v_delta numeric; v_pop numeric;
+-- ── 1.10 Censure en Sovarka : aucun effet sur le gouvernement ni sur les indices, jamais de scandale (Fred, 26/11) ──────
+-- Le scandale reste réservé à Républia (règle déjà en production). Le −8 à l'indice social (20261125500000) ne touche
+-- plus les villes de Sovarka, et le serveur rend indice_social = 0 en Sovarka (l'écran n'applique aucun reflet local).
+CREATE OR REPLACE FUNCTION public.presse_censure_indice_interne(p_pays text)
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public', 'pg_temp' AS $$
+DECLARE r record;
 BEGIN
-  IF v_parti IS NULL THEN RETURN jsonb_build_object('regime_delta', 0); END IF;
-  v_delta := CASE WHEN p_scandale THEN -public.crim_param_interne('censure_sovarka_baisse', 5)
-                  ELSE public.crim_param_interne('censure_sovarka_hausse', 3) END;
-  v_pop := public.sovarka_parti_pop_interne(v_parti, v_delta);
-  RETURN jsonb_build_object('regime_parti', v_parti, 'regime_delta', v_delta, 'regime_pop', v_pop); /* censure_sovarka_regime_v1 */
+  IF p_pays IS DISTINCT FROM 'republic' THEN RETURN; END IF; /* censure_sovarka_sans_effet_v1 */
+  FOR r IN SELECT id FROM public.indices_villes WHERE id LIKE p_pays || '\_%' ORDER BY id LOOP
+    PERFORM public.indice_ville_ajuster_interne(p_pays, substr(r.id, length(p_pays) + 2), 'social', -8);
+  END LOOP; /* jets_b1b_v1 */
 END $$;
-REVOKE ALL ON FUNCTION public.censure_sovarka_regime_interne(boolean) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.presse_censure_indice_interne(text) FROM PUBLIC, anon, authenticated;
 
 SELECT pg_temp.rp_remplacer('public.jauges_ordre_executer(text,uuid,jsonb)'::regprocedure,
-  $a$pa_cout:=2; v_detecte:=(a.country IS DISTINCT FROM 'soviet') AND random()<0.30;$a$,
-  $b$pa_cout:=2; v_detecte:=random()*100<public.crim_param_interne('censure_scandale_taux',30); /* censure_sovarka_v1 */$b$,
-  1, 'censure_sovarka_v1');
-SELECT pg_temp.rp_remplacer('public.jauges_ordre_executer(text,uuid,jsonb)'::regprocedure,
-  $a$    PERFORM public.presse_censure_indice_interne(a.country);$a$,
-  $b$    PERFORM public.presse_censure_indice_interne(a.country);
-    IF a.country='soviet' THEN
-      publication:=coalesce(publication,'{}'::jsonb)||public.censure_sovarka_regime_interne(coalesce((publication->>'scandale')::boolean,false));
-    END IF; /* censure_sovarka_regime_v1 */$b$,
-  1, 'censure_sovarka_regime_v1');
+  $a$jsonb_build_object('indice_social',-8,'indice_social_serveur',a.country='republic');$a$,
+  $b$jsonb_build_object('indice_social',CASE WHEN a.country='republic' THEN -8 ELSE 0 END,'indice_social_serveur',a.country='republic'); /* censure_sovarka_sans_effet_v1 */$b$,
+  1, 'censure_sovarka_sans_effet_v1');
 
 -- ── 2.1 Bénédiction tenue par le serveur ───────────────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.benedictions (

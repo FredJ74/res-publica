@@ -29,12 +29,16 @@ async function admPremiumCharger() {
   ligne(g, 'Publicité des annonceurs au réveil (joueurs gratuits, une par jour) — ' + (p.pub_externe_active === '1' ? 'ACTIVE ' : 'éteinte '),
     bouton(p.pub_externe_active === '1' ? 'Éteindre' : 'Activer', () => appliquer('premium_admin_parametre_fixer',
       { p_cle: 'pub_externe_active', p_valeur: p.pub_externe_active === '1' ? '0' : '1' }, m2)), m2);
-  const duree = document.createElement('input'); duree.type = 'number'; duree.min = 1; duree.max = 60; duree.value = p.publicite_joueur_duree_jours || 7; duree.style.width = '4rem';
-  const m3 = msg();
-  ligne(g, 'Durée d’une campagne de joueur (jours) : ', duree, ' ',
-    bouton('Enregistrer', () => appliquer('premium_admin_parametre_fixer', { p_cle: 'publicite_joueur_duree_jours', p_valeur: String(duree.value) }, m3)), m3);
+  // Publicités de joueurs (décision de Fred, 26/11) : deux durées de campagne, courte et longue, en jours (courte < longue).
+  const champJours = v => { const x = document.createElement('input'); x.type = 'number'; x.min = 1; x.max = 60; x.value = v; x.style.width = '4rem'; return x; };
+  const courte = champJours(p.publicite_duree_courte || 5), longue = champJours(p.publicite_duree_longue || 10);
+  const m3 = msg(), m4 = msg();
+  ligne(g, 'Campagne de publicité courte (jours) : ', courte, ' ',
+    bouton('Enregistrer', () => appliquer('premium_admin_parametre_fixer', { p_cle: 'publicite_duree_courte', p_valeur: String(courte.value) }, m3)), m3);
+  ligne(g, 'Campagne de publicité longue (jours) : ', longue, ' ',
+    bouton('Enregistrer', () => appliquer('premium_admin_parametre_fixer', { p_cle: 'publicite_duree_longue', p_valeur: String(longue.value) }, m4)), m4);
 
-  const pr = bloc('Prix (euros TTC, 2 € minimum ; vide = pas encore fixé, rien n’est affiché aux joueurs)');
+  const pr = bloc('Prix (euros TTC, 2 € minimum ; vide = pas encore fixé, rien n’est affiché aux joueurs ; campagne longue : prix par jour plus bas que la courte)');
   for (const x of r.produits || []) {
     const champ = document.createElement('input'); champ.type = 'number'; champ.min = 2; champ.step = '0.01'; champ.style.width = '6rem';
     champ.value = x.prix_centimes == null ? '' : (x.prix_centimes / 100).toFixed(2);

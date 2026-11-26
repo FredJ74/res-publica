@@ -11,12 +11,13 @@ function ouvrirPublicitePremium() {
   corps.innerHTML='<div style="padding:1rem;max-width:680px;margin:auto">'+
     '<h3 data-premium-i18n="fullPage">'+pubHT("fullPage","Votre pleine page publicitaire")+'</h3>'+
     '<p data-premium-i18n="beta">'+pubHT("beta","Offre bêta : création gratuite.")+'</p>'+
-    // Point 2.4 (fin de soirée du 25/11/2026) : plus de formules à cinq ou dix parutions ; une campagne à la fois, durée
-    // réglée par le MJ (le serveur la fixe). La valeur envoyée reste « cinq » pour l'ancienne fonction (sans la migration
-    // 20261125810000) ; la nouvelle l'ignore.
+    // Décision de Fred (26/11) : une campagne à la fois, deux durées au choix (courte ou longue, en jours, réglées par le MJ ;
+    // prix dégressif). Valeurs envoyées « cinq » / « dix » : comprises comme courte / longue par la migration 20261125810000,
+    // et encore acceptées par l'ancienne fonction tant qu'elle n'est pas appliquée.
     '<p data-premium-i18n="campaign"><strong>'+pubHT("campaign","Campagne")+'</strong></p>'+
-    '<p data-premium-i18n="campaignModel">'+pubHT("campaignModel","Une campagne à la fois : elle paraît chaque jour à partir du lendemain de sa validation, pendant la durée fixée par le MJ.")+'</p>'+
-    '<input type="hidden" id="pub-premium-formule" value="cinq">'+
+    '<p data-premium-i18n="campaignModel">'+pubHT("campaignModel","Une campagne à la fois : elle paraît chaque jour à partir du lendemain de sa validation, pendant la durée choisie.")+'</p>'+
+    '<p><label><input type="radio" id="pub-premium-duree-courte" name="pub-premium-duree" value="cinq" checked> <span data-premium-i18n="campaignShort">'+pubHT("campaignShort","Campagne courte")+'</span></label> '+
+    '<label><input type="radio" id="pub-premium-duree-longue" name="pub-premium-duree" value="dix"> <span data-premium-i18n="campaignLong">'+pubHT("campaignLong","Campagne longue (prix dégressif)")+'</span></label></p>'+
     '<label for="pub-premium-texte" data-premium-i18n="describe">'+pubHT("describe","Décrivez votre publicité")+'</label>'+
     '<textarea id="pub-premium-texte" rows="5" maxlength="1500" style="display:block;width:100%;padding:.6rem;margin:.4rem 0 1rem" placeholder="'+pubHT("placeholder","Commerce, organisation, slogan, message, ambiance graphique...")+'"></textarea>'+
     '<label style="display:block;margin-bottom:1rem"><input id="pub-premium-assistance" type="checkbox" checked> <span data-premium-i18n="assist">'+pubHT("assist","Assistance IA pour concevoir la page")+'</span></label>'+
@@ -36,7 +37,7 @@ async function publicitePremiumEnregistrerBrouillon(){
   const retour=document.getElementById('pub-premium-retour');
   const nom=state?.char?.name;
   const instructions=document.getElementById('pub-premium-texte')?.value.trim()||'';
-  const formule=document.getElementById('pub-premium-formule')?.value;
+  const formule=document.getElementById('pub-premium-duree-longue')?.checked?'dix':'cinq';
   const assistance=document.getElementById('pub-premium-assistance')?.checked===true;
   if(!nom||(instructions.length<10&&!document.getElementById('pub-premium-affiche')?.files?.length)){if(retour)retour.textContent=pubT("login","Connectez votre personnage et décrivez la publicité (10 caractères minimum), ou importez votre affiche finale.");return;}
   const sources=Array.from(document.getElementById('pub-premium-sources')?.files||[]);

@@ -51,8 +51,10 @@ test('9 langues : formulaire rendu et tarifs/identifiants/contraintes identiques
   // Point 2.4 (fin de soirée du 25/11/2026) : plus de formules 5 / 10 parutions ; une campagne à la fois, durée réglée par le MJ.
   assert.ok(!e.html.includes(fr.five)&&!e.html.includes(fr.ten),lang+' : formules retirées');
   assert.ok(e.html.includes('Une campagne à la fois')||e.html.includes(fr.campaignModel||'\u0000'),lang);
-  assert.ok(e.html.includes('<input type="hidden" id="pub-premium-formule" value="cinq">'),lang);
-  assert.ok(!e.html.includes('value="dix"'),lang);
+  // Décision de Fred (26/11) : deux durées au choix, courte (« cinq ») ou longue (« dix »), en jours réglés par le MJ.
+  assert.ok(e.html.includes('id="pub-premium-duree-courte" name="pub-premium-duree" value="cinq" checked'),lang);
+  assert.ok(e.html.includes('id="pub-premium-duree-longue" name="pub-premium-duree" value="dix"'),lang);
+  assert.ok(!e.html.includes('pub-premium-formule'),lang);
   assert.ok(e.html.includes('maxlength="1500"'),lang);
   assert.ok(e.html.includes('pub-premium-sources'),lang);
   assert.ok(e.html.includes('type="checkbox"'),lang);

@@ -5,7 +5,8 @@
 -- • rumeur_lancer : quand la rumeur circule (réussite), son texte (600 caractères au plus, comme l'annonce publique) est rangé
 --   dans l'affaire (crim_affaires.details : rumeur_texte, rumeur_annonce = id de l'annonce publique evenements_globaux).
 --   L'annonce publique reste écrite à l'identique (même table, même texte, même jour de jeu). Remplacement contrôlé,
---   marque chronique_rumeur_texte_v1. Une rumeur ratée ne circule pas : aucun texte.
+--   marque chronique_rumeur_texte_v1. Une rumeur ratée ne circule pas : aucun texte, aucune cible ; la chronique dit
+--   « une rumeur a couru, mais personne n'a su dire laquelle » (décision de Fred, 26/11 ; params.ratee).
 -- • chronique_empire_lire : le fait « acte » d'une rumeur rend aussi params.texte et params.annonce (remplacement contrôlé,
 --   même marque). Le texte est un texte de joueur : l'écran l'échappe et le confie à l'affichage des textes de joueurs
 --   (i18n/texte-joueur.js, lien « Voir l'original ») ; la source de traduction est l'annonce publique (api/_traduction-sources.js,
@@ -45,7 +46,8 @@ SELECT pg_temp.rp_remplacer('public.rumeur_lancer(text,text,text,text,integer,in
 
 SELECT pg_temp.rp_remplacer('public.chronique_empire_lire(timestamptz,integer)'::regprocedure,
   $a$jsonb_build_object('cible', CASE WHEN c.acte LIKE '%rumeur%' THEN coalesce(c.cible, c.cible_pnj) END, 'issue', c.issue) AS params,$a$,
-  $b$jsonb_build_object('cible', CASE WHEN c.acte LIKE '%rumeur%' THEN coalesce(c.cible, c.cible_pnj) END, 'issue', c.issue,
+  $b$jsonb_build_object('cible', CASE WHEN c.acte LIKE '%rumeur%' AND c.issue = 'reussite' THEN coalesce(c.cible, c.cible_pnj) END, 'issue', c.issue,
+             'ratee', CASE WHEN c.acte LIKE '%rumeur%' THEN c.issue IS DISTINCT FROM 'reussite' END,
              'texte', CASE WHEN c.acte LIKE '%rumeur%' THEN left(nullif(btrim(c.details ->> 'rumeur_texte'), ''), 600) END,
              'annonce', CASE WHEN c.acte LIKE '%rumeur%' AND jsonb_typeof(c.details -> 'rumeur_annonce') = 'number'
                              THEN (c.details ->> 'rumeur_annonce')::bigint END) AS params, /* chronique_rumeur_texte_v1 */$b$,

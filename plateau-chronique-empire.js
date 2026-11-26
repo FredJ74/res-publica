@@ -20,6 +20,8 @@
     // Actes illégaux : sans auteur connu / avec auteur connu.
     acte_voler: ['Un vol a été commis {lieu}.', '{auteur} a commis un vol {lieu}.'],
     acte_rumeur: ['Une rumeur calomnieuse{sur} circule {lieu}.', '{auteur} a lancé une rumeur calomnieuse{sur} {lieu}.'],
+    // Rumeur ratée (décision de Fred, 26/11) : personne ne sait ce qu'elle contenait.
+    acte_rumeur_ratee: ['Une rumeur a couru {lieu}, mais personne n\'a su dire laquelle.', '{auteur} a fait courir une rumeur {lieu}, mais personne n\'a su dire laquelle.'],
     // Rumeur citée en toutes lettres (Fred, 25/11/2026, mission de fin de soirée 3.1 ; migration 20261125860000).
     acte_rumeur_texte: ['Une rumeur circule {lieu} : « {texte} »', '{auteur} fait circuler une rumeur {lieu} : « {texte} »'],
     original: 'Voir l’original',
@@ -90,6 +92,9 @@
         const cle = cleActe(fait.cle);
         // Le texte d'une rumeur est un texte de joueur : échappé ici, puis confié à l'affichage des textes de joueurs
         // (traduction automatique et « Voir l'original ») une fois la ligne posée (voir textesJoueurs).
+        if (cle === 'acte_rumeur' && (p.ratee === true || (p.issue && p.issue !== 'reussite'))) {
+          return f(TXT.acte_rumeur_ratee[auteur ? 1 : 0], { auteur, lieu: lieu(fait) });
+        }
         if (cle === 'acte_rumeur' && p.texte) {
           const q = '<q class="hg-chron-rumeur" data-ref="' + esc(fait.ref) + '">' + esc(court(p.texte, 600)) + '</q>' +
             ' <button type="button" class="hg-chron-original" data-ref="' + esc(fait.ref) + '" hidden></button>';

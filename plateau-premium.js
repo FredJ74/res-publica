@@ -32,6 +32,8 @@
     pubIntro: 'Vantez votre commerce ou votre cause, dans le ton de la ville. Une campagne à la fois par support.',
     pubRue: 'Dans la rue (une apparition par jour et par passant, dans votre ville)',
     pubCinema: 'Au cinéma de Montrouge (avant la séance)',
+    pubCourte: 'Campagne courte',
+    pubLongue: 'Campagne longue (prix dégressif)',
     pubCommerce: 'Un commerce',
     pubCause: 'Une cause',
     pubTitreChamp: 'Accroche (60 caractères)',
@@ -133,6 +135,9 @@
     z.innerHTML = '<p>' + esc(t('pubIntro')) + '</p>' +
       '<label><input type="radio" name="hg-pub-support" value="rue" checked> ' + esc(t('pubRue')) + '</label><br>' +
       '<label><input type="radio" name="hg-pub-support" value="cinema"> ' + esc(t('pubCinema')) + '</label>' +
+      // Deux durées au choix, réglées par le MJ (décision de Fred, 26/11 ; migration 20261125810000).
+      '<p><label><input type="radio" name="hg-pub-duree" value="courte" checked> ' + esc(t('pubCourte')) + '</label> ' +
+      '<label><input type="radio" name="hg-pub-duree" value="longue"> ' + esc(t('pubLongue')) + '</label></p>' +
       '<p><label><input type="radio" name="hg-pub-objet" value="commerce" checked> ' + esc(t('pubCommerce')) + '</label> ' +
       '<label><input type="radio" name="hg-pub-objet" value="cause"> ' + esc(t('pubCause')) + '</label></p>' +
       '<label for="hg-pub-titre">' + esc(t('pubTitreChamp')) + '</label><input id="hg-pub-titre" maxlength="60" style="display:block;width:100%;margin:.3rem 0 .8rem">' +
@@ -142,8 +147,9 @@
     z.querySelector('#hg-pub-lancer').addEventListener('click', async () => {
       const support = (z.querySelector('input[name="hg-pub-support"]:checked') || {}).value;
       const objet = (z.querySelector('input[name="hg-pub-objet"]:checked') || {}).value;
+      const duree = (z.querySelector('input[name="hg-pub-duree"]:checked') || {}).value || 'courte';
       const r = un(await rpc('publicite_joueur_creer', { p_support: support, p_objet: objet,
-        p_titre: z.querySelector('#hg-pub-titre').value, p_texte: z.querySelector('#hg-pub-texte').value }));
+        p_titre: z.querySelector('#hg-pub-titre').value, p_texte: z.querySelector('#hg-pub-texte').value, p_duree: duree }));
       z.querySelector('#hg-pub-retour').textContent = r && r.ok ? t('pubLancee', { fin: dateFr(r.fin) }) : t('refus', { raison: raison(r ? r.raison : 'indisponible') });
       mesPublicites(z.querySelector('#hg-pub-mes'));
     });

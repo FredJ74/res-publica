@@ -1,6 +1,6 @@
 'use strict';
-// Mission de fin de soirée du 25/11/2026, point 2.4 : l'atelier de presse suit le modèle « une campagne à la fois par
-// support, durée réglée par le MJ » ; les formules 5 / 10 parutions disparaissent. Migration 20261125810000 dans PGlite, sur
+// Publicités de joueurs (décision de Fred, 26/11/2026) : une campagne à la fois par support, deux durées au choix (courte 5 j,
+// longue 10 j, réglées par le MJ), prix dégressif ; mêmes règles pour la rue, le cinéma et la presse. Migration 20261125810000 dans PGlite, sur
 // une doublure de publicites_premium_presse et de publicite_premium_creer_beta recopiées de la production (25/11/2026).
 // Usage : PGLITE_DIR=<…/node_modules/@electric-sql/pglite> node --test outils/bancs/banc-presse-campagne-pglite-20261125.cjs
 const test = require('node:test'), assert = require('node:assert/strict'), fs = require('node:fs'), path = require('node:path');
@@ -16,7 +16,10 @@ test('migration et fonction de presse : en-tête, contrôles, durée lue sur la 
   assert.match(f, /\(ad\.formule==="dix"\?10:5\)/, 'repli des campagnes anciennes');
   assert.doesNotMatch(f, /ad\.formule==="cinq"\?5:10/, 'plus de durée tirée de la seule formule');
   const ecran = lire('plateau-publicite-premium.js');
-  assert.doesNotMatch(ecran, /value="dix"|10 parutions|5 parutions/);
+  assert.doesNotMatch(ecran, /10 parutions|5 parutions|pub-premium-formule/);
+  assert.match(ecran, /name="pub-premium-duree" value="cinq"/); assert.match(ecran, /name="pub-premium-duree" value="dix"/);
+  assert.match(lire('plateau-premium.js'), /p_duree: duree/);
+  assert.match(lire('admin-premium.js'), /publicite_duree_courte/); assert.match(lire('admin-premium.js'), /publicite_duree_longue/);
 });
 
 const charger = process.env.PGLITE_DIR ? require('node:module').createRequire(path.join(process.env.PGLITE_DIR, 'index.js')) : require;
@@ -26,17 +29,37 @@ if (!PGlite) { test('PGlite absent : partie SQL exécutée avec PGLITE_DIR', { s
 
 const U = '00000000-0000-0000-0000-000000000001', V = '00000000-0000-0000-0000-000000000002';
 const SOCLE = `
-DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'authenticated') THEN CREATE ROLE authenticated; END IF; END $$;
+DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'authenticated') THEN CREATE ROLE authenticated; END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon') THEN CREATE ROLE anon; END IF; END $$;
 CREATE SCHEMA IF NOT EXISTS auth;
 CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $f$ SELECT nullif(current_setting('test.uid', true), '')::uuid $f$;
 CREATE TABLE personnages (name text PRIMARY KEY, user_id uuid);
 INSERT INTO personnages VALUES ('Olga', '${U}'), ('Ivan', '${V}');
-CREATE TABLE premium_parametres (cle text PRIMARY KEY, valeur text NOT NULL);
+CREATE TABLE premium_parametres (cle text PRIMARY KEY, valeur text NOT NULL, maj_le timestamptz DEFAULT now());
 INSERT INTO premium_parametres VALUES ('publicite_joueur_duree_jours', '7');
+CREATE TABLE premium_produits (produit text PRIMARY KEY, nature text, libelle text, prix_centimes integer, maj_le timestamptz DEFAULT now());
+INSERT INTO premium_produits VALUES ('credit_publicite_presse', 'unite', 'x', NULL), ('credit_publicite_rue', 'unite', 'x', NULL), ('credit_publicite_cinema', 'unite', 'x', NULL);
+CREATE TABLE premium_droits (id bigserial PRIMARY KEY, user_id uuid, produit text, cible text, consomme_le timestamptz, revoque_le timestamptz);
+CREATE TABLE premium_achats (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), produit text);
+CREATE TABLE admin_journal (admin_user_id uuid, admin_libelle text, action text, parametres jsonb, resultat jsonb, ok boolean);
+CREATE OR REPLACE FUNCTION admin_exiger() RETURNS void LANGUAGE sql AS $f$ SELECT $f$;
+CREATE TABLE personnages_donnees (name text PRIMARY KEY, country text, current_city text);
+INSERT INTO personnages_donnees VALUES ('Olga', 'republic', 'capitale'), ('Ivan', 'soviet', 'capitale');
+CREATE OR REPLACE FUNCTION mon_personnage() RETURNS text LANGUAGE sql STABLE AS $f$ SELECT name FROM personnages WHERE user_id = auth.uid() $f$;
+CREATE OR REPLACE FUNCTION premium_jour_interne() RETURNS date LANGUAGE sql STABLE AS $f$ SELECT DATE '2026-11-26' $f$;
+CREATE OR REPLACE FUNCTION publicite_joueur_texte_interne(p text, n integer) RETURNS text LANGUAGE sql IMMUTABLE AS $f$ SELECT left(btrim(coalesce(p, '')), n) $f$;
+CREATE TABLE publicites_joueurs (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), user_id uuid, personnage text, support text, pays text, ville text,
+  objet text, titre text, texte text, debut date, fin date, statut text DEFAULT 'active');
+CREATE OR REPLACE FUNCTION publicite_joueur_creer(p_support text, p_objet text, p_titre text, p_texte text) RETURNS jsonb LANGUAGE sql AS $f$ SELECT '{}'::jsonb $f$;
 CREATE OR REPLACE FUNCTION premium_param_interne(p_cle text, p_defaut text) RETURNS text LANGUAGE sql STABLE AS
   $f$ SELECT coalesce((SELECT valeur FROM premium_parametres WHERE cle = p_cle), p_defaut) $f$;
-CREATE OR REPLACE FUNCTION premium_option_source_interne(p_user uuid, p_produit text, p_cible text) RETURNS text LANGUAGE sql AS $f$ SELECT 'gratuit_beta' $f$;
-CREATE OR REPLACE FUNCTION premium_unite_utiliser_interne(p_user uuid, p_produit text, p_cible text) RETURNS boolean LANGUAGE sql AS $f$ SELECT false $f$;
+-- Sans bêta : option offerte seulement si test.option = 'oui' ; sinon une campagne achetée (premium_droits) de la bonne durée.
+CREATE OR REPLACE FUNCTION premium_option_source_interne(p_user uuid, p_produit text, p_cible text) RETURNS text LANGUAGE sql AS
+  $f$ SELECT CASE WHEN current_setting('test.option', true) = 'oui' THEN 'gratuit_beta' END $f$;
+CREATE OR REPLACE FUNCTION premium_unite_utiliser_interne(p_user uuid, p_produit text, p_cible text) RETURNS boolean LANGUAGE plpgsql AS $f$
+DECLARE v bigint;
+BEGIN SELECT id INTO v FROM premium_droits WHERE user_id = p_user AND produit = p_produit AND consomme_le IS NULL LIMIT 1;
+  IF v IS NULL THEN RETURN false; END IF; UPDATE premium_droits SET consomme_le = now() WHERE id = v; RETURN true; END $f$;
 CREATE TABLE publicites_premium_presse (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), acheteur_user_id uuid NOT NULL, personnage text NOT NULL,
   formule text NOT NULL, prix_centimes integer NOT NULL, nb_parutions integer, etat text NOT NULL DEFAULT 'brouillon', instructions text,
   assistance_ia boolean NOT NULL DEFAULT true, image_path text, paiement_confirme_le timestamptz, premiere_parution date, derniere_parution date,
@@ -69,26 +92,52 @@ INSERT INTO publicites_premium_presse (acheteur_user_id, personnage, formule, pr
 VALUES ('${V}', 'Ivan', 'cinq', 0, 'programmee', 'a.png', true, DATE '2026-11-10', DATE '2026-11-14'),
        ('${V}', 'Ivan', 'dix', 0, 'programmee', 'b.png', true, DATE '2026-11-01', DATE '2026-11-10');
 `;
-const creer = (db, nom) => db.query(`SELECT publicite_premium_creer_beta('${nom}', 'cinq', 'Venez au Café des Arts, le meilleur de Luthécia', true) id`);
+const creer = (db, nom, duree = 'cinq') => db.query(`SELECT publicite_premium_creer_beta('${nom}', '${duree}', 'Venez au Café des Arts, le meilleur de Luthécia', true) id`);
+const base = async () => { const db = new PGlite(); await db.exec(SOCLE); await db.exec(lire(MIG)); await db.exec("SET test.option = 'oui'"); return db; };
 
-test('création : campagne à la durée du MJ ; une seule à la fois ; une campagne finie libère la place ; anciennes lignes valides', async () => {
-  const db = new PGlite(); await db.exec(SOCLE); await db.exec(lire(MIG));
+test('presse : courte (5 j) ou longue (10 j) ; une seule à la fois ; une campagne finie libère la place ; anciennes lignes valides', async () => {
+  const db = await base();
   await db.exec(`SET test.uid = '${U}'`);
   const id = (await creer(db, 'Olga')).rows[0].id;
-  const r = (await db.query(`SELECT formule, nb_parutions FROM publicites_premium_presse WHERE id = '${id}'`)).rows[0];
-  assert.deepEqual(r, { formule: 'campagne', nb_parutions: 7 });
-  await assert.rejects(creer(db, 'Olga'), /Campagne de presse déjà en cours/);
-  // Programmée pour 7 jours : la contrainte accepte première + 6, refuse première + 4.
-  await assert.rejects(db.exec(`UPDATE publicites_premium_presse SET etat = 'programmee', image_path = 'c.png', premiere_parution = DATE '2026-11-01', derniere_parution = DATE '2026-11-05' WHERE id = '${id}'`), /programmation_payee/);
-  await db.exec(`UPDATE publicites_premium_presse SET etat = 'programmee', image_path = 'c.png', premiere_parution = DATE '2026-11-01', derniere_parution = DATE '2026-11-07' WHERE id = '${id}'`);
-  // Campagne finie (dernière parution passée) : une nouvelle campagne est permise ; le MJ a réglé 12 jours.
-  await db.exec(`UPDATE premium_parametres SET valeur = '12'`);
-  const id2 = (await creer(db, 'Olga')).rows[0].id;
-  assert.equal((await db.query(`SELECT nb_parutions FROM publicites_premium_presse WHERE id = '${id2}'`)).rows[0].nb_parutions, 12);
-  // Un autre compte n'est pas bloqué par la campagne d'Olga ; les deux campagnes anciennes d'Ivan sont terminées.
-  await db.exec(`SET test.uid = '${V}'`);
-  assert.ok((await creer(db, 'Ivan')).rows[0].id);
+  assert.deepEqual((await db.query(`SELECT formule, nb_parutions FROM publicites_premium_presse WHERE id = '${id}'`)).rows[0], { formule: 'courte', nb_parutions: 5 });
+  await assert.rejects(creer(db, 'Olga', 'longue'), /Campagne de presse déjà en cours/);
+  await assert.rejects(db.exec(`UPDATE publicites_premium_presse SET etat = 'programmee', image_path = 'c.png', premiere_parution = DATE '2026-11-01', derniere_parution = DATE '2026-11-07' WHERE id = '${id}'`), /programmation_payee/);
+  await db.exec(`UPDATE publicites_premium_presse SET etat = 'programmee', image_path = 'c.png', premiere_parution = DATE '2026-11-01', derniere_parution = DATE '2026-11-05' WHERE id = '${id}'`);
+  const id2 = (await creer(db, 'Olga', 'dix')).rows[0].id;
+  assert.deepEqual((await db.query(`SELECT formule, nb_parutions FROM publicites_premium_presse WHERE id = '${id2}'`)).rows[0], { formule: 'longue', nb_parutions: 10 });
+  await assert.rejects(creer(db, 'Olga', '30'), /Durée invalide|déjà en cours/);
   assert.equal((await db.query(`SELECT count(*)::int n FROM publicites_premium_presse WHERE formule IN ('cinq', 'dix')`)).rows[0].n, 2, 'lignes anciennes intactes');
-  // Rejouée, la migration ne change rien (marque déjà posée).
+  // Sans option : il faut une campagne achetée de la bonne durée.
+  await db.exec(`SET test.uid = '${V}'; SET test.option = 'non'`);
+  await assert.rejects(creer(db, 'Ivan', 'longue'), /Option premium requise/);
+  await db.exec(`INSERT INTO premium_droits (user_id, produit) VALUES ('${V}', 'campagne_publicite_longue')`);
+  assert.ok((await creer(db, 'Ivan', 'longue')).rows[0].id);
   await db.exec(lire(MIG));
+});
+
+test('rue et cinéma : même modèle (durée choisie, campagne achetée de la bonne durée) ; ancienne signature retirée', async () => {
+  const db = await base();
+  assert.equal((await db.query("SELECT to_regprocedure('public.publicite_joueur_creer(text,text,text,text)') IS NULL ok")).rows[0].ok, true);
+  await db.exec(`SET test.uid = '${U}'`);
+  let r = (await db.query("SELECT publicite_joueur_creer(p_support => 'rue', p_objet => 'commerce', p_titre => 'Café', p_texte => 'Le meilleur café de Luthécia') r")).rows[0].r;
+  assert.equal(r.ok, true); assert.equal(r.jours, 5); assert.equal(r.fin, '2026-11-30');
+  r = (await db.query("SELECT publicite_joueur_creer('cinema', 'cause', 'Liberté', 'Votez pour la liberté de la presse', 'longue') r")).rows[0].r;
+  assert.equal(r.ok, true); assert.equal(r.jours, 10); assert.equal(r.ville, 'ville_b');
+  await db.exec(`SET test.uid = '${V}'; SET test.option = 'non'`);
+  r = (await db.query("SELECT publicite_joueur_creer('rue', 'cause', 'Tracteur', 'Le tracteur est notre avenir', 'courte') r")).rows[0].r;
+  assert.equal(r.raison, 'option_premium_requise'); assert.equal(r.produit, 'campagne_publicite_courte');
+});
+
+test('MJ : durées réglables (courte < longue), prix dégressif, anciens crédits par support retirés', async () => {
+  const db = await base();
+  const fixer = async (c, v) => (await db.query('SELECT premium_admin_parametre_fixer($1, $2) r', [c, v])).rows[0].r;
+  assert.equal((await fixer('publicite_duree_courte', '7')).ok, true);
+  assert.equal((await fixer('publicite_duree_courte', '10')).raison, 'courte_doit_rester_plus_courte');
+  assert.equal((await fixer('publicite_duree_longue', '14')).ok, true);
+  const prix = async (p, c) => (await db.query('SELECT premium_admin_prix_fixer($1, $2) r', [p, c])).rows[0].r;
+  assert.equal((await prix('campagne_publicite_courte', 700)).ok, true);                      // 1 €/jour sur 7 jours
+  assert.equal((await prix('campagne_publicite_longue', 1400)).raison, 'prix_non_degressif');  // 1 €/jour : pas dégressif
+  assert.equal((await prix('campagne_publicite_longue', 1200)).ok, true);                      // < 1 €/jour
+  assert.equal((await prix('campagne_publicite_courte', 150)).raison, 'prix_inferieur_minimum');
+  assert.equal((await db.query("SELECT count(*)::int n FROM premium_produits WHERE produit LIKE 'credit_publicite_%'")).rows[0].n, 0);
 });

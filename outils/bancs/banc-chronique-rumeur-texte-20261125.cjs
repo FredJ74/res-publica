@@ -58,6 +58,13 @@ test('écran : la rumeur citée en toutes lettres, échappée, auteur anonyme ta
     'Une rumeur calomnieuse sur Sovarka circule à Marché, capitale.');
 });
 
+test('écran : rumeur ratée, « une rumeur a couru, mais personne n’a su dire laquelle » (Fred, 26/11)', () => {
+  const C = ecran().ctx.RPChroniqueEmpire;
+  const p = C.phrase({ cat: 'acte', cle: 'fausse_rumeur', ville: 'capitale', batiment: 'marche', auteur: null, params: { issue: 'echec', ratee: true } });
+  assert.match(p, /^Une rumeur a couru .*, mais personne n'a su dire laquelle\.$/);
+  assert.doesNotMatch(p, /calomnieuse|«/);
+});
+
 test('écran : traduction automatique par le service des textes de joueurs, « Voir l’original » qui bascule', async () => {
   const { ctx, noeuds } = ecran();
   const demandes = [];
@@ -159,6 +166,8 @@ test('serveur : la rumeur qui circule garde son texte (600 caractères) et son a
   assert.equal(ok.params.texte, long.slice(0, 600).trim());
   assert.equal(Number(ok.params.annonce), Number(annonces[0].id));
   assert.ok(ko, 'la rumeur ratée n’a pas de texte');
+  assert.equal(ko.params.ratee, true, 'rumeur ratée signalée (Fred, 26/11)'); assert.equal(ko.params.cible, undefined, 'ni cible');
+  assert.equal(ok.params.ratee, false);
   assert.doesNotMatch(JSON.stringify(r), /"auteur":"Ivan"/, 'auteur anonyme tant qu’il n’est pas identifié');
   await db.exec("UPDATE crim_affaires SET identifie = true WHERE details ? 'rumeur_texte'");
   const r2 = await lireChronique(db, 'Lecteur');
