@@ -13460,6 +13460,7 @@ BUILDINGS['locaux-starovka'].imagesAVenir = false;
     ['imprimerie-librairie', 'atelier', 'Platon Chriftov (PNJ)', 'Novo_typographe_portrait.webp'],
     ['pharmacie-officielle-novomirsk', 'comptoir_pharmacie', 'Valentina Pilioulkina (PNJ)', 'novo-valentina-pilioulkina-portrait.webp'],
     ['poissonniere-novomirsk', 'etal_poissonniere', 'Galina Karpova (PNJ)', 'novo-galina-karpova-portrait.webp'],
+    ['usine-pharmaceutique-luthecia', 'bureau_direction', 'Boris Kovaliov (PNJ)', 'novo-boris-kovaliov-portrait.webp'],   // 26/11 : dernier portrait manquant
     ['loge-maconnique', 'portail', 'Camarade Grand Maître (PNJ)', 'planche5-case1.webp'],
     ['loge-maconnique', 'hall_loge', 'Gavriil Zamkov', 'planche5-case2.webp'],
     ['loge-maconnique', 'bureau_venerable', 'Vénérable Maître Dimitri Compassov', 'planche5-case4.webp'],
