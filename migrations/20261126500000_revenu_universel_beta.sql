@@ -1,4 +1,4 @@
--- Décision de Fred du 26/11/2026 (21 h 29) — NON APPLIQUÉE. Après 20261126100000 (revenu universel).
+-- Décision de Fred du 26/11/2026 (21 h 29) — APPLIQUÉE en production le 26/11/2026 (feu vert de Fred, contrôlée en lecture : 20261219, vrai, vrai). Après 20261126100000 (revenu universel).
 -- REVENU UNIVERSEL PENDANT LA BÊTA : « Rends-le à tous les testeurs ». La limite des 10 premiers jours d'un personnage ne
 -- s'applique qu'à partir du LANCEMENT (19/12/2026, date de Paris) ; avant, tout personnage le touche, dans les deux empires.
 -- • revenu_universel_parametres : nouvelle clé « limite_a_partir » (date AAAAMMJJ, 20261219).
