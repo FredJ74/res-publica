@@ -389,4 +389,4 @@ Séance de game design de Fred du 26/11 : `docs/mission-decisions-20261126.md`.
 
 | Date | Décision | État | En ligne le | Commit | Source |
 |---|---|---|---|---|---|
-| 26/11/2026 | Contrebande : la contrebande se joue par fausse déclaration au fret ; l'ordre Contrebande portuaire est supprimé, décision de Fred du 26/11/2026 (migration 20261126230000). | en cours |  |  | Mission de nuit du 26/11, étape 1 |
+| 26/11/2026 | Contrebande : la contrebande se joue par fausse déclaration au fret ; l'ordre Contrebande portuaire est supprimé, décision de Fred du 26/11/2026 (migration 20261126230000 appliquée le 26/11/2026). | en ligne | 27/11/2026 | 8f12bcde | Mission de nuit du 26/11, étape 1 |

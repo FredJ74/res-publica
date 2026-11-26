@@ -9,6 +9,41 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Mission de nuit du 26/11/2026 (Claude) — compte rendu pour Fred
+
+1. **Travail en cours, terminé en premier.**
+   - Caisse des entrepôts : l'en-tête lit la vraie caisse dans les six entrepôts (Républia et Sovarka) et se met à jour
+     juste après un achat ; si la lecture échoue, il affiche « Caisse : indisponible », jamais un faux zéro. En ligne ;
+     la caisse de Luthécia se lit bien à 5 150 FR. Aucun solde touché, les 150 FR ne sont pas recrédités.
+   - Bloc 1A (descriptions et règles du 25/11) : déjà fusionné, rien à reprendre.
+   - Missions du soir du 25/11 : toutes les cases cochées, leurs migrations appliquées ; comptes rendus en place.
+2. **Parti en bêta, et comment le tester.**
+   - « Contrebande portuaire » n'existe plus : ni l'ordre au port (Starovka, El Estado, Al-Khalija), ni ses fonctions au
+     serveur, ni ses réglages, ni sa ligne du barème. À tester : au port, l'ordre a disparu ; « Corrompre un douanier »,
+     « Inspecter les cargaisons » et l'expédition d'une caisse de fret (réserver, remplir, déclarer, expédier) marchent
+     comme avant. La contrebande se joue désormais en déclarant mal sa caisse de fret.
+   - Page d'accueil du site : une erreur s'affichait dans la console à chaque visite (le fichier des données du jeu était
+     chargé deux fois). Corrigé. À tester : ouvrir human-gambit.com, créer ou ouvrir un compte comme d'habitude.
+   - Caisse des entrepôts (ci-dessus) : acheter des matières à un entrepôt, la caisse affichée monte aussitôt.
+3. **Liste « À vérifier en jeu ».** 13 points rayés, chacun avec le banc qui le prouve (Montrouge « Sortir », images de
+   l'église et de la maison de Kouzma, Praskovia et Kouzma, maisons rouge et bleue, « Se renseigner » en Sovarka, tabac-presse,
+   place de l'Ours, deux points du plan de Krasnov, portraits de Krasnov, renseignement de Sovarka, « Monsieur/Madame le
+   ministre » chez Petit, vente de terrain chez le notaire). Les 28 autres restent : ils dépendent d'un rôle (adjoint,
+   ministre, commandant du port), du prix réellement débité au serveur, de vraies réponses de l'IA ou d'un téléphone, et
+   aucun banc ne les couvre ; leurs bancs SQL se jouent sur la base de production et je ne les ai pas lancés sans votre accord.
+   Le permis de Jean Jaaj (31/10) n'a plus de trace en base : ce point est sans doute caduc.
+4. **Questions de game design en attente** : aucune.
+5. **Mise à jour de Claude Code** : réparée sans mot de passe. `claude doctor` ne signalait qu'un échec ponctuel du 26/11 ;
+   `claude update` répond désormais « à jour » (version 2.1.332).
+- **Limite de l'étape 3** : un vrai parcours avec compte demande un compte de test fourni par un opérateur, ou de cliquer le
+  lien du courriel de confirmation ; je n'en ai pas. J'ai donc rejoué les bancs navigateur de chaque étape (création,
+  interview, premier déplacement, agence pour l'emploi, salaire, « Bilan de la nuit », fret ; tous verts), et chargé le vrai
+  site dans Chrome à 1280 et 390 px. C'est ce contrôle qui a trouvé l'erreur de la page d'accueil.
+- Pour Codex : aucun texte français nouveau ; clés retirées : `orders.contrebande_port` (9 langues), `toastTitles.smugglingSucceeded`,
+  corps « Cargaison ajoutée à votre inventaire. -5 DIS. ».
+- PR impossibles avec le jeton local (« Resource not accessible by personal access token ») : chaque branche a été fusionnée
+  par avance rapide après une CI verte, comme pour les missions précédentes.
+
 ### Décisions du 26/11/2026 (Claude) — cases : `docs/mission-decisions-20261126.md`
 - **Bloc A (fait)** : 810000 revue (campagnes courte 5 j / longue 10 j, prix dégressif tenu par `premium_admin_prix_fixer`,
   durées `publicite_duree_courte` / `_longue` dans la page MJ, produits `campagne_publicite_courte` / `_longue` pour tous les
@@ -1340,6 +1375,7 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 
 ## Derniers chantiers
 
+- **Suppression de l'ordre « Contrebande portuaire »** (Claude, 27/11/2026, branche `claude/suppression-contrebande-20261127`, fusion 8f12bcde ; décision de Fred du 26/11) : ordre retiré de `data.js` (×3), du routeur, de la navigation, de `plateau-core.js`, de `plateau-chances-reelles.js`, des traductions et des seeds ; migration `20261126230000_suppression_contrebande_portuaire` appliquée et contrôlée (fonctions `crime_contrebande`, `crim_contrebande_taux_interne`, `crim_contrebande_gain_interne` supprimées ; ligne retirée de `ordres_chances_audit_interne` par remplacement contrôlé, marque `contrebande_supprimee_v1` ; réglages `contrebande_gain*`, coût et infraction effacés ; 0 cargaison en inventaire). Banc `banc-suppression-contrebande-pglite-20261127.cjs` ; bancs du 25/11 et décomptes i18n mis à jour ; ordre ajouté aux tarifs retirés des plans de recette. Décision consignée dans `GAME-DESIGN-DOUANES.md` et `GAME-DESIGN-CRIMINALITE.md`.
 - **Accueil : `data.js` chargé deux fois** (Claude, 27/11/2026, branche `claude/chasse-bugs-accueil-20261127`, mission de nuit, étape 3) : trouvé en chargeant human-gambit.com dans Chrome (1280 et 390 px) : la page d'accueil chargeait `data.js` deux fois (reste de la fusion de la Purge du 24/11) et le second chargement levait « Identifier 'COUNTRIES' has already been declared » dans la console. Ligne en double retirée ; banc `test-scripts-uniques-20261127.mjs` (aucune page ne charge deux fois le même script).
 - **Caisse des entrepôts dans l'en-tête** (Claude, 26/11/2026, branche `claude/caisse-entrepot-20261126`, fusion 8330abc5) : bug de Fred (achat de 150 FR à Luthécia, caisse affichée à 0). L'en-tête lisait l'ancien `etat.entrepot.caisse`, abandonné le 08/10 ; il lit désormais `caisses_batiments.<pays>_entrepot_<ville>` (`rpAfficherCaisseEntrepot`, `plateau-navigation.js`) pour les six entrepôts de Républia et de Sovarka, se relit après un achat réussi (`confirmerAchatEntrepot`), affiche « Caisse : indisponible » si la lecture échoue (jamais un faux zéro) et ignore une réponse arrivée après un changement de lieu. Aucun solde modifié, 150 FR non recrédités. Vérifié en bêta : le site sert le nouveau code ; la lecture du client renvoie 5 150 FR pour Luthécia. Bancs `test-caisse-entrepot-20261126.mjs`, `banc-i18n-building-header-20261116.cjs` adapté. PR impossible avec le jeton local (« Resource not accessible by personal access token ») : fusion par avance rapide après CI verte (29/29).
 - **Image de la caisse de fret** (Claude, 26/11/2026, branche `claude/fret-image-caisse-20261126`) : caisse en bois fournie par Fred (`images/fret-caisse-bois.webp`, 384×384) affichée en tête des trois écrans de l'expédition au port (réserver une caisse, remplir la caisse ouverte, caisses fermées prêtes à partir), `plateau-justice-economie.js`. Contexte : décision de Fred du 26/11, l'ordre « Contrebande portuaire » sera supprimé (pas encore codé, en attente du feu vert du lot) ; la contrebande se joue par fausse déclaration au fret.
