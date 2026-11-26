@@ -115,7 +115,8 @@ def preparer(paquet=None):
           {'fn':'acheter_armoire_souvenirs','pa':0,'cost':0},
           {'fn':'virement_joueur','pa':1,'cost':0},
           {'fn':'virement_automatique','pa':1,'cost':0},
-          {'fn':'consommer_buvette','pa':1,'cost':50}]  # retire par #682 (doublon de « Consulter la carte »)
+          {'fn':'consommer_buvette','pa':1,'cost':50},  # retire par #682 (doublon de « Consulter la carte »)
+          {'fn':'contrebande_port','pa':3,'cost':0}]  # supprimé le 26/11/2026 (Fred) : la contrebande se joue au fret
  if any(x['fn'] in {r['fn'] for r in retires} for x in source):
   raise ValueError('Un ordre retiré ne doit plus figurer au catalogue actuel')
  source_historique=source_historique+retires

@@ -56,6 +56,11 @@ def preparer(destination=None):
  if any((r['fn'],r['pa'],r['cost']) in retires_informateurs for r in gen):
   raise ValueError('Tarif retiré réintroduit dans les commandes actuelles')
  retires=retires+retires_informateurs
+ # Décision de Fred du 26/11/2026 : « Contrebande portuaire » supprimée (la contrebande se joue au fret).
+ retires_contrebande=[('contrebande_port',3,0)]
+ if any((r['fn'],r['pa'],r['cost']) in retires_contrebande for r in gen):
+  raise ValueError('Tarif retiré réintroduit dans les commandes actuelles')
+ retires=retires+retires_contrebande
  # Prix d'achat des nouvelles parcelles de PSM (decision de Fred, 04/11/2026), posterieurs a la photographie.
  ajouts_terrains_psm={('acheter_terrain',2,c) for c in (19800,37200,50400,66000)}
  if not ajouts_terrains_psm<= {(r['fn'],r['pa'],r['cost']) for r in gen}:

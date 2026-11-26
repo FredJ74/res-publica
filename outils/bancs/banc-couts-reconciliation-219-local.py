@@ -21,6 +21,9 @@ def main():
  retires_variantes={('corrompre_chantier',2,1500),('corrompre_fonct',3,500),('corrompre_fonct#reussite',0,500),('corrompre_fonctionnaire_permis',2,800),('corrompre_rdv_notaire',2,800)}
  assert not retires_variantes&{(x['fn'],x['pa'],x['cost']) for x in source},'tarif retiré encore au catalogue';canon|=retires_variantes
  # Criminalité, décisions du 20/11/2026 : « Obtenir du Polonium » retiré du port orphelin de Novomirsk.
+ # Décision de Fred du 26/11/2026 : « Contrebande portuaire » supprimée (la contrebande se joue au fret).
+ retires_contrebande={('contrebande_port',3,0)}
+ assert not retires_contrebande&{(x['fn'],x['pa'],x['cost']) for x in source},'contrebande portuaire encore au catalogue';canon|=retires_contrebande
  retires_polonium={('acheter_polonium',2,600)}
  assert not retires_polonium&{(x['fn'],x['pa'],x['cost']) for x in source},'tarif retiré encore au catalogue';canon|=retires_polonium
  # Refonte des informateurs (22/11/2026) : « Recruter un informateur » et les informateurs recrutés retirés ; « Acheter une information » ajouté.
