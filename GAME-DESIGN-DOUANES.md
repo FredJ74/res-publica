@@ -65,6 +65,10 @@ Fred valide un **malus de 30 % au jet de détection** des personnes recherchées
 - **Qui paie l'amende** (Fred, 04/11, précisé) : l'expéditeur, souvent étranger, échappe à la loi républienne et peut ignorer l'injonction. L'amende reste donc **due sur la caisse** : l'expéditeur peut la régler ; sinon le destinataire qui veut récupérer sa commande la paie (avec le dédouanement) et se débrouille ensuite avec le vendeur (non codé) ; si personne ne paie, la caisse est **saisie et vendue pour le compte du Trésor** (vente des caisses non réclamées à J15, produit versé au Trésor). Migration `20261104123000_fret_amende_caisse`.
 - **Valeur des marchandises non déclarées** : prix de référence du jeu — prix de base des matières (`ressources_economie`), prix fixe des produits de commerce ; un objet sans prix connu ne compte pas.
 
+## Décision de Fred du 26/11/2026 : contrebande par le fret
+
+- **La contrebande se joue par fausse déclaration au fret ; l'ordre Contrebande portuaire est supprimé, décision de Fred du 26/11/2026.** L'ordre faisait payer 3 PA pour une « Cargaison de contrebande » invendable (amende de 500 FR / 100 PSK en cas d'échec repéré). On remplit désormais une caisse au port industriel, on la déclare librement ; une caisse sur trois est inspectée et une fausse déclaration est punie de l'amende ci-dessus. Le fret est ouvert à Port-Sainte-Marie (Républia) et au port de Starovka (Sovarka). « Corrompre un douanier » et l'inspection des caisses ne changent pas. Migration `20261126230000_suppression_contrebande_portuaire`.
+
 ## Mise en œuvre (04/11/2026, Claude)
 
 - Déclaration structurée : à la fermeture, l'expéditeur coche les lots déclarés (`contenu_caisses_fret.declaree`) ; la nature (texte) et la valeur déclarée restent la base des droits de douane.

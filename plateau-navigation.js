@@ -3082,34 +3082,8 @@ async function commanderCorruptionDouanesServeur(pa,cost) {
 // ouvrirExpedierColis()/ouvrirReceptionnerCommande() dans plateau-justice-economie.js (section
 // FRET MARITIME INTERNATIONAL, tables Supabase dediees caisses_fret + contenu_caisses_fret).
 
-async function doContrebandePort(pa, cost) {
-  // PAR LE SERVEUR (27 octobre 2026) : crime_contrebande (jet, cargaison en inventaire,
-  // discretion, detection).
-  const v = await appelerCrimeServeur('crime_contrebande', { p_pa: pa, p_cost: cost });
-  if (!v || v.ok !== true) { signalerRefusCout(v || { raison: 'paiement_indisponible' }); return; }
-  adopterEtatCrimeServeur(v);
-  // Audit des chances (Fred, 25/11 au soir) : la douane peut repérer la manœuvre qu'elle réussisse ou non ; un échec repéré
-  // fait saisir la contrebande portée sur soi. L'écran dit ce que le serveur a décidé, rien de plus.
-  if (v.reussi) {
-    const corps = 'Cargaison ajoutée à votre inventaire. -5 DIS.' + (v.repere ? ' Mais la douane vous a repéré : vous êtes recherché.' : '');
-    showToast('Contrebande réussie !', corps, true, true);
-    addJournalEntry('Contrebande portuaire réussie' + (v.repere ? ', mais repérée par la douane.' : '.'), 'event-bad');
-  } else if (v.repere) {
-    // Fin de soirée du 25/11 (Fred) : un échec repéré coûte une amende égale au gain qu'aurait rapporté la contrebande
-    // (migration 20261125820000) ; sans elle, l'ancien serveur saisissait la contrebande portée sur soi.
-    const amende = Number(v.amende) || 0, payee = Number(v.amende_payee) || 0;
-    const detail = amende > 0
-      ? ' Amende de ' + amende + (payee < amende ? ' (vous n’avez pu en payer que ' + payee + ')' : '') + '.'
-      : (v.saisie > 0 ? ' Votre contrebande est saisie.' : '');
-    if (typeof v.liquide === 'number') state.liquide = v.liquide;
-    showToast('Échec !', 'La douane a repéré la manœuvre : vous êtes recherché.' + detail, false);
-    addJournalEntry('Contrebande portuaire manquée et repérée par la douane.' + detail, 'event-bad');
-  } else {
-    showToast('Échec', 'La manœuvre a échoué, sans que la douane ne vous repère.', false);
-  }
-  adopterDetectionServeur(v, 'contrebande_port');
-  updateUI();
-}
+// « Contrebande portuaire » (doContrebandePort) supprimée le 26/11/2026 (décision de Fred) : la contrebande se joue par
+// fausse déclaration au fret du port (GAME-DESIGN-DOUANES.md).
 
 async function doBlocusPortuaire(pa, cost) {
   // GAME-DESIGN-BLOCUS.md, Fred 02/11 : même blocus, mêmes participants,

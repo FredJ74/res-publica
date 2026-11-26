@@ -342,10 +342,10 @@
     {
       "source": "i18n/orders-resources.js",
       "packed": "i18n/packed/orders-resources.js.br",
-      "sourceBytes": 252108,
-      "packedBytes": 49182,
-      "sourceSha256": "5196aa5ad593ab126e9ca48f811a07d1eec6761d388b48e08e5412e97fb41475",
-      "packedSha256": "667311fa26d7530ccc79cf5c304380134039c620e176b62c5a4403a367ac8067"
+      "sourceBytes": 251655,
+      "packedBytes": 49210,
+      "sourceSha256": "777634e04577105f13f807d2346f66e2e3157085faf14397454ba84bbf3dd800",
+      "packedSha256": "4e6ce32728b207593c8b1b4e680e503d7484cdd2abc7c5fab85939b963a9183e"
     },
     {
       "source": "i18n/organization-admissions-resources.js",
@@ -646,18 +646,18 @@
     {
       "source": "i18n/toast-bodies-resources.js",
       "packed": "i18n/packed/toast-bodies-resources.js.br",
-      "sourceBytes": 781147,
-      "packedBytes": 196091,
-      "sourceSha256": "84940435f770726027b7c84135122dedbedfed4de2237fbb01f67a369e5fc679",
-      "packedSha256": "5ef651e58011cb0c1f63072d0c83a0d5070120e2635f6c3636c052389e5e3067"
+      "sourceBytes": 780685,
+      "packedBytes": 195926,
+      "sourceSha256": "ca72d290f7b57c98a041e51109b84b2a1c125eebfed36ed7fca9260a350720ee",
+      "packedSha256": "2977123075f3d32af925cf0af89d4f966a29b4ff768a05b09a57cd2b2bae0242"
     },
     {
       "source": "i18n/toast-resources.js",
       "packed": "i18n/packed/toast-resources.js.br",
-      "sourceBytes": 57031,
-      "packedBytes": 11426,
-      "sourceSha256": "8a57409e44396e0a59163dcb86b9f9d995cbf507d88ed82f56df7fc6c9bcc96e",
-      "packedSha256": "7a31f25b9ee96521f5ab242acefc3f1c207101dd9cc0463444bfa3871b2ccc4a"
+      "sourceBytes": 56486,
+      "packedBytes": 11276,
+      "sourceSha256": "b3ae1f29ff3fb0b9504d07df59766e64a0d8626b72c4d1622cd702e4460ec575",
+      "packedSha256": "b86337fd1b25b2a31e52e08c4676d484921e1989e82ca295626b0b6075ea249d"
     },
     {
       "source": "i18n/tracts-resources.js",

@@ -597,7 +597,6 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'corrompre_douanier')     { doCorrompreDoanier(pa, cost); return; }
   if (fn === 'expedier_colis')         { ouvrirExpedierColis(pa, cost); return; }
   if (fn === 'receptionner_commande')  { ouvrirReceptionnerCommande(pa, cost); return; }
-  if (fn === 'contrebande_port')       { doContrebandePort(pa, cost); return; }
   if (fn === 'blocus_portuaire')       { doBlocusPortuaire(pa, cost); return; }
   if (fn === 'inspecter_cargaisons')   { doInspecterCargaisons(pa, cost); return; }
   if (fn === 'consulter_manifeste')    { doConsulterManifeste(); return; }

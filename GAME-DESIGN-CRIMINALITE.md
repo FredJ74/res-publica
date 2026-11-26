@@ -9,6 +9,8 @@ Remplace la note « Assassinats discrets » de `GAME-DESIGN-QUESTIONS-APRES-SOVA
 - La criminalité est un moteur de jeu important : ni dissuadée, ni intouchable.
 - L'identité de l'assassin doit rester inconnue dans la grande majorité des cas, pour entretenir la tension liée au risque d'être neutralisé.
 
+**Contrebande (26/11/2026)** : la contrebande se joue par fausse déclaration au fret ; l'ordre Contrebande portuaire est supprimé, décision de Fred du 26/11/2026 (voir `GAME-DESIGN-DOUANES.md`). L'ordre, ses fonctions serveur (`crime_contrebande` et ses deux auxiliaires), ses réglages et sa ligne du barème des infractions sont retirés ; le poisson « de l'autre rive » de la poissonnière de Novomirsk et « Corrompre un douanier » restent.
+
 ## 1. Se dissimuler avant d'agir
 
 Trois façons d'agir :

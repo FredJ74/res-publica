@@ -24,7 +24,6 @@ test('écran : descriptions alignées sur le serveur, aucun pourcentage de réus
     falsifier_listes_electorales: [/2 jours de détention/],
     truquer_depouillement: [/3 jours de détention/],
     bourrer_urnes: [/1 jour de détention/],
-    contrebande_port: [/au plus 85 %/, /Réussie ou non, la douane peut vous repérer/, /amende égale au gain/],
     tentative_evasion: [/\+1 jour de détention \(2 en Sovarka\)/, /amende de 500/],
     se_rebeller: [/-15 DIS, \+4 jours de détention/, /ni transfert, ni grilles endommagées/],
     visiter_prisonnier: [/aucun jet/, /une visite par jour et par détenu/, /seuls un avocat inscrit au barreau et le conjoint du détenu/, /conversation privée/],
@@ -38,14 +37,14 @@ test('écran : descriptions alignées sur le serveur, aucun pourcentage de réus
     assert.ok(l.length > 0, fn + ' absent de data.js');
     for (const x of l) for (const m of motifs) assert.match(desc(x), m, fn + ' : ' + desc(x));
   }
-  for (const fn of ['voler_materiel_chantier', 'lancer_rumeur_cible', 'marchander_vote', 'contrebande_port', 'corrompre_douanier', 'tentative_evasion', 'se_rebeller']) {
+  for (const fn of ['voler_materiel_chantier', 'lancer_rumeur_cible', 'marchander_vote', 'corrompre_douanier', 'tentative_evasion', 'se_rebeller']) {
     for (const x of ordres(fn)) {
       assert.doesNotMatch(desc(x), /parodique|Succ[eè]s \(\d+ ?%\)|Chance \d+ ?%|[+-]\d+ ?% (modificateur|zone)|DIS\/10|transferement|transfert au QHS|7 jours/i, fn + ' : ' + desc(x));
     }
   }
   assert.match(lire('plateau-politique.js'), /rateAffiche = \(rate !== null && rpChances && typeof rpChances\.sansTauxEcrit === 'function' && rpChances\.sansTauxEcrit\(o\.fn\)\) \? null : rate;/);
   const cr = lire('plateau-chances-reelles.js');
-  for (const fn of ['bourrer_urnes', 'falsifier_listes_electorales', 'truquer_depouillement', 'contrebande_port', 'tentative_evasion', 'se_rebeller',
+  for (const fn of ['bourrer_urnes', 'falsifier_listes_electorales', 'truquer_depouillement', 'tentative_evasion', 'se_rebeller',
     'ecouter_rumeurs', 'inspecter_cargaisons', 'voler_materiel_chantier', 'fuite_info', 'soins_discrets']) assert.match(cr, new RegExp("'" + fn + "'"));
   assert.doesNotMatch(lire('plateau-personnage.js'), /Math\.max\(5, 30 - malusISN\)/, 'plus de « 30 − ISN » calculé à l\'écran');
   assert.match(lire('plateau-personnage.js'), /ordres_chances_lire', \{ p_fns: \['incendier'\] \}/);
@@ -70,9 +69,8 @@ test('écran : visite au parloir lue et décidée au serveur, repli sans débit'
   assert.doesNotMatch(bloc, /deduireCoutOrdre|Visite effectuée|prisonniers_qhs/);
 });
 
-test('écran : contrebande, évasion et rébellion disent ce que le serveur renvoie', () => {
-  const n = lire('plateau-navigation.js'); const b = n.slice(n.indexOf('async function doContrebandePort'), n.indexOf('async function doBlocusPortuaire'));
-  assert.match(b, /v\.repere/); assert.match(b, /v\.saisie > 0/);
+// Contrebande portuaire supprimée le 26/11/2026 (décision de Fred) : banc-suppression-contrebande-pglite-20261127.cjs.
+test('écran : évasion et rébellion disent ce que le serveur renvoie', () => {
   const j = lire('plateau-justice-economie.js');
   assert.match(j, /const joursEv = Number\(r\.jours_ajoutes \|\| 0\);/);
   assert.match(j, /const joursReb = Number\(r\.jours_ajoutes \|\| 0\);/);
@@ -338,7 +336,7 @@ test('serveur : migration rejouable, raccords présents, mobiliser à 0 PA', asy
   const db = await base();
   await db.exec(corps(MIG));
   for (const [fn, m] of [['fraude_electorale_tenter(text,text,text,text,integer)', 'audit_chances_fraude_jours_v1'],
-    ['fraude_electorale_tenter(text,text,text,text,integer)', 'audit_chances_fraude_taux_v1'], ['crime_contrebande(integer,integer)', 'audit_chances_contrebande_v1'],
+    ['fraude_electorale_tenter(text,text,text,text,integer)', 'audit_chances_fraude_taux_v1'],
     ['detention_tenter_evasion(integer,integer,boolean)', 'audit_chances_evasion_v1'], ['detention_tenter_evasion(integer,integer,boolean)', 'crim_grilles_evasion_v1'],
     ['detention_se_rebeller(integer,integer)', 'audit_chances_rebellion_v1'], ['rumeur_ecoute_jauges_interne(text)', 'audit_chances_poissonniere_v1'],
     ['jauges_ordre_executer(text,uuid,jsonb)', 'audit_chances_port_novomirsk_v1'], ['jauges_ordre_executer(text,uuid,jsonb)', 'audit_chances_inspection_v1'],
@@ -361,33 +359,6 @@ test('serveur : fraudes — échec 2 jours (listes), 1 jour (urnes), 3 jours (d�
     assert.equal(lu[fn], v.taux, fn);
   }
   assert.equal(lu.bourrer_urnes, 63); assert.equal(lu.falsifier_listes_electorales, 73); assert.equal(lu.truquer_depouillement, 78);
-});
-
-test('serveur : contrebande — plafond 85 %, douane sur réussite comme sur échec, saisie sur un échec repéré', async () => {
-  const db = await base();
-  await db.exec(`INSERT INTO personnages_donnees (name, country, current_city, resources, stats, inventory) VALUES
-    ('C', 'narco', 'capitale', '{"dis": 90}', '{"DUP": 20}', '[{"id": "x1", "type": "contrebande", "name": "Cargaison de contrebande"}, {"id": "y", "type": "pain"}]')`);
-  await moi(db, 'C'); await reglage(db, 'isn', 0);
-  assert.equal((await un(db, "SELECT crim_contrebande_taux_interne('C') AS t")).t, 85, 'plafond 85');
-  assert.equal((await un(db, "SELECT ordres_chances_lire(ARRAY['contrebande_port']) AS r")).r.chances.contrebande_port, 85);
-  await reglage(db, 'malus', 10);
-  assert.equal((await un(db, "SELECT ordres_chances_lire(ARRAY['contrebande_port']) AS r")).r.chances.contrebande_port, 75, 'dissuasion déduite');
-  await reglage(db, 'malus', 0);
-  let echecRepere = 0, reussiteRepere = 0;
-  await reglage(db, 'repere', true);
-  for (let i = 0; i < 60; i++) {
-    const v = (await un(db, 'SELECT crime_contrebande(3, 0) AS v')).v;
-    assert.equal(v.taux, 85); assert.equal(v.reussi, v.jet <= v.taux);
-    assert.equal(v.repere, true, 'la douane est consultée à chaque tentative');
-    const nb = (await un(db, "SELECT count(*)::int AS n FROM personnages_donnees, jsonb_array_elements(inventory) o WHERE name = 'C' AND o ->> 'type' = 'contrebande'")).n;
-    if (!v.reussi) { echecRepere++; assert.equal(nb, 0, 'échec repéré : contrebande saisie'); assert.ok(v.saisie >= 0); }
-    else { reussiteRepere++; assert.ok(nb >= 1, 'réussite repérée : la cargaison reste'); }
-  }
-  assert.ok(echecRepere > 0 && reussiteRepere > 0, 'les deux issues ont été vues');
-  const pain = (await un(db, "SELECT count(*)::int AS n FROM personnages_donnees, jsonb_array_elements(inventory) o WHERE name = 'C' AND o ->> 'type' = 'pain'")).n;
-  assert.equal(pain, 1, 'seule la contrebande est saisie');
-  const det = (await un(db, "SELECT count(*)::int AS n FROM journal_banc WHERE quoi = 'detecter'")).n;
-  assert.equal(det, 60);
 });
 
 test('serveur : évasion et rébellion — la chance lue est celle de l\'ordre ; échecs selon la règle gardée', async () => {

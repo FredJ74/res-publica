@@ -11,9 +11,8 @@ const MIG = 'migrations/20261125820000_fin_soiree_regles_chances.sql';
 test('écran et descriptions : chaque règle est annoncée telle que le serveur l’applique', () => {
   const data = lire('data.js');
   const desc = fn => [...data.matchAll(new RegExp("fn:'" + fn + "'[^\\n]*?desc:(['\"])((?:\\\\.|(?!\\1).)*)\\1", 'g'))].map(m => m[2]);
-  const contrebande = desc('contrebande_port');
-  assert.equal(contrebande.length, 3);
-  for (const d of contrebande) { assert.match(d, /amende égale au gain/); assert.doesNotMatch(d, /saisir/); }
+  // Contrebande portuaire supprimée le 26/11/2026 (décision de Fred) : banc-suppression-contrebande-pglite-20261127.cjs.
+  assert.equal(desc('contrebande_port').length, 0);
   for (const d of desc('censurer_media')) { assert.match(d, /Sovarka : censure normale, sans effet sur le gouvernement ni sur les indices, et jamais de scandale/); assert.doesNotMatch(d, /parti au pouvoir/); }
   const visites = desc('visiter_prisonnier');
   assert.equal(visites.length, 3, 'QHS, commissariat central et commissariats locaux');
@@ -27,7 +26,6 @@ test('écran et descriptions : chaque règle est annoncée telle que le serveur 
   assert.match(div, /sbRpcVerdict\('tractorisme_chanter_hymne'/);
   assert.match(div, /sbRpcVerdict\('benediction_contact_demander'/);
   assert.equal((div.match(/PGRST202/g) || []).length >= 2, true);
-  assert.match(lire('plateau-navigation.js'), /v\.amende_payee/);
   assert.doesNotMatch(lire('plateau-politique.js'), /v\.regime_delta/);
   // Demi-effet : la pastille lit « <ordre>_demi ».
   const cr = lire('plateau-chances-reelles.js');
@@ -197,36 +195,6 @@ async function base() {
 }
 const un = async (db, sql) => (await db.query(sql)).rows[0];
 const moi = (db, nom) => db.exec(`SELECT set_config('banc.moi', '${nom}', false)`);
-
-test('contrebande : un échec repéré coûte une amende égale au gain (dans la limite des fonds), la réussite porte sa valeur', async () => {
-  const db = await base();
-  await moi(db, 'Jo');
-  await db.exec("SELECT set_config('banc.taux', '0', false); SELECT set_config('banc.repere', 'true', false)");
-  let v = (await un(db, 'SELECT crime_contrebande(3, 0) AS v')).v;
-  assert.equal(v.reussi, false); assert.equal(v.repere, true);
-  assert.equal(Number(v.amende), 500); assert.equal(Number(v.amende_payee), 300, 'pris dans la limite du liquide');
-  assert.equal(Number((await un(db, "SELECT liquide FROM personnages_donnees WHERE name = 'Jo'")).liquide), 0);
-  const douane = async id => Number((await un(db, `SELECT data->>'solde' s FROM caisses_batiments WHERE id = '${id}'`))?.s ?? 0);
-  assert.equal(await douane('republic_douane'), 300, 'amende versée à la caisse de la douane (Fred, 26/11)');
-  // Non repéré : aucune amende.
-  await db.exec("UPDATE personnages_donnees SET liquide = 900 WHERE name = 'Jo'; SELECT set_config('banc.repere', 'false', false)");
-  v = (await un(db, 'SELECT crime_contrebande(3, 0) AS v')).v;
-  assert.equal(Number(v.amende), 0);
-  assert.equal(Number((await un(db, "SELECT liquide FROM personnages_donnees WHERE name = 'Jo'")).liquide), 900);
-  // Réussite repérée : la cargaison porte sa valeur, aucune amende (la recherche seule).
-  await db.exec("SELECT set_config('banc.taux', '100', false); SELECT set_config('banc.repere', 'true', false)");
-  v = (await un(db, 'SELECT crime_contrebande(3, 0) AS v')).v;
-  assert.equal(v.reussi, true); assert.equal(Number(v.amende), 0);
-  assert.equal(Number(v.inventory.find(o => o.type === 'contrebande').valeur), 500);
-  // Sovarka : le gain réglé pour Sovarka (100 PSK), compte national entamé après le liquide.
-  await moi(db, 'Ivan');
-  await db.exec("UPDATE personnages_donnees SET liquide = 40 WHERE name = 'Ivan'; INSERT INTO comptes_bancaires VALUES ('c1', 'Ivan', 'nationale', 1000, now())");
-  await db.exec("SELECT set_config('banc.taux', '0', false)");
-  v = (await un(db, 'SELECT crime_contrebande(3, 0) AS v')).v;
-  assert.equal(Number(v.amende), 100); assert.equal(Number(v.amende_payee), 100);
-  assert.equal(Number((await un(db, "SELECT solde FROM comptes_bancaires WHERE id = 'c1'")).solde), 940);
-  assert.equal(await douane('soviet_douane'), 100, 'caisse de la douane de Sovarka');
-});
 
 test('médaille du Tractorisme : offerte au premier chant à la Grange Sainte de Novomirsk, jamais une seconde fois', async () => {
   const db = await base();

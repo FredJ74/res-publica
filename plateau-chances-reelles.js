@@ -9,7 +9,7 @@
   // Ordres dont le serveur sait lire la chance avant le clic (voir ordres_chances_lire).
   // Mission du soir (25/11, bloc 1A) : ordres de l'audit des chances (migration 20261125400000, ordres_chances_audit_interne).
   const ORDRES = ['se_cacher', 'acheter_bombe_illegale', 'utiliser_explosifs', 'lancer_rumeur_cible',
-    'bourrer_urnes', 'falsifier_listes_electorales', 'truquer_depouillement', 'contrebande_port', 'tentative_evasion',
+    'bourrer_urnes', 'falsifier_listes_electorales', 'truquer_depouillement', 'tentative_evasion',
     'se_rebeller', 'ecouter_rumeurs', 'inspecter_cargaisons', 'contester_resultats', 'falsifier_document',
     'voler_materiel_chantier', 'corrompre_fonct', 'corrompre_gardien', 'fuite_info', 'soins_discrets'];
   // Ordres sans jet de réussite (le serveur vend, accorde ou exécute à coup sûr) : aucun pourcentage n'est affiché.

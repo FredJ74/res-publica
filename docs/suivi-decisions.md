@@ -384,3 +384,9 @@ Séance de game design de Fred du 26/11 : `docs/mission-decisions-20261126.md`.
 | 26/11/2026 | 10 Traduction des textes de joueurs : forum raccordé en priorité (traduction automatique pour un lecteur dont l'interface n'est pas en français, bouton « Traduire » sinon, « Voir l'original »), rumeurs de la chronique branchées ; route /api/traduction, cache et quota par compte réglables par le MJ (migration 20261126300000 appliquée le 26/11/2026). | en ligne | 26/11/2026 | 37551108 | Décisions du 26/11, n° 10 |
 | 26/11/2026 | Technique : la bénédiction exige au serveur un religieux habilité présent dans la pièce (religieux déclarés de Républia et de Sovarka ; migration 20261126400000). | en ligne | 26/11/2026 | 5686e527 | Décisions du 26/11, décisions techniques |
 | 26/11/2026 | Technique : « Mobiliser les membres » trouve le syndicat d'un joueur à l'étranger (relecture des organisations avant le refus, monnaie du syndicat). | en ligne | 26/11/2026 | 5686e527 | Décisions du 26/11, décisions techniques |
+
+## Mission de nuit du 26/11/2026
+
+| Date | Décision | État | En ligne le | Commit | Source |
+|---|---|---|---|---|---|
+| 26/11/2026 | Contrebande : la contrebande se joue par fausse déclaration au fret ; l'ordre Contrebande portuaire est supprimé, décision de Fred du 26/11/2026 (migration 20261126230000). | en cours |  |  | Mission de nuit du 26/11, étape 1 |

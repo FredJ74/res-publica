@@ -358,7 +358,7 @@ function verifierProgressionCarriere(branche, succes) {
 // Etats propres : state.char.queteCarriere = { ambition:'criminel', etape, resultat:null }
 //   a_rencontrer -> colis_recu -> colis_livre -> terminee
 // Remplace l'ancienne mission "contrebande au port, a plusieurs" (verifierProgressionCarriere
-// n'est plus appelee pour cette branche, voir doContrebandePort). Ne passe plus par l'ancien
+// n'est plus appelee pour cette branche ; l'ordre de contrebande portuaire a ete supprime le 26/11/2026). Ne passe plus par l'ancien
 // dispatcher generique ouvrirBriefCarriere/debriefCarriere (retire le 18 aout 2026, plus aucune
 // des 3 branches ne l'utilisait) : dispatch dedie ci-dessous, texte/image repris de
 // QUETE_CARRIERE_BRIEFS.criminel et QUETE_CARRIERE_DEBRIEFS.criminel.

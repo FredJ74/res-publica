@@ -3,10 +3,10 @@ const test=require('node:test');
 const assert=require('node:assert/strict');
 const report=require('../audits/etat-i18n-ordres.cjs');
 
-test('couverture des 423 identifiants sans faux positifs de source',()=>{
+test('couverture des 422 identifiants sans faux positifs de source',()=>{
  assert.equal(report.locales.length,9);
- assert.equal(report.catalogueFrenchKeys,423); // −2 corrompre_rdv_notaire, corrompre_chantier (20/11, criminalité lot 7)  ; +1 boutique_climat (19/11, climat lot 5) ; +1 acheter_graisse (19/11, climat lot 4) ; +1 acheter_furet (18/11, maladies lot 2c)
- assert.equal(report.canonicalMatches,417); // Polonium et cinq anciens contrats d’informateurs retirés ; traductions conservées.
+ assert.equal(report.catalogueFrenchKeys,422); // −1 contrebande_port (26/11/2026) ; −2 corrompre_rdv_notaire, corrompre_chantier (20/11, criminalité lot 7)  ; +1 boutique_climat (19/11, climat lot 5) ; +1 acheter_graisse (19/11, climat lot 4) ; +1 acheter_furet (18/11, maladies lot 2c)
+ assert.equal(report.canonicalMatches,416); // −1 contrebande_port (26/11/2026) ; Polonium et cinq anciens contrats d’informateurs retirés ; traductions conservées.
  const retraits=['acheter_polonium','recruter_informateur_pnj','recruter_info_4','recruter_informateur_2','consulter_info_4','gerer_informateurs'];
  assert.deepEqual(report.retiredCanonical.slice().sort(),retraits.slice().sort());
  const exec=require('node:child_process').execFileSync,path=require('node:path');
@@ -18,7 +18,7 @@ test('couverture des 423 identifiants sans faux positifs de source',()=>{
  assert.ok(report.missingStable.every(item => item.fn !== 'sovarka_soviet_deputes'));
 
  for(const [locale,data] of Object.entries(report.perLocale)){
-  assert.equal(data.keys,423,locale);
+  assert.equal(data.keys,422,locale);
   assert.deepEqual(data.missing,[],locale);
   assert.deepEqual(data.extra,[],locale);
  }

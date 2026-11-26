@@ -10,7 +10,6 @@ INSERT INTO public.infractions (id,libelle,categorie,jours_reference,amende_refe
   ('assassiner_feu', 'Assassinat', 'crime', 2, 1500, 60, true, true),
   ('assassiner_mains', 'Assassinat', 'crime', 2, 1500, 30, true, true),
   ('blanchiment', 'Delit grave', 'delit_grave', 1, 1500, 35, false, true),
-  ('contrebande_port', 'Delit mineur', 'delit_mineur', 1, 500, 20, false, true),
   ('corrompre_douanier', 'Delit mineur', 'delit_mineur', 1, 500, 35, false, true),
   ('corrompre_fonct', 'Corruption de fonctionnaire', 'delit', 1, 1000, 30, true, true),
   ('corrompre_gardien', 'Delit mineur', 'delit_mineur', 1, 500, 35, false, true),

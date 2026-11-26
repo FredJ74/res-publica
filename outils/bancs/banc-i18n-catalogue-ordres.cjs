@@ -9,9 +9,9 @@ const win={};const ctx=vm.createContext({window:win});
 for(const file of ['resources.js','orders-resources.js','ordres.js'])
  vm.runInContext(fs.readFileSync(path.join(root,'i18n',file),'utf8'),ctx);
 const engine={t(key,{lng,defaultValue}){return key.split('.').reduce((v,k)=>v?.[k],win.RP_I18N_RESOURCES[lng].translation)??defaultValue}};
-test('423 ordres canoniques ont les mêmes identifiants dans neuf langues',()=>{
+test('422 ordres canoniques ont les mêmes identifiants dans neuf langues',()=>{
  const ref=Object.keys(win.RP_I18N_RESOURCES.fr.translation.orders);
- assert.equal(ref.length,423); // −2 corrompre_rdv_notaire, corrompre_chantier (20/11, criminalité lot 7)  ; +1 boutique_climat (19/11, climat lot 5) ; +1 acheter_graisse (19/11, climat lot 4) ; +1 acheter_furet (18/11, maladies lot 2c)
+ assert.equal(ref.length,422); // −1 contrebande_port (26/11, ordre supprimé par Fred) ; −2 corrompre_rdv_notaire, corrompre_chantier (20/11, criminalité lot 7)  ; +1 boutique_climat (19/11, climat lot 5) ; +1 acheter_graisse (19/11, climat lot 4) ; +1 acheter_furet (18/11, maladies lot 2c)
  for(const lang of Object.keys(win.RP_I18N_LANGUAGES)) {
   const data=win.RP_I18N_RESOURCES[lang].translation.orders;
   assert.deepEqual(Object.keys(data),ref);
@@ -277,9 +277,9 @@ test('20 ordres immobilier et services sociaux : labels source et contrats incha
 });
 
 
-test('20 ordres organisations et relations sociales : parité source et opérations immuables',()=>{
+test('19 ordres organisations et relations sociales (contrebande portuaire supprimée le 26/11/2026) : parité source et opérations immuables',()=>{
  const source=fs.readFileSync(path.join(root,'data.js'),'utf8');
- const ids=["orga_pelerinage","orga_excommunier","orga_blocus","orga_dividendes","orga_audit","orga_intimidation","orga_cooptation","orga_reseau","orga_campagne_presse","orga_fake_news","orga_scoop","orga_silence","orga_motion_supporters","orga_hooliganisme","blocus_portuaire","contrebande_port","se_confesser","pelerin","financer_oeuvre_culturelle","relations_bilaterales"];
+ const ids=["orga_pelerinage","orga_excommunier","orga_blocus","orga_dividendes","orga_audit","orga_intimidation","orga_cooptation","orga_reseau","orga_campagne_presse","orga_fake_news","orga_scoop","orga_silence","orga_motion_supporters","orga_hooliganisme","blocus_portuaire","se_confesser","pelerin","financer_oeuvre_culturelle","relations_bilaterales"];
  const seen=new Map();
  for(const item of source.matchAll(/\bfn\s*:\s*(['"])([^'"\n]+)\1\s*,\s*label\s*:\s*(['"])([^'"\n]+)\3/g)){
   if(!seen.has(item[2]))seen.set(item[2],new Set());

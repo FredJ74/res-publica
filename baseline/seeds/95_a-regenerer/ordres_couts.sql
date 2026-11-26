@@ -129,7 +129,6 @@ INSERT INTO public.ordres_couts (fn,pa,cost) VALUES
   ('consulter_syndicat_etat',0,0),
   ('contester_resultats',2,200),
   ('contrebande_poissonniere',1,0),
-  ('contrebande_port',3,0),
   ('controler_caisse_douane',1,0),
   ('corrompre_douanier',1,300),
   ('corrompre_fonct',3,1500),

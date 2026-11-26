@@ -22,15 +22,15 @@ const idTitles={
  journeyConfirmed:'Voyage confirmé',attemptNotSent:'Tentative non envoyée',
  attemptUnconfirmed:'Tentative non confirmée',attemptDenied:'Tentative refusée',
  attemptRegistered:'Tentative enregistrée',attemptFailed:'Tentative échouée',
- smugglingSucceeded:'Contrebande réussie !',smugglingDetected:'Contrebande détectée !',
+ smugglingDetected:'Contrebande détectée !',
  inspectionCompleted:'Inspection terminée',inspectionNoResult:'Inspection sans résultat',
- blockadeUnavailable:'Blocus indisponible',inspectionAlreadyHandled:'Inspection déjà traitée',
- failedWithPunctuation:'Échec !'
+ blockadeUnavailable:'Blocus indisponible',inspectionAlreadyHandled:'Inspection déjà traitée'
+ // failedWithPunctuation ('Échec !') et smugglingSucceeded ne sont plus émis par la navigation : contrebande portuaire supprimée le 26/11/2026.
 };
-test('27 alertes d opérations réelles, françaises canoniques, présentes en neuf langues',()=>{
+test('25 alertes d opérations réelles, françaises canoniques, présentes en neuf langues',()=>{
  const langs=Object.keys(win.RP_I18N_LANGUAGES);
  assert.equal(langs.length,9);
- assert.equal(Object.keys(idTitles).length,27);
+ assert.equal(Object.keys(idTitles).length,25); // −2 smugglingSucceeded, failedWithPunctuation (contrebande portuaire supprimée, 26/11/2026)
  for(const [key,original] of Object.entries(idTitles)){
   assert.ok(src.includes(original),'titre non déclaré dans navigation : '+original);
   assert.equal(win.RP_I18N_RESOURCES.fr.translation.toastTitles[key],original,key);
