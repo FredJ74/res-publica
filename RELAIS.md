@@ -9,8 +9,35 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Mission de fin de soirée (Claude, 25/11/2026) — cases : `docs/mission-soir2-20261125.md`
+- Étape zéro : les cinq migrations du soir sont appliquées et contrôlées (voir la mission du soir ci-dessous).
+- Trois branches enchaînées `claude/soir2-a-20261125` → `b` → `c` (fusion `claude/soir2-chaine-20261125`). Comptes rendus,
+  « Pour Codex » et questions : `docs/soir2/BLOC-A.md`, `BLOC-B.md`, `BLOC-C.md`.
+- **Migrations écrites, NON appliquées** (dans l'ordre ; contrôles en tête de chaque fichier) : 20261125800000 (renouvellement
+  d'image rendu ; puis redéployer `commerce-decoration` et `logement-decoration`), 810000 (presse : une campagne à la fois,
+  durée MJ ; puis déployer `publicite-premium`, désormais versionnée), 820000 (contrebande à l'amende, médaille du Tractorisme,
+  censure en Sovarka, bénédiction et charisme au serveur, demi-effet), 850000 (Simone Aiguillard, caissière du cinéma de
+  Montrouge, et ticket au cinéma), 860000 (texte des rumeurs dans la chronique). Sans elles, comportement actuel.
+- Banc `banc-jets-serveur-b1b-pglite` (signalé par Fred : 18 PA au lieu de 20) : le serveur ne prélève rien sur un refus
+  de corruption (paiement seulement dans la branche d'accord, vérifié en production) ; le banc était aléatoire (PA non
+  remis à 20 après un accord tiré dans sa boucle ; argent épuisé après dix articles réussis). Corrigé, 25/25 en local.
+- Service de traduction des textes de joueurs : aucune route ouverte ; la rumeur s'affiche en original tant qu'il ne l'est pas.
+
 ### Mission du soir (Claude, 25/11/2026) — cases : `docs/mission-soir-20261125.md` ; reprise : « Reprends docs/mission-soir-20261125.md au premier point non coché »
 - Étape zéro faite : les six migrations de la mission de jour sont appliquées et contrôlées (voir ci-dessous).
+- Blocs 1 à 4 codés en quatre branches, fusionnées en chaîne linéaire `claude/soir-b1a-20261125` → `b1b` → `b3` → `b4`
+  (branche de fusion `claude/soir-chaine-20261125`), **fusionnée dans main le 25/11 (32d9b22b), CI verte**. Correctifs de
+  fusion : listes historiques des recettes (`acheter_souvenir` 0/0, `mobiliser` gardé à 2 PA dans la coupe), bancs i18n des
+  descriptions remplacées, Chromium des bancs à 60 s (20 s faisaient échouer la CI, main compris). Comptes rendus, « Pour Codex » et questions : `docs/soir/BLOC-1A.md`,
+  `BLOC-1B.md`, `BLOC-3.md`, `BLOC-4.md`.
+- **Migrations APPLIQUÉES en production le 25/11 en fin de soirée** (feu vert de Fred, dans l'ordre ; registre
+  20261125213758 à 20261125214807) : 20261125400000 (audit des chances), 410000 (visite d'un détenu), 500000 (jets au serveur),
+  600000 (souvenirs, listes 2-4, frontières fermées), 700000 (premium). Les cinq contrôles en lecture donnent le résultat
+  attendu. Fonctions Supabase redéployées : `commerce-decoration` (v14), `logement-decoration` (v3). Aucun compte de paiement
+  ni aucune clé : le fournisseur n'est pas arrêté.
+- Remise à zéro du 19/12 : `docs/premium/REMISE-A-ZERO-20261219.md` (préparée, jamais exécutée ; 40 tables mixtes à écrire).
+  Le script et son modèle sont rangés dans `historique/preparations-lancement/` (règle des trois maisons du SQL, 26/11) ;
+  le générateur reste `outils/lancement/generer-remise-a-zero.py`.
 
 ### Mission de jour (Claude, 25/11/2026) — décisions : `GAME-DESIGN-MISSION-JOUR-20261125.md` ; suivi : `docs/suivi-decisions.md`, « Mission de jour »
 - **Fusionné dans main le 25/11** (avance rapide, 71944623) : chaîne `claude/jour-b1-20261125` → `claude/jour-b2-20261125` →
@@ -1260,6 +1287,9 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 ## Derniers chantiers
 
 - **Recontrôle portraits Novomirsk (ChatGPT, 25/11/2026, branche `chatgpt/portraits-bio-20261125`)** : 34 entrées revues, dont 4 en pièces exclues ; aucun nouveau recadrage fiable ; descriptions artistiques proposées et observations consignées dans les deux audits portraits du 24/11. Aucun changement de données de jeu. Fusion conditionnée à la CI complète.
+- **« Plus d'informations sur les PA ? » pose la question** (Claude, 25/11/2026, branche `claude/pa-infirmiere-20261125`) : en arrivant par le lien chez l'infirmière d'accueil, la question « pouvez-vous m'expliquer ce que sont les PA… » est envoyée à sa place, au lieu de l'accueil générique (plateau-medecin-montrer.js). Texte nouveau pour Codex : `paInfosQuestion`.
+- **Portraits de Mathias Spirine et d'Anne Tibiotique** (Claude, 25/11/2026, même branche) : recadrés depuis l'illustration de la salle d'attente du dispensaire de Luthécia (`images/luthecia-dispensaire-*-portrait.webp`, 512×512) et raccordés dans data.js (photoUrl).
+
 - **Portraits PNJ Novomirsk et guides (ChatGPT, 24/11/2026, PR #1196)** : recadrages existants de Valentina Petchatkina et Zinaïda Kvassova raccordés ; contrôle 140 apparitions = 105 portraits existants + 35 à produire, six guides sortis des images de marché et prompts/chemins réservés (`outils/audits/portraits/PORTRAITS-A-PRODUIRE-20261124.md`) ; Fiodor Medvedkine déclaré mais absent du monde effectif de Krasnov, hors périmètre portraits.
 - **Infobulle de l'argent** (Claude, 24/11/2026, branche `claude/infobulle-argent-20261124`) : la case « ARGENT » du panneau de gauche reste l'argent en poche (décision de Fred) ; son survol donne « Argent total : X (poche, banque, placements) » (`majInfobulleArgent`, plateau-core.js). Retour de Han Watta Tsé, qui croyait avoir perdu 2 500 PSK (ils étaient à la Banque nationale).
 - **Salle d'audience sans identifiant** (Claude, 24/11/2026, même branche) : « Assister a cette affaire » avec le champ vide ne lance plus une fenêtre bloquée sur « Chargement... » (message « Indiquez d'abord l'identifiant de l'affaire ») ; quand la liste est lisible et vide, la salle dit « Aucune audience ne se tient en ce moment » (plateau-justice-economie.js). Retour du même joueur.

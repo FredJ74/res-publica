@@ -70,7 +70,7 @@ const T = {
     r_ordre_remplace: 'Ordre remplacé : rouvrez la fiche de la personne.', r_butin_invalide: 'Choix de butin invalide.',
     r_type_invalide: 'Type d’objet invalide.',
     pCrocheter: 'Crocheter — {pa} PA', pForcer: 'Forcer la porte — {pa} PA',
-    pNote: 'Crocheter demande un kit de crochetage et ne laisse aucune trace ; forcer la porte détruit la serrure, alerte aussitôt le propriétaire et fait du bruit (un pied-de-biche aide).',
+    pNote: 'Crocheter demande un kit de crochetage ; même réussi, le crochetage laisse une trace (une intrusion est notée, une affaire est ouverte), et un échec critique détruit le kit et prévient le propriétaire. Forcer la porte détruit la serrure, alerte aussitôt le propriétaire et fait du bruit (un pied-de-biche aide).',
     cOk: 'Serrure crochetée', cOkText: 'La serrure cède sans un bruit. Elle se referme derrière vous.', cKitUse: 'Votre kit est usé : il est hors d’usage.',
     cKitReste: 'Votre kit servira encore {n} fois.', cFail: 'Raté', cFailText: 'La serrure résiste. Vous pouvez réessayer.',
     cCrit: 'Le crochet casse', cCritText: 'Votre kit s’est brisé dans la serrure : le propriétaire en trouvera la trace.',

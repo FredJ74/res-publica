@@ -161,6 +161,9 @@ async function equipementInstaller(generique) {
 
 async function equipementOptionPremium() {
   const r = await sbRpc('equipement_option_premium_activer', {}).catch(function () { return null; });
+  // Hors bêta, sans droit (socle premium du 25/11/2026) : la fenêtre premium propose l'option pour CE bureau.
+  if (r && r.raison === 'option_premium_requise' && typeof ouvrirPremium === 'function') {
+    ouvrirPremium('bureau_six', [state.country, state.currentCity, state.currentBuilding, state.currentRoom].join('|')); return; }
   if (!r || r.ok !== true) { showToast(texteEquip('refuseT', 'Refusé'), equipementsRefus(r), false); return; }
   showToast(texteEquip('optActivee', 'Option premium activée'), texteEquip('emplBureau', '{n} emplacements dans ce bureau.', {n: r.emplacements}), true);
   ouvrirModalEquipements();

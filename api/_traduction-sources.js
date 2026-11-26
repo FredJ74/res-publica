@@ -11,6 +11,9 @@ const SOURCES = Object.freeze({
   forum_post: Object.freeze({table:'forum_posts',id:'id',fields:Object.freeze(['content']),privacy:'rls_via_forum_topic'}),
   forum_topic: Object.freeze({table:'forum_topics',id:'id',fields:Object.freeze(['title']),privacy:'rls_forum_lecture_autorisee'}),
   chat_message: Object.freeze({table:'messages_chat',id:'id',fields:Object.freeze(['message']),privacy:'rls_chat_participe'}),
+  // Annonces publiques (evenements_globaux, politique SELECT « lecture publique » sous RLS, vérifiée le 25/11/2026) : le texte
+  // d'une rumeur, cité par la chronique de l'empire (mission de fin de soirée, 3.1 ; migration 20261125860000).
+  annonce_publique: Object.freeze({table:'evenements_globaux',id:'id',fields:Object.freeze(['texte']),privacy:'rls_evenements_globaux_lecture_publique'}),
   // Audience et articles en attente : aucune politique SELECT RLS ordinaire
   // démontrée le 03/11/2026. Ne pas rendre traduisibles avant une porte
   // de lecture serveur canoniquement autorisée et testée.

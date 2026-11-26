@@ -52,6 +52,8 @@ async function evenement(db, type, jours, { heure = 12, heures = 6, ville = 'cap
     [type, jours, heures, heure, pays, ville, effets])).id;
 }
 const nuit = async db => (await un(db, "SELECT chantier_jour_traiter('republic_terrain-a-batir-3') r")).r;
+// Débuts d'événement bornés au minuit du jour (heure de Paris) : « now() − 1 h » tombait la veille entre minuit et une heure
+// et faisait échouer le banc selon l'heure (CI du 26/11 à 00 h 50).
 const lireCh = async db => JSON.parse((await un(db, 'SELECT data FROM terrains_etat')).data).chantier;
 
 test('D.1 avant / après : une canicule créée commençait à une heure au hasard ; elle commence désormais à 12 h et finit à 18 h', async () => {
@@ -88,7 +90,7 @@ test('D.1 : les canicules déjà planifiées passent à 12 h (correction publié
   // Espacement : une crue en cours bloque le pays ; la canicule non annoncée qui tombe dessus est reportée… à 12 h.
   await db.query('DELETE FROM climat_evenements');
   await evenement(db, 'crue', 3, { heure: 10, heures: 6, effets: false });
-  await db.query("UPDATE climat_evenements SET debut = now() - interval '1 hour', fin = now() + interval '5 days', alerte_le = now() - interval '3 days'");
+  await db.query("UPDATE climat_evenements SET debut = greatest(now() - interval '1 hour', (date_trunc('day', now() AT TIME ZONE 'Europe/Paris') AT TIME ZONE 'Europe/Paris') + interval '1 second'), fin = now() + interval '5 days', alerte_le = now() - interval '3 days'");
   const c = await evenement(db, 'canicule', 4, { heure: 12, effets: false });
   await db.query('UPDATE climat_evenements SET alerte_le = NULL, debut_prevu = debut WHERE id = $1', [c]);
   assert.equal((await un(db, "SELECT climat_espacer_interne('republic') n")).n, 1);
@@ -100,7 +102,7 @@ test('D.1 : les canicules déjà planifiées passent à 12 h (correction publié
 test('D.2 avant / après : orage et blizzard arrêtaient les chantiers ; seules canicule et crue les arrêtent', async () => {
   const avant = await base({ jusqua: 1 });
   await evenement(avant, 'orage', 0, { heure: 0, heures: 23 });
-  await avant.query("UPDATE climat_evenements SET debut = now() - interval '1 hour', fin = now() + interval '3 hours'");
+  await avant.query("UPDATE climat_evenements SET debut = greatest(now() - interval '1 hour', (date_trunc('day', now() AT TIME ZONE 'Europe/Paris') AT TIME ZONE 'Europe/Paris') + interval '1 second'), fin = now() + interval '3 hours'");
   assert.equal((await un(avant, "SELECT climat_chantiers_bloques_interne('republic','capitale') b")).b, true, 'avant : l’orage bloquait');
   const db = await base({ jusqua: 2 });
   const p = Object.fromEntries((await db.query('SELECT type, pays, bloque_chantiers b FROM climat_parametres')).rows.map(r => [r.type + '/' + r.pays, r.b]));
@@ -109,7 +111,7 @@ test('D.2 avant / après : orage et blizzard arrêtaient les chantiers ; seules 
   for (const type of ['orage', 'blizzard', 'brouillard']) {
     await db.query('DELETE FROM climat_evenements');
     await evenement(db, type, 0, { heure: 0, heures: 23, pays: type === 'blizzard' ? 'soviet' : 'republic', ville: type === 'blizzard' ? 'ville_a' : 'capitale' });
-    await db.query("UPDATE climat_evenements SET debut = now() - interval '1 hour', fin = now() + interval '3 hours'");
+    await db.query("UPDATE climat_evenements SET debut = greatest(now() - interval '1 hour', (date_trunc('day', now() AT TIME ZONE 'Europe/Paris') AT TIME ZONE 'Europe/Paris') + interval '1 second'), fin = now() + interval '3 hours'");
     const v = type === 'blizzard' ? "('soviet','ville_a')" : "('republic','capitale')";
     assert.equal((await un(db, 'SELECT climat_chantiers_bloques_interne' + v + ' b')).b, false, type + ' ne bloque pas');
   }
@@ -190,7 +192,7 @@ test('D.4 : « Offrir 20 bouteilles d’eau aux ouvriers » — tout joueur pré
   // Hors canicule : refus expliqué, rien retiré.
   assert.equal((await comme(db, 'Bob', 'SELECT chantier_canicule_offrir_eau($1, $2) r', [req(), 'terrain-a-batir-3'])).raison, 'pas_de_canicule');
   await evenement(db, 'canicule', 0, { heure: 0, heures: 1 });
-  await db.query("UPDATE climat_evenements SET debut = now() - interval '1 hour', fin = now() + interval '5 hours'");
+  await db.query("UPDATE climat_evenements SET debut = greatest(now() - interval '1 hour', (date_trunc('day', now() AT TIME ZONE 'Europe/Paris') AT TIME ZONE 'Europe/Paris') + interval '1 second'), fin = now() + interval '5 hours'");
   const e = await comme(db, 'Bob', 'SELECT chantier_climat_etat($1) r', ['terrain-a-batir-3']);
   assert.equal(e.canicule, true); assert.equal(e.requis, 20); assert.equal(e.possede, 25); assert.equal(e.present, true); assert.equal(e.eau_offerte, null);
   // Le travail est refusé avant l'eau.
@@ -222,7 +224,7 @@ test('D.4 : « Offrir 20 bouteilles d’eau aux ouvriers » — tout joueur pré
 test('D.4 : réglage MJ « l’eau lève l’arrêt » à 0 (défaut) → l’eau est offerte et inscrite, mais le chantier reste arrêté', async () => {
   const db = await base({ jusqua: 4 }); // aucun réglage forcé : la valeur par défaut de la migration (0) s'applique
   await evenement(db, 'canicule', 0, { heure: 0, heures: 1 });
-  await db.query("UPDATE climat_evenements SET debut = now() - interval '1 hour', fin = now() + interval '5 hours'");
+  await db.query("UPDATE climat_evenements SET debut = greatest(now() - interval '1 hour', (date_trunc('day', now() AT TIME ZONE 'Europe/Paris') AT TIME ZONE 'Europe/Paris') + interval '1 second'), fin = now() + interval '5 hours'");
   assert.equal((await comme(db, 'Bob', 'SELECT chantier_canicule_offrir_eau($1, $2) r', [req(), 'terrain-a-batir-3'])).ok, true);
   assert.equal((await un(db, "SELECT chantier_travailler('Arnie', 'republic', 'terrain-a-batir-3', 1) r")).r.raison, 'chantier_intemperies');
   await db.query("UPDATE climat_evenements SET debut = debut - interval '1 day', fin = fin - interval '1 day'");

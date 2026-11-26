@@ -4498,11 +4498,16 @@ function renderRoomActions(room, buildingId, roomId) {
     if (ef.dis < 0)   riskSpec.push([String(ef.dis), 'DIS']);
     if (ef.pop < 0)   riskSpec.push([String(ef.pop), 'POP']);
     const rate = o.fn === 'se_confesser' ? null : (o.successRate || 70);
+    // Audit des chances (Fred, 25/11 au soir) : plus de pourcentage écrit en dur pour les ordres dont le serveur donne la
+    // chance réelle (pastille « Vos chances réelles : X % »), pour les ordres sans jet et pour ceux dont la chance dépend
+    // d'une cible choisie ensuite. `rate` reste transmis tel quel à doOrder (anciens chemins).
+    const rpChances = (typeof window !== 'undefined' && window.RPChancesReelles) || null;
+    const rateAffiche = (rate !== null && rpChances && typeof rpChances.sansTauxEcrit === 'function' && rpChances.sansTauxEcrit(o.fn)) ? null : rate;
     // Infobulle : description (propre à Sovarka : traduite, devise et tarif national réappliqués),
     // gains, risques, réussite. Descripteur gardé sur le bouton pour la bascule de langue.
     const infobulleI18n = (typeof window !== 'undefined' && window.RPSovarkaInfobullesI18n) || null;
     const tipSpec = { d: ordreSource.desc || '', q: ordreSource.descriptionKey || '', a: o.desc || '', c: ordreSource.cost, p: ordreSource.pa, v: deviseOrdre,
-      n: tarifNational ? { cost: tarifNational.cost, pa: tarifNational.pa } : null, g: gainSpec, r: riskSpec, s: rate };
+      n: tarifNational ? { cost: tarifNational.cost, pa: tarifNational.pa } : null, g: gainSpec, r: riskSpec, s: rateAffiche };
     const gainStr = infobulleI18n ? infobulleI18n.gains(gainSpec)
       : gainSpec.map(e => e[0] + ' ' + (e[1] === 'sante' ? 'Sante' : e[1] === 'moral' ? 'Moral' : e[1])).join(' · ');
     let tooltip;
@@ -4513,7 +4518,7 @@ function renderRoomActions(room, buildingId, roomId) {
       if (o.desc) tooltipParts.push(o.desc);
       if (gainStr) tooltipParts.push('Gain: ' + gainStr);
       if (riskStr) tooltipParts.push('Risque: ' + riskStr);
-      if (rate !== null) tooltipParts.push('Reussite: ' + rate + '%');
+      if (rateAffiche !== null) tooltipParts.push('Reussite: ' + rateAffiche + '%');
       tooltip = tooltipParts.join(' | ');
     }
 
@@ -9314,13 +9319,23 @@ async function censurer(media, pa, cost) {
   const v = await executerOrdreJaugesServeur('censurer_media', { media });
   if (!v) return;
   if (v.rejeu) { updateUI(); return; }
-  INDICES_NATIONAUX[state.country].IS = Math.max(0, INDICES_NATIONAUX[state.country].IS - 8);
+  // −8 à l'indice social : posé par le serveur (mission du soir 25/11/2026, 1.2) sur les villes dont il tient l'indice ;
+  // l'écran relit. Sans la migration 20261125500000, ancien reflet local (affichage seulement).
+  if (v.indice_social_serveur === true) {
+    if (typeof chargerIndicesRepublia === 'function') await chargerIndicesRepublia().catch(() => {});
+  } else if (typeof v.indice_social !== 'number') {
+    INDICES_NATIONAUX[state.country].IS = Math.max(0, INDICES_NATIONAUX[state.country].IS - 8);
+  }
+  // Sovarka (Fred, 25/11 fin de soirée, migration 20261125820000) : la censure agit sur la popularité du parti au pouvoir,
+  // en hausse sans scandale, en baisse si la censure est révélée. L'écran dit ce que le serveur a décidé.
+  const regime = (state.country === 'soviet' && typeof v.regime_delta === 'number' && v.regime_delta !== 0)
+    ? ' Parti au pouvoir : ' + (v.regime_delta > 0 ? '+' : '') + v.regime_delta + ' de popularité.' : '';
   if (v.scandale === true) {
-    addExternalEvent('SCANDALE : La censure de ' + media + ' a ete revelee ! -20 POP.');
+    addExternalEvent('SCANDALE : La censure de ' + media + ' a ete revelee ! -20 POP.' + regime);
     updateUI();
   } else {
-    showToast('Media censure', media + ' suspendu. -8 IS.', false);
-    addJournalEntry('Censure de ' + media, 'event-bad');
+    showToast('Media censure', media + ' suspendu.' + (state.country === 'soviet' ? regime : ' -8 IS.'), false);
+    addJournalEntry('Censure de ' + media + (regime ? '.' + regime : ''), 'event-bad');
   }
 }
 
@@ -10070,7 +10085,9 @@ async function doConsulterDossiersGouv(pa, cost) {
   const contexte=contexteGroupePj();
   const r = await executerOrdreJaugesServeur('consulter_dossiers_gouv');
   if (!r||!contexteGroupePjValide(contexte)) return;
-  const dossier = DOSSIERS_GOUVERNEMENTAUX[Math.floor(Math.random() * DOSSIERS_GOUVERNEMENTAUX.length)];
+  // Dossier tiré par le serveur (dossier_rang, mission du soir 25/11/2026, 1.2) ; tirage local seulement sans la migration.
+  const dossier = DOSSIERS_GOUVERNEMENTAUX[Number.isInteger(r.dossier_rang) && DOSSIERS_GOUVERNEMENTAUX[r.dossier_rang] !== undefined
+    ? r.dossier_rang : Math.floor(Math.random() * DOSSIERS_GOUVERNEMENTAUX.length)];
   document.getElementById('postes-modal-title').textContent = 'Dossier confidentiel';
   const html = '<div style="padding:1rem;font-size:.85rem;color:#c0b090;line-height:1.6;font-style:italic">« ' + dossier + ' »</div>';
   document.getElementById('postes-body').innerHTML = html;

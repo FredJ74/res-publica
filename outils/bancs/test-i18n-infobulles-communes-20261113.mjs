@@ -48,7 +48,7 @@ test('inventaire : 237 descriptions communes affichées après isolation du goul
   // catalogue (trou antérieur, chantier de traduction à venir, consigné dans RELAIS.md). Le plafond
   // autorise la seule description de gestion de caserne rétablie à Sovarka ;
   // elle doit rejoindre le catalogue partagé dans le prochain lot i18n.
-  assert.equal(communesJeu.length, 229, // -1 le 23/11 (bloc 4, point 32) : « +6 INF +5 DIS +1 POP. » (location des bureaux de Krasnov) disparaît, les bureaux se demandent à la mairie ; -1 le 23/11 (mission Novomirsk, point 5) : « Taxi vers le QHS » masqué en Sovarka tant que le goulag est fermé, sa description n'y est plus affichée ; -2 le 22/11 au soir (Santé, Suites, point 1) : « boissons et snacks » du bar du Grand Hôtel et des buvettes de stade devient « en-cas » en Républia et « zakouski » en Sovarka, ces deux descriptions ne sont plus communes ; -6 le 22/11 : refonte des informateurs (« Écouter le barman / la serveuse », « Recruter un informateur », ordres d'informateurs de la loge retirés) ; -1 le 21/11 : boycott des supporters retiré en Sovarka (lot de Krasnov, point 6), sa description n'est plus affichée qu'en Républia ; +1 le 19/11 : boutique climat (lot 5) ; +1 le 18/11 : furet renifleur (maladies lot 2c) ; +1 le 18/11 : pharmacie de Républia (maladies lot 1).  Le 16/11 : 245 -> 237 ; les ordres hérités du QHS de Républia disparaissent du goulag de Sovarka (entrée, cellules et salles républicaines), sans retirer leurs traductions encore nécessaires en Républia.
+  assert.equal(communesJeu.length, 230, // +1 le 25/11 en fin de soirée (Fred, 1.8) : « Visiter un détenu » aussi au commissariat, sa description devient commune ; -1 le 23/11 (bloc 4, point 32) : « +6 INF +5 DIS +1 POP. » (location des bureaux de Krasnov) disparaît, les bureaux se demandent à la mairie ; -1 le 23/11 (mission Novomirsk, point 5) : « Taxi vers le QHS » masqué en Sovarka tant que le goulag est fermé, sa description n'y est plus affichée ; -2 le 22/11 au soir (Santé, Suites, point 1) : « boissons et snacks » du bar du Grand Hôtel et des buvettes de stade devient « en-cas » en Républia et « zakouski » en Sovarka, ces deux descriptions ne sont plus communes ; -6 le 22/11 : refonte des informateurs (« Écouter le barman / la serveuse », « Recruter un informateur », ordres d'informateurs de la loge retirés) ; -1 le 21/11 : boycott des supporters retiré en Sovarka (lot de Krasnov, point 6), sa description n'est plus affichée qu'en Républia ; +1 le 19/11 : boutique climat (lot 5) ; +1 le 18/11 : furet renifleur (maladies lot 2c) ; +1 le 18/11 : pharmacie de Républia (maladies lot 1).  Le 16/11 : 245 -> 237 ; les ordres hérités du QHS de Républia disparaissent du goulag de Sovarka (entrée, cellules et salles républicaines), sans retirer leurs traductions encore nécessaires en Républia.
     'nombre de descriptions communes affichées après exclusions ministérielles spécifiques à Sovarka');
   const manquantes = communesJeu.filter(d => !cat.includes(d));
   t.diagnostic('Descriptions communes manquantes : ' + JSON.stringify(manquantes));
@@ -56,7 +56,12 @@ test('inventaire : 237 descriptions communes affichées après isolation du goul
   // +1 le 20/11 : « Suivre une formation » ouvert (criminalité lot 9), nouvelle description française à traduire par Codex.
   // +3 le 22/11 (Santé, consommation) : service d'étage (plat du jour), soins accélérés (+25) et soins sans trace (+15), à traduire par Codex.
   // +2 le 22/11 au soir (Santé, Suites, point 3) : repas de l'hôpital (+4 Santé) et de la clinique (+5 Santé), à traduire par Codex.
-  assert.ok(manquantes.length <= 10, 'nouvelles communes absentes du catalogue');
+  // +15 le 25/11 au soir (mission du soir, bloc 1A, audit des chances) : descriptions alignées sur le serveur (rumeur, piège,
+  // propagande, fuite, enquête, défense, soins sans trace, rébellion, évasion, campagne de sécurité ×2, contestation, trois
+  // fraudes électorales, corruption du douanier), à traduire par Codex (liste dans docs/soir/BLOC-1A.md).
+  // +3 le 25/11 au soir (mission du soir, 1.2) : corrompre un journaliste, fabriquer un scandale, frapper à la loge, à traduire par Codex.
+  // +2 le 25/11 en fin de soirée (agent B) : visiter un détenu (désormais commune) et censurer un média (Sovarka), à traduire par Codex.
+  assert.ok(manquantes.length <= 30, 'nouvelles communes absentes du catalogue');
   // Français strictement identique : chaque texte du catalogue est une description exacte de data.js,
   // affichée dans au moins un pays (avec la fusion réelle, quelques-unes ne sont plus visibles qu'en Républia,
   // l'exclusion de Sovarka étant désormais prise en compte ; leur traduction y reste utile).
@@ -79,7 +84,38 @@ test('inventaire : 237 descriptions communes affichées après isolation du goul
     'Réservé aux patients hospitalisés, une fois par jour. +2 PA à votre prochain sommeil.',
     // « Subtiliser des explosifs » (mission de nuit du 25/11/2026, bloc 3) : nouvelle description fidèle au serveur ;
     // l'ancienne ligne livrée reste au catalogue jusqu'à la traduction de la nouvelle par Codex.
-    "Voler un explosif dans le stock de la caserne. 35% de base, module par la discretion, l'ISN et la reputation criminelle. Echec detecte : QHS."];
+    "Voler un explosif dans le stock de la caserne. 35% de base, module par la discretion, l'ISN et la reputation criminelle. Echec detecte : QHS.",
+    // Audit des chances (mission du soir, 25/11/2026, bloc 1A) : descriptions alignées sur le serveur ; les lignes livrées
+    // restent au catalogue jusqu'à la traduction des nouvelles par Codex.
+    "Piéger un adversaire politique. Risque de scandale.",
+    "Influence massive de l'opinion publique. +POP important.",
+    "Faire fuiter un document secret.",
+    "Procedure simplifiee, reservee aux faits les plus legers (2 jours de reference au plus, hors crime). Un avocat commis d'office plaide pour vous ; le tribunal tranche sur le champ. Le jugement est definitif et sans appel.",
+    "Reserve aux emprisonnes. Defi bruyant aux gardiens : succes = +DIS mais peine allongee, echec = transfert au QHS. Endommage les grilles dans tous les cas.",
+    "Tres risque, une tentative par jour. Succes : liberte. Echec : transferement en prison.",
+    "Rediger une rumeur visant un PJ, une organisation, un local, un gouvernement ou un pays. Succes (75%) : effet selon la cible. Echec : retour de bâton limite + risque de detection.",
+    "Dans les 24h suivant la proclamation, pour tout electeur habilite pour ce scrutin. Peut reveler une fraude.",
+    "Reserve au maire ou a l'adjoint au maire sortant de cette ville. Ajoute 1 a 10 voix frauduleuses a un candidat.",
+    "Pendant les 24h de vote, pour tout electeur inscrit sur ce scrutin. Ajoute 1 a 3 voix frauduleuses.",
+    "Reserve au commissaire ou au juge. Ajoute ou retire 1 a 10 voix a un candidat.",
+    "Éviter le contrôle. DUP/10 + INF/10. +20% zone transport.",
+    "Rendre visite a un detenu du QHS. Necessite autorisation.",
+    "Taux tres faible. Consequence severe si echec.",
+    "Tres difficile. Obtenir des privileges ou informations.",
+    "Quasi impossible, une tentative par jour. Echec = peine aggravee de 7 jours.",
+    "+10 ISN local. Preleve sur budget mairie.",
+    "Influencer massivement l'opinion publique. +POP.",
+    "+10 ISN local. Deploiement de forces de l'ordre supplementaires. Preleve sur budget mairie.",
+    "Cibler un citoyen, un club sportif, une entreprise ou une organisation. Coute a la caisse du gouvernement.",
+    // Fin de soirée du 25/11 (agent B) : censure réécrite (effet en Sovarka) ; ligne livrée gardée jusqu'à la traduction.
+    "Interdire un organe de presse. -liberte +controle.",
+    // Mission du soir (25/11/2026, 1.2) : descriptions alignées sur le serveur ; anciennes lignes livrées gardées.
+    "Accuser publiquement un PJ, sous votre nom. La rédaction accepte ou refuse (35 % + 15 si carrière presse, ou + 10 si ministre de l'Information, moins le malus de sécurité intérieure). Acceptation : 3 PA et 800 FR pour La Tribune, la cible perd 15 POP et 15 INF. Refus : rien n'est prélevé. Une tentative par jour.",
+    "Choisir une affaire judiciaire du jour puis demander à la rédaction de l'étouffer ou d'en publier un angle favorable. Accord : 2 PA et 500 FR pour La Tribune. Refus : rien n'est prélevé, mais la démarche laisse une trace. Le dossier judiciaire n'est jamais modifié.",
+    "Frapper a la porte et demander une audience. Reussite a 95%.",
+    "Contre-lobbying preventif visant une cible (PJ, organisation, local, gouvernement ou pays) : pendant 7 jours, un futur \"Placer un article favorable\" contre cette meme cible devient beaucoup plus difficile (base 10% au lieu de 75%). N'affecte jamais l'actualite reelle (scandales, condamnations, elections...). Reussite (70% + modificateurs) : 1000 FR preleves. Echec : aucun frais.",
+    "Choisir une cible (PJ, organisation, local, gouvernement ou pays) et indiquer le sujet/l'angle souhaite : la redaction redige elle-meme un veritable article favorable, vous n'apparaissez jamais comme commanditaire. Reussite (75% + modificateurs) : 500 FR preleves. Echec : la redaction refuse, aucun frais.",
+    "Choisir une cible (PJ, organisation, local, gouvernement ou pays) et indiquer le sujet/l'angle souhaite : la redaction redige elle-meme un veritable article favorable, vous n'apparaissez jamais comme commanditaire. Reussite (75% + modificateurs) : 500 FR preleves, article integre a une prochaine edition de La Tribune. Echec : la redaction refuse, aucun frais."];
   assert.deepEqual(cat.filter(d => !sov.has(d) && !rep.has(d) && !HISTORIQUES.includes(d)), [], 'textes du catalogue introuvables tels quels');
   assert.equal(new Set(cat).size, cat.length);
 });

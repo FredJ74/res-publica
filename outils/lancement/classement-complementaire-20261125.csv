@@ -1,0 +1,266 @@
+table;decision;justification
+accueil_chemins;garder;référentiel ou réglage du MJ : décrit le monde, pas une partie
+accueil_etapes;garder;référentiel ou réglage du MJ : décrit le monde, pas une partie
+accueil_journalistes;garder;référentiel ou réglage du MJ : décrit le monde, pas une partie
+accueil_parametres;garder;référentiel ou réglage du MJ : décrit le monde, pas une partie
+accueil_parametres_textes;garder;référentiel ou réglage du MJ : décrit le monde, pas une partie
+accueil_personnages;vider;état vivant : produit par les joueurs ou le temps de la bêta
+aliments_avaries_annonces;vider;état vivant : produit par les joueurs ou le temps de la bêta
+aliments_parametres;garder;référentiel ou réglage du MJ : décrit le monde, pas une partie
+antipoison_reapprovisionnements;vider;état vivant : produit par les joueurs ou le temps de la bêta
+armoires_contenus;vider;état vivant : produit par les joueurs ou le temps de la bêta
+blocus_ordres_batiments;vider;décision de Fred du 25/11 en fin de soirée : vidée au lancement
+chaines_production_pays;garder;référentiel ou réglage du MJ : décrit le monde, pas une partie
+chantier_naval_modeles;garder;référentiel ou réglage du MJ : décrit le monde, pas une partie
+chat_signaux;vider;état vivant : produit par les joueurs ou le temps de la bêta
+climat_boutiques;garder;référentiel ou réglage du MJ : décrit le monde, pas une partie
+climat_effets_personnages;vider;état vivant : produit par les joueurs ou le temps de la bêta
+climat_evenements;vider;décision de Fred du 25/11 en fin de soirée : vidée au lancement (le calendrier se replanifie par mandat)
+climat_lieux_vente;garder;référentiel ou réglage du MJ : décrit le monde, pas une partie
+climat_parametres;garder;référentiel ou réglage du MJ : décrit le monde, pas une partie
+climat_points_eau;garder;référentiel ou réglage du MJ : décrit le monde, pas une partie
+climat_points_eau_puisages;vider;état vivant : produit par les joueurs ou le temps de la bêta
+climat_villes_exclues;garder;référentiel ou réglage du MJ : décrit le monde, pas une partie
+climat_zones_inondables;garder;référentiel ou réglage du MJ : décrit le monde, pas une partie
+clinique_nuitees;vider;état vivant : produit par les joueurs ou le temps de la bêta
+commerce_contrats;vider;état vivant : produit par les joueurs ou le temps de la bêta
+commerce_passes;vider;état vivant : produit par les joueurs ou le temps de la bêta
+comptes_test;garder;comptes de test (exclus de l'offre) et interrupteur du MJ
+comptes_test_parametres;garder;comptes de test (exclus de l'offre) et interrupteur du MJ
+crim_affaires;vider;état vivant : produit par les joueurs ou le temps de la bêta
+crim_boutiques;garder;référentiel ou réglage du MJ : décrit le monde, pas une partie
+crim_evenements;vider;état vivant : produit par les joueurs ou le temps de la bêta
+crim_jetons_masque;vider;état vivant : produit par les joueurs ou le temps de la bêta
+crim_parametres;garder;référentiel ou réglage du MJ : décrit le monde, pas une partie
+crim_traces_achat;vider;état vivant : produit par les joueurs ou le temps de la bêta
+directeurs_usine_pays;garder;référentiel ou réglage du MJ : décrit le monde, pas une partie
+drogues_stocks_dealers;reinitialiser;mixte : état du monde semé (occupants, stocks, propriétaires) à remettre à l'état initial, pas à vider
+enigme_tresor_tsars;reinitialiser;mixte : état du monde semé (occupants, stocks, propriétaires) à remettre à l'état initial, pas à vider
+equipements_installes;vider;état vivant : produit par les joueurs ou le temps de la bêta
+exportations_recues;vider;état vivant : produit par les joueurs ou le temps de la bêta
+furets_boutiques;garder;référentiel ou réglage du MJ : décrit le monde, pas une partie
+graisses_points_vente;garder;référentiel ou réglage du MJ : décrit le monde, pas une partie
+guide_carrieres_criteres;garder;référentiel ou réglage du MJ : décrit le monde, pas une partie
+guide_etat;vider;état vivant : produit par les joueurs ou le temps de la bêta
+guide_messages;vider;état vivant : produit par les joueurs ou le temps de la bêta
+guide_musee_dialogues;vider;état vivant : produit par les joueurs ou le temps de la bêta
+guide_pistes;garder;référentiel ou réglage du MJ : décrit le monde, pas une partie
+guide_reponses;vider;état vivant : produit par les joueurs ou le temps de la bêta
+heros_travail_clotures;vider;état vivant : produit par les joueurs ou le temps de la bêta
+heros_travail_points;vider;état vivant : produit par les joueurs ou le temps de la bêta
+heros_travail_records;vider;état vivant : produit par les joueurs ou le temps de la bêta
+ia_appels_jour;vider;état vivant : produit par les joueurs ou le temps de la bêta
+immobilier_baremes;garder;référentiel ou réglage du MJ : décrit le monde, pas une partie
+incidents_client;vider;état vivant : produit par les joueurs ou le temps de la bêta
+informateurs_pnj;garder;référentiel ou réglage du MJ : décrit le monde, pas une partie
+jauges_actions_recus;vider;état vivant : produit par les joueurs ou le temps de la bêta
+jauges_objectifs_bascule;vider;état vivant : produit par les joueurs ou le temps de la bêta
+jauges_objectifs_etats;vider;état vivant : produit par les joueurs ou le temps de la bêta
+kolkhoze_caisse;reinitialiser;mixte : état du monde semé (occupants, stocks, propriétaires) à remettre à l'état initial, pas à vider
+kolkhoze_caisse_quotas;garder;référentiel ou réglage du MJ : décrit le monde, pas une partie
+lancement_comptes_beta;garder;relevé des comptes de la bêta, fait par la procédure elle-même
+maladies_parametres;garder;référentiel ou réglage du MJ : décrit le monde, pas une partie
+marche_krasnov_produits;garder;référentiel ou réglage du MJ : décrit le monde, pas une partie
+marche_krasnov_stock;reinitialiser;mixte : état du monde semé (occupants, stocks, propriétaires) à remettre à l'état initial, pas à vider
+medicaments_pnj_passes;vider;état vivant : produit par les joueurs ou le temps de la bêta
+medicaments_stocks;reinitialiser;mixte : état du monde semé (occupants, stocks, propriétaires) à remettre à l'état initial, pas à vider
+murs_loyers;reinitialiser;mixte : état du monde semé (occupants, stocks, propriétaires) à remettre à l'état initial, pas à vider
+murs_titres;reinitialiser;mixte : état du monde semé (occupants, stocks, propriétaires) à remettre à l'état initial, pas à vider
+navigation_lieux_regles;garder;référentiel ou réglage du MJ : décrit le monde, pas une partie
+navigation_requetes;vider;état vivant : produit par les joueurs ou le temps de la bêta
+notifications_chat;vider;état vivant : produit par les joueurs ou le temps de la bêta
+ordres_couts_pays;garder;référentiel ou réglage du MJ : décrit le monde, pas une partie
+personnage_evenements;vider;état vivant : produit par les joueurs ou le temps de la bêta
+personnages_maladies;vider;état vivant : produit par les joueurs ou le temps de la bêta
+personnages_secrets;vider;état vivant : produit par les joueurs ou le temps de la bêta
+personnages_signaux;vider;état vivant : produit par les joueurs ou le temps de la bêta
+pharmacies_points_vente;garder;référentiel ou réglage du MJ : décrit le monde, pas une partie
+pnj_guides_habitants;garder;référentiel ou réglage du MJ : décrit le monde, pas une partie
+pnj_lieux_metiers;garder;référentiel ou réglage du MJ : décrit le monde, pas une partie
+poissonniere_ventes;vider;état vivant : produit par les joueurs ou le temps de la bêta
+ports_balance_jours;vider;état vivant : produit par les joueurs ou le temps de la bêta
+ports_commerce;reinitialiser;mixte : état du monde semé (occupants, stocks, propriétaires) à remettre à l'état initial, pas à vider
+ports_journal;vider;état vivant : produit par les joueurs ou le temps de la bêta
+ports_productions;reinitialiser;mixte : état du monde semé (occupants, stocks, propriétaires) à remettre à l'état initial, pas à vider
+ports_stock;reinitialiser;mixte : état du monde semé (occupants, stocks, propriétaires) à remettre à l'état initial, pas à vider
+premium_abonnements;garder;ARGENT RÉEL : achats, abonnements et droits payés ne sont jamais effacés (aucun pendant la bêta)
+premium_achats;garder;ARGENT RÉEL : achats, abonnements et droits payés ne sont jamais effacés (aucun pendant la bêta)
+premium_droits;garder;ARGENT RÉEL : achats, abonnements et droits payés ne sont jamais effacés (aucun pendant la bêta)
+premium_parametres;garder;réglages premium du MJ
+premium_produits;garder;réglages premium du MJ
+premium_pub_externe_annonces;garder;réglages premium du MJ
+premium_pub_externe_vues;vider;état vivant : produit par les joueurs ou le temps de la bêta
+premium_renouvellements;garder;ARGENT RÉEL : achats, abonnements et droits payés ne sont jamais effacés (aucun pendant la bêta)
+production_recoltes_jour;vider;état vivant : produit par les joueurs ou le temps de la bêta
+publicites_joueurs;vider;état vivant : produit par les joueurs ou le temps de la bêta
+publicites_joueurs_vues;vider;état vivant : produit par les joueurs ou le temps de la bêta
+routes_vehicules;garder;référentiel ou réglage du MJ : décrit le monde, pas une partie
+salaires_production_pays;garder;référentiel ou réglage du MJ : décrit le monde, pas une partie
+salles_signaux;vider;état vivant : produit par les joueurs ou le temps de la bêta
+salon_coupes;vider;état vivant : produit par les joueurs ou le temps de la bêta
+sante_parametres;garder;référentiel ou réglage du MJ : décrit le monde, pas une partie
+sante_repas_categories;garder;référentiel ou réglage du MJ : décrit le monde, pas une partie
+sante_sommeil_lieux;garder;référentiel ou réglage du MJ : décrit le monde, pas une partie
+sante_sommeils;vider;état vivant : produit par les joueurs ou le temps de la bêta
+souvenirs_emplacements;garder;référentiel ou réglage du MJ : décrit le monde, pas une partie
+souvenirs_listes;garder;référentiel ou réglage du MJ : décrit le monde, pas une partie
+sovarka_bons_etat;vider;état vivant : produit par les joueurs ou le temps de la bêta
+sovarka_conscription;vider;état vivant : produit par les joueurs ou le temps de la bêta
+sovarka_demandes;vider;état vivant : produit par les joueurs ou le temps de la bêta
+sovarka_ecoutes_rapports;vider;état vivant : produit par les joueurs ou le temps de la bêta
+sovarka_ecoutes_vols;vider;état vivant : produit par les joueurs ou le temps de la bêta
+sovarka_entrepots_passes;vider;état vivant : produit par les joueurs ou le temps de la bêta
+sovarka_foret_actes;vider;état vivant : produit par les joueurs ou le temps de la bêta
+sovarka_foret_rencontres;vider;état vivant : produit par les joueurs ou le temps de la bêta
+sovarka_goulag_configuration;garder;référentiel ou réglage du MJ : décrit le monde, pas une partie
+sovarka_locaux;reinitialiser;mixte : état du monde semé (occupants, stocks, propriétaires) à remettre à l'état initial, pas à vider
+sovarka_maisons_actes;vider;état vivant : produit par les joueurs ou le temps de la bêta
+sovarka_maisons_demandes;vider;état vivant : produit par les joueurs ou le temps de la bêta
+sovarka_maisons_ragots;vider;état vivant : produit par les joueurs ou le temps de la bêta
+sovarka_musee_billets;vider;état vivant : produit par les joueurs ou le temps de la bêta
+sovarka_production_passes;vider;état vivant : produit par les joueurs ou le temps de la bêta
+sovarka_productions_villes;reinitialiser;mixte : état du monde semé (occupants, stocks, propriétaires) à remettre à l'état initial, pas à vider
+ssm_rendezvous;vider;état vivant : produit par les joueurs ou le temps de la bêta
+vehicules_modeles;garder;référentiel ou réglage du MJ : décrit le monde, pas une partie
+administrateurs;garder;accès du MJ : survit à la remise à zéro (le classement de baseline vise une installation neuve, pas une remise à zéro)
+administrateurs_invitations;garder;accès du MJ
+pnj_membres;reinitialiser;appartenances des PNJ semées par le monde (classement de baseline : installation neuve)
+pnj_possessions;reinitialiser;possessions des PNJ semées par le monde
+postes_attribues;reinitialiser;postes tenus par des PNJ au départ ; ceux des joueurs disparaissent
+dotations_amorcage_caisses;reinitialiser;amorçage des caisses publiques : à rejouer, pas à vider
+lois_assemblee;reinitialiser;lois de départ éventuelles à reprendre
+personnages;vider;les personnages de la bêta disparaissent : chacun recrée le sien (comptes de connexion gardés) — à confirmer par Fred
+acces_actes;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+acces_intrusions;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+acces_tentatives;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+auteurs_secrets;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+boissons_du_jour;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+bureaux_option_premium;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+caches_pj;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+cameras_decouvertes;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+cameras_posees;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+chantier_naval_bateaux;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+chantier_naval_commandes;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+climat_accueils;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+climat_catastrophes;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+climat_crue_pertes;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+climat_protections;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+crim_constats;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+crim_corruptions_qhs;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+crim_intrusions;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+crim_laissez_passer;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+crim_laissez_passer_passages;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+crim_qhs_demandes;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+crim_vols_differes;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+dossiers_informatiques;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+employes_paies_recus;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+enigmes_resolues;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+ent_gains_quotidiens;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+equipements_saisis;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+escort_appels;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+escort_piratages_nuits;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+escort_relations;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+escort_scandales;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+escorts_complicite;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+escorts_intimite_recus;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+escorts_paies_recus;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+flagrants_delits_attente;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+frontieres_fermees;garder;référentiel des frontières fermées (mission du soir, 3.3)
+furets_ventes;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+garage_fabrications;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+groupes_pj_adhesions;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+heros_travail_requetes;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+immobilier_actes_recus;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+informateurs_achats;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+interieur_dossiers;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+kolkhoze_dons_journaliers;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+lectures_hebdo;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+logements_colocations;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+logements_decors;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+logements_decors_sources;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+logements_premium;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+logements_premium_demandes;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+logements_reprises;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+mairie_successions;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+maladies_contacts;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+manifestations_spontanees;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+medecin_propositions;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+mst_en_attente;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+navigation_passages_douaniers;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+offres_achat;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+organisation_commandes_recus;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+organisation_materiel_autorises;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+parti_boite_acces;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+parti_denonciations;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+parti_denonciations_requetes;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+pavillon_baux;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+pavillon_receptions;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+pavillon_recus;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+penuries;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+pharmacies_ventes;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+piratages_acces;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+plaintes_historique;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+pnj_verres_offerts;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+prison_visites;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+production_regulations;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+repas_differes_nuits;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+residence_locations;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+serrures;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+service_etage_commandes;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+signalements_messages;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+soins_antipoison_tentatives;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+souvenirs_objets;garder;catalogue des souvenirs (mission du soir, 3.1)
+sovarka_approbations;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+sovarka_autocritiques;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+sovarka_baux_internes;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+sovarka_cafes_magistrat;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+sovarka_cafes_requetes;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+sovarka_cessions;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+sovarka_conscrits;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+sovarka_consignes_ministre;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+sovarka_droits_journal;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+sovarka_ecoutes_consultations;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+sovarka_foret_journal;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+sovarka_foret_perdus;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+sovarka_foret_visites;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+sovarka_goulag_autorisations;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+sovarka_goulag_controles;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+sovarka_goulag_corruptions;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+sovarka_goulag_depots;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+sovarka_goulag_entrees;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+sovarka_goulag_incidents;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+sovarka_goulag_interrogatoires;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+sovarka_goulag_refuges;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+sovarka_goulag_registre;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+sovarka_goulag_registre_jugements;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+sovarka_goulag_tentatives;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+sovarka_goulag_traces_revelees;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+sovarka_goulag_traversees;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+sovarka_goulag_visites;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+sovarka_habilitations_ecoute;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+sovarka_immeubles;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+sovarka_indemnites;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+sovarka_maisons_hospitalite;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+sovarka_manif_demandes;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+sovarka_manifs;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+sovarka_repas_presidentiels;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+sovarka_reunions_beneficiaires;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+sovarka_reunions_evenements;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+sovarka_reunions_reservations;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+sovarka_saisines;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+sovarka_seances;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+sovarka_signalements;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+sovarka_sondages;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+sovarka_surveillance_rapports;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+sovarka_surveillances;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+sovarka_urbanisme;garder;composition urbaine des villes de Sovarka (référentiel)
+supporters_manifestations_sovarka;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+syndicat_etat_manifestations;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+usines_reversements;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+vehicules;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+verres_du_jour;vider;état vivant de la bêta (relevé du 25/11 en fin de soirée)
+pnj_soldats_metier;reinitialiser;suit pnj_membres par cascade : métiers des PNJ gardés, ceux des PNJ retirés disparaissent avec eux
+pnj_employes_metier;reinitialiser;suit pnj_membres par cascade : métiers des PNJ gardés, ceux des PNJ retirés disparaissent avec eux
+pnj_militants_metier;reinitialiser;suit pnj_membres par cascade : métiers des PNJ gardés, ceux des PNJ retirés disparaissent avec eux
+pnj_force_publique_metier;reinitialiser;suit pnj_membres par cascade : métiers des PNJ gardés, ceux des PNJ retirés disparaissent avec eux
+garde_republicaine_effectifs;reinitialiser;suit pnj_membres par cascade : métiers des PNJ gardés, ceux des PNJ retirés disparaissent avec eux

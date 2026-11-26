@@ -21,7 +21,7 @@ jobs:
           import json
           from pathlib import Path
           cfg=json.loads(Path('vercel.json').read_text())
-          aliases=[x for x in cfg['rewrites'] if x['source'].endswith('.png')]
+          aliases=[x for x in cfg['rewrites'] if x['source'].endswith('.png') and x['destination'].endswith('.webp')]  # les renommages png→png (noms à espaces, 25/11) ne sont pas des alias WebP
           assert len(aliases)==32, f'32 alias PNG attendus, {len(aliases)} trouves'
           for item in aliases:
               old=Path(item['source'].lstrip('/'))

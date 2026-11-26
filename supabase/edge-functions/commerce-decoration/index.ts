@@ -21,8 +21,7 @@ Deno.serve(async(req)=>{
  if(!owner||!noms.has(owner)||fonds?.data?.statut==="inactif")return reply({error:"Vous ne possedez pas ce commerce"},403);
  const {data:existing}=await db.from("commerce_decors").select("*").eq("fonds_id",fondsId).maybeSingle();
  if(existing?.retiree_le)return reply({error:"Visuel retire par moderation"},403);
- // Beta only: no real-money charge is made here. Stripe entitlement will
- // replace this beta gate before commercial release.
+ // Premium (mission du soir du 25/11/2026) : le droit à une génération est décidé par le serveur (voir « start » plus bas).
  if(action==="restart"){
   if(!existing)return reply({error:"Aucun projet a recommencer"},400);
   if(!existing.preview_path && !existing.image_path)return reply({error:"Aucune decoration existante"},409);
@@ -64,22 +63,40 @@ Deno.serve(async(req)=>{
  }
  if(action==="start"&&existing?.preview_path)return reply({error:"Terminez ou recommencez votre projet actuel"},409);
  if(action==="retouch"&&(!existing?.preview_path||existing.retouches>=2))return reply({error:"Deux retouches maximum"},400);
+ // Première image du local = option de personnalisation (comprise dans le commerce premium) ; remplacer une image déjà
+ // posée = renouvellement d'image (bêta libre, un par semaine pour l'abonné, sinon à l'unité). Sans la migration
+ // 20261125700000, la RPC n'existe pas : comportement de bêta (aucune erreur pour le joueur).
+ let decompte=false;
+ // Point 1.3 (fin de soirée du 25/11/2026) : un renouvellement d'image décompté avant la génération est RENDU si la
+ // génération échoue (premium_renouvellement_rendre_service ; sans la migration 20261125800000, l'appel est sans effet).
+ const echec=async(corps:any,statut:number)=>{
+  if(decompte){try{await db.rpc("premium_renouvellement_rendre_service",{p_user:user.id,p_type:"commerce",p_objet:fondsId});}catch(_){}}
+  return reply({...corps,...(decompte?{renouvellement_rendu:true}:{})},statut);
+ };
+ if(action==="start"){
+  const renouveler=!!(existing?.image_path);
+  const {data:droit,error:de}=renouveler
+   ?await db.rpc("premium_renouvellement_autoriser_service",{p_user:user.id,p_type:"commerce",p_objet:fondsId})
+   :await db.rpc("premium_personnalisation_autoriser_service",{p_user:user.id,p_produit:"personnalisation_local",p_cible:fondsId});
+  if(!de&&droit&&droit.ok===false)return reply({error:droit.raison==="renouvellement_a_payer"?"Renouvellement d'image a acheter":"Option premium requise",raison:droit.raison,produit:droit.produit},402);
+  decompte=renouveler&&!de&&droit?.ok===true;
+ }
  const prompt=String(body.prompt||"").trim().slice(0,1500);
- if(prompt.length<10)return reply({error:"Decrivez votre decoration plus precisement"},400);
- const key=Deno.env.get("OPENAI_API_KEY");if(!key)return reply({error:"Cle OpenAI absente du serveur"},503);
+ if(prompt.length<10)return await echec({error:"Decrivez votre decoration plus precisement"},400);
+ const key=Deno.env.get("OPENAI_API_KEY");if(!key)return await echec({error:"Cle OpenAI absente du serveur"},503);
  let bytes:Uint8Array;
  if(action==="retouch"){
   const {data,error}=await db.storage.from("commerce-decors").download(existing.preview_path);
-  if(error||!data)return reply({error:"Apercu introuvable"},404);
+  if(error||!data)return await echec({error:"Apercu introuvable"},404);
   bytes=new Uint8Array(await data.arrayBuffer());
  }else{
   const base=String(body.baseImage||"");
-  if(!/^data:image\/(png|jpeg|webp);base64,/.test(base)||base.length>9500000)return reply({error:"Image originale invalide"},400);
-  try{bytes=Uint8Array.from(atob(base.split(",")[1]),c=>c.charCodeAt(0))}catch{return reply({error:"Image invalide"},400)}
+  if(!/^data:image\/(png|jpeg|webp);base64,/.test(base)||base.length>9500000)return await echec({error:"Image originale invalide"},400);
+  try{bytes=Uint8Array.from(atob(base.split(",")[1]),c=>c.charCodeAt(0))}catch{return await echec({error:"Image invalide"},400)}
  }
- if(bytes.length>7000000)return reply({error:"Image trop volumineuse"},413);
+ if(bytes.length>7000000)return await echec({error:"Image trop volumineuse"},413);
  const {data:sources}=await db.from("commerce_decors_sources").select("chemin,type_mime").eq("fonds_id",fondsId).eq("proprietaire_user_id",user.id).order("cree_le",{ascending:true}).limit(5);
- if(sources?.length&&!existing?.consentement_sources_le)return reply({error:"Acceptez les conditions des images"},409);
+ if(sources?.length&&!existing?.consentement_sources_le)return await echec({error:"Acceptez les conditions des images"},409);
  const form=new FormData();
  form.append("model","gpt-image-1.5");
  form.append("size","1536x1024");
@@ -90,31 +107,32 @@ Deno.serve(async(req)=>{
  const photoWebp=bytes.length>=12&&String.fromCharCode(...bytes.slice(0,4))==="RIFF"&&String.fromCharCode(...bytes.slice(8,12))==="WEBP";
  const photoPng=bytes.length>=8&&bytes[0]===137&&bytes[1]===80&&bytes[2]===78&&bytes[3]===71;
  const photoJpeg=bytes.length>=3&&bytes[0]===255&&bytes[1]===216&&bytes[2]===255;
- if(!photoWebp&&!photoPng&&!photoJpeg)return reply({error:"Format du decor source invalide"},400);
+ if(!photoWebp&&!photoPng&&!photoJpeg)return await echec({error:"Format du decor source invalide"},400);
  const photoMime=photoWebp?"image/webp":photoPng?"image/png":"image/jpeg";
  const photoExt=photoWebp?"webp":photoPng?"png":"jpg";
  form.append("image",new File([bytes],"interieur."+photoExt,{type:photoMime}));
  for(const source of sources||[]){
   const {data:file,error}=await db.storage.from("publicites-premium-sources").download(source.chemin);
-  if(error||!file)return reply({error:"Image de référence manquante"},409);
+  if(error||!file)return await echec({error:"Image de référence manquante"},409);
   form.append("image",new File([await file.arrayBuffer()],"reference."+ (source.type_mime==="image/jpeg"?"jpg":source.type_mime==="image/webp"?"webp":"png"),{type:source.type_mime}));
  }
 
- const response=await fetch("https://api.openai.com/v1/images/edits",{method:"POST",headers:{Authorization:"Bearer "+key},body:form});
+ const response=await fetch("https://api.openai.com/v1/images/edits",{method:"POST",headers:{Authorization:"Bearer "+key},body:form}).catch(()=>null);
+ if(!response)return await echec({error:"Generateur d'images injoignable"},502);
  const result=await response.json().catch(()=>({}));
- if(!response.ok)return reply({error:"OpenAI: "+String(result.error?.message||response.status).slice(0,250)},502);
+ if(!response.ok)return await echec({error:"OpenAI: "+String(result.error?.message||response.status).slice(0,250)},502);
  const encoded=result.data?.[0]?.b64_json;
- if(!encoded)return reply({error:"Aucune image recue"},502);
+ if(!encoded)return await echec({error:"Aucune image recue"},502);
  const webp=Uint8Array.from(atob(encoded),c=>c.charCodeAt(0));
  if(webp.length<12||String.fromCharCode(...webp.slice(0,4))!=="RIFF"||String.fromCharCode(...webp.slice(8,12))!=="WEBP")
-   return reply({error:"Format WebP invalide retourne par le generateur"},502);
+   return await echec({error:"Format WebP invalide retourne par le generateur"},502);
  const path=fondsId.replace(/[^a-zA-Z0-9_-]/g,"")+"-"+crypto.randomUUID()+".webp";
  const {error:uploadError}=await db.storage.from("commerce-decors").upload(path,webp,{contentType:"image/webp",upsert:false});
- if(uploadError)return reply({error:"Sauvegarde image impossible"},500);
+ if(uploadError)return await echec({error:"Sauvegarde image impossible"},500);
  const payload={fonds_id:fondsId,owner_user_id:user.id,image_path:existing?.image_path||null,preview_path:path,retouches:action==="retouch"?(existing?.retouches||0)+1:0,generations:(existing?.generations||0)+1,consentement_sources_le:existing?.consentement_sources_le||null,updated_at:new Date().toISOString()};
  const resultSave=action==="retouch"?await db.from("commerce_decors").update(payload).eq("fonds_id",fondsId).eq("preview_path",existing.preview_path).eq("retouches",existing.retouches).is("retiree_le",null).select("fonds_id").maybeSingle():await db.from("commerce_decors").upsert(payload).select("fonds_id").maybeSingle();
  const saveError=resultSave.error||!resultSave.data;
- if(saveError)return reply({error:"Enregistrement impossible"},500);
+ if(saveError)return await echec({error:"Enregistrement impossible"},500);
  await db.from("visuels_versions").insert({type_visuel:"commerce",objet_id:fondsId,image_path:path,auteur_user_id:user.id,action});
  return reply({ok:true,path,retouches:action==="retouch"?(existing?.retouches||0)+1:0});
 });

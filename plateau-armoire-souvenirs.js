@@ -20,6 +20,7 @@
     cartes: 'Cartes postales rangées (hors collection)',
     fermee: 'Cette armoire est fermée à clé.',
     visiteur: 'Cette armoire n’est pas à vous : vous pouvez en reprendre le contenu, mais pas y déposer.',
+    villeFermee: 'Cette ville ouvrira ses portes au premier trimestre 2027.',
     regle: 'Seul le souvenir exact de chaque ville remplit son emplacement. Les cartes postales hors liste se rangent sans compter.',
     r_hors_liste: 'Cet objet ne figure pas sur la liste de cette armoire.',
     r_emplacement_deja_rempli: 'Cet emplacement est déjà rempli.',
@@ -29,6 +30,7 @@
     r_pas_sur_place: 'Il faut être dans la pièce de l’armoire.',
     r_autre: 'L’armoire ne s’ouvre pas pour le moment.'
   };
+  const VILLES_FERMEES = ['Ciudad Roja', 'Puerto Negro', 'Villa Sangre', 'Al Madina', 'Oasis City', 'Al-Petrol'];
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const f = (t, v) => String(t).replace(/\{(\w+)\}/g, (_, k) => (v && v[k] != null ? v[k] : ''));
   const uuid = () => (global.crypto && typeof global.crypto.randomUUID === 'function') ? global.crypto.randomUUID()
@@ -66,7 +68,9 @@
     for (const e of (s.emplacements || [])) {
       h += '<li class="' + (e.contenu ? 'rempli' : 'vide') + '"><span><i class="ti ' + (e.contenu ? 'ti-square-check' : 'ti-square') + '" aria-hidden="true"></i> ' +
         esc(e.ville) + ' — ' + esc(e.nom) + (e.contenu ? '' : ' <span class="cpj-note">(' + esc(TXT.vide) + ')</span>') + '</span>' +
-        (e.contenu ? '<button type="button" class="cpj-touche" data-reprendre="' + esc(e.contenu) + '">' + esc(TXT.reprendre) + '</button>' : '') + '</li>';
+        (e.contenu ? '<button type="button" class="cpj-touche" data-reprendre="' + esc(e.contenu) + '">' + esc(TXT.reprendre) + '</button>' : '') +
+        // Empires fermés (Fred, 25/11/2026 au soir, 3.3) : le serveur signale la ville (ville_fermee) ; repli sur les six noms.
+        ((e.ville_fermee || VILLES_FERMEES.includes(e.ville)) ? '<span class="cpj-note hg-armoire-fermee">' + esc(TXT.villeFermee) + '</span>' : '') + '</li>';
     }
     h += '</ol>';
     if ((s.cartes || []).length) {
@@ -114,7 +118,8 @@
   });
   const s = doc.createElement('style');
   s.textContent = '.hg-armoire-liste{list-style:none;padding:0;margin:.3rem 0;display:flex;flex-direction:column;gap:.3rem}' +
-    '.hg-armoire-liste li{display:flex;justify-content:space-between;align-items:center;gap:.5rem;font-size:.95rem}' +
+    '.hg-armoire-liste li{display:flex;justify-content:space-between;align-items:center;gap:.5rem;font-size:.95rem;flex-wrap:wrap}' +
+    '.hg-armoire-fermee{flex-basis:100%;font-size:.85rem}' +
     '.hg-armoire-liste li.vide{opacity:.7}.hg-armoire-liste button{min-height:36px}.hg-armoire-progression{font-size:1.05rem;margin:.3rem 0}';
   (doc.head || doc.documentElement).appendChild(s);
 

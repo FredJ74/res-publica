@@ -2117,12 +2117,14 @@ async function doTentativeEvasion(pa, cost) {
     state.estEmprisonne = null;
     const reliquat = Number(r.reliquat_jours || 0);
     showToast('Evasion reussie !', 'Vous etes libre ! Restez discret.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b4f1290a3", 'Vous etes libre ! Restez discret.', undefined, 'Evasion reussie !');
-    addJournalEntry('Evasion reussie ! Peine non purgee : reliquat de ' + reliquat + ' jour(s) + 2 jours pour evasion, exigibles a une prochaine arrestation.', 'event-good');
+    addJournalEntry('Evasion reussie ! Peine non purgee : reliquat de ' + reliquat + ' jour(s), plus la peine prévue pour l\'évasion, exigibles a une prochaine arrestation.', 'event-good');
   } else {
     const cur = COUNTRIES[state.country]?.cur || 'FR';
     const amende = Number(r.amende || 0);
-    showToast('Evasion echouee', 'Tentative echouee. +1 jour de detention, -' + amende + ' ' + cur + '.', false);
-    addJournalEntry('Tentative d\'evasion echouee. Peine aggravee de 1 jour, amende de ' + amende + ' ' + cur + '.', 'event-bad');
+    // Jours ajoutés lus au serveur (1, ou 2 en Sovarka, barème crim_peine_jours_interne) : jamais écrits en dur.
+    const joursEv = Number(r.jours_ajoutes || 0);
+    showToast('Evasion echouee', 'Tentative echouee. +' + joursEv + ' jour(s) de detention, -' + amende + ' ' + cur + '.', false);
+    addJournalEntry('Tentative d\'evasion echouee. Peine aggravee de ' + joursEv + ' jour(s), amende de ' + amende + ' ' + cur + '.', 'event-bad');
   }
   updateUI();
 }
@@ -2149,8 +2151,9 @@ async function doSeRebeller(pa, cost) {
     // Perte de Santé arrêtée par le serveur (robustesse, Fred 22/11/2026 au soir) ; 10 avant robustesse.
     const santePerdue = Number.isFinite(Number(r.sante_perdue)) ? Number(r.sante_perdue) : 10;
     if (Number.isInteger(r.hp)) state.hp = r.hp;
-    showToast('Rebellion !', 'Vous avez tenu tete aux gardiens. +6 DIS, mais +1 jour de detention et -' + santePerdue + ' Santé.', true, true);
-    addJournalEntry('Rebellion en cellule reussie. Grilles endommagees (-' + degats + '). +1 jour de peine, -' + santePerdue + ' Santé.', 'event-info');
+    const joursReb = Number(r.jours_ajoutes || 0);
+    showToast('Rebellion !', 'Vous avez tenu tete aux gardiens. +6 DIS, mais +' + joursReb + ' jour(s) de detention et -' + santePerdue + ' Santé.', true, true);
+    addJournalEntry('Rebellion en cellule reussie. Grilles endommagees (-' + degats + '). +' + joursReb + ' jour(s) de peine, -' + santePerdue + ' Santé.', 'event-info');
     if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('rebellion_cellule', ville);
   } else {
     // Criminalite lot 6 (§ 14) : rebellion matee = +4 jours d'office (bareme), plus de QHS automatique, aucun degat aux grilles.
@@ -2169,39 +2172,64 @@ async function doSeRebeller(pa, cost) {
   }
 }
 
+// Visiter un détenu (audit des chances, décision de Fred du 25/11 au soir) : aucun jet ; le serveur vérifie que le détenu
+// est dans CETTE prison, une visite par jour et par détenu, et au quartier de haute sécurité seuls l'avocat et la famille
+// déclarée entrent (prison_visite_detenus, prison_visiter, migration 20261125410000). La visite ouvre une conversation privée.
+// Sans la migration, le parloir est dit fermé et rien n'est débité.
+const VISITE_REFUS = {
+  pas_dans_cette_prison: "Ce détenu n'est pas détenu dans cette prison.",
+  qhs_avocat_famille: 'Au quartier de haute sécurité, seuls un avocat inscrit au barreau et le conjoint du détenu peuvent le voir.',
+  deja_visite_aujourdhui: 'Vous avez déjà rendu visite à ce détenu aujourd’hui.',
+  detenu_introuvable: "Ce détenu n'est plus en détention.",
+  visiteur_detenu: 'Un détenu ne rend pas visite aux autres détenus.'
+};
+let _visiteDetenus = [];
+const visiteEchapper = t => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 async function ouvrirVisiterPrisonnier(pa, cost) {
-  const pays = state.country || 'republic';
   document.getElementById('postes-modal-title').textContent = 'Visiter un détenu';
-  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Chargement...</div>';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem" class="cpj-note">Chargement...</div>';
   document.getElementById('modal-postes').classList.add('open');
-
-  const prisonniers = await sbGetPrisonniersQHS(pays).catch(() => []);
+  let r = null;
+  try { r = await sbRpc('prison_visite_detenus', {}); } catch (_) { r = null; }
+  if (Array.isArray(r)) r = r[0];
   let html = '<div style="padding:1rem">';
-  if (prisonniers.length === 0) {
-    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucun détenu au QHS actuellement.</div>';
+  if (!r || r.ok !== true) {
+    html += '<div class="cpj-note">Le parloir est fermé pour l’instant.</div>';
+  } else if (!(r.detenus || []).length) {
+    html += '<div class="cpj-note">Aucun détenu dans cette prison actuellement.</div>';
   } else {
-    html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Choisir un détenu à visiter :</div>';
-    prisonniers.forEach(p => {
-      html += '<div onclick="confirmerVisitePrisonnier(\'' + p.id + '\',' + pa + ',' + cost + ')" style="display:flex;align-items:center;gap:.6rem;border:1px solid #2a2010;background:#0f0d05;padding:.5rem .7rem;margin-bottom:.4rem;cursor:pointer">';
-      html += p.photoUrl ? '<img src="' + p.photoUrl + '" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:1px solid #4a3a1a"/>' : '<div style="width:36px;height:36px;border-radius:50%;background:#1a1610;display:flex;align-items:center;justify-content:center"><i class="ti ti-user" style="color:#5a5040"></i></div>';
-      html += '<div><div style="font-size:.85rem;color:#e0d5b8">' + p.nom + '</div><div style="font-size:.7rem;color:#a89870">' + p.raison + '</div></div>';
-      html += '</div>';
+    html += '<div class="cpj-note" style="margin-bottom:.8rem">Choisir un détenu à visiter (1 PA, une visite par jour et par détenu) :</div>';
+    _visiteDetenus = r.detenus.map(p => String(p.nom || ''));
+    r.detenus.forEach((p, i) => {
+      const nom = String(p.nom || '');
+      const bloque = !p.autorise || p.deja_visite;
+      const note = !p.autorise ? 'Quartier de haute sécurité : réservé aux avocats inscrits au barreau et au conjoint du détenu.' : (p.deja_visite ? 'Déjà visité aujourd’hui.' : (p.raison || ''));
+      html += '<button class="cpj-touche" style="display:block;width:100%;text-align:left;margin-bottom:.4rem' + (bloque ? ';opacity:.5' : '') + '"'
+        + (bloque ? ' disabled' : ' onclick="confirmerVisitePrisonnier(' + i + ')"') + '>'
+        + visiteEchapper(nom) + '<div class="cpj-note">' + visiteEchapper(note) + '</div></button>';
     });
   }
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
 }
 
-async function confirmerVisitePrisonnier(prisonnierId, pa, cost) {
-  const rows = await sbGet('prisonniers_qhs', `id=eq.${encodeURIComponent(prisonnierId)}`).catch(() => []);
-  const row = rows?.[0];
-  if (!row || row.statut !== 'detenu') { showToast('Détenu introuvable', 'Ce détenu n\'est plus détenu au QHS.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b447f4ec0", 'Ce détenu n\'est plus détenu au QHS.', undefined, 'Détenu introuvable'); return; }
-  const p = row.data;
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
+async function confirmerVisitePrisonnier(i) {
+  const nom = _visiteDetenus[i];
+  if (!nom) return;
+  let v = null;
+  try { v = await sbRpc('prison_visiter', { p_requete: crypto.randomUUID(), p_detenu: nom }); } catch (_) { v = null; }
+  if (Array.isArray(v)) v = v[0];
+  if (!v) { showToast('Parloir fermé', 'Le parloir est fermé pour l’instant.', false); return; }
+  if (v.ok !== true) {
+    if (VISITE_REFUS[v.raison]) showToast('Visite refusée', VISITE_REFUS[v.raison], false);
+    else signalerRefusCout(v);
+    return;
+  }
+  if (typeof v.pa === 'number') state.pa = v.pa;
   document.getElementById('modal-postes').classList.remove('open');
-  showToast('Visite effectuée', 'Vous avez rendu visite à ' + p.nom + ' au QHS.', true, true);
-  addJournalEntry('Visite à ' + p.nom + ' au QHS.', 'event-info');
+  addJournalEntry('Visite au parloir : ' + nom + '.', 'event-info');
+  if (typeof updateUI === 'function') updateUI();
+  if (typeof ouvrirConversationAvec === 'function') ouvrirConversationAvec(nom);
 }
 
 function getBudgetInstitution(inst) {
@@ -6334,12 +6362,65 @@ const LISTES_SOUVENIRS = {
       { ville: 'Novomirsk',        nom: 'Poupée traditionnelle de Novomirsk' },
       { ville: 'Starovka',         nom: 'Flasque métallique gravée « Starovka »' },
       { ville: 'Krasnov',          nom: 'Insigne émaillé des hauts-fourneaux de Krasnov' },
-      { ville: 'Ciudad Roja',      nom: 'Petit masque rouge du carnaval de Ciudad Roja' },
-      { ville: 'Puerto Negro',     nom: 'Jeton du casino de Puerto Negro' },
-      { ville: 'Villa Sangre',     nom: 'Crâne décoratif peint de Villa Sangre' },
-      { ville: 'Al Madina',        nom: "Petite lampe ouvragée d'Al Madina" },
-      { ville: 'Oasis City',       nom: 'Boule à neige « Oasis City »' },
-      { ville: 'Al-Petrol',        nom: 'Miniature de baril de pétrole doré' }
+      { ville: 'Ciudad Roja',      nom: 'Petit masque rouge du carnaval de Ciudad Roja', fermee: true },
+      { ville: 'Puerto Negro',     nom: 'Jeton du casino de Puerto Negro', fermee: true },
+      { ville: 'Villa Sangre',     nom: 'Crâne décoratif peint de Villa Sangre', fermee: true },
+      { ville: 'Al Madina',        nom: "Petite lampe ouvragée d'Al Madina", fermee: true },
+      { ville: 'Oasis City',       nom: 'Boule à neige « Oasis City »', fermee: true },
+      { ville: 'Al-Petrol',        nom: 'Miniature de baril de pétrole doré', fermee: true }
+    ]
+  },
+  // Listes 2, 3 et 4 (Fred, 25/11/2026 au soir, mission du soir 3.2 ; provisoires, relues le 12/12). Affichage seulement :
+  // la liste qui fait foi est en base (souvenirs_emplacements, migration 20261125600000). fermee : ville d'un empire fermé.
+  2: {
+    nom: 'Collection n°2',
+    souvenirs: [
+      { ville: "Luthécia", nom: "Tampon encreur officiel « Approuvé — en trois exemplaires »" },
+      { ville: "Montrouge", nom: "Carte postale « Montrouge, place du Rail — ici, même les statues sont à l'heure »" },
+      { ville: "Port-Sainte-Marie", nom: "Bocal de sel des marais" },
+      { ville: "Novomirsk", nom: "Ticket n° 1 de la file d'attente de la Distribution Collective, encadré" },
+      { ville: "Starovka", nom: "Bonnet en laine de renne de la ferme" },
+      { ville: "Krasnov", nom: "Guide des baies sauvages" },
+      { ville: "Ciudad Roja", nom: "Maracas rouges du carnaval", fermee: true },
+      { ville: "Puerto Negro", nom: "Mignonnette de rhum « Puerto Negro »", fermee: true },
+      { ville: "Villa Sangre", nom: "Bougie votive peinte", fermee: true },
+      { ville: "Al Madina", nom: "Sachet d'épices du souk", fermee: true },
+      { ville: "Oasis City", nom: "Flacon de sable de l'oasis", fermee: true },
+      { ville: "Al-Petrol", nom: "Porte-clés en forme de derrick doré", fermee: true }
+    ]
+  },
+  3: {
+    nom: 'Collection n°3',
+    souvenirs: [
+      { ville: "Luthécia", nom: "Carte postale « Luthécia — la liberté, en trois exemplaires et dûment tamponnée »" },
+      { ville: "Montrouge", nom: "Sifflet de chef de gare du musée du Rail" },
+      { ville: "Port-Sainte-Marie", nom: "Carte postale « Port-Sainte-Marie, sous la protection de Notre-Dame de la Mer »" },
+      { ville: "Novomirsk", nom: "Médaille commémorative du Tractorisme" },
+      { ville: "Starovka", nom: "Carte postale « Starovka — ici, la chaleur est dans les cœurs »" },
+      { ville: "Krasnov", nom: "Casque miniature de fondeur des hauts-fourneaux" },
+      { ville: "Ciudad Roja", nom: "Foulard rouge brodé", fermee: true },
+      { ville: "Puerto Negro", nom: "Dé en os des tripots du port", fermee: true },
+      { ville: "Villa Sangre", nom: "Statuette du saint protecteur de la ville", fermee: true },
+      { ville: "Al Madina", nom: "Théière miniature ciselée", fermee: true },
+      { ville: "Oasis City", nom: "Datte en sucre dans sa boîte dorée", fermee: true },
+      { ville: "Al-Petrol", nom: "Fiole décorative scellée « pétrole brut »", fermee: true }
+    ]
+  },
+  4: {
+    nom: 'Collection n°4',
+    souvenirs: [
+      { ville: "Luthécia", nom: "Formulaire vierge de la Liberté, encadré" },
+      { ville: "Montrouge", nom: "Carte postale « Bons baisers de Montrouge, la ville qui ne déraille jamais »" },
+      { ville: "Port-Sainte-Marie", nom: "Bouée miniature « Port-Sainte-Marie »" },
+      { ville: "Novomirsk", nom: "Exemplaire relié de La Voix de Sovarka" },
+      { ville: "Starovka", nom: "Bois de renne sculpté" },
+      { ville: "Krasnov", nom: "Pendentif « L'ours ne se chasse pas » (fausse griffe d'ours)" },
+      { ville: "Ciudad Roja", nom: "Affiche du carnaval", fermee: true },
+      { ville: "Puerto Negro", nom: "Boussole de contrebandier", fermee: true },
+      { ville: "Villa Sangre", nom: "Chapelet de perles noires", fermee: true },
+      { ville: "Al Madina", nom: "Babouches brodées miniatures", fermee: true },
+      { ville: "Oasis City", nom: "Chameau en peluche « Oasis City »", fermee: true },
+      { ville: "Al-Petrol", nom: "Casque de chantier pétrolier dédicacé", fermee: true }
     ]
   }
 };
@@ -11067,33 +11148,66 @@ async function confirmerMenerEnquete(pa, cost) {
   const pays = state.country;
   const ville = juridiction.ville;
   const buildingId = getBuildingIdCommissariat(ville);
-  const rEnquete = await deduireCoutOrdre({ pa, cost, payeur: { type: 'institution', pays, buildingId } });
-  if (!rEnquete.ok) {
-    showToast(rEnquete.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Caisse insuffisante',
-      rEnquete.raison === 'pa_insuffisants' ? '' : 'La caisse du commissariat ne couvre pas le cout de l enquete.', false);
-    return;
+  // PAIEMENT ET JET AU SERVEUR (mission du soir du 25/11/2026, 1.2) : commissaire_enquete_mener (forme a requete) preleve
+  // la caisse du commissariat et les 2 PA AVANT le jet, dans la meme transaction (plus de relance gratuite) ; sans trace
+  // contre la cible, l'enquete est infructueuse au serveur. Ancien chemin seulement si la migration 20261125500000 manque.
+  let gav = null, taux = null, candidats = [], serveur = null;
+  if (typeof sbRpcVerdict === 'function') {
+    // Lecture avant le jet : la transmission au tribunal cite l'acte trouve (comme l'ancien chemin).
+    const tous = typeof sbGetActionsTracables === 'function' ? await sbGetActionsTracables(pays, ville, state.day || 1).catch(() => []) : [];
+    const avant = (tous || []).filter(a => a.auteur === cible && !a.decouvert);
+    const benedictionSrv = (typeof consommerBonusBenediction === 'function') && consommerBonusBenediction(0) > 0;
+    const v = await sbRpcVerdict('commissaire_enquete_mener', { p_requete: crypto.randomUUID(), p_cible: cible, p_benediction: benedictionSrv });
+    if (!(v && v.transport && v.transport.code === 'PGRST202')) {
+      if (!v || v.paye !== true) {
+        showToast(v && v.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Enquête impossible',
+          v && v.raison === 'caisse_institution_insuffisante' ? 'La caisse du commissariat ne couvre pas le cout de l enquete.'
+            : (v && v.raison === 'hors_juridiction' ? 'Vous ne pouvez agir que depuis le commissariat de votre propre ville.' : ''), false);
+        return;
+      }
+      serveur = v; gav = v; taux = v.taux; candidats = avant.length ? avant : [{}];
+      if (v.paie && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v.paie);
+      if (v.sans_trace) {
+        addJournalEntry('Enquete menee contre ' + cible + ' : rien de compromettant trouve. -250 FR.', 'event-info');
+        showToast('Enquete infructueuse', 'Rien de compromettant trouve sur ' + cible + '.', false);
+        return;
+      }
+      if (v.abouti === false) {
+        addJournalEntry('Enquete menee contre ' + cible + ' : indices insuffisants pour aboutir. -250 FR.', 'event-info');
+        showToast('Enquete infructueuse', 'Le dossier n a pas abouti cette fois (' + taux + '% de chances).', false);
+        return;
+      }
+    }
   }
+  if (!serveur) {
+    const rEnquete = await deduireCoutOrdre({ pa, cost, payeur: { type: 'institution', pays, buildingId } });
+    if (!rEnquete.ok) {
+      showToast(rEnquete.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Caisse insuffisante',
+        rEnquete.raison === 'pa_insuffisants' ? '' : 'La caisse du commissariat ne couvre pas le cout de l enquete.', false);
+      return;
+    }
 
-  const toutes = typeof sbGetActionsTracables === 'function' ? await sbGetActionsTracables(pays, ville, state.day || 1).catch(() => []) : [];
-  const candidats = (toutes || []).filter(a => a.auteur === cible && !a.decouvert);
+    const toutes = typeof sbGetActionsTracables === 'function' ? await sbGetActionsTracables(pays, ville, state.day || 1).catch(() => []) : [];
+    candidats = (toutes || []).filter(a => a.auteur === cible && !a.decouvert);
 
-  if (candidats.length === 0) {
-    addJournalEntry('Enquete menee contre ' + cible + ' : rien de compromettant trouve. -250 FR.', 'event-info');
-    showToast('Enquete infructueuse', 'Rien de compromettant trouve sur ' + cible + '.', false);
-    return;
-  }
+    if (candidats.length === 0) {
+      addJournalEntry('Enquete menee contre ' + cible + ' : rien de compromettant trouve. -250 FR.', 'event-info');
+      showToast('Enquete infructueuse', 'Rien de compromettant trouve sur ' + cible + '.', false);
+      return;
+    }
 
-  // JET AU SERVEUR (05/11/2026) : commissaire_enquete_mener tire le de, puis seulement en cas de
-  // reussite instruit l'enquete (commissaire_enqueter n'est plus appelable directement).
-  const benediction = (typeof consommerBonusBenediction === 'function') && consommerBonusBenediction(0) > 0;
-  const rGav = (typeof sbRpc === 'function')
-    ? await sbRpc('commissaire_enquete_mener', { p_cible: cible, p_benediction: benediction }).catch(() => null) : null;
-  const gav = Array.isArray(rGav) ? rGav[0] : rGav;
-  const taux = gav?.taux;
-  if (gav && gav.ok === true && gav.abouti === false) {
-    addJournalEntry('Enquete menee contre ' + cible + ' : indices insuffisants pour aboutir. -250 FR.', 'event-info');
-    showToast('Enquete infructueuse', 'Le dossier n a pas abouti cette fois (' + taux + '% de chances).', false);
-    return;
+    // JET AU SERVEUR (05/11/2026) : commissaire_enquete_mener tire le de, puis seulement en cas de
+    // reussite instruit l'enquete (commissaire_enqueter n'est plus appelable directement).
+    const benediction = (typeof consommerBonusBenediction === 'function') && consommerBonusBenediction(0) > 0;
+    const rGav = (typeof sbRpc === 'function')
+      ? await sbRpc('commissaire_enquete_mener', { p_cible: cible, p_benediction: benediction }).catch(() => null) : null;
+    gav = Array.isArray(rGav) ? rGav[0] : rGav;
+    taux = gav?.taux;
+    if (gav && gav.ok === true && gav.abouti === false) {
+      addJournalEntry('Enquete menee contre ' + cible + ' : indices insuffisants pour aboutir. -250 FR.', 'event-info');
+      showToast('Enquete infructueuse', 'Le dossier n a pas abouti cette fois (' + taux + '% de chances).', false);
+      return;
+    }
   }
 
   const action = candidats[0];
@@ -11206,25 +11320,50 @@ async function confirmerOrganiserFilature(pa, cost) {
   const pays = state.country;
   const ville = juridiction.ville;
   const buildingId = getBuildingIdCommissariat(ville);
-  const rFilature = await deduireCoutOrdre({ pa, cost, payeur: { type: 'institution', pays, buildingId } });
-  if (!rFilature.ok) {
-    showToast(rFilature.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Caisse insuffisante',
-      rFilature.raison === 'pa_insuffisants' ? '' : 'La caisse du commissariat ne couvre pas le cout de la filature.', false);
-    return;
+  // PAIEMENT ET JET AU SERVEUR (mission du soir du 25/11/2026, 1.2) : filature_mener (forme a requete) preleve la caisse
+  // du commissariat et les 2 PA AVANT le jet, dans la meme transaction (plus de relance gratuite). Ancien chemin seulement
+  // si la migration 20261125500000 n'est pas posee (PGRST202).
+  let rFil = null, serveurFil = false;
+  if (typeof sbRpcVerdict === 'function') {
+    const benedictionSrv = (typeof consommerBonusBenediction === 'function') && consommerBonusBenediction(0) > 0;
+    const v = await sbRpcVerdict('filature_mener', { p_requete: crypto.randomUUID(), p_cible: cible, p_benediction: benedictionSrv });
+    if (!(v && v.transport && v.transport.code === 'PGRST202')) {
+      if (!v || v.paye !== true) {
+        showToast(v && v.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Filature impossible',
+          v && v.raison === 'caisse_institution_insuffisante' ? 'La caisse du commissariat ne couvre pas le cout de la filature.'
+            : (v && v.raison === 'hors_juridiction' ? 'Vous ne pouvez agir que depuis le commissariat de votre propre ville.' : ''), false);
+        return;
+      }
+      serveurFil = true; rFil = v;
+      if (v.paie && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v.paie);
+      if (v.abouti === false) {
+        addJournalEntry('Filature de ' + cible + ' : la cible a seme la filature. -150 FR.', 'event-info');
+        showToast('Filature echouee', 'Vous avez perdu la trace de ' + cible + ' (' + v.taux + '% de chances).', false);
+        return;
+      }
+    }
   }
+  if (!serveurFil) {
+    const rFilature = await deduireCoutOrdre({ pa, cost, payeur: { type: 'institution', pays, buildingId } });
+    if (!rFilature.ok) {
+      showToast(rFilature.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Caisse insuffisante',
+        rFilature.raison === 'pa_insuffisants' ? '' : 'La caisse du commissariat ne couvre pas le cout de la filature.', false);
+      return;
+    }
 
-  // JET AU SERVEUR (05/11/2026) : filature_mener tire le de (formule doctrine V2 :
-  // 50 + 2*(PER-13) - (PER_cible-13) + (ISN-50)/5 + (INF-INF_cible)*0.3) puis, en cas de reussite
-  // seulement, rend le registre des deplacements (filature_deplacements n'est plus appelable seule).
-  const benediction = (typeof consommerBonusBenediction === 'function') && consommerBonusBenediction(0) > 0;
-  const rFil = (typeof sbRpc === 'function')
-    ? await sbRpc('filature_mener', { p_cible: cible, p_benediction: benediction })
-        .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
-    : null;
-  if (rFil && rFil.ok === true && rFil.abouti === false) {
-    addJournalEntry('Filature de ' + cible + ' : la cible a seme la filature. -150 FR.', 'event-info');
-    showToast('Filature echouee', 'Vous avez perdu la trace de ' + cible + ' (' + rFil.taux + '% de chances).', false);
-    return;
+    // JET AU SERVEUR (05/11/2026) : filature_mener tire le de (formule doctrine V2 :
+    // 50 + 2*(PER-13) - (PER_cible-13) + (ISN-50)/5 + (INF-INF_cible)*0.3) puis, en cas de reussite
+    // seulement, rend le registre des deplacements (filature_deplacements n'est plus appelable seule).
+    const benediction = (typeof consommerBonusBenediction === 'function') && consommerBonusBenediction(0) > 0;
+    rFil = (typeof sbRpc === 'function')
+      ? await sbRpc('filature_mener', { p_cible: cible, p_benediction: benediction })
+          .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
+      : null;
+    if (rFil && rFil.ok === true && rFil.abouti === false) {
+      addJournalEntry('Filature de ' + cible + ' : la cible a seme la filature. -150 FR.', 'event-info');
+      showToast('Filature echouee', 'Vous avez perdu la trace de ' + cible + ' (' + rFil.taux + '% de chances).', false);
+      return;
+    }
   }
   // null quand la lecture a echoue ou que l'autorite a ete refusee, [] seulement quand la cible ne
   // s'est reellement pas deplacee (chantier 5) : la filature a DEJA ete payee.
@@ -11247,7 +11386,8 @@ async function confirmerOrganiserFilature(pa, cost) {
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 
-  addJournalEntry('Filature reussie contre ' + cible + ' (' + taux + '% de chances). -150 FR.', 'event-good');
+  // `taux` n'existait pas ici (ReferenceError apres chaque filature reussie) : la chance est celle rendue par le serveur.
+  addJournalEntry('Filature reussie contre ' + cible + ' (' + (rFil && rFil.taux) + '% de chances). -150 FR.', 'event-good');
 }
 
 function doOrganiserChasseHomme(pa, cost) {

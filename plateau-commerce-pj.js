@@ -1094,27 +1094,18 @@ async function commercePjEcranGestion(ctx) {
       commercePjTexteHtml('commercepj.matiere.maxAide',{ plafond: plafondMat }) + '</div>';
   }
 
-  // --- COMMERCE PREMIUM : vitrine de paiement non activee (Fred, 06/11) ---
-  // Le serveur garde seul le controle des droits. Aucun achat gratuit pendant la beta.
+  // --- COMMERCE PREMIUM (Fred, 06/11 ; socle premium du 25/11/2026 au soir) ---
+  // Aucun prix écrit ici : les prix sont des réglages MJ, lus au serveur dans la fenêtre premium (plateau-premium.js).
+  // Le serveur garde seul le contrôle des droits (premium_fonds_types_max_interne, premium_fonds_references_max_interne).
   h += '<section class="cpj-premium" aria-label="Commerce Premium" ' +
     'style="margin:18px 0;padding:16px;border:1px solid var(--border-color, #8b7961);border-radius:10px">' +
-    '<div class="cpj-titre">Commerce Premium <span style="font-size:.75em;font-weight:normal">— prochainement</span></div>' +
+    '<div class="cpj-titre">Commerce Premium</div>' +
     '<p>Améliorez ce commerce : <strong>3 types d’activités</strong> au lieu de 2, ' +
-    '<strong>10 articles</strong> au lieu de 4 et <strong>une personnalisation visuelle incluse</strong>.</p>' +
-    '<p><strong>4,99 €</strong> · Achat lié au fonds de commerce. ' +
-    'Transmis lors de la vente du commerce ; perdu en cas de résiliation du bail.</p>' +
-    '<button type="button" disabled aria-disabled="true" title="Paiement non activé" ' +
-    'style="opacity:.55;cursor:not-allowed">Activer Commerce Premium — 4,99 € (bientôt)</button>' +
-    '<p style="margin-top:12px">Nouvelle génération d’image : <strong>0,99 €</strong> par image.</p>' +
-    '<button type="button" disabled aria-disabled="true" title="Paiement non activé" ' +
-    'style="opacity:.55;cursor:not-allowed">Commander une nouvelle image — 0,99 € (bientôt)</button>' +
-    '<div style="margin-top:14px"><label for="cpj-code-promo"><strong>Code promotionnel</strong></label>' +
-    '<p class="cpj-note">Un code à usage unique pourra offrir soit Commerce Premium (4,99 €), ' +
-    'soit une nouvelle génération d’image (0,99 €), selon le droit associé au code.</p>' +
-    '<input id="cpj-code-promo" type="text" autocomplete="off" disabled aria-disabled="true" ' +
-    'placeholder="Saisir un code promotionnel" style="max-width:260px;width:100%;margin-right:8px" />' +
-    '<button type="button" disabled aria-disabled="true" title="Codes promotionnels non activés">Utiliser le code (bientôt)</button></div>' +
-    '<p class="cpj-note">Aucun paiement ni code promotionnel ne peut être utilisé pour le moment.</p>' +
+    '<strong>10 articles</strong> au lieu de 4 et <strong>la personnalisation du local</strong>. ' +
+    'Mêmes règles de jeu pour tous : le premium n’apporte aucun avantage de statistiques.</p>' +
+    '<p>Option achetée une fois et attachée au fonds de commerce : transmise lors de la vente du commerce, ' +
+    'perdue en cas de résiliation du bail. Chaque nouvelle image du local se renouvelle à l’unité.</p>' +
+    '<button type="button" onclick="ouvrirPremium(\'commerce_premium\', ' + JSON.stringify(String(ctx.fondsId)).replace(/"/g, '&quot;') + ')">Voir les options premium</button>' +
     '</section>';
 
   // --- AGENCE DE SECURITE PRIVEE (#135, 03/11/2026) -----------------------
@@ -2379,9 +2370,9 @@ async function commercePjOuvrirAtelier() {
   } catch (e) {
     console.warn('Récupération du décor provisoire impossible', e);
   }
-  // Présentation premium : le choix reste libre pendant la bêta.
-  // Le contrôle d'un futur paiement Stripe devra être effectué côté serveur
-  // avant d'autoriser l'atelier, jamais par une simple condition d'interface.
+  // Présentation premium : le choix reste libre pendant la bêta. Le droit à l'atelier est contrôlé côté serveur
+  // (fonction commerce-decoration, puis premium_personnalisation_autoriser_service ou premium_renouvellement_autoriser_service),
+  // jamais par une simple condition d'interface.
   const carteStyle = 'flex:1 1 195px;min-width:0;background:#252D38;border:1px solid #48576a;border-radius:10px;padding:1.05rem;display:flex;flex-direction:column;gap:.55rem';
   const boutonStyle = 'width:100%;padding:.78rem .6rem;border:1px solid #B99A57;border-radius:6px;background:#394656;color:#E5C477;font-weight:700;cursor:pointer;font-size:.91rem';
   const html = '<div style="padding:1.5rem;background:#151A21;color:#e0e6ed;line-height:1.55">' +
@@ -2518,14 +2509,14 @@ function commercePjDecorAvertissement() {
   const el = document.getElementById('cpj-decoration-avertissement');
   if (!el) return;
   el.textContent = RP_CPJ_DECOR_PREVIEW && RP_CPJ_DECOR_RETOUCHES === 1
-    ? 'Attention : il ne vous reste qu’une seule retouche comprise. Si elle ne vous convient pas, une nouvelle génération sera nécessaire (gratuite pendant la bêta, puis 0,99 €).'
+    ? 'Attention : il ne vous reste qu’une seule retouche comprise. Si elle ne vous convient pas, une nouvelle génération sera nécessaire (gratuite pendant la bêta, puis renouvellement d’image à l’unité).'
     : RP_CPJ_DECOR_PREVIEW && RP_CPJ_DECOR_RETOUCHES >= 2
       ? 'Vos deux retouches sont épuisées. Vous pouvez conserver cette version ou recommencer une nouvelle génération.'
       : '';
 }
 async function commercePjDecorRecommencer() {
   if (RP_CPJ_DECOR_GENERATION_EN_COURS) return;
-  if (!window.confirm('Recommencer une génération ? Gratuit pendant la bêta ; après la bêta, une nouvelle génération coûtera 0,99 €. Vos versions précédentes resteront accessibles.')) return;
+  if (!window.confirm('Recommencer une génération ? Gratuit pendant la bêta ; ensuite, une nouvelle génération est un renouvellement d’image (inclus une fois par semaine dans l’abonnement, sinon à l’unité). Vos versions précédentes resteront accessibles.')) return;
   RP_CPJ_DECOR_GENERATION_EN_COURS = true;
   try {
     await commercePjDecorAppel('restart');

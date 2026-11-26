@@ -37,6 +37,14 @@
       "destination": "/api/chat?mode=aide"
     },
     {
+      "source": "/api/paiement/webhook",
+      "destination": "/api/chat?mode=paiement_webhook"
+    },
+    {
+      "source": "/api/paiement",
+      "destination": "/api/chat?mode=paiement"
+    },
+    {
       "source": "/admin",
       "destination": "/admin.html"
     },

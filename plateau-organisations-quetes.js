@@ -8031,6 +8031,21 @@ function doOrganiserManifestationSyndicat() {
   ouvrirDemandeAutorisationManifester(orga.id);
 }
 
+// « Mobiliser les membres » (siège syndical ; audit des chances, Fred, 25/11 au soir) : ouvre les actions de l'organisation
+// syndicale du joueur (demander l'autorisation de manifester, lancer ou finir une grève), toutes tenues par le serveur avec
+// leur propre coût. Rien n'est débité ici.
+function doMobiliserMembresSyndicat() {
+  // Fin de soirée du 25/11 (Fred, 1.9) : le bouton ouvre le syndicat du joueur, où qu'il se trouve (celui du pays où il est
+  // d'abord, sinon n'importe lequel de ses syndicats) ; sans syndicat, refus expliqué.
+  const estMien = o => o.type === 'syndicale' && (o.chef === state.char?.name || (o.membres || []).some(m => m.nom === state.char?.name));
+  const orga = getMesOrgasPays(state.country).find(estMien) || (state.organisations || []).find(estMien);
+  if (!orga) {
+    showToast('Aucun syndicat', "Vous n'êtes membre d'aucune organisation syndicale. Fondez-en une ou rejoignez-en une pour mobiliser ses membres.", false);
+    return;
+  }
+  ouvrirOrdresOrga(orga.id);
+}
+
 function doDeclencherElectionClub(pa, cost) {
   const orga = getClubSupportersLocal();
   if (!orga) { showToast('Indisponible', 'Aucun club de supporters ici.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bc860f410", 'Aucun club de supporters ici.', undefined, 'Indisponible'); return; }
