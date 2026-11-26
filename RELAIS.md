@@ -9,6 +9,9 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Décisions du 26/11/2026 (séance avec Fred) — cases : `docs/mission-decisions-20261126.md` ; reprise : « Reprends docs/mission-decisions-20261126.md au premier point non coché »
+- Feu vert donné pour coder l'ensemble. Les migrations 800000 à 860000 de la fin de soirée restent **non appliquées** : 810000, 820000 et 860000 sont à adapter d'abord (case A).
+
 ### Mission de fin de soirée (Claude, 25/11/2026) — cases : `docs/mission-soir2-20261125.md`
 - Étape zéro : les cinq migrations du soir sont appliquées et contrôlées (voir la mission du soir ci-dessous).
 - Trois branches enchaînées `claude/soir2-a-20261125` → `b` → `c` (fusion `claude/soir2-chaine-20261125`). Comptes rendus,
