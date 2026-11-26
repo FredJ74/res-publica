@@ -2040,9 +2040,32 @@ function sommeilSanteServeur(v) {
   }
 }
 
+// Bilan de la nuit (Fred, 26/11/2026) : écarts entre le relevé d'avant le sommeil et l'état après le réveil.
+function bilanNuitTexte(avant, apres, cur) {
+  const parts = [], ecart = (cle) => (Number(apres[cle]) || 0) - (Number(avant[cle]) || 0);
+  const signe = n => (n > 0 ? '+' : '') + n.toLocaleString('fr-FR');
+  for (const [cle, nom] of [['pa', 'PA'], ['hp', 'Santé'], ['moral', 'Moral']]) {
+    const d = ecart(cle);
+    if (d) parts.push(signe(d) + ' ' + nom + ' (' + nom + ' ' + (Number(apres[cle]) || 0) + ')');
+  }
+  const dl = ecart('liquide'), da = ecart('arg');
+  if (dl) parts.push(signe(dl) + ' ' + cur + ' en liquide');
+  if (da && da !== dl) parts.push(signe(da) + ' ' + cur + ' de fortune totale');   // state.arg : fortune globale (liquide + banque)
+  return parts.length ? 'Bilan de la nuit : ' + parts.join(' · ') + '.' : 'Bilan de la nuit : aucun changement.';
+}
+function ajouterBilanNuit(avant) {
+  const cur = COUNTRIES[state.char?.country || 'republic']?.cur || 'FR';
+  const apres = { pa: state.pa, hp: state.hp, moral: state.moral, liquide: state.liquide, arg: state.arg };
+  const perte = ['pa', 'hp', 'moral'].some(k => (Number(apres[k]) || 0) < (Number(avant[k]) || 0));
+  addJournalEntry(bilanNuitTexte(avant, apres, cur), perte ? 'event-info' : 'event-good');
+}
+
 async function doDormir() {
   const personnageInitial = state.char, paysInitial = state.country;
   const paInitialRepos = state.pa;
+  // Bilan de la nuit (Fred, 26/11/2026) : relevé avant le sommeil, pour annoncer au journal TOUS les gains et pertes.
+  const avantNuit = { pa: Number(state.pa) || 0, hp: Number(state.hp) || 0, moral: Number(state.moral) || 0,
+    liquide: Number(state.liquide) || 0, arg: Number(state.arg) || 0 };
   const pieceInitialRepos = state.currentBuilding === 'clinique-privee' ? state.currentRoom : null;
   const nomInitialRepos = personnageInitial?.name;
   const uidInitial = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
@@ -2382,6 +2405,9 @@ async function doDormir() {
   }
 
   if (!retourActif()) return false;
+  // BILAN DE LA NUIT (Fred, 26/11/2026) : une ligne qui récapitule tous les gains et pertes du sommeil
+  // (PA, Santé, Moral, argent), relevés après TOUS les effets arrêtés par le serveur et les suites du réveil.
+  if (typeof ajouterBilanNuit === 'function') ajouterBilanNuit(avantNuit);
   // Rafraichir la vue
   switchSelfTab('actions', null);
 
