@@ -8,7 +8,7 @@
 const test = require('node:test'), assert = require('node:assert/strict'), fs = require('node:fs'), path = require('node:path');
 const { execFileSync } = require('node:child_process');
 const root = path.resolve(__dirname, '../..'), lire = f => fs.readFileSync(path.join(root, f), 'utf8');
-const SCRIPT = 'outils/lancement/remise-a-zero-20261219.sql';
+const SCRIPT = 'historique/preparations-lancement/remise-a-zero-20261219.sql';
 
 test('script généré à jour, transaction unique, jamais de CASCADE, aucune table premium payée effacée', () => {
   execFileSync('python3', [path.join(root, 'outils/lancement/generer-remise-a-zero.py'), '--verifier'], { encoding: 'utf8' });

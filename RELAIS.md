@@ -36,6 +36,8 @@ Règles : voir `AGENTS.md`.
   attendu. Fonctions Supabase redéployées : `commerce-decoration` (v14), `logement-decoration` (v3). Aucun compte de paiement
   ni aucune clé : le fournisseur n'est pas arrêté.
 - Remise à zéro du 19/12 : `docs/premium/REMISE-A-ZERO-20261219.md` (préparée, jamais exécutée ; 40 tables mixtes à écrire).
+  Le script et son modèle sont rangés dans `historique/preparations-lancement/` (règle des trois maisons du SQL, 26/11) ;
+  le générateur reste `outils/lancement/generer-remise-a-zero.py`.
 
 ### Mission de jour (Claude, 25/11/2026) — décisions : `GAME-DESIGN-MISSION-JOUR-20261125.md` ; suivi : `docs/suivi-decisions.md`, « Mission de jour »
 - **Fusionné dans main le 25/11** (avance rapide, 71944623) : chaîne `claude/jour-b1-20261125` → `claude/jour-b2-20261125` →
@@ -1283,6 +1285,9 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 - Aide HRP (PR #720) : **non certifiés** — réponses réelles DeepSeek dans les neuf langues, recette authentifiée, essais iPhone/Android. Sur téléphone : questions PA/but, fr→en→ko→fr, arabe RTL, clavier IME.
 
 ## Derniers chantiers
+
+- **« Plus d'informations sur les PA ? » pose la question** (Claude, 25/11/2026, branche `claude/pa-infirmiere-20261125`) : en arrivant par le lien chez l'infirmière d'accueil, la question « pouvez-vous m'expliquer ce que sont les PA… » est envoyée à sa place, au lieu de l'accueil générique (plateau-medecin-montrer.js). Texte nouveau pour Codex : `paInfosQuestion`.
+- **Portraits de Mathias Spirine et d'Anne Tibiotique** (Claude, 25/11/2026, même branche) : recadrés depuis l'illustration de la salle d'attente du dispensaire de Luthécia (`images/luthecia-dispensaire-*-portrait.webp`, 512×512) et raccordés dans data.js (photoUrl).
 
 - **Portraits PNJ Novomirsk et guides (ChatGPT, 24/11/2026, PR #1196)** : recadrages existants de Valentina Petchatkina et Zinaïda Kvassova raccordés ; contrôle 140 apparitions = 105 portraits existants + 35 à produire, six guides sortis des images de marché et prompts/chemins réservés (`outils/audits/portraits/PORTRAITS-A-PRODUIRE-20261124.md`) ; Fiodor Medvedkine déclaré mais absent du monde effectif de Krasnov, hors périmètre portraits.
 - **Infobulle de l'argent** (Claude, 24/11/2026, branche `claude/infobulle-argent-20261124`) : la case « ARGENT » du panneau de gauche reste l'argent en poche (décision de Fred) ; son survol donne « Argent total : X (poche, banque, placements) » (`majInfobulleArgent`, plateau-core.js). Retour de Han Watta Tsé, qui croyait avoir perdu 2 500 PSK (ils étaient à la Banque nationale).

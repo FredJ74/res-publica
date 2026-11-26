@@ -10,7 +10,7 @@ Branche `claude/soir2-a-20261125`, issue de main 50b6f162. Aucune écriture en p
   `climat_evenements` sont vidées (classement complémentaire : plus aucune table « à vérifier »).
 - Relevé des tables de production (630) : les **129 tables créées depuis le classement** sont classées (126 vidées, 3 gardées :
   `frontieres_fermees`, `souvenirs_objets`, `sovarka_urbanisme`). Sans cela, le script aurait refusé de tourner le 19/12.
-- **Remise à l'état initial des tables mixtes, table par table** : nouveau `outils/lancement/reinitialisations.modele.sql`
+- **Remise à l'état initial des tables mixtes, table par table** : nouveau `historique/preparations-lancement/reinitialisations.modele.sql`
   (une entrée « ▸ table : stratégie » par table ; le générateur échoue si une table n'en a pas), inséré dans le script après
   l'effacement. 45 tables (les 40 d'origine + les 5 tables de métiers des PNJ, qui suivent `pnj_membres` par cascade) :
   - aucune action (17) : référentiels qu'aucune fonction n'écrit, `rp_transitions`, `lois_assemblee` (morte),

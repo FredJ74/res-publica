@@ -22,6 +22,7 @@
     // Jauge des PA (Fred, 24/11/2026, mission Purge A.6) : reprend la bulle d'accueil des PA (GAME-DESIGN-INTERFACE-ACCUEIL-20261122.md, point 26).
     pa_txt: 'PA {n} / {max} : votre énergie du jour, chaque action en coûte. Dormir les recharge ; à 0, c’est l’hôpital.',
     paInfosTitre: 'Plus d’informations sur les PA',
+    paInfosQuestion: 'Bonjour, pouvez-vous m’expliquer ce que sont les PA et comment les gérer ?',
     paInfosOu: '{nom}, l’infirmière d’accueil, vous expliquera les PA. Vous la trouverez ici : {lieu}, pièce « {piece} ».',
     paInfosAucune: 'Il n’y a pas d’infirmière d’accueil dans cette ville. Les PA sont votre énergie du jour : chaque action en coûte, dormir les recharge et à 0, c’est l’hôpital.',
     sante_haut: 'Santé {n} : vous êtes en pleine forme ; sous les coups, vous perdez moins de PA.',
@@ -223,6 +224,16 @@
       const pnj = personnesPiece(inf.batiment, inf.piece).find(p => sansPnj(p.name) === inf.nom);
       if (pnj && typeof global.openPnjModal === 'function' && typeof global.encodePnjSafe === 'function') {
         global.openPnjModal(global.encodePnjSafe(pnj));
+        // LA QUESTION EST POSÉE POUR LE JOUEUR (Fred, 25/11/2026) : en arrivant par le lien, le joueur tombait sur
+        // l'accueil générique de l'infirmière (« Vous venez pour la consultation ? ») et devait deviner quoi demander.
+        // On pose sa question à sa place, dès que la zone de conversation est prête : elle lui explique les PA.
+        let essais = 0;
+        const poser = () => {
+          const zone = doc.getElementById('pnj-question-libre');
+          if (zone && typeof global.envoyerQuestion === 'function') { zone.value = t('paInfosQuestion'); global.envoyerQuestion(); return; }
+          if (++essais < 30) global.setTimeout(poser, 100);
+        };
+        global.setTimeout(poser, 50);
         return true;
       }
     }

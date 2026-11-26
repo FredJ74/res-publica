@@ -532,7 +532,7 @@ const WORLD = {
         'dispensaire-public': {
           name: "Dispensaire Public de Luthecia",
           desc: "Mathias Spirine consulte les dossiers médicaux.",
-          persons: [{"name": "Mathias Spirine (PNJ)", "role": "Généraliste", "rel": "neutral", "job": "medecin"}, {"name": "Anne Tibiotique (PNJ)", "role": "Infirmière", "rel": "neutral", "job": "infirmier"}]
+          persons: [{"name": "Mathias Spirine (PNJ)", "role": "Généraliste", "rel": "neutral", "job": "medecin", "photoUrl": "images/luthecia-dispensaire-mathias-spirine-portrait.webp", "photoPos": "50% 30%"}, {"name": "Anne Tibiotique (PNJ)", "role": "Infirmière", "rel": "neutral", "job": "infirmier", "photoUrl": "images/luthecia-dispensaire-anne-tibiotique-portrait.webp", "photoPos": "50% 30%"}]
         },
         'la-tribune': {
           name: "L'Autruche Entravée",

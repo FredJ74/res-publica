@@ -38,7 +38,7 @@ gratuit et en premium. Pendant la bêta, tout reste gratuit (droits accordés à
   idempotent). Fournisseur Paddle (Billing, bac à sable par défaut), faux fournisseur pour les bancs (interdit en
   production), paiement fermé par défaut (`PAIEMENT_FOURNISSEUR` absent). Remboursement : droits révoqués.
 - **4.5 Remise à zéro du 19/12** — préparée, non exécutée : `docs/premium/REMISE-A-ZERO-20261219.md` (pas à pas, effacé /
-  gardé, retour arrière), `outils/lancement/remise-a-zero-20261219.sql` (généré), offre des testeurs (personnalisation
+  gardé, retour arrière), `historique/preparations-lancement/remise-a-zero-20261219.sql` (généré), offre des testeurs (personnalisation
   d'un commerce, une annonce presse, une publicité de rue) aux comptes de la bêta, comptes de test exclus.
 - **4.6** — rien codé (reportage hebdomadaire, film mensuel, portrait IA, mini-jeux).
 
