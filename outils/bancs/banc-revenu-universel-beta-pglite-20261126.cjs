@@ -5,7 +5,7 @@
 const test = require('node:test'), assert = require('node:assert/strict'), fs = require('node:fs'), path = require('node:path');
 const root = path.resolve(__dirname, '../..'), lire = f => fs.readFileSync(path.join(root, f), 'utf8');
 const MIG = 'migrations/20261126100000_revenu_universel.sql', BETA = 'migrations/20261126500000_revenu_universel_beta.sql';
-const PROD = 'outils/bancs/fixtures/salaire-civil-percevoir-prod-20261126.sql';
+const PROD = 'outils/bancs/fixtures/salaire-civil-percevoir-prod-20261126.sql.txt';
 
 test('fichier : en-tête, contrôles, date du lancement, marque', () => {
   const m = lire(BETA);

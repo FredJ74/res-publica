@@ -2,11 +2,11 @@
 // Décisions du 26/11/2026, bloc B (décision n° 7 de Fred) : revenu universel de 45 PSK en Sovarka (150 FR en Républia), versé
 // seulement pendant les 10 premiers jours d'un personnage dans les deux empires ; montants et durée réglables par le MJ.
 // Migration 20261126100000 dans PGlite, sur salaire_civil_percevoir recopiée MOT POUR MOT de la production (md5
-// bb3036b3a6775bd5f2259375282dec29, lue le 26/11/2026 : fixtures/salaire-civil-percevoir-prod-20261126.sql).
+// bb3036b3a6775bd5f2259375282dec29, lue le 26/11/2026 : fixtures/salaire-civil-percevoir-prod-20261126.sql.txt).
 // Usage : PGLITE_DIR=<dossier où @electric-sql/pglite est installé> node --test outils/bancs/banc-revenu-universel-pglite-20261126.cjs
 const test = require('node:test'), assert = require('node:assert/strict'), fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');
 const root = path.resolve(__dirname, '../..'), lire = f => fs.readFileSync(path.join(root, f), 'utf8');
-const MIG = 'migrations/20261126100000_revenu_universel.sql', PROD = 'outils/bancs/fixtures/salaire-civil-percevoir-prod-20261126.sql';
+const MIG = 'migrations/20261126100000_revenu_universel.sql', PROD = 'outils/bancs/fixtures/salaire-civil-percevoir-prod-20261126.sql.txt';
 
 test('fichiers : migration, copie de production, écran et page MJ', () => {
   const m = lire(MIG);
