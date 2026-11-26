@@ -1114,7 +1114,8 @@ function ouvrirOrdresOrga(orgaId) {
   // fin" n'apparait que dans ce cas) -- generique, retro-compatible (absent = toujours visible,
   // comportement inchange pour tous les ordres existants avant ce lot).
   const ordres = (def.ordres || []).filter(o => !o.visibleSi || o.visibleSi(orga));
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  // Monnaie de l'organisation (un syndicat consulté depuis l'étranger garde la sienne ; décisions du 26/11, correctif E).
+  const cur = COUNTRIES[orga.country_origine || orga.country || state.country]?.cur || COUNTRIES[state.country]?.cur || 'FR';
   const monMembre = orga.membres?.find(m => m.nom === state.char?.name);
   const monGradeIdx = monMembre?.gradeIdx || 0;
   const estChef = orga.chef === state.char?.name;
@@ -8034,11 +8035,15 @@ function doOrganiserManifestationSyndicat() {
 // « Mobiliser les membres » (siège syndical ; audit des chances, Fred, 25/11 au soir) : ouvre les actions de l'organisation
 // syndicale du joueur (demander l'autorisation de manifester, lancer ou finir une grève), toutes tenues par le serveur avec
 // leur propre coût. Rien n'est débité ici.
-function doMobiliserMembresSyndicat() {
+async function doMobiliserMembresSyndicat() {
   // Fin de soirée du 25/11 (Fred, 1.9) : le bouton ouvre le syndicat du joueur, où qu'il se trouve (celui du pays où il est
   // d'abord, sinon n'importe lequel de ses syndicats) ; sans syndicat, refus expliqué.
   const estMien = o => o.type === 'syndicale' && (o.chef === state.char?.name || (o.membres || []).some(m => m.nom === state.char?.name));
-  const orga = getMesOrgasPays(state.country).find(estMien) || (state.organisations || []).find(estMien);
+  const chercher = () => getMesOrgasPays(state.country).find(estMien) || (state.organisations || []).find(estMien);
+  let orga = chercher();
+  // Décisions du 26/11 (correctif E) : un joueur à l'étranger ne dépend plus des organisations déjà chargées par l'écran ;
+  // le serveur rend toutes les organisations (organisations_lire), on relit avant de conclure à l'absence de syndicat.
+  if (!orga && typeof chargerOrganisations === 'function') { await chargerOrganisations({ lectureSeule: true }).catch(() => false); orga = chercher(); }
   if (!orga) {
     showToast('Aucun syndicat', "Vous n'êtes membre d'aucune organisation syndicale. Fondez-en une ou rejoignez-en une pour mobiliser ses membres.", false);
     return;

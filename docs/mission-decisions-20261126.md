@@ -53,7 +53,7 @@ au serveur, demi-effet, Simone Aiguillard au guichet du cinéma) : ne pas les re
       tables du point technique ci-dessus ; mettre à jour `docs/premium/REMISE-A-ZERO-20261219.md`, le générateur et
       son banc.
 - [x] D. Traduction : raccorder le forum (priorité), puis les rumeurs de la chronique.
-- [ ] E. Correctifs techniques : bénédiction au serveur, Mobiliser à l'étranger.
+- [x] E. Correctifs techniques : bénédiction au serveur, Mobiliser à l'étranger.
 - [ ] F. Contrôle final : CI verte, déploiement, compte rendu dans `RELAIS.md`.
 
 ## File d'après (hors feu vert)

@@ -781,6 +781,7 @@ async function doDemanderBenedictionContact(pnjNom) {
     if (!(v && v.transport && v.transport.code === 'PGRST202')) {
       if (!v || v.ok !== true) {
         if (v && v.raison === 'excommunie') showToast('Bénédiction refusée', pnjNom + ' ne peut rien pour vous : vous êtes excommunié(e).', false);
+        else if (v && v.raison === 'pas_de_religieux_ici') showToast('Bénédiction impossible', 'Aucun religieux habilité n’est présent ici pour vous bénir.', false);
         else signalerRefusCout(v || { raison: 'paiement_indisponible' });
         return;
       }

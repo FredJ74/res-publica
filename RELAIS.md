@@ -40,6 +40,11 @@ Règles : voir `AGENTS.md`.
   traduit. Migration 20261126300000 (cache 7 jours, quota par compte : 200 traductions et 120 000 caractères par jour,
   interrupteur et plafonds dans la page MJ « Traduction des textes de joueurs ») ; sans elle, l'original reste affiché.
   **Pour Codex** : `forum.js` libellés `translate`, `translationUnavailable`, `showOriginal`, `showTranslation`.
+- **Bloc E (fait)** : bénédiction — migration 20261126400000 (`religieux_habilites` : les 8 religieux de data.js, Républia et
+  Sovarka ; `benediction_contact_demander` refuse « pas_de_religieux_ici » avant toute dépense) ; « Mobiliser les membres »
+  relit les organisations avant de conclure à l'absence de syndicat et affiche la monnaie du syndicat. Banc
+  `banc-benediction-religieux-pglite-20261126.cjs`. **Pour Codex** : `plateau-divers.js` « Bénédiction impossible » /
+  « Aucun religieux habilité n’est présent ici pour vous bénir. ».
 
 ### Décisions du 26/11/2026 (séance avec Fred) — cases : `docs/mission-decisions-20261126.md` ; reprise : « Reprends docs/mission-decisions-20261126.md au premier point non coché »
 - Feu vert donné pour coder l'ensemble. Les migrations 800000 à 860000 de la fin de soirée restent **non appliquées** : 810000, 820000 et 860000 sont à adapter d'abord (case A).
