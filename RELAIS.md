@@ -49,6 +49,9 @@ Règles : voir `AGENTS.md`.
   `banc-benediction-religieux-pglite-20261126.cjs`. **Pour Codex** : `plateau-divers.js` « Bénédiction impossible » /
   « Aucun religieux habilité n’est présent ici pour vous bénir. ».
 
+### Revenu universel rendu aux testeurs (Claude, 26/11/2026, PR #1204)
+- Décision de Fred (21 h 29) : pendant la bêta, tous les personnages touchent le revenu universel ; la limite des 10 premiers jours ne s'applique qu'à partir du 19/12/2026 (clé `limite_a_partir` de `revenu_universel_parametres`). Migration 20261126500000 **appliquée et contrôlée**. Banc : `banc-revenu-universel-beta-pglite-20261126.cjs`. Au passage : copie de production du bloc B renommée en `.sql.txt` (rangement).
+
 ### Décisions du 26/11/2026 (séance avec Fred) — cases : `docs/mission-decisions-20261126.md` ; reprise : « Reprends docs/mission-decisions-20261126.md au premier point non coché »
 - Feu vert donné pour coder l'ensemble. Les migrations 800000 à 860000 de la fin de soirée restent **non appliquées** : 810000, 820000 et 860000 sont à adapter d'abord (case A).
 
