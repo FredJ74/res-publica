@@ -29,9 +29,8 @@ Règles : voir `AGENTS.md`.
   arbitrage du 05/10, Sovarka × 0,3, ports 20 000), lues par la procédure (tous les commerces PNJ ; toutes les caisses de
   Républia et de Sovarka) ; budgets nationaux et ports aux valeurs de départ ; `admin_journal` gardé ; offre des testeurs =
   personnalisation + deux campagnes courtes. Page MJ « Dotations du lancement » (`admin-dotations-lancement.js`). Procédure,
-  générateur et banc à jour. **Migration 20261126200000 NON appliquée** : la confirmation à l'écran a expiré (Fred absent) ;
-  à appliquer quand Fred est là (contrôles en tête du fichier). Sans elle, rien ne change avant le 19/12, mais la remise à
-  zéro ne peut pas s'exécuter (tables des dotations absentes).
+  générateur et banc à jour. Migration 20261126200000 appliquée et contrôlée le 26/11 (au second essai : la première
+  confirmation à l'écran avait expiré).
 - **Bloc D (fait)** : traduction des textes de joueurs — route `/api/traduction` (greffée sur `api/chat.js`, mode
   `traduction`, toujours 12 fonctions) qui relit l'original sous le JWT du lecteur et les RLS, sans entamer le quota d'IA des
   dialogues ; service écran `i18n/traduction-texte-joueur.js` (`RPTraductionTexteJoueur`, déjà attendu par la chronique) ;
@@ -40,6 +39,10 @@ Règles : voir `AGENTS.md`.
   traduit. Migration 20261126300000 (cache 7 jours, quota par compte : 200 traductions et 120 000 caractères par jour,
   interrupteur et plafonds dans la page MJ « Traduction des textes de joueurs ») ; sans elle, l'original reste affiché.
   **Pour Codex** : `forum.js` libellés `translate`, `translationUnavailable`, `showOriginal`, `showTranslation`.
+- **Bloc F (fait)** : les dix migrations du 26/11 sont appliquées et contrôlées (registre 20261126145029 à 20261126181515 :
+  800000, 810000, 820000, 850000, 860000, puis 100000, 400000, 300000, 200000) ; fonctions Supabase redéployées
+  (`commerce-decoration` v15, `logement-decoration` v4, `publicite-premium` v11) ; blocs A à E fusionnés dans main (CI
+  verte à chaque fusion, tête 5686e527) ; `/api/traduction` répond en production (refus propre sans session).
 - **Bloc E (fait)** : bénédiction — migration 20261126400000 (`religieux_habilites` : les 8 religieux de data.js, Républia et
   Sovarka ; `benediction_contact_demander` refuse « pas_de_religieux_ici » avant toute dépense) ; « Mobiliser les membres »
   relit les organisations avant de conclure à l'absence de syndicat et affiche la monnaie du syndicat. Banc

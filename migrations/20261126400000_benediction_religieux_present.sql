@@ -1,4 +1,4 @@
--- Décisions du 26/11/2026 (Claude), bloc E — NON APPLIQUÉE. Après 20261125820000 (bénédiction tenue par le serveur, appliquée).
+-- Décisions du 26/11/2026 (Claude), bloc E — APPLIQUÉE en production le 26/11/2026 (feu vert de Fred, contrôlée en lecture). Après 20261125820000 (bénédiction tenue par le serveur, appliquée).
 -- BÉNÉDICTION (décision technique du 26/11) : le serveur vérifie qu'un RELIGIEUX HABILITÉ est présent dans la pièce, comme
 -- l'écran l'exigeait déjà (plateau-pnj.js : grand_pretre, pretre ou clerc, dans une église de son pays).
 -- • religieux_habilites (pays, ville, batiment, piece, nom) : les religieux déclarés par data.js, Républia et Sovarka (le miroir

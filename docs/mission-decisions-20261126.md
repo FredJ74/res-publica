@@ -54,7 +54,7 @@ au serveur, demi-effet, Simone Aiguillard au guichet du cinéma) : ne pas les re
       son banc.
 - [x] D. Traduction : raccorder le forum (priorité), puis les rumeurs de la chronique.
 - [x] E. Correctifs techniques : bénédiction au serveur, Mobiliser à l'étranger.
-- [ ] F. Contrôle final : CI verte, déploiement, compte rendu dans `RELAIS.md`.
+- [x] F. Contrôle final : CI verte, déploiement, compte rendu dans `RELAIS.md`.
 
 ## File d'après (hors feu vert)
 

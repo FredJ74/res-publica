@@ -1,4 +1,4 @@
--- Décisions du 26/11/2026 (Claude), bloc C — NON APPLIQUÉE. Après 20261126100000.
+-- Décisions du 26/11/2026 (Claude), bloc C — APPLIQUÉE en production le 26/11/2026 (feu vert de Fred, contrôlée en lecture). Après 20261126100000.
 -- DOTATIONS INITIALES DU LANCEMENT (décisions n° 5 et 6 de Fred, 26/11/2026) : à la remise à zéro du 19/12, TOUS les commerces
 -- (ceux des PNJ compris ; ceux des joueurs disparaissent avec eux) et TOUTES les caisses publiques (mairies, ministères,
 -- Sovarka comme Républia) repartent d'une dotation initiale permettant d'amorcer le jeu, réglable dans la page MJ.

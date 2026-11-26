@@ -1,4 +1,4 @@
--- Décisions du 26/11/2026 (Claude), bloc D — NON APPLIQUÉE. Après 20261126200000.
+-- Décisions du 26/11/2026 (Claude), bloc D — APPLIQUÉE en production le 26/11/2026 (feu vert de Fred, contrôlée en lecture). Après 20261126200000.
 -- TRADUCTION DES TEXTES DE JOUEURS (décision n° 10 de Fred, 26/11/2026 : le forum d'abord — Fred fait venir des joueurs
 -- étrangers pour éprouver la qualité des traductions —, puis les rumeurs de la chronique). Stockage privé du cache et du quota,
 -- repris mot pour mot du brouillon relu (historique/i18n/I18N-STOCKAGE-PRIVE-BROUILLON-NON-APPLIQUER.sql, banc jetable
