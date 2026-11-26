@@ -2407,7 +2407,7 @@ async function doDormir() {
   if (!retourActif()) return false;
   // BILAN DE LA NUIT (Fred, 26/11/2026) : une ligne qui récapitule tous les gains et pertes du sommeil
   // (PA, Santé, Moral, argent), relevés après TOUS les effets arrêtés par le serveur et les suites du réveil.
-  ajouterBilanNuit(avantNuit);
+  if (typeof ajouterBilanNuit === 'function') ajouterBilanNuit(avantNuit);
   // Rafraichir la vue
   switchSelfTab('actions', null);
 
