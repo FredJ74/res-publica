@@ -1286,6 +1286,7 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 
 ## Derniers chantiers
 
+- **Recontrôle portraits Novomirsk (ChatGPT, 25/11/2026, branche `chatgpt/portraits-bio-20261125`)** : 34 entrées revues, dont 4 en pièces exclues ; aucun nouveau recadrage fiable ; descriptions artistiques proposées et observations consignées dans les deux audits portraits du 24/11. Aucun changement de données de jeu. Fusion conditionnée à la CI complète.
 - **« Plus d'informations sur les PA ? » pose la question** (Claude, 25/11/2026, branche `claude/pa-infirmiere-20261125`) : en arrivant par le lien chez l'infirmière d'accueil, la question « pouvez-vous m'expliquer ce que sont les PA… » est envoyée à sa place, au lieu de l'accueil générique (plateau-medecin-montrer.js). Texte nouveau pour Codex : `paInfosQuestion`.
 - **Portraits de Mathias Spirine et d'Anne Tibiotique** (Claude, 25/11/2026, même branche) : recadrés depuis l'illustration de la salle d'attente du dispensaire de Luthécia (`images/luthecia-dispensaire-*-portrait.webp`, 512×512) et raccordés dans data.js (photoUrl).
 
