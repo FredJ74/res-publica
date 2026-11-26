@@ -1,4 +1,4 @@
--- Mission de fin de soirée du 25/11/2026 (Claude), point 1.5 — NON APPLIQUÉE. Après 20261125600000 (souvenirs, appliquée).
+-- Mission de fin de soirée du 25/11/2026 (Claude), point 1.5 — APPLIQUÉE en production le 26/11/2026 (feu vert de Fred, contrôlée en lecture). Après 20261125600000 (souvenirs, appliquée).
 -- Décision de Fred : le ticket du cinéma de Montrouge se vend AU CINÉMA, auprès d'une caissière visible sur l'image du hall
 -- (images/montrouge/montrouge-cinema-accueil.jpg : une jeune femme au guichet « CAISSE »). PNJ créé : Simone Aiguillard
 -- (data.js, hall du cinéma ; fiche DeepSeek simone_aiguillard ; portrait recadré de l'image).

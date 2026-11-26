@@ -9,7 +9,7 @@ const ATELIERS = { commerce: 'supabase/edge-functions/commerce-decoration/index.
 
 test('migration : en-tête NON APPLIQUÉE, contrôles en lecture, réservée au serveur', () => {
   const m = lire(MIG);
-  assert.match(m.split('\n')[0], /NON APPLIQUÉE/);
+  assert.match(m.split('\n')[0], /(NON APPLIQUÉE|APPLIQUÉE en production)/);
   assert.match(m, /Contrôles en lecture après application/);
   assert.match(m, /REVOKE ALL ON FUNCTION public\.premium_renouvellement_rendre_service\(uuid, text, text\) FROM PUBLIC, anon, authenticated;/);
   assert.match(m, /est_appel_serveur\(\)/);

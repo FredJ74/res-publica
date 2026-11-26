@@ -1,4 +1,4 @@
--- Mission de fin de soirée du 25/11/2026 (Claude), point 2.4, revue le 26/11 (décision n° 2 de Fred) — NON APPLIQUÉE.
+-- Mission de fin de soirée du 25/11/2026 (Claude), point 2.4, revue le 26/11 (décision n° 2 de Fred) — APPLIQUÉE en production le 26/11/2026 (feu vert de Fred, contrôlée en lecture).
 -- Après 20261125700000 (premium, appliquée).
 -- PUBLICITÉS DE JOUEURS (décision de Fred, 26/11/2026) : premium ponctuel, on vend une CAMPAGNE (une seule génération
 -- d'image, rediffusée). Deux durées au choix, 5 et 10 jours, prix DÉGRESSIF ; durées et prix réglables dans la page MJ.

@@ -9,6 +9,17 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Décisions du 26/11/2026 (Claude) — cases : `docs/mission-decisions-20261126.md`
+- **Bloc A (fait)** : 810000 revue (campagnes courte 5 j / longue 10 j, prix dégressif tenu par `premium_admin_prix_fixer`,
+  durées `publicite_duree_courte` / `_longue` dans la page MJ, produits `campagne_publicite_courte` / `_longue` pour tous les
+  supports, `publicite_joueur_creer(..., p_duree)`), 820000 revue (censure en Sovarka sans effet ni scandale ; amende de
+  contrebande versée à `<pays>_douane`), 860000 revue (rumeur ratée : ni texte ni cible, phrase de Fred). **Appliquées et
+  contrôlées le 26/11** dans l'ordre : 800000, 810000, 820000, 850000, 860000 (registre 20261126145029 à 20261126145330).
+  Fonctions redéployées : `commerce-decoration` v15, `logement-decoration` v4, `publicite-premium` v11.
+  **Pour Codex** : `plateau-premium.js` TXT `pubCourte`, `pubLongue` ; `plateau-publicite-premium.js` clés `campaignShort`,
+  `campaignLong` (nouvelles) et `campaignModel` (texte changé) du catalogue premiumAds ; description de « Censurer un média »
+  (data.js) ; phrase `acte_rumeur_ratee` de `plateau-chronique-empire.js`.
+
 ### Décisions du 26/11/2026 (séance avec Fred) — cases : `docs/mission-decisions-20261126.md` ; reprise : « Reprends docs/mission-decisions-20261126.md au premier point non coché »
 - Feu vert donné pour coder l'ensemble. Les migrations 800000 à 860000 de la fin de soirée restent **non appliquées** : 810000, 820000 et 860000 sont à adapter d'abord (case A).
 

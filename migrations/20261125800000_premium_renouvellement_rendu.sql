@@ -1,4 +1,4 @@
--- Mission de fin de soirée du 25/11/2026 (Claude), point 1.3 — NON APPLIQUÉE. Après 20261125700000 (premium, appliquée).
+-- Mission de fin de soirée du 25/11/2026 (Claude), point 1.3 — APPLIQUÉE en production le 26/11/2026 (feu vert de Fred, contrôlée en lecture). Après 20261125700000 (premium, appliquée).
 -- Décision de Fred : un renouvellement d'image est décompté AVANT la génération ; si la génération échoue (générateur
 -- d'images en panne, image refusée, enregistrement impossible), il est RENDU : aucune perte pour le joueur.
 -- • premium_renouvellement_rendre_service(p_user, p_type, p_objet) : réservée au serveur (les ateliers de décoration,

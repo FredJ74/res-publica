@@ -1,4 +1,4 @@
--- Mission de fin de soirée du 25/11/2026 (Claude), point 3.1 — NON APPLIQUÉE. Après 20261125200000 (chronique de l'empire, appliquée).
+-- Mission de fin de soirée du 25/11/2026 (Claude), point 3.1 — APPLIQUÉE en production le 26/11/2026 (feu vert de Fred, contrôlée en lecture). Après 20261125200000 (chronique de l'empire, appliquée).
 -- Décision de Fred : dans l'onglet « L'empire », une rumeur est citée avec son texte, par exemple « Une rumeur circule au marché
 -- de Novomirsk : "…" ». L'auteur reste anonyme tant qu'il n'est pas identifié (règle de chronique_auteur_public_interne,
 -- inchangée).

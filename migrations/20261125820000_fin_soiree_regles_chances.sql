@@ -1,4 +1,4 @@
--- Mission de fin de soirée du 25/11/2026 (Claude), points 1.4, 1.6, 1.10, 2.1, 2.2, 2.3 — NON APPLIQUÉE. Après 20261125700000.
+-- Mission de fin de soirée du 25/11/2026 (Claude), points 1.4, 1.6, 1.10, 2.1, 2.2, 2.3 — APPLIQUÉE en production le 26/11/2026 (feu vert de Fred, contrôlée en lecture). Après 20261125700000.
 -- Décisions de Fred (25/11, fin de soirée) et choix techniques tranchés par Claude :
 -- • 1.4 Contrebande : un échec repéré par la douane coûte une AMENDE égale au gain qu'aurait rapporté la contrebande, plus la
 --   recherche (au lieu de la saisie de la contrebande portée sur soi). Le gain n'existait nulle part en base : il devient un

@@ -9,7 +9,7 @@ const MIG = 'migrations/20261125810000_presse_campagne_duree_mj.sql';
 
 test('migration et fonction de presse : en-tête, contrôles, durée lue sur la campagne avec repli', () => {
   const m = lire(MIG);
-  assert.match(m.split('\n')[0], /NON APPLIQUÉE/);
+  assert.match(m.split('\n')[0], /(NON APPLIQUÉE|APPLIQUÉE en production)/);
   assert.match(m, /Contrôles en lecture après application/);
   const f = lire('supabase/edge-functions/publicite-premium/index.ts');
   assert.match(f, /ad\.nb_parutions/);

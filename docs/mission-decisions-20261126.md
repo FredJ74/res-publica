@@ -42,7 +42,7 @@ au serveur, demi-effet, Simone Aiguillard au guichet du cinéma) : ne pas les re
 
 ## Cases
 
-- [ ] A. Migrations de la fin de soirée, **avant application** : adapter 810000 (deux durées 5 / 10 jours, prix
+- [x] A. Migrations de la fin de soirée, **avant application** : adapter 810000 (deux durées 5 / 10 jours, prix
       dégressif, réglages MJ, plus de formules à parutions), 820000 (censure en Sovarka sans effet ni scandale ;
       amende de contrebande versée à la caisse de la douane), 860000 (phrase de la rumeur ratée). Puis appliquer
       800000, 810000, 820000, 850000, 860000 dans l'ordre, redéployer `commerce-decoration`, `logement-decoration`,
