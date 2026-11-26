@@ -739,6 +739,14 @@ function choisirCibleCombatPnj(pnj,cibles,batiment) {
   const memes=cibles.filter(x=>x.id && normaliser(x.nom)===normaliser(pnj.name));
   return memes.length===1 && memes[0].classe!=='gamma' ? {...pnj,socleId:memes[0].id} : null;
 }
+function afficherVolerCible(cible) {
+  const z=document.getElementById('voler-cible-pnj');
+  if (!z) return;
+  const b=document.createElement('button');b.className='pnj-action-btn';b.style.color='#aa7a30';b.style.borderColor='#3a2810';
+  b.innerHTML='<i class="ti ti-fingerprint" style="font-size:.85rem"></i> Voler';
+  b.onclick=()=>{document.getElementById('modal-pnj').classList.remove('open');ouvrirModalVolerChoix(encodePnjSafe(cible));};
+  z.replaceChildren(b);
+}
 async function actualiserCibleCombatPnj(pnj) {
   // Criminalité lot 2 : un joueur (ou un individu masqué, visé par son jeton) se neutralise sans liste de cibles PNJ.
   if (pnj && pnj.isPJ) {
@@ -746,7 +754,7 @@ async function actualiserCibleCombatPnj(pnj) {
     if (!zonePj || (pnj.masque && !pnj.jeton)) { if (zonePj) zonePj.textContent='Cette personne ne peut pas être ciblée ici.'; return false; }
     const b=document.createElement('button');b.className='cpj-touche';b.textContent='Neutraliser';
     b.onclick=()=>{document.getElementById('modal-pnj').classList.remove('open');ouvrirModalAssassinat(encodePnjSafe(pnj));};
-    zonePj.replaceChildren(b);return true;
+    zonePj.replaceChildren(b);afficherVolerCible(pnj);return true;
   }
   const c=contexteGroupePj(),zone=document.getElementById('combat-cible-pnj');
   if (!zone || typeof sbRpcVerdict!=='function') return false;
@@ -758,7 +766,7 @@ async function actualiserCibleCombatPnj(pnj) {
   if (!cible) { zone.textContent='Cette personne ne peut pas être ciblée ici.';return false; }
   const bouton=document.createElement('button');bouton.className='cpj-touche';bouton.textContent='Neutraliser';
   bouton.onclick=()=>{document.getElementById('modal-pnj').classList.remove('open');ouvrirModalAssassinat(encodePnjSafe(cible));};
-  zone.replaceChildren(bouton);return true;
+  zone.replaceChildren(bouton);afficherVolerCible(cible);return true;
 }
 
 function openPnjModal(encodedPnj, options = null) {
@@ -1105,7 +1113,10 @@ function openPnjModal(encodedPnj, options = null) {
   // VOLER PROPOSE DESORMAIS LE GENRE DE BUTIN (12 octobre 2026) : de l'argent, ou un objet. Le
   // tirage 60/40 qui choisissait a la place du joueur disparait. L'inventaire de la cible n'est
   // JAMAIS montre avant le vol, et la tentative reste possible meme si elle ne possede rien.
-  actionBtns += '<button class="pnj-action-btn" style="color:#aa7a30;border-color:#3a2810" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');ouvrirModalVolerChoix(\'' + encCible + '\')"><i class="ti ti-fingerprint" style="font-size:.85rem"></i> Voler</button>';
+  // VOLER SUIT LE VERDICT DE PRESENCE (26/11/2026) : crime_voler résout sa cible comme Neutraliser
+  // (crim_cible_resoudre_interne). Le bouton n'apparaît donc qu'une fois la cible confirmée par
+  // actualiserCibleCombatPnj ; une personne « qui ne peut pas être ciblée ici » ne propose plus Voler.
+  actionBtns += '<span id="voler-cible-pnj"></span>';
   // §17 : libelle visible "Neutraliser". Le nom de la fonction (ouvrirModalAssassinat) et les
   // identifiants techniques sous-jacents restent inchanges -- ils sont couples a la detection et
   // aux barèmes persistes (voir plateau-actions-illegales-rumeurs.js).

@@ -202,3 +202,15 @@ test('Écran : aucun calcul ; fiche → module ; menu « Fouiller ou voler » ; 
     assert.match(appels[0][1].p_requete, /^[0-9a-f-]{36}$/);
   });
 });
+
+test('Fiche de rencontre : « Voler » n\'apparaît qu\'après confirmation de la cible (26/11/2026, Anne Tibiotique)', () => {
+  const pnj = fs.readFileSync(path.join(__dirname, '../../plateau-pnj.js'), 'utf8');
+  // Plus de bouton Voler inconditionnel dans la fiche : une place vide, remplie par le verdict de présence.
+  assert.doesNotMatch(pnj, /ouvrirModalVolerChoix\(\\'' \+ encCible/);
+  assert.match(pnj, /actionBtns \+= '<span id="voler-cible-pnj"><\/span>';/);
+  // Les deux chemins qui affichent « Neutraliser » (joueur, PNJ confirmé) affichent aussi « Voler », avec la même cible.
+  assert.match(pnj, /zonePj\.replaceChildren\(b\);afficherVolerCible\(pnj\);return true;/);
+  assert.match(pnj, /zone\.replaceChildren\(bouton\);afficherVolerCible\(cible\);return true;/);
+  // Les refus (« ne peut pas être ciblée ici », présence non confirmée) ne l'affichent pas.
+  for (const m of pnj.matchAll(/textContent='[^']*';return false;/g)) assert.doesNotMatch(m[0], /afficherVolerCible/);
+});
