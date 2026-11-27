@@ -7420,7 +7420,8 @@ const BUILDINGS = {
   // controles d'acces de Luthecia, qui raisonnent sur les ambassades ouvertes EN REPUBLIA.
   // L'accueil autorise les demandes d'audience et d'asile. Les bureaux sont réservés
   // aux invités (audience accordée) et aux bénéficiaires des droits diplomatiques côté serveur.
-  // Les ordres internes différés restent « Bientôt disponible ».
+  // Ambassade de Républia : relations bilatérales, réception (au Pavillon) et mécénat raccordés le 27/11/2026 (consigne de
+  // Fred) ; le transfert d'un détenu reste « Bientôt disponible » (01/11). Les deux autres bureaux restent différés.
   // La réception diplomatique appartient au Pavillon des Ambassadeurs, pas au Palais.
   'palais-ambassades-novomirsk': {
     name: "Palais des Ambassades",
@@ -7451,9 +7452,9 @@ const BUILDINGS = {
         desc: "Le bureau de l'ambassadeur de Républia. On n'y est reçu que sur audience, demandée à l'accueil.",
         persons: [{name:'Hubert de La Courtoisie (PNJ)', role:"Ambassadeur de Républia", rel:'neutral', job:'ambassadeur'}],
         orders: [
-          {fn:'relations_bilaterales', label:'Consulter les relations bilatérales', pa:0, cost:0, type:'legal', icon:'ti-file-analytics', successRate:100, desc:'État des relations avec Républia.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'},
-          {fn:'organiser_reception_diplomatique', label:'Organiser une réception diplomatique', pa:2, cost:1200, type:'legal', icon:'ti-glass-champagne', successRate:100, desc:'Réserver la Salle de Réception commune.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'},
-          {fn:'financer_oeuvre_culturelle', label:'Financer une œuvre culturelle', pa:1, cost:600, type:'legal', icon:'ti-palette', successRate:100, desc:'Soft power local.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'},
+          {fn:'relations_bilaterales', label:'Consulter les relations bilatérales', pa:0, cost:0, type:'legal', icon:'ti-file-analytics', successRate:100, requiresPost:'ambassadeur_local', desc:'État des relations avec Républia.'},
+          {fn:'organiser_reception_diplomatique', label:'Organiser une réception diplomatique', pa:2, cost:1200, type:'legal', icon:'ti-glass-champagne', successRate:100, requiresPost:'ambassadeur_local', desc:'Réserver la Salle de Réception commune.'},
+          {fn:'financer_oeuvre_culturelle', label:'Financer une œuvre culturelle', pa:1, cost:600, type:'legal', icon:'ti-palette', successRate:100, requiresPost:'ambassadeur_local', desc:'Soft power local.'},
           {fn:'demander_transfert_detenu', label:'Demander le transfert d\'un détenu', pa:1, cost:0, type:'legal', icon:'ti-lock-open', successRate:100, desc:'Demander au ministre des Affaires étrangères de votre pays le transfert d\'un ressortissant détenu ici vers la prison de sa ville de domiciliation.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'}
         ]
       },

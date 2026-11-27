@@ -59,7 +59,9 @@ test('La navigation serveur revalide toutes les entrées, y compris groupes, san
 test('Parcours Luthécia toujours reconnu et ordres des bureaux toujours différés',()=>{
   assert.deepEqual(luthecia.rooms.accueil_ambassades.orders.map(o=>o.fn),
     ['demander_audience_ambassadeur','demander_asile_politique','reserver_salle_reception']);
-  for(const k of ['bureau_republia_novomirsk','bureau_khalija_novomirsk','bureau_estado_novomirsk']){
+  // 27/11/2026 : seule l'Ambassade de Républia (pays de lancement) ouvre ses trois ordres décidés ; le transfert reste différé.
+  for(const k of ['bureau_khalija_novomirsk','bureau_estado_novomirsk']){
     assert.ok(palais.rooms[k].orders.every(o=>o.bientot),'ne pas ouvrir des actions inter-empires non raccordées');
   }
+  assert.deepEqual(palais.rooms.bureau_republia_novomirsk.orders.filter(o=>o.bientot).map(o=>o.fn),['demander_transfert_detenu']);
 });

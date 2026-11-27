@@ -4275,8 +4275,8 @@ function renderRoomActions(room, buildingId, roomId) {
         else if (reqPost === 'ambassadeur_local') {
           // Restriction speciale : pas un poste classique, mais une nomination specifique
           // a ce bureau precis (voir sbNommerAmbassadeur / cache charge dans enterBuilding).
-          const AMBASSADE_ROOM_EMPIRE = { bureau_al_khalija: 'khalija', bureau_sovarka: 'soviet', bureau_el_estado: 'narco' };
-          const empireDuBureau = AMBASSADE_ROOM_EMPIRE[roomId];
+          // Bureaux de Luthécia et de Novomirsk (27/11/2026 : l'Ambassade de Républia à Novomirsk est raccordée).
+          const empireDuBureau = AMBASSADE_ROOM_EMPIRE_MAP[roomId];
           const infoAmbassade = (state.ambassadesOuvertesCache || []).find(a => a.empire === empireDuBureau);
           needsPost = !(infoAmbassade && infoAmbassade.ambassadeur === state.char?.name);
         }
@@ -9437,7 +9437,18 @@ const MOTIFS_AMBASSADEUR = {
   salle_non_reservee: 'Réservez d\'abord la Salle de Réception pour aujourd\'hui, depuis l\'accueil du Quartier des Ambassades.',
   reception_deja_donnee: 'La réception de cette réservation a déjà eu lieu.'
 };
+// Novomirsk (27/11/2026) : la salle d'une réception est la Grande Salle du Pavillon des Ambassadeurs, réservée par
+// « Réserver la réception ». Tant que la migration 20261127150000 n'est pas appliquée, le serveur répond
+// « pas_sur_place » au Palais : l'écran le dit sans rien prélever (le serveur refuse avant tout paiement).
+const MOTIFS_AMBASSADEUR_NOVOMIRSK = {
+  salle_non_reservee: 'Réservez d\'abord pour aujourd\'hui la Grande Salle de Réception du Pavillon des Ambassadeurs (« Réserver la réception », dans la salle).',
+  reservation_au_pavillon: 'Réservez d\'abord pour aujourd\'hui la Grande Salle de Réception du Pavillon des Ambassadeurs (« Réserver la réception », dans la salle).',
+  pas_sur_place: 'Cet ordre ouvrira à Novomirsk dès la mise à jour du serveur. Rien n\'a été prélevé.'
+};
 function signalerRefusAmbassadeur(v, titre) {
+  if (v && state.currentBuilding === 'palais-ambassades-novomirsk' && MOTIFS_AMBASSADEUR_NOVOMIRSK[v.raison]) {
+    showToast(titre, MOTIFS_AMBASSADEUR_NOVOMIRSK[v.raison], false); return;
+  }
   if (v && MOTIFS_AMBASSADEUR[v.raison]) { showToast(titre, MOTIFS_AMBASSADEUR[v.raison], false); return; }
   if (typeof signalerRefusCout === 'function' && v && v.raison) { signalerRefusCout(v); return; }
   showToast(titre, 'Le serveur n\'a pas répondu. Rien n\'a été prélevé.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b9d5398d2", 'Le serveur n\'a pas répondu. Rien n\'a été prélevé.', undefined, titre);

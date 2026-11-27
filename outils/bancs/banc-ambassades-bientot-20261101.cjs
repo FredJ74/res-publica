@@ -74,14 +74,16 @@ test('data.js : transfert d\'un détenu visible et grisé dans les trois bureaux
 
 // 13/11/2026 (Palais des Ambassades, salle et accès) : la salle de réception est retirée (elle appartient au Pavillon)
 // et « Demander audience » / « Demander l'asile » sont réactivés à l'accueil ; les trois bureaux restent grisés.
-test('data.js : Palais des Ambassades de Novomirsk, audience et asile actifs, bureaux grisés « Bientôt disponible »', () => {
+// 27/11/2026 (consigne de Fred) : l'Ambassade de Républia ouvre relations bilatérales, réception et mécénat.
+test('data.js : Palais des Ambassades de Novomirsk, audience, asile et trois ordres de Républia actifs, le reste grisé', () => {
   const i = data.indexOf("\n  'palais-ambassades-novomirsk': {");
   assert.ok(i >= 0);
   const bloc = data.slice(i, data.indexOf("\n  'pavillon-ambassadeurs-novomirsk': {", i));
   const ordres = bloc.split('\n').filter(l => l.includes('{fn:'));
   assert.strictEqual(ordres.length, 14);
   const actifs = ordres.filter(l => !/bientot:/.test(l)).map(l => l.match(/fn:'([a-z_]+)'/)[1]);
-  assert.deepStrictEqual(actifs, ['demander_audience_ambassadeur', 'demander_asile_politique']);
+  assert.deepStrictEqual(actifs, ['demander_audience_ambassadeur', 'demander_asile_politique',
+    'relations_bilaterales', 'organiser_reception_diplomatique', 'financer_oeuvre_culturelle']);
   for (const l of ordres.filter(l => /bientot:/.test(l))) assert.ok(/bientot:'Bientôt disponible : les ambassades de Novomirsk/.test(l), l);
-  assert.strictEqual(ordres.filter(l => /bientot:/.test(l)).length, 12);
+  assert.strictEqual(ordres.filter(l => /bientot:/.test(l)).length, 9);
 });
