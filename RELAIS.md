@@ -9,6 +9,50 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Mission de nuit du 27/11/2026 (Claude) — compte rendu pour Fred
+
+1. **Parti en bêta, et comment le tester**
+   - Sept images d'El Estado (PR #1210) : quatre du centre multimodal de Ciudad Roja avec le nouveau drapeau, trois de l'Hôtel
+     Ciudad Roja. Elles ne sont raccordées à aucun écran : rien à voir en jeu pour l'instant.
+   - Rien d'autre ne change en jeu cette nuit : l'audit des ordres est un document, et le reste concerne les contrôles automatiques.
+2. **Liste « À vérifier en jeu »** : 3 points rayés (permis de Jean Jaaj, caduc ; vodka de Stepan, vérifiée au serveur ; buraliste
+   de Krasnov). Quatre points sont réduits à ce qui reste vraiment à tester (balance des ports, journaux des usines de Sovarka,
+   médicaments de Luthécia, échanges entre entrepôts : vérifiés en lecture sur la production). Les 25 restants portent chacun une
+   phrase « Pour tester ». Regroupés :
+   - **un personnage ordinaire en Sovarka** (Starovka ou Krasnov, quelques PA, un peu d'argent) : chambre d'hôtel, Hôtel des
+     Voyageurs, distillerie, bons d'État, guide des baies, mairie et église de Krasnov, maisonnettes, commissariat, kolkhoze,
+     dormir chez l'habitant, maison de Stepan, appartements, prix et récoltes de Sovarka ;
+   - **n'importe quel personnage** : pèlerinage et domicile, images allégées (téléphone et ordinateur) ;
+   - **un rôle** : Commandant du Port et ministre (Starovka, ports), adjoint au maire (régulation), directeur d'entrepôt de
+     Sovarka (approvisionnement, puis une nuit), lieutenant ou capitaine de Sovarka (camion), maire et adjoint (locaux, terrains,
+     logement social), ministre de la Défense (rapports d'écoute, après une nuit) ;
+   - **un compte neuf et un téléphone** : recette de l'accueil (une heure de jeu puis reconnexion) ; aide HRP (iPhone, Android,
+     plusieurs langues) ;
+   - **deux comptes** : colocation premium ; **une situation à provoquer** : terrain occupé avec un cadavre (squatteurs).
+3. **Audit des ordres** : [`docs/audit-ordres-creux-20261127.md`](docs/audit-ordres-creux-20261127.md). 440 ordres : **424 pleins,
+   7 creux, 8 non branchés, 1 doublon**. Les cas déjà confirmés sont en tête (interroger un détenu au QHS et au Renseignement,
+   produire une fuite, délibérations de la loge, blanchir des fonds, société écran, racheter l'usine). Ordres d'ambassade grisés
+   « bientôt » : ils visent bien El Estado et Al-Khalija, **sauf deux exceptions sur des pays ouverts au lancement** : à Novomirsk,
+   l'Ambassade de Républia (relations bilatérales, réception, œuvre culturelle, transfert d'un détenu) ; à Luthécia, l'Ambassade
+   de Sovarka (transfert d'un détenu). Rien n'est modifié : à trancher en séance.
+4. **Contrôles automatiques** : ils se lancent selon les fichiers modifiés.
+   - Un fichier partagé (data.js, plateau-core.js, plateau-router.js, migrations, workflows, i18n, auth.js, supabase.js,
+     sens-saisie.js, style.css, rue-centrale.css, vercel.json) relance tous les contrôles ; chaque contrôle tourne aussi chaque
+     nuit sur main ; une image seule ne lance que les contrôles d'images.
+   - Essai réel sur une branche de test (supprimée ensuite) : image seule → aucun contrôle de code (avant : 12 workflows, 56
+     minutes-machine sur l'envoi de la PR #1210) ; un seul fichier de jeu → 1 workflow, dont 1 part de bancs sur 6 ; data.js →
+     tous (31 workflows sur une branche).
+   - Simulation exacte pour un envoi sur main (216 workflows, durées réelles) : image seule 5 → 3 workflows, 7,8 → 2,0
+     minutes-machine ; un fichier de jeu : 6 workflows comme avant, mais 1 part de bancs au lieu de 6 (environ 5 à 8
+     minutes-machine de moins) ; fichier partagé : 34 → 79 workflows (37 → 88 minutes-machine). C'est le garde-fou demandé :
+     plus sûr, mais plus long pour ce cas-là.
+   - Les 69 workflows qui écrivent dans le dépôt (conversions d'images) ne sont pas des contrôles : laissés tels quels.
+5. **Message « Auto-update failed »** : la mise à jour manuelle fonctionne et la version 2.1.332 est la dernière. L'échec vient de
+   la tentative automatique de la session ouverte depuis le 17/11 : chaque nuit (encore à 6 h 02 ce matin), elle ne trouve pas de
+   version cible. Le message est sans conséquence ; il disparaîtra quand cette session sera quittée et `claude` relancé.
+6. **Questions de game design** : aucune nouvelle. Les décisions sur les ordres creux et les ambassades sont pour la séance dédiée.
+- **Pour Codex** : aucun texte de jeu nouveau.
+
 ### Mission de nuit du 26/11/2026 (Claude) — compte rendu pour Fred
 
 1. **Travail en cours, terminé en premier.**
@@ -1375,6 +1419,7 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 
 ## Derniers chantiers
 
+- **Contrôles lancés selon les fichiers modifiés** (Claude, 27/11/2026, branche `claude/ci-filtres-chemins-20261127`) : 141 contrôles filtrés reçoivent les fichiers partagés et un passage de nuit ; « Cohérence client » et le parcours immobilier ignorent les envois d'images seules ; job `plan-bancs` (`controler-client.py --plan`) : une part de bancs sans banc ne démarre plus. Banc de garde `test-ci-filtres-chemins-20261127.mjs`.
 - **Audit des ordres creux** (Claude, 27/11/2026, branche `claude/audit-ordres-creux-20261127`, lecture seule) : [`docs/audit-ordres-creux-20261127.md`](docs/audit-ordres-creux-20261127.md), 440 ordres : 424 pleins, 7 creux, 8 non branchés, 1 doublon ; cas confirmés en tête ; ordres d'ambassade « bientôt » : deux exceptions sur des pays ouverts (Ambassade de Républia à Novomirsk, Ambassade de Sovarka à Luthécia). Rien n'est modifié : séance de Fred à venir.
 - **El Estado : nouveau drapeau sur les quatre images du centre multimodal de Ciudad Roja** (Claude, 27/11/2026, branche `claude/el-estado-drapeau-images-20261127`) : images régénérées par Fred avec le drapeau retenu le 26/11 (champ bleu roi, soleil moustachu sur pièces d'or, trois étoiles, deux silhouettes précolombiennes), converties en WebP 1672×941 sous les mêmes noms dans `images/El Estado/Ciudad Roja/` (hall, embarquement/porte A3, douanes, extérieur), plus deux images de l'Hôtel Ciudad Roja (`Ciudad_Roja_hotel_exterieur.webp`, `Ciudad_Roja_hotel_piscine.webp`, `Ciudad_Roja_hotel_reception.webp`). Ces fichiers ne sont encore raccordés à aucun écran (El Estado n'ouvre pas au lancement). Chantier d'image seule.
 - **Suppression de l'ordre « Contrebande portuaire »** (Claude, 27/11/2026, branche `claude/suppression-contrebande-20261127`, fusion 8f12bcde ; décision de Fred du 26/11) : ordre retiré de `data.js` (×3), du routeur, de la navigation, de `plateau-core.js`, de `plateau-chances-reelles.js`, des traductions et des seeds ; migration `20261126230000_suppression_contrebande_portuaire` appliquée et contrôlée (fonctions `crime_contrebande`, `crim_contrebande_taux_interne`, `crim_contrebande_gain_interne` supprimées ; ligne retirée de `ordres_chances_audit_interne` par remplacement contrôlé, marque `contrebande_supprimee_v1` ; réglages `contrebande_gain*`, coût et infraction effacés ; 0 cargaison en inventaire). Banc `banc-suppression-contrebande-pglite-20261127.cjs` ; bancs du 25/11 et décomptes i18n mis à jour ; ordre ajouté aux tarifs retirés des plans de recette. Décision consignée dans `GAME-DESIGN-DOUANES.md` et `GAME-DESIGN-CRIMINALITE.md`.
