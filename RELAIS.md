@@ -542,6 +542,10 @@ Indépendante : `claude/banc-mobile-coque-fiable-20261128` (`dacc8f9b`), qui sta
   chargement. Correction : chaque capture attend le réseau au repos, les polices, le décodage des images et deux images
   d'animation, puis se prend animations et transitions figées (`animations:'disabled'`). L'échec « Cohérence client » de
   l'état fusionné de l'étape 1 est ce même test, rien d'autre.
+### Clôture documentaire i18n (Codex, 27/11/2026) — PR #1216
+- Branche `codex/i18n-livraison-20261127`, main `6ebbbd9e` ; les fonctionnalités #1183/#1184 sont **déjà fusionnées, déployées et vérifiées** (preuve détaillée dans les derniers chantiers et `outils/audits/i18n/LIVRAISON-20261127.md`). Aucune écriture en base ni fichier de jeu modifié.
+- **Fusion documentaire bloquée** : CI **46080019076**, `bancs-js (5)`, seed miroir `ordres_couts` différent du générateur. Défaut reproduit sur main intact et cette branche, fichiers sources identiques. Écarts détaillés et empreintes dans `BLOCAGE-CLOTURE-20261127.md/.json` et `ECART-SEED-20261127.diff` ; aucune correction de seed/coût appliquée.
+- Après remise en cohérence du miroir par le chantier responsable : rebase, CI entière verte, fusion #1216 et vérification du déploiement documentaire. Les 82 exécutions push vertes du commit servi couvraient des sélections, pas chaque banc du dépôt.
 
 ### Mission du 27/11/2026 (soir) (Claude) — journal des étapes
 

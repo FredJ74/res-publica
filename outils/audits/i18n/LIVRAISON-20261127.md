@@ -1,5 +1,8 @@
 # Clôture des lots i18n du 23 novembre — vérification du 27/11/2026
 
+> **Mise à jour CI** : fonctionnalités #1183/#1184 fusionnées et vérifiées ; clôture documentaire **#1216 non fusionnée**, bloquée par le miroir `ordres_couts` déjà incohérent sur main. Voir `BLOCAGE-CLOTURE-20261127.md`. Les contrôles push verts cités ci-dessous étaient filtrés et ne certifient pas tous les bancs hors sélection. Aucun seed ni coût modifié.
+
+
 ## Codé et fusionné
 
 - PR #1183, commit `8b2c2bffa60f7993b185fa696c5854ab6dce46da`, fusionnée le 24/11 : université, **51 textes français couverts**, **368 nouvelles traductions étrangères**, **40 traductions réutilisées**. Les 41 originaux restent strictement identiques ; cinq intitulés longs réels et cinq familles de carrières sont raccordés. Progression conservée sous son identifiant brut ; aucune réactivation des quatre cursus fermés.
