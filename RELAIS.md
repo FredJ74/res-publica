@@ -50,6 +50,14 @@ Règles : voir `AGENTS.md`.
   Grisé pour El Estado et Al-Khalija. ARCHITECTURE.md et GAME-DESIGN-AMBASSADES.md décrivent le voyage existant.
   Écran `plateau-transferts-detenus.js`, banc `banc-transfert-detenu-20261127.cjs`.
 
+- **Étape 5 — cartons d'invitation** (branche `claude/cartons-invitation-20261127`) : migration
+  `20261127235000_pavillon_cartons_invitation` **appliquée et vérifiée** (épreuves en transaction annulée d'abord). Réservations
+  inchangées (Luthécia gratuite pour 1 PA ; Grande Salle du Pavillon 1 500 PSK, caisse du ministère). Après la réservation, choix
+  des invités dans la liste des joueurs : carton nominatif (inventaire + courrier), valable le jour même. « Donner » le carton à
+  une hôtesse ou au garde de l'accueil : aucun contrôle d'identité ; Grande Salle ouverte jusqu'à minuit, cette seule pièce.
+  Description de la réception de Novomirsk corrigée (Grande Salle du Pavillon). Écran `plateau-pavillon-cartons.js`, banc
+  `banc-pavillon-cartons-20261127.cjs`.
+
 ### Mission du 27/11/2026 (après-midi) (Claude) — compte rendu pour Fred
 
 1. **Parti en bêta, et comment le tester**

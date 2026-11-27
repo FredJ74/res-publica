@@ -7468,7 +7468,7 @@ const BUILDINGS = {
         persons: [{name:'Hubert de La Courtoisie (PNJ)', role:"Ambassadeur de Républia", rel:'neutral', job:'ambassadeur'}],
         orders: [
           {fn:'relations_bilaterales', label:'Consulter les relations bilatérales', pa:0, cost:0, type:'legal', icon:'ti-file-analytics', successRate:100, requiresPost:'ambassadeur_local', desc:'État des relations avec Républia.'},
-          {fn:'organiser_reception_diplomatique', label:'Organiser une réception diplomatique', pa:2, cost:1200, type:'legal', icon:'ti-glass-champagne', successRate:100, requiresPost:'ambassadeur_local', desc:'Réserver la Salle de Réception commune.'},
+          {fn:'organiser_reception_diplomatique', label:'Organiser une réception diplomatique', pa:2, cost:1200, type:'legal', icon:'ti-glass-champagne', successRate:100, requiresPost:'ambassadeur_local', desc:'Donner une réception dans la Grande Salle de Réception du Pavillon des Ambassadeurs, réservée d\'abord au Pavillon (1 500 PSK payés par la caisse du ministère) ; vos invités entrent avec leur carton d\'invitation.'},
           {fn:'financer_oeuvre_culturelle', label:'Financer une œuvre culturelle', pa:1, cost:600, type:'legal', icon:'ti-palette', successRate:100, requiresPost:'ambassadeur_local', desc:'Soft power local.'},
           {fn:'demander_transfert_detenu', label:'Demander le transfert d\'un détenu', pa:1, cost:0, type:'legal', icon:'ti-lock-open', successRate:100, requiresPost:'ambassadeur_local', desc:'Demander au ministre des Affaires étrangères du pays hôte le transfert d\'un compatriote détenu ici vers une prison de son pays d\'origine, où il purge le reste de sa peine. Demande, accord et refus au courrier.'}
         ]
@@ -7539,7 +7539,7 @@ const BUILDINGS = {
           {name:'Varvara Salfetkina (PNJ)', role:'Serveuse de réception', rel:'neutral', job:'serveur', photoUrl:'images/Sovarka/Novomirsk/Novo_varvara_salfetkina_portrait.webp'}
         ],
         orders: [{fn:'pavillon_reception',label:'Réserver la réception (1 500 PSK/jour)',pa:0,cost:0,type:'legal',icon:'ti-calendar-event',successRate:100,
-          desc:'Réservation exclusive pour une institution étrangère, journée en cours. Paiement par sa caisse.'}]
+          desc:'Réservation exclusive pour une institution étrangère, journée en cours. Paiement par sa caisse. Vous choisissez ensuite vos invités : chacun reçoit un carton d\'invitation valable le jour même.'}]
       },
       bar: {
         name: "Bar",

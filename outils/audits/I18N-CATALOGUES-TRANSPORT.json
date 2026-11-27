@@ -566,10 +566,10 @@
     {
       "source": "i18n/sovarka-infobulles-resources.js",
       "packed": "i18n/packed/sovarka-infobulles-resources.js.br",
-      "sourceBytes": 182031,
-      "packedBytes": 59446,
-      "sourceSha256": "d71878c726eb7680f3c2e574ffa2de23601bde09d6685481d7424e609213a73e",
-      "packedSha256": "0d6d5e9f939bbf15656c599a3cbe59fd4b2f84c68ae53fc748ba6e280ebc0411"
+      "sourceBytes": 186015,
+      "packedBytes": 60527,
+      "sourceSha256": "3e3836477bce7e2fedb3a318412178ad88ae3a6c27056ea3ac8a66b46df92572",
+      "packedSha256": "b337c40602458cc514fe4c23a9ac47124fb7e195fcd5f8dff267fa76bf2f0944"
     },
     {
       "source": "i18n/sovarka-justice-resources.js",

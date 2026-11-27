@@ -3941,6 +3941,11 @@ async function confirmerDonObjetPnj(objIdx, encodedPnj) {
     if (typeof remettreColisBrigitte === 'function') remettreColisBrigitte();
     return;
   }
+  if (obj.type === 'carton_invitation' && typeof remettreCartonInvitation === 'function') {
+    // Carton d'invitation du Pavillon (Fred, 27/11/2026) : le PNJ de l'accueil le reprend sans contrôler l'identité.
+    await remettreCartonInvitation(objIdx, obj, nomCourt);
+    return;
+  }
   if (obj.type === 'tract') {
     // Tracts electoraux (11 septembre 2026) : plus aucune recompense POP. Un PNJ ne vote que par
     // « Distribuer un tract » (dimanche d'un scrutin ouvert, bon lieu) : le don ne consomme rien.
