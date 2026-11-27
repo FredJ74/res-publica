@@ -2764,58 +2764,41 @@ export const SCENES_PNJ = {
   "[\"narco\",\"capitale\",\"hotel-republica\",\"accueil\"]": {
     "pays": "El Estado",
     "ville": "Ciudad Roja",
-    "batiment": "Hôtel El Cartel",
-    "piece": "Accueil",
-    "personnes": [
-      "Pedro Tequila",
-      "Lupe Cantina",
-      "Lola Discreta"
-    ]
+    "batiment": "Hotel Ciudad Roja",
+    "piece": "Réception",
+    "personnes": []
   },
   "[\"narco\",\"capitale\",\"hotel-republica\",\"restaurant\"]": {
     "pays": "El Estado",
     "ville": "Ciudad Roja",
-    "batiment": "Hôtel El Cartel",
-    "piece": "Salle du Restaurant",
+    "batiment": "Hotel Ciudad Roja",
+    "piece": "Restaurant",
     "personnes": [
-      "Gaston Sauceblanche",
-      "Régis Gondasse",
-      "Yvette Gratinée",
-      "Jean Dupont",
-      "Marie Leblanc"
+      "Lupe Cantina"
     ]
   },
   "[\"narco\",\"capitale\",\"hotel-republica\",\"bar\"]": {
     "pays": "El Estado",
     "ville": "Ciudad Roja",
-    "batiment": "Hôtel El Cartel",
-    "piece": "Bar",
+    "batiment": "Hotel Ciudad Roja",
+    "piece": "Bar extérieur",
     "personnes": [
-      "Marco (Barman)",
-      "Natacha",
-      "Julien",
-      "Marc Hantile"
+      "Pedro Tequila",
+      "Lola Discreta"
     ]
   },
   "[\"narco\",\"capitale\",\"hotel-republica\",\"chambres\"]": {
     "pays": "El Estado",
     "ville": "Ciudad Roja",
-    "batiment": "Hôtel El Cartel",
-    "piece": "Chambres",
+    "batiment": "Hotel Ciudad Roja",
+    "piece": "Suite",
     "personnes": []
   },
-  "[\"narco\",\"capitale\",\"hotel-republica\",\"suite_privee\"]": {
+  "[\"narco\",\"capitale\",\"hotel-republica\",\"piscine\"]": {
     "pays": "El Estado",
     "ville": "Ciudad Roja",
-    "batiment": "Hôtel El Cartel",
-    "piece": "Suite Privée — Local à louer",
-    "personnes": []
-  },
-  "[\"narco\",\"capitale\",\"hotel-republica\",\"suite_presidentielle\"]": {
-    "pays": "El Estado",
-    "ville": "Ciudad Roja",
-    "batiment": "Hôtel El Cartel",
-    "piece": "Suite Présidentielle — Local à louer",
+    "batiment": "Hotel Ciudad Roja",
+    "piece": "Piscine",
     "personnes": []
   },
   "[\"narco\",\"capitale\",\"palais-gouvernement\",\"hall\"]": {
@@ -3278,7 +3261,7 @@ export const SCENES_PNJ = {
   "[\"narco\",\"capitale\",\"centre-multinodal-luthecia\",\"hall_gare\"]": {
     "pays": "El Estado",
     "ville": "Ciudad Roja",
-    "batiment": "Hall Principal",
+    "batiment": "Centre multimodal de Ciudad Roja",
     "piece": "Hall Principal",
     "personnes": [
       "Carlos Retraso",
@@ -3288,16 +3271,16 @@ export const SCENES_PNJ = {
   "[\"narco\",\"capitale\",\"centre-multinodal-luthecia\",\"hall_douanes\"]": {
     "pays": "El Estado",
     "ville": "Ciudad Roja",
-    "batiment": "Hall Principal",
+    "batiment": "Centre multimodal de Ciudad Roja",
     "piece": "Hall des Douanes",
     "personnes": [
-      "Inspecteur Prosper Tampon"
+      "Juanita Soborno"
     ]
   },
   "[\"narco\",\"capitale\",\"centre-multinodal-luthecia\",\"zone_embarquement\"]": {
     "pays": "El Estado",
     "ville": "Ciudad Roja",
-    "batiment": "Hall Principal",
+    "batiment": "Centre multimodal de Ciudad Roja",
     "piece": "Zone d'Embarquement",
     "personnes": []
   },

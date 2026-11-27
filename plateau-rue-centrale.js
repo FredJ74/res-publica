@@ -81,13 +81,13 @@ const RUE_CENTRALE_NOEUDS = {
   narco: {
     'ciudad-roja-centre-multimodal': {
       image: 'images/El Estado/Ciudad Roja/Ciudad_Roja_centre_multimodal_exterieur.webp',
-      zones: [{ xPct: [18, 68], yPct: [12, 72], nom: 'Centre multimodal de Ciudad Roja', type: 'batiment', buildingId: 'centre-multinodal-luthecia' }],
+      zones: [{ xPct: [31, 64], yPct: [1, 55], nom: 'Centre multimodal de Ciudad Roja', type: 'batiment', buildingId: 'centre-multinodal-luthecia' }],
       liens: { arriere: 'ciudad-roja-hotel' },
       flechesStyle: { arriere: RC_FLECHE_BAS }
     },
     'ciudad-roja-hotel': {
       image: 'images/El Estado/Ciudad Roja/Ciudad_Roja_hotel_exterieur.webp',
-      zones: [{ xPct: [20, 72], yPct: [10, 64], nom: 'Hotel Ciudad Roja', type: 'batiment', buildingId: 'hotel-republica' }],
+      zones: [{ xPct: [17, 84], yPct: [9, 76], nom: 'Hotel Ciudad Roja', type: 'batiment', buildingId: 'hotel-republica' }],
       liens: { toutDroit: 'ciudad-roja-centre-multimodal' },
       flechesStyle: { toutDroit: RC_FLECHE_HAUT }
     }

@@ -1,4 +1,5 @@
 -- Ciudad Roja : premier tronçon, autorité serveur. Aucun changement de personnage.
+-- Repris et complété par Claude le 27/11/2026 (chantier ouvert par ChatGPT) : suites de Luthécia retirées ; idempotente.
 INSERT INTO public.rue_noeuds_serveur(country,city,noeud,voisins,directions) VALUES
  ('narco','capitale','ciudad-roja-centre-multimodal',ARRAY['ciudad-roja-hotel'],'{"liens":{"arriere":"ciudad-roja-hotel"},"parArrivee":{}}'::jsonb),
  ('narco','capitale','ciudad-roja-hotel',ARRAY['ciudad-roja-centre-multimodal'],'{"liens":{"toutDroit":"ciudad-roja-centre-multimodal"},"parArrivee":{}}'::jsonb)
@@ -9,6 +10,9 @@ INSERT INTO public.rue_sorties_batiments(country,city,noeud,building) VALUES
 ON CONFLICT DO NOTHING;
 UPDATE public.navigation_lieux_regles SET pieces=pieces || '["piscine"]'::jsonb
  WHERE pays='narco' AND ville='capitale' AND batiment='hotel-republica' AND NOT pieces ? 'piscine';
+-- Les suites privée et présidentielle appartiennent au gabarit de Luthécia : absentes de l'Hotel Ciudad Roja (Claude, 27/11).
+UPDATE public.navigation_lieux_regles SET pieces=(pieces - 'suite_privee') - 'suite_presidentielle'
+ WHERE pays='narco' AND ville='capitale' AND batiment='hotel-republica' AND (pieces ? 'suite_privee' OR pieces ? 'suite_presidentielle');
 DO $patch$
 DECLARE s text; a text;
 BEGIN

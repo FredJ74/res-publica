@@ -1218,7 +1218,7 @@ function enterRoom(buildingId, roomId, tabEl) {
     acces.className = 'ciudad-roja-bar-zone';
     acces.title = 'Bar extérieur';
     acces.setAttribute('aria-label', 'Bar extérieur');
-    acces.style.cssText = 'position:absolute;right:0;top:15%;width:30%;height:45%;z-index:3;cursor:pointer;background:transparent;border:0;';
+    acces.style.cssText = 'position:absolute;left:70%;top:14%;width:22%;height:36%;z-index:3;cursor:pointer;background:transparent;border:0;';
     acces.addEventListener('click', () => enterRoom('hotel-republica', 'bar', null));
     pieceImg.appendChild(acces);
   }
