@@ -322,7 +322,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'proposer_transfert') { doProposerTransfert(pa, cost); return; }
   if (fn === 'gerer_offres_transfert') { doGererOffresTransfert(); return; }
   if (fn === 'choisir_accessoire_club') { doChoisirAccessoireClub(pa, cost); return; }
-  if (fn === 'acheter_accessoire_personnalise') { doAcheterAccessoirePersonnalise(); return; }
+  // Accessoire personnalisé (Fred, 27/11/2026) : ouvert à tous, paiement « bientôt disponible » (plateau-accessoire-personnalise.js).
+  if (fn === 'acheter_accessoire_personnalise') { ouvrirAccessoirePersonnalise(); return; }
   if (fn === 'rejoindre_club_supporters') { doRejoindreClubSupporters(pa, cost); return; }
   if (fn === 'consulter_organigramme_supporters') { doConsulterOrganigrammeSupporters(); return; }
   if (fn === 'se_syndiquer') { doRejoindreSyndicatDockers(pa, cost); return; }

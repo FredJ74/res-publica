@@ -65,6 +65,16 @@ Règles : voir `AGENTS.md`.
   des faux inchangées. Fausse identité, faux permis, faux contrat et fausse convocation retirés (aucun effet). La banque n'exige
   ni permis de construire ni compromis de vente : question notée. Banc `banc-faux-documents-20261127.cjs`.
 
+- **Étape 7 — accessoire personnalisé et objets revêtus** (branche `claude/accessoire-personnalise-20261127`) : migration
+  `20261127237000_accessoire_personnalise_revetir` **appliquée et vérifiée** (épreuves en transaction annulée d'abord ; offre
+  étendue à la boutique des stades de Sovarka par `accessoire_personnalise_offre_boutique`). Règle générale : deux objets
+  revêtus au plus (`crim_revetir` refuse le troisième). Accessoire de club personnalisé : +10 popularité tant qu'il est revêtu
+  (déclencheur sur l'inventaire : le bonus part s'il est retiré, vendu, donné ou volé), un par type. Achat ouvert à tous, prix
+  dans la page MJ (`premium_produits.accessoire_personnalise`, non fixé) ; à l'étape du paiement : « Paiement bientôt
+  disponible », rien n'est créé ni débité. Fonction Edge de génération d'image `supabase/edge-functions/accessoire-personnalise`
+  écrite (modèle de publicite-premium) mais **non déployée** (à déployer avec le paiement). Écran
+  `plateau-accessoire-personnalise.js`, banc `banc-accessoire-personnalise-20261127.cjs`.
+
 ### Mission du 27/11/2026 (après-midi) (Claude) — compte rendu pour Fred
 
 1. **Parti en bêta, et comment le tester**

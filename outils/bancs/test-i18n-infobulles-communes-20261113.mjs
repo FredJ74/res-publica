@@ -69,7 +69,7 @@ test('inventaire : 237 descriptions communes affichées après isolation du goul
   // « Falsifier un procès-verbal » (QHS) supprimé le 20/11 (criminalité lot 7) : sa ligne livrée reste au catalogue.
   // « Suivre une formation » ouvert le 20/11 (criminalité lot 9) : l'ancienne infobulle « Bientôt disponible » reste au catalogue.
   // Interrogatoires (27/11/2026, modèle du goulag) : l'ancienne description de « Interroger un détenu » reste au catalogue.
-  const HISTORIQUES = ['Obtenir des informations. +INF si succes.', 'Recolter une matiere premiere locale. Maximum 2 fois par jour.', 'Modifier les declarations. Tres risque.',
+  // Accessoire personnalisé ouvert à tous (27/11/2026) : l'ancienne description « réservée aux comptes premium » reste au catalogue.\n  const HISTORIQUES = ['Personnalisation (nom, numero) — reserve aux comptes premium. Bientot disponible.', 'Obtenir des informations. +INF si succes.', 'Recolter une matiere premiere locale. Maximum 2 fois par jour.', 'Modifier les declarations. Tres risque.',
     'Bientôt disponible : cet ordre permettra d\'acquérir une seconde carrière.',
     // Refonte des informateurs (22/11/2026) : ordres retirés, lignes livrées gardées au catalogue.
     'Le barman entend tout. Revele une rumeur vraie ou generee selon le contexte.',
@@ -123,7 +123,7 @@ test('inventaire : 237 descriptions communes affichées après isolation du goul
 
 test('257 lignes de neuf colonnes non vides, sans guillemet droit ni balise, toutes traduites', () => {
   const lignes = I('soviet', 'fr').communes;
-  assert.equal(lignes.length, 264); // +1 le 27/11 : falsifier un document (documents effectifs) ; +2 le 27/11 au soir : transfert d'un détenu, demandes de transfert ; +2 le 27/11 : interrogatoire du QHS, indices d'interrogatoire ; +1 le 19/11 : boutique climat ; +1 le 18/11 : furet renifleur ; +1 le 18/11 : pharmacie de Républia ; +2 le 16/11 : récolte (nouvelle description) et régulation de la production ; +1 le 14/11 : Dormir dans la chambre d’hôpital
+  assert.equal(lignes.length, 265); // +1 le 27/11 : accessoire personnalisé ; +1 le 27/11 : falsifier un document (documents effectifs) ; +2 le 27/11 au soir : transfert d'un détenu, demandes de transfert ; +2 le 27/11 : interrogatoire du QHS, indices d'interrogatoire ; +1 le 19/11 : boutique climat ; +1 le 18/11 : furet renifleur ; +1 le 18/11 : pharmacie de Républia ; +2 le 16/11 : récolte (nouvelle description) et régulation de la production ; +1 le 14/11 : Dormir dans la chambre d’hôpital
   for (const l of lignes) {
     assert.equal(l.length, 9, l[0]);
     for (const v of l) assert.ok(v.trim(), l[0]);

@@ -238,10 +238,10 @@
     {
       "source": "i18n/infobulles-communes-resources.js",
       "packed": "i18n/packed/infobulles-communes-resources.js.br",
-      "sourceBytes": 269775,
-      "packedBytes": 90788,
-      "sourceSha256": "b8334c7cc01f924acb0256d7f6e22ca3000783a53d78b1d117842f26a1a53e27",
-      "packedSha256": "1847f92d37efc43d6369ca0fdd228414894e8fc850978489591ca53e6c4c69f8"
+      "sourceBytes": 271426,
+      "packedBytes": 91401,
+      "sourceSha256": "c259b64c57860bce0c6fec1373264f991d486de7a3fc9859773443d08db5c8db",
+      "packedSha256": "f05ae235ea8e5b6fa4135c50025d9e6d8e65b8f3d7c800b30650d09cec69829f"
     },
     {
       "source": "i18n/inventory-ui-resources.js",
@@ -646,10 +646,10 @@
     {
       "source": "i18n/toast-bodies-resources.js",
       "packed": "i18n/packed/toast-bodies-resources.js.br",
-      "sourceBytes": 782983,
-      "packedBytes": 196710,
-      "sourceSha256": "ba8fb0ae927c56c105c3974bf56f02ec0b55ffc8cd7f398fca1845f017bbf7f9",
-      "packedSha256": "9729cde32a7a91b04a536eee9c43f5132bb65ce7d3157d8f85fb653d4c27ba89"
+      "sourceBytes": 782230,
+      "packedBytes": 196404,
+      "sourceSha256": "36836271fb37367009885a72676441bcb06c2bf3aee1b7853de035281665f2c7",
+      "packedSha256": "bae0adfc654c425f9045c7ab96dc04b826c8fa9bdf36183476ef29ebc428681c"
     },
     {
       "source": "i18n/toast-resources.js",
