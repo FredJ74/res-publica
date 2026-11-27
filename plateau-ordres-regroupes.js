@@ -108,7 +108,7 @@ const THEMES = {
   min_def: [['Armée', ['mobilisation_nationale', 'sovarka_conscription', 'gestion_caserne', 'garde_republicaine']],
     ['Renseignement', ['renseignement_militaire', 'sovarka_ecoutes']], ['Paix', ['activer_cessez_le_feu']]],
   min_info: [['Communication', ['propagande_etat', 'dementi']], ['Presse et sondages', ['censurer_media', 'commanditer_sondage', 'sovarka_sondages']]],
-  min_ae: [['Diplomatie', ['proposer_treve', 'diplomatie_bilaterale', 'gerer_ambassades']]],
+  min_ae: [['Diplomatie', ['proposer_treve', 'diplomatie_bilaterale', 'gerer_ambassades', 'transferts_detenus']]],
   commissaire: [['Plaintes', ['dossiers_plaintes', 'sovarka_registre_plaintes']],
     ['Enquêtes', ['mener_enquete', 'organiser_filature', 'organiser_chasse_homme']],
     ['Effectifs et interventions', ['gerer_effectifs_police', 'recruter_policier', 'recruter_policier_cynophile', 'mobiliser_police']]],

@@ -238,10 +238,10 @@
     {
       "source": "i18n/infobulles-communes-resources.js",
       "packed": "i18n/packed/infobulles-communes-resources.js.br",
-      "sourceBytes": 262399,
-      "packedBytes": 88428,
-      "sourceSha256": "30814373ded4e436fe247eef1b2efa325e29a0859abc0b66bf97fd0ae22cb04f",
-      "packedSha256": "f3c72bf6bb40434e3f3dbc6198a9cf828e8dd582ef31f4adf1258792f2217508"
+      "sourceBytes": 265769,
+      "packedBytes": 89376,
+      "sourceSha256": "3cc95f43475217563c8bea2452e3fc62bc739c503b50ce7dcc38a441ba4e1304",
+      "packedSha256": "5dfc9ea401130b1a4f68387482be309d7b3b45678e6277b86559dbe7ff510454"
     },
     {
       "source": "i18n/inventory-ui-resources.js",
@@ -342,10 +342,10 @@
     {
       "source": "i18n/orders-resources.js",
       "packed": "i18n/packed/orders-resources.js.br",
-      "sourceBytes": 249062,
-      "packedBytes": 48824,
-      "sourceSha256": "1c4aeea77b30d714ab08cfb796ee5f070f24f61f99e3fb6adb46f8fa9e8acb04",
-      "packedSha256": "6f0aa198b8b8c58c586e8aa53684d37c3fba637e2728dcf2d4fb76a2e586cdc7"
+      "sourceBytes": 249669,
+      "packedBytes": 48816,
+      "sourceSha256": "8e3a735f3bc547ce7c6f8b98edc4dd1d7213d987c14f49ba8e25ef5828d8d74c",
+      "packedSha256": "c8c5e3a402b080818bf17cf883edee7627c38e595301df19b734aa0d707ef366"
     },
     {
       "source": "i18n/organization-admissions-resources.js",

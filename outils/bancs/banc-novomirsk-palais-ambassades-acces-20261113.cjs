@@ -63,5 +63,6 @@ test('Parcours Luthécia toujours reconnu et ordres des bureaux toujours différ
   for(const k of ['bureau_khalija_novomirsk','bureau_estado_novomirsk']){
     assert.ok(palais.rooms[k].orders.every(o=>o.bientot),'ne pas ouvrir des actions inter-empires non raccordées');
   }
-  assert.deepEqual(palais.rooms.bureau_republia_novomirsk.orders.filter(o=>o.bientot).map(o=>o.fn),['demander_transfert_detenu']);
+  // 27/11/2026 au soir : le transfert d'un détenu ouvre aussi (Républia ↔ Sovarka).
+  assert.deepEqual(palais.rooms.bureau_republia_novomirsk.orders.filter(o=>o.bientot).map(o=>o.fn),[]);
 });

@@ -62,14 +62,15 @@ test('data.js : examen des naturalisations ouvert pour le ministre de l\'Intéri
   assert.ok(ligne && !/bientot:/.test(ligne));
 });
 
-test('data.js : transfert d\'un détenu visible et grisé dans les trois bureaux d\'ambassadeur', () => {
+test('data.js : transfert d\'un détenu ouvert chez Sovarka (Luthécia), grisé chez Al-Khalija et El Estado (Fred, 27/11/2026)', () => {
   // Les trois bureaux de Luthecia ; ceux du Palais des Ambassades de Novomirsk sont controles a part.
-  const lignes = data.split('\n').filter(l => l.includes("fn:'demander_transfert_detenu'") && !l.includes('ambassades de Novomirsk'));
-  assert.strictEqual(lignes.length, 3);
+  const lignes = data.split('\n').filter(l => l.includes("fn:'demander_transfert_detenu'") && !l.includes('ambassades de Novomirsk') && !l.includes('pays hôte'));
+  assert.strictEqual(lignes.length, 2);
   for (const l of lignes) {
     assert.ok(/bientot:'Bientôt disponible/.test(l));
     assert.ok(l.includes("requiresPost:'ambassadeur_local'"));
   }
+  assert.strictEqual(data.split('\n').filter(l => l.includes("fn:'demander_transfert_detenu'") && !/bientot:/.test(l)).length, 2);
 });
 
 // 13/11/2026 (Palais des Ambassades, salle et accès) : la salle de réception est retirée (elle appartient au Pavillon)
@@ -83,7 +84,7 @@ test('data.js : Palais des Ambassades de Novomirsk, audience, asile et trois ord
   assert.strictEqual(ordres.length, 14);
   const actifs = ordres.filter(l => !/bientot:/.test(l)).map(l => l.match(/fn:'([a-z_]+)'/)[1]);
   assert.deepStrictEqual(actifs, ['demander_audience_ambassadeur', 'demander_asile_politique',
-    'relations_bilaterales', 'organiser_reception_diplomatique', 'financer_oeuvre_culturelle']);
+    'relations_bilaterales', 'organiser_reception_diplomatique', 'financer_oeuvre_culturelle', 'demander_transfert_detenu']);
   for (const l of ordres.filter(l => /bientot:/.test(l))) assert.ok(/bientot:'Bientôt disponible : les ambassades de Novomirsk/.test(l), l);
-  assert.strictEqual(ordres.filter(l => /bientot:/.test(l)).length, 9);
+  assert.strictEqual(ordres.filter(l => /bientot:/.test(l)).length, 8);
 });

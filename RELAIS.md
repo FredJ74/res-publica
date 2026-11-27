@@ -36,6 +36,14 @@ Règles : voir `AGENTS.md`.
   Sovarka). Grisés « Bientôt disponible » : « Blanchir des fonds », « Créer une société écran ». Textes et traductions retirés.
   Banc `banc-ordres-creux-nettoyage-20261127.cjs`.
 
+- **Étape 4 — transfert d'un détenu** (branche `claude/transfert-detenu-20261127`) : migration
+  `20261127234000_transfert_detenu_ambassades` **appliquée et vérifiée** (épreuves en transaction annulée d'abord).
+  Ambassades de Républia (Novomirsk) et de Sovarka (Luthécia) : l'ambassadeur demande (1 PA) le transfert d'un compatriote
+  détenu dans le pays hôte ; le ministre des Affaires étrangères du pays hôte accepte ou refuse (« Demandes de transfert de
+  détenus », à son bureau) ; accord : prison de la capitale du pays d'origine, reste de la peine inchangé ; courriers aux deux.
+  Grisé pour El Estado et Al-Khalija. ARCHITECTURE.md et GAME-DESIGN-AMBASSADES.md décrivent le voyage existant.
+  Écran `plateau-transferts-detenus.js`, banc `banc-transfert-detenu-20261127.cjs`.
+
 ### Mission du 27/11/2026 (après-midi) (Claude) — compte rendu pour Fred
 
 1. **Parti en bêta, et comment le tester**

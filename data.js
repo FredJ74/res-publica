@@ -3895,6 +3895,7 @@ const BUILDINGS = {
         orders: [
           {fn:'proposer_treve',       label:'Proposer une trêve',           pa:3, cost:0, type:'legal', icon:'ti-handshake',     successRate:100, requiresPost:'min_ae', desc:'Proposer une treve a l\'homologue d\'un empire en guerre. Si acceptee, chaque MG devra ensuite activer le cessez-le-feu de son cote.'},
           {fn:'diplomatie_bilaterale', label:'Diplomatie bilaterale',     pa:0, cost:0, type:'legal', icon:'ti-building-bank', successRate:100, requiresPost:'min_ae', desc:'Ouvrir des negociations, proposer un traite, repondre aux propositions recues.'},
+          {fn:'transferts_detenus',   label:'Demandes de transfert de détenus', pa:0, cost:0, type:'legal', icon:'ti-lock-open', successRate:100, requiresPost:'min_ae', desc:'Les demandes des ambassadeurs étrangers : accepter (le détenu purge le reste de sa peine dans son pays) ou refuser.'},
           {fn:'gerer_ambassades',     label:'Ambassades et ambassadeurs',   pa:2, cost:0,   type:'legal',   icon:'ti-building',       successRate:100, requiresPost:'min_ae', desc:'Ouvrir une ambassade, nommer, démettre ou expulser un ambassadeur.'},
         ]
       }
@@ -7411,7 +7412,7 @@ const BUILDINGS = {
           {fn:'relations_bilaterales',            label:'Consulter les relations bilatérales', pa:0, cost:0,    type:'legal', icon:'ti-file-analytics', successRate:100, requiresPost:'ambassadeur_local', desc:'Etat des relations avec Sovarka.'},
           {fn:'organiser_reception_diplomatique',  label:'Organiser une réception diplomatique',pa:2, cost:1200, type:'legal', icon:'ti-glass-champagne', successRate:100, requiresPost:'ambassadeur_local', desc:'Reserver la Salle de Reception commune.'},
           {fn:'financer_oeuvre_culturelle',        label:'Financer une œuvre culturelle',        pa:1, cost:600,  type:'legal', icon:'ti-palette', successRate:100, requiresPost:'ambassadeur_local', desc:'Soft power local.'},
-          {fn:'demander_transfert_detenu',          label:'Demander le transfert d\'un détenu',  pa:1, cost:0,    type:'legal', icon:'ti-lock-open', successRate:100, requiresPost:'ambassadeur_local', desc:'Demander au ministre des Affaires étrangères de votre pays le transfert d\'un ressortissant détenu ici vers la prison de sa ville de domiciliation.', bientot:'Bientôt disponible : le transfert des détenus ouvrira avec le voyage entre empires.'}
+          {fn:'demander_transfert_detenu',          label:'Demander le transfert d\'un détenu',  pa:1, cost:0,    type:'legal', icon:'ti-lock-open', successRate:100, requiresPost:'ambassadeur_local', desc:'Demander au ministre des Affaires étrangères du pays hôte le transfert d\'un compatriote détenu ici vers une prison de son pays d\'origine, où il purge le reste de sa peine. Demande, accord et refus au courrier.'}
         ]
       },
       bureau_el_estado: {
@@ -7469,7 +7470,7 @@ const BUILDINGS = {
           {fn:'relations_bilaterales', label:'Consulter les relations bilatérales', pa:0, cost:0, type:'legal', icon:'ti-file-analytics', successRate:100, requiresPost:'ambassadeur_local', desc:'État des relations avec Républia.'},
           {fn:'organiser_reception_diplomatique', label:'Organiser une réception diplomatique', pa:2, cost:1200, type:'legal', icon:'ti-glass-champagne', successRate:100, requiresPost:'ambassadeur_local', desc:'Réserver la Salle de Réception commune.'},
           {fn:'financer_oeuvre_culturelle', label:'Financer une œuvre culturelle', pa:1, cost:600, type:'legal', icon:'ti-palette', successRate:100, requiresPost:'ambassadeur_local', desc:'Soft power local.'},
-          {fn:'demander_transfert_detenu', label:'Demander le transfert d\'un détenu', pa:1, cost:0, type:'legal', icon:'ti-lock-open', successRate:100, desc:'Demander au ministre des Affaires étrangères de votre pays le transfert d\'un ressortissant détenu ici vers la prison de sa ville de domiciliation.', bientot:'Bientôt disponible : les ambassades de Novomirsk ouvriront avec le voyage entre empires.'}
+          {fn:'demander_transfert_detenu', label:'Demander le transfert d\'un détenu', pa:1, cost:0, type:'legal', icon:'ti-lock-open', successRate:100, requiresPost:'ambassadeur_local', desc:'Demander au ministre des Affaires étrangères du pays hôte le transfert d\'un compatriote détenu ici vers une prison de son pays d\'origine, où il purge le reste de sa peine. Demande, accord et refus au courrier.'}
         ]
       },
       bureau_khalija_novomirsk: {

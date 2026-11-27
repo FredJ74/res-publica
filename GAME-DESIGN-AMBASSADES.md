@@ -74,21 +74,31 @@ poste), **statut de réfugié politique**.
 - **Valise diplomatique** : l'ambassadeur en poste passe la douane de l'aéroport
   sans contrôle.
 
-### Attendent le voyage entre empires (constat du 25/10)
-Le jeu ne sait pas encore faire séjourner un joueur dans un autre empire : rien ne
-dit au serveur qu'un joueur est « dans le pays hôte ». Restent donc à brancher avec
-le voyage : l'immunité, l'arrestation de l'expulsé resté sur place, le transfert
-d'un détenu, la naturalisation dans un autre empire.
+### Voyage entre empires : ce qui existe (relevé du 27/11/2026)
+Le voyage entre Républia et Sovarka existe : avion depuis la zone d'embarquement (après la
+douane) ou bateau depuis le quai d'un port, vers la capitale de l'autre pays
+(`transport_effectuer`). Le serveur sait donc qu'un joueur est « dans le pays hôte »
+(`personnages_donnees.country`), distinct de sa nationalité (`personnage_nationalite`).
+El Estado et Al-Khalija restent fermés (`frontieres_fermees_v1`).
+- **Branché le 27/11/2026** : le transfert d'un détenu (voir plus bas, décision du 27/11).
+- **Pas encore branchés** : l'immunité, l'arrestation de l'expulsé resté sur place, la
+  naturalisation dans un autre empire (aucune décision nouvelle).
 
 ### Naturalisation (25/10 — avec les autres empires)
 La demande se fait à l'ambassade du pays visé ; **l'ambassadeur accepte ou
 refuse**.
 
-### Transfert d'un détenu (25/10 — avec les autres empires)
-Un ressortissant détenu à l'étranger : l'ambassadeur demande son transfert au
-**ministre des Affaires étrangères** de son pays, qui accepte ou refuse. Si
-accepté, **transfert automatique** dans la prison de la **ville de domiciliation**
-du détenu, dans son pays d'origine.
+### Transfert d'un détenu (décision de Fred du 27/11/2026, codé)
+*Remplace la règle du 25/10 (ministre du pays de l'ambassadeur, prison de la ville de domiciliation).*
+Dans les ambassades de Républia et de Sovarka, l'ambassadeur demande (1 PA) qu'un
+**compatriote** détenu dans le pays hôte soit transféré dans une prison de son pays
+d'origine ; le **ministre des Affaires étrangères du pays hôte** (et non celui de la
+Justice) accepte ou refuse (« Demandes de transfert de détenus », à son bureau). En cas
+d'accord, le détenu est transféré à la prison de la capitale de son pays et y purge le reste
+de sa peine, sans un jour de plus. Demande, accord et refus arrivent au courrier des deux.
+Ne sont pas transférables : les détenus du QHS, du goulag ou en salle d'interrogatoire.
+L'ordre reste grisé pour El Estado et Al-Khalija. Serveur : `transfert_detenu_demander`,
+`transfert_detenu_decider` (migration `20261127234000`).
 
 ### Valise diplomatique (25/10 — avec les autres empires)
 **Pas de passage en douane pour les ambassadeurs.**
@@ -156,6 +166,7 @@ Décision de Fred (01/11) : les ordres qui attendent le voyage entre empires res
 et grisés** avec la mention « Bientôt disponible », plutôt que masqués. Implémenté par le
 drapeau `bientot` : « Demander la naturalisation » (mairies), « Demandes de naturalisation »
 (ministre de l'Intérieur), « Demander le transfert d'un détenu » (bureaux des trois
-ambassadeurs). L'immunité et l'arrestation de l'expulsé ne sont pas des ordres mais des
+ambassadeurs ; **ouvert le 27/11/2026** dans les ambassades de Républia et de Sovarka, grisé
+pour El Estado et Al-Khalija). L'immunité et l'arrestation de l'expulsé ne sont pas des ordres mais des
 règles automatiques : rien à griser, elles seront branchées avec le voyage.
 Banc : `outils/bancs/banc-ambassades-bientot-20261101.cjs`.

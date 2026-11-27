@@ -26,15 +26,15 @@ test('il n’existe pas d’autre ambassade de Républia ou de Sovarka que celle
 });
 
 for (const [bat, piece, empire, nom] of AMBASSADES) {
-  test(nom + ' : ordres décidés actifs et réservés à l’ambassadeur, transfert d’un détenu grisé', () => {
+  test(nom + ' : ordres décidés et transfert d’un détenu actifs, réservés à l’ambassadeur (Fred, 27/11 soir)', () => {
     const ordres = BUILDINGS[bat].rooms[piece].orders;
     const actifs = ordres.filter(o => !o.bientot).map(o => o.fn), grises = ordres.filter(o => o.bientot).map(o => o.fn);
-    assert.deepEqual(actifs, DECIDES, nom);
-    assert.deepEqual(grises, ['demander_transfert_detenu'], nom);
+    assert.deepEqual(actifs, [...DECIDES, 'demander_transfert_detenu'], nom);
+    assert.deepEqual(grises, [], nom);
     for (const o of ordres.filter(o => !o.bientot)) assert.equal(o.requiresPost, 'ambassadeur_local', o.fn);
     // Mêmes coûts qu'à Luthécia (le serveur prélève par payer_ordre avec ces montants).
     const ref = BUILDINGS['quartier-ambassades'].rooms.bureau_sovarka.orders;
-    for (const fn of DECIDES) {
+    for (const fn of [...DECIDES, 'demander_transfert_detenu']) {
       const a = ordres.find(o => o.fn === fn), b = ref.find(o => o.fn === fn);
       assert.deepEqual([a.pa, a.cost], [b.pa, b.cost], fn);
     }

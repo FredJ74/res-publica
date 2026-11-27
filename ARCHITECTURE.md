@@ -207,7 +207,7 @@ ligne trouvée fausse se corrige ici.
 |---|---|---|---|
 | Ambassades | Ouverture, ambassadeur, audience, asile, réception, mécénat. | Serveur | Ambassades et ambassadeurs PNJ. |
 | Diplomatie et guerres | Indice Diplomatique, propositions, traités, guerres, trêves. | Serveur | Rien : commun. |
-| Voyage entre empires | N'existe pas encore. | À créer | À créer une seule fois, pour tous. |
+| Voyage entre empires | Existe entre Républia et Sovarka (relevé du 27/11/2026) : `transport_effectuer` en **avion** (depuis la zone d'embarquement du centre multimodal, après le contrôle douanier) ou en **bateau** (depuis le quai d'un port), vers la capitale de l'autre pays ; le groupe voyage avec son chef. `personnages_donnees.country` est le pays où l'on se trouve, `personnage_nationalite()` la nationalité. Les villes d'El Estado et d'Al-Khalija sont fermées par `frontieres_fermees` (`frontieres_fermees_v1` : refus de `transport_effectuer` et déclencheur `zz_frontiere_fermee_garder`). Branché dessus : transfert d'un détenu entre ambassades (27/11/2026). | Serveur | Retirer ses villes de `frontieres_fermees` à l'ouverture. |
 
 ## Coder un nouvel empire
 

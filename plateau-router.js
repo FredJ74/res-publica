@@ -978,6 +978,9 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'expulser_ambassadeur_cible'){ ouvrirModalExpulserAmbassadeur(pa, cost); return; }
   if (fn === 'relations_bilaterales') { ouvrirRelationsBilaterales(); return; }
   if (fn === 'organiser_reception_diplomatique') { doOrganiserReceptionDiplomatique(pa, cost); return; }
+  // Transfert d'un détenu entre Républia et Sovarka (Fred, 27/11/2026) : plateau-transferts-detenus.js.
+  if (fn === 'demander_transfert_detenu') { ouvrirTransfertDetenu(); return; }
+  if (fn === 'transferts_detenus') { ouvrirDemandesTransfert(); return; }
   if (fn === 'financer_oeuvre_culturelle') { doFinancerOeuvreCulturelle(pa, cost); return; }
   if (fn === 'demander_audience_ambassadeur') { doDemanderAudienceAmbassadeur(pa, cost); return; }
   if (fn === 'demander_asile_politique') { doDemanderAsilePolitique(pa, cost); return; }
