@@ -1,10 +1,25 @@
 name: "Krasnov — zones distinctes immeuble et tabac"
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '25 3 * * *'
   push:
     branches:
       - chatgpt/krasnov-tabac-hitboxes-20261114
     paths:
       - .github/workflows/krasnov-tabac-hitboxes-20261114.yml
+      - 'data.js'
+      - 'plateau-core.js'
+      - 'plateau-router.js'
+      - 'migrations/**'
+      - '.github/workflows/**'
+      - 'i18n/**'
+      - 'auth.js'
+      - 'supabase.js'
+      - 'sens-saisie.js'
+      - 'style.css'
+      - 'rue-centrale.css'
+      - 'vercel.json'
 permissions:
   contents: read
 jobs:

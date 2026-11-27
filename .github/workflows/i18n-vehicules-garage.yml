@@ -1,5 +1,8 @@
 name: i18n — Garage et station-service
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '28 3 * * *'
   pull_request:
     paths:
       - 'plateau-vehicules.js'
@@ -8,6 +11,18 @@ on:
       - 'outils/audits/audit-i18n-editorial.cjs'
       - 'outils/bancs/banc-i18n-vehicules-garage-20261112.cjs'
       - '.github/workflows/i18n-vehicules-garage.yml'
+      - 'data.js'
+      - 'plateau-core.js'
+      - 'plateau-router.js'
+      - 'migrations/**'
+      - '.github/workflows/**'
+      - 'i18n/**'
+      - 'auth.js'
+      - 'supabase.js'
+      - 'sens-saisie.js'
+      - 'style.css'
+      - 'rue-centrale.css'
+      - 'vercel.json'
 permissions:
   contents: read
 jobs:

@@ -1,9 +1,24 @@
 name: i18n — salles et services de Sovarka
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '3 3 * * *'
   pull_request:
     paths:
       - 'i18n/room-resources.js'
       - 'outils/bancs/banc-i18n-salles-sovarka-services.cjs'
+      - 'data.js'
+      - 'plateau-core.js'
+      - 'plateau-router.js'
+      - 'migrations/**'
+      - '.github/workflows/**'
+      - 'i18n/**'
+      - 'auth.js'
+      - 'supabase.js'
+      - 'sens-saisie.js'
+      - 'style.css'
+      - 'rue-centrale.css'
+      - 'vercel.json'
   push:
     branches:
       - 'chatgpt/i18n-sovarka-20-salles-20261110'
@@ -12,6 +27,18 @@ on:
       - '.github/workflows/i18n-salles-sovarka.yml'
       - 'i18n/room-resources.js'
       - 'outils/bancs/banc-i18n-salles-sovarka-services.cjs'
+      - 'data.js'
+      - 'plateau-core.js'
+      - 'plateau-router.js'
+      - 'migrations/**'
+      - '.github/workflows/**'
+      - 'i18n/**'
+      - 'auth.js'
+      - 'supabase.js'
+      - 'sens-saisie.js'
+      - 'style.css'
+      - 'rue-centrale.css'
+      - 'vercel.json'
 permissions:
   contents: read
 jobs:

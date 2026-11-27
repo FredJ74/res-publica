@@ -1,10 +1,13 @@
 name: I18N — descriptions de Krasnov
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '6 3 * * *'
   pull_request:
-    paths: ['plateau.html', 'plateau-navigation.js', 'i18n/sovarka-descriptions-resources.js', 'i18n/packed/sovarka-descriptions-resources.js.br', 'outils/audits/I18N-CATALOGUES-TRANSPORT.json', 'outils/bancs/banc-i18n-krasnov-descriptions-20261115.cjs', 'outils/audits/I18N-KRASNOV-DESCRIPTIONS-871-*', '.github/workflows/i18n-krasnov-descriptions-20261115.yml']
+    paths: ['plateau.html', 'plateau-navigation.js', 'i18n/sovarka-descriptions-resources.js', 'i18n/packed/sovarka-descriptions-resources.js.br', 'outils/audits/I18N-CATALOGUES-TRANSPORT.json', 'outils/bancs/banc-i18n-krasnov-descriptions-20261115.cjs', 'outils/audits/I18N-KRASNOV-DESCRIPTIONS-871-*', '.github/workflows/i18n-krasnov-descriptions-20261115.yml', 'data.js', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
   push:
     branches: [main]
-    paths: ['plateau.html', 'plateau-navigation.js', 'i18n/sovarka-descriptions-resources.js', 'outils/bancs/banc-i18n-krasnov-descriptions-20261115.cjs', '.github/workflows/i18n-krasnov-descriptions-20261115.yml']
+    paths: ['plateau.html', 'plateau-navigation.js', 'i18n/sovarka-descriptions-resources.js', 'outils/bancs/banc-i18n-krasnov-descriptions-20261115.cjs', '.github/workflows/i18n-krasnov-descriptions-20261115.yml', 'data.js', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
 permissions:
   contents: read
 jobs:

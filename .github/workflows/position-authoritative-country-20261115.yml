@@ -1,5 +1,8 @@
 name: "Position serveur multi-empire — restauration"
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '51 3 * * *'
   push:
     branches: [chatgpt/position-authoritative-country-20261115]
     paths:
@@ -7,6 +10,18 @@ on:
       - plateau-rue-centrale.js
       - outils/bancs/test-position-authoritative-country-20261115.mjs
       - outils/bancs/test-restore-position-api-20261115.mjs
+      - 'data.js'
+      - 'plateau-core.js'
+      - 'plateau-router.js'
+      - 'migrations/**'
+      - '.github/workflows/**'
+      - 'i18n/**'
+      - 'auth.js'
+      - 'supabase.js'
+      - 'sens-saisie.js'
+      - 'style.css'
+      - 'rue-centrale.css'
+      - 'vercel.json'
 permissions:
   contents: read
 jobs:

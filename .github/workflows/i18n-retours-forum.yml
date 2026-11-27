@@ -1,10 +1,13 @@
 name: Retours fixes forum et messagerie — neuf langues
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '1 3 * * *'
   pull_request:
-    paths: ['forum.js', 'i18n/toast-resources.js', 'i18n/forum-feedback-resources.js', 'i18n/plateau-init.js', 'outils/bancs/*retours-forum*', 'outils/bancs/*confirmations-forum*', '.github/workflows/i18n-retours-forum.yml']
+    paths: ['forum.js', 'i18n/toast-resources.js', 'i18n/forum-feedback-resources.js', 'i18n/plateau-init.js', 'outils/bancs/*retours-forum*', 'outils/bancs/*confirmations-forum*', '.github/workflows/i18n-retours-forum.yml', 'data.js', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
   push:
     branches: [main]
-    paths: ['forum.js', 'i18n/toast-resources.js', 'i18n/forum-feedback-resources.js', 'i18n/plateau-init.js', 'outils/bancs/*retours-forum*', 'outils/bancs/*confirmations-forum*', '.github/workflows/i18n-retours-forum.yml']
+    paths: ['forum.js', 'i18n/toast-resources.js', 'i18n/forum-feedback-resources.js', 'i18n/plateau-init.js', 'outils/bancs/*retours-forum*', 'outils/bancs/*confirmations-forum*', '.github/workflows/i18n-retours-forum.yml', 'data.js', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
 permissions:
   contents: read
 jobs:

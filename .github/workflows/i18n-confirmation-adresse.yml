@@ -1,10 +1,13 @@
 name: Comptes et connexion — neuf langues sans rejouer les requêtes
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '0 3 * * *'
   pull_request:
-    paths: ['creation.js', 'index.html', 'i18n/connection-resources.js', 'i18n/i18n-init.js', 'outils/bancs/*confirmation-adresse*', 'outils/bancs/*recherche-personnage*', 'outils/bancs/*retours-compte*', 'outils/bancs/*titres-creation*', 'outils/bancs/*explications-creation*', 'outils/bancs/fixtures/creation-i18n-navigateur.cjs', 'outils/bancs/banc-i18n-connexion-ui.cjs', '.github/workflows/i18n-confirmation-adresse.yml']
+    paths: ['creation.js', 'index.html', 'i18n/connection-resources.js', 'i18n/i18n-init.js', 'outils/bancs/*confirmation-adresse*', 'outils/bancs/*recherche-personnage*', 'outils/bancs/*retours-compte*', 'outils/bancs/*titres-creation*', 'outils/bancs/*explications-creation*', 'outils/bancs/fixtures/creation-i18n-navigateur.cjs', 'outils/bancs/banc-i18n-connexion-ui.cjs', '.github/workflows/i18n-confirmation-adresse.yml', 'data.js', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
   push:
     branches: [main]
-    paths: ['creation.js', 'index.html', 'i18n/connection-resources.js', 'i18n/i18n-init.js', 'outils/bancs/*confirmation-adresse*', 'outils/bancs/*recherche-personnage*', 'outils/bancs/*retours-compte*', 'outils/bancs/*titres-creation*', 'outils/bancs/*explications-creation*', 'outils/bancs/fixtures/creation-i18n-navigateur.cjs', 'outils/bancs/banc-i18n-connexion-ui.cjs', '.github/workflows/i18n-confirmation-adresse.yml']
+    paths: ['creation.js', 'index.html', 'i18n/connection-resources.js', 'i18n/i18n-init.js', 'outils/bancs/*confirmation-adresse*', 'outils/bancs/*recherche-personnage*', 'outils/bancs/*retours-compte*', 'outils/bancs/*titres-creation*', 'outils/bancs/*explications-creation*', 'outils/bancs/fixtures/creation-i18n-navigateur.cjs', 'outils/bancs/banc-i18n-connexion-ui.cjs', '.github/workflows/i18n-confirmation-adresse.yml', 'data.js', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
 permissions:
   contents: read
 jobs:

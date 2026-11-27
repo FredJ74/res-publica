@@ -1,5 +1,8 @@
 name: Goulag Sovarka - survie
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '8 3 * * *'
   push:
     branches:
       - chatgpt/goulag-moteur-survie-20261116
@@ -16,6 +19,18 @@ on:
       - 'outils/bancs/fixtures/goulag-20261116/**'
       - 'outils/bancs/test-goulag-survie-20261116.cjs'
       - '.github/workflows/goulag-survie-20261116.yml'
+      - 'data.js'
+      - 'plateau-core.js'
+      - 'plateau-router.js'
+      - 'migrations/**'
+      - '.github/workflows/**'
+      - 'i18n/**'
+      - 'auth.js'
+      - 'supabase.js'
+      - 'sens-saisie.js'
+      - 'style.css'
+      - 'rue-centrale.css'
+      - 'vercel.json'
 jobs:
   moteur-survie:
     runs-on: ubuntu-latest

@@ -1,10 +1,13 @@
 name: "Pays d'un poste — registre postes_attribues, jamais la position (B.15-16)"
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '11 3 * * *'
   pull_request:
-    paths: [plateau-organisations-quetes.js, plateau-politique.js, plateau-router.js, plateau-core.js, plateau-personnage.js, plateau-multijoueur.js, plateau-communication.js, plateau-pnj.js, continuite-municipale.js, api/cron-minuit.js, 'migrations/20261123120000_postes_pays.sql', 'outils/bancs/*postes-pays*', 'outils/bancs/fixtures/postes-pays-*', outils/bancs/banc-continuite-municipale.mjs, outils/bancs/banc-candidatures-nocturnes.js, .github/workflows/postes-pays-20261123.yml]
+    paths: ['plateau-organisations-quetes.js', 'plateau-politique.js', 'plateau-router.js', 'plateau-core.js', 'plateau-personnage.js', 'plateau-multijoueur.js', 'plateau-communication.js', 'plateau-pnj.js', 'continuite-municipale.js', 'api/cron-minuit.js', 'migrations/20261123120000_postes_pays.sql', 'outils/bancs/*postes-pays*', 'outils/bancs/fixtures/postes-pays-*', 'outils/bancs/banc-continuite-municipale.mjs', 'outils/bancs/banc-candidatures-nocturnes.js', '.github/workflows/postes-pays-20261123.yml', 'data.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
   push:
     branches: [main, 'claude/**']
-    paths: [plateau-organisations-quetes.js, plateau-politique.js, plateau-router.js, plateau-core.js, plateau-personnage.js, plateau-multijoueur.js, plateau-communication.js, plateau-pnj.js, continuite-municipale.js, api/cron-minuit.js, 'migrations/20261123120000_postes_pays.sql', 'outils/bancs/*postes-pays*', 'outils/bancs/fixtures/postes-pays-*', outils/bancs/banc-continuite-municipale.mjs, outils/bancs/banc-candidatures-nocturnes.js, .github/workflows/postes-pays-20261123.yml]
+    paths: ['plateau-organisations-quetes.js', 'plateau-politique.js', 'plateau-router.js', 'plateau-core.js', 'plateau-personnage.js', 'plateau-multijoueur.js', 'plateau-communication.js', 'plateau-pnj.js', 'continuite-municipale.js', 'api/cron-minuit.js', 'migrations/20261123120000_postes_pays.sql', 'outils/bancs/*postes-pays*', 'outils/bancs/fixtures/postes-pays-*', 'outils/bancs/banc-continuite-municipale.mjs', 'outils/bancs/banc-candidatures-nocturnes.js', '.github/workflows/postes-pays-20261123.yml', 'data.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
 permissions:
   contents: read
 jobs:

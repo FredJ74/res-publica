@@ -1,10 +1,13 @@
 name: Socle des ordres multi-empires — issue 871
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '50 3 * * *'
   pull_request:
-    paths: ['i18n/**', 'plateau-politique.js', 'plateau-ordres-info.js', 'outils/audits/audit-i18n-global.cjs', 'outils/bancs/*socle-ordres*', '.github/workflows/i18n-socle-ordres.yml']
+    paths: ['i18n/**', 'plateau-politique.js', 'plateau-ordres-info.js', 'outils/audits/audit-i18n-global.cjs', 'outils/bancs/*socle-ordres*', '.github/workflows/i18n-socle-ordres.yml', 'data.js', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
   push:
     branches: [main]
-    paths: ['i18n/**', 'plateau-politique.js', 'plateau-ordres-info.js', 'outils/audits/audit-i18n-global.cjs', 'outils/bancs/*socle-ordres*', '.github/workflows/i18n-socle-ordres.yml']
+    paths: ['i18n/**', 'plateau-politique.js', 'plateau-ordres-info.js', 'outils/audits/audit-i18n-global.cjs', 'outils/bancs/*socle-ordres*', '.github/workflows/i18n-socle-ordres.yml', 'data.js', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
 permissions:
   contents: read
 jobs:

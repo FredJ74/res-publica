@@ -1,5 +1,8 @@
 name: I18N - journal de ventes et diners
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '10 3 * * *'
   pull_request:
     paths:
       - 'plateau-journal-ventes.js'
@@ -9,6 +12,18 @@ on:
       - 'outils/audits/audit-i18n-editorial.cjs'
       - 'plateau.html'
       - '.github/workflows/i18n-ventes-diners.yml'
+      - 'data.js'
+      - 'plateau-core.js'
+      - 'plateau-router.js'
+      - 'migrations/**'
+      - '.github/workflows/**'
+      - 'i18n/**'
+      - 'auth.js'
+      - 'supabase.js'
+      - 'sens-saisie.js'
+      - 'style.css'
+      - 'rue-centrale.css'
+      - 'vercel.json'
 permissions:
   contents: read
 jobs:

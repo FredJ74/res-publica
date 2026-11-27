@@ -1,11 +1,26 @@
 name: Refonte mobile — rendu réel vérifié
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '45 3 * * *'
   pull_request:
     paths:
       - 'plateau.html'
       - 'plateau-mobile-refonte-visible.css'
       - 'outils/bancs/test-refonte-visible-browser-20261117.cjs'
       - '.github/workflows/refonte-mobile-rendu.yml'
+      - 'data.js'
+      - 'plateau-core.js'
+      - 'plateau-router.js'
+      - 'migrations/**'
+      - '.github/workflows/**'
+      - 'i18n/**'
+      - 'auth.js'
+      - 'supabase.js'
+      - 'sens-saisie.js'
+      - 'style.css'
+      - 'rue-centrale.css'
+      - 'vercel.json'
 jobs:
   visual:
     runs-on: ubuntu-latest

@@ -1,5 +1,8 @@
 name: "Journal — cadrage sans rognage des photos"
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '50 3 * * *'
   push:
     branches:
       - chatgpt/journal-images-contain-20261114
@@ -8,6 +11,17 @@ on:
       - style.css
       - plateau.html
       - outils/bancs/test-journal-images-contain-20261114.mjs
+      - 'data.js'
+      - 'plateau-core.js'
+      - 'plateau-router.js'
+      - 'migrations/**'
+      - '.github/workflows/**'
+      - 'i18n/**'
+      - 'auth.js'
+      - 'supabase.js'
+      - 'sens-saisie.js'
+      - 'rue-centrale.css'
+      - 'vercel.json'
 permissions:
   contents: read
 jobs:

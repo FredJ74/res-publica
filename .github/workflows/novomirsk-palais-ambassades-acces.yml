@@ -1,5 +1,8 @@
 name: Novomirsk — Palais des Ambassades et invitations
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '53 3 * * *'
   pull_request:
     paths:
       - 'data.js'
@@ -8,6 +11,17 @@ on:
       - 'migrations/20261113160500_novomirsk_palais_ambassades_acces.sql'
       - 'outils/bancs/banc-novomirsk-palais-ambassades-acces-20261113.cjs'
       - '.github/workflows/novomirsk-palais-ambassades-acces.yml'
+      - 'plateau-core.js'
+      - 'plateau-router.js'
+      - 'migrations/**'
+      - '.github/workflows/**'
+      - 'i18n/**'
+      - 'auth.js'
+      - 'supabase.js'
+      - 'sens-saisie.js'
+      - 'style.css'
+      - 'rue-centrale.css'
+      - 'vercel.json'
 permissions:
   contents: read
 jobs:

@@ -1,5 +1,8 @@
 name: Internationalisation — catalogues et accueil
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '10 3 * * *'
   # Contrôle temporaire du brouillon : aucun déploiement ni activation publique.
   push:
     branches: [chatgpt/accueil-9-langues-20261102]
@@ -107,6 +110,15 @@ on:
       - 'outils/bancs/banc-i18n-prevol-rls.cjs'
       - 'api/_traduction-contenu.js'
       - 'outils/bancs/banc-i18n-contenu-securise.mjs'
+      - 'plateau-router.js'
+      - 'migrations/**'
+      - '.github/workflows/**'
+      - 'auth.js'
+      - 'supabase.js'
+      - 'sens-saisie.js'
+      - 'style.css'
+      - 'rue-centrale.css'
+      - 'vercel.json'
 concurrency:
   group: i18n-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true

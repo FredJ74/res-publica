@@ -1,5 +1,8 @@
 name: I18N - corps des notifications
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '7 3 * * *'
   pull_request:
     paths:
       - 'plateau-core.js'
@@ -19,9 +22,19 @@ on:
       - 'outils/audits/audit-i18n-editorial.cjs'
       - 'plateau.html'
       - '.github/workflows/i18n-corps-notifications.yml'
+      - 'data.js'
+      - 'plateau-router.js'
+      - 'migrations/**'
+      - '.github/workflows/**'
+      - 'i18n/**'
+      - 'auth.js'
+      - 'supabase.js'
+      - 'sens-saisie.js'
+      - 'style.css'
+      - 'rue-centrale.css'
   push:
     branches: [main]
-    paths: ['plateau-core.js', 'plateau-politique.js', 'plateau.html', 'i18n/*resources.js', 'i18n/packed/**', 'vercel.json', '.vercelignore', 'outils/generateurs/compresser-catalogues-i18n.cjs', 'outils/audits/I18N-CATALOGUES-TRANSPORT.json', 'outils/bancs/*corps*notifications*', 'outils/bancs/*transport-catalogues*']
+    paths: ['plateau-core.js', 'plateau-politique.js', 'plateau.html', 'i18n/*resources.js', 'i18n/packed/**', 'vercel.json', '.vercelignore', 'outils/generateurs/compresser-catalogues-i18n.cjs', 'outils/audits/I18N-CATALOGUES-TRANSPORT.json', 'outils/bancs/*corps*notifications*', 'outils/bancs/*transport-catalogues*', 'data.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css']
 permissions:
   contents: read
 jobs:

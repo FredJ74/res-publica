@@ -1,5 +1,8 @@
 name: Aide HRP — questions libres et neuf langues
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '15 3 * * *'
   pull_request:
     paths:
       - 'api/_aide.js'
@@ -20,6 +23,18 @@ on:
       - 'outils/bancs/banc-aide-corpus.mjs'
       - 'outils/bancs/fixtures/aide-corpus-neuf-langues.json'
       - '.github/workflows/aide-hrp-check.yml'
+      - 'data.js'
+      - 'plateau-core.js'
+      - 'plateau-router.js'
+      - 'migrations/**'
+      - '.github/workflows/**'
+      - 'i18n/**'
+      - 'auth.js'
+      - 'supabase.js'
+      - 'sens-saisie.js'
+      - 'style.css'
+      - 'rue-centrale.css'
+      - 'vercel.json'
 permissions:
   contents: read
 jobs:

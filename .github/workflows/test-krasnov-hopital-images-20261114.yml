@@ -1,5 +1,8 @@
 name: Krasnov - hospitalisation et images
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '27 3 * * *'
   push:
     branches: [fix/krasnov-hopital-depuis-bureaux-20261114]
   pull_request:
@@ -9,6 +12,17 @@ on:
       - 'images/Sovarka/Krasnov/Krasnov_hopital_*.webp'
       - 'migrations/20261114115500_krasnov_hopital_acces_rue.sql'
       - 'outils/bancs/test-krasnov-hopital-acces-rue-20261114.mjs'
+      - 'plateau-core.js'
+      - 'plateau-router.js'
+      - 'migrations/**'
+      - '.github/workflows/**'
+      - 'i18n/**'
+      - 'auth.js'
+      - 'supabase.js'
+      - 'sens-saisie.js'
+      - 'style.css'
+      - 'rue-centrale.css'
+      - 'vercel.json'
 permissions:
   contents: read
 jobs:

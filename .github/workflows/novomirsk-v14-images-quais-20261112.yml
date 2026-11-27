@@ -1,5 +1,8 @@
 name: "Novomirsk V14 — images des Quais"
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '16 3 * * *'
   push:
     branches:
       - chatgpt/novomirsk-v14-images-quais-20261112
@@ -7,6 +10,17 @@ on:
     paths:
       - data.js
       - outils/bancs/test-novomirsk-v14-images-quais-20261112.mjs
+      - 'plateau-core.js'
+      - 'plateau-router.js'
+      - 'migrations/**'
+      - '.github/workflows/**'
+      - 'i18n/**'
+      - 'auth.js'
+      - 'supabase.js'
+      - 'sens-saisie.js'
+      - 'style.css'
+      - 'rue-centrale.css'
+      - 'vercel.json'
 permissions:
   contents: read
 jobs:

@@ -1,5 +1,8 @@
 name: i18n — réservations en clinique privée
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '5 3 * * *'
   pull_request:
     paths:
       - 'plateau-clinique-nuitee.js'
@@ -9,6 +12,18 @@ on:
       - 'outils/bancs/banc-i18n-clinique-20261112.cjs'
       - 'outils/bancs/banc-clinique-nuitee-client.cjs'
       - '.github/workflows/i18n-clinic-stay.yml'
+      - 'data.js'
+      - 'plateau-core.js'
+      - 'plateau-router.js'
+      - 'migrations/**'
+      - '.github/workflows/**'
+      - 'i18n/**'
+      - 'auth.js'
+      - 'supabase.js'
+      - 'sens-saisie.js'
+      - 'style.css'
+      - 'rue-centrale.css'
+      - 'vercel.json'
 permissions:
   contents: read
 jobs:

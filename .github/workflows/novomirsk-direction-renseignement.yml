@@ -1,5 +1,8 @@
 name: Novomirsk — Direction du renseignement
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '49 3 * * *'
   pull_request:
     paths:
       - 'data.js'
@@ -9,6 +12,17 @@ on:
       - 'migrations/20261113222000_sovarka_renseignement_ministeres.sql'
       - 'outils/bancs/banc-direction-renseignement-novomirsk-20261113.cjs'
       - '.github/workflows/novomirsk-direction-renseignement.yml'
+      - 'plateau-core.js'
+      - 'plateau-router.js'
+      - 'migrations/**'
+      - '.github/workflows/**'
+      - 'i18n/**'
+      - 'auth.js'
+      - 'supabase.js'
+      - 'sens-saisie.js'
+      - 'style.css'
+      - 'rue-centrale.css'
+      - 'vercel.json'
   push:
     branches: [main]
     paths:
@@ -18,6 +32,17 @@ on:
       - 'migrations/20261113220500_novomirsk_archives_renseignement.sql'
       - 'migrations/20261113222000_sovarka_renseignement_ministeres.sql'
       - 'outils/bancs/banc-direction-renseignement-novomirsk-20261113.cjs'
+      - 'plateau-core.js'
+      - 'plateau-router.js'
+      - 'migrations/**'
+      - '.github/workflows/**'
+      - 'i18n/**'
+      - 'auth.js'
+      - 'supabase.js'
+      - 'sens-saisie.js'
+      - 'style.css'
+      - 'rue-centrale.css'
+      - 'vercel.json'
 jobs:
   verify:
     runs-on: ubuntu-latest

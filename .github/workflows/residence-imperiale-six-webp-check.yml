@@ -1,5 +1,8 @@
 name: Résidence impériale — 6 WebP et raccordement
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '13 3 * * *'
   pull_request:
     branches: [main]
     paths:
@@ -8,6 +11,17 @@ on:
       - 'outils/audits/residence-imperiale-six-webp-20261111.json'
       - 'outils/bancs/banc-residence-imperiale-webp-20261111.py'
       - '.github/workflows/residence-imperiale-six-webp-check.yml'
+      - 'plateau-core.js'
+      - 'plateau-router.js'
+      - 'migrations/**'
+      - '.github/workflows/**'
+      - 'i18n/**'
+      - 'auth.js'
+      - 'supabase.js'
+      - 'sens-saisie.js'
+      - 'style.css'
+      - 'rue-centrale.css'
+      - 'vercel.json'
 permissions:
   contents: read
 jobs:

@@ -1,5 +1,8 @@
 name: Musée national de Novomirsk — neuf salles WebP
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '6 3 * * *'
   pull_request:
     paths:
       - 'data.js'
@@ -7,6 +10,17 @@ on:
       - 'images/Sovarka/Novomirsk/Novomirsk_musée national_*'
       - 'outils/bancs/banc-musee-national-novomirsk-neuf-salles.mjs'
       - '.github/workflows/novomirsk-musee-national-check.yml'
+      - 'plateau-core.js'
+      - 'plateau-router.js'
+      - 'migrations/**'
+      - '.github/workflows/**'
+      - 'i18n/**'
+      - 'auth.js'
+      - 'supabase.js'
+      - 'sens-saisie.js'
+      - 'style.css'
+      - 'rue-centrale.css'
+      - 'vercel.json'
 permissions:
   contents: read
 jobs:

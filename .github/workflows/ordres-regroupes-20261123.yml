@@ -1,10 +1,13 @@
 name: "Ordres regroupés dans les pièces (inspection à trois volets, mairies, partis, syndicat, Fonctions de [poste])"
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '1 3 * * *'
   pull_request:
-    paths: [plateau-ordres-regroupes.js, plateau-surveillance.js, plateau-politique.js, plateau-router.js, plateau.html, data.js, style.css, 'migrations/20261123130000_ordres_regroupes.sql', 'outils/bancs/*ordres-regroupes*', 'outils/bancs/fixtures/ordres-regroupes-*', outils/bancs/test-fouiller-voler-ordre-20261111.mjs, outils/bancs/banc-medecin-montrer-navigateur-20261122.cjs, .github/workflows/ordres-regroupes-20261123.yml]
+    paths: ['plateau-ordres-regroupes.js', 'plateau-surveillance.js', 'plateau-politique.js', 'plateau-router.js', 'plateau.html', 'data.js', 'style.css', 'migrations/20261123130000_ordres_regroupes.sql', 'outils/bancs/*ordres-regroupes*', 'outils/bancs/fixtures/ordres-regroupes-*', 'outils/bancs/test-fouiller-voler-ordre-20261111.mjs', 'outils/bancs/banc-medecin-montrer-navigateur-20261122.cjs', '.github/workflows/ordres-regroupes-20261123.yml', 'plateau-core.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'rue-centrale.css', 'vercel.json']
   push:
     branches: [main, 'claude/**']
-    paths: [plateau-ordres-regroupes.js, plateau-surveillance.js, plateau-politique.js, plateau-router.js, plateau.html, data.js, style.css, 'migrations/20261123130000_ordres_regroupes.sql', 'outils/bancs/*ordres-regroupes*', 'outils/bancs/fixtures/ordres-regroupes-*', outils/bancs/test-fouiller-voler-ordre-20261111.mjs, outils/bancs/banc-medecin-montrer-navigateur-20261122.cjs, .github/workflows/ordres-regroupes-20261123.yml]
+    paths: ['plateau-ordres-regroupes.js', 'plateau-surveillance.js', 'plateau-politique.js', 'plateau-router.js', 'plateau.html', 'data.js', 'style.css', 'migrations/20261123130000_ordres_regroupes.sql', 'outils/bancs/*ordres-regroupes*', 'outils/bancs/fixtures/ordres-regroupes-*', 'outils/bancs/test-fouiller-voler-ordre-20261111.mjs', 'outils/bancs/banc-medecin-montrer-navigateur-20261122.cjs', '.github/workflows/ordres-regroupes-20261123.yml', 'plateau-core.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'rue-centrale.css', 'vercel.json']
 permissions:
   contents: read
 jobs:

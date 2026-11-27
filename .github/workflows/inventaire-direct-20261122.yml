@@ -1,10 +1,13 @@
 name: "Inventaire en direct — déposer, ramasser, donner, capacité par personnage"
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '15 3 * * *'
   pull_request:
-    paths: [plateau-divers.js, plateau-personnage.js, plateau-pnj.js, plateau-justice-economie.js, plateau-communication.js, plateau-temps-reel.js, plateau-multijoueur.js, supabase.js, admin-inventaire.js, 'migrations/20261122200000_inventaire_direct_capacite.sql', 'outils/bancs/banc-inventaire-direct-*', 'outils/bancs/fixtures/inventaire-direct-*', .github/workflows/inventaire-direct-20261122.yml]
+    paths: ['plateau-divers.js', 'plateau-personnage.js', 'plateau-pnj.js', 'plateau-justice-economie.js', 'plateau-communication.js', 'plateau-temps-reel.js', 'plateau-multijoueur.js', 'supabase.js', 'admin-inventaire.js', 'migrations/20261122200000_inventaire_direct_capacite.sql', 'outils/bancs/banc-inventaire-direct-*', 'outils/bancs/fixtures/inventaire-direct-*', '.github/workflows/inventaire-direct-20261122.yml', 'data.js', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
   push:
     branches: [main, 'claude/**']
-    paths: [plateau-divers.js, plateau-personnage.js, plateau-pnj.js, plateau-justice-economie.js, plateau-communication.js, plateau-temps-reel.js, plateau-multijoueur.js, supabase.js, admin-inventaire.js, 'migrations/20261122200000_inventaire_direct_capacite.sql', 'outils/bancs/banc-inventaire-direct-*', 'outils/bancs/fixtures/inventaire-direct-*', .github/workflows/inventaire-direct-20261122.yml]
+    paths: ['plateau-divers.js', 'plateau-personnage.js', 'plateau-pnj.js', 'plateau-justice-economie.js', 'plateau-communication.js', 'plateau-temps-reel.js', 'plateau-multijoueur.js', 'supabase.js', 'admin-inventaire.js', 'migrations/20261122200000_inventaire_direct_capacite.sql', 'outils/bancs/banc-inventaire-direct-*', 'outils/bancs/fixtures/inventaire-direct-*', '.github/workflows/inventaire-direct-20261122.yml', 'data.js', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
 permissions:
   contents: read
 jobs:

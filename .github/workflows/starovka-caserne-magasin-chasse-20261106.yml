@@ -1,10 +1,25 @@
 name: Starovka — raccorder caserne et magasin de chasse
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '28 3 * * *'
   push:
     branches: [feature/starovka-caserne-magasin-chasse-20261106]
     paths:
       - '.github/workflows/starovka-caserne-magasin-chasse-20261106.yml'
       - 'outils/bancs/test-starovka-caserne-magasin-chasse-20261106.mjs'
+      - 'data.js'
+      - 'plateau-core.js'
+      - 'plateau-router.js'
+      - 'migrations/**'
+      - '.github/workflows/**'
+      - 'i18n/**'
+      - 'auth.js'
+      - 'supabase.js'
+      - 'sens-saisie.js'
+      - 'style.css'
+      - 'rue-centrale.css'
+      - 'vercel.json'
 permissions:
   contents: read
 jobs:

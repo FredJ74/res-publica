@@ -1,5 +1,8 @@
 name: Clinique privée — réservation et nuitée sécurisées
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '34 3 * * *'
   pull_request:
     paths:
       - 'migrations/20261112121000_clinique_nuitee_reservation.sql'
@@ -11,6 +14,17 @@ on:
       - 'outils/bancs/clinique-nuitee-*'
       - 'outils/bancs/banc-clinique-nuitee-client.cjs'
       - '.github/workflows/clinique-nuitee.yml'
+      - 'data.js'
+      - 'plateau-core.js'
+      - 'migrations/**'
+      - '.github/workflows/**'
+      - 'i18n/**'
+      - 'auth.js'
+      - 'supabase.js'
+      - 'sens-saisie.js'
+      - 'style.css'
+      - 'rue-centrale.css'
+      - 'vercel.json'
 permissions:
   contents: read
 jobs:

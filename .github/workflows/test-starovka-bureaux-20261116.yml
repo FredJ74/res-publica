@@ -1,8 +1,11 @@
 name: Starovka - test navigation des quatre bureaux
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '47 3 * * *'
   push:
     branches: [chatgpt/starovka-correction-bureaux-20261116]
-    paths: ['.github/workflows/test-starovka-bureaux-20261116.yml', 'outils/bancs/test-starovka-open-space-20261116.cjs', 'plateau-open-space.js', 'data.js']
+    paths: ['.github/workflows/test-starovka-bureaux-20261116.yml', 'outils/bancs/test-starovka-open-space-20261116.cjs', 'plateau-open-space.js', 'data.js', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
 permissions:
   contents: read
 jobs:

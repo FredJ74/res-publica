@@ -1,5 +1,8 @@
 name: I18n — économie et politique hors justice (19 novembre)
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '42 3 * * *'
   push:
     branches: [chatgpt/i18n-economie-politique-20261119]
     paths:
@@ -9,6 +12,18 @@ on:
       - i18n/political-org-resources-20261119.js
       - outils/bancs/banc-i18n-economie-politique-20261119.cjs
       - .github/workflows/i18n-economie-politique-20261119.yml
+      - 'data.js'
+      - 'plateau-core.js'
+      - 'plateau-router.js'
+      - 'migrations/**'
+      - '.github/workflows/**'
+      - 'i18n/**'
+      - 'auth.js'
+      - 'supabase.js'
+      - 'sens-saisie.js'
+      - 'style.css'
+      - 'rue-centrale.css'
+      - 'vercel.json'
   pull_request:
     paths:
       - plateau.html
@@ -16,6 +31,18 @@ on:
       - i18n/commerce-pj-complements-20261119.js
       - i18n/political-org-resources-20261119.js
       - outils/bancs/banc-i18n-economie-politique-20261119.cjs
+      - 'data.js'
+      - 'plateau-core.js'
+      - 'plateau-router.js'
+      - 'migrations/**'
+      - '.github/workflows/**'
+      - 'i18n/**'
+      - 'auth.js'
+      - 'supabase.js'
+      - 'sens-saisie.js'
+      - 'style.css'
+      - 'rue-centrale.css'
+      - 'vercel.json'
 permissions:
   contents: read
 jobs:

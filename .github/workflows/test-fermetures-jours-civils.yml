@@ -1,5 +1,8 @@
 name: Tests fermetures calendrier universel
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '1 3 * * *'
   pull_request:
     paths:
       - 'plateau-core.js'
@@ -7,6 +10,16 @@ on:
       - 'migrations/20261031113548_fermetures_date_universelle.sql'
       - 'outils/bancs/test-fermetures-jours-civils.mjs'
       - '.github/workflows/test-fermetures-jours-civils.yml'
+      - 'data.js'
+      - 'plateau-router.js'
+      - 'migrations/**'
+      - '.github/workflows/**'
+      - 'i18n/**'
+      - 'auth.js'
+      - 'sens-saisie.js'
+      - 'style.css'
+      - 'rue-centrale.css'
+      - 'vercel.json'
   push:
     branches:
       - 'correctif/fermetures-calendrier-universel-20261017'

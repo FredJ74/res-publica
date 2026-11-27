@@ -1,5 +1,8 @@
 name: I18N — Actions de salles et audioguides
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '16 3 * * *'
   pull_request:
     paths:
       - 'i18n/room-actions-resources.js'
@@ -7,6 +10,18 @@ on:
       - 'plateau.html'
       - 'outils/bancs/banc-i18n-room-actions.cjs'
       - '.github/workflows/i18n-room-actions.yml'
+      - 'data.js'
+      - 'plateau-core.js'
+      - 'plateau-router.js'
+      - 'migrations/**'
+      - '.github/workflows/**'
+      - 'i18n/**'
+      - 'auth.js'
+      - 'supabase.js'
+      - 'sens-saisie.js'
+      - 'style.css'
+      - 'rue-centrale.css'
+      - 'vercel.json'
   push:
     paths:
       - 'i18n/room-actions-resources.js'
@@ -14,6 +29,18 @@ on:
       - 'plateau.html'
       - 'outils/bancs/banc-i18n-room-actions.cjs'
       - '.github/workflows/i18n-room-actions.yml'
+      - 'data.js'
+      - 'plateau-core.js'
+      - 'plateau-router.js'
+      - 'migrations/**'
+      - '.github/workflows/**'
+      - 'i18n/**'
+      - 'auth.js'
+      - 'supabase.js'
+      - 'sens-saisie.js'
+      - 'style.css'
+      - 'rue-centrale.css'
+      - 'vercel.json'
 jobs:
   salles:
     runs-on: ubuntu-latest

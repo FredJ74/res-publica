@@ -1,16 +1,43 @@
 name: Garde WebP commerce premium
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '15 3 * * *'
   pull_request:
     branches: [main]
     paths:
       - 'supabase/edge-functions/commerce-decoration/**'
       - 'outils/bancs/verifier-decoration-webp.py'
       - '.github/workflows/garde-decoration-webp.yml'
+      - 'data.js'
+      - 'plateau-core.js'
+      - 'plateau-router.js'
+      - 'migrations/**'
+      - '.github/workflows/**'
+      - 'i18n/**'
+      - 'auth.js'
+      - 'supabase.js'
+      - 'sens-saisie.js'
+      - 'style.css'
+      - 'rue-centrale.css'
+      - 'vercel.json'
   push:
     branches: [main]
     paths:
       - 'supabase/edge-functions/commerce-decoration/**'
       - 'outils/bancs/verifier-decoration-webp.py'
+      - 'data.js'
+      - 'plateau-core.js'
+      - 'plateau-router.js'
+      - 'migrations/**'
+      - '.github/workflows/**'
+      - 'i18n/**'
+      - 'auth.js'
+      - 'supabase.js'
+      - 'sens-saisie.js'
+      - 'style.css'
+      - 'rue-centrale.css'
+      - 'vercel.json'
 permissions:
   contents: read
 jobs:

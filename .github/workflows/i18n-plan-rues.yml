@@ -1,5 +1,8 @@
 name: i18n — plan des rues en neuf langues
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '27 3 * * *'
   pull_request:
     paths:
       - 'plateau-plan-rues.js'
@@ -7,6 +10,18 @@ on:
       - 'plateau.html'
       - 'outils/bancs/banc-i18n-plan-rues-20261113.cjs'
       - '.github/workflows/i18n-plan-rues.yml'
+      - 'data.js'
+      - 'plateau-core.js'
+      - 'plateau-router.js'
+      - 'migrations/**'
+      - '.github/workflows/**'
+      - 'i18n/**'
+      - 'auth.js'
+      - 'supabase.js'
+      - 'sens-saisie.js'
+      - 'style.css'
+      - 'rue-centrale.css'
+      - 'vercel.json'
 permissions:
   contents: read
 jobs:

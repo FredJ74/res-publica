@@ -1,10 +1,25 @@
 name: Régression salaire de poste en voyage
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '36 3 * * *'
   push:
     branches: [fix/salaire-ministre-deplacement-etranger-20261106]
     paths:
       - '.github/workflows/salaire-poste-voyage-20261106.yml'
       - 'outils/bancs/test-salaire-poste-voyage-20261106.mjs'
+      - 'data.js'
+      - 'plateau-core.js'
+      - 'plateau-router.js'
+      - 'migrations/**'
+      - '.github/workflows/**'
+      - 'i18n/**'
+      - 'auth.js'
+      - 'supabase.js'
+      - 'sens-saisie.js'
+      - 'style.css'
+      - 'rue-centrale.css'
+      - 'vercel.json'
 permissions:
   contents: read
 jobs:

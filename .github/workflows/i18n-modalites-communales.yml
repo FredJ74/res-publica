@@ -1,5 +1,8 @@
 name: i18n — Démarches et ordres dynamiques (9 langues)
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '5 3 * * *'
   pull_request:
     paths:
       - 'i18n/orders-resources.js'
@@ -8,6 +11,18 @@ on:
       - 'plateau.html'
       - 'outils/bancs/banc-i18n-modalites-communales.cjs'
       - '.github/workflows/i18n-modalites-communales.yml'
+      - 'data.js'
+      - 'plateau-core.js'
+      - 'plateau-router.js'
+      - 'migrations/**'
+      - '.github/workflows/**'
+      - 'i18n/**'
+      - 'auth.js'
+      - 'supabase.js'
+      - 'sens-saisie.js'
+      - 'style.css'
+      - 'rue-centrale.css'
+      - 'vercel.json'
   push:
     paths:
       - 'i18n/orders-resources.js'
@@ -16,6 +31,18 @@ on:
       - 'plateau.html'
       - 'outils/bancs/banc-i18n-modalites-communales.cjs'
       - '.github/workflows/i18n-modalites-communales.yml'
+      - 'data.js'
+      - 'plateau-core.js'
+      - 'plateau-router.js'
+      - 'migrations/**'
+      - '.github/workflows/**'
+      - 'i18n/**'
+      - 'auth.js'
+      - 'supabase.js'
+      - 'sens-saisie.js'
+      - 'style.css'
+      - 'rue-centrale.css'
+      - 'vercel.json'
 jobs:
   coherence:
     runs-on: ubuntu-latest

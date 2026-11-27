@@ -1,5 +1,8 @@
 name: "Krasnov — panorama sans vide"
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '8 3 * * *'
   push:
     branches: [chatgpt/krasnov-accueil-supprimer-vide-20261115]
     paths:
@@ -8,6 +11,17 @@ on:
       - plateau-navigation.js
       - plateau.html
       - outils/bancs/test-krasnov-accueil-sans-vide-20261115.mjs
+      - 'data.js'
+      - 'plateau-core.js'
+      - 'plateau-router.js'
+      - 'migrations/**'
+      - '.github/workflows/**'
+      - 'i18n/**'
+      - 'auth.js'
+      - 'supabase.js'
+      - 'sens-saisie.js'
+      - 'rue-centrale.css'
+      - 'vercel.json'
 permissions:
   contents: read
 jobs:

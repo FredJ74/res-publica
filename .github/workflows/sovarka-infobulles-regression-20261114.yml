@@ -1,5 +1,8 @@
 name: Sovarka - controle des descriptions et des ordres i18n
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '16 3 * * *'
   push:
     branches: [main]
     paths:
@@ -8,12 +11,34 @@ on:
       - 'outils/bancs/test-i18n-infobulles-communes-20261113.mjs'
       - 'outils/bancs/test-i18n-sovarka-infobulles-20261113.mjs'
       - 'data.js'
+      - 'plateau-core.js'
+      - 'plateau-router.js'
+      - 'migrations/**'
+      - '.github/workflows/**'
+      - 'i18n/**'
+      - 'auth.js'
+      - 'supabase.js'
+      - 'sens-saisie.js'
+      - 'style.css'
+      - 'rue-centrale.css'
+      - 'vercel.json'
   pull_request:
     paths:
       - 'i18n/sovarka-infobulles-resources.js'
       - 'outils/bancs/test-i18n-infobulles-communes-20261113.mjs'
       - 'outils/bancs/test-i18n-sovarka-infobulles-20261113.mjs'
       - 'data.js'
+      - 'plateau-core.js'
+      - 'plateau-router.js'
+      - 'migrations/**'
+      - '.github/workflows/**'
+      - 'i18n/**'
+      - 'auth.js'
+      - 'supabase.js'
+      - 'sens-saisie.js'
+      - 'style.css'
+      - 'rue-centrale.css'
+      - 'vercel.json'
   workflow_dispatch:
 permissions:
   contents: read

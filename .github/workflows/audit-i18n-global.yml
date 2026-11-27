@@ -1,11 +1,14 @@
 name: Audit internationalisation — mesures reproductibles
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '33 3 * * *'
   workflow_dispatch:
   pull_request:
-    paths: ['*.js', '*.html', 'api/**', 'i18n/**', 'migrations/**', 'baseline/domaines/**', 'outils/audits/audit-i18n-global.cjs', 'outils/audits/i18n-global/**', 'outils/bancs/banc-audit-i18n-global.cjs', '.github/workflows/audit-i18n-global.yml']
+    paths: ['*.js', '*.html', 'api/**', 'i18n/**', 'migrations/**', 'baseline/domaines/**', 'outils/audits/audit-i18n-global.cjs', 'outils/audits/i18n-global/**', 'outils/bancs/banc-audit-i18n-global.cjs', '.github/workflows/audit-i18n-global.yml', 'data.js', 'plateau-core.js', 'plateau-router.js', '.github/workflows/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
   push:
     branches: [main]
-    paths: ['*.js', '*.html', 'api/**', 'i18n/**', 'migrations/**', 'baseline/domaines/**', 'outils/audits/audit-i18n-global.cjs', 'outils/audits/i18n-global/**', 'outils/bancs/banc-audit-i18n-global.cjs', '.github/workflows/audit-i18n-global.yml']
+    paths: ['*.js', '*.html', 'api/**', 'i18n/**', 'migrations/**', 'baseline/domaines/**', 'outils/audits/audit-i18n-global.cjs', 'outils/audits/i18n-global/**', 'outils/bancs/banc-audit-i18n-global.cjs', '.github/workflows/audit-i18n-global.yml', 'data.js', 'plateau-core.js', 'plateau-router.js', '.github/workflows/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
 permissions:
   contents: read
 jobs:

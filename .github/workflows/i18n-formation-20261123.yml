@@ -1,10 +1,13 @@
 name: Formation universitaire — neuf langues et progression conservée
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '31 3 * * *'
   pull_request:
-    paths: ['plateau-universite.js', 'i18n/university-resources.js', 'i18n/packed/university-resources.js.br', 'i18n/plateau-init.js', 'outils/bancs/banc-i18n-formation-20261123.cjs', 'outils/audits/i18n/FORMATION-20261123-sources.json', 'outils/audits/i18n/FORMATION-CATALOGUE-20261123.json', '.github/workflows/i18n-formation-20261123.yml']
+    paths: ['plateau-universite.js', 'i18n/university-resources.js', 'i18n/packed/university-resources.js.br', 'i18n/plateau-init.js', 'outils/bancs/banc-i18n-formation-20261123.cjs', 'outils/audits/i18n/FORMATION-20261123-sources.json', 'outils/audits/i18n/FORMATION-CATALOGUE-20261123.json', '.github/workflows/i18n-formation-20261123.yml', 'data.js', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
   push:
     branches: [main]
-    paths: ['plateau-universite.js', 'i18n/university-resources.js', 'i18n/packed/university-resources.js.br', 'i18n/plateau-init.js', 'outils/bancs/banc-i18n-formation-20261123.cjs', 'outils/audits/i18n/FORMATION-20261123-sources.json', 'outils/audits/i18n/FORMATION-CATALOGUE-20261123.json', '.github/workflows/i18n-formation-20261123.yml']
+    paths: ['plateau-universite.js', 'i18n/university-resources.js', 'i18n/packed/university-resources.js.br', 'i18n/plateau-init.js', 'outils/bancs/banc-i18n-formation-20261123.cjs', 'outils/audits/i18n/FORMATION-20261123-sources.json', 'outils/audits/i18n/FORMATION-CATALOGUE-20261123.json', '.github/workflows/i18n-formation-20261123.yml', 'data.js', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
 permissions:
   contents: read
 jobs:

@@ -1,5 +1,8 @@
 name: i18n — infobulles des ordres (Sovarka et communes) et salon (9 langues)
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '51 3 * * *'
   pull_request:
     paths:
       - i18n/sovarka-infobulles-resources.js
@@ -12,6 +15,18 @@ on:
       - outils/bancs/banc-i18n-sovarka-infobulles-navigateur.cjs
       - outils/bancs/fixtures/salon-coiffure-temoin-517a425.js
       - .github/workflows/i18n-sovarka-infobulles.yml
+      - 'data.js'
+      - 'plateau-core.js'
+      - 'plateau-router.js'
+      - 'migrations/**'
+      - '.github/workflows/**'
+      - 'i18n/**'
+      - 'auth.js'
+      - 'supabase.js'
+      - 'sens-saisie.js'
+      - 'style.css'
+      - 'rue-centrale.css'
+      - 'vercel.json'
   push:
     branches: [main]
     paths:
@@ -24,6 +39,18 @@ on:
       - outils/bancs/test-i18n-infobulles-communes-20261113.mjs
       - outils/bancs/banc-i18n-sovarka-infobulles-navigateur.cjs
       - .github/workflows/i18n-sovarka-infobulles.yml
+      - 'data.js'
+      - 'plateau-core.js'
+      - 'plateau-router.js'
+      - 'migrations/**'
+      - '.github/workflows/**'
+      - 'i18n/**'
+      - 'auth.js'
+      - 'supabase.js'
+      - 'sens-saisie.js'
+      - 'style.css'
+      - 'rue-centrale.css'
+      - 'vercel.json'
 permissions:
   contents: read
 jobs:

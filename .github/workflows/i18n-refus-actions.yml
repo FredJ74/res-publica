@@ -1,10 +1,13 @@
 name: Refus communs d’action — neuf langues sans dépense
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '20 3 * * *'
   pull_request:
-    paths: ['plateau-core.js', 'plateau.html', 'i18n/plateau-init.js', 'i18n/action-feedback-resources.js', 'outils/bancs/*refus-actions*', 'outils/bancs/fixtures/refus-actions*', 'outils/audits/I18N-REFUS-ACTIONS*', '.github/workflows/i18n-refus-actions.yml']
+    paths: ['plateau-core.js', 'plateau.html', 'i18n/plateau-init.js', 'i18n/action-feedback-resources.js', 'outils/bancs/*refus-actions*', 'outils/bancs/fixtures/refus-actions*', 'outils/audits/I18N-REFUS-ACTIONS*', '.github/workflows/i18n-refus-actions.yml', 'data.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
   push:
     branches: [main]
-    paths: ['plateau-core.js', 'i18n/plateau-init.js', 'i18n/action-feedback-resources.js', 'outils/bancs/*refus-actions*', '.github/workflows/i18n-refus-actions.yml']
+    paths: ['plateau-core.js', 'i18n/plateau-init.js', 'i18n/action-feedback-resources.js', 'outils/bancs/*refus-actions*', '.github/workflows/i18n-refus-actions.yml', 'data.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
 permissions:
   contents: read
 jobs:

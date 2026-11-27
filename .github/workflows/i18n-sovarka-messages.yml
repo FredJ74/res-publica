@@ -1,5 +1,8 @@
 name: i18n — messages dynamiques de Sovarka (9 langues)
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '5 3 * * *'
   pull_request:
     paths:
       - 'i18n/sovarka-*-resources.js'
@@ -10,6 +13,17 @@ on:
       - 'outils/bancs/banc-i18n-sovarka-*.cjs'
       - 'outils/bancs/test-novomirsk-salles-reservation-20261106.mjs'
       - '.github/workflows/i18n-sovarka-messages.yml'
+      - 'data.js'
+      - 'plateau-core.js'
+      - 'migrations/**'
+      - '.github/workflows/**'
+      - 'i18n/**'
+      - 'auth.js'
+      - 'supabase.js'
+      - 'sens-saisie.js'
+      - 'style.css'
+      - 'rue-centrale.css'
+      - 'vercel.json'
   push:
     branches: [main]
     paths:
@@ -18,6 +32,18 @@ on:
       - 'plateau-reunions-evenements.js'
       - 'outils/bancs/banc-i18n-sovarka-*.cjs'
       - '.github/workflows/i18n-sovarka-messages.yml'
+      - 'data.js'
+      - 'plateau-core.js'
+      - 'plateau-router.js'
+      - 'migrations/**'
+      - '.github/workflows/**'
+      - 'i18n/**'
+      - 'auth.js'
+      - 'supabase.js'
+      - 'sens-saisie.js'
+      - 'style.css'
+      - 'rue-centrale.css'
+      - 'vercel.json'
 permissions:
   contents: read
 jobs:

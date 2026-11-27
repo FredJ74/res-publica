@@ -1,10 +1,13 @@
 name: I18N — en-têtes de bâtiments
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '35 3 * * *'
   pull_request:
-    paths: ['plateau-navigation.js', 'plateau.html', 'i18n/plateau-resources.js', 'i18n/packed/plateau-resources.js.br', 'outils/audits/I18N-BUILDING-HEADER-20261116*', 'outils/bancs/banc-i18n-building-header-20261116.cjs', '.github/workflows/i18n-building-header-20261116.yml']
+    paths: ['plateau-navigation.js', 'plateau.html', 'i18n/plateau-resources.js', 'i18n/packed/plateau-resources.js.br', 'outils/audits/I18N-BUILDING-HEADER-20261116*', 'outils/bancs/banc-i18n-building-header-20261116.cjs', '.github/workflows/i18n-building-header-20261116.yml', 'data.js', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
   push:
     branches: [main]
-    paths: ['plateau-navigation.js', 'i18n/plateau-resources.js', 'outils/bancs/banc-i18n-building-header-20261116.cjs', '.github/workflows/i18n-building-header-20261116.yml']
+    paths: ['plateau-navigation.js', 'i18n/plateau-resources.js', 'outils/bancs/banc-i18n-building-header-20261116.cjs', '.github/workflows/i18n-building-header-20261116.yml', 'data.js', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
 permissions:
   contents: read
 jobs:

@@ -1,5 +1,8 @@
 name: Titres ministeriels — isolation des empires
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '2 3 * * *'
   push:
     branches: [main]
     paths:
@@ -7,6 +10,16 @@ on:
       - 'data.js'
       - 'plateau-core.js'
       - 'outils/bancs/banc-intitules-ministeres-empires.cjs'
+      - 'plateau-router.js'
+      - 'migrations/**'
+      - '.github/workflows/**'
+      - 'i18n/**'
+      - 'auth.js'
+      - 'supabase.js'
+      - 'sens-saisie.js'
+      - 'style.css'
+      - 'rue-centrale.css'
+      - 'vercel.json'
 permissions:
   contents: read
 jobs:

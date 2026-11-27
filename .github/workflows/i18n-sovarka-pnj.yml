@@ -1,6 +1,9 @@
 name: i18n — Sovarka et PNJ sociaux (9 langues)
 
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '36 3 * * *'
   pull_request:
     paths:
       - 'i18n/orders-resources.js'
@@ -13,6 +16,18 @@ on:
       - 'outils/bancs/banc-i18n-sovarka-ordres-novembre.cjs'
       - 'outils/bancs/banc-i18n-pnj-sociaux-amorces.cjs'
       - '.github/workflows/i18n-sovarka-pnj.yml'
+      - 'data.js'
+      - 'plateau-core.js'
+      - 'plateau-router.js'
+      - 'migrations/**'
+      - '.github/workflows/**'
+      - 'i18n/**'
+      - 'auth.js'
+      - 'supabase.js'
+      - 'sens-saisie.js'
+      - 'style.css'
+      - 'rue-centrale.css'
+      - 'vercel.json'
   push:
     paths:
       - 'i18n/orders-resources.js'
@@ -25,6 +40,18 @@ on:
       - 'outils/bancs/banc-i18n-sovarka-ordres-novembre.cjs'
       - 'outils/bancs/banc-i18n-pnj-sociaux-amorces.cjs'
       - '.github/workflows/i18n-sovarka-pnj.yml'
+      - 'data.js'
+      - 'plateau-core.js'
+      - 'plateau-router.js'
+      - 'migrations/**'
+      - '.github/workflows/**'
+      - 'i18n/**'
+      - 'auth.js'
+      - 'supabase.js'
+      - 'sens-saisie.js'
+      - 'style.css'
+      - 'rue-centrale.css'
+      - 'vercel.json'
 
 jobs:
   verifier:

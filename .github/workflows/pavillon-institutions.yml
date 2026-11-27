@@ -1,5 +1,8 @@
 name: Pavillon — baux institutionnels et parité
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '54 3 * * *'
   pull_request:
     paths:
       - 'historique/migrations-appliquees/20261111214350_pavillon_diplomatique_baux_20261111.sql'
@@ -9,6 +12,16 @@ on:
       - 'plateau-router.js'
       - 'plateau.html'
       - '.github/workflows/pavillon-institutions.yml'
+      - 'plateau-core.js'
+      - 'migrations/**'
+      - '.github/workflows/**'
+      - 'i18n/**'
+      - 'auth.js'
+      - 'supabase.js'
+      - 'sens-saisie.js'
+      - 'style.css'
+      - 'rue-centrale.css'
+      - 'vercel.json'
 permissions:
   contents: read
 jobs:

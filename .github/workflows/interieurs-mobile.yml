@@ -1,5 +1,8 @@
 name: Intérieurs mobile — présentation sans action serveur
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '1 3 * * *'
   pull_request:
     paths:
       - 'plateau.html'
@@ -8,6 +11,18 @@ on:
       - 'outils/bancs/test-interieurs-mobile-20261116.cjs'
       - 'outils/bancs/test-interieurs-mobile-browser-20261116.cjs'
       - '.github/workflows/interieurs-mobile.yml'
+      - 'data.js'
+      - 'plateau-core.js'
+      - 'plateau-router.js'
+      - 'migrations/**'
+      - '.github/workflows/**'
+      - 'i18n/**'
+      - 'auth.js'
+      - 'supabase.js'
+      - 'sens-saisie.js'
+      - 'style.css'
+      - 'rue-centrale.css'
+      - 'vercel.json'
   workflow_dispatch:
 jobs:
   interieurs:

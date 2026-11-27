@@ -1,10 +1,13 @@
 name: Lisibilité des fenêtres d’accès réservé
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '43 3 * * *'
   pull_request:
-    paths: ['style.css', 'plateau.html', 'plateau-acces-reserve.js', 'plateau-vehicules.js', 'plateau-sovarka-droits.js', 'outils/bancs/banc-lisibilite-acces-reserve-20261113.cjs', '.github/workflows/lisibilite-acces-reserve.yml']
+    paths: ['style.css', 'plateau.html', 'plateau-acces-reserve.js', 'plateau-vehicules.js', 'plateau-sovarka-droits.js', 'outils/bancs/banc-lisibilite-acces-reserve-20261113.cjs', '.github/workflows/lisibilite-acces-reserve.yml', 'data.js', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'rue-centrale.css', 'vercel.json']
   push:
     branches: [main]
-    paths: ['style.css', 'plateau.html', 'plateau-acces-reserve.js', 'plateau-vehicules.js', 'plateau-sovarka-droits.js', 'outils/bancs/banc-lisibilite-acces-reserve-20261113.cjs', '.github/workflows/lisibilite-acces-reserve.yml']
+    paths: ['style.css', 'plateau.html', 'plateau-acces-reserve.js', 'plateau-vehicules.js', 'plateau-sovarka-droits.js', 'outils/bancs/banc-lisibilite-acces-reserve-20261113.cjs', '.github/workflows/lisibilite-acces-reserve.yml', 'data.js', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'rue-centrale.css', 'vercel.json']
 permissions:
   contents: read
 jobs:

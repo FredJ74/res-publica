@@ -1,17 +1,42 @@
 name: Sovarka — Saisie des achats aux entrepôts
 on:
+  # Tous les contrôles tournent chaque nuit sur main (mission de nuit du 27/11/2026).
+  schedule:
+    - cron: '34 3 * * *'
   pull_request:
     paths:
       - 'supabase.js'
       - 'plateau-justice-economie.js'
       - 'outils/bancs/banc-entrepot-sovarka-saisie-20261113.cjs'
       - '.github/workflows/entrepot-sovarka-saisie.yml'
+      - 'data.js'
+      - 'plateau-core.js'
+      - 'plateau-router.js'
+      - 'migrations/**'
+      - '.github/workflows/**'
+      - 'i18n/**'
+      - 'auth.js'
+      - 'sens-saisie.js'
+      - 'style.css'
+      - 'rue-centrale.css'
+      - 'vercel.json'
   push:
     branches: [main]
     paths:
       - 'supabase.js'
       - 'plateau-justice-economie.js'
       - 'outils/bancs/banc-entrepot-sovarka-saisie-20261113.cjs'
+      - 'data.js'
+      - 'plateau-core.js'
+      - 'plateau-router.js'
+      - 'migrations/**'
+      - '.github/workflows/**'
+      - 'i18n/**'
+      - 'auth.js'
+      - 'sens-saisie.js'
+      - 'style.css'
+      - 'rue-centrale.css'
+      - 'vercel.json'
 jobs:
   verify:
     runs-on: ubuntu-latest
