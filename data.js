@@ -3643,7 +3643,7 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'consulter_dossiers_gouv', label:'Consulter des dossiers',    pa:2, cost:0,    type:'legal',   icon:'ti-archive',        successRate:80,  requiresPost:true, desc:'Rapports confidentiels et notes de synthese classifiees du gouvernement.'},
-          {fn:'fuite_info',         label:'Produire une fuite',        pa:3, cost:0,    type:'grey',    icon:'ti-leak',           successRate:60,  requiresPost:true, desc:'Faire circuler une information confidentielle. Aucun document ne sort des archives : selon le résultat, gain de POP et d\'INF (plein effet, moitié ou rien), ou retour de bâton (-10 POP, -3 INF) ; une fuite réussie peut être remontée jusqu\'à vous. En Sovarka : vous faites fuiter un sondage ou le registre des signalements, sans jet.'}
+          {fn:'fuite_info',         label:'Produire une fuite',        pa:3, cost:0,    type:'grey',    icon:'ti-leak',           successRate:60,  requiresPost:true, desc:'Subtiliser une pièce réelle des archives (un fait compromettant d\'un membre du gouvernement ou le solde d\'une caisse ministérielle) : elle rejoint votre inventaire, libre à vous de la monnayer auprès d\'un journaliste. Mêmes risques que le vol d\'archives d\'écoute : témoin, détection, bagarre. En Sovarka : vous faites fuiter un sondage ou le registre des signalements, sans jet.'}
         ]
       },
 
@@ -10933,7 +10933,6 @@ Object.assign(ORDER_EFFECTS, {
   propagande_etat:    {pop:20,           successRate:75},
   dementi:            {pop:8,            successRate:80},
   consulter_dossiers: {inf:5,            successRate:80},
-  fuite_info:         {pop:10, inf:5,    successRate:60},
   fabriquer_scandale: {},
   plainte_police:     {successRate:100},
   archives_police:    {successRate:95}

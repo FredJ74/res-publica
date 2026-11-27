@@ -11,7 +11,7 @@
   const ORDRES = ['se_cacher', 'acheter_bombe_illegale', 'utiliser_explosifs', 'lancer_rumeur_cible',
     'bourrer_urnes', 'falsifier_listes_electorales', 'truquer_depouillement', 'tentative_evasion',
     'se_rebeller', 'ecouter_rumeurs', 'inspecter_cargaisons', 'contester_resultats', 'falsifier_document',
-    'voler_materiel_chantier', 'corrompre_fonct', 'corrompre_gardien', 'fuite_info', 'soins_discrets'];
+    'voler_materiel_chantier', 'corrompre_fonct', 'corrompre_gardien', 'soins_discrets'];
   // Ordres sans jet de réussite (le serveur vend, accorde ou exécute à coup sûr) : aucun pourcentage n'est affiché.
   const SANS_JET = ['acheter_ghb', 'acheter_vipere', 'campagne_securite', 'propagande_etat', 'emprunter', 'visiter_prisonnier',
     'mobiliser'];
@@ -19,7 +19,9 @@
   // la fenêtre de l'ordre ou sa description dit de quoi dépend la chance.
   const SELON_CIBLE = ['blocus_portuaire', 'corrompre_douanier', 'defense', 'escort_piege', 'greffe_corrompre_dossier',
     'greffe_corrompre_faux_casier', 'marchander_vote', 'faire_disparaitre_cadavre', 'negocier_squatteurs', 'donner_argent_pnj',
-    'ouvrir_enquete'];
+    'ouvrir_enquete',
+    // Fuite aux archives (Fred, 27/11/2026) : la chance dépend du témoin présent (moteur commun du vol).
+    'fuite_info'];
   // Le bouton n'affiche jamais un pourcentage écrit en dur pour ces ordres : seulement la chance lue au serveur, s'il la donne.
   const sansTauxEcrit = fn => ORDRES.includes(fn) || SANS_JET.includes(fn) || SELON_CIBLE.includes(fn);
   // Mission du soir (25/11/2026, 1.2) : ordres dont le jet est passé au serveur (migration 20261125500000).

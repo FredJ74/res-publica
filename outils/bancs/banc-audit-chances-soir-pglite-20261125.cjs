@@ -28,7 +28,7 @@ test('écran : descriptions alignées sur le serveur, aucun pourcentage de réus
     se_rebeller: [/-15 DIS, \+4 jours de détention/, /ni transfert, ni grilles endommagées/],
     visiter_prisonnier: [/aucun jet/, /une visite par jour et par détenu/, /seuls un avocat inscrit au barreau et le conjoint du détenu/, /conversation privée/],
     voler_materiel_chantier: [/vrai vol/, /agent de sécurité posté sur le chantier le protège/],
-    fuite_info: [/Aucun document ne sort des archives/],
+    fuite_info: [/pièce réelle des archives/, /Mêmes risques que le vol d'archives/], // Fred, 27/11/2026
     mobiliser: [/organisation syndicale/],
     acheter_ghb: [/aucun jet/], acheter_vipere: [/aucun jet/], emprunter: [/Aucun jet/], campagne_securite: [/Aucun jet/, /3 POP/],
   };

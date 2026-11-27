@@ -520,6 +520,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (state.country === 'soviet' && fn === 'pilotage_fiscal_budgetaire') { ouvrirFiscaliteSovarka(pa, cost); return; }
   if (state.country === 'soviet' && (fn === 'commanditer_sondage' || fn === 'commanditer_sondage_cible')) { ouvrirSovarkaSondage(); return; }
   if (state.country === 'soviet' && fn === 'fuite_info') { sovarkaFuite(); return; }
+  // Républia : vol d'une archive réelle (Fred, 27/11/2026), plateau-fuite-archives.js.
+  if (fn === 'fuite_info') { produireFuiteArchives(); return; }
   if (fn === 'sovarka_repas_presidentiel') { ouvrirRepasPresidentiel(); return; }
   if (fn === 'sovarka_musee_billet') { acheterBilletMuseePresidentiel(); return; }
   if (fn === 'louer_local')              { ouvrirModalLouerLocal(pa, cost); return; }

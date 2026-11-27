@@ -22,6 +22,13 @@ Règles : voir `AGENTS.md`.
   l'interrogateur (actions_tracables + historique_crimes). Écran : `plateau-interrogatoires.js`. Banc
   `banc-interrogatoires-detenus-20261127.cjs`.
 
+- **Étape 2 — fuite aux archives** (branche `claude/fuite-archives-20261127`) : migration `20261127230000_fuite_archives_gouvernement`
+  **appliquée et vérifiée** (épreuves en transaction annulée d'abord). « Produire une fuite » (Archives Gouvernementales,
+  Républia ; Sovarka inchangée) : moteur commun du vol d'archives d'écoute (témoin, détection, bagarre, peine du vol
+  d'archives) ; en cas de réussite, une archive réelle (fait d'un membre du gouvernement ou solde réel d'une caisse
+  ministérielle) rejoint l'inventaire. Plus de +5 INF / +10 POP. Écran `plateau-fuite-archives.js`, banc
+  `banc-fuite-archives-20261127.cjs`.
+
 ### Mission du 27/11/2026 (après-midi) (Claude) — compte rendu pour Fred
 
 1. **Parti en bêta, et comment le tester**
