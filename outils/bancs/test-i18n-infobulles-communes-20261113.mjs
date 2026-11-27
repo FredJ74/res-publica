@@ -68,7 +68,8 @@ test('inventaire : 237 descriptions communes affichées après isolation du goul
   // Ancienne description de la récolte (avant le 16/11) : gardée à sa place, les bancs historiques figent les lignes livrées.
   // « Falsifier un procès-verbal » (QHS) supprimé le 20/11 (criminalité lot 7) : sa ligne livrée reste au catalogue.
   // « Suivre une formation » ouvert le 20/11 (criminalité lot 9) : l'ancienne infobulle « Bientôt disponible » reste au catalogue.
-  const HISTORIQUES = ['Recolter une matiere premiere locale. Maximum 2 fois par jour.', 'Modifier les declarations. Tres risque.',
+  // Interrogatoires (27/11/2026, modèle du goulag) : l'ancienne description de « Interroger un détenu » reste au catalogue.
+  const HISTORIQUES = ['Obtenir des informations. +INF si succes.', 'Recolter une matiere premiere locale. Maximum 2 fois par jour.', 'Modifier les declarations. Tres risque.',
     'Bientôt disponible : cet ordre permettra d\'acquérir une seconde carrière.',
     // Refonte des informateurs (22/11/2026) : ordres retirés, lignes livrées gardées au catalogue.
     'Le barman entend tout. Revele une rumeur vraie ou generee selon le contexte.',
@@ -122,7 +123,7 @@ test('inventaire : 237 descriptions communes affichées après isolation du goul
 
 test('257 lignes de neuf colonnes non vides, sans guillemet droit ni balise, toutes traduites', () => {
   const lignes = I('soviet', 'fr').communes;
-  assert.equal(lignes.length, 259); // +1 le 19/11 : boutique climat ; +1 le 18/11 : furet renifleur ; +1 le 18/11 : pharmacie de Républia ; +2 le 16/11 : récolte (nouvelle description) et régulation de la production ; +1 le 14/11 : Dormir dans la chambre d’hôpital
+  assert.equal(lignes.length, 261); // +2 le 27/11 : interrogatoire du QHS, indices d'interrogatoire ; +1 le 19/11 : boutique climat ; +1 le 18/11 : furet renifleur ; +1 le 18/11 : pharmacie de Républia ; +2 le 16/11 : récolte (nouvelle description) et régulation de la production ; +1 le 14/11 : Dormir dans la chambre d’hôpital
   for (const l of lignes) {
     assert.equal(l.length, 9, l[0]);
     for (const v of l) assert.ok(v.trim(), l[0]);
@@ -158,7 +159,7 @@ test('traduit dans les deux pays, jamais en français, texte inconnu intact', ()
 
 test('113 textes propres à Sovarka inchangés et prioritaires ; restent limités à Sovarka', () => {
   const avec = I('soviet', 'en'), sans = I('soviet', 'en', { communes: false });
-  assert.equal(avec.lignes.length, 144); // +1 le 19/11 : bocal de graisse (lot 4) ; -1 le 18/11 : « Médicaments vendus au comptoir. » passe au catalogue commun (pharmacie de Républia) ; +5 le 18/11 : bureau du syndicat national ; +1 le 18/11 : magasin du kolkhoze de Starovka ; +1 le 18/11 : dîner d'affaires du restaurant de Starovka ; +1 le 17/11 : dîner de l'Hôtel des Voyageurs de Starovka ; +2 le 16/11 : administration portuaire de Starovka ; +3 le 15/11 au soir : usines d'État de Sovarka (carburant, dérivés, alcool) ; +2 le 14/11 : Tabac/Presse de Krasnov ; +2 le 14/11 : salle électorale de la mairie de Krasnov ; -1 le 14/11 : « Dormir » de la chambre devenu commun ; +1 le 14/11 : « Retrouver son chemin » (forêt de Krasnov) ; +4 le 14/11 : kolkhoze (légumes et œufs reformulés, anciennes formulations gardées ; traite ; caisse) ; +1 boutique de l’Étoile Rouge
+  assert.equal(avec.lignes.length, 145); // +1 le 27/11 : interrogatoire du Renseignement ; +1 le 19/11 : bocal de graisse (lot 4) ; -1 le 18/11 : « Médicaments vendus au comptoir. » passe au catalogue commun (pharmacie de Républia) ; +5 le 18/11 : bureau du syndicat national ; +1 le 18/11 : magasin du kolkhoze de Starovka ; +1 le 18/11 : dîner d'affaires du restaurant de Starovka ; +1 le 17/11 : dîner de l'Hôtel des Voyageurs de Starovka ; +2 le 16/11 : administration portuaire de Starovka ; +3 le 15/11 au soir : usines d'État de Sovarka (carburant, dérivés, alcool) ; +2 le 14/11 : Tabac/Presse de Krasnov ; +2 le 14/11 : salle électorale de la mairie de Krasnov ; -1 le 14/11 : « Dormir » de la chambre devenu commun ; +1 le 14/11 : « Retrouver son chemin » (forêt de Krasnov) ; +4 le 14/11 : kolkhoze (légumes et œufs reformulés, anciennes formulations gardées ; traite ; caisse) ; +1 boutique de l’Étoile Rouge
   assert.equal(JSON.stringify(avec.lignes), JSON.stringify(sans.lignes));
   for (const l of avec.lignes) assert.equal(avec.desc(l[0]), sans.desc(l[0]));
   const propre = 'Voir les présidents qui ont marqué Sovarka.';

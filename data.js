@@ -2442,7 +2442,7 @@ const WORLD = {
               // Voleur d'archives arrete a Novomirsk : detenu ici jusqu'a son interrogatoire (Fred, 13/11/2026).
               // Ministre de la Defense ou de la Securite du Peuple ; le serveur verifie (renseignement_interroger).
               excludeOrders: ['interroger_renseignement'],
-              orders: [{fn:'interroger_renseignement', label:'Interroger un detenu', pa:1, cost:0, type:'legal', icon:'ti-message-circle', successRate:50, desc:"Parodie de torture, régime d'exception (Fred, 27/11/2026). −7 PA au détenu (jamais sous 1). Un fait réel peut être révélé : il part aux juges du pays, et une copie vous parvient au courrier. Consigné comme mauvais traitement."}]
+              orders: [{fn:'interroger_renseignement', label:'Interroger un detenu', pa:1, cost:0, type:'legal', icon:'ti-message-circle', successRate:50, desc:"Parodie de torture, régime d'exception. −7 PA au détenu (jamais sous 1). Un fait réel peut être révélé : il part aux juges du pays, et une copie vous parvient au courrier. Consigné comme mauvais traitement."}]
             }
           }
         },
@@ -8267,7 +8267,7 @@ const BUILDINGS = {
         desc: "Lumière crue, table métallique, miroir sans tain. Les questions y sont courtes, les réponses le sont rarement.",
         persons: [],
         orders: [
-          {fn:'interroger_renseignement', label:'Interroger un detenu', pa:1, cost:0, type:'legal', icon:'ti-message-circle', successRate:50, requiresPost:'min_def', desc:"Parodie de torture, régime d'exception (Fred, 27/11/2026). −7 PA au détenu (jamais sous 1). Un fait réel peut être révélé : il part aux juges du pays, et une copie vous parvient au courrier. Consigné comme mauvais traitement."}
+          {fn:'interroger_renseignement', label:'Interroger un detenu', pa:1, cost:0, type:'legal', icon:'ti-message-circle', successRate:50, requiresPost:'min_def', desc:"Parodie de torture, régime d'exception. −7 PA au détenu (jamais sous 1). Un fait réel peut être révélé : il part aux juges du pays, et une copie vous parvient au courrier. Consigné comme mauvais traitement."}
         ]
       }
     }
@@ -8318,7 +8318,7 @@ const BUILDINGS = {
         imageUrl: "images/qhs-luthecia-salle-interrogatoire.webp",
         persons: [],
         orders: [
-          {fn:'interroger',        label:'Interroger un detenu',        pa:1, cost:0,    type:'legal',   icon:'ti-message-circle', successRate:50, requiresPost:'commissaire', desc:"Parodie de torture, régime d'exception (Fred, 27/11/2026). −7 PA au détenu (jamais sous 1). Un fait réel peut être révélé au juge qui l'a condamné. Consigné comme mauvais traitement."}
+          {fn:'interroger',        label:'Interroger un detenu',        pa:1, cost:0,    type:'legal',   icon:'ti-message-circle', successRate:50, requiresPost:'commissaire', desc:"Parodie de torture, régime d'exception. −7 PA au détenu (jamais sous 1). Un fait réel peut être révélé au juge qui l'a condamné. Consigné comme mauvais traitement."}
         ]
       },
       promenoir: {
