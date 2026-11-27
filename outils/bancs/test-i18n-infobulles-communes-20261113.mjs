@@ -69,7 +69,8 @@ test('inventaire : 237 descriptions communes affichées après isolation du goul
   // « Falsifier un procès-verbal » (QHS) supprimé le 20/11 (criminalité lot 7) : sa ligne livrée reste au catalogue.
   // « Suivre une formation » ouvert le 20/11 (criminalité lot 9) : l'ancienne infobulle « Bientôt disponible » reste au catalogue.
   // Interrogatoires (27/11/2026, modèle du goulag) : l'ancienne description de « Interroger un détenu » reste au catalogue.
-  // Accessoire personnalisé ouvert à tous (27/11/2026) : l'ancienne description « réservée aux comptes premium » reste au catalogue.\n  const HISTORIQUES = ['Personnalisation (nom, numero) — reserve aux comptes premium. Bientot disponible.', 'Obtenir des informations. +INF si succes.', 'Recolter une matiere premiere locale. Maximum 2 fois par jour.', 'Modifier les declarations. Tres risque.',
+  // Accessoire personnalisé ouvert à tous (27/11/2026) : l'ancienne description « réservée aux comptes premium » reste au catalogue.
+  const HISTORIQUES = ['Personnalisation (nom, numero) — reserve aux comptes premium. Bientot disponible.', 'Obtenir des informations. +INF si succes.', 'Recolter une matiere premiere locale. Maximum 2 fois par jour.', 'Modifier les declarations. Tres risque.',
     'Bientôt disponible : cet ordre permettra d\'acquérir une seconde carrière.',
     // Refonte des informateurs (22/11/2026) : ordres retirés, lignes livrées gardées au catalogue.
     'Le barman entend tout. Revele une rumeur vraie ou generee selon le contexte.',
