@@ -755,11 +755,13 @@ function renderOngletsPieces(buildingId, roomActifId) {
   // exactement le patron des chambres de la clinique, mais declare au lieu
   // d'etre code en dur. Absent partout ailleurs : aucun autre buildingContext
   // ne declare roomsMasquees, donc zero changement pour tout le reste du jeu.
+  const ciudadHotel = state.country === 'narco' && state.currentCity === 'capitale' && buildingId === 'hotel-republica';
   const masquees = ctxForTabs?.roomsMasquees || [];
   const rooms = (buildingId === 'clinique-privee'
     ? roomsBrutes.filter(([roomId]) => !/^chambre_(?:[1-9]|10)$/.test(roomId))
     : roomsBrutes
   ).filter(([roomId]) => masquees.indexOf(roomId) === -1)
+   .filter(([roomId]) => !ciudadHotel || roomActifId !== 'bar' || ['piscine','restaurant'].includes(roomId))
    // Chambres des appartements populaires premium (12/11/2026) : onglet seulement dans l'appartement
    // premium où l'on se trouve (plateau-appartements.js).
    .filter(([roomId, room]) => typeof logementChambreVisible !== 'function' || logementChambreVisible(buildingId, roomId, room, roomActifId));
@@ -1066,6 +1068,7 @@ function enterRoom(buildingId, roomId, tabEl) {
     const tabs = document.querySelectorAll('.piece-tab');
     if (idx >= 0 && tabs[idx]) tabs[idx].classList.add('active');
   }
+  if (state.country === 'narco' && state.currentCity === 'capitale' && buildingId === 'hotel-republica') renderOngletsPieces(buildingId, roomId);
   // Appartement populaire premium : les onglets des chambres suivent la pièce où l'on entre.
   if (typeof logementRafraichirOnglets === 'function') logementRafraichirOnglets(buildingId, roomId);
 
@@ -1206,6 +1209,17 @@ function enterRoom(buildingId, roomId, tabEl) {
     acces.setAttribute('aria-label', rpNav('tribuneNewsroom', 'Entrer dans la salle de rédaction'));
     acces.style.cssText = 'position:absolute;left:0;top:0;width:35%;height:100%;z-index:2;cursor:pointer;';
     acces.addEventListener('click', () => enterRoom('la-tribune', 'redaction', null));
+    pieceImg.appendChild(acces);
+  }
+  pieceImg.querySelectorAll('.ciudad-roja-bar-zone').forEach(el => el.remove());
+  if (state.country === 'narco' && state.currentCity === 'capitale' && buildingId === 'hotel-republica' && roomId === 'piscine') {
+    const acces = document.createElement('button');
+    acces.type = 'button';
+    acces.className = 'ciudad-roja-bar-zone';
+    acces.title = 'Bar extérieur';
+    acces.setAttribute('aria-label', 'Bar extérieur');
+    acces.style.cssText = 'position:absolute;right:0;top:15%;width:30%;height:45%;z-index:3;cursor:pointer;background:transparent;border:0;';
+    acces.addEventListener('click', () => enterRoom('hotel-republica', 'bar', null));
     pieceImg.appendChild(acces);
   }
   if (typeof enigme1InjecterZoneCliquable === 'function') enigme1InjecterZoneCliquable(buildingId, roomId);
