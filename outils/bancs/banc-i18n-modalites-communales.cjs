@@ -29,7 +29,7 @@ test('les 21 commandes nouvellement localisées correspondent aux sources et aux
  const {win}=load('en');
  const source=read('plateau-politique.js')+'\n'+read('plateau-construction-commandes.js');
  const canonical=win.RP_I18N_RESOURCES.fr.translation.orders;
- assert.equal(Object.keys(canonical).length,419); // −4 ordres supprimés (27/11) ; +1 indices_interrogatoire (27/11) ; −1 contrebande_port (26/11/2026) ; −2 corrompre_rdv_notaire, corrompre_chantier (20/11, criminalité lot 7)  ; +1 boutique_climat (19/11, climat lot 5) ; +1 acheter_graisse (19/11, climat lot 4) ; +1 acheter_furet (18/11, maladies lot 2c) ; +1 changer_domicile (18/11, nationalité et domicile) ; +1 regulation_production (16/11) ; consommer_buvette supprimé ; +4 Héros du Travail et boîte du Parti (13/11)
+ assert.equal(Object.keys(canonical).length,420); // +1 transferts_detenus (27/11 soir) ; −4 ordres supprimés (27/11) ; +1 indices_interrogatoire (27/11) ; −1 contrebande_port (26/11/2026) ; −2 corrompre_rdv_notaire, corrompre_chantier (20/11, criminalité lot 7)  ; +1 boutique_climat (19/11, climat lot 5) ; +1 acheter_graisse (19/11, climat lot 4) ; +1 acheter_furet (18/11, maladies lot 2c) ; +1 changer_domicile (18/11, nationalité et domicile) ; +1 regulation_production (16/11) ; consommer_buvette supprimé ; +4 Héros du Travail et boîte du Parti (13/11)
  for(const id of ids){
   const escaped=id.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
   assert.match(source,new RegExp('fn\\s*:\\s*[\\x27\\x22]'+escaped+'[\\x27\\x22]\\s*,\\s*label\\s*:\\s*[\\x27\\x22]'));

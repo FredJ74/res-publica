@@ -11,7 +11,7 @@ for(const file of ['resources.js','orders-resources.js','ordres.js'])
 const engine={t(key,{lng,defaultValue}){return key.split('.').reduce((v,k)=>v?.[k],win.RP_I18N_RESOURCES[lng].translation)??defaultValue}};
 test('422 ordres canoniques ont les mêmes identifiants dans neuf langues',()=>{
  const ref=Object.keys(win.RP_I18N_RESOURCES.fr.translation.orders);
- assert.equal(ref.length,419); // −4 deliberer_loge, compte_offshore, consulter_caisse_usine, consulter_stock_usine (27/11, ordres supprimés par Fred) ; +1 indices_interrogatoire (27/11, interrogatoires) ; −1 contrebande_port (26/11, ordre supprimé par Fred) ; −2 corrompre_rdv_notaire, corrompre_chantier (20/11, criminalité lot 7)  ; +1 boutique_climat (19/11, climat lot 5) ; +1 acheter_graisse (19/11, climat lot 4) ; +1 acheter_furet (18/11, maladies lot 2c)
+ assert.equal(ref.length,420); // +1 transferts_detenus (27/11 soir) ; −4 deliberer_loge, compte_offshore, consulter_caisse_usine, consulter_stock_usine (27/11, ordres supprimés par Fred) ; +1 indices_interrogatoire (27/11, interrogatoires) ; −1 contrebande_port (26/11, ordre supprimé par Fred) ; −2 corrompre_rdv_notaire, corrompre_chantier (20/11, criminalité lot 7)  ; +1 boutique_climat (19/11, climat lot 5) ; +1 acheter_graisse (19/11, climat lot 4) ; +1 acheter_furet (18/11, maladies lot 2c)
  for(const lang of Object.keys(win.RP_I18N_LANGUAGES)) {
   const data=win.RP_I18N_RESOURCES[lang].translation.orders;
   assert.deepEqual(Object.keys(data),ref);
