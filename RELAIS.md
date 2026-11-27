@@ -9,6 +9,12 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Mission du 27/11/2026 (après-midi) (Claude) — en cours
+
+- Étape 1 (branche `claude/ci-fichiers-partages-20261127`) : les 141 contrôles filtrés retrouvent leurs chemins d'origine
+  (référence 8b6952b) ; ils gardent leur passage de nuit. Un fichier partagé relance de nouveau 35 workflows en moyenne
+  (47 min-machine) au lieu de 79 (86 min). Banc de garde mis à jour.
+
 ### Mission de nuit du 27/11/2026 (Claude) — compte rendu pour Fred
 
 1. **Parti en bêta, et comment le tester**
