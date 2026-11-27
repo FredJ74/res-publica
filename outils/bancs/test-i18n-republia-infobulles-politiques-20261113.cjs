@@ -47,7 +47,8 @@ test('141 descriptions du catalogue Républia : françaises exactes et réelleme
  // descriptions propres à Républia remplacent 14 anciennes (la rébellion et l'évasion se décrivent désormais selon le quartier).
  // 167 → 166 le 25/11 en fin de soirée (Fred, 1.8) : « Visiter un détenu » aussi au commissariat (les deux pays), sa description devient commune.
  // 166 → 167 le 27/11 (interrogatoires, modèle du goulag) : la nouvelle description de l'interrogatoire du QHS ne s'affiche qu'en Républia.
-  // 167 → 163 le 27/11 (Fred) : placements Helvetia, caisse et stock de la scierie, Propagande d'État présidentielle supprimés.\n assert.equal(spec.length,163,'inventaire réel après séparation du goulag de Sovarka et du QHS républicain');
+  // 167 → 163 le 27/11 (Fred) : placements Helvetia, caisse et stock de la scierie, Propagande d'État présidentielle supprimés.
+ assert.equal(spec.length,163,'inventaire réel après séparation du goulag de Sovarka et du QHS républicain');
  const rows=setup('republic','fr').RP_INFOBULLES_REPUBLIA;
  assert.equal(rows.length,138); // −3 le 27/11 (Fred) : placements Helvetia, caisse et stock de la scierie retirés avec leurs ordres.
  // Lignes livrées dont l'ordre est supprimé (criminalité lot 7, 20/11 : le temps ne s'achète pas) : gardées au catalogue.
