@@ -2983,6 +2983,8 @@ async function commanderTransportServeur(mode,pays,ville) {
     frontiere_fermee:'Frontière fermée, ouverture au premier trimestre 2027',
     chef_de_groupe_requis:'Seul le chef du groupe peut engager ce voyage.',fonds_insuffisants:'Le chef du groupe ne dispose pas des fonds nécessaires pour tous les voyageurs.',
     pa_insuffisants:'Le chef du groupe ne dispose pas des PA nécessaires.'};
+   // Capitales en teaser (Fred, 28/11/2026) : bus, train et taxi fermés à Ciudad Roja et Al Madina.
+   if(v?.raison==='teaser_acces_interdit'&&typeof teaserAccesInterdit==='function'){teaserAccesInterdit();return false;}
    showToast('Voyage non confirmé',motifs[v?.raison]||'Le voyage n’est pas confirmé. Le même reçu sera utilisé si vous réessayez.',false);
    globalThis.RPI18nPlateau?.markToast(motifs[v?.raison]?null:"toastBodies.baf6102a4",motifs[v?.raison]||'Le voyage n’est pas confirmé. Le même reçu sera utilisé si vous réessayez.',undefined,'Voyage non confirmé');return false;
   }
