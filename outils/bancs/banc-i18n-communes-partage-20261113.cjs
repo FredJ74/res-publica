@@ -8,7 +8,9 @@ test(sources.length+' descriptions partagées : réemploi exact des traductions,
  const before=load(true),after=load(),plain=x=>JSON.parse(JSON.stringify(x));assert.equal(sources.length,Number(process.env.COMMON_EXPECTED_COUNT||18));
  assert.deepEqual(plain(after.RP_INFOBULLES_COMMUNES.slice(0,before.RP_INFOBULLES_COMMUNES.length)),plain(before.RP_INFOBULLES_COMMUNES));
  const current=[...after.RP_INFOBULLES_COMMUNES,...after.RP_INFOBULLES_REPUBLIA],keys=current.map(r=>r[0]);assert.equal(new Set(keys).size,keys.length);
- for(const row of [...before.RP_INFOBULLES_COMMUNES,...before.RP_INFOBULLES_REPUBLIA])assert.deepEqual(plain(current.find(r=>r[0]===row[0])),plain(row));
+ // 27/11/2026 (Fred) : textes et traductions des ordres supprimés retirés du catalogue Républia.
+ const RETIRES=new Set(['Placements declares et offshore avec Ursula Offshore.','Voir le solde actuel de la caisse de la Scierie.','Voir les matières premières et les produits finis actuellement détenus par la Scierie.']);
+ for(const row of [...before.RP_INFOBULLES_COMMUNES,...before.RP_INFOBULLES_REPUBLIA])if(!RETIRES.has(row[0]))assert.deepEqual(plain(current.find(r=>r[0]===row[0])),plain(row));
  for(const row of sources){assert.deepEqual(plain(after.RP_INFOBULLES_COMMUNES.find(r=>r[0]===row[0])),row);assert.ok(!after.RP_INFOBULLES_REPUBLIA.some(r=>r[0]===row[0]));}
  for(const [i,l]of langs.entries())for(const row of sources){before.locale=after.locale=l;
   for(const country of ['republic','soviet','fixture']){after.state.country=country;assert.equal(after.RPOrderDescriptionsI18n.desc(row[0]),row[i],country+'/'+l);}

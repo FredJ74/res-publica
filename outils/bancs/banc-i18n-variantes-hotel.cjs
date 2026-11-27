@@ -156,7 +156,8 @@ test('seize autres variantes ambiguës sont traduites par le couple fn et libell
  const {extract}=require('../audits/libelles-ordres-source.cjs');
  const records=extract(source);
  const variants={
-  propagande_etat:[["Propagande d'Etat",'politics_propaganda_state'],['Campagne de propagande','politics_propaganda_campaign']],
+  // 27/11/2026 : « Propagande d'Etat » (salle de presse présidentielle) supprimé par Fred ; la clé reste au catalogue.
+  propagande_etat:[['Campagne de propagande','politics_propaganda_campaign']],
   dementi:[['Dementi officiel','politics_denial_plain'],['Démenti officiel','politics_denial_accent']],
   archives_police:[['Consulter les archives','police_archives'],['Consulter le registre','police_register']],
   repartition_budget_local:[['Repartir le budget municipal','budget_plain'],['Répartir le budget municipal','budget_accent']],

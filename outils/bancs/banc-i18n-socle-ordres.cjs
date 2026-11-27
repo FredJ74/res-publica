@@ -13,7 +13,10 @@ function load(country,language='en',original=false){
 test('anciennes traductions conservées ; les anciens replis français peuvent bénéficier du catalogue commun',()=>{
  for(const country of ['republic','soviet'])for(const lang of langs){const a=load(country,lang),b=load(country,lang,true),I=a.RPOrderDescriptionsI18n,B=b.RPSovarkaInfobullesI18n;
   assert.equal(I,a.RPSovarkaInfobullesI18n);
+  // 27/11/2026 (Fred) : textes des ordres supprimés retirés du catalogue (compte offshore, caisse et stock de la scierie, gestion du goulag).
+  const RETIRES=new Set(['Placements declares et offshore avec Ursula Offshore.','Voir le solde actuel de la caisse de la Scierie.','Voir les matières premières et les produits finis actuellement détenus par la Scierie.']);
   for(const row of [...B.communes,...B.republia,...B.lignes]){
+   if(RETIRES.has(row[0])||row[0].startsWith('Le goulag de Starovka doit encore'))continue;
    const previous=B.desc(row[0]),sharedRow=I.communes.find(r=>r[0]===row[0]);
    // Une traduction déjà livrée reste exacte ; un ancien repli français peut désormais
    // recevoir la traduction déclarée du catalogue partagé (sans figer ses anciens manques).

@@ -109,5 +109,6 @@ test('audit : seules les exclusions inconditionnelles du rendu sont reconnues',(
  assert.equal(exclusionsRendu(rendu.replace("!['retire'].includes(o.fn)","autorise && !['retire'].includes(o.fn)")).size,0);
  assert.equal(exclusionsRendu(rendu.replace('allOrders','autreListe')).size,0);
  assert.equal(exclusionsRendu("// "+rendu).size,0);
- assert.ok(exclusionsRendu(lire('plateau-politique.js')).has('consulter_caisse_usine'));
+ // 27/11/2026 : les ordres caisse et stock de la scierie sont supprimés de data.js ; plus d'exclusion au rendu.
+ assert.ok(!exclusionsRendu(lire('plateau-politique.js')).has('consulter_caisse_usine'));
 });
