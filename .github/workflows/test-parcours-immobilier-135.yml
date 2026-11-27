@@ -1,9 +1,14 @@
 name: Parcours immobilier cinq terrains - PostgreSQL jetable
 on:
+  # Un changement d'image seule ne lance pas ce parcours ; il tourne chaque nuit sur main (mission de nuit du 27/11/2026).
   pull_request:
     branches: [main]
+    paths-ignore: ['images/**', '**/*.webp', '**/*.png', '**/*.jpg', '**/*.jpeg', '**/*.gif']
   push:
     branches: [main]
+    paths-ignore: ['images/**', '**/*.webp', '**/*.png', '**/*.jpg', '**/*.jpeg', '**/*.gif']
+  schedule:
+    - cron: '25 3 * * *'
 permissions:
   contents: read
 # Seules les anciennes exécutions de la même PR sont annulées.

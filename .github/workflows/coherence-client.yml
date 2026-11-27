@@ -1,10 +1,14 @@
 name: Cohérence client et transactions locales
 
 on:
+  # Un changement d'image seule ne lance pas cette suite (mission de nuit du 27/11/2026) : les contrôles d'images s'en chargent ;
+  # tout autre changement la lance, et elle tourne entière chaque nuit (schedule).
   push:
     branches: [main, 'claude/**']
+    paths-ignore: ['images/**', '**/*.webp', '**/*.png', '**/*.jpg', '**/*.jpeg', '**/*.gif']
   pull_request:
     branches: [main]
+    paths-ignore: ['images/**', '**/*.webp', '**/*.png', '**/*.jpg', '**/*.jpeg', '**/*.gif']
   # Contrôle nocturne (décision de Fred, 17/11/2026) : 3 h, heure de Paris en hiver.
   schedule:
     - cron: '0 2 * * *'
