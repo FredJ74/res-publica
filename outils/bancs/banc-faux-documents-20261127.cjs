@@ -11,7 +11,7 @@ test('serveur : laissez-passer et carton seulement ; carton identique à un vrai
   const objet = MIG.slice(MIG.indexOf('FUNCTION public.faux_document_objet_interne'), MIG.indexOf('FUNCTION public.faux_document_final_interne'));
   assert.match(objet, /faux_laissez_passer/);
   assert.match(objet, /pavillon_carton_objet_interne\(d, c ->> 'nom', NULL\)/);
-  assert.doesNotMatch(objet, /fausse_identite|faux_permis|faux_contrat|fausse_convocation/);
+  assert.doesNotMatch(objet, /fausse_identite|faux_contrat|fausse_convocation/);
   assert.match(objet, /RETURN NULL;/);
   const fin = MIG.slice(MIG.indexOf('FUNCTION public.faux_document_final_interne'));
   assert.match(fin, /jsonb_set\(p_doc_objet, '\{carton,id\}'/);
@@ -20,7 +20,7 @@ test('serveur : laissez-passer et carton seulement ; carton identique à un vrai
 
 test('écran : liste du greffe et de l’imprimante, choix de la date, description fidèle', () => {
   const data = lire('data.js'), liste = data.slice(data.indexOf('const DOCUMENTS_FALSIFIABLES = ['), data.indexOf('];', data.indexOf('const DOCUMENTS_FALSIFIABLES = [')));
-  assert.deepEqual([...liste.matchAll(/id:'([a-z_]+)'/g)].map(m => m[1]), ['faux_laissez_passer', 'faux_carton']);
+  assert.deepEqual([...liste.matchAll(/id:'([a-z_]+)'/g)].map(m => m[1]), ['faux_laissez_passer', 'faux_permis', 'faux_carton']); // faux permis rétabli (Fred, 28/11/2026)
   for (const l of data.split('\n').filter(l => l.includes("{fn:'falsifier_document'"))) {
     assert.match(l, /pa:3, cost:300/);
     assert.doesNotMatch(l, /Fausse identité|faux contrat|convocation/);
@@ -28,7 +28,7 @@ test('écran : liste du greffe et de l’imprimante, choix de la date, descripti
   }
   assert.match(lire('plateau-justice-economie.js'), /doc\.id === 'faux_carton' && typeof fauxCartonOuvrir === 'function'/);
   const info = lire('plateau-informatique.js');
-  assert.match(info, /\['faux_laissez_passer', [^\]]*\], \['faux_carton',/);
+  assert.match(info, /\['faux_laissez_passer', [^\]]*\], \['faux_permis', [^\]]*\], \['faux_carton',/);
   assert.doesNotMatch(info, /'fausse_identite'/);
   const cartons = lire('plateau-pavillon-cartons.js');
   assert.match(cartons, /\['faux_carton', date, nom\]\.join\('\|'\)/);

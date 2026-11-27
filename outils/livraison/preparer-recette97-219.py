@@ -147,6 +147,8 @@ def preparer(paquet=None):
  source_historique=[{'fn':'mobiliser','pa':2,'cost':0} if x=={'fn':'mobiliser','pa':0,'cost':0} else x for x in source_historique]
  # 27/11/2026 au soir : « Interroger un détenu » (QHS) passe à 1 PA (modèle du goulag) ; la coupe historique garde 2 PA.
  source_historique=[{'fn':'interroger','pa':2,'cost':0} if x=={'fn':'interroger','pa':1,'cost':0} else x for x in source_historique]
+ # 28/11/2026 : « Produire une fuite » à 2 PA (Fred) ; la coupe historique garde 3 PA.
+ source_historique=[{'fn':'fuite_info','pa':3,'cost':0} if x=={'fn':'fuite_info','pa':2,'cost':0} else x for x in source_historique]
  cmp=module('delta_recette97','outils/baseline/comparer-couts-captures.py')
  ts=sorted(cmp.triples(source_historique))
  md5=hashlib.md5('\n'.join('%s|%d|%d'%t for t in ts).encode()).hexdigest()

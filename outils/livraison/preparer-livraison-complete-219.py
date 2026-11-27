@@ -121,6 +121,8 @@ def preparer(destination=None):
  gen=[dict(r,pa=2) if (r['fn'],r['pa'],r['cost'])==('mobiliser',0,0) else r for r in gen]
  # 27/11/2026 au soir : « Interroger un détenu » (QHS) à 1 PA (modèle du goulag) ; la coupe historique garde 2 PA.
  gen=[dict(r,pa=2) if (r['fn'],r['pa'],r['cost'])==('interroger',1,0) else r for r in gen]
+ # 28/11/2026 : « Produire une fuite » à 2 PA ; la coupe historique garde 3 PA.
+ gen=[dict(r,pa=3) if (r['fn'],r['pa'],r['cost'])==('fuite_info',2,0) else r for r in gen]
  t=sorted([(r['fn'],r['pa'],r['cost']) for r in gen if r['fn'] not in ajouts_ssm+(nouveau,'virements','produire_derives_petrochimiques','consulter_devis_chantier_naval','interroger_renseignement')+vehicules and r['fn'] not in fns_sovarka and (r['fn'],r['pa'],r['cost'])!=diner_sovarka and (r['fn'],r['pa'],r['cost'])!=casier_sovarka and (r['fn'],r['pa'],r['cost'])!=supporters_dynamo and (r['fn'],r['pa'],r['cost']) not in ajouts_terrains_psm]+retires)
  md5=hashlib.md5('\n'.join('%s|%d|%d'%r for r in t).encode()).hexdigest()
  if md5!=cm['apres']['md5'] or len(t)!=cm['apres']['lignes']:raise ValueError('Sources de tarifs changées : réexaminer le plan')

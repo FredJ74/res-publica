@@ -14,6 +14,15 @@ Règles : voir `AGENTS.md`.
 - Origine : `b343ff38` (interrogatoires), `ecd537d2` (ordres creux) et `14d14fae` (transferts) ont modifié le catalogue le 27/11 après la dernière génération du seed (`27833838`, 26/11). Cinq anciennes entrées, deux entrées gratuites manquantes, deux anciens tarifs à 2 PA : diff déjà conservé dans #1216.
 - Supabase contrôlé **en lecture seule, transaction annulée** : `interroger` et `interroger_renseignement` valent 1 PA/0, confirmé aussi dans les corps RPC ; les cinq ordres retirés sont absents. Les deux nouvelles entrées sont des ouvertures gratuites de fenêtres (`plateau-router.js` retourne avant paiement), pas des actions payantes ; `demander_transfert_detenu` reste à 1 PA/0. Aucun joueur, coût serveur ou fonction SQL modifié ; aucune migration appliquée. Preuve `outils/audits/MIROIR-COUTS-SUPABASE-20261128.json`.
 - Correction exclusivement générée par `outils/baseline/regenerer-seeds-miroirs.py` : seed `ordres_couts` et son empreinte, aucun générateur modifié. Les huit miroirs sont conformes ; banc global (six contrôles Python), réconciliation PostgreSQL jetable et garde du monde neuf passent. CI complète et fusion à suivre dans la PR ; après fusion, rebaser #1216, vérifier et fusionner sa clôture.
+### Mission du 28/11/2026 (nuit) (Claude) — journal des étapes
+
+- **Étape 2 — réponses de Fred** (branche `claude/reponses-fred-20261128`, construite sur l'étape 8 du 27/11) : migration
+  `20261128010000_reponses_fred_27_soir` **appliquée et vérifiée** (essai en transaction annulée d'abord). Prêt « travaux » avec
+  permis de construire (vrai ou faux, un permis par prêt, faux retiré à l'usage) ; faux permis de retour dans la liste ; fuite à
+  2 PA ; interrogatoires répétés au Renseignement ; trace « mauvais traitement » de 30 jours ; transfert de tous les détenus ;
+  cartons envoyés par l'ambassadeur seul ; accessoire : seule la popularité réellement gagnée est reprise. Banc
+  `banc-reponses-fred-20261128.cjs`.
+
 ### Mission du 27/11/2026 (soir) (Claude) — compte rendu pour Fred
 
 > Au départ : les deux mises à jour de l'après-midi (ambassade de Novomirsk, stage à la caserne) étaient déjà appliquées en

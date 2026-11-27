@@ -44,6 +44,7 @@ def main():
  canon={('demander_naturalisation',2,0) if t==('demander_naturalisation',2,50) else t for t in canon}
  canon={('se_rebeller',2,0) if t==('se_rebeller',1,0) else t for t in canon}  # 23/11/2026 : rébellion à 1 PA
  canon={('mobiliser',2,0) if t==('mobiliser',0,0) else t for t in canon}  # 25/11/2026 au soir : « Mobiliser les membres » à 0 PA (audit des chances, 1.3a)
+ canon={('fuite_info',3,0) if t==('fuite_info',2,0) else t for t in canon}  # 28/11/2026 : fuite à 2 PA
  canon={('interroger',2,0) if t==('interroger',1,0) else t for t in canon}  # 27/11/2026 au soir : interrogatoire du QHS à 1 PA (modèle du goulag)
  retire={(x['fn'],x['pa'],x['cost']) for x in plan['retirer']};ajoute={(x['fn'],x['pa'],x['cost']) for x in plan['ajouter']};capture=sorted((canon-ajoute)|retire)
  assert len(capture)==plan['avant']['lignes']

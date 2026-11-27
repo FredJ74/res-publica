@@ -96,7 +96,8 @@ d'origine ; le **ministre des Affaires étrangères du pays hôte** (et non celu
 Justice) accepte ou refuse (« Demandes de transfert de détenus », à son bureau). En cas
 d'accord, le détenu est transféré à la prison de la capitale de son pays et y purge le reste
 de sa peine, sans un jour de plus. Demande, accord et refus arrivent au courrier des deux.
-Ne sont pas transférables : les détenus du QHS, du goulag ou en salle d'interrogatoire.
+Tous les détenus sont transférables, y compris ceux du QHS, du goulag et des salles d'interrogatoire (décision de Fred du
+28/11/2026 : c'est aux joueurs de négocier) ; le régime particulier est levé au transfert.
 L'ordre reste grisé pour El Estado et Al-Khalija. Serveur : `transfert_detenu_demander`,
 `transfert_detenu_decider` (migration `20261127234000`).
 

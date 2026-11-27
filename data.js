@@ -3638,7 +3638,7 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'consulter_dossiers_gouv', label:'Consulter des dossiers',    pa:2, cost:0,    type:'legal',   icon:'ti-archive',        successRate:80,  requiresPost:true, desc:'Rapports confidentiels et notes de synthese classifiees du gouvernement.'},
-          {fn:'fuite_info',         label:'Produire une fuite',        pa:3, cost:0,    type:'grey',    icon:'ti-leak',           successRate:60,  requiresPost:true, desc:'Subtiliser une pièce réelle des archives (un fait compromettant d\'un membre du gouvernement ou le solde d\'une caisse ministérielle) : elle rejoint votre inventaire, libre à vous de la monnayer auprès d\'un journaliste. Mêmes risques que le vol d\'archives d\'écoute : témoin, détection, bagarre. En Sovarka : vous faites fuiter un sondage ou le registre des signalements, sans jet.'}
+          {fn:'fuite_info',         label:'Produire une fuite',        pa:2, cost:0,    type:'grey',    icon:'ti-leak',           successRate:60,  requiresPost:true, desc:'Subtiliser une pièce réelle des archives (un fait compromettant d\'un membre du gouvernement ou le solde d\'une caisse ministérielle) : elle rejoint votre inventaire, libre à vous de la monnayer auprès d\'un journaliste. Mêmes risques que le vol d\'archives d\'écoute : témoin, détection, bagarre. En Sovarka : vous faites fuiter un sondage ou le registre des signalements, sans jet.'}
         ]
       },
 
@@ -4295,7 +4295,7 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'archives',       label:'Consulter les archives', pa:1, cost:0,   type:'legal',   icon:'ti-archive', successRate:100},
-          {fn:'falsifier_document', label:'Falsifier un document', pa:3, cost:300, type:'illegal', icon:'ti-file-x', successRate:45, desc:'Faux laissez-passer (archives d\'écoute de Sovarka ou QHS) ou faux carton d\'invitation à la Grande Salle du Pavillon des Ambassadeurs (date au choix) : un faux réussi vaut un vrai pour un seul usage. Chance selon la sécurité de la ville et les hommes armés présents. Les 300 FR ne sont payés qu\'en cas de réussite ; un échec n\'a pas d\'autre conséquence, mais une réussite peut être repérée.'},
+          {fn:'falsifier_document', label:'Falsifier un document', pa:3, cost:300, type:'illegal', icon:'ti-file-x', successRate:45, desc:'Faux laissez-passer (archives d\'écoute de Sovarka ou QHS), faux permis de construire (prêt « travaux » de la Banque Nationale) ou faux carton d\'invitation à la Grande Salle du Pavillon des Ambassadeurs (date au choix) : un faux réussi vaut un vrai pour un seul usage. Chance selon la sécurité de la ville et les hommes armés présents. Les 300 FR ne sont payés qu\'en cas de réussite ; un échec n\'a pas d\'autre conséquence, mais une réussite peut être repérée.'},
           {fn:'demander_juge_instruction', label:'Demander à parler à un juge', pa:1, cost:0, type:'legal', icon:'ti-gavel', successRate:100, desc:'Présenter votre dossier d\'enquête à un juge.'},
           // L'AVOCAT TRAVAILLE AU GREFFE, ET NULLE PART AILLEURS (12 octobre 2026, soir). Le
           // dossier complet de son client ne se lit QUE la : la porte serveur exige sa presence
@@ -6167,7 +6167,7 @@ const BUILDINGS = {
         orders: [
           {fn:'archives',       label:'Consulter les archives', pa:1, cost:0,   type:'legal',   icon:'ti-archive', successRate:100},
           // Decision de Fred (01/11/2026) : la falsification se pratique dans toute la Republia.
-          {fn:'falsifier_document', label:'Falsifier un document', pa:3, cost:300, type:'illegal', icon:'ti-file-x', successRate:45, desc:'Faux laissez-passer (archives d\'écoute de Sovarka ou QHS) ou faux carton d\'invitation à la Grande Salle du Pavillon des Ambassadeurs (date au choix) : un faux réussi vaut un vrai pour un seul usage. Chance selon la sécurité de la ville et les hommes armés présents. Les 300 FR ne sont payés qu\'en cas de réussite ; un échec n\'a pas d\'autre conséquence, mais une réussite peut être repérée.'},
+          {fn:'falsifier_document', label:'Falsifier un document', pa:3, cost:300, type:'illegal', icon:'ti-file-x', successRate:45, desc:'Faux laissez-passer (archives d\'écoute de Sovarka ou QHS), faux permis de construire (prêt « travaux » de la Banque Nationale) ou faux carton d\'invitation à la Grande Salle du Pavillon des Ambassadeurs (date au choix) : un faux réussi vaut un vrai pour un seul usage. Chance selon la sécurité de la ville et les hommes armés présents. Les 300 FR ne sont payés qu\'en cas de réussite ; un échec n\'a pas d\'autre conséquence, mais une réussite peut être repérée.'},
           {fn:'avocat_dossiers', label:'Dossiers de mes clients', pa:0, cost:0, type:'legal', icon:'ti-folder-open', successRate:100, desc:'Reserve a l\'avocat dont la defense a ete acceptee. Le dossier complet de l\'affaire, et la citation de temoins jusqu\'a l\'ouverture de l\'audience.'},
           {fn:'avocat_barreau', label:'Mon inscription au barreau', pa:0, cost:0, type:'legal', icon:'ti-briefcase', successRate:100, desc:'Publier votre tarification -- champ libre : un prix, « gratuit », « selon affaire », « a negocier ». C\'est elle qui vous fait apparaitre dans la liste des avocats. Et repondre aux defenses qu\'on vous propose.'},
           {fn:'greffe_affaires', label:'Affaires en cours', pa:0, cost:0, type:'legal', icon:'ti-folders', successRate:100, desc:'Le registre public : qui est poursuivi, pour quelle categorie d\'infraction, ou en est la procedure, et quels temoins sont cites. Le contenu des dossiers n\'est pas public.'},
@@ -10021,6 +10021,8 @@ const DOCUMENTS_FALSIFIABLES = [
   // Fred, 20/11/2026 : un faux réussi est identique à un vrai laissez-passer, jamais détectable.
   { id:'faux_laissez_passer', name:'Faux laissez-passer', desc:'Ouvre les archives des centres d\'écoute de Sovarka ou le QHS à qui le présente.', icon:'ti-id-badge' },
   // Fred, 27/11/2026 : carton d'invitation de la Grande Salle du Pavillon, date de la réception au choix du faussaire.
+  // Fred, 28/11/2026 : faux permis de construire rétabli, accepté par la banque pour un prêt « travaux » (un seul usage).
+  { id:'faux_permis', name:'Faux permis de construire', desc:'Arrêté d\'accord de permis, accepté par la Banque Nationale comme un vrai pour un prêt « travaux ».', icon:'ti-file-certificate' },
   { id:'faux_carton', name:'Faux carton d\'invitation', desc:'Ouvre la Grande Salle du Pavillon des Ambassadeurs le jour choisi, remis à l\'accueil.', icon:'ti-mail-opened' }
 ];
 

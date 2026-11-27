@@ -177,7 +177,7 @@ function informatiqueInventaire(r) {
 
 function ouvrirImprimantes() {
   // Fred, 27/11/2026 : seuls les documents qui ont un effet en jeu (laissez-passer, carton d'invitation).
-  const docs = [['faux_laissez_passer', texteEquip('fauxLaissezPasser', 'Faux laissez-passer')], ['faux_carton', texteEquip('fauxCarton', 'Faux carton d\'invitation')]];
+  const docs = [['faux_laissez_passer', texteEquip('fauxLaissezPasser', 'Faux laissez-passer')], ['faux_permis', texteEquip('fauxPermis', 'Faux permis de construire')], ['faux_carton', texteEquip('fauxCarton', 'Faux carton d\'invitation')]];
   equipementsModale(texteEquip('imprimantes', 'Imprimantes'), '<div class="cpj-titre">' + texteEquip('impPapier', 'Imprimante papier — faux documents') + '</div>' +
     '<p class="cpj-note">' + texteEquip('impPapierNote', '3 PA et une cartouche d\'encre. 70 % de réussite, sans risque d\'être vu. Le modèle est rangé dans vos dossiers.') + '</p>' +
     docs.map(d => equipementsBouton('fauxImprimer(\'' + d[0] + '\')', d[1])).join(' ') +
