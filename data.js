@@ -1537,9 +1537,24 @@ const WORLD = {
       buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','laboratoire-priere','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade'],
       buildingContext: {
         'hotel-republica': {
-          name: "Hôtel El Cartel",
-          desc: "Le seul hôtel potable de Ciudad Roja. Les murs ont des oreilles.",
-          persons: [{"name": "Pedro Tequila (PNJ)", "role": "Barman", "rel": "neutral", "job": "serveur"}, {"name": "Lupe Cantina (PNJ)", "role": "Serveuse armée", "rel": "neutral", "job": "serveur"}, {"name": "Lola Discreta (PNJ)", "role": "Informatrice double jeu", "rel": "neutral", "job": "escort"}]
+          name: "Hotel Ciudad Roja",
+          desc: "Le grand hôtel de luxe de Ciudad Roja.",
+          // Ciudad Roja (27/11/2026) : cinq vues (réception, suite, restaurant, piscine, bar extérieur). Les suites
+          // privée et présidentielle du gabarit de Luthécia sont exclues ; le bar n'a pas d'onglet : on y entre depuis
+          // la piscine en cliquant sur le bar de l'illustration (serveur : ciudad_roja_bar_v1). PNJ d'El Estado
+          // existants répartis par métier, aucun PNJ de Républia hérité.
+          roomsExclues: ['suite_privee', 'suite_presidentielle'],
+          roomsMasquees: ['bar'],
+          roomsExtra: {
+            piscine: { name: 'Piscine', imageUrl: 'images/El Estado/Ciudad Roja/Ciudad_Roja_hotel_piscine.webp', persons: [], orders: [] }
+          },
+          roomOverrides: {
+            accueil: { name: 'Réception', imageUrl: 'images/El Estado/Ciudad Roja/Ciudad_Roja_hotel_reception.webp', personsVides: true },
+            restaurant: { name: 'Restaurant', imageUrl: 'images/El Estado/Ciudad Roja/Ciudad_Roja_hotel_restaurant.webp', persons: [{"name": "Lupe Cantina (PNJ)", "role": "Serveuse armée", "rel": "neutral", "job": "serveur"}] },
+            bar: { name: 'Bar extérieur', imageUrl: 'images/El Estado/Ciudad Roja/Ciudad_Roja_hotel_bar_piscine.webp', persons: [{"name": "Pedro Tequila (PNJ)", "role": "Barman", "rel": "neutral", "job": "serveur"}, {"name": "Lola Discreta (PNJ)", "role": "Informatrice double jeu", "rel": "neutral", "job": "escort"}] },
+            chambres: { name: 'Suite', imageUrl: 'images/El Estado/Ciudad Roja/Ciudad_Roja_hotel_suite.webp', personsVides: true }
+          },
+          persons: []
         },
         'commissariat': {
           name: "Comisaria Central",
@@ -1621,7 +1636,12 @@ const WORLD = {
           persons: []
         },
                 'centre-multinodal-luthecia': {
-          name: "Hall Principal",
+          name: "Centre multimodal de Ciudad Roja",
+          roomOverrides: {
+            hall_gare: { imageUrl: 'images/El Estado/Ciudad Roja/Ciudad_Roja_centre_multimodal_hall.webp' },
+            hall_douanes: { imageUrl: 'images/El Estado/Ciudad Roja/Ciudad_Roja_centre_multimodal_douanes.webp', persons: [{"name": "Juanita Soborno (PNJ)", "role": "Agente des douanes", "rel": "neutral", "job": "douanier"}] },
+            zone_embarquement: { imageUrl: 'images/El Estado/Ciudad Roja/Ciudad_Roja_centre_multimodal_embarquement.webp' }
+          },
           desc: "Taxis dorés, bus dorés, Trans-Gold Express. Carlos Retraso annonce des horaires purement décoratifs. Juanita Soborno surveille les entrées.",
           persons: [{"name": "Carlos Retraso (PNJ)", "role": "Chef de gare", "rel": "neutral", "job": "chef_gare"}, {"name": "Juanita Soborno (PNJ)", "role": "Agente de sécurité", "rel": "neutral", "job": "securite"}],
           rooms: {

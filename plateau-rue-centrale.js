@@ -1,7 +1,8 @@
 // Point d'entree par ville — sert a savoir si cette ville utilise la nouvelle navigation par scenes
 const RUE_CENTRALE_DEPART = {
   republic: { capitale: 'luthecia-palais-presidentiel', ville_a: 'psm-centre-multimodal', ville_b: 'montrouge-vue-3', caserne: 'caserne-exterieur', qhs: 'qhs-exterieur' },
-  soviet:   { capitale: 'novomirsk-vue-1', ville_a: 'starovka-rue-gare', ville_b: 'krasnov-rue-gare' }
+  soviet:   { capitale: 'novomirsk-vue-1', ville_a: 'starovka-rue-gare', ville_b: 'krasnov-rue-gare' },
+  narco: { capitale: 'ciudad-roja-centre-multimodal' }
   // Autres villes/empires a ajouter au fur et a mesure des images produites
 };
 
@@ -77,6 +78,20 @@ const RC_FLECHE_HAUT = 'top:10px; left:50%; transform:translateX(-50%);';
 const RC_FLECHE_BAS  = 'bottom:10px; left:50%; transform:translateX(-50%);';
 
 const RUE_CENTRALE_NOEUDS = {
+  narco: {
+    'ciudad-roja-centre-multimodal': {
+      image: 'images/El Estado/Ciudad Roja/Ciudad_Roja_centre_multimodal_exterieur.webp',
+      zones: [{ xPct: [31, 64], yPct: [1, 55], nom: 'Centre multimodal de Ciudad Roja', type: 'batiment', buildingId: 'centre-multinodal-luthecia' }],
+      liens: { arriere: 'ciudad-roja-hotel' },
+      flechesStyle: { arriere: RC_FLECHE_BAS }
+    },
+    'ciudad-roja-hotel': {
+      image: 'images/El Estado/Ciudad Roja/Ciudad_Roja_hotel_exterieur.webp',
+      zones: [{ xPct: [17, 84], yPct: [9, 76], nom: 'Hotel Ciudad Roja', type: 'batiment', buildingId: 'hotel-republica' }],
+      liens: { toutDroit: 'ciudad-roja-centre-multimodal' },
+      flechesStyle: { toutDroit: RC_FLECHE_HAUT }
+    }
+  },
   republic: {
 
     // ---- GRANDE RUE DES INSTITUTIONS (deplacement lateral) ----
