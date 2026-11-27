@@ -1,0 +1,16 @@
+{
+  "date": "2026-11-27",
+  "id": "dpl_BpzPsoEsaaEu2sHrUbZAA4gmEkLp",
+  "state": "READY",
+  "target": "production",
+  "commit": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+  "alias": [
+    "human-gambit.com",
+    "res-publica.vercel.app",
+    "www.human-gambit.com",
+    "res-publica-fred-s-projects25.vercel.app",
+    "res-publica-git-main-fred-s-projects25.vercel.app"
+  ],
+  "aliasError": null,
+  "controle": "Métadonnées Vercel et GET des quatre ressources publiques, aucune écriture en base"
+}
