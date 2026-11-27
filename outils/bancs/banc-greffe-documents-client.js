@@ -90,11 +90,14 @@ print('');
 print('2. LE NAVIGATEUR NE FABRIQUE PLUS AUCUN DOCUMENT');
 att('le faux casier a quitte DOCUMENTS_FALSIFIABLES',
     dataCode.indexOf("id:'faux_casier'") < 0);
-att('les QUATRE autres documents falsifiables sont intacts',
-    dataCode.indexOf("id:'fausse_identite'") >= 0
-    && dataCode.indexOf("id:'faux_permis'") >= 0
-    && dataCode.indexOf("id:'faux_contrat'") >= 0
-    && dataCode.indexOf("id:'fausse_convocation'") >= 0);
+// Fred, 27/11/2026 : seuls les documents qui ont un effet en jeu restent falsifiables (laissez-passer, carton d'invitation).
+att('seuls les documents qui ont un effet en jeu sont falsifiables',
+    dataCode.indexOf("id:'fausse_identite'") < 0
+    && dataCode.indexOf("id:'faux_permis'") < 0
+    && dataCode.indexOf("id:'faux_contrat'") < 0
+    && dataCode.indexOf("id:'fausse_convocation'") < 0
+    && dataCode.indexOf("id:'faux_laissez_passer'") >= 0
+    && dataCode.indexOf("id:'faux_carton'") >= 0);
 // LES CINQ HANDLERS N'ECRIVENT PAS DANS L'INVENTAIRE. C'est la porte serveur qui ecrit l'objet
 // sur la ligne du personnage ; le navigateur RELIT.
 var HANDLERS = ['doCasierMonExtrait', 'confirmerCasierExtraitEnquete', 'confirmerExtraitDuplicata',

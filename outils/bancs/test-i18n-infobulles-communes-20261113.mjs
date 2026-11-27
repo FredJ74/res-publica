@@ -123,7 +123,7 @@ test('inventaire : 237 descriptions communes affichées après isolation du goul
 
 test('257 lignes de neuf colonnes non vides, sans guillemet droit ni balise, toutes traduites', () => {
   const lignes = I('soviet', 'fr').communes;
-  assert.equal(lignes.length, 263); // +2 le 27/11 au soir : transfert d'un détenu, demandes de transfert ; +2 le 27/11 : interrogatoire du QHS, indices d'interrogatoire ; +1 le 19/11 : boutique climat ; +1 le 18/11 : furet renifleur ; +1 le 18/11 : pharmacie de Républia ; +2 le 16/11 : récolte (nouvelle description) et régulation de la production ; +1 le 14/11 : Dormir dans la chambre d’hôpital
+  assert.equal(lignes.length, 264); // +1 le 27/11 : falsifier un document (documents effectifs) ; +2 le 27/11 au soir : transfert d'un détenu, demandes de transfert ; +2 le 27/11 : interrogatoire du QHS, indices d'interrogatoire ; +1 le 19/11 : boutique climat ; +1 le 18/11 : furet renifleur ; +1 le 18/11 : pharmacie de Républia ; +2 le 16/11 : récolte (nouvelle description) et régulation de la production ; +1 le 14/11 : Dormir dans la chambre d’hôpital
   for (const l of lignes) {
     assert.equal(l.length, 9, l[0]);
     for (const v of l) assert.ok(v.trim(), l[0]);

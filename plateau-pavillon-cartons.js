@@ -166,6 +166,42 @@
     showToast(t('titre'), t('remis'), true);
   }
 
+  // Faux carton d'invitation (« Falsifier un document », Fred, 27/11/2026) : le faussaire choisit la date de la réception
+  // et, s'il le veut, le nom inscrit. Le serveur reçoit 'faux_carton|AAAA-MM-JJ|nom' (crime_falsifier ou faux_document_imprimer).
+  const TF = {
+    fr: { titre: 'Faux carton d’invitation', note: 'Choisissez la date de la réception ; le nom inscrit est facultatif. Un faux réussi vaut un vrai carton pour une seule remise à l’accueil du Pavillon.', date: 'Date de la réception', nom: 'Nom inscrit (facultatif)', valider: 'Falsifier', dateRequise: 'Indiquez une date.' },
+    en: { titre: 'Forged invitation card', note: 'Choose the date of the reception; the name written on it is optional. A successful forgery is as good as a real card for one hand-in at the Pavilion reception.', date: 'Reception date', nom: 'Name written (optional)', valider: 'Forge', dateRequise: 'Enter a date.' },
+    es: { titre: 'Tarjeta de invitación falsa', note: 'Elija la fecha de la recepción; el nombre escrito es opcional. Una falsificación lograda vale como una tarjeta auténtica para una sola entrega en la recepción del Pabellón.', date: 'Fecha de la recepción', nom: 'Nombre escrito (opcional)', valider: 'Falsificar', dateRequise: 'Indique una fecha.' },
+    'zh-TW': { titre: '偽造邀請函', note: '選擇招待會日期；寫上的姓名可不填。偽造成功的邀請函等同真品，可在貴賓樓接待處交出一次。', date: '招待會日期', nom: '寫上的姓名（可不填）', valider: '偽造', dateRequise: '請填寫日期。' },
+    ru: { titre: 'Поддельный пригласительный билет', note: 'Выберите дату приёма; имя на билете можно не указывать. Удачная подделка стоит настоящего билета на одну сдачу у входа в Павильон.', date: 'Дата приёма', nom: 'Имя на билете (необязательно)', valider: 'Подделать', dateRequise: 'Укажите дату.' },
+    ko: { titre: '위조 초대장', note: '연회 날짜를 고르세요. 적을 이름은 선택 사항입니다. 위조에 성공하면 파빌리온 안내 데스크에 한 번 낼 때까지 진짜 초대장과 같습니다.', date: '연회 날짜', nom: '적을 이름(선택)', valider: '위조하기', dateRequise: '날짜를 입력하세요.' },
+    ar: { titre: 'بطاقة دعوة مزوّرة', note: 'اختر تاريخ الحفل؛ الاسم المكتوب اختياري. التزوير الناجح يساوي بطاقة حقيقية لتسليم واحد في استقبال الجناح.', date: 'تاريخ الحفل', nom: 'الاسم المكتوب (اختياري)', valider: 'تزوير', dateRequise: 'أدخل تاريخًا.' },
+    'pt-BR': { titre: 'Convite falso', note: 'Escolha a data da recepção; o nome escrito é opcional. Uma falsificação bem-sucedida vale um convite verdadeiro para uma única entrega na recepção do Pavilhão.', date: 'Data da recepção', nom: 'Nome escrito (opcional)', valider: 'Falsificar', dateRequise: 'Indique uma data.' },
+    de: { titre: 'Gefälschte Einladungskarte', note: 'Wählen Sie das Datum des Empfangs; der eingetragene Name ist freiwillig. Eine gelungene Fälschung gilt wie eine echte Karte für eine einzige Abgabe am Empfang des Pavillons.', date: 'Datum des Empfangs', nom: 'Eingetragener Name (freiwillig)', valider: 'Fälschen', dateRequise: 'Geben Sie ein Datum an.' }
+  };
+  const tf = k => ((TF[langue()] || TF.fr)[k] || TF.fr[k]);
+  function fauxCartonOuvrir(mode, pa, cost) {
+    const t1 = document.getElementById('postes-modal-title'), b = document.getElementById('postes-body'), m = document.getElementById('modal-postes');
+    if (!t1 || !b || !m) return;
+    const auj = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Paris' });
+    t1.textContent = tf('titre');
+    b.innerHTML = '<div class="cpj-dialogue" dir="auto"><p class="cpj-note">' + echapper(tf('note')) + '</p>'
+      + '<label class="cpj-note">' + echapper(tf('date')) + ' <input type="date" id="faux-carton-date" class="cpj-champ" value="' + auj + '"></label> '
+      + '<input type="text" id="faux-carton-nom" maxlength="60" class="cpj-champ" placeholder="' + echapper(tf('nom')) + '"> '
+      + '<button type="button" class="cpj-touche cpj-primaire" id="faux-carton-ok">' + echapper(tf('valider')) + '</button></div>';
+    m.classList.add('open');
+    b.querySelector('#faux-carton-ok').addEventListener('click', () => {
+      const date = String(b.querySelector('#faux-carton-date').value || '');
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) { showToast(tf('titre'), tf('dateRequise'), false); return; }
+      const nom = String(b.querySelector('#faux-carton-nom').value || '').replace(/\|/g, ' ').trim();
+      const doc = ['faux_carton', date, nom].join('|');
+      m.classList.remove('open');
+      if (mode === 'greffe') { if (typeof confirmerFalsification === 'function') confirmerFalsification(doc, pa, cost); }
+      else if (typeof fauxImprimer === 'function') fauxImprimer(doc);
+    });
+  }
+  window.fauxCartonOuvrir = fauxCartonOuvrir;
+  window.RP_FAUX_CARTON_T = TF;
   window.ouvrirCartonsInvitation = ouvrirCartonsInvitation;
   window.remettreCartonInvitation = remettreCartonInvitation;
   window.cartonsInvitationLibelle = () => t('choisir');

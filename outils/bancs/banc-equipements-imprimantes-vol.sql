@@ -22,7 +22,7 @@ BEGIN
   PERFORM set_config('request.jwt.claims', json_build_object('sub', ua, 'role', 'authenticated')::text, true);
   PERFORM set_config('request.path', '/rpc/banc', true);
   SET LOCAL ROLE authenticated;
-  LOOP v_essais := v_essais + 1; r := public.faux_document_imprimer('faux_contrat'); EXIT WHEN (r->>'reussi')::boolean OR v_essais >= 5; END LOOP;
+  LOOP v_essais := v_essais + 1; r := public.faux_document_imprimer('faux_carton|2026-12-01|'); EXIT WHEN (r->>'reussi')::boolean OR v_essais >= 5; END LOOP;
   IF (r->>'reussi')::boolean IS NOT TRUE OR r->>'dossier' IS NULL THEN RESET ROLE; RAISE EXCEPTION 'faux: %', r; END IF;
   v_doss := (r->>'dossier')::uuid;
   r := public.dossier_imprimer(v_doss);

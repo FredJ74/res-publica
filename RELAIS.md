@@ -58,6 +58,13 @@ Règles : voir `AGENTS.md`.
   Description de la réception de Novomirsk corrigée (Grande Salle du Pavillon). Écran `plateau-pavillon-cartons.js`, banc
   `banc-pavillon-cartons-20261127.cjs`.
 
+- **Étape 6 — faux documents** (branche `claude/faux-documents-20261127`, partie de l'étape 5) : migration
+  `20261127236000_faux_documents_effectifs` **appliquée et vérifiée** (épreuves en transaction annulée d'abord). « Falsifier un
+  document » (greffe et imprimante) ne propose plus que les documents qui ont un effet : faux laissez-passer (archives d'écoute
+  de Sovarka ou QHS) et faux carton d'invitation (date de la réception au choix, nom facultatif ; identique à un vrai). Règles
+  des faux inchangées. Fausse identité, faux permis, faux contrat et fausse convocation retirés (aucun effet). La banque n'exige
+  ni permis de construire ni compromis de vente : question notée. Banc `banc-faux-documents-20261127.cjs`.
+
 ### Mission du 27/11/2026 (après-midi) (Claude) — compte rendu pour Fred
 
 1. **Parti en bêta, et comment le tester**

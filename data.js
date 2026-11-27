@@ -4295,7 +4295,7 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'archives',       label:'Consulter les archives', pa:1, cost:0,   type:'legal',   icon:'ti-archive', successRate:100},
-          {fn:'falsifier_document', label:'Falsifier un document', pa:3, cost:300, type:'illegal', icon:'ti-file-x', successRate:45, desc:'Fausse identité, faux permis de construire, faux contrat commercial ou fausse convocation officielle : crée l\'objet en inventaire. Chance selon la sécurité de la ville et les hommes armés présents. Les 300 FR ne sont payés qu\'en cas de réussite ; un échec n\'a pas d\'autre conséquence, mais une réussite peut être repérée.'},
+          {fn:'falsifier_document', label:'Falsifier un document', pa:3, cost:300, type:'illegal', icon:'ti-file-x', successRate:45, desc:'Faux laissez-passer (archives d\'écoute de Sovarka ou QHS) ou faux carton d\'invitation à la Grande Salle du Pavillon des Ambassadeurs (date au choix) : un faux réussi vaut un vrai pour un seul usage. Chance selon la sécurité de la ville et les hommes armés présents. Les 300 FR ne sont payés qu\'en cas de réussite ; un échec n\'a pas d\'autre conséquence, mais une réussite peut être repérée.'},
           {fn:'demander_juge_instruction', label:'Demander à parler à un juge', pa:1, cost:0, type:'legal', icon:'ti-gavel', successRate:100, desc:'Présenter votre dossier d\'enquête à un juge.'},
           // L'AVOCAT TRAVAILLE AU GREFFE, ET NULLE PART AILLEURS (12 octobre 2026, soir). Le
           // dossier complet de son client ne se lit QUE la : la porte serveur exige sa presence
@@ -6167,7 +6167,7 @@ const BUILDINGS = {
         orders: [
           {fn:'archives',       label:'Consulter les archives', pa:1, cost:0,   type:'legal',   icon:'ti-archive', successRate:100},
           // Decision de Fred (01/11/2026) : la falsification se pratique dans toute la Republia.
-          {fn:'falsifier_document', label:'Falsifier un document', pa:3, cost:300, type:'illegal', icon:'ti-file-x', successRate:45, desc:'Fausse identité, faux permis de construire, faux contrat commercial ou fausse convocation officielle : crée l\'objet en inventaire. Chance selon la sécurité de la ville et les hommes armés présents. Les 300 FR ne sont payés qu\'en cas de réussite ; un échec n\'a pas d\'autre conséquence, mais une réussite peut être repérée.'},
+          {fn:'falsifier_document', label:'Falsifier un document', pa:3, cost:300, type:'illegal', icon:'ti-file-x', successRate:45, desc:'Faux laissez-passer (archives d\'écoute de Sovarka ou QHS) ou faux carton d\'invitation à la Grande Salle du Pavillon des Ambassadeurs (date au choix) : un faux réussi vaut un vrai pour un seul usage. Chance selon la sécurité de la ville et les hommes armés présents. Les 300 FR ne sont payés qu\'en cas de réussite ; un échec n\'a pas d\'autre conséquence, mais une réussite peut être repérée.'},
           {fn:'avocat_dossiers', label:'Dossiers de mes clients', pa:0, cost:0, type:'legal', icon:'ti-folder-open', successRate:100, desc:'Reserve a l\'avocat dont la defense a ete acceptee. Le dossier complet de l\'affaire, et la citation de temoins jusqu\'a l\'ouverture de l\'audience.'},
           {fn:'avocat_barreau', label:'Mon inscription au barreau', pa:0, cost:0, type:'legal', icon:'ti-briefcase', successRate:100, desc:'Publier votre tarification -- champ libre : un prix, « gratuit », « selon affaire », « a negocier ». C\'est elle qui vous fait apparaitre dans la liste des avocats. Et repondre aux defenses qu\'on vous propose.'},
           {fn:'greffe_affaires', label:'Affaires en cours', pa:0, cost:0, type:'legal', icon:'ti-folders', successRate:100, desc:'Le registre public : qui est poursuivi, pour quelle categorie d\'infraction, ou en est la procedure, et quels temoins sont cites. Le contenu des dossiers n\'est pas public.'},
@@ -10016,12 +10016,12 @@ const ORGANISATIONS_DEF = {
 // de fabrication, ne modifie jamais le casier reel, et RIEN dans ce que son porteur voit ne dit
 // « FAUX ». Les quatre autres documents de cette liste sont inchanges.
 const DOCUMENTS_FALSIFIABLES = [
-  { id:'fausse_identite',   name:'Fausse identite',          desc:'Change votre nom affiche dans le jeu temporairement.',     icon:'ti-id-badge' },
-  { id:'faux_permis',       name:'Faux permis de construire', desc:'Permet de construire sans passer par la mairie.',          icon:'ti-building' },
-  { id:'faux_contrat',      name:'Faux contrat commercial',   desc:'Legitime une transaction illegale ou un transfert.',       icon:'ti-file-text' },
-  { id:'fausse_convocation',name:'Fausse convocation officielle', desc:'Attire un PJ dans un lieu de votre choix.',           icon:'ti-mail' },
-  // Fred, 20/11/2026 : un faux réussi est identique à un vrai laissez-passer (archives d'écoute), jamais détectable.
-  { id:'faux_laissez_passer', name:'Faux laissez-passer', desc:'Ouvre les archives des centres d\'écoute de Sovarka à qui le présente.', icon:'ti-id-badge' }
+  // Fred, 27/11/2026 : seuls les documents qui ont un effet en jeu. Fausse identité, faux permis, faux contrat et fausse
+  // convocation ne produisaient aucun effet (aucune fonction ne les lisait) : retirés.
+  // Fred, 20/11/2026 : un faux réussi est identique à un vrai laissez-passer, jamais détectable.
+  { id:'faux_laissez_passer', name:'Faux laissez-passer', desc:'Ouvre les archives des centres d\'écoute de Sovarka ou le QHS à qui le présente.', icon:'ti-id-badge' },
+  // Fred, 27/11/2026 : carton d'invitation de la Grande Salle du Pavillon, date de la réception au choix du faussaire.
+  { id:'faux_carton', name:'Faux carton d\'invitation', desc:'Ouvre la Grande Salle du Pavillon des Ambassadeurs le jour choisi, remis à l\'accueil.', icon:'ti-mail-opened' }
 ];
 
 const POSTES_ELECTIFS = {
