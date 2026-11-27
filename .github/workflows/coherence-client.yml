@@ -258,13 +258,42 @@ jobs:
   # Bancs JavaScript (controler-client.py) en six parts parallèles (24/11/2026 : 20 min d'un seul tenant auparavant).
   # À chaque poussée, seuls les bancs liés aux fichiers modifiés sont joués ; la suite complète tourne chaque nuit
   # (schedule), sur les PR et à la demande.
+  # Plan des parts (27/11/2026) : même sélection que ci-dessous, sans rien exécuter ; une part sans banc ne démarre pas
+  # (ses installations coûtaient une à deux minutes pour rien). La nuit, sur les PR et à la demande : les six parts.
+  plan-bancs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      parts: ${{ steps.plan.outputs.parts }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: plan
+        env:
+          EVENEMENT: ${{ github.event_name }}
+          AVANT: ${{ github.event.before }}
+        run: |
+          git fetch --no-tags origin main:refs/remotes/origin/main || true
+          if [ "$EVENEMENT" = "push" ] && [ "$GITHUB_REF" = "refs/heads/main" ]; then
+            parts=$(python3 outils/bancs/controler-client.py --plan --part 1/6 --modifies-depuis "$AVANT")
+          elif [ "$EVENEMENT" = "push" ]; then
+            parts=$(python3 outils/bancs/controler-client.py --plan --part 1/6 --modifies-depuis "")
+          else
+            parts='[1, 2, 3, 4, 5, 6]'
+          fi
+          echo "Parts à jouer : $parts"
+          echo "parts=$parts" >> "$GITHUB_OUTPUT"
+
   bancs-js:
+    needs: plan-bancs
+    if: needs.plan-bancs.outputs.parts != '[]'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
-        part: [1, 2, 3, 4, 5, 6]
+        part: ${{ fromJson(needs.plan-bancs.outputs.parts) }}
     steps:
       - uses: actions/checkout@v4
         with:

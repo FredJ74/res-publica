@@ -136,6 +136,9 @@ def main():
     parser.add_argument('--rapport', type=Path)
     parser.add_argument('--part', default='1/1')
     parser.add_argument('--modifies-depuis', dest='modifies_depuis')
+    # --plan (27/11/2026) : imprime en JSON les parts qui ont au moins un banc, sans rien exécuter ; la CI ne démarre
+    # pas les parts vides (leurs installations coûtaient une à deux minutes chacune pour rien).
+    parser.add_argument('--plan', action='store_true')
     args = parser.parse_args()
     try:
         k, n = (int(x) for x in args.part.split('/'))
@@ -143,7 +146,7 @@ def main():
     except (ValueError, AssertionError):
         parser.error('--part attend K/N avec 1 <= K <= N')
     node = shutil.which('node')
-    if not node:
+    if not node and not args.plan:
         parser.error('Node est requis pour les bancs natifs et les modules partages.')
     if args.rapport:
         args.rapport.mkdir(parents=True, exist_ok=True)
@@ -154,7 +157,10 @@ def main():
         modifies = fichiers_modifies(args.modifies_depuis)
         bancs = bancs_lies(bancs, modifies)
         print(f'Poussée : {len(bancs)} banc(s) liés aux fichiers modifiés'
-              + ('' if modifies is not None else ' (référence inutilisable : suite complète)') + '.', flush=True)
+              + ('' if modifies is not None else ' (référence inutilisable : suite complète)') + '.', flush=True, file=sys.stderr if args.plan else sys.stdout)
+    if args.plan:
+        print(json.dumps([p for p in range(1, n + 1) if repartir(bancs, p, n)]))
+        return 0
     bancs = repartir(bancs, k, n)
     print(f'Part {k}/{n} : {len(bancs)} banc(s).', flush=True)
     if not bancs:
