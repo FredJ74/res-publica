@@ -239,6 +239,9 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'consulter_archives_ecoute') { ouvrirConsultationArchives(); return; }
   if (fn === 'sovarka_habilitations') { ouvrirHabilitations(); return; }
   if (fn === 'interroger_renseignement') { ouvrirInterrogatoireRenseignement(); return; }
+  // QHS et juges : modèle de l'interrogatoire du goulag (Fred, 27/11/2026), plateau-interrogatoires.js.
+  if (fn === 'interroger') { ouvrirInterrogatoireQhs(); return; }
+  if (fn === 'indices_interrogatoire') { ouvrirIndicesInterrogatoire(); return; }
   if (fn === 'maison_habitant') { ouvrirMaisonHabitant(); return; }
   if (fn === 'trinquer_habitant') { trinquerHabitant(); return; }
   // Fermes et forêt profonde de Krasnov (10/11/2026, partie 2) : plateau-sovarka-provinces.js.

@@ -113,7 +113,7 @@ const THEMES = {
     ['Enquêtes', ['mener_enquete', 'organiser_filature', 'organiser_chasse_homme']],
     ['Effectifs et interventions', ['gerer_effectifs_police', 'recruter_policier', 'recruter_policier_cynophile', 'mobiliser_police']]],
   juge: [['Audiences et jugements', ['audience_juge', 'rendre_sentence']],
-    ['Actes et saisines', ['acte_officiel_juge', 'sovarka_retirer_droit', 'sovarka_ordres_ministre']], ['Vie du tribunal', ['sovarka_offrir_cafe']]],
+    ['Actes et saisines', ['acte_officiel_juge', 'indices_interrogatoire', 'sovarka_retirer_droit', 'sovarka_ordres_ministre']], ['Vie du tribunal', ['sovarka_offrir_cafe']]],
   procureur: [['Parquet', ['parquet']]],
   maire: [['Finances de la ville', ['fixer_impots_locaux', 'repartition_budget_local', 'subvention_proposer']],
     ['Sécurité', ['campagne_securite']], ['Nominations', ['nominations_municipales']], ['Commerces', ['sovarka_dossiers_commerciaux']]],

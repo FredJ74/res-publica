@@ -9,6 +9,19 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Mission du 27/11/2026 (soir) (Claude) — journal des étapes
+
+> Constat au départ : les deux migrations de l'après-midi (`20261127150000` ambassade de Novomirsk, `20261127160000` stage à la
+> caserne) sont **déjà appliquées** en production (registre lu le 27/11 au soir) : réception, mécénat et stage fonctionnent.
+
+- **Étape 1 — interrogatoires** (branche `claude/interrogatoire-detenus-20261127`) : migration `20261127220000_interrogatoires_detenus`
+  **appliquée et vérifiée** (épreuves dans une transaction annulée en production d'abord). QHS (commissaire), Renseignement
+  (ministres) et goulag (sous son verrou) : 1 PA, −7 PA au détenu, refus à 1 PA, jet de Volonté ; fait réel inconnu au juge qui a
+  condamné (goulag, QHS) ou aux juges du pays + copie au ministre (Renseignement) ; ordre « Indices d'interrogatoire » au Bureau
+  des magistrats (« Me saisir » ouvre une affaire au statut « saisie », « Classer ») ; « mauvais traitement » consigné contre
+  l'interrogateur (actions_tracables + historique_crimes). Écran : `plateau-interrogatoires.js`. Banc
+  `banc-interrogatoires-detenus-20261127.cjs`.
+
 ### Mission du 27/11/2026 (après-midi) (Claude) — compte rendu pour Fred
 
 1. **Parti en bêta, et comment le tester**

@@ -762,6 +762,7 @@
       "declencher_vote_confiance": "Déclencher un vote de confiance",
       "consulter_dossiers_gouv": "Consulter des dossiers",
       "fuite_info": "Produire une fuite",
+      "indices_interrogatoire": "Indices d'interrogatoire",
       "subvention": "Accorder une subvention",
       "gestion_industrielle_portuaire": "Gestion industrielle et portuaire",
       "preempter_entreprise": "Droit de preemption sur une entreprise"
@@ -784,6 +785,7 @@
       "declencher_vote_confiance": "Call a vote of confidence",
       "consulter_dossiers_gouv": "Review case files",
       "fuite_info": "Leak information",
+      "indices_interrogatoire": "Interrogation leads",
       "subvention": "Award a subsidy",
       "gestion_industrielle_portuaire": "Industrial and port management",
       "preempter_entreprise": "Pre-empt the purchase of a business"
@@ -806,6 +808,7 @@
       "declencher_vote_confiance": "Convocar una moción de confianza",
       "consulter_dossiers_gouv": "Consultar expedientes",
       "fuite_info": "Filtrar información",
+      "indices_interrogatoire": "Indicios de interrogatorio",
       "subvention": "Conceder una subvención",
       "gestion_industrielle_portuaire": "Gestión industrial y portuaria",
       "preempter_entreprise": "Derecho de adquisición preferente de una empresa"
@@ -828,6 +831,7 @@
       "declencher_vote_confiance": "發起信任投票",
       "consulter_dossiers_gouv": "查閱卷宗",
       "fuite_info": "洩露情報",
+      "indices_interrogatoire": "訊問線索",
       "subvention": "核發補助款",
       "gestion_industrielle_portuaire": "工業與港口管理",
       "preempter_entreprise": "企業優先收購權"
@@ -850,6 +854,7 @@
       "declencher_vote_confiance": "Инициировать вотум доверия",
       "consulter_dossiers_gouv": "Изучить дела",
       "fuite_info": "Организовать утечку",
+      "indices_interrogatoire": "Улики с допросов",
       "subvention": "Выделить субсидию",
       "gestion_industrielle_portuaire": "Управление промышленностью и портами",
       "preempter_entreprise": "Преимущественное право выкупа предприятия"
@@ -872,6 +877,7 @@
       "declencher_vote_confiance": "신임 투표 발의",
       "consulter_dossiers_gouv": "사건 기록 열람",
       "fuite_info": "정보 유출",
+      "indices_interrogatoire": "심문 단서",
       "subvention": "보조금 지급",
       "gestion_industrielle_portuaire": "산업 및 항만 관리",
       "preempter_entreprise": "기업 우선매수권 행사"
@@ -894,6 +900,7 @@
       "declencher_vote_confiance": "الدعوة إلى تصويت على الثقة",
       "consulter_dossiers_gouv": "الاطلاع على الملفات",
       "fuite_info": "تسريب معلومات",
+      "indices_interrogatoire": "قرائن الاستجواب",
       "subvention": "منح إعانة",
       "gestion_industrielle_portuaire": "إدارة الصناعة والموانئ",
       "preempter_entreprise": "حق الأولوية في شراء شركة"
@@ -916,6 +923,7 @@
       "declencher_vote_confiance": "Convocar um voto de confiança",
       "consulter_dossiers_gouv": "Consultar processos",
       "fuite_info": "Vazar informações",
+      "indices_interrogatoire": "Indícios de interrogatório",
       "subvention": "Conceder um subsídio",
       "gestion_industrielle_portuaire": "Gestão industrial e portuária",
       "preempter_entreprise": "Direito de preferência na compra de uma empresa"
@@ -938,6 +946,7 @@
       "declencher_vote_confiance": "Eine Vertrauensabstimmung einleiten",
       "consulter_dossiers_gouv": "Akten einsehen",
       "fuite_info": "Informationen durchsickern lassen",
+      "indices_interrogatoire": "Hinweise aus Verhören",
       "subvention": "Einen Zuschuss gewähren",
       "gestion_industrielle_portuaire": "Industrie- und Hafenverwaltung",
       "preempter_entreprise": "Vorkaufsrecht für ein Unternehmen"

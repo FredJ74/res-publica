@@ -32,8 +32,11 @@ test('ordres : habilitations au bureau de la Sécurité du Peuple, consultation 
 test('écran : routes, lieu de détention en salle d’interrogatoire, réponses du serveur seules', () => {
   for (const r of ['consulter_archives_ecoute', 'sovarka_habilitations', 'interroger_renseignement']) assert.match(routeur, new RegExp("fn === '" + r + "'"));
   assert.match(justice, /d\.interrogatoire && typeof d\.interrogatoire\.batiment === 'string'/);
-  for (const rpc of ['sovarka_habilitations_lire', 'sovarka_habilitation_accorder', 'sovarka_habilitation_retirer', 'sovarka_ecoute_archives_consulter', 'renseignement_detenus_interrogatoire', 'renseignement_interroger'])
+  for (const rpc of ['sovarka_habilitations_lire', 'sovarka_habilitation_accorder', 'sovarka_habilitation_retirer', 'sovarka_ecoute_archives_consulter'])
     assert.ok(prov.includes("'" + rpc + "'"), rpc);
+  // Interrogatoire : déplacé dans plateau-interrogatoires.js (modèle du goulag, Fred, 27/11/2026).
+  const interro = fs.readFileSync(new URL('../../plateau-interrogatoires.js', import.meta.url), 'utf8');
+  for (const rpc of ['renseignement_detenus_interrogatoire', 'renseignement_interroger']) assert.ok(interro.includes("'" + rpc + "'"), rpc);
   assert.doesNotMatch(prov.slice(prov.indexOf('HABILITATIONS, CONSULTATION')), /Math\.random|Date\.now/);
 });
 

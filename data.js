@@ -2442,7 +2442,7 @@ const WORLD = {
               // Voleur d'archives arrete a Novomirsk : detenu ici jusqu'a son interrogatoire (Fred, 13/11/2026).
               // Ministre de la Defense ou de la Securite du Peuple ; le serveur verifie (renseignement_interroger).
               excludeOrders: ['interroger_renseignement'],
-              orders: [{fn:'interroger_renseignement', label:'Interroger un detenu', pa:2, cost:0, type:'legal', icon:'ti-message-circle', successRate:75, desc:'Obtenir des informations. +INF si succes.'}]
+              orders: [{fn:'interroger_renseignement', label:'Interroger un detenu', pa:1, cost:0, type:'legal', icon:'ti-message-circle', successRate:50, desc:"Parodie de torture, régime d'exception (Fred, 27/11/2026). −7 PA au détenu (jamais sous 1). Un fait réel peut être révélé : il part aux juges du pays, et une copie vous parvient au courrier. Consigné comme mauvais traitement."}]
             }
           }
         },
@@ -4284,6 +4284,7 @@ const BUILDINGS = {
           {fn:'parquet',   label:'Dossiers du parquet',   pa:0, cost:0,   type:'legal',   icon:'ti-scale-outline', successRate:100, requiresPost:'procureur', desc:'Reserve au Procureur de la Republique. Diligenter une enquete, prononcer un non-lieu, engager ou abandonner les poursuites, saisir le juge, citer un temoin. Chaque acte exige votre presence dans le tribunal de la ville de l\'affaire.'},
           {fn:'rendre_sentence', label:'Rendre la sentence', pa:2, cost:0, type:'legal', icon:'ti-scale', successRate:100, requiresPost:'juge', desc:'Juger une affaire dont le parquet vous a saisi. Requalification, relaxe ou condamnation ; la peine est bornee par le bareme.'},
           {fn:'audience_juge', label:'Tenir l\'audience', pa:0, cost:0, type:'legal', icon:'ti-podium', successRate:100, requiresPost:'juge', desc:'Ouvrir l\'audience d\'une affaire dont vous etes saisi, citer un temoin, et donner ou retirer la parole. L\'ouverture verrouille la defense : plus de revocation ni de changement d\'avocat.'},
+          {fn:'indices_interrogatoire', label:'Indices d\'interrogatoire', pa:0, cost:0, type:'legal', icon:'ti-file-search', successRate:100, requiresPost:'juge', desc:"Faits révélés en interrogatoire (goulag, QHS, Renseignement) : vous en saisir ouvre une affaire à votre nom, ou les classer."},
           {fn:'acte_officiel_juge', label:'Delivrer un acte officiel', pa:1, cost:0, type:'legal', icon:'ti-file-certificate', successRate:100, requiresPost:'juge', desc:'Rechercher une personne et lui delivrer l\'extrait d\'etat-civil/succession correspondant.'}
         ]
       },
@@ -6153,6 +6154,7 @@ const BUILDINGS = {
           {fn:'parquet',   label:'Dossiers du parquet',   pa:0, cost:0,   type:'legal',   icon:'ti-scale-outline', successRate:100, requiresPost:'procureur', desc:'Reserve au Procureur de la Republique. Diligenter une enquete, prononcer un non-lieu, engager ou abandonner les poursuites, saisir le juge, citer un temoin. Chaque acte exige votre presence dans le tribunal de la ville de l\'affaire.'},
           {fn:'rendre_sentence', label:'Rendre la sentence', pa:2, cost:0, type:'legal', icon:'ti-scale', successRate:100, requiresPost:'juge', desc:'Juger une affaire dont le parquet vous a saisi. Requalification, relaxe ou condamnation ; la peine est bornee par le bareme.'},
           {fn:'audience_juge', label:'Tenir l\'audience', pa:0, cost:0, type:'legal', icon:'ti-podium', successRate:100, requiresPost:'juge', desc:'Ouvrir l\'audience d\'une affaire dont vous etes saisi, citer un temoin, et donner ou retirer la parole. L\'ouverture verrouille la defense : plus de revocation ni de changement d\'avocat.'},
+          {fn:'indices_interrogatoire', label:'Indices d\'interrogatoire', pa:0, cost:0, type:'legal', icon:'ti-file-search', successRate:100, requiresPost:'juge', desc:"Faits révélés en interrogatoire (goulag, QHS, Renseignement) : vous en saisir ouvre une affaire à votre nom, ou les classer."},
           {fn:'acte_officiel_juge', label:'Delivrer un acte officiel', pa:1, cost:0, type:'legal', icon:'ti-file-certificate', successRate:100, requiresPost:'juge', desc:'Rechercher une personne et lui delivrer l\'extrait d\'etat-civil/succession correspondant.'}
         ]
       },
@@ -8230,9 +8232,9 @@ const BUILDINGS = {
   // Ordres : ceux du socle, sans mecanique nouvelle.
   //  - Salle des ecoutes : « Renseignement militaire » (cellule_renseignement_creer, RPC seule
   //    payeuse : 3 PA et 500 sur la caisse <pays>_gouvernement-min_def), reserve au ministre de la Defense.
-  //  - Salle d'interrogatoire : copie de « Interroger un detenu » du QHS (2 PA, 75 %, +5 INF),
-  //    reservee au ministre de la Defense ; ordre generique tenu par ordre_generique_executer
-  //    (ligne interroger_renseignement de ordres_generiques, migration 20261105004500).
+  //  - Salle d'interrogatoire : « Interroger un detenu » sur le modele du goulag (Fred, 27/11/2026) :
+  //    1 PA, −7 PA au detenu, jet de Volonte ; fait revele aux juges ; mauvais traitement consigne
+  //    (renseignement_interroger, migration 20261127220000).
   'siege-renseignement': {
     name: "Siège du Renseignement militaire",
     shortName: "Renseignement",
@@ -8265,7 +8267,7 @@ const BUILDINGS = {
         desc: "Lumière crue, table métallique, miroir sans tain. Les questions y sont courtes, les réponses le sont rarement.",
         persons: [],
         orders: [
-          {fn:'interroger_renseignement', label:'Interroger un detenu', pa:2, cost:0, type:'legal', icon:'ti-message-circle', successRate:75, requiresPost:'min_def', desc:'Obtenir des informations. +INF si succes.'}
+          {fn:'interroger_renseignement', label:'Interroger un detenu', pa:1, cost:0, type:'legal', icon:'ti-message-circle', successRate:50, requiresPost:'min_def', desc:"Parodie de torture, régime d'exception (Fred, 27/11/2026). −7 PA au détenu (jamais sous 1). Un fait réel peut être révélé : il part aux juges du pays, et une copie vous parvient au courrier. Consigné comme mauvais traitement."}
         ]
       }
     }
@@ -8316,7 +8318,7 @@ const BUILDINGS = {
         imageUrl: "images/qhs-luthecia-salle-interrogatoire.webp",
         persons: [],
         orders: [
-          {fn:'interroger',        label:'Interroger un detenu',        pa:2, cost:0,    type:'legal',   icon:'ti-message-circle', successRate:75, requiresPost:'commissaire', desc:'Obtenir des informations. +INF si succes.'}
+          {fn:'interroger',        label:'Interroger un detenu',        pa:1, cost:0,    type:'legal',   icon:'ti-message-circle', successRate:50, requiresPost:'commissaire', desc:"Parodie de torture, régime d'exception (Fred, 27/11/2026). −7 PA au détenu (jamais sous 1). Un fait réel peut être révélé au juge qui l'a condamné. Consigné comme mauvais traitement."}
         ]
       },
       promenoir: {
@@ -11481,6 +11483,9 @@ function slugPnjSovarka(nom) {
         { requiresPost: 'juge' }),
       Object.assign(ordre('sovarka_ordres_ministre', 'Prendre les ordres du ministre', 0, 'ti-mail-opened',
         'Réservé au juge : les consignes du ministre de la Justice prolétarienne pour chacune de vos affaires. Vous restez libre de votre jugement… et le ministre, de vous démettre.'),
+        { requiresPost: 'juge' }),
+      Object.assign(ordre('indices_interrogatoire', 'Indices d\'interrogatoire', 0, 'ti-file-search',
+        'Faits révélés en interrogatoire (goulag, QHS, Renseignement) : vous en saisir ouvre une affaire à votre nom, ou les classer.'),
         { requiresPost: 'juge' }),
       Object.assign(ordre('sovarka_offrir_cafe', 'Offrir un café', 0, 'ti-coffee',
         'Réservé au magistrat : un café aux personnes présentes dans le bureau. +10 Moral pour chacune ; 1 PSK par café, pris sur la caisse du tribunal ; un café par jour et par personne.'),

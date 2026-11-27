@@ -195,25 +195,7 @@ async function consulterArchivesEcoute() {
   if (typeof addJournalEntry === 'function') addJournalEntry('Archives d’écoute consultées (' + centre + ') : ' + v.cible + ', ' + v.nb + ' communication(s).', '');
 }
 
-async function ouvrirInterrogatoireRenseignement() {
-  const v = await sbRpcVerdict('renseignement_detenus_interrogatoire', {}).catch(() => null);
-  if (!v || v.ok !== true) { showToast(provT('tInterro'), provMotif(v), false); return; }
-  const detenus = Array.isArray(v.detenus) ? v.detenus : [];
-  const html = '<p>' + provT('interroIntro') + '</p>' + (detenus.length
-    ? detenus.map(d => '<div style="margin:.3rem 0">' + provEchapper(d.nom) + vehBouton(provT('interroGo'), provJs('interrogerDetenuRenseignement', d.nom), true) + '</div>').join('')
-    : '<p class="cpj-note">' + provT('interroNone') + '</p>');
-  provModal(provT('tInterro'), html, ouvrirInterrogatoireRenseignement);
-}
-async function interrogerDetenuRenseignement(nom) {
-  const v = await sbRpcVerdict('renseignement_interroger', { p_detenu: nom }).catch(() => null);
-  if (!v || v.ok !== true) { showToast(provT('tInterro'), provMotif(v), false); return; }
-  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: v.pa });
-  if (v.reussi && typeof adopterJaugeServeur === 'function') adopterJaugeServeur('inf', v.inf);
-  showToast(provT('tInterroOk'), provT('interroOk', { nom: provEchapper(v.detenu) }) + (v.reussi ? provT('interroInf') : ''), true);
-  if (typeof addJournalEntry === 'function') addJournalEntry('Interrogatoire de ' + v.detenu + ' à la Direction du Renseignement.', 'event-good');
-  if (typeof updateUI === 'function') updateUI();
-  await ouvrirInterrogatoireRenseignement();
-}
+// « Interroger un détenu » (Renseignement) : plateau-interrogatoires.js (modèle du goulag, Fred, 27/11/2026).
 
 // ---------- MAISONS (hospitalité russe) ----------
 Object.assign(PROV_MOTIFS, provRaisons(['service_non_rendu', 'deja_mange', 'deja_heberge', 'heberge_ailleurs', 'service_incomplet',
