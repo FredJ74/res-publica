@@ -14,6 +14,103 @@ Règles : voir `AGENTS.md`.
 - Origine : `b343ff38` (interrogatoires), `ecd537d2` (ordres creux) et `14d14fae` (transferts) ont modifié le catalogue le 27/11 après la dernière génération du seed (`27833838`, 26/11). Cinq anciennes entrées, deux entrées gratuites manquantes, deux anciens tarifs à 2 PA : diff déjà conservé dans #1216.
 - Supabase contrôlé **en lecture seule, transaction annulée** : `interroger` et `interroger_renseignement` valent 1 PA/0, confirmé aussi dans les corps RPC ; les cinq ordres retirés sont absents. Les deux nouvelles entrées sont des ouvertures gratuites de fenêtres (`plateau-router.js` retourne avant paiement), pas des actions payantes ; `demander_transfert_detenu` reste à 1 PA/0. Aucun joueur, coût serveur ou fonction SQL modifié ; aucune migration appliquée. Preuve `outils/audits/MIROIR-COUTS-SUPABASE-20261128.json`.
 - Correction exclusivement générée par `outils/baseline/regenerer-seeds-miroirs.py` : seed `ordres_couts` et son empreinte, aucun générateur modifié. Les huit miroirs sont conformes ; banc global (six contrôles Python), réconciliation PostgreSQL jetable et garde du monde neuf passent. CI complète et fusion à suivre dans la PR ; après fusion, rebaser #1216, vérifier et fusionner sa clôture.
+### Mission du 27/11/2026 (soir) (Claude) — compte rendu pour Fred
+
+> Au départ : les deux mises à jour de l'après-midi (ambassade de Novomirsk, stage à la caserne) étaient déjà appliquées en
+> production. La réception et le mécénat de Républia à Novomirsk et le stage à la caserne fonctionnent donc.
+
+1. **Parti en bêta, et comment le tester**
+   - **Interroger un détenu** (QHS : le commissaire ; Renseignement : ministres de la Défense et, en Sovarka, de la Sécurité
+     du Peuple ; goulag : visiteurs habilités, toujours verrouillé). 1 PA pour l'interrogateur, −7 PA au détenu (jamais sous
+     1), refus si le détenu a 1 PA ou moins, chance 50 % + 5 par point de Volonté d'écart.
+     - En cas de réussite, un fait réel encore inconnu est révélé : au juge qui a condamné (goulag, QHS) ou aux juges du pays
+       (Renseignement), avec une copie au courrier du ministre, sans bouton.
+     - Les juges ont un nouvel ordre au Bureau des magistrats, « Indices d'interrogatoire » : « Me saisir » ouvre une affaire
+       à leur nom (elle apparaît dans leurs dossiers), « Classer » l'écarte.
+     - Chaque interrogatoire, réussi ou non, est consigné comme mauvais traitement contre l'interrogateur ; le détenu reçoit
+       un courrier qui nomme son interrogateur et peut porter plainte.
+     - *Pour tester* : avec le commissaire, au QHS, salle d'interrogatoire ; puis avec le juge qui a condamné, au Bureau des
+       magistrats, « Indices d'interrogatoire ».
+   - **Produire une fuite** (Archives Gouvernementales du Palais du Gouvernement de Républia) : même jeu que le vol d'archives
+     d'écoute (témoin, détection, bagarre, même peine). Réussite : une archive réelle entre dans l'inventaire (un fait
+     compromettant d'un membre du gouvernement, ou le solde réel d'une caisse ministérielle) ; libre à vous de la monnayer.
+     Plus de +5 influence / +10 popularité. La fuite de Sovarka ne change pas.
+   - **Suppressions et grisés** : « Participer aux délibérations » (la loge reste un lieu de rencontre), « Placements et
+     optimisation fiscale », « Consulter la caisse » / « Consulter le stock » de la scierie, « Propagande d'État » de la salle
+     de presse présidentielle de Républia et « Gestion du goulag » ont disparu, avec leurs textes et traductions.
+     « Blanchir des fonds » et « Créer une société écran » sont grisés « Bientôt disponible ».
+   - **Transfert d'un détenu** (ambassades de Républia à Novomirsk et de Sovarka à Luthécia) : l'ambassadeur demande
+     (1 PA) le transfert d'un compatriote détenu dans le pays hôte ; le ministre des Affaires étrangères du pays hôte accepte
+     ou refuse depuis son bureau (« Demandes de transfert de détenus ») ; s'il accepte, le détenu part à la prison de la
+     capitale de son pays et y purge le reste de sa peine, sans un jour de plus. Courrier aux deux à chaque étape. Grisé
+     pour El Estado et Al-Khalija.
+   - **Cartons d'invitation** (Grande Salle du Pavillon des Ambassadeurs, Novomirsk) : après la réservation (inchangée,
+     1 500 PSK), l'organisateur choisit ses invités dans la liste des joueurs ; chacun reçoit un carton nominatif et un
+     courrier. Le jour même, l'invité « Donne » son carton à une hôtesse ou au garde de l'accueil : sans contrôle d'identité,
+     la Grande Salle lui est ouverte jusqu'à minuit (cette pièce seulement). La description de la réception de Novomirsk
+     parle maintenant de la Grande Salle du Pavillon.
+   - **Falsifier un document** (greffe ou imprimante, règles inchangées) : la liste ne propose plus que les documents qui
+     ont un effet (voir point 3) ; pour le carton, le faussaire choisit la date de la réception.
+   - **Accessoire personnalisé** (buvette des stades, boutique à Starovka) : ouvert à tous ; on choisit maillot, casquette ou
+     écharpe et on écrit sa personnalisation ; à l'étape du paiement, « Paiement bientôt disponible », rien n'est créé ni
+     débité. Le prix se règle dans la page MJ (produit « Accessoire de club personnalisé », pas encore fixé).
+   - **Règle générale : deux objets revêtus au plus** (masque et tenue de ninja compris) : le serveur refuse le troisième.
+     Un accessoire personnalisé revêtu donne +10 popularité, perdus s'il est retiré, vendu, donné ou volé.
+   - **Décision consignée, non codée** : capitales d'El Estado et d'Al-Khalija en teaser (GAME-DESIGN-LANCEMENT.md,
+     décision 17, avec le relevé des bâtiments, rues, images et du garde-fou `frontieres_fermees_v1`).
+
+2. **Mises à jour du serveur appliquées et vérifiées** (chacune essayée d'abord dans une transaction annulée en production,
+   puis appliquée, puis relue) :
+   - `20261127220000_interrogatoires_detenus` ;
+   - `20261127230000_fuite_archives_gouvernement` ;
+   - `20261127233000_ordres_creux_nettoyage` ;
+   - `20261127234000_transfert_detenu_ambassades` ;
+   - `20261127235000_pavillon_cartons_invitation` ;
+   - `20261127236000_faux_documents_effectifs` ;
+   - `20261127237000_accessoire_personnalise_revetir` (et son complément `accessoire_personnalise_offre_boutique` pour la
+     boutique des stades de Sovarka).
+   - Non déployée : la fonction de génération d'image de l'accessoire (`supabase/edge-functions/accessoire-personnalise`),
+     inutile tant que le paiement est fermé.
+
+3. **Documents falsifiables réellement branchés**
+   - Faux laissez-passer : archives des centres d'écoute de Sovarka, ou QHS (déjà en place, inchangé).
+   - Faux carton d'invitation à la Grande Salle du Pavillon, date au choix (nouveau).
+   - Retirés de la liste, faute d'effet : fausse identité, faux permis de construire, faux contrat commercial, fausse
+     convocation. Permis de construire et compromis de vente ne sont pas ajoutés : la banque ne les exige pas (question
+     ci-dessous).
+
+4. **Questions de game design notées, non tranchées**
+   - **Prêts et documents** : la Banque Nationale accorde ses prêts (« travaux », « consommation ») sans demander de permis
+     de construire ni de compromis de vente, et il n'existe pas de « prêt immobilier ». Faut-il que la banque les exige ? Ces
+     deux faux deviendraient alors falsifiables.
+   - **Faux sans effet** : faut-il redonner un effet à la fausse identité, au faux contrat ou à la fausse convocation, ou les
+     laisser hors du jeu ?
+   - **Fuite** : les « informations réelles » retenues sont les faits compromettants des membres du gouvernement et les soldes
+     des caisses ministérielles ; le coût reste 3 PA (le vol d'écoute coûte 2 PA). D'autres sources, ou 2 PA ?
+   - **Interrogatoire au Renseignement** : comme avant (règle du 13/11), le voleur repart en cellule après un seul
+     interrogatoire. Faut-il permettre plusieurs interrogatoires tant qu'il a des PA ?
+   - **Mauvais traitement** : la trace dure 8 jours, comme les autres traces du jeu. Plus longtemps ?
+   - **Transfert** : les détenus du QHS, du goulag et de la salle d'interrogatoire ne sont pas transférables ; la prison
+     d'arrivée est celle de la capitale (pas la ville de domiciliation du 25/10). À confirmer.
+   - **Cartons** : toute institution étrangère qui réserve la Grande Salle peut inviter (pas seulement l'ambassadeur) ;
+     40 invités au plus par envoi ; l'accès est contrôlé à l'entrée, personne n'est expulsé à minuit.
+   - **Accessoire** : la popularité étant plafonnée à 100, un joueur déjà à 100 perd 10 en retirant l'accessoire.
+     Faut-il garder le plafond ?
+   - **Capitales en teaser** : accès, durée de séjour, bâtiments ouverts, sort de leurs ordres, PNJ, et Al Madina qui n'a
+     encore ni rue ni navigation propre.
+
+5. **Pour Codex** (textes nouveaux ; Claude a fourni une traduction en neuf langues à relire, sauf mention)
+   - Écrans : `plateau-interrogatoires.js`, `plateau-fuite-archives.js`, `plateau-transferts-detenus.js`,
+     `plateau-pavillon-cartons.js` (cartons et faux carton), `plateau-accessoire-personnalise.js`.
+   - Ordres : `indices_interrogatoire`, `transferts_detenus` (orders-resources) ; clés d'équipement `fauxLaissezPasser`,
+     `fauxCarton`.
+   - Descriptions ajoutées aux infobulles : interrogatoire du QHS, indices d'interrogatoire, transfert d'un détenu, demandes de
+     transfert, falsifier un document, accessoire personnalisé (catalogue commun) ; interrogatoire du Renseignement,
+     réservation de la Grande Salle, réception de Novomirsk corrigée « Grande Salle du Pavillon des Ambassadeurs »
+     (catalogue de Sovarka).
+   - **Sans traduction** : la description de « Produire une fuite » (data.js, Républia) et le refus
+     `r_deux_objets_revetus_max` de `plateau-criminalite.js` (module en français seulement) ; les courriers serveur
+     (interrogatoires, transferts, cartons) sont en français, comme les autres courriers système.
 
 ### Mission du 27/11/2026 (soir) (Claude) — journal des étapes
 
