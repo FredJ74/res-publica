@@ -30,7 +30,7 @@ test('grâces, manifestations, subvention, garde et sondages sont déclarés dan
  assert.match(economie,/fn: 'subvention'.*requiresPost: 'min_fin'/);
  assert.match(economie,/150 PSK/);
  assert.match(justice,/sovarka_registre_plaintes/);
- assert.match(justice,/fn: 'sovarka_goulag_gestion'.*bientot:/);
+ assert.doesNotMatch(justice,/sovarka_goulag_gestion/); // supprimé (Fred, 27/11/2026) : le ministre garde l'accès au goulag
  assert.doesNotMatch(justice,/fn: 'gestion_qhs'/);
  assert.match(defense,/sovarka_ecoutes/);
  assert.match(defense,/Garde de la Patrie/);

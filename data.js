@@ -862,8 +862,6 @@ const WORLD = {
               // desormais aussi le stock de produits finis -- aucun 3e ordre de consultation
               // necessaire.
               orders: [
-                {fn:'consulter_caisse_usine', label:'Consulter la caisse', pa:0, cost:0, type:'legal', icon:'ti-cash', successRate:100, desc:'Voir le solde actuel de la caisse de la Scierie.'},
-                {fn:'consulter_stock_usine', label:'Consulter le stock', pa:0, cost:0, type:'legal', icon:'ti-boxes', successRate:100, desc:'Voir les matières premières et les produits finis actuellement détenus par la Scierie.'},
                 {fn:'vendre_matiere_usine', label:'Vendre des matières à l\'usine', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre à la Scierie, depuis votre inventaire, le bois ou le minerai que vous avez achetés à l\'Entrepôt Logistique.'},
                 {fn:'consulter_catalogue_manufactures', label:'Catalogue des produits', pa:0, cost:0, type:'legal', icon:'ti-shopping-bag', successRate:100, desc:'Consulter les articles de la Scierie, leurs stocks et tarifs ; choisir Produire ou Acheter pour chaque article.'}
               ]
@@ -2257,9 +2255,7 @@ const WORLD = {
             bureau_min_just:{ name: 'Bureau - Ministre de la Justice prolétarienne', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_justice.webp',
                               orders: [{ fn: 'sovarka_saisir_juge', label: 'Saisir le juge', pa: 1, cost: 0, type: 'legal', icon: 'ti-gavel', successRate: 100, requiresPost: 'min_just', desc: "Vous seul saisissez le juge pour retirer un droit d'exploiter. Juge PNJ : retrait automatique ; juge PJ : décision libre." },
                                        // Justice de Sovarka (Fred, 08/11/2026) : pas de procureur ; le ministre saisit le juge ou enterre, et donne ses consignes.
-                                       { fn: 'sovarka_registre_plaintes', label: 'Affaires judiciaires', pa: 0, cost: 0, type: 'legal', icon: 'ti-scale', successRate: 100, requiresPost: 'min_just', desc: "Toutes les plaintes de Sovarka : saisir le juge ou enterrer l'affaire, et envoyer au juge vos consignes (condamner sévèrement, légèrement, relaxer, ou libre à lui) jusqu'à la veille du procès." },
-                                       // Ne jamais réutiliser les ordres QHS de Républia : le goulag de Starovka exige son propre raccordement.
-                                       { fn: 'sovarka_goulag_gestion', label: 'Gestion du goulag', pa: 0, cost: 0, type: 'grey', icon: 'ti-building-fortress', successRate: 100, requiresPost: 'min_just', bientot: 'Le goulag de Starovka doit encore être raccordé. Aucun dossier de détenu ni pouvoir pénitentiaire ne peut être traité ici.', desc: 'Le goulag de Sovarka sera géré par la Justice prolétarienne lorsque son bâtiment et ses données seront opérationnels.' }] },
+                                       { fn: 'sovarka_registre_plaintes', label: 'Affaires judiciaires', pa: 0, cost: 0, type: 'legal', icon: 'ti-scale', successRate: 100, requiresPost: 'min_just', desc: "Toutes les plaintes de Sovarka : saisir le juge ou enterrer l'affaire, et envoyer au juge vos consignes (condamner sévèrement, légèrement, relaxer, ou libre à lui) jusqu'à la veille du procès." }] },
             bureau_min_def: { name: 'Bureau - Ministre de la Défense de la Patrie', imageUrl: 'images/Sovarka/Novomirsk/Novomirsk_palais_min_defense.webp',
                               // Exclure les pouvoirs propres a l'armee de Republia.
                               excludeOrders: ['mobilisation_nationale','activer_cessez_le_feu','garde_republicaine'],
@@ -3520,7 +3516,6 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'conference_presse',  label:'Conference de presse', i18nKey:'variant.press_conference',  pa:2, cost:0,   type:'legal', icon:'ti-microphone',   successRate:100, requiresPost:'president', desc:'Annonce presidentielle. Fort impact POP et INF.'},
-          {fn:'propagande_etat',    label:'Propagande d\'Etat',    pa:3, cost:500, type:'grey',  icon:'ti-broadcast',    successRate:75,  requiresPost:'president', desc:'Campagne de communication massive : +POP important, payé par la caisse du ministère. Aucun jet ; la campagne coûte 5 points de diplomatie au pays.'},
           {fn:'dementi',            label:'Dementi officiel',       pa:2, cost:0,   type:'legal', icon:'ti-x',            successRate:80,  requiresPost:'president', desc:'Selectionner une rumeur active visant le president ou le gouvernement pour la dementir. Succes : rumeur effacee, POP retablie. Echec : perte de POP doublee.'}
         ]
       },
@@ -4385,10 +4380,9 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'gerer_finances',    label:'Ouvrir / gérer mon compte', i18nKey:'variant.finance_open_account', pa:0, cost:0, type:'legal', icon:'ti-chart-bar', successRate:100, desc:'Ouverture : versement de 10 000 FR conservé sur le compte ; solde minimum 10 000 FR. Dépôts, retraits et placements.'},
-          {fn:'compte_offshore',   label:'Placements et optimisation fiscale', pa:0, cost:0, type:'legal', icon:'ti-world', successRate:100, desc:'Placements declares et offshore avec Ursula Offshore.'},
           {fn:'emprunter_prive',   label:'Emprunter (sans verification)', pa:1, cost:0, type:'grey', icon:'ti-credit-card', successRate:100, desc:'Aucune verification. Taux eleve. Methode de recouvrement... directe en cas d\'impaye.'},
-          {fn:'blanchiment',       label:'Blanchir des fonds',     pa:0, cost:0,    type:'illegal', icon:'ti-refresh',      successRate:100, desc:'Service a l\'etude. Pas encore disponible.'},
-          {fn:'societe_ecran',     label:'Creer une societe ecran',pa:0, cost:0,    type:'illegal', icon:'ti-building-off', successRate:100, desc:'Service a l\'etude. Pas encore disponible.'}
+          {fn:'blanchiment',       label:'Blanchir des fonds',     pa:0, cost:0,    type:'illegal', icon:'ti-refresh',      successRate:100, bientot:true, desc:'Service a l\'etude. Pas encore disponible.'},
+          {fn:'societe_ecran',     label:'Creer une societe ecran',pa:0, cost:0,    type:'illegal', icon:'ti-building-off', successRate:100, bientot:true, desc:'Service a l\'etude. Pas encore disponible.'}
         ]
       }
     }
@@ -4755,9 +4749,7 @@ const BUILDINGS = {
         locked: true,
         persons: [],
         orders: [
-          // fn propre a la loge (11 septembre 2026) : partageait 'voter_loi' avec l'Assemblee et
-          // ouvrait son vote. Ordre generique, comme a sa creation : 2 PA, succes garanti, +3 INF.
-          {fn:'deliberer_loge', label:'Participer aux deliberations', pa:2, cost:0, type:'legal', icon:'ti-check', successRate:100, requiresPost:false}
+          // « Participer aux délibérations » supprimé (Fred, 27/11/2026) : la loge reste un lieu de rencontre RP.
         ]
       }
     }

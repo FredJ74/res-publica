@@ -67,9 +67,8 @@ async function main() {
  html=await run(commerce,'async function doVendreMatiereArmurerie(','async function confirmerVenteMatiere(',arm,gun,[]);
  check('Armurerie : aucun faux plafond inventé',html.includes('Stock Métal : 49 / sans plafond'));
  check('Armurerie : saisie désactivée sans matière',html.includes('id="vendre-qte-metal" min="1" max="0" disabled'));
- check('Scierie : ordre caisse historique conservé au tarif',data.includes("fn:'consulter_caisse_usine'"));
- check('Scierie : ordre stock historique conservé au tarif',data.includes("fn:'consulter_stock_usine'"));
- check('Scierie : deux ordres hérités masqués par le rendu',politique.includes("['consulter_caisse_usine','consulter_stock_usine'].includes(o.fn)"));
+ // Fred, 27/11/2026 : les deux ordres hérités masqués (caisse, stock) sont supprimés.
+ check('Scierie : ordres caisse et stock hérités supprimés',!data.includes("fn:'consulter_caisse_usine'")&&!data.includes("fn:'consulter_stock_usine'"));
  check('Scierie : ordre vendre conservé',data.includes("fn:'vendre_matiere_usine'"));
  check('Anciennes routes caisse/stock supprimées',!router.includes("fn === 'consulter_caisse_usine'")&&!router.includes("fn === 'consulter_stock_usine'"));
  check('Caisses usines non publiées dans l’en-tête',!nav.includes("'usine-pharmaceutique-luthecia': 'usine'"));

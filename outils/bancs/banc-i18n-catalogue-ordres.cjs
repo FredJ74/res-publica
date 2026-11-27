@@ -11,7 +11,7 @@ for(const file of ['resources.js','orders-resources.js','ordres.js'])
 const engine={t(key,{lng,defaultValue}){return key.split('.').reduce((v,k)=>v?.[k],win.RP_I18N_RESOURCES[lng].translation)??defaultValue}};
 test('422 ordres canoniques ont les mêmes identifiants dans neuf langues',()=>{
  const ref=Object.keys(win.RP_I18N_RESOURCES.fr.translation.orders);
- assert.equal(ref.length,423); // +1 indices_interrogatoire (27/11, interrogatoires) ; −1 contrebande_port (26/11, ordre supprimé par Fred) ; −2 corrompre_rdv_notaire, corrompre_chantier (20/11, criminalité lot 7)  ; +1 boutique_climat (19/11, climat lot 5) ; +1 acheter_graisse (19/11, climat lot 4) ; +1 acheter_furet (18/11, maladies lot 2c)
+ assert.equal(ref.length,419); // −4 deliberer_loge, compte_offshore, consulter_caisse_usine, consulter_stock_usine (27/11, ordres supprimés par Fred) ; +1 indices_interrogatoire (27/11, interrogatoires) ; −1 contrebande_port (26/11, ordre supprimé par Fred) ; −2 corrompre_rdv_notaire, corrompre_chantier (20/11, criminalité lot 7)  ; +1 boutique_climat (19/11, climat lot 5) ; +1 acheter_graisse (19/11, climat lot 4) ; +1 acheter_furet (18/11, maladies lot 2c)
  for(const lang of Object.keys(win.RP_I18N_LANGUAGES)) {
   const data=win.RP_I18N_RESOURCES[lang].translation.orders;
   assert.deepEqual(Object.keys(data),ref);
@@ -386,9 +386,9 @@ test('20 ordres services publics et justice : noms canoniques et invariants mét
 });
 
 
-test('18 ordres finances et enquêtes : correspondance aux labels français et droits inchangés',()=>{
+test('16 ordres finances et enquêtes (−compte_offshore, −deliberer_loge, Fred 27/11) : correspondance aux labels français et droits inchangés',()=>{
  const source=fs.readFileSync(path.join(root,'data.js'),'utf8');
- const ids=["greffe_corrompre_faux_casier","compte_offshore","societe_ecran","vendre_ressource_medicale","presenter_autorisation_coffre","casier_extrait_enquete","recruter_informateur_2","consulter_info_4","gerer_informateurs","deliberer_loge","recruter_etud","syndicat_etudiant_creer","syndicat_etudiant_gerer","objet_trouve","faire_disparaitre_cadavre","voler_materiel_chantier","reconfigurer_lots","manger_ration"];
+ const ids=["greffe_corrompre_faux_casier","societe_ecran","vendre_ressource_medicale","presenter_autorisation_coffre","casier_extrait_enquete","recruter_informateur_2","consulter_info_4","gerer_informateurs","recruter_etud","syndicat_etudiant_creer","syndicat_etudiant_gerer","objet_trouve","faire_disparaitre_cadavre","voler_materiel_chantier","reconfigurer_lots","manger_ration"];
  const existing=new Map();for(const match of source.matchAll(/\bfn\s*:\s*(['"])([^'"\n]+)\1\s*,\s*label\s*:\s*(['"])([^'"\n]+)\3/g)){
   if(!existing.has(match[2]))existing.set(match[2],new Set());existing.get(match[2]).add(match[4]);
  }

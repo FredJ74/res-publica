@@ -587,17 +587,6 @@ window.RP_INFOBULLES_REPUBLIA = [
     "Eröffnung: Einzahlung von 10 000 FR, die auf dem Konto verbleiben; Mindestguthaben 10 000 FR. Einzahlungen, Abhebungen und Anlagen."
   ],
   [
-    "Placements declares et offshore avec Ursula Offshore.",
-    "Declared and offshore investments with Ursula Offshore.",
-    "Inversiones declaradas y extraterritoriales con Ursula Offshore.",
-    "透過 Ursula Offshore 辦理申報投資與境外投資。",
-    "Декларируемые и офшорные инвестиции с Ursula Offshore.",
-    "Ursula Offshore를 통한 신고 투자와 역외 투자.",
-    "استثمارات معلنة وخارجية مع Ursula Offshore.",
-    "Investimentos declarados e offshore com Ursula Offshore.",
-    "Deklarierte und Offshore-Anlagen bei Ursula Offshore."
-  ],
-  [
     "Aucune verification. Taux eleve. Methode de recouvrement... directe en cas d'impaye.",
     "No checks. High interest rate. Collection methods are... direct in case of non-payment.",
     "Sin comprobaciones. Interés elevado. Método de cobro... directo en caso de impago.",
@@ -915,28 +904,6 @@ window.RP_INFOBULLES_REPUBLIA = [
     "اختر هدفًا (لاعبًا أو منظمة أو محلًا أو حكومة أو دولة) وحدد الموضوع أو الزاوية المطلوبة. تكتب هيئة التحرير بنفسها مقالًا مؤيدًا ولا يُكشف عنك بصفتك ممولًا. النجاح (75% + المعدّلات): تُخصم 500 FR. الفشل: ترفض هيئة التحرير دون رسوم.",
     "Escolha um alvo (PJ, organização, estabelecimento, governo ou país) e o tema ou abordagem desejada. A redação escreve um artigo realmente favorável sem revelar o patrocinador. Sucesso (75% + modificadores): cobra 500 FR. Falha: a redação recusa, sem custo.",
     "Ziel auswählen (Spielerfigur, Organisation, Lokal, Regierung oder Land) und Thema bzw. Blickwinkel festlegen. Die Redaktion schreibt selbst einen positiven Artikel, ohne Sie als Auftraggeber zu nennen. Erfolg (75% + Modifikatoren): 500 FR werden abgebucht. Misserfolg: Ablehnung ohne Gebühr."
-  ],
-  [
-    "Voir le solde actuel de la caisse de la Scierie.",
-    "View the Sawmill's current treasury balance.",
-    "Consultar el saldo actual de la caja del Aserradero.",
-    "查看鋸木廠金庫的目前餘額。",
-    "Посмотреть текущий остаток в кассе лесопилки.",
-    "제재소 금고의 현재 잔액을 확인합니다.",
-    "عرض الرصيد الحالي لصندوق المنشرة.",
-    "Consultar o saldo atual do caixa da Serraria.",
-    "Den aktuellen Kassenstand des Sägewerks einsehen."
-  ],
-  [
-    "Voir les matières premières et les produits finis actuellement détenus par la Scierie.",
-    "View the raw materials and finished products currently held by the Sawmill.",
-    "Consultar las materias primas y productos terminados almacenados en el Aserradero.",
-    "查看鋸木廠目前持有的原材料與成品。",
-    "Посмотреть сырьё и готовую продукцию на лесопилке.",
-    "제재소가 현재 보유 중인 원자재와 완제품을 확인합니다.",
-    "عرض المواد الخام والمنتجات الجاهزة الموجودة حاليًا في المنشرة.",
-    "Ver as matérias-primas e produtos acabados atualmente na Serraria.",
-    "Rohstoffe und Fertigwaren im aktuellen Bestand des Sägewerks ansehen."
   ],
   [
     "Vendre à la Scierie, depuis votre inventaire, le bois ou le minerai que vous avez achetés à l'Entrepôt Logistique.",

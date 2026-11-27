@@ -342,10 +342,10 @@
     {
       "source": "i18n/orders-resources.js",
       "packed": "i18n/packed/orders-resources.js.br",
-      "sourceBytes": 252182,
-      "packedBytes": 49131,
-      "sourceSha256": "5173c4d06dd4d78b82ad956962c570c7d5992f12a894226649f3c684909816d1",
-      "packedSha256": "b08e9bdc42063fd6729e1749a66a455e29c8f84d7bd37b473f565e1b01f3f4ee"
+      "sourceBytes": 249062,
+      "packedBytes": 48824,
+      "sourceSha256": "1c4aeea77b30d714ab08cfb796ee5f070f24f61f99e3fb6adb46f8fa9e8acb04",
+      "packedSha256": "6f0aa198b8b8c58c586e8aa53684d37c3fba637e2728dcf2d4fb76a2e586cdc7"
     },
     {
       "source": "i18n/organization-admissions-resources.js",
@@ -478,10 +478,10 @@
     {
       "source": "i18n/republia-infobulles-resources.js",
       "packed": "i18n/packed/republia-infobulles-resources.js.br",
-      "sourceBytes": 155724,
-      "packedBytes": 51643,
-      "sourceSha256": "6478e7381ce2a3b6454c1cf6fba1e9f659853b9934fd7b67b5cb03767afee1cc",
-      "packedSha256": "2d03895a88ca5e802a8c45e5078e50c8e1ecd9226636a3d73bc5f63ac3c70725"
+      "sourceBytes": 153740,
+      "packedBytes": 51116,
+      "sourceSha256": "08945b5d42c484893b83bc5d935ce6e806d8c53cc3aac26f0da726e9202c455c",
+      "packedSha256": "2bf0ca8692f3b43d7d5da96f6e9079b14402b78e098f46478266d1234c3aa2e1"
     },
     {
       "source": "i18n/resources.js",
@@ -566,10 +566,10 @@
     {
       "source": "i18n/sovarka-infobulles-resources.js",
       "packed": "i18n/packed/sovarka-infobulles-resources.js.br",
-      "sourceBytes": 183356,
-      "packedBytes": 59945,
-      "sourceSha256": "b878567802182b0e7dd3f8d17ce9abf7d739a14b9de9d8c0e39e0bde5d004c27",
-      "packedSha256": "5f5ed4c600d6ea6ef6917927b25291fe97853eeaf1db45711310a47802015941"
+      "sourceBytes": 182031,
+      "packedBytes": 59446,
+      "sourceSha256": "d71878c726eb7680f3c2e574ffa2de23601bde09d6685481d7424e609213a73e",
+      "packedSha256": "0d6d5e9f939bbf15656c599a3cbe59fd4b2f84c68ae53fc748ba6e280ebc0411"
     },
     {
       "source": "i18n/sovarka-justice-resources.js",
@@ -646,10 +646,10 @@
     {
       "source": "i18n/toast-bodies-resources.js",
       "packed": "i18n/packed/toast-bodies-resources.js.br",
-      "sourceBytes": 783462,
-      "packedBytes": 196702,
-      "sourceSha256": "893f468be88f9a574b29e84909770638a62ed119ac84a31d4ec0b8cf1bc82d81",
-      "packedSha256": "2f60793cc0d6411ffbf8b9bd27a13fffc019186857bc60c3a1a38feb6ed2cf12"
+      "sourceBytes": 782983,
+      "packedBytes": 196710,
+      "sourceSha256": "ba8fb0ae927c56c105c3974bf56f02ec0b55ffc8cd7f398fca1845f017bbf7f9",
+      "packedSha256": "9729cde32a7a91b04a536eee9c43f5132bb65ce7d3157d8f85fb653d4c27ba89"
     },
     {
       "source": "i18n/toast-resources.js",

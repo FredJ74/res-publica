@@ -29,6 +29,13 @@ Règles : voir `AGENTS.md`.
   ministérielle) rejoint l'inventaire. Plus de +5 INF / +10 POP. Écran `plateau-fuite-archives.js`, banc
   `banc-fuite-archives-20261127.cjs`.
 
+- **Étape 3 — nettoyage des ordres creux** (branche `claude/ordres-creux-nettoyage-20261127`) : migration
+  `20261127233000_ordres_creux_nettoyage` **appliquée et vérifiée**. Supprimés : « Participer aux délibérations » (loge),
+  « Placements et optimisation fiscale » (Helvetia), « Consulter la caisse » / « Consulter le stock » (scierie),
+  « Propagande d'État » de la salle de presse présidentielle (Républia), « Gestion du goulag » (ministre de la Justice de
+  Sovarka). Grisés « Bientôt disponible » : « Blanchir des fonds », « Créer une société écran ». Textes et traductions retirés.
+  Banc `banc-ordres-creux-nettoyage-20261127.cjs`.
+
 ### Mission du 27/11/2026 (après-midi) (Claude) — compte rendu pour Fred
 
 1. **Parti en bêta, et comment le tester**
