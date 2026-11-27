@@ -9,7 +9,80 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
-### Mission du 27/11/2026 (après-midi) (Claude) — en cours
+### Mission du 27/11/2026 (après-midi) (Claude) — compte rendu pour Fred
+
+1. **Parti en bêta, et comment le tester**
+   - **Contrôles automatiques** : un changement d'un fichier partagé (data.js, migrations, traductions…) relance de nouveau les
+     mêmes contrôles qu'avant hier soir, pas davantage. Rien à tester en jeu.
+   - **Ambassade de Républia à Novomirsk** (Palais des Ambassades, bureau de Républia) : « Consulter les relations bilatérales »,
+     « Organiser une réception diplomatique » et « Financer une œuvre culturelle » ne sont plus grisés. Ils sont réservés à
+     l'ambassadeur de Républia nommé à Novomirsk, aux mêmes coûts qu'à Luthécia (affichés en PSK, parité 1 PSK = 1 FR).
+     - *Pour tester* : avec le ministre des Affaires étrangères de Républia, ouvrir une ambassade en Sovarka et nommer un
+       ambassadeur. Avec l'ambassadeur, aller au bureau de Républia du Palais : les relations s'ouvrent tout de suite.
+     - Réception et mécénat dépendent d'une **mise à jour du serveur à valider** (ci-dessous). D'ici là, l'ordre répond
+       « Cet ordre ouvrira à Novomirsk dès la mise à jour du serveur. Rien n'a été prélevé. »
+     - Après la mise à jour : réserver la Grande Salle de Réception du Pavillon des Ambassadeurs (« Réserver la réception »,
+       1 500 PSK payés par la caisse du ministère, comme décidé le 11/11), puis organiser la réception depuis le bureau. Chaque
+       joueur de Sovarka présent dans la Grande Salle rapporte +1 Indice et +1 popularité (plafonds +10 et +5) ; personne :
+       −3 et −3. Une réception par réservation.
+   - **Stage à la caserne** : c'est maintenant le serveur qui donne le +5 en Volonté et qui tient la règle des trois jours puis
+     sept jours de repos. Avant, l'écran ajoutait la Volonté lui-même, mais la base la refusait : l'effet était perdu au
+     rechargement. Cela aussi attend la **mise à jour du serveur** ; d'ici là, le stage refuse sans rien prélever.
+     - *Pour tester (après la mise à jour)* : au Corps de Garde d'une caserne, faire le stage, recharger la page : la Volonté
+       a gagné 5 et reste ; un second stage le même jour est refusé.
+   - **Polonium** : rien ne change en jeu (voir point 4).
+
+2. **Contrôles automatiques** (simulation sur les 60 derniers envois de main, durées réelles mesurées)
+
+   | Envoi qui touche… | Avant (8b6952b) | Après hier soir (aa0f31e) | Après correction |
+   |---|---|---|---|
+   | une image seule (7 images d'El Estado) | 5 workflows, 13,8 min-machine | 3 workflows, 1,8 min | 3 workflows, 1,8 min |
+   | un fichier de jeu isolé (23 envois) | 9 workflows, 17,9 min | 9 workflows, 13,8 min | 9 workflows, 13,8 min |
+   | un fichier partagé (37 envois) | 35 workflows, 47,3 min | 79 workflows, 85,7 min | 35 workflows, 47,2 min |
+   | **total des 60 envois** | **2 163 min** | **3 491 min** | **2 064 min** |
+
+   Le passage de chaque contrôle chaque nuit sur main est conservé. Le banc de garde vérifie désormais qu'aucun contrôle ne
+   reprend la liste complète des fichiers partagés. Aucun des 60 envois n'était une image seule : la ligne vient du cas réel
+   des sept images d'El Estado.
+
+3. **Ordres d'ambassade raccordés**
+   - Ambassade de Républia à Novomirsk : relations bilatérales (tout de suite), réception et mécénat (après la mise à jour).
+   - Ambassade de Sovarka à Luthécia : ces trois ordres y étaient déjà actifs, rien à raccorder.
+   - Il n'existe aucune autre ambassade de Républia ou de Sovarka dans le jeu. Les bureaux d'Al-Khalija et d'El Estado à
+     Novomirsk restent grisés.
+   - « Demander le transfert d'un détenu » reste grisé partout (ta décision du 01/11).
+   - Le banc `banc-ambassades-republia-sovarka-20261127.cjs` ouvre les deux ambassades et contrôle les ordres actifs et grisés.
+
+4. **Polonium : la décision du 20/11 ne retire pas le polonium.** Elle retire seulement l'ordre de l'ancien « Port de Novomirsk »
+   (bâtiment absent de la carte). Le polonium reste vendu par le colonel Voronov au radar de Krasnov et par Kalachnikov au marché
+   noir ; elle prévoit aussi que Ganbaatar refuse de donner le vendeur (« je ne suis pas une balance »).
+   - **Retiré** : la route de l'ancien ordre `acheter_polonium` dans le routeur. Plus aucun bouton ne l'appelait ; ses traductions
+     étaient déjà classées comme retirées.
+   - **Laissés, car la décision les crée** : « Interroger le chef de quai sur le polonium » (la réplique de Ganbaatar), « Demander
+     au colonel des nouvelles de notre ami de Luthécia » et la fonction `polonium_colonel_acheter`, ainsi que la vente au marché
+     noir.
+   - L'audit de cette nuit se trompait en disant « polonium retiré du jeu le 20/11 » : il est corrigé (Ganbaatar passe en
+     « garder » ; propositions : 425 à garder, 10 à enrichir, 5 à supprimer).
+
+5. **À valider par Fred : deux mises à jour du serveur**, écrites et testées en local, non appliquées faute de feu vert dans la
+   consigne :
+   - `20261127150000_ambassade_novomirsk_ordres` (réception et mécénat à Novomirsk) ;
+   - `20261127160000_stage_caserne_serveur` (stage à la caserne).
+   Chacune porte en tête ses contrôles à faire après l'application.
+
+6. **Questions de game design notées, non tranchées**
+   - **Polonium** : tu pensais le polonium retiré du jeu. La règle en vigueur est celle du 20/11 (colonel, Kalachnikov, refus de
+     Ganbaatar). Veux-tu la garder, ou retirer vraiment le polonium ?
+   - **Réception à Novomirsk** : seuls les dignitaires entrent dans la Grande Salle du Pavillon (ta décision du 11/11). Les joueurs
+     ordinaires de Sovarka ne peuvent donc pas y assister sans forcer le passage : une réception y rapportera surtout la présence
+     de dignitaires sovarkiens. Faut-il ouvrir la salle aux invités le jour d'une réception ?
+   - **Réservation de la salle** : à Luthécia, l'ambassadeur la réserve gratuitement (1 PA). À Novomirsk, c'est la réservation du
+     Pavillon, à 1 500 PSK payés par la caisse du ministère (ta décision du 11/11). Les deux restent ainsi tant que tu n'en décides
+     pas autrement.
+   - La description de l'ordre à Novomirsk dit toujours « Réserver la Salle de Réception commune » (texte traduit en neuf langues,
+     non modifié). Faut-il la réécrire pour le Pavillon ?
+
+### Mission du 27/11/2026 (après-midi) (Claude) — journal des étapes
 
 - Étape 1 (branche `claude/ci-fichiers-partages-20261127`) : les 141 contrôles filtrés retrouvent leurs chemins d'origine
   (référence 8b6952b) ; ils gardent leur passage de nuit. Un fichier partagé relance de nouveau 35 workflows en moyenne
