@@ -602,7 +602,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'consulter_manifeste')    { doConsulterManifeste(); return; }
   if (fn === 'acheter_parapluie')      { doAcheterPoisonObjet('parapluie'); return; }
   if (fn === 'acheter_ghb')            { doAcheterPoisonObjet('ghb', pa, cost); return; }
-  if (fn === 'acheter_polonium')       { doAcheterPoisonObjet('polonium', pa, cost); return; }
+  // « acheter_polonium » : route de l'ordre retiré du « Port de Novomirsk » orphelin (décision de Fred du 20/11/2026) ;
+  // le polonium se vend au marché noir (Kalachnikov) et par le colonel Voronov (acheter_polonium_colonel).
   // Lot de Krasnov, point 8 (20/11/2026) : contacts et secrets, polonium du colonel Voronov.
   // « Offrir un verre à l'habitué » SUPPRIME (bloc 3, point 25) : bouton « Lui offrir un verre » sur la fiche de l'habitué.
   if (fn === 'demander_fournisseur_kalachnikov') { ecouterSourceSecret('kalachnikov'); return; }

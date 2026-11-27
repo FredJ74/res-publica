@@ -68,7 +68,9 @@ test('provenance des phrases actives et des phrases retirées documentées',()=>
  // 20/11/2026 (criminalité lot 6) : la rébellion matée n'envoie plus au QHS (§ 14) ; son toast vient de plateau-criminalite.js (T.fr).
  const CRIM_LOT6=['Transfere au QHS. -25 PV, -15 DIS.'];
  // Audit des chances (mission du soir, 25/11/2026, bloc 1A) : la contrebande dit l'issue réelle, la visite passe par le serveur.
- const AUDIT_CHANCES=['La douane a repéré la manœuvre.',"Ce détenu n'est plus détenu au QHS."];
+ const AUDIT_CHANCES=['La douane a repéré la manœuvre.',"Ce détenu n'est plus détenu au QHS.",
+  // 27/11/2026 (après-midi) : le stage à la caserne passe par le serveur ; un manque de PA est nommé par signalerRefusCout.
+  'Il vous manque des PA pour ce stage.'];
  // 20/11/2026 (criminalité lot 7) : corruption — doCorruption, l'accélération du permis, du rendez-vous notarial et du chantier
  // sont supprimées (« le temps ne s'achète pas ») ; le directeur et le gardien du QHS passent par plateau-criminalite.js (T.fr).
  const CRIM_LOT7=["Vous n'avez pas de rendez-vous en attente ici.",'Le navigateur ne peut pas conserver la référence de cet ordre.','Le service a ete obtenu. -5 DIS.',

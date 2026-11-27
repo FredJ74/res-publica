@@ -646,10 +646,10 @@
     {
       "source": "i18n/toast-bodies-resources.js",
       "packed": "i18n/packed/toast-bodies-resources.js.br",
-      "sourceBytes": 782905,
-      "packedBytes": 196582,
-      "sourceSha256": "bb2d1ec900f3274f9632606767b477fdbf8fe8b3fd854a8499e388e1951e30a6",
-      "packedSha256": "de1f658e9a842da156230784a468de450eee30157a52659392d7a95e5379aab4"
+      "sourceBytes": 783462,
+      "packedBytes": 196702,
+      "sourceSha256": "893f468be88f9a574b29e84909770638a62ed119ac84a31d4ec0b8cf1bc82d81",
+      "packedSha256": "2f60793cc0d6411ffbf8b9bd27a13fffc019186857bc60c3a1a38feb6ed2cf12"
     },
     {
       "source": "i18n/toast-resources.js",
