@@ -13,7 +13,12 @@ Règles : voir `AGENTS.md`.
 
 - Étape 1 (branche `claude/ci-fichiers-partages-20261127`) : les 141 contrôles filtrés retrouvent leurs chemins d'origine
   (référence 8b6952b) ; ils gardent leur passage de nuit. Un fichier partagé relance de nouveau 35 workflows en moyenne
-  (47 min-machine) au lieu de 79 (86 min). Banc de garde mis à jour.
+  (47 min-machine) au lieu de 79 (86 min). Banc de garde mis à jour. **Fusionné** (50c9d137).
+- Étape 2 (branche `claude/ambassades-novomirsk-20261127`) : à l'Ambassade de Républia de Novomirsk, relations bilatérales,
+  réception diplomatique et mécénat ne sont plus grisés (mêmes fonctions et règles qu'à Luthécia ; la réception se tient
+  dans la Grande Salle du Pavillon, réservée par « Réserver la réception »). Migration `20261127150000` **écrite, testée
+  (PGlite), NON appliquée : à valider par Fred**. Sans elle, l'ordre répond « ouvrira dès la mise à jour du serveur »,
+  sans rien prélever. Banc `banc-ambassades-republia-sovarka-20261127.cjs`.
 
 ### Mission de nuit du 27/11/2026 (Claude) — compte rendu pour Fred
 
