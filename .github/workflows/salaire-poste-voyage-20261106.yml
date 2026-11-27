@@ -8,18 +8,6 @@ on:
     paths:
       - '.github/workflows/salaire-poste-voyage-20261106.yml'
       - 'outils/bancs/test-salaire-poste-voyage-20261106.mjs'
-      - 'data.js'
-      - 'plateau-core.js'
-      - 'plateau-router.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
 permissions:
   contents: read
 jobs:

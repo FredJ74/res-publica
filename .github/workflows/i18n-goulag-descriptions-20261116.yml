@@ -4,10 +4,10 @@ on:
   schedule:
     - cron: '45 3 * * *'
   pull_request:
-    paths: ['plateau.html', 'data.js', 'plateau-navigation.js', 'i18n/sovarka-descriptions-resources.js', 'i18n/packed/sovarka-descriptions-resources.js.br', 'outils/audits/I18N-GOULAG-DESCRIPTIONS-20261116*', 'outils/bancs/banc-i18n-goulag-descriptions-20261116.cjs', '.github/workflows/i18n-goulag-descriptions-20261116.yml', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
+    paths: ['plateau.html', 'data.js', 'plateau-navigation.js', 'i18n/sovarka-descriptions-resources.js', 'i18n/packed/sovarka-descriptions-resources.js.br', 'outils/audits/I18N-GOULAG-DESCRIPTIONS-20261116*', 'outils/bancs/banc-i18n-goulag-descriptions-20261116.cjs', '.github/workflows/i18n-goulag-descriptions-20261116.yml']
   push:
     branches: [main]
-    paths: ['plateau.html', 'data.js', 'plateau-navigation.js', 'i18n/sovarka-descriptions-resources.js', 'outils/bancs/banc-i18n-goulag-descriptions-20261116.cjs', '.github/workflows/i18n-goulag-descriptions-20261116.yml', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
+    paths: ['plateau.html', 'data.js', 'plateau-navigation.js', 'i18n/sovarka-descriptions-resources.js', 'outils/bancs/banc-i18n-goulag-descriptions-20261116.cjs', '.github/workflows/i18n-goulag-descriptions-20261116.yml']
 permissions:
   contents: read
 jobs:

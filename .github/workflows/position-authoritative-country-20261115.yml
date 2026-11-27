@@ -10,18 +10,6 @@ on:
       - plateau-rue-centrale.js
       - outils/bancs/test-position-authoritative-country-20261115.mjs
       - outils/bancs/test-restore-position-api-20261115.mjs
-      - 'data.js'
-      - 'plateau-core.js'
-      - 'plateau-router.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
 permissions:
   contents: read
 jobs:

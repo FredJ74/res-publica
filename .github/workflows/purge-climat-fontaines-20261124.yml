@@ -4,10 +4,10 @@ on:
   schedule:
     - cron: '42 3 * * *'
   pull_request:
-    paths: ['plateau-climat.js', 'plateau-router.js', 'plateau-chantier-vue.js', 'plateau.html', 'migrations/2026112413*', 'outils/bancs/banc-purge-climat-*', 'outils/bancs/banc-purge-fontaines-*', 'outils/bancs/banc-purge-canicule-*', 'outils/bancs/fixtures/purge-climat-*', 'images/fontaines/**', '.github/workflows/purge-climat-fontaines-20261124.yml', 'data.js', 'plateau-core.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
+    paths: [plateau-climat.js, plateau-router.js, plateau-chantier-vue.js, plateau.html, 'migrations/2026112413*', 'outils/bancs/banc-purge-climat-*', 'outils/bancs/banc-purge-fontaines-*', 'outils/bancs/banc-purge-canicule-*', 'outils/bancs/fixtures/purge-climat-*', 'images/fontaines/**', .github/workflows/purge-climat-fontaines-20261124.yml]
   push:
     branches: [main, 'claude/**']
-    paths: ['plateau-climat.js', 'plateau-router.js', 'plateau-chantier-vue.js', 'plateau.html', 'migrations/2026112413*', 'outils/bancs/banc-purge-climat-*', 'outils/bancs/banc-purge-fontaines-*', 'outils/bancs/banc-purge-canicule-*', 'outils/bancs/fixtures/purge-climat-*', 'images/fontaines/**', '.github/workflows/purge-climat-fontaines-20261124.yml', 'data.js', 'plateau-core.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
+    paths: [plateau-climat.js, plateau-router.js, plateau-chantier-vue.js, plateau.html, 'migrations/2026112413*', 'outils/bancs/banc-purge-climat-*', 'outils/bancs/banc-purge-fontaines-*', 'outils/bancs/banc-purge-canicule-*', 'outils/bancs/fixtures/purge-climat-*', 'images/fontaines/**', .github/workflows/purge-climat-fontaines-20261124.yml]
 permissions:
   contents: read
 jobs:

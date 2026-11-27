@@ -4,10 +4,10 @@ on:
   schedule:
     - cron: '51 3 * * *'
   pull_request:
-    paths: ['plateau-informateurs.js', 'plateau-core.js', 'outils/bancs/banc-state-window-*', 'plateau-criminalite.js', 'plateau-secrets.js', 'plateau-router.js', 'data.js', 'plateau.html', 'migrations/20261122180000_informateurs_refonte.sql', 'outils/bancs/*informateurs*', 'outils/bancs/fixtures/informateurs-*', 'outils/generateurs/generer-informateurs-lieux.cjs', '.github/workflows/informateurs-20261122.yml', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
+    paths: [plateau-informateurs.js, plateau-core.js, 'outils/bancs/banc-state-window-*', plateau-criminalite.js, plateau-secrets.js, plateau-router.js, data.js, plateau.html, 'migrations/20261122180000_informateurs_refonte.sql', 'outils/bancs/*informateurs*', 'outils/bancs/fixtures/informateurs-*', 'outils/generateurs/generer-informateurs-lieux.cjs', .github/workflows/informateurs-20261122.yml]
   push:
     branches: [main, 'claude/**']
-    paths: ['plateau-informateurs.js', 'plateau-core.js', 'outils/bancs/banc-state-window-*', 'plateau-criminalite.js', 'plateau-secrets.js', 'plateau-router.js', 'data.js', 'plateau.html', 'migrations/20261122180000_informateurs_refonte.sql', 'outils/bancs/*informateurs*', 'outils/bancs/fixtures/informateurs-*', 'outils/generateurs/generer-informateurs-lieux.cjs', '.github/workflows/informateurs-20261122.yml', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
+    paths: [plateau-informateurs.js, plateau-core.js, 'outils/bancs/banc-state-window-*', plateau-criminalite.js, plateau-secrets.js, plateau-router.js, data.js, plateau.html, 'migrations/20261122180000_informateurs_refonte.sql', 'outils/bancs/*informateurs*', 'outils/bancs/fixtures/informateurs-*', 'outils/generateurs/generer-informateurs-lieux.cjs', .github/workflows/informateurs-20261122.yml]
 permissions:
   contents: read
 jobs:

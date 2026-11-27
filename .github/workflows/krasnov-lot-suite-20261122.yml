@@ -4,10 +4,14 @@ on:
   schedule:
     - cron: '42 3 * * *'
   pull_request:
-    paths: ['plateau-marche-krasnov.js', 'plateau-surveillance.js', 'plateau-climat.js', 'plateau-router.js', 'plateau-personnage.js', 'plateau-organisations-quetes.js', 'data.js', 'plateau.html', 'migrations/20261122160000_krasnov_marche_unique.sql', 'migrations/20261122161000_points_eau_une_fontaine_par_ville.sql', 'migrations/20261122162000_pieces_inspecter_desinstaller.sql', 'outils/bancs/*krasnov-lot-suite*', 'outils/bancs/fixtures/krasnov-lot-suite-*', 'outils/bancs/test-fouiller-voler-ordre-20261111.mjs', '.github/workflows/krasnov-lot-suite-20261122.yml', 'plateau-core.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
+    paths: [plateau-marche-krasnov.js, plateau-surveillance.js, plateau-climat.js, plateau-router.js, plateau-personnage.js, plateau-organisations-quetes.js, data.js, plateau.html,
+      'migrations/20261122160000_krasnov_marche_unique.sql', 'migrations/20261122161000_points_eau_une_fontaine_par_ville.sql', 'migrations/20261122162000_pieces_inspecter_desinstaller.sql',
+      'outils/bancs/*krasnov-lot-suite*', 'outils/bancs/fixtures/krasnov-lot-suite-*', 'outils/bancs/test-fouiller-voler-ordre-20261111.mjs', .github/workflows/krasnov-lot-suite-20261122.yml]
   push:
     branches: [main, 'claude/**']
-    paths: ['plateau-marche-krasnov.js', 'plateau-surveillance.js', 'plateau-climat.js', 'plateau-router.js', 'plateau-personnage.js', 'plateau-organisations-quetes.js', 'data.js', 'plateau.html', 'migrations/20261122160000_krasnov_marche_unique.sql', 'migrations/20261122161000_points_eau_une_fontaine_par_ville.sql', 'migrations/20261122162000_pieces_inspecter_desinstaller.sql', 'outils/bancs/*krasnov-lot-suite*', 'outils/bancs/fixtures/krasnov-lot-suite-*', 'outils/bancs/test-fouiller-voler-ordre-20261111.mjs', '.github/workflows/krasnov-lot-suite-20261122.yml', 'plateau-core.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
+    paths: [plateau-marche-krasnov.js, plateau-surveillance.js, plateau-climat.js, plateau-router.js, plateau-personnage.js, plateau-organisations-quetes.js, data.js, plateau.html,
+      'migrations/20261122160000_krasnov_marche_unique.sql', 'migrations/20261122161000_points_eau_une_fontaine_par_ville.sql', 'migrations/20261122162000_pieces_inspecter_desinstaller.sql',
+      'outils/bancs/*krasnov-lot-suite*', 'outils/bancs/fixtures/krasnov-lot-suite-*', 'outils/bancs/test-fouiller-voler-ordre-20261111.mjs', .github/workflows/krasnov-lot-suite-20261122.yml]
 permissions:
   contents: read
 jobs:

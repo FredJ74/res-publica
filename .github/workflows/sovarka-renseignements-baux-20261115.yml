@@ -11,18 +11,6 @@ on:
       - plateau-organisations-quetes.js
       - outils/bancs/test-sovarka-se-renseigner-pays-20261115.mjs
       - .github/workflows/sovarka-renseignements-baux-20261115.yml
-      - 'data.js'
-      - 'plateau-core.js'
-      - 'plateau-router.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
 jobs:
   cloisonnement:
     runs-on: ubuntu-latest

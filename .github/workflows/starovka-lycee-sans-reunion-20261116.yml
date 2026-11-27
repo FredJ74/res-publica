@@ -9,17 +9,6 @@ on:
       - .github/workflows/starovka-lycee-sans-reunion-20261116.yml
       - data.js
       - outils/bancs/test-starovka-lycee-sans-reunion-20261116.cjs
-      - 'plateau-core.js'
-      - 'plateau-router.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
 permissions:
   contents: read
 jobs:

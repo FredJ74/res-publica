@@ -4,10 +4,10 @@ on:
   schedule:
     - cron: '20 3 * * *'
   pull_request:
-    paths: ['plateau-core.js', 'plateau.html', 'i18n/plateau-init.js', 'i18n/action-feedback-resources.js', 'outils/bancs/*refus-actions*', 'outils/bancs/fixtures/refus-actions*', 'outils/audits/I18N-REFUS-ACTIONS*', '.github/workflows/i18n-refus-actions.yml', 'data.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
+    paths: ['plateau-core.js', 'plateau.html', 'i18n/plateau-init.js', 'i18n/action-feedback-resources.js', 'outils/bancs/*refus-actions*', 'outils/bancs/fixtures/refus-actions*', 'outils/audits/I18N-REFUS-ACTIONS*', '.github/workflows/i18n-refus-actions.yml']
   push:
     branches: [main]
-    paths: ['plateau-core.js', 'i18n/plateau-init.js', 'i18n/action-feedback-resources.js', 'outils/bancs/*refus-actions*', '.github/workflows/i18n-refus-actions.yml', 'data.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
+    paths: ['plateau-core.js', 'i18n/plateau-init.js', 'i18n/action-feedback-resources.js', 'outils/bancs/*refus-actions*', '.github/workflows/i18n-refus-actions.yml']
 permissions:
   contents: read
 jobs:

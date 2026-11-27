@@ -10,17 +10,6 @@ on:
       - 'images/Sovarka/Novomirsk/Novomirsk_centre_artisanal_*'
       - 'outils/bancs/banc-centre-artisanal-novomirsk-20261110.mjs'
       - '.github/workflows/novomirsk-centre-artisanal-check.yml'
-      - 'plateau-core.js'
-      - 'plateau-router.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
 permissions:
   contents: read
 jobs:

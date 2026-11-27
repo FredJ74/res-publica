@@ -10,18 +10,6 @@ on:
       - 'migrations/20261031113547_detention_jours_civils_universels.sql'
       - 'outils/bancs/test-detention-jours-civils.mjs'
       - '.github/workflows/test-detention-jours-civils.yml'
-      - 'data.js'
-      - 'plateau-core.js'
-      - 'plateau-router.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
   push:
     branches:
       - 'correctif/detention-jours-civils-20261017'

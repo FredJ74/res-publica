@@ -14,17 +14,6 @@ on:
       - 'outils/bancs/clinique-nuitee-*'
       - 'outils/bancs/banc-clinique-nuitee-client.cjs'
       - '.github/workflows/clinique-nuitee.yml'
-      - 'data.js'
-      - 'plateau-core.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
 permissions:
   contents: read
 jobs:

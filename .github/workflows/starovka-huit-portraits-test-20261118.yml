@@ -10,33 +10,11 @@ on:
       - images/Sovarka/Starovka/**
       - outils/bancs/banc-starovka-huit-portraits-20261118.cjs
       - .github/workflows/starovka-huit-portraits-test-20261118.yml
-      - 'plateau-core.js'
-      - 'plateau-router.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
   pull_request:
     paths:
       - data.js
       - images/Sovarka/Starovka/**
       - outils/bancs/banc-starovka-huit-portraits-20261118.cjs
-      - 'plateau-core.js'
-      - 'plateau-router.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
 permissions:
   contents: read
 jobs:

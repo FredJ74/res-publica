@@ -4,10 +4,10 @@ on:
   schedule:
     - cron: '32 3 * * *'
   pull_request:
-    paths: ['migrations/20261122230000_sante_socle.sql', 'migrations/20261122231000_sante_combat.sql', 'migrations/20261122210000_foret_groupe_combat_meute.sql', 'outils/bancs/banc-sante-combat-pglite-20261122.cjs', 'outils/bancs/fixtures/sante-combat-ancrages.sql.txt', 'outils/bancs/fixtures/foret-combat-*', 'plateau-organisations-quetes.js', '.github/workflows/sante-combat-20261122.yml', 'data.js', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
+    paths: ['migrations/20261122230000_sante_socle.sql', 'migrations/20261122231000_sante_combat.sql', 'migrations/20261122210000_foret_groupe_combat_meute.sql', 'outils/bancs/banc-sante-combat-pglite-20261122.cjs', 'outils/bancs/fixtures/sante-combat-ancrages.sql.txt', 'outils/bancs/fixtures/foret-combat-*', plateau-organisations-quetes.js, .github/workflows/sante-combat-20261122.yml]
   push:
     branches: [main, 'claude/**']
-    paths: ['migrations/20261122230000_sante_socle.sql', 'migrations/20261122231000_sante_combat.sql', 'migrations/20261122210000_foret_groupe_combat_meute.sql', 'outils/bancs/banc-sante-combat-pglite-20261122.cjs', 'outils/bancs/fixtures/sante-combat-ancrages.sql.txt', 'outils/bancs/fixtures/foret-combat-*', 'plateau-organisations-quetes.js', '.github/workflows/sante-combat-20261122.yml', 'data.js', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
+    paths: ['migrations/20261122230000_sante_socle.sql', 'migrations/20261122231000_sante_combat.sql', 'migrations/20261122210000_foret_groupe_combat_meute.sql', 'outils/bancs/banc-sante-combat-pglite-20261122.cjs', 'outils/bancs/fixtures/sante-combat-ancrages.sql.txt', 'outils/bancs/fixtures/foret-combat-*', plateau-organisations-quetes.js, .github/workflows/sante-combat-20261122.yml]
 permissions:
   contents: read
 jobs:

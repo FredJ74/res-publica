@@ -4,10 +4,10 @@ on:
   schedule:
     - cron: '50 3 * * *'
   pull_request:
-    paths: ['i18n/**', 'plateau-politique.js', 'plateau-ordres-info.js', 'outils/audits/audit-i18n-global.cjs', 'outils/bancs/*socle-ordres*', '.github/workflows/i18n-socle-ordres.yml', 'data.js', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
+    paths: ['i18n/**', 'plateau-politique.js', 'plateau-ordres-info.js', 'outils/audits/audit-i18n-global.cjs', 'outils/bancs/*socle-ordres*', '.github/workflows/i18n-socle-ordres.yml']
   push:
     branches: [main]
-    paths: ['i18n/**', 'plateau-politique.js', 'plateau-ordres-info.js', 'outils/audits/audit-i18n-global.cjs', 'outils/bancs/*socle-ordres*', '.github/workflows/i18n-socle-ordres.yml', 'data.js', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
+    paths: ['i18n/**', 'plateau-politique.js', 'plateau-ordres-info.js', 'outils/audits/audit-i18n-global.cjs', 'outils/bancs/*socle-ordres*', '.github/workflows/i18n-socle-ordres.yml']
 permissions:
   contents: read
 jobs:

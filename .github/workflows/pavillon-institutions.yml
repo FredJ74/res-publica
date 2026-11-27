@@ -12,16 +12,6 @@ on:
       - 'plateau-router.js'
       - 'plateau.html'
       - '.github/workflows/pavillon-institutions.yml'
-      - 'plateau-core.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
 permissions:
   contents: read
 jobs:

@@ -16,18 +16,6 @@ on:
       - 'outils/bancs/banc-i18n-sovarka-ordres-novembre.cjs'
       - 'outils/bancs/banc-i18n-pnj-sociaux-amorces.cjs'
       - '.github/workflows/i18n-sovarka-pnj.yml'
-      - 'data.js'
-      - 'plateau-core.js'
-      - 'plateau-router.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
   push:
     paths:
       - 'i18n/orders-resources.js'
@@ -40,18 +28,6 @@ on:
       - 'outils/bancs/banc-i18n-sovarka-ordres-novembre.cjs'
       - 'outils/bancs/banc-i18n-pnj-sociaux-amorces.cjs'
       - '.github/workflows/i18n-sovarka-pnj.yml'
-      - 'data.js'
-      - 'plateau-core.js'
-      - 'plateau-router.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
 
 jobs:
   verifier:

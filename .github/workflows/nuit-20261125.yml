@@ -4,10 +4,10 @@ on:
   schedule:
     - cron: '8 3 * * *'
   pull_request:
-    paths: ['data.js', 'plateau-core.js', 'plateau-ordres-info.js', 'supabase.js', 'migrations/20261125*', 'outils/bancs/*-20261125.*', '.github/workflows/nuit-20261125.yml', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
+    paths: [data.js, plateau-core.js, plateau-ordres-info.js, supabase.js, 'migrations/20261125*', 'outils/bancs/*-20261125.*', .github/workflows/nuit-20261125.yml]
   push:
     branches: [main, 'claude/**']
-    paths: ['data.js', 'plateau-core.js', 'plateau-ordres-info.js', 'supabase.js', 'migrations/20261125*', 'outils/bancs/*-20261125.*', '.github/workflows/nuit-20261125.yml', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
+    paths: [data.js, plateau-core.js, plateau-ordres-info.js, supabase.js, 'migrations/20261125*', 'outils/bancs/*-20261125.*', .github/workflows/nuit-20261125.yml]
 permissions:
   contents: read
 jobs:

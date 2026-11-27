@@ -4,10 +4,10 @@ on:
   schedule:
     - cron: '4 3 * * *'
   pull_request:
-    paths: ['i18n/organization-creation-resources.js', 'i18n/packed/organization-creation-resources.js.br', 'outils/bancs/banc-i18n-saisie-parti-20261123.cjs', 'outils/bancs/banc-i18n-creation-organisation*.cjs', '.github/workflows/i18n-saisie-parti-20261123.yml', 'data.js', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
+    paths: ['i18n/organization-creation-resources.js', 'i18n/packed/organization-creation-resources.js.br', 'outils/bancs/banc-i18n-saisie-parti-20261123.cjs', 'outils/bancs/banc-i18n-creation-organisation*.cjs', '.github/workflows/i18n-saisie-parti-20261123.yml']
   push:
     branches: [main]
-    paths: ['i18n/organization-creation-resources.js', 'i18n/packed/organization-creation-resources.js.br', 'outils/bancs/banc-i18n-saisie-parti-20261123.cjs', 'outils/bancs/banc-i18n-creation-organisation*.cjs', '.github/workflows/i18n-saisie-parti-20261123.yml', 'data.js', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
+    paths: ['i18n/organization-creation-resources.js', 'i18n/packed/organization-creation-resources.js.br', 'outils/bancs/banc-i18n-saisie-parti-20261123.cjs', 'outils/bancs/banc-i18n-creation-organisation*.cjs', '.github/workflows/i18n-saisie-parti-20261123.yml']
 permissions:
   contents: read
 jobs:

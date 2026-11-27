@@ -8,17 +8,6 @@ on:
       - 'data.js'
       - 'outils/bancs/banc-novomirsk-palais-ambassades-reception-image-20261113.cjs'
       - '.github/workflows/novomirsk-ambassades-reception-image.yml'
-      - 'plateau-core.js'
-      - 'plateau-router.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
 permissions:
   contents: read
 jobs:

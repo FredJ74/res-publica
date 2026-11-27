@@ -12,17 +12,6 @@ on:
       - 'plateau-exploration-mobile.js'
       - 'outils/bancs/test-presences-mobile-browser-20261117.cjs'
       - '.github/workflows/presences-mobile.yml'
-      - 'plateau-core.js'
-      - 'plateau-router.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
 jobs:
   navigateur:
     runs-on: ubuntu-latest

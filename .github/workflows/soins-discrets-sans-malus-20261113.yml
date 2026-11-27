@@ -10,18 +10,6 @@ on:
       - migrations/20261113014500_soins_discrets_sans_malus_discretion.sql
       - baseline/seeds/90_socle/ordres_generiques.sql
       - outils/bancs/banc-soins-discrets-confidentialite-20261113.cjs
-      - 'data.js'
-      - 'plateau-core.js'
-      - 'plateau-router.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
 permissions:
   contents: read
 jobs:

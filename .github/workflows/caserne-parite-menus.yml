@@ -11,17 +11,6 @@ on:
       - 'outils/bancs/banc-caserne-parite-menus-20261113.cjs'
       - 'migrations/20261113230500_commandant_pnj_caserne_novomirsk.sql'
       - '.github/workflows/caserne-parite-menus.yml'
-      - 'plateau-core.js'
-      - 'plateau-router.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
   push:
     branches: [main]
     paths:
@@ -30,17 +19,6 @@ on:
       - 'i18n/room-actions-resources.js'
       - 'outils/bancs/banc-caserne-parite-menus-20261113.cjs'
       - 'migrations/20261113230500_commandant_pnj_caserne_novomirsk.sql'
-      - 'plateau-core.js'
-      - 'plateau-router.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
 jobs:
   verify:
     runs-on: ubuntu-latest

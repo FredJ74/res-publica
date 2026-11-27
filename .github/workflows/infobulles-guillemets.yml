@@ -9,18 +9,6 @@ on:
       - 'outils/bancs/banc-infobulles-guillemets-20261113.cjs'
       - 'outils/bancs/banc-ordres-info-tactile-20261113.cjs'
       - '.github/workflows/infobulles-guillemets.yml'
-      - 'data.js'
-      - 'plateau-core.js'
-      - 'plateau-router.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
 permissions:
   contents: read
 jobs:

@@ -4,10 +4,10 @@ on:
   schedule:
     - cron: '23 3 * * *'
   pull_request:
-    paths: ['forum.js', 'forum-canvas.js', 'sens-saisie.js', 'index.html', 'plateau.html', 'supabase.js', 'plateau-politique.js', 'plateau-medecin-montrer.js', 'plateau-multijoueur.js', 'api/_pnj-personnalites.js', 'data.js', 'migrations/20261124110*', 'outils/bancs/banc-forums-*', 'outils/bancs/banc-pa-jauge-*', 'outils/bancs/banc-candidature-conditions-*', 'outils/bancs/banc-chat-aucun-message-*', 'outils/bancs/banc-sens-saisie-*', 'outils/bancs/fixtures/forums-acces-*', '.github/workflows/purge-forums-20261124.yml', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'style.css', 'rue-centrale.css', 'vercel.json']
+    paths: [forum.js, forum-canvas.js, sens-saisie.js, index.html, plateau.html, supabase.js, plateau-politique.js, plateau-medecin-montrer.js, plateau-multijoueur.js, api/_pnj-personnalites.js, data.js, 'migrations/20261124110*', 'outils/bancs/banc-forums-*', 'outils/bancs/banc-pa-jauge-*', 'outils/bancs/banc-candidature-conditions-*', 'outils/bancs/banc-chat-aucun-message-*', 'outils/bancs/banc-sens-saisie-*', 'outils/bancs/fixtures/forums-acces-*', .github/workflows/purge-forums-20261124.yml]
   push:
     branches: [main, 'claude/**']
-    paths: ['forum.js', 'forum-canvas.js', 'sens-saisie.js', 'index.html', 'plateau.html', 'supabase.js', 'plateau-politique.js', 'plateau-medecin-montrer.js', 'plateau-multijoueur.js', 'api/_pnj-personnalites.js', 'data.js', 'migrations/20261124110*', 'outils/bancs/banc-forums-*', 'outils/bancs/banc-pa-jauge-*', 'outils/bancs/banc-candidature-conditions-*', 'outils/bancs/banc-chat-aucun-message-*', 'outils/bancs/banc-sens-saisie-*', 'outils/bancs/fixtures/forums-acces-*', '.github/workflows/purge-forums-20261124.yml', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'style.css', 'rue-centrale.css', 'vercel.json']
+    paths: [forum.js, forum-canvas.js, sens-saisie.js, index.html, plateau.html, supabase.js, plateau-politique.js, plateau-medecin-montrer.js, plateau-multijoueur.js, api/_pnj-personnalites.js, data.js, 'migrations/20261124110*', 'outils/bancs/banc-forums-*', 'outils/bancs/banc-pa-jauge-*', 'outils/bancs/banc-candidature-conditions-*', 'outils/bancs/banc-chat-aucun-message-*', 'outils/bancs/banc-sens-saisie-*', 'outils/bancs/fixtures/forums-acces-*', .github/workflows/purge-forums-20261124.yml]
 permissions:
   contents: read
 jobs:

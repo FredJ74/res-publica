@@ -4,10 +4,10 @@ on:
   schedule:
     - cron: '2 3 * * *'
   pull_request:
-    paths: ['plateau-communication.js', 'plateau.html', 'style.css', 'i18n/player-directory-resources.js', 'outils/bancs/*repertoire-courrier*', '.github/workflows/i18n-repertoire-courrier.yml', 'data.js', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'rue-centrale.css', 'vercel.json']
+    paths: ['plateau-communication.js', 'plateau.html', 'style.css', 'i18n/player-directory-resources.js', 'outils/bancs/*repertoire-courrier*', '.github/workflows/i18n-repertoire-courrier.yml']
   push:
     branches: [main]
-    paths: ['plateau-communication.js', 'plateau.html', 'style.css', 'i18n/player-directory-resources.js', 'outils/bancs/*repertoire-courrier*', '.github/workflows/i18n-repertoire-courrier.yml', 'data.js', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'rue-centrale.css', 'vercel.json']
+    paths: ['plateau-communication.js', 'plateau.html', 'style.css', 'i18n/player-directory-resources.js', 'outils/bancs/*repertoire-courrier*', '.github/workflows/i18n-repertoire-courrier.yml']
 permissions:
   contents: read
 jobs:

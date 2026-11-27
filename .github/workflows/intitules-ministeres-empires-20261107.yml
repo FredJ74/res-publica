@@ -10,16 +10,6 @@ on:
       - 'data.js'
       - 'plateau-core.js'
       - 'outils/bancs/banc-intitules-ministeres-empires.cjs'
-      - 'plateau-router.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
 permissions:
   contents: read
 jobs:

@@ -5,7 +5,7 @@ on:
     - cron: '47 3 * * *'
   push:
     branches: [chatgpt/starovka-correction-bureaux-20261116]
-    paths: ['.github/workflows/test-starovka-bureaux-20261116.yml', 'outils/bancs/test-starovka-open-space-20261116.cjs', 'plateau-open-space.js', 'data.js', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
+    paths: ['.github/workflows/test-starovka-bureaux-20261116.yml', 'outils/bancs/test-starovka-open-space-20261116.cjs', 'plateau-open-space.js', 'data.js']
 permissions:
   contents: read
 jobs:

@@ -12,16 +12,6 @@ on:
       - plateau-navigation.js
       - plateau.html
       - outils/bancs/test-krasnov-centre-affaires-cadrage-20261115.mjs
-      - 'plateau-core.js'
-      - 'plateau-router.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'rue-centrale.css'
-      - 'vercel.json'
 permissions:
   contents: read
 jobs:

@@ -4,10 +4,10 @@ on:
   schedule:
     - cron: '39 3 * * *'
   pull_request:
-    paths: ['plateau-politique.js', 'plateau-ordres-info.js', 'plateau.html', 'style.css', 'outils/bancs/*ordres-info-tactile*20261113.cjs', '.github/workflows/ordres-info-tactile.yml', 'data.js', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'rue-centrale.css', 'vercel.json']
+    paths: [plateau-politique.js, plateau-ordres-info.js, plateau.html, style.css, 'outils/bancs/*ordres-info-tactile*20261113.cjs', .github/workflows/ordres-info-tactile.yml]
   push:
     branches: [main, codex/ordres-info-tactile-20261113]
-    paths: ['plateau-politique.js', 'plateau-ordres-info.js', 'plateau.html', 'style.css', 'outils/bancs/*ordres-info-tactile*20261113.cjs', '.github/workflows/ordres-info-tactile.yml', 'data.js', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'rue-centrale.css', 'vercel.json']
+    paths: [plateau-politique.js, plateau-ordres-info.js, plateau.html, style.css, 'outils/bancs/*ordres-info-tactile*20261113.cjs', .github/workflows/ordres-info-tactile.yml]
 permissions:
   contents: read
 jobs:

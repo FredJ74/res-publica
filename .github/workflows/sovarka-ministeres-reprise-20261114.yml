@@ -16,16 +16,6 @@ on:
       - 'plateau-router.js'
       - 'i18n/sovarka-partis-resources.js'
       - 'migrations/20261114040000_sovarka_ministeres_lot2_sans_budget_obsolete.sql'
-      - 'plateau-core.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
   workflow_dispatch:
 permissions:
   contents: read

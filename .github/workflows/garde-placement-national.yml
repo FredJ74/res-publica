@@ -12,17 +12,6 @@ on:
       - 'supabase.js'
       - 'plateau-justice-economie.js'
       - 'plateau-communication.js'
-      - 'data.js'
-      - 'plateau-core.js'
-      - 'plateau-router.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
   push:
     branches: [main]
 permissions:

@@ -12,16 +12,6 @@ on:
       - 'migrations/20261113210100_renseignement_garde_pays_du_mandat.sql'
       - 'outils/bancs/banc-dotation-cloisonnement-sovarka-20261113.cjs'
       - '.github/workflows/sovarka-dotation-mandats.yml'
-      - 'plateau-core.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
   push:
     branches: [main]
     paths:
@@ -31,16 +21,6 @@ on:
       - 'migrations/20261113210000_novomirsk_dotation_initiale_stock.sql'
       - 'migrations/20261113210100_renseignement_garde_pays_du_mandat.sql'
       - 'outils/bancs/banc-dotation-cloisonnement-sovarka-20261113.cjs'
-      - 'plateau-core.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
 jobs:
   verify:
     runs-on: ubuntu-latest

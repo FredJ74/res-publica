@@ -4,10 +4,10 @@ on:
   schedule:
     - cron: '48 3 * * *'
   pull_request:
-    paths: ['plateau-accueil-interview.js', 'plateau-politique.js', 'plateau-evenements-personnage.js', 'plateau.html', 'style.css', 'data.js', 'api/journal-interview.js', 'api/jodie-portrait.js', 'migrations/20261123140000_accueil_interview.sql', 'outils/bancs/banc-accueil-interview-*', 'outils/bancs/fixtures/accueil-interview-*', '.github/workflows/accueil-interview-20261123.yml', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'rue-centrale.css', 'vercel.json']
+    paths: [plateau-accueil-interview.js, plateau-politique.js, plateau-evenements-personnage.js, plateau.html, style.css, data.js, api/journal-interview.js, api/jodie-portrait.js, 'migrations/20261123140000_accueil_interview.sql', 'outils/bancs/banc-accueil-interview-*', 'outils/bancs/fixtures/accueil-interview-*', .github/workflows/accueil-interview-20261123.yml]
   push:
     branches: [main, 'claude/**']
-    paths: ['plateau-accueil-interview.js', 'plateau-politique.js', 'plateau-evenements-personnage.js', 'plateau.html', 'style.css', 'data.js', 'api/journal-interview.js', 'api/jodie-portrait.js', 'migrations/20261123140000_accueil_interview.sql', 'outils/bancs/banc-accueil-interview-*', 'outils/bancs/fixtures/accueil-interview-*', '.github/workflows/accueil-interview-20261123.yml', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'rue-centrale.css', 'vercel.json']
+    paths: [plateau-accueil-interview.js, plateau-politique.js, plateau-evenements-personnage.js, plateau.html, style.css, data.js, api/journal-interview.js, api/jodie-portrait.js, 'migrations/20261123140000_accueil_interview.sql', 'outils/bancs/banc-accueil-interview-*', 'outils/bancs/fixtures/accueil-interview-*', .github/workflows/accueil-interview-20261123.yml]
 permissions:
   contents: read
 jobs:

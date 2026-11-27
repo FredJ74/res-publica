@@ -10,18 +10,6 @@ on:
       - 'plateau-mobile-identite-20261117.js'
       - 'outils/bancs/test-identite-visible-mobile-20261117.cjs'
       - '.github/workflows/identite-visible-mobile.yml'
-      - 'data.js'
-      - 'plateau-core.js'
-      - 'plateau-router.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
 jobs:
   identite:
     runs-on: ubuntu-latest

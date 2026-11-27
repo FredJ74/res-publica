@@ -12,17 +12,6 @@ on:
       - outils/audits/portraits/portraits-a-produire-20261124.json
       - outils/bancs/banc-portraits-pnj-20261124.cjs
       - .github/workflows/portraits-pnj-20261124.yml
-      - 'plateau-core.js'
-      - 'plateau-router.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
   pull_request:
     paths:
       - data.js
@@ -30,17 +19,6 @@ on:
       - outils/audits/portraits/portraits-a-produire-20261124.json
       - outils/bancs/banc-portraits-pnj-20261124.cjs
       - .github/workflows/portraits-pnj-20261124.yml
-      - 'plateau-core.js'
-      - 'plateau-router.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
 permissions:
   contents: read
 jobs:

@@ -10,16 +10,6 @@ on:
       - 'migrations/20261031113548_fermetures_date_universelle.sql'
       - 'outils/bancs/test-fermetures-jours-civils.mjs'
       - '.github/workflows/test-fermetures-jours-civils.yml'
-      - 'data.js'
-      - 'plateau-router.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
   push:
     branches:
       - 'correctif/fermetures-calendrier-universel-20261017'

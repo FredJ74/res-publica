@@ -11,17 +11,6 @@ on:
       - 'creation.js'
       - 'outils/bancs/i18n/banc-navigateur-neuf-langues.cjs'
       - '.github/workflows/i18n-chromium-accueil.yml'
-      - 'data.js'
-      - 'plateau-core.js'
-      - 'plateau-router.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
   pull_request:
     branches: [main]
     paths:
@@ -30,17 +19,6 @@ on:
       - 'creation.js'
       - 'outils/bancs/i18n/banc-navigateur-neuf-langues.cjs'
       - '.github/workflows/i18n-chromium-accueil.yml'
-      - 'data.js'
-      - 'plateau-core.js'
-      - 'plateau-router.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
 permissions:
   contents: read
 jobs:

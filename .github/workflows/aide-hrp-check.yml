@@ -23,18 +23,6 @@ on:
       - 'outils/bancs/banc-aide-corpus.mjs'
       - 'outils/bancs/fixtures/aide-corpus-neuf-langues.json'
       - '.github/workflows/aide-hrp-check.yml'
-      - 'data.js'
-      - 'plateau-core.js'
-      - 'plateau-router.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
 permissions:
   contents: read
 jobs:

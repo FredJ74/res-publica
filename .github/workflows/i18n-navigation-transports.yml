@@ -10,18 +10,6 @@ on:
       - 'plateau.html'
       - 'outils/bancs/banc-i18n-navigation-transports.cjs'
       - '.github/workflows/i18n-navigation-transports.yml'
-      - 'data.js'
-      - 'plateau-core.js'
-      - 'plateau-router.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
   push:
     paths:
       - 'i18n/navigation-resources.js'
@@ -29,18 +17,6 @@ on:
       - 'plateau.html'
       - 'outils/bancs/banc-i18n-navigation-transports.cjs'
       - '.github/workflows/i18n-navigation-transports.yml'
-      - 'data.js'
-      - 'plateau-core.js'
-      - 'plateau-router.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
 jobs:
   navigation:
     runs-on: ubuntu-latest

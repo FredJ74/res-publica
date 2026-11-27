@@ -19,18 +19,6 @@ on:
       - 'outils/bancs/fixtures/goulag-20261116/**'
       - 'outils/bancs/test-goulag-survie-20261116.cjs'
       - '.github/workflows/goulag-survie-20261116.yml'
-      - 'data.js'
-      - 'plateau-core.js'
-      - 'plateau-router.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
 jobs:
   moteur-survie:
     runs-on: ubuntu-latest

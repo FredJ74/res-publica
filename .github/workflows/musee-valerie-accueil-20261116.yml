@@ -11,17 +11,6 @@ on:
       - 'outils/bancs/test-enigme1-musee-depart-20261113.mjs'
       - 'migrations/20261116180000_musee_valerie_accueil_confirmation.sql'
       - '.github/workflows/musee-valerie-accueil-20261116.yml'
-      - 'data.js'
-      - 'plateau-core.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
   workflow_dispatch:
 permissions:
   contents: read

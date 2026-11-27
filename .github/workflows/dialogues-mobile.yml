@@ -10,18 +10,6 @@ on:
       - 'outils/bancs/test-dialogues-mobile-20261116.cjs'
       - 'outils/bancs/test-dialogues-mobile-browser-20261116.cjs'
       - '.github/workflows/dialogues-mobile.yml'
-      - 'data.js'
-      - 'plateau-core.js'
-      - 'plateau-router.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
   workflow_dispatch:
 jobs:
   dialogues:

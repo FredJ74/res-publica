@@ -10,18 +10,6 @@ on:
       - 'plateau.html'
       - 'outils/bancs/banc-i18n-publicite-premium-20261112.cjs'
       - '.github/workflows/i18n-publicite-premium.yml'
-      - 'data.js'
-      - 'plateau-core.js'
-      - 'plateau-router.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
 permissions:
   contents: read
 jobs:

@@ -5,10 +5,10 @@ on:
     - cron: '33 3 * * *'
   workflow_dispatch:
   pull_request:
-    paths: ['*.js', '*.html', 'api/**', 'i18n/**', 'migrations/**', 'baseline/domaines/**', 'outils/audits/audit-i18n-global.cjs', 'outils/audits/i18n-global/**', 'outils/bancs/banc-audit-i18n-global.cjs', '.github/workflows/audit-i18n-global.yml', 'data.js', 'plateau-core.js', 'plateau-router.js', '.github/workflows/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
+    paths: ['*.js', '*.html', 'api/**', 'i18n/**', 'migrations/**', 'baseline/domaines/**', 'outils/audits/audit-i18n-global.cjs', 'outils/audits/i18n-global/**', 'outils/bancs/banc-audit-i18n-global.cjs', '.github/workflows/audit-i18n-global.yml']
   push:
     branches: [main]
-    paths: ['*.js', '*.html', 'api/**', 'i18n/**', 'migrations/**', 'baseline/domaines/**', 'outils/audits/audit-i18n-global.cjs', 'outils/audits/i18n-global/**', 'outils/bancs/banc-audit-i18n-global.cjs', '.github/workflows/audit-i18n-global.yml', 'data.js', 'plateau-core.js', 'plateau-router.js', '.github/workflows/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
+    paths: ['*.js', '*.html', 'api/**', 'i18n/**', 'migrations/**', 'baseline/domaines/**', 'outils/audits/audit-i18n-global.cjs', 'outils/audits/i18n-global/**', 'outils/bancs/banc-audit-i18n-global.cjs', '.github/workflows/audit-i18n-global.yml']
 permissions:
   contents: read
 jobs:

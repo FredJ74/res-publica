@@ -15,18 +15,6 @@ on:
       - 'outils/bancs/*goulag*'
       - 'api/cron-minuit.js'
       - '.github/workflows/goulag-ordres-internes-20261117.yml'
-      - 'data.js'
-      - 'plateau-core.js'
-      - 'plateau-router.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
 jobs:
   ordres-internes:
     runs-on: ubuntu-latest

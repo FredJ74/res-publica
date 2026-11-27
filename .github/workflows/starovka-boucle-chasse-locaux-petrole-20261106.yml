@@ -9,18 +9,6 @@ on:
       - '.github/workflows/starovka-boucle-chasse-locaux-petrole-20261106.yml'
       - 'outils/bancs/test-starovka-boucle-chasse-locaux-petrole-20261106.mjs'
       - 'outils/bancs/test-starovka-petrole-terrains-20261106.mjs'
-      - 'data.js'
-      - 'plateau-core.js'
-      - 'plateau-router.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
 permissions:
   contents: read
 jobs:

@@ -4,10 +4,10 @@ on:
   schedule:
     - cron: '21 3 * * *'
   pull_request:
-    paths: ['i18n/infobulles-communes-resources.js', 'i18n/republia-infobulles-resources.js', 'i18n/order-catalogues-config.js', 'outils/bancs/*communes-partage*', 'outils/bancs/*communes-fonctions*', '.github/workflows/i18n-communes-partage.yml', 'data.js', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
+    paths: ['i18n/infobulles-communes-resources.js', 'i18n/republia-infobulles-resources.js', 'i18n/order-catalogues-config.js', 'outils/bancs/*communes-partage*', 'outils/bancs/*communes-fonctions*', '.github/workflows/i18n-communes-partage.yml']
   push:
     branches: [main]
-    paths: ['i18n/infobulles-communes-resources.js', 'i18n/republia-infobulles-resources.js', 'i18n/order-catalogues-config.js', 'outils/bancs/*communes-partage*', 'outils/bancs/*communes-fonctions*', '.github/workflows/i18n-communes-partage.yml', 'data.js', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
+    paths: ['i18n/infobulles-communes-resources.js', 'i18n/republia-infobulles-resources.js', 'i18n/order-catalogues-config.js', 'outils/bancs/*communes-partage*', 'outils/bancs/*communes-fonctions*', '.github/workflows/i18n-communes-partage.yml']
 permissions:
   contents: read
 jobs:

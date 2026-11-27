@@ -9,18 +9,6 @@ on:
       - 'plateau-interieurs-mobile.js'
       - 'outils/bancs/banc-mobile-guidage-pieces-20261124.cjs'
       - '.github/workflows/mobile-guidage-pieces-20261124.yml'
-      - 'data.js'
-      - 'plateau-core.js'
-      - 'plateau-router.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
   push:
     branches: [main]
     paths:
@@ -28,18 +16,6 @@ on:
       - 'plateau-interieurs-mobile.js'
       - 'outils/bancs/banc-mobile-guidage-pieces-20261124.cjs'
       - '.github/workflows/mobile-guidage-pieces-20261124.yml'
-      - 'data.js'
-      - 'plateau-core.js'
-      - 'plateau-router.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
 jobs:
   guidage:
     runs-on: ubuntu-latest

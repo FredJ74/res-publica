@@ -4,10 +4,10 @@ on:
   schedule:
     - cron: '5 3 * * *'
   pull_request:
-    paths: ['plateau-construction-commandes.js', 'i18n/construction-feedback-resources.js', 'i18n/plateau-init.js', 'outils/bancs/*retours-chantiers*', '.github/workflows/i18n-retours-chantiers.yml', 'data.js', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
+    paths: ['plateau-construction-commandes.js', 'i18n/construction-feedback-resources.js', 'i18n/plateau-init.js', 'outils/bancs/*retours-chantiers*', '.github/workflows/i18n-retours-chantiers.yml']
   push:
     branches: [main]
-    paths: ['plateau-construction-commandes.js', 'i18n/construction-feedback-resources.js', 'i18n/plateau-init.js', 'outils/bancs/*retours-chantiers*', '.github/workflows/i18n-retours-chantiers.yml', 'data.js', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
+    paths: ['plateau-construction-commandes.js', 'i18n/construction-feedback-resources.js', 'i18n/plateau-init.js', 'outils/bancs/*retours-chantiers*', '.github/workflows/i18n-retours-chantiers.yml']
 permissions:
   contents: read
 jobs:

@@ -4,10 +4,10 @@ on:
   schedule:
     - cron: '0 3 * * *'
   pull_request:
-    paths: ['api/_journal-generation.js', 'plateau-presse-noms.js', 'plateau.html', 'migrations/20261121160000_presse_noms_cites_monde_reel.sql', 'outils/bancs/banc-presse-20261121.cjs', 'outils/bancs/fixtures/presse-pglite-socle.sql.txt', '.github/workflows/presse-20261121.yml', 'data.js', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
+    paths: [api/_journal-generation.js, plateau-presse-noms.js, plateau.html, 'migrations/20261121160000_presse_noms_cites_monde_reel.sql', 'outils/bancs/banc-presse-20261121.cjs', 'outils/bancs/fixtures/presse-pglite-socle.sql.txt', .github/workflows/presse-20261121.yml]
   push:
     branches: [main, 'claude/**']
-    paths: ['api/_journal-generation.js', 'plateau-presse-noms.js', 'plateau.html', 'migrations/20261121160000_presse_noms_cites_monde_reel.sql', 'outils/bancs/banc-presse-20261121.cjs', 'outils/bancs/fixtures/presse-pglite-socle.sql.txt', '.github/workflows/presse-20261121.yml', 'data.js', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
+    paths: [api/_journal-generation.js, plateau-presse-noms.js, plateau.html, 'migrations/20261121160000_presse_noms_cites_monde_reel.sql', 'outils/bancs/banc-presse-20261121.cjs', 'outils/bancs/fixtures/presse-pglite-socle.sql.txt', .github/workflows/presse-20261121.yml]
 permissions:
   contents: read
 jobs:

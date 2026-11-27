@@ -10,18 +10,6 @@ on:
       - 'plateau-mobile-identite-20261117.js'
       - 'outils/bancs/test-mobile-prototype-fidelity-20261117.cjs'
       - '.github/workflows/mobile-prototype-fidelity.yml'
-      - 'data.js'
-      - 'plateau-core.js'
-      - 'plateau-router.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
 jobs:
   fidelity:
     runs-on: ubuntu-latest

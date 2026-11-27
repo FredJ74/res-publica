@@ -10,18 +10,6 @@ on:
       - 'historique/i18n/banc-stockage-prive-jetable.sql'
       - 'outils/bancs/i18n/banc-concurrence-jetable.sh'
       - '.github/workflows/i18n-stockage-jetable.yml'
-      - 'data.js'
-      - 'plateau-core.js'
-      - 'plateau-router.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
   pull_request:
     branches: [main]
     paths:
@@ -29,18 +17,6 @@ on:
       - 'historique/i18n/banc-stockage-prive-jetable.sql'
       - 'outils/bancs/i18n/banc-concurrence-jetable.sh'
       - '.github/workflows/i18n-stockage-jetable.yml'
-      - 'data.js'
-      - 'plateau-core.js'
-      - 'plateau-router.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
 permissions:
   contents: read
 jobs:

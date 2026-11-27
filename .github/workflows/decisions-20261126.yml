@@ -4,10 +4,10 @@ on:
   schedule:
     - cron: '52 3 * * *'
   pull_request:
-    paths: ['data.js', 'plateau-personnage.js', 'admin.html', 'admin-*.js', 'migrations/20261126*', 'outils/bancs/*-20261126.*', 'outils/lancement/**', 'historique/preparations-lancement/**', '.github/workflows/decisions-20261126.yml', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
+    paths: [data.js, plateau-personnage.js, admin.html, 'admin-*.js', 'migrations/20261126*', 'outils/bancs/*-20261126.*', 'outils/lancement/**', 'historique/preparations-lancement/**', .github/workflows/decisions-20261126.yml]
   push:
     branches: [main, 'claude/**']
-    paths: ['data.js', 'plateau-personnage.js', 'admin.html', 'admin-*.js', 'migrations/20261126*', 'outils/bancs/*-20261126.*', 'outils/lancement/**', 'historique/preparations-lancement/**', '.github/workflows/decisions-20261126.yml', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
+    paths: [data.js, plateau-personnage.js, admin.html, 'admin-*.js', 'migrations/20261126*', 'outils/bancs/*-20261126.*', 'outils/lancement/**', 'historique/preparations-lancement/**', .github/workflows/decisions-20261126.yml]
 permissions:
   contents: read
 jobs:

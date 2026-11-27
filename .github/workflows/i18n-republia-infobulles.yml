@@ -10,18 +10,6 @@ on:
       - 'plateau.html'
       - 'outils/bancs/test-i18n-republia-infobulles-politiques-20261113.cjs'
       - '.github/workflows/i18n-republia-infobulles.yml'
-      - 'data.js'
-      - 'plateau-core.js'
-      - 'plateau-router.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
   push:
     branches: [main, chatgpt/i18n-republia-politiques-main-20261113]
     paths:
@@ -29,18 +17,6 @@ on:
       - 'i18n/sovarka-infobulles-resources.js'
       - 'plateau.html'
       - 'outils/bancs/test-i18n-republia-infobulles-politiques-20261113.cjs'
-      - 'data.js'
-      - 'plateau-core.js'
-      - 'plateau-router.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
 permissions:
   contents: read
 jobs:

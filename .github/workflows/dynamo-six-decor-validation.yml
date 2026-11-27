@@ -16,17 +16,6 @@ on:
       - 'migrations/20261110083000_stades_sovarka_carte_tarifs.sql'
       - 'migrations/20261110083100_football_paris_playoffs.sql'
       - 'migrations/20261110000500_dynamo_boutique_accessoires.sql'
-      - 'plateau-core.js'
-      - 'plateau-router.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
   push:
     branches:
       - main
@@ -44,17 +33,6 @@ on:
       - 'migrations/20261110083000_stades_sovarka_carte_tarifs.sql'
       - 'migrations/20261110083100_football_paris_playoffs.sql'
       - 'migrations/20261110000500_dynamo_boutique_accessoires.sql'
-      - 'plateau-core.js'
-      - 'plateau-router.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
 permissions:
   contents: read
 jobs:

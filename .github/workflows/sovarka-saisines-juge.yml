@@ -8,33 +8,11 @@ on:
       - 'data.js'
       - 'outils/bancs/banc-saisines-ministre-juge-sovarka-20261113.cjs'
       - '.github/workflows/sovarka-saisines-juge.yml'
-      - 'plateau-core.js'
-      - 'plateau-router.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
   push:
     branches: [main]
     paths:
       - 'data.js'
       - 'outils/bancs/banc-saisines-ministre-juge-sovarka-20261113.cjs'
-      - 'plateau-core.js'
-      - 'plateau-router.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
 jobs:
   verify:
     runs-on: ubuntu-latest

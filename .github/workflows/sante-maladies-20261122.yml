@@ -4,10 +4,10 @@ on:
   schedule:
     - cron: '54 3 * * *'
   pull_request:
-    paths: ['plateau-maladies.js', 'plateau-justice-economie.js', 'plateau-pnj.js', 'admin-maladies.js', 'migrations/20261122230000_sante_socle.sql', 'migrations/20261122233000_sante_maladies_medicaments.sql', 'outils/bancs/banc-sante-maladies-*', 'outils/bancs/fixtures/sante-maladies-*', 'outils/bancs/fixtures/inventaire-direct-pglite-socle.sql.txt', '.github/workflows/sante-maladies-20261122.yml', 'data.js', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
+    paths: [plateau-maladies.js, plateau-justice-economie.js, plateau-pnj.js, admin-maladies.js, 'migrations/20261122230000_sante_socle.sql', 'migrations/20261122233000_sante_maladies_medicaments.sql', 'outils/bancs/banc-sante-maladies-*', 'outils/bancs/fixtures/sante-maladies-*', 'outils/bancs/fixtures/inventaire-direct-pglite-socle.sql.txt', .github/workflows/sante-maladies-20261122.yml]
   push:
     branches: [main, 'claude/**']
-    paths: ['plateau-maladies.js', 'plateau-justice-economie.js', 'plateau-pnj.js', 'admin-maladies.js', 'migrations/20261122230000_sante_socle.sql', 'migrations/20261122233000_sante_maladies_medicaments.sql', 'outils/bancs/banc-sante-maladies-*', 'outils/bancs/fixtures/sante-maladies-*', 'outils/bancs/fixtures/inventaire-direct-pglite-socle.sql.txt', '.github/workflows/sante-maladies-20261122.yml', 'data.js', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
+    paths: [plateau-maladies.js, plateau-justice-economie.js, plateau-pnj.js, admin-maladies.js, 'migrations/20261122230000_sante_socle.sql', 'migrations/20261122233000_sante_maladies_medicaments.sql', 'outils/bancs/banc-sante-maladies-*', 'outils/bancs/fixtures/sante-maladies-*', 'outils/bancs/fixtures/inventaire-direct-pglite-socle.sql.txt', .github/workflows/sante-maladies-20261122.yml]
 permissions:
   contents: read
 jobs:

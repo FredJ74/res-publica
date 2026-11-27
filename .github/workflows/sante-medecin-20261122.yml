@@ -4,10 +4,10 @@ on:
   schedule:
     - cron: '6 3 * * *'
   pull_request:
-    paths: ['plateau-medecin-montrer.js', 'plateau-personnage.js', 'plateau-pnj.js', 'plateau-surveillance.js', 'plateau-climat.js', 'plateau.html', 'style.css', 'data.js', 'migrations/20261122230000_sante_socle.sql', 'migrations/20261122234000_medecin_montrer.sql', 'migrations/20261123160000_medecin_paiement_liquide.sql', 'outils/bancs/banc-medecin-montrer-*', 'outils/bancs/banc-medecin-liquide-*', 'outils/bancs/fixtures/medecin-montrer-*', '.github/workflows/sante-medecin-20261122.yml', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'rue-centrale.css', 'vercel.json']
+    paths: [plateau-medecin-montrer.js, plateau-personnage.js, plateau-pnj.js, plateau-surveillance.js, plateau-climat.js, plateau.html, style.css, data.js, 'migrations/20261122230000_sante_socle.sql', 'migrations/20261122234000_medecin_montrer.sql', 'migrations/20261123160000_medecin_paiement_liquide.sql', 'outils/bancs/banc-medecin-montrer-*', 'outils/bancs/banc-medecin-liquide-*', 'outils/bancs/fixtures/medecin-montrer-*', .github/workflows/sante-medecin-20261122.yml]
   push:
     branches: [main, 'claude/**']
-    paths: ['plateau-medecin-montrer.js', 'plateau-personnage.js', 'plateau-pnj.js', 'plateau-surveillance.js', 'plateau-climat.js', 'plateau.html', 'style.css', 'data.js', 'migrations/20261122230000_sante_socle.sql', 'migrations/20261122234000_medecin_montrer.sql', 'migrations/20261123160000_medecin_paiement_liquide.sql', 'outils/bancs/banc-medecin-montrer-*', 'outils/bancs/banc-medecin-liquide-*', 'outils/bancs/fixtures/medecin-montrer-*', '.github/workflows/sante-medecin-20261122.yml', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'rue-centrale.css', 'vercel.json']
+    paths: [plateau-medecin-montrer.js, plateau-personnage.js, plateau-pnj.js, plateau-surveillance.js, plateau-climat.js, plateau.html, style.css, data.js, 'migrations/20261122230000_sante_socle.sql', 'migrations/20261122234000_medecin_montrer.sql', 'migrations/20261123160000_medecin_paiement_liquide.sql', 'outils/bancs/banc-medecin-montrer-*', 'outils/bancs/banc-medecin-liquide-*', 'outils/bancs/fixtures/medecin-montrer-*', .github/workflows/sante-medecin-20261122.yml]
 permissions:
   contents: read
 jobs:

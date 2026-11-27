@@ -11,18 +11,6 @@ on:
       - outils/bancs/*player-missions*20261113.cjs
       - outils/bancs/fixtures/player-missions-*.json
       - .github/workflows/i18n-player-missions.yml
-      - 'data.js'
-      - 'plateau-core.js'
-      - 'plateau-router.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
   push:
     branches: [main, codex/i18n-objectifs-carnet-20261113]
     paths:
@@ -32,18 +20,6 @@ on:
       - outils/bancs/*player-missions*20261113.cjs
       - outils/bancs/fixtures/player-missions-*.json
       - .github/workflows/i18n-player-missions.yml
-      - 'data.js'
-      - 'plateau-core.js'
-      - 'plateau-router.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
 permissions:
   contents: read
 jobs:

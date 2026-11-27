@@ -4,10 +4,10 @@ on:
   schedule:
     - cron: '20 3 * * *'
   pull_request:
-    paths: ['plateau-construction-commandes.js', 'i18n/plateau-init.js', 'i18n/construction-feedback-resources.js', 'outils/audits/audit-i18n-global.cjs', 'outils/bancs/*reprise-commandes*', '.github/workflows/i18n-reprise-commandes.yml', 'data.js', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
+    paths: ['plateau-construction-commandes.js', 'i18n/plateau-init.js', 'i18n/construction-feedback-resources.js', 'outils/audits/audit-i18n-global.cjs', 'outils/bancs/*reprise-commandes*', '.github/workflows/i18n-reprise-commandes.yml']
   push:
     branches: [main]
-    paths: ['plateau-construction-commandes.js', 'i18n/plateau-init.js', 'i18n/construction-feedback-resources.js', 'outils/audits/audit-i18n-global.cjs', 'outils/bancs/*reprise-commandes*', '.github/workflows/i18n-reprise-commandes.yml', 'data.js', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'style.css', 'rue-centrale.css', 'vercel.json']
+    paths: ['plateau-construction-commandes.js', 'i18n/plateau-init.js', 'i18n/construction-feedback-resources.js', 'outils/audits/audit-i18n-global.cjs', 'outils/bancs/*reprise-commandes*', '.github/workflows/i18n-reprise-commandes.yml']
 permissions:
   contents: read
 jobs:

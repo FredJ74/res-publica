@@ -10,18 +10,6 @@ on:
       - "api/_reaction-habitant.js"
       - "outils/bancs/test-starovka-bouriates-20261117.cjs"
       - ".github/workflows/pnj-starovka-bouriates.yml"
-      - 'data.js'
-      - 'plateau-core.js'
-      - 'plateau-router.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
   push:
     branches: [main]
     paths:
@@ -30,18 +18,6 @@ on:
       - "api/_reaction-habitant.js"
       - "outils/bancs/test-starovka-bouriates-20261117.cjs"
       - ".github/workflows/pnj-starovka-bouriates.yml"
-      - 'data.js'
-      - 'plateau-core.js'
-      - 'plateau-router.js'
-      - 'migrations/**'
-      - '.github/workflows/**'
-      - 'i18n/**'
-      - 'auth.js'
-      - 'supabase.js'
-      - 'sens-saisie.js'
-      - 'style.css'
-      - 'rue-centrale.css'
-      - 'vercel.json'
 jobs:
   validation:
     runs-on: ubuntu-latest

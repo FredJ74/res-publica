@@ -1,5 +1,7 @@
 // Mission de nuit du 27/11/2026, étape 4 : les contrôles se lancent selon les fichiers modifiés, sans perdre en fiabilité.
-// Garde-fous : un fichier partagé relance tout contrôle filtré ; chaque contrôle filtré tourne aussi chaque nuit sur main ;
+// Garde-fous : chaque contrôle filtré tourne aussi chaque nuit sur main ;
+// correction de l'après-midi du 27/11 : un fichier partagé relance exactement les contrôles d'avant (référence 8b6952b),
+// pas tous les contrôles filtrés (79 workflows au lieu de 34) : chacun garde ses chemins d'origine ;
 // la suite « Cohérence client » et le parcours immobilier ignorent seulement les envois d'images seules.
 // Les workflows qui écrivent dans le dépôt (conversions d'images) ne sont pas des contrôles : ils restent tels quels.
 // Lancer : node --test outils/bancs/test-ci-filtres-chemins-20261127.mjs
@@ -16,14 +18,23 @@ const flux = readdirSync(dossier).filter(f => f.endsWith('.yml')).map(f => ({ f,
 const tete = s => s.split('\njobs:')[0];
 const ecrivain = s => /contents: write|git push|git commit/.test(s);
 
-test('chaque contrôle filtré par chemins est relancé par tous les fichiers partagés et tourne chaque nuit', () => {
+test('chaque contrôle filtré garde ses chemins d\'origine (pas la liste complète des fichiers partagés) et tourne chaque nuit', () => {
   const filtres = flux.filter(({ s }) => !ecrivain(s) && /^\s+paths:/m.test(tete(s)));
   assert.ok(filtres.length >= 140, 'contrôles filtrés : ' + filtres.length);
   for (const { f, s } of filtres) {
     const blocs = [...tete(s).matchAll(/^\s+paths:([^\n]*(?:\n\s+- [^\n]*)*)/gm)].map(m => m[1]);
-    for (const b of blocs) for (const p of PARTAGES) assert.ok(b.includes("'" + p + "'") || b.includes('"' + p + '"') || b.includes('- ' + p), f + ' : ' + p);
+    for (const b of blocs) {
+      const presents = PARTAGES.filter(p => b.includes("'" + p + "'") || b.includes('"' + p + '"') || b.includes('- ' + p));
+      assert.ok(presents.length < PARTAGES.length, f + ' : liste complète des fichiers partagés réintroduite');
+    }
     assert.match(tete(s), /^\s+schedule:/m, f + ' : passage de nuit');
   }
+});
+
+test('la suite « Cohérence client » reste lancée par tout fichier partagé', () => {
+  const s = tete(flux.find(x => x.f === 'coherence-client.yml').s);
+  assert.doesNotMatch(s, /^\s+paths:/m);
+  for (const p of PARTAGES) assert.ok(!s.includes("'" + p + "'"), p + ' ignoré');
 });
 
 test('images seules : la suite complète et le parcours immobilier ne partent pas ; ils tournent chaque nuit', () => {

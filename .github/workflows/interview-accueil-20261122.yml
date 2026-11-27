@@ -4,10 +4,10 @@ on:
   schedule:
     - cron: '20 3 * * *'
   pull_request:
-    paths: ['api/jodie-portrait.js', 'api/_presse-antennes.js', 'api/_journal-generation.js', 'plateau-communication.js', 'forum.js', 'style.css', 'plateau.html', 'migrations/20261122150000_interview_accueil_invitation_serveur.sql', 'outils/bancs/*interview-accueil*', 'outils/bancs/fixtures/interview-accueil-*', 'outils/bancs/banc-jodie-*', 'outils/bancs/banc-forum-voyants-reconnexion-20261103.cjs', 'outils/bancs/banc-mails-defilement-navigateur.cjs', '.github/workflows/interview-accueil-20261122.yml', 'data.js', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'rue-centrale.css', 'vercel.json']
+    paths: [api/jodie-portrait.js, api/_presse-antennes.js, api/_journal-generation.js, plateau-communication.js, forum.js, style.css, plateau.html, 'migrations/20261122150000_interview_accueil_invitation_serveur.sql', 'outils/bancs/*interview-accueil*', 'outils/bancs/fixtures/interview-accueil-*', 'outils/bancs/banc-jodie-*', 'outils/bancs/banc-forum-voyants-reconnexion-20261103.cjs', 'outils/bancs/banc-mails-defilement-navigateur.cjs', .github/workflows/interview-accueil-20261122.yml]
   push:
     branches: [main, 'claude/**']
-    paths: ['api/jodie-portrait.js', 'api/_presse-antennes.js', 'api/_journal-generation.js', 'plateau-communication.js', 'forum.js', 'style.css', 'plateau.html', 'migrations/20261122150000_interview_accueil_invitation_serveur.sql', 'outils/bancs/*interview-accueil*', 'outils/bancs/fixtures/interview-accueil-*', 'outils/bancs/banc-jodie-*', 'outils/bancs/banc-forum-voyants-reconnexion-20261103.cjs', 'outils/bancs/banc-mails-defilement-navigateur.cjs', '.github/workflows/interview-accueil-20261122.yml', 'data.js', 'plateau-core.js', 'plateau-router.js', 'migrations/**', '.github/workflows/**', 'i18n/**', 'auth.js', 'supabase.js', 'sens-saisie.js', 'rue-centrale.css', 'vercel.json']
+    paths: [api/jodie-portrait.js, api/_presse-antennes.js, api/_journal-generation.js, plateau-communication.js, forum.js, style.css, plateau.html, 'migrations/20261122150000_interview_accueil_invitation_serveur.sql', 'outils/bancs/*interview-accueil*', 'outils/bancs/fixtures/interview-accueil-*', 'outils/bancs/banc-jodie-*', 'outils/bancs/banc-forum-voyants-reconnexion-20261103.cjs', 'outils/bancs/banc-mails-defilement-navigateur.cjs', .github/workflows/interview-accueil-20261122.yml]
 permissions:
   contents: read
 jobs:
