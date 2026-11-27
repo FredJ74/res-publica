@@ -1,4 +1,4 @@
--- Mission du 27/11/2026 (après-midi, Claude), étape 3 — NON APPLIQUÉE : à valider par Fred avant application en production.
+-- Mission du 27/11/2026 (après-midi, Claude), étape 3 — APPLIQUÉE en production le 27/11/2026 à 18 h 45 (Claude, choix technique délégué par Fred) ; contrôles en lecture vérifiés.
 -- « STAGE À LA CASERNE » PORTÉ PAR LE SERVEUR (audit des ordres du 27/11, docs/audit-ordres-creux-20261127.md : le serveur
 -- prélevait les PA, l'écran ajoutait +5 VOL). Relevé en lecture le 27/11 : `stats` est un champ protégé de la vue
 -- `personnages` (personnages_vue_modifier) et le suivi `stageCaserne` n'a aucune colonne : le +5 et le repos n'étaient
