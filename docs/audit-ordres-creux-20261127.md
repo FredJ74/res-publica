@@ -9,7 +9,16 @@ lors d'une séance dédiée.
   un lieu de Républia ou de Sovarka, 2 seulement dans des bâtiments hors carte. (L'estimation de « 373 » datait d'avant les
   derniers lots.)
 - Verdicts : **424 pleins**, **7 creux**, **8 non branchés**, **1 doublon**.
-- Propositions : 424 à garder, 10 à enrichir, 6 à supprimer.
+- Propositions : 424 à garder, 10 à enrichir, 6 à supprimer (relevé de la nuit ; correction du 27/11 après-midi : 425 à garder et
+  5 à supprimer, la réplique de Ganbaatar sur le polonium étant une règle décidée le 20/11).
+
+## Suites données le 27/11/2026 (après-midi)
+
+- Ambassade de Républia à Novomirsk : relations bilatérales, réception et mécénat raccordés (réception et mécénat attendent la
+  migration `20261127150000`, à valider). Ambassade de Sovarka à Luthécia : déjà active, rien à raccorder. Le transfert d'un
+  détenu reste grisé partout (Fred, 01/11).
+- « Stage à la caserne » : effet porté par le serveur (`stage_caserne_effectuer`, migration `20261127160000`, à valider).
+- Polonium : seule la route morte de l'ancien ordre `acheter_polonium` est retirée du routeur ; le reste est la règle du 20/11.
 
 ## Cas déjà confirmés
 
@@ -43,7 +52,11 @@ touchent les pays ouverts au lancement** :
 - `conference_presse` (2 PA) et `propagande_etat` (3 PA, 500) ouvrent le même sous-forum du Président dans la même salle de presse ;
   seuls le coût et le libellé changent.
 - « Stage à la caserne » : le serveur prélève les PA, mais le +5 VOL est appliqué par l'écran (effet non tenu par le serveur).
-- « Interroger le chef de quai sur le polonium » : une réplique fixe ; le polonium a été retiré du jeu le 20/11.
+- « Interroger le chef de quai sur le polonium » : une réplique fixe. **Correction du 27/11 après-midi** : le polonium n'a pas été
+  retiré du jeu le 20/11. La décision de Fred du 20/11 (`GAME-DESIGN-KRASNOV-LOT-20261120.md`, point 8 ; `GAME-DESIGN-CRIMINALITE.md`,
+  décision 7) retire seulement l'ordre du « Port de Novomirsk » orphelin, garde le marché noir de Kalachnikov et confie la vente au
+  colonel Voronov ; elle prévoit justement que Ganbaatar refuse (« je ne suis pas une balance »). Cette réplique est donc la règle
+  décidée : à garder.
 
 ## Méthode et limites
 
@@ -269,7 +282,7 @@ touchent les pays ouverts au lancement** :
 | `installer_equipements` | Installer des équipements | Centre d'Affaires › Bureau Prestige — Local à louer [Républia, El Estado, Sovarka, Al-Khalija] (+16 lieux) | 0 PA / 0 | Serveur : `armoire_lire`, `dossier_deplacer`, `dossier_detruire`, `dossier_imprimer` … | plein | garder — Effet tenu par le serveur. |
 | `interieur_dossiers` | Dossiers confidentiels | Palais du Gouvernement › Bureau - Ministre de l'Interieur [Républia, El Estado, Sovarka, Al-Khalija] | 0 PA / 0 | Serveur : `interieur_dossiers_lire`, `interieur_projet_decider` | plein | garder — Effet tenu par le serveur. |
 | `interroger` | Interroger un detenu | Quartier Haute Securite › Salle d'Interrogatoire [Républia, El Estado, Sovarka, Al-Khalija] | 2 PA / 0 | ordre_generique_executer : +5 influence, 75 %, réservé au commissaire | creux | enrichir — Cas confirmé : le commissaire paie 2 PA pour +5 d'influence ; rien n'est appris du détenu ni écrit à son dossier. |
-| `interroger_ganbaatar_polonium` | Interroger le chef de quai sur le polonium | Port Industriel de Starovka › Quai Principal [Sovarka] | 0 PA / 0 | Aucun appel serveur repéré | creux | supprimer — Une réplique fixe du chef de quai ; le polonium a été retiré du jeu le 20/11. |
+| `interroger_ganbaatar_polonium` | Interroger le chef de quai sur le polonium | Port Industriel de Starovka › Quai Principal [Sovarka] | 0 PA / 0 | Aucun appel serveur repéré | creux | garder — Réplique fixe décidée par Fred le 20/11 (Ganbaatar refuse de donner le vendeur ; le polonium reste en jeu). |
 | `interroger_renseignement` | Interroger un detenu | Siège du Renseignement militaire › Salle d'Interrogatoire [Sovarka] (+1 lieux) | 2 PA / 0 | ordre_generique_executer : +5 influence, 75 %, ministre de la Défense | creux | enrichir — Cas confirmé : choix du détenu puis +5 d'influence (ordres_generiques) ; aucun renseignement obtenu. |
 | `interview` | Donner une interview | La Tribune de Republia › Redaction [Républia, El Estado, Sovarka, Al-Khalija] (+2 lieux) | 1 PA / 0 | Serveur : `(api)` | plein | garder — Effet tenu par le serveur. |
 | `kolkhoze_caisse` | Caisse commune | Kolkhoze S. M. Kirov › La cour de la ferme [Sovarka] | 0 PA / 0 | Serveur : `kolkhoze_caisse_lire` | plein | garder — Effet tenu par le serveur. |

@@ -1,4 +1,4 @@
--- Mission du 27/11/2026 (après-midi, Claude), étape 2 — NON APPLIQUÉE : à valider par Fred avant application en production.
+-- Mission du 27/11/2026 (après-midi, Claude), étape 2 — APPLIQUÉE en production le 27/11/2026 à 18 h 45 (Claude, choix technique délégué par Fred) ; contrôles en lecture vérifiés.
 -- AMBASSADE DE RÉPUBLIA À NOVOMIRSK : « Organiser une réception diplomatique » et « Financer une œuvre culturelle »
 -- raccordées aux fonctions serveur de Luthécia (consigne de Fred du 27/11/2026 : mêmes fonctions, mêmes règles,
 -- pays hôte Sovarka). « Consulter les relations bilatérales » n'a besoin d'aucun changement serveur.

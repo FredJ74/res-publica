@@ -3521,41 +3521,33 @@ function getStatEffective(stat) {
 // militaires). +5 VOL, 1 fois par jour, max 3 jours CONSECUTIFS puis 7 jours de repos avant de
 // pouvoir recommencer. Rater un jour (pas de stage la veille) relance un nouveau cycle de 3 a
 // zero, sans cooldown -- seule une serie ininterrompue de 3 jours declenche le repos force.
-// PA/cout preleves via deduireCoutOrdre (Phase K, migre depuis une deduction hardcodee) : les
-// handlers dedies (routes via un cas special de doOrder, voir plateau-router.js) ne beneficient
-// PAS de la deduction generique de PA/cout, qui ne s'applique qu'aux ordres sans handler dedie.
+// UNE SEULE REALITE, CELLE DU SERVEUR (27/11/2026, audit des ordres) : `stage_caserne_effectuer`
+// (migration 20261127160000) verifie le lieu, le jour et le repos, preleve les 3 PA et ajoute les +5 VOL ;
+// l'ecran n'affiche que sa reponse. Avant, l'ecran ajoutait lui-meme la VOL (champ protege, perdu en base)
+// et gardait la serie dans un champ sans colonne.
 async function doStageCaserne(pa, cost) {
   if (!state.char) return;
-  const suivi = state.char.stageCaserne || {};
-
-  if (suivi.cooldownJusqua && state.day < suivi.cooldownJusqua) {
-    showToast('Repos obligatoire', 'Trois jours de stage d\'affilée, place au repos. Revenez au jour ' + suivi.cooldownJusqua + '.', false);
+  const v = typeof sbRpcVerdict === 'function' ? await sbRpcVerdict('stage_caserne_effectuer', {}).catch(() => null) : null;
+  if (!v || v.ok !== true) {
+    if (v?.raison === 'repos_obligatoire') {
+      showToast('Repos obligatoire', 'Trois jours de stage d\'affilée, place au repos. Revenez au jour ' + v.repos_jusqua + '.', false);
+    } else if (v?.raison === 'deja_fait_aujourdhui') {
+      showToast('Déjà fait aujourd\'hui', 'Un seul stage par jour.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b7796db4c", 'Un seul stage par jour.', undefined, 'Déjà fait aujourd\'hui');
+    } else if (v?.raison === 'pas_sur_place') {
+      showToast('Stage impossible', 'Le stage se fait au Corps de Garde de la caserne.', false);
+    } else if (v && v.raison && typeof signalerRefusCout === 'function') {
+      signalerRefusCout(v);
+    } else {
+      showToast('Stage impossible', 'Le serveur n\'a pas répondu. Rien n\'a été prélevé.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b9d5398d2", 'Le serveur n\'a pas répondu. Rien n\'a été prélevé.', undefined, 'Stage impossible');
+    }
     return;
   }
-  if (suivi.dernierJour === state.day) {
-    showToast('Déjà fait aujourd\'hui', 'Un seul stage par jour.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b7796db4c", 'Un seul stage par jour.', undefined, 'Déjà fait aujourd\'hui');
-    return;
-  }
-
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', 'Il vous manque des PA pour ce stage.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.b5ae2b57b", 'Il vous manque des PA pour ce stage.', undefined, 'PA insuffisants'); return; }
-
-  const streak = (suivi.dernierJour === state.day - 1) ? (suivi.streak || 0) + 1 : 1;
-
+  if (v.paie && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v.paie);
   if (!state.char.stats) state.char.stats = {};
-  state.char.stats.VOL = (state.char.stats.VOL || 0) + 5;
-
-  const nouveauSuivi = { dernierJour: state.day, streak };
-  if (streak >= 3) {
-    nouveauSuivi.streak = 0;
-    nouveauSuivi.cooldownJusqua = state.day + 7;
-  }
-  state.char.stageCaserne = nouveauSuivi;
-
-  if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
+  if (typeof v.vol === 'number') state.char.stats.VOL = v.vol;
   updateUI();
   showToast('Stage terminé !', '"Il faut le vouloir pour remonter sa Volonté !" — +5 Volonté.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b0a733704", '"Il faut le vouloir pour remonter sa Volonté !" — +5 Volonté.', undefined, 'Stage terminé !');
-  addJournalEntry('Stage à la Caserne. +5 Volonté (' + streak + '/3 jours consécutifs).', 'event-good');
+  addJournalEntry('Stage à la Caserne. +5 Volonté (' + v.serie + '/3 jours consécutifs).', 'event-good');
 }
 
 // RECRUTER DES MILITANTS (Universite, amphi) — conditionne a l'adhesion a un syndicat actif,
