@@ -18,7 +18,11 @@ Règles : voir `AGENTS.md`.
   réception diplomatique et mécénat ne sont plus grisés (mêmes fonctions et règles qu'à Luthécia ; la réception se tient
   dans la Grande Salle du Pavillon, réservée par « Réserver la réception »). Migration `20261127150000` **écrite, testée
   (PGlite), NON appliquée : à valider par Fred**. Sans elle, l'ordre répond « ouvrira dès la mise à jour du serveur »,
-  sans rien prélever. Banc `banc-ambassades-republia-sovarka-20261127.cjs`.
+  sans rien prélever. Banc `banc-ambassades-republia-sovarka-20261127.cjs`. **Fusionné** (dcaa2c72).
+- Étape 3 (branche `claude/audit-ordres-correctifs-20261127`) : « Stage à la caserne » porté par le serveur
+  (`stage_caserne_effectuer`, migration `20261127160000` **écrite, testée, NON appliquée : à valider**). Polonium : la décision
+  du 20/11 ne retire pas le polonium (vente par le colonel Voronov et Kalachnikov, refus décidé de Ganbaatar) ; seule la route
+  morte de l'ancien ordre du « Port de Novomirsk » est retirée. Audit corrigé.
 
 ### Mission de nuit du 27/11/2026 (Claude) — compte rendu pour Fred
 
