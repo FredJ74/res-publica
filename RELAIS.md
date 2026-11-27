@@ -75,6 +75,10 @@ Règles : voir `AGENTS.md`.
   écrite (modèle de publicite-premium) mais **non déployée** (à déployer avec le paiement). Écran
   `plateau-accessoire-personnalise.js`, banc `banc-accessoire-personnalise-20261127.cjs`.
 
+- **Étape 8 — décision consignée, non codée** (branche `claude/capitales-teaser-20261127`) : capitales d'El Estado et
+  d'Al-Khalija visitables en teaser (décision du 27/11) inscrites dans `docs/suivi-decisions.md` (état « décidé ») et
+  `GAME-DESIGN-LANCEMENT.md` (décision 17 et relevé factuel : bâtiments, rues, images, garde-fou `frontieres_fermees_v1`).
+
 ### Mission du 27/11/2026 (après-midi) (Claude) — compte rendu pour Fred
 
 1. **Parti en bêta, et comment le tester**
