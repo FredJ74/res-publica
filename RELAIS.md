@@ -303,6 +303,17 @@ Indépendante : `claude/banc-mobile-coque-fiable-20261128` (`dacc8f9b`), qui sta
      `r_deux_objets_revetus_max` de `plateau-criminalite.js` (module en français seulement) ; les courriers serveur
      (interrogatoires, transferts, cartons) sont en français, comme les autres courriers système.
 
+### Mission du 28/11/2026 (nuit) (Claude) — banc mobile-coque (PR #1220, fusionnée)
+
+- **banc-mobile-coque, test L4 : échec aléatoire, cause et correction** (branche `claude/banc-mobile-coque-fiable-20261128`).
+  Preuve du hasard : le même commit `f147a565` est vert sur sa branche (27 workflows) et rouge une fois poussé sur main ;
+  l'étape 3 (`aa3d81e8`) rouge, l'étape 4 qui la contient entièrement (`6ebbbd9e`) verte. Cause : le test compare au pixel
+  près deux captures de la page de création en 1440 px, prises après un délai fixe de 500 ms, sans attendre le réseau local,
+  le décodage des images ni la fin des transitions CSS ; sur un runner lent, l'une des deux captures est prise en cours de
+  chargement. Correction : chaque capture attend le réseau au repos, les polices, le décodage des images et deux images
+  d'animation, puis se prend animations et transitions figées (`animations:'disabled'`). L'échec « Cohérence client » de
+  l'état fusionné de l'étape 1 est ce même test, rien d'autre.
+
 ### Mission du 27/11/2026 (soir) (Claude) — journal des étapes
 
 > Constat au départ : les deux migrations de l'après-midi (`20261127150000` ambassade de Novomirsk, `20261127160000` stage à la
