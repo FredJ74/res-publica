@@ -162,6 +162,8 @@ Après une fusion, vérifier que le statut Vercel de `main` est vert.
   « ardoise et or » est abandonnée, issue #143 fermée). La source unique est `style.css` :
   fenêtres `.modal-box` en `#202a36` bordées d'or doux `#a98d56`, texte `#e2e9f1`, champs
   `#1b2531`, boutons `#344354` à texte or `#e5c477`.
+  Ce bleu-gris reste celui des fenêtres communes ; le reste du plateau (ordinateur et, depuis le 28/11/2026 soir,
+  téléphone) suit l'ambiance de l'empire du personnage (voir « Ambiances visuelles » dans `ARCHITECTURE.md`).
 - Toute fenêtre pop-up utilise les classes communes : conteneur `cpj-dialogue`, texte
   secondaire `cpj-note`, boutons `cpj-touche` (`cpj-primaire` pour l'action principale),
   champs `cpj-champ` (déjà déclinées en bleu-gris). Pas de couleurs en dur dans le JavaScript :

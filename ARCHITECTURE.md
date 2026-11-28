@@ -291,7 +291,12 @@ Fred n'y figure pas encore.
 `body.empire-<pays>` dans `style.css` (classe mise par `plateau-navigation.js`). Républia : noir profond et or ;
 El Estado : vert olive militaire et or doux ; Sovarka : gris acier et rouge ; Al-Khalija : brun chaud, bronze et or,
 le turquoise (#4f9594) n'y restant qu'en touche secondaire (barre des PA, onglet actif du journal). Banc :
-`outils/bancs/banc-couleurs-empires-20261128.cjs`.
+`outils/bancs/banc-couleurs-empires-20261128.cjs`. Retouches du 28/11/2026 (soir) : `--text3` #9c9878 (El Estado) et
+#ad9574 (Al-Khalija) ; Al-Khalija : libellé et valeur des PA, texte de l'onglet actif du journal en turquoise
+(#4f9594, #5fa8a7). **Sur téléphone, l'habillage suit l'empire** : `plateau-mobile-empires-20261128.css`, chargée
+après les feuilles mobiles, repeint la coque avec les variables `body.empire-<pays>` ; sans classe d'empire (avant le
+chargement du personnage), la coque bleu nuit d'origine reste. Sovarka garde son rouge en fonds et contours, ses
+textes passent au clair de sa palette (AA). Banc : `outils/bancs/banc-couleurs-mobile-20261128-soir.cjs`.
 
 *Tenir ce fichier à jour à chaque mécanique ajoutée, retirée ou passée au serveur.*
 
