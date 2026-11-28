@@ -66,3 +66,11 @@ Huit miroirs conformes, banc global six tests Python, réconciliation PostgreSQL
 RELAIS est informé du correctif fusionné. Le seul conflit de rebase de #1216 concernait l’insertion de deux sections Codex dans RELAIS : elles ont été conservées, puis leurs statuts actualisés ; aucun contenu de Claude écrasé. Les contrôles finaux de #1216 et son commit de fusion sont suivis dans la PR pour éviter des preuves autoréférentes.
 
 Rejeu après rebase sur `1477db72` : **43/43 tests** (banc strict, formation, audit global, transport et saisie politique), neuf langues, 320/390/1280 ; aucune régression observée, aucun PJ connecté ni téléphone physique.
+
+## Nouveau blocage de clôture du 28/11 — distinct du miroir corrigé
+
+Le miroir est corrigé par #1218, dont tous les contrôles PR et main sont verts. Après rebase, #1216 (`66b558a8`) termine à **10 contrôles verts / 1 rouge** : CI **46087362319**, `bancs-js (2)`, cas L4 de `banc-mobile-coque.cjs:131`, assertion « création bureau 1440 identique ». Une relance unique et inchangée échoue sur la même assertion (jobs 140800130533 et 140801993094). Aucun autre échec. Les mêmes sources avaient passé ce banc dans la CI de #1218 et réussissent deux rejeux locaux ; aucune instabilité de Chromium ni défaut de production n’est déduit de ces résultats variables.
+
+Le banc, son utilitaire, index.html, creation.js et style.css sont identiques à main. Claude a déjà publié la branche `claude/banc-mobile-coque-fiable-20261128` (`c8ca3470`) qui synchronise réseau/images/polices et fige les animations avant comparaison. Ce travail n’est ni dupliqué, ni modifié, ni fusionné par Codex. Aucun seuil ou test relâché. Preuves et empreintes : `NOUVEAU-BLOCAGE-CLOTURE-20261128.json`.
+
+**#1216 non fusionnée en rouge** : après livraison du correctif de captures par son chantier responsable, rebase et CI entièrement verte avant fusion. Les fonctionnalités i18n et le correctif du miroir restent déjà fusionnés, déployés et vérifiés. Ce défaut n’a pas de lien démontré avec le signalement de Bernard.
