@@ -1,0 +1,139 @@
+/* Human Gambit — habillage mobile aux couleurs de l'empire du personnage (Fred, 28/11/2026 soir :
+   « L'habillage mobile suit désormais l'empire, avec les mêmes palettes »).
+   Chargée après toutes les feuilles mobiles. Elle ne fait que repeindre la coque (en-tête, bandeau d'identité,
+   barres, cartes, boutons, panneaux, dialogue PNJ) avec les variables d'empire de style.css (body.empire-<pays>,
+   classe posée par plateau-navigation.js). Sans classe d'empire (avant le chargement du personnage), la coque bleu
+   nuit d'origine reste en place. Aucune règle hors de max-width:1023px : le plateau bureau n'est pas touché. */
+
+/* Jetons propres à la coque mobile, tirés des palettes d'empire.
+   --hgm-titre : titres ; --hgm-or-texte : petits libellés dorés ; --hgm-trait : contours des boutons et cartes ;
+   --hgm-sur-or : texte posé sur un fond --gold (onglet choisi).
+   Sovarka : son « or » est un rouge sombre (#9a2020, 2:1 sur l'acier) ; il reste en fonds et contours, et ses textes
+   passent au clair de la même palette pour tenir le seuil AA. */
+body.empire-republic,body.empire-narco,body.empire-khalija{
+  --hgm-titre:var(--gold-light);--hgm-or-texte:var(--gold);--hgm-trait:var(--gold-dark);--hgm-sur-or:var(--bg);
+}
+body.empire-soviet{
+  --hgm-titre:var(--text);--hgm-or-texte:var(--text2);--hgm-trait:var(--gold);--hgm-sur-or:var(--text);
+}
+
+@media(max-width:1023px){
+  /* Fonds de page */
+  body[class*="empire-"].plateau-body,
+  body[class*="empire-"] #vue-rue.active,
+  body[class*="empire-"] #vue-batiment.active{background:var(--bg);color:var(--text)}
+
+  /* Barres : en-tête, bandeau d'identité, lieu, date, onglets */
+  body[class*="empire-"] #topbar{background:var(--bg2);border-bottom-color:var(--hgm-trait);box-shadow:none}
+  body[class*="empire-"] #hg-mobile-identite-20261117{background:var(--bg2)!important;border-bottom-color:var(--border)!important;color:var(--text)}
+  body[class*="empire-"] #vue-rue .hg-explore-head,
+  body[class*="empire-"] #vue-rue .city-header,
+  body[class*="empire-"] #vue-rue #hg-explore-primary,
+  body[class*="empire-"] .hg-explore-tabs,
+  body[class*="empire-"] #vue-batiment .batiment-header,
+  body[class*="empire-"] .hg-room-tabs,
+  body[class*="empire-"] #vue-batiment .hg-room-list:not([hidden]){background:var(--bg2);border-color:var(--border)}
+
+  /* Cartes et panneaux */
+  body[class*="empire-"] #vue-rue #hg-presences-mobiles,
+  body[class*="empire-"] #vue-rue #actionbar,
+  body[class*="empire-"] #vue-rue .rue-ambiance,
+  body[class*="empire-"] #vue-rue .hg-explore-info:not([hidden]),
+  body[class*="empire-"] .hg-explore-info:not([hidden]),
+  body[class*="empire-"] .hg-room-info:not([hidden]),
+  body[class*="empire-"] #vue-batiment #piece-image[data-hg-split="1"] .piece-ambiance,
+  body[class*="empire-"] #vue-batiment #actionbar-batiment,
+  body[class*="empire-"] #vue-rue .hg-lieux-tactiles,
+  body[class*="empire-"] .hg-lieux-tactiles,
+  body[class*="empire-"] #hg-reprise:not([hidden]),
+  body[class*="empire-"] #modal-pnj .modal-box,
+  body[class*="empire-"][data-mobile-panel=personnage] #left,
+  body[class*="empire-"][data-mobile-panel=personnes] .vue.active .persons-sidebar,
+  body[class*="empire-"][data-mobile-panel=personnes] .vue.active .minimap:not([style*="display: none"]),
+  body[class*="empire-"][data-mobile-panel=menu] #hg-menu-existant{
+    background:var(--bg3);color:var(--text);border-color:var(--hgm-trait);box-shadow:none;
+  }
+  body[class*="empire-"] #modal-pnj .modal-header{background:var(--bg2);border-bottom-color:var(--border)}
+
+  /* Boutons, pastilles et champs */
+  body[class*="empire-"] .hg-mobile-acces,
+  body[class*="empire-"] #topbar .hg-mobile-acces,
+  body[class*="empire-"] #topbar #hg-mobile-exit,
+  body[class*="empire-"] #vue-rue #hg-explore-primary button,
+  body[class*="empire-"] .hg-explore-tabs button,
+  body[class*="empire-"] #vue-rue #rue-actions-row .action-btn,
+  body[class*="empire-"] #vue-batiment .sortir-btn,
+  body[class*="empire-"] #vue-batiment .piece-tab,
+  body[class*="empire-"] .hg-room-tabs button,
+  body[class*="empire-"] #hg-mobile-identite-20261117 .hg-identite-statut span,
+  body[class*="empire-"] #vue-rue .hg-explore-stats span,
+  body[class*="empire-"] .hg-explore-stats span,
+  body[class*="empire-"] #vue-rue .hg-lieux-tactiles button,
+  body[class*="empire-"] .hg-lieux-tactiles button,
+  body[class*="empire-"] #hg-reprise button,
+  body[class*="empire-"] #modal-pnj .pnj-speech,
+  body[class*="empire-"] #modal-pnj .pnj-action-btn,
+  body[class*="empire-"] #modal-pnj .modal-close,
+  body[class*="empire-"] #modal-pnj textarea,
+  body[class*="empire-"] #modal-pnj input{
+    background:var(--bg4);color:var(--text);border-color:var(--hgm-trait);box-shadow:none;
+  }
+  body[class*="empire-"] #modal-pnj .pnj-speech{border-left-color:var(--gold)}
+  /* Ordres des bâtiments : les états légal, illégal et bloqué gardent leurs couleurs. */
+  body[class*="empire-"] #vue-batiment #actions-row-bat>.rp-order-info-row>.action-btn,
+  body[class*="empire-"] #vue-batiment #actions-row-bat>.action-btn{background:var(--bg4)}
+  body[class*="empire-"] #vue-batiment #actions-row-bat>.rp-order-info-row>.action-btn:not(.legal):not(.illegal):not(.blocked),
+  body[class*="empire-"] #vue-batiment #actions-row-bat>.action-btn:not(.legal):not(.illegal):not(.blocked){color:var(--text);border-color:var(--hgm-trait)}
+  /* Portraits */
+  body[class*="empire-"] #hg-mobile-brand .hg-mobile-brand-photo,
+  body[class*="empire-"] #hg-mobile-identite-20261117 .hg-personnage-portrait,
+  body[class*="empire-"] #vue-rue .hg-presence-portrait{background:var(--bg4);border-color:var(--hgm-trait);color:var(--hgm-or-texte)}
+  /* Flèches de déplacement posées sur la photographie */
+  body[class*="empire-"] #vue-rue .rc-fleche{background:var(--bg2);border-color:var(--hgm-trait);color:var(--hgm-titre)}
+
+  /* Onglet ou bouton choisi : fond doré (rouge en Sovarka) */
+  body[class*="empire-"] #vue-rue #hg-explore-primary button[aria-pressed="true"],
+  body[class*="empire-"] #vue-rue #hg-explore-primary button:first-child:not([aria-pressed="true"]),
+  body[class*="empire-"] .hg-explore-tabs button[aria-pressed=true],
+  body[class*="empire-"] #vue-batiment .piece-tab.active,
+  body[class*="empire-"] .hg-room-tabs button[aria-pressed="true"],
+  body[class*="empire-"] #hg-mobile-identite-20261117 .hg-identite-version{
+    background:var(--gold);color:var(--hgm-sur-or);border-color:var(--gold-light);
+  }
+
+  /* Textes */
+  body[class*="empire-"] #topbar #hg-mobile-brand{color:var(--text)}
+  body[class*="empire-"] #hg-mobile-brand .hg-mobile-brand-text strong,
+  body[class*="empire-"] #hg-mobile-brand .hg-mobile-brand-name,
+  body[class*="empire-"] #hg-mobile-identite-20261117 .hg-personnage-ligne strong,
+  body[class*="empire-"] #hg-mobile-identite-20261117 .hg-identite-marque strong,
+  body[class*="empire-"] #vue-rue .hg-explore-place,
+  body[class*="empire-"] .hg-explore-place,
+  body[class*="empire-"] #vue-rue .rue-title,
+  body[class*="empire-"] #vue-rue .hg-lieux-tactiles summary,
+  body[class*="empire-"] .hg-explore-info strong,
+  body[class*="empire-"] .hg-room-info strong,
+  body[class*="empire-"] #vue-batiment .batiment-nom,
+  body[class*="empire-"] #vue-batiment .piece-nom,
+  body[class*="empire-"] #modal-pnj .modal-title{color:var(--hgm-titre)}
+  body[class*="empire-"] #hg-mobile-brand .hg-mobile-brand-role,
+  body[class*="empire-"] #hg-mobile-identite-20261117 .hg-personnage-ligne span,
+  body[class*="empire-"] #vue-rue .game-time-display,
+  body[class*="empire-"] #vue-batiment .batiment-cat,
+  body[class*="empire-"] #vue-rue .hg-presences-vide,
+  body[class*="empire-"] #vue-rue #hg-presences-mobiles.hg-presences-empty .hg-presences-total,
+  body[class*="empire-"] #modal-pnj .pnj-loading{color:var(--text2)}
+  body[class*="empire-"] #vue-rue #actionbar .action-context,
+  body[class*="empire-"] #vue-batiment #action-context-bat,
+  body[class*="empire-"] #hg-mobile-identite-20261117 .hg-identite-statut span small{color:var(--hgm-or-texte)}
+  body[class*="empire-"] #modal-pnj #pnj-role-display{color:var(--hgm-or-texte)!important}
+  body[class*="empire-"] #modal-pnj #pnj-trait-display{color:var(--text)!important}
+  body[class*="empire-"] #vue-rue .rue-desc,
+  body[class*="empire-"] #vue-batiment .piece-desc,
+  body[class*="empire-"] #vue-rue .hg-presences-total,
+  body[class*="empire-"] #vue-rue .hg-presence-personne{color:var(--text)}
+
+  /* Al-Khalija : les PA restent turquoise sur téléphone aussi (libellé et valeur, #5fa8a7 : 4,8:1 sur --bg4). */
+  body.empire-khalija #hg-mobile-identite-20261117 #hg-identite-pa,
+  body.empire-khalija #hg-mobile-identite-20261117 #hg-identite-pa small{color:#5fa8a7}
+}
