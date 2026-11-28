@@ -1,12 +1,13 @@
 // Accessoire de club personnalisé (mission du soir du 27/11/2026, étape 7, décision de Fred) : génération de l'image par IA,
 // sur le modèle de publicite-premium (gpt-image, modération du fournisseur, deux retouches au plus), puis livraison dans
-// l'inventaire par accessoire_personnalise_livrer_service. Toutes les actions exigent un paiement CONFIRMÉ
-// (accessoires_personnalises.paiement_confirme_le, posé par le webhook du prestataire) : tant que le prestataire n'est pas
-// choisi, aucune commande n'est payée et cette fonction ne peut rien produire. NON DÉPLOYÉE : à déployer avec le paiement.
-// 28/11/2026 (Fred) : la personnalisation est incluse dans l'abonnement ; accessoire_personnalise_commander (SQL) crée alors une
-// commande réglée en consommant le renouvellement d'image de la semaine. L'écran annule la commande (renouvellement rendu) si
-// la génération échoue. Les aperçus sont rendus avec leur adresse publique (dépôt « accessoires-personnalises »).
-// Actions : generate, retouch, preview, finalize.
+// l'inventaire par accessoire_personnalise_livrer_service. Toutes les actions exigent une commande RÉGLÉE
+// (accessoires_personnalises.paiement_confirme_le), posée par accessoire_personnalise_commander (SQL) selon la source :
+// bêta gratuite, renouvellement d'image hebdomadaire de l'abonné, ou crédit acheté à l'unité (paiement commun, webhook signé).
+// 28/11/2026 soir (Fred) : DÉPLOYÉE (feu vert). Le renouvellement est consommé dès que l'image est créée (apercu_path posé),
+// même si l'objet n'est pas validé ; si la génération échoue, l'écran annule la commande et ce qu'elle a pris est rendu.
+// Secrets attendus : OPENAI_API_KEY (le même que publicite-premium et commerce-decoration) ; SUPABASE_URL,
+// SUPABASE_ANON_KEY et SUPABASE_SERVICE_ROLE_KEY sont fournis par Supabase. Copie versionnée de la fonction déployée.
+// Les aperçus sont rendus avec leur adresse publique (dépôt « accessoires-personnalises »). Actions : generate, retouch, preview, finalize.
 import {createClient} from "npm:@supabase/supabase-js@2.57.0";
 const cors={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"authorization,apikey,content-type","Access-Control-Allow-Methods":"POST,OPTIONS"};
 const out=(body,status=200)=>new Response(JSON.stringify(body),{status,headers:{...cors,"Content-Type":"application/json"}});
