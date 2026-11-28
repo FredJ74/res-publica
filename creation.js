@@ -1364,6 +1364,17 @@ async function validateChar(){
     if (typeof appliquerTraductionsRP === 'function') appliquerTraductionsRP();
   }
 
+  // ACCORD JURIDIQUE (Fred, 28/11/2026) : case « J'ai lu et j'accepte les CGU et la politique de confidentialite, et
+  // j'ai au moins 16 ans », non cochee par defaut. L'accord est enregistre par le serveur (juridique_accepter, versions
+  // en vigueur) AVANT la creation ; sans lui, payer_ordre_interne refuserait de toute facon le premier ordre.
+  const accordJuridique = (window.RPJuridique && typeof window.RPJuridique.accepterCreation === 'function')
+    ? await window.RPJuridique.accepterCreation().catch(() => ({ ok: false, message: null }))
+    : { ok: false, message: null };
+  if (!accordJuridique.ok) {
+    afficherErreurCreation('Creation impossible', accordJuridique.message || 'Cochez la case pour continuer.');
+    return;
+  }
+
   // Sauvegarde du personnage en localStorage pour le plateau
   const char={
     country:G.country, origin:G.origin, school:G.school,

@@ -11,7 +11,7 @@
 <title>Human Gambit — Plateau de Jeu</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Bebas+Neue&family=Crimson+Pro:wght@400;600&family=Great+Vibes&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
-<link rel="stylesheet" href="style.css?v=fenetres-20261122-acces-reserve-lisible-20261113-repertoire-i18n-20261113-ordres-info-tactile-20261113-lisibilite-pnj-20261031-caracs-mobile-l7-20261106-formulaires-20261107-reconnexion-20261108-piece-mobile-20261111-guide-lisible-20261111-questions-journal-images-entieres-20261114-krasnov-accueil-cadrage-20261115-krasnov-accueil-sans-vide-20261115-krasnov-accueil-image-unique-20261115-goulag-20261116-terrains-plan-20261122-interview-accueil-20261122-texte-minimum-20261122-foret-combat-20261122-sante-medecin-20261122-fiche-objet-panneau-20261123-bloc2-20261123-bloc4-20261123-purge-c-20261124-ghe-g2-chances-20261125">
+<link rel="stylesheet" href="style.css?v=fenetres-20261122-acces-reserve-lisible-20261113-repertoire-i18n-20261113-ordres-info-tactile-20261113-lisibilite-pnj-20261031-caracs-mobile-l7-20261106-formulaires-20261107-reconnexion-20261108-piece-mobile-20261111-guide-lisible-20261111-questions-journal-images-entieres-20261114-krasnov-accueil-cadrage-20261115-krasnov-accueil-sans-vide-20261115-krasnov-accueil-image-unique-20261115-goulag-20261116-terrains-plan-20261122-interview-accueil-20261122-texte-minimum-20261122-foret-combat-20261122-sante-medecin-20261122-fiche-objet-panneau-20261123-bloc2-20261123-bloc4-20261123-purge-c-20261124-ghe-g2-chances-20261125-juridique-20261128">
 <style>
 /* Le bandeau de traduction partielle concerne les langues étrangères ; l'interface FR conserve son gabarit initial. */
 html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
@@ -449,6 +449,8 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
           <div class="rules-tab piece-tab" data-section="economie" data-i18n="plateau.rulesEconomy" onclick="renderRulesContent('economie');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Économie</div>
           <div class="rules-tab piece-tab" data-section="sport" data-i18n="plateau.rulesFootball" onclick="renderRulesContent('sport');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">⚽ Football</div>
           <div class="rules-tab piece-tab" data-section="religion" data-i18n="plateau.rulesReligion" onclick="renderRulesContent('religion');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Religions</div>
+          <!-- Informations légales (Fred, 28/11/2026) : libellé et contenu posés par juridique-client.js (9 langues). -->
+          <div class="rules-tab piece-tab" data-section="juridique" onclick="if(window.RPJuridique)RPJuridique.renderAide()">Informations légales</div>
         </div>
       </div>
       <div id="rules-content" style="flex:1;overflow-y:auto;background:#0a0805"></div>
@@ -732,7 +734,7 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
 <script src="world-map.js?v=126"></script>
 <!-- auth.js AVANT supabase.js : sbEnTetes() y lit le jeton de session a chaque requete. -->
 <script src="auth.js?v=logout-joueur-20261117-purge-20261124-20261124-purgeA3"></script>
-<script src="supabase.js?v=jets-serveur-20261105-sovarka-nuit-20261110-failles-20261117-nationalite-20261118-presence-permanente-20261120-inventaire-direct-20261122-purge-20261124-b1-purgeA4-caisse-entrepot-20261126"></script>
+<script src="supabase.js?v=jets-serveur-20261105-sovarka-nuit-20261110-failles-20261117-nationalite-20261118-presence-permanente-20261120-inventaire-direct-20261122-purge-20261124-b1-purgeA4-caisse-entrepot-20261126-juridique-20261128"></script>
 <!-- Goulag de Sovarka : verrou d'ouverture lu au serveur, AVANT tout module du goulag (fermé par défaut). -->
 <script src="plateau-goulag-ouverture.js?v=goulag-verrou-20261117"></script>
 <!-- Tiptap (Lot C2) : chargé en ESM depuis un CDN, comme déjà validé dans les prototypes
@@ -835,8 +837,8 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
   window.RP_TIPTAP_FONT_SIZE = FontSize;
 </script>
 <script src="forum-canvas.js?v=mobile-l6-20261106-purge-b5-20261124"></script>
-<script src="forum.js?v=confirmations-871-feedback-i18n-871-20261113-i18n-refresh-fenetres-20261110-courriers-sovarka-20261111-premium-coloc-20261113-nationalite-20261118-interview-accueil-20261122-catastrophe-sommeil-20261123-purge-a7-20261124-b1-b2-b3-b4-ci-traduction-20261126"></script>
-<script src="plateau-core.js?v=corps-toasts-20261114-reprise-confirmation-r1-20261117-failles-20261117-state-window-20261123-fiche-objet-panneau-20261123-bloc1-20261123-ci-bloc3-20261123-bloc6-base-20261123-purge-20261124"></script>
+<script src="forum.js?v=confirmations-871-feedback-i18n-871-20261113-i18n-refresh-fenetres-20261110-courriers-sovarka-20261111-premium-coloc-20261113-nationalite-20261118-interview-accueil-20261122-catastrophe-sommeil-20261123-purge-a7-20261124-b1-b2-b3-b4-ci-traduction-20261126-juridique-20261128"></script>
+<script src="plateau-core.js?v=corps-toasts-20261114-reprise-confirmation-r1-20261117-failles-20261117-state-window-20261123-fiche-objet-panneau-20261123-bloc1-20261123-ci-bloc3-20261123-bloc6-base-20261123-purge-20261124-juridique-20261128"></script>
 <!-- Texte minimum dans toutes les fenêtres (Fred, 22/11/2026, point 1) : plancher 0,95 rem, titres jamais touchés. -->
 <script src="plateau-texte-minimum.js?v=texte-minimum-20261122-fiche-objet-panneau-20261123"></script>
 <script src="plateau-immobilier.js?v=inventaire-213-integration-20261029-sovarka-droits-20261106"></script>
@@ -881,7 +883,7 @@ html[lang="fr"] #i18n-beta-notice-plateau { display: none; }
 <script src="plateau-plan-rues.js?v=plan-rues-i18n-20261113-carrefour-declare-20261113-quai-hopital-20261113-reperes-hors-rue-20261114-place-ours-20261114-place-ours-clic-20261114"></script>
 <script src="plateau-navigation.js?v=goulag-arrestation-20261117-building-categories-i18n-20261116-exit-feedback-i18n-20261116-building-header-i18n-20261116-i18n-refresh-fenetres-20261110-sovarka-nuit-20261110-retablir-p2-20261110-fouiller-voler-20261111-acces-reserve-20261112-desc-sovarka-20261112-volga-ancrage-20261112-appartements-20261112-musee-depart-20261113-krasnov-accueil-cadrage-20261115-krasnov-accueil-sans-vide-20261115-krasnov-accueil-image-unique-20261115-musee-valerie-20261116-ventes-fermees-20261118-chantier-unique-20261121-terrains-plan-20261122-bloc2-20261123-audit-chances-20261125-caisse-entrepot-20261126"></script>
 <script src="plateau-images.js?v=20261122"></script>
-<script src="plateau-personnage.js?v=images-20261122-marque-20261122-onglet-871-mobile-l9-20261106-jets-serveur-20261105-vehicules-fiche-20261109-inventaire-i18n-20261110-retablir-p2-20261110-tresor-tsars-20261112-appartements-20261112-heros-boite-20261113-guide-dokladova-20261115-failles-20261117-hotel-tarif-sovarka-20261117-ventes-fermees-20261118-inventaire-direct-20261122-sante-medecin-20261122-sante-suites-20261123-medicaments-usines-20261123-tabac-presse-20261123-fiche-objet-panneau-20261123-bloc1-20261123-bloc5-20261123-bloc4-20261123-ghe-h8-audit-chances-20261125"></script>
+<script src="plateau-personnage.js?v=images-20261122-marque-20261122-onglet-871-mobile-l9-20261106-jets-serveur-20261105-vehicules-fiche-20261109-inventaire-i18n-20261110-retablir-p2-20261110-tresor-tsars-20261112-appartements-20261112-heros-boite-20261113-guide-dokladova-20261115-failles-20261117-hotel-tarif-sovarka-20261117-ventes-fermees-20261118-inventaire-direct-20261122-sante-medecin-20261122-sante-suites-20261123-medicaments-usines-20261123-tabac-presse-20261123-fiche-objet-panneau-20261123-bloc1-20261123-bloc5-20261123-bloc4-20261123-ghe-h8-audit-chances-20261125-juridique-20261128"></script>
 <script src="plateau-pnj.js?v=social-reponse-directe-20261104-psm-terrains-onglets-novomirsk-librairie-v6-jodie-enquete-20261109-passeur-i18n-20261111-roles-sovarka-20261112-i18n-equip-20261112-heros-boite-20261113-krasnov-referents-20261115-inventaire-direct-20261122-sante-maladies-20261122-sante-medecin-20261122-fiche-objet-panneau-20261123-bloc3-20261123-ghe-g1-ghe-h3"></script>
 <script src="i18n/dealer-resources.js?v=20261112"></script>
 <script src="plateau-ced.js?v=dealer-i18n-20261112"></script>
@@ -1164,6 +1166,7 @@ function signalerEvenementJournal() {
 <script src="sens-saisie.js?v=purge-b6-20261124"></script>
 <link rel="stylesheet" href="plateau-aide.css?v=20261111">
 <script src="plateau-aide.js?v=20261111-neuf-langues-debut-reponse"></script>
+<script src="juridique-client.js?v=20261128"></script>
 <script src="plateau-ordres-info.js?v=info-direct-mobile-20261117-chances-20261125" defer></script>
 <script src="plateau-chances-reelles.js?v=20261125-audit-chances-20261125" defer></script>
 <script src="plateau-fenetres.js?v=20261122" defer></script>

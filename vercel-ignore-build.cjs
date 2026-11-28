@@ -12,7 +12,7 @@ function ignorerBuild({ cwd = __dirname, env = process.env } = {}) {
     // Clone incomplet, premier build, historique réécrit : construire.
     git(['merge-base', '--is-ancestor', precedent, courant]);
     const exclusions = readFileSync(`${cwd}/.vercelignore`, 'utf8').split(/\r?\n/).map(s => s.trim());
-    if (!exclusions.includes('*.md') || exclusions.some(s => s.startsWith('!'))) return false;
+    if (!exclusions.includes('*.md') || exclusions.some(s => s.startsWith('!') && s !== '!juridique/**/*.md')) return false;
     const fichiers = git(['diff', '--name-only', '--no-renames', '-z', precedent, courant, '--']).split('\0').filter(Boolean);
     // Allowlist volontairement étroite ; tout code, SQL, configuration, asset ou
     // fichier inconnu conserve les Preview et le déploiement automatique de main.

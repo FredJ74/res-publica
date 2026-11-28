@@ -751,6 +751,8 @@ function switchSelfTab(tab, el) {
     // ne voit donc jamais ce bouton -- et ne pourrait de toute facon securiser que SON PROPRE
     // compte, PUT /user n'agissant que sur le porteur du jeton.
     html += htmlSecuriteDuCompte();
+    // Mon compte et mes données (Fred, 28/11/2026) : export, suppression du compte, liens vers les textes juridiques.
+    if (window.RPJuridique && typeof window.RPJuridique.htmlCompte === 'function') html += window.RPJuridique.htmlCompte();
 
     html += '<div style="margin-top:2rem;padding-top:1rem;border-top:1px solid #2a1a10">';
     html += '<button onclick="ouvrirModalDetruirePersonnage()" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #6a2a20;background:transparent;color:#8a4a3a;cursor:pointer"><i class="ti ti-skull"></i> Détruire mon personnage</button>';
@@ -1897,6 +1899,20 @@ async function confirmerDestructionPersonnage() {
 
   document.getElementById('modal-postes').classList.remove('open');
 
+  const verdict = await rpDetruirePersonnageParSuccession(nom);
+  if (!verdict.ok) {
+    showToast('Destruction annulée', "La succession n'a pas pu être ouverte (" + verdict.raison + "). Réessayez plus tard — votre personnage n'a pas été supprimé.", false, true);
+    return;
+  }
+
+  showToast('Personnage détruit', 'Vous allez être redirigé vers la création d\'un nouveau personnage.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b8830a8a7", 'Vous allez être redirigé vers la création d\'un nouveau personnage.', undefined, 'Personnage détruit');
+  setTimeout(() => { window.location.href = 'index.html'; }, 2000);
+}
+
+// Destruction du personnage par la succession existante, sans écran (Fred, 28/11/2026) : sert aussi à « Supprimer mon
+// compte » (juridique-client.js). Même chaîne qu'avant, dans le même ordre ; renvoie { ok, raison }.
+async function rpDetruirePersonnageParSuccession(nom) {
+  if (!nom || nom !== state.char?.name) return { ok: false, raison: 'personnage_non_charge' };
   // Succession fail-closed (architecture v4, 21 aout 2026) : la destruction du personnage n'est
   // JAMAIS declenchee si l'OUVERTURE de la succession echoue a un stade quelconque -- voir
   // ouvrirSuccession() ci-dessus pour la doctrine complete et les limites assumees (aucune
@@ -1908,9 +1924,8 @@ async function confirmerDestructionPersonnage() {
     return { ok: false, raison: 'exception_ouverture' };
   });
   if (!ouvertureResult.ok) {
-    showToast('Destruction annulée', "La succession n'a pas pu être ouverte (" + ouvertureResult.raison + "). Réessayez plus tard — votre personnage n'a pas été supprimé.", false, true);
     console.error('Succession annulée avant toute mutation :', ouvertureResult.raison, ouvertureResult.detail);
-    return;
+    return { ok: false, raison: ouvertureResult.raison };
   }
 
   // A partir d'ici, la succession a ete ouverte avec succes (dossier cree, actifs geles,
@@ -1930,6 +1945,9 @@ async function confirmerDestructionPersonnage() {
     await sbEnregistrerDeces(nom, state.country, state.currentCity).catch(() => {});
   }
 
+  // Nuitées d'hôtel du défunt (clé étrangère sans cascade) : libérées par le serveur, succession ouverte (28/11/2026).
+  if (typeof sbRpc === 'function') await sbRpc('personnage_suppression_liens_liberer', {}).catch(() => null);
+
   if (typeof sbDeletePersonnage === 'function') {
     await sbDeletePersonnage(nom).catch(() => {});
   }
@@ -1941,10 +1959,9 @@ async function confirmerDestructionPersonnage() {
   localStorage.removeItem('respublica_evtvus_' + nom);
   localStorage.removeItem('respublica_char');
   localStorage.removeItem('respublica_last_char');
-
-  showToast('Personnage détruit', 'Vous allez être redirigé vers la création d\'un nouveau personnage.', true, true); globalThis.RPI18nPlateau?.markToast("toastBodies.b8830a8a7", 'Vous allez être redirigé vers la création d\'un nouveau personnage.', undefined, 'Personnage détruit');
-  setTimeout(() => { window.location.href = 'index.html'; }, 2000);
+  return { ok: true };
 }
+if (typeof window !== 'undefined') window.rpDetruirePersonnageParSuccession = rpDetruirePersonnageParSuccession;
 
 // HOSPITALISATION A 0 PA (regle de Fred, 01/11/2026, GAME-DESIGN-HOSPITALISATION.md).
 // Agression, assassinat, combat perdu : l'ecran ne pose plus d'hospitalisation lui-meme. Il

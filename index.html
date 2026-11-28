@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Bebas+Neue&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
 <link rel="preload" as="image" href="images/human-gambit-accueil.webp" fetchpriority="high">
-<link rel="stylesheet" href="style.css?v=lisibilite-pnj-20261031-caracs-mobile-l4-20261106">
+<link rel="stylesheet" href="style.css?v=lisibilite-pnj-20261031-caracs-mobile-l4-20261106-juridique-20261128">
 <style>
 /* Empires présents dans l'univers mais fermés aux nouvelles créations. */
 #country-grid .rp-empire-a-venir {
@@ -147,6 +147,8 @@
       <p data-i18n="home.beta.body">Deux empires ouvrent leurs portes. En Républia : trois villes, une Assemblée, des tribunaux, un championnat et quelques personnes peu recommandables. En Sovarka : le Parti, ses kolkhozes, ses Héros du Travail et une forêt où rôde un ours. Les empires voisins attendent leur tour. Ce que vous ferez ici — et ce que vous nous en direz — façonnera la suite.</p>
       <p id="i18n-beta-notice-home" data-i18n="betaLanguage.notice" role="note" style="font-size:.85em;opacity:.9">Traduction en cours : certaines parties du jeu restent en français. Elles demeurent entièrement jouables pendant cette bêta.</p>
     </div>
+    <!-- Pied juridique (Fred, 28/11/2026) : liens vers les textes, rendus par juridique-client.js dans la langue du joueur. -->
+    <nav class="hg-pied-juridique" id="hg-pied-juridique" aria-label="Informations légales"></nav>
   </div>
 </div>
 
@@ -286,6 +288,9 @@
 <div id="s8" class="screen">
   <div class="sh"><div class="sn" data-i18n="creation.steps.review.step">Recapitulatif</div><div class="st playfair" data-i18n="creation.steps.review.title">Votre fiche de personnage</div></div>
   <div class="rcard" id="rcard"></div>
+  <!-- Accord juridique (Fred, 28/11/2026) : case NON cochee, rendue par juridique-client.js ; validateChar() exige
+       qu'elle soit cochee et le serveur enregistre l'accord (juridique_accepter) avant toute creation. -->
+  <div id="hg-case-juridique" style="max-width:640px;width:100%;margin-top:1rem"></div>
   <div style="max-width:640px;width:100%;margin-top:1.2rem;display:flex;gap:.8rem">
     <button class="nbtn" style="flex:1" data-i18n="creation.nav.edit" onclick="goTo(7)">Modifier</button>
     <button class="nbtn nnext" style="flex:2" data-i18n="creation.nav.validate" onclick="validateChar()">Valider et entrer dans le jeu</button>
@@ -314,8 +319,9 @@
 <script src="sens-saisie.js?v=purge-b6-20261124"></script>
 <!-- auth.js AVANT supabase.js : sbEnTetes() y lit le jeton de session a chaque requete. -->
 <script src="auth.js?v=8-purge-20261124"></script>
-<script src="supabase.js?v=jets-serveur-20261105-sovarka-nuit-20261110-purge-20261124-purgeA4-caisse-entrepot-20261126"></script>
-<script src="creation.js?v=retours-creation-20261120-erreur-20261124"></script>
+<script src="supabase.js?v=jets-serveur-20261105-sovarka-nuit-20261110-purge-20261124-purgeA4-caisse-entrepot-20261126-juridique-20261128"></script>
+<script src="juridique-client.js?v=20261128"></script>
+<script src="creation.js?v=retours-creation-20261120-erreur-20261124-juridique-20261128"></script>
   <link rel="stylesheet" href="rue-centrale.css">
 </body>
 </html>

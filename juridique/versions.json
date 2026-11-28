@@ -1,0 +1,11 @@
+{
+  "_lisez_moi": "Miroir du registre serveur public.juridique_versions (version en vigueur de chaque texte). Publier une version : voir ARCHITECTURE.md, section « Textes juridiques ».",
+  "langue_qui_fait_foi": "fr",
+  "langues": ["fr", "en", "es", "de", "ru", "ko", "ar", "pt-BR", "zh-TW"],
+  "textes": {
+    "mentions-legales": { "version": "0.1", "date": "2026-11-28", "importante": true, "migration": "20261128130000_juridique_accords_comptes" },
+    "cgu": { "version": "0.1", "date": "2026-11-28", "importante": true, "migration": "20261128130000_juridique_accords_comptes" },
+    "cgv": { "version": "0.1", "date": "2026-11-28", "importante": true, "migration": "20261128130000_juridique_accords_comptes" },
+    "confidentialite": { "version": "0.1", "date": "2026-11-28", "importante": true, "migration": "20261128130000_juridique_accords_comptes" }
+  }
+}

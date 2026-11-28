@@ -3282,6 +3282,8 @@ function signalerRefusCout(resultat) {
   const r = resultat || {};
   // Garde-fous mineurs : le message neutre est déjà affiché par sbTransportRpc (rpActionNonDisponible).
   if (r.raison === 'action_non_disponible' || r.raison === 'personnage_mineur_carriere_unique') return;
+  // Textes juridiques (Fred, 28/11/2026) : la fenêtre d'acceptation ou le rappel de suspension est déjà ouvert (supabase.js).
+  if (r.raison === 'conditions_a_accepter' || r.raison === 'compte_suspendu') return;
   const cur = COUNTRIES[state.char?.country || 'republic']?.cur || 'FR';
   const fmt = (n) => Number(n || 0).toLocaleString('fr-FR');
 
