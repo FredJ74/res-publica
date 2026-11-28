@@ -122,6 +122,7 @@ ligne trouvée fausse se corrige ici.
 | Prêts | Prêts bancaires, mensualités, saisies. | Mixte | Banques et taux. |
 | Fiscalité | Taxes locales et nationales, recettes, répartition. | Mixte | Déclarer le circuit national de l'empire. |
 | Budgets publics | Budgets nationaux, municipaux, des clubs. | Mixte | Institutions et répartitions. |
+| Paiement réel (premium) | (28/11/2026) Euros par Stripe : France et UE en Stripe classique (l'éditeur vend, franchise de TVA, mention 293 B), reste du monde en Managed Payments (Stripe vend) ; mode décidé par la base selon le pays de Vercel (`premium_paiement_contexte_service`, réglage `paiement_mp_pour_ue`) ; prix de la base, consentements CGV et rétractation enregistrés, confirmation par le seul webhook signé ; abonnements mensuel et annuel, résiliation en fin de période, remboursement 14 jours, rappel annuel (cron). Fermé tant que les clés Stripe manquent. Détails : `docs/premium/PAIEMENT-STRIPE-20261128.md`. | Serveur | Rien : commun (prix MJ). |
 
 ### Territoire
 

@@ -14,6 +14,7 @@ import { genererToutesLesEditions } from './_journal-generation.js';
 // mort visible la ou Fred regarde deja -- voir la section 0 quater.
 import { appelDeepSeek, cleConfiguree, classerEchecFournisseur } from './_deepseek.js';
 import { recopierImagesForumExterieures } from './_forum-images-externes.js';   // Forum : images extérieures (22/11/2026)
+import { envoyerRappelsAnnuels } from './_paiement.js';   // Paiement : rappel des abonnements annuels (28/11/2026)
 
 // REFERENTIELS DU JEU -- IMPORTES, PLUS RECOPIES (chantier 4B, 6 octobre 2026).
 //
@@ -6571,6 +6572,10 @@ export default async function handler(req, res) {
     const chantiers = await avancerChantiersQuotidien();
     // 8a. Forum : recopie des images extérieures dans le stockage (Fred, 22/11/2026, point 7).
     const imagesForum = await recopierImagesForumExterieures().catch(e => ({ ok: false, raison: String(e && e.message || e) }));
+    // 8b. Paiement (Fred, 28/11/2026) : e-mail de rappel des abonnements annuels, au plus tard 30 jours avant le renouvellement.
+    // Jamais bloquant : sans service d'e-mail configuré, rien n'est envoyé ni noté (les rappels de Stripe restent actifs).
+    const rappelsAbonnements = await envoyerRappelsAnnuels().catch(e => ({ ok: false, raison: String(e && e.message || e) }));
+    if (rappelsAbonnements && rappelsAbonnements.ok === false && rappelsAbonnements.raison !== 'courriel_inactif') console.warn('[cron] rappels abonnements', rappelsAbonnements.raison);
 
     // 9. Mensualites des prets bancaires (a heure fixe, que le joueur dorme ou non)
     const prets = await preleverPretsBancairesServeur();
