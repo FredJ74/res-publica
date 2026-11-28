@@ -997,6 +997,10 @@ Le pays du mandat n'est pas le pays du voyage : tous les postes, élus et nommé
 - **Prix** : 250 PSK en Sovarka, 500 FR ailleurs.
 - **Écoutes** : le ministre de la Défense lit les rapports depuis son bureau seulement. **Habilitations** : ordre « Habilitations aux archives d'écoute » au bureau du ministre de la Sécurité du Peuple (accorder, retirer, liste) ; ordre « Consulter les archives (habilitation) » dans les trois salles d'écoute (1 PA, recherche par nom, résultats par courrier).
 - **Vol raté** : 1 jour de prison (le barème générique donnait 2 jours, écart corrigé pour les trois centres) ; à Novomirsk, détention en salle d'interrogatoire jusqu'à l'interrogatoire ou la fin de la peine ; « Interroger un détenu » vise un détenu présent (2 PA, 75 %, +5 INF), un seul interrogatoire puis la cellule.
+- **Salle d'interrogatoire, 48 h au plus** (Fred, 28/11/2026 après-midi, migration `20261128100000`) : un détenu du
+  Renseignement reste au plus 48 heures en salle d'interrogatoire, puis il est reconduit d'office dans son lieu de
+  détention d'origine (cellule ordinaire, QHS ou goulag, gardé à l'entrée en salle). Courrier au détenu et au ministre
+  (Défense ; en Sovarka aussi Sécurité du Peuple). Contrôle toutes les heures (tâche `renseignement_interrogatoire_passe`).
 - **Portraits** (planches de Fred, 13/11, 23 h 24) : chaque agent des deux équipes de Sovarka a son portrait dans les quatre tenues de couverture (`images/Sovarka/agents/`, migration `20261113231000`). Interprétation (Claude) : la planche aux traits décrits dans le prompt (coordinateur grisonnant, conseillère au chignon, garde au crâne rasé) est celle de la Défense, l'autre celle de la Sécurité du Peuple.
 - **Limites** : courriers traduits (habilitation, retrait, fin d'interrogatoire), mais la compilation des archives consultées reste en français comme les rapports d'écoute.
 
