@@ -70,6 +70,20 @@ function sbSignalerSessionPerdue() {
     try { afficherBandeauReconnexion(); } catch (_) {}
   }
 }
+// Suspension de modération (Fred, 28/11/2026 soir) : la base refuse aussi forum, courrier et chat d'un compte suspendu
+// (erreur « compte_suspendu », détail = la sanction). Même fenêtre que pour un ordre refusé (juridique-client.js).
+function sbSignalerRefusSuspension(texte) {
+  try {
+    const j = JSON.parse(texte || 'null');
+    if (!j || j.message !== 'compte_suspendu') return false;
+    let sanction = null;
+    try { sanction = JSON.parse(j.details || 'null'); } catch (_) { sanction = null; }
+    if (typeof window !== 'undefined' && typeof window.rpJuridiqueRefus === 'function')
+      window.rpJuridiqueRefus({ ok: false, raison: 'compte_suspendu', sanction: sanction });
+    return true;
+  } catch (_) { return false; }
+}
+
 async function sbTransportRest(methode, table, filtres, corps, preferResolution, dejaRenouvele) {
   // Voir sbRpc : on s'assure d'avoir une session avant toute requete, pour que les policies
   // RLS voient auth.uid() plutot que la cle anon partagee. Idempotent, un seul aller-retour.
@@ -107,6 +121,7 @@ async function sbTransportRest(methode, table, filtres, corps, preferResolution,
     let code = null;
     try { code = (JSON.parse(texte) || {}).code || null; } catch (e) { code = null; }
     console.error('sbTransportRest ' + methode + ' ' + table + ' -> ' + res.status, texte);
+    if (typeof sbSignalerRefusSuspension === 'function') sbSignalerRefusSuspension(texte);
     if (res.status === 401) {
       // Refus avant exécution : jeton renouvelé, même requête renvoyée une seule fois (#68, 24/11/2026).
       if (!dejaRenouvele && typeof rpAuthForcerRenouvellement === 'function'
@@ -5441,6 +5456,7 @@ async function sbTransportRpcBrut(fn, params, options) {
     let code = null;
     try { code = (JSON.parse(texte) || {}).code || null; } catch (e) {}
     console.error('sbRpc error (' + fn + ') http ' + res.status, code);
+    if (typeof sbSignalerRefusSuspension === 'function') sbSignalerRefusSuspension(texte);
     if (typeof noterIncidentSession === 'function') noterIncidentSession('rpc_http_' + res.status, fn + ' : réponse HTTP ' + res.status + (code ? ' (' + code + ')' : ''));
     // 401 = le serveur a refuse l'IDENTITE, pas la regle du jeu : jeton expire pendant le vol,
     // ou fonction non accordee au porteur de la requete. Le joueur doit se reconnecter, et
