@@ -3,10 +3,10 @@ on:
   schedule:
     - cron: '16 3 * * *'
   pull_request:
-    paths: [api/_paiement.js, api/_paiement-courriels.js, api/chat.js, api/cron-minuit.js, plateau-paiement.js, plateau-premium.js, plateau-personnage.js, plateau.html, admin-premium.js, vercel.json, 'migrations/20261125700000_premium_socle.sql', 'migrations/20261128120000_paiement_stripe.sql', 'outils/bancs/banc-paiement-*', 'outils/bancs/banc-premium-*', .github/workflows/paiement-stripe-20261128.yml]
+    paths: [api/_paiement.js, api/_paiement-courriels.js, api/_courriel.js, api/chat.js, api/cron-minuit.js, plateau-paiement.js, plateau-premium.js, plateau-personnage.js, plateau.html, admin-premium.js, vercel.json, 'migrations/20261125700000_premium_socle.sql', 'migrations/20261128120000_paiement_stripe.sql', 'outils/bancs/banc-paiement-*', 'outils/bancs/banc-premium-*', .github/workflows/paiement-stripe-20261128.yml]
   push:
     branches: [main, 'claude/**']
-    paths: [api/_paiement.js, api/_paiement-courriels.js, api/chat.js, api/cron-minuit.js, plateau-paiement.js, plateau-premium.js, plateau-personnage.js, plateau.html, admin-premium.js, vercel.json, 'migrations/20261125700000_premium_socle.sql', 'migrations/20261128120000_paiement_stripe.sql', 'outils/bancs/banc-paiement-*', 'outils/bancs/banc-premium-*', .github/workflows/paiement-stripe-20261128.yml]
+    paths: [api/_paiement.js, api/_paiement-courriels.js, api/_courriel.js, api/chat.js, api/cron-minuit.js, plateau-paiement.js, plateau-premium.js, plateau-personnage.js, plateau.html, admin-premium.js, vercel.json, 'migrations/20261125700000_premium_socle.sql', 'migrations/20261128120000_paiement_stripe.sql', 'outils/bancs/banc-paiement-*', 'outils/bancs/banc-premium-*', .github/workflows/paiement-stripe-20261128.yml]
 permissions:
   contents: read
 jobs:

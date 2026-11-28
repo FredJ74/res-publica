@@ -1,5 +1,5 @@
 // Mission du 28/11/2026, étape 4 (décision de Fred) : PAIEMENT PAR STRIPE EN FONCTIONNEMENT MIXTE — partie serveur.
-// Aucun appel réseau : l'API Stripe et l'envoi d'e-mails sont des doublures ; le secret de signature est généré ici.
+// Aucun appel réseau : l'API Stripe et l'envoi d'e-mails (Brevo) sont des doublures ; le secret de signature est généré ici.
 // Signature Stripe (t=…,v1=…, HMAC-SHA256 de « t.corps », tolérance 300 s, plusieurs v1) ; session Checkout classique
 // (éditeur vendeur, mention 293 B, adresse de facturation) ou Managed Payments (managed_payments[enabled], aucun paramètre
 // interdit) ; prix de la base ; consentements ; pays de Vercel ; événements (achat, abonnement, résiliation, remboursement,
@@ -14,7 +14,8 @@ import { Readable } from 'node:stream';
 import { fileURLToPath } from 'node:url';
 import { creerHandlerPaiement, signerStripe, verifierSignatureStripe, paramsSessionCheckout, formulaireStripe, fournisseurStripe,
   traiterEvenement, paysDeLaRequete, envoyerRappelsAnnuels } from '../../api/_paiement.js';
-import { TEXTES_COURRIEL, LANGUES_COURRIEL, courrielConfirmation, courrielRappelAnnuel, envoyerCourriel } from '../../api/_paiement-courriels.js';
+import { TEXTES_COURRIEL, LANGUES_COURRIEL, courrielConfirmation, courrielRappelAnnuel } from '../../api/_paiement-courriels.js';
+import { envoyerCourriel } from '../../api/_courriel.js';   // Brevo depuis le 28/11/2026 au soir
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const lire = f => fs.readFileSync(path.join(root, f), 'utf8');
@@ -174,11 +175,11 @@ test('commande refusée : pays non servi, hors UE fermé, CGV ou vendeur non con
 
 test('webhook Stripe : signature, confirmation au montant hors taxes en euros, e-mail une fois, rejeu idempotent', async () => {
   const mails = [];
-  const fetchMail = async (url, init) => { mails.push({ url, corps: JSON.parse(init.body), cle: init.headers['Idempotency-Key'] }); return { ok: true, json: async () => ({ id: 'm' }) }; };
+  const fetchMail = async (url, init) => { const corps = JSON.parse(init.body); mails.push({ url, corps, cle: corps.headers && corps.headers.idempotencyKey, cleApi: init.headers['api-key'] }); return { ok: true, status: 201, json: async () => ({ messageId: '<m@brevo>' }) }; };
   const noter = { ok: true, achat: 'a-1', user: 'u-1', produit: 'bureau_six', libelle: 'Bureau à 6 emplacements', nature: 'option', montant_centimes: 300,
     langue: 'de', mode_vente: 'editeur', renonciation: true, envoyer_courriel: true, doublon: false, ref_fournisseur: 'cs_1', ref_paiement: 'pi_1' };
   const { rpc, appels } = base(undefined, { premium_achat_confirmer_service: { ok: true }, premium_achat_paiement_noter_service: noter });
-  const env = { ...envStripe, RESEND_API_KEY: 're_banc', COURRIEL_EXPEDITEUR: 'Human Gambit <paiement@hg.example>' };
+  const env = { ...envStripe, BREVO_API_KEY: 'brevo_banc' };
   const h = creerHandlerPaiement({ env, rpc, serviceDispo: () => true, fetch: fetchMail });
   const ev = JSON.stringify({ id: 'evt_1', type: 'checkout.session.completed', data: { object: { id: 'cs_1', object: 'checkout.session', mode: 'payment',
     payment_status: 'paid', client_reference_id: 'a-1', payment_intent: 'pi_1', amount_subtotal: 300, amount_total: 300, currency: 'eur',
@@ -189,8 +190,12 @@ test('webhook Stripe : signature, confirmation au montant hors taxes en euros, e
   const conf = appels.find(a => a.fn === 'premium_achat_confirmer_service');
   assert.deepEqual(conf.params, { p_achat: 'a-1', p_fournisseur: 'stripe', p_ref: 'pi_1', p_montant: 300, p_devise: 'EUR' });
   assert.deepEqual(appels.find(a => a.fn === 'premium_achat_paiement_noter_service').params, { p_achat: 'a-1', p_ref_paiement: 'pi_1', p_abonnement_ref: null, p_email: 'k@example.org' });
-  assert.equal(mails.length, 1); assert.equal(mails[0].corps.to[0], 'k@example.org'); assert.equal(mails[0].cle, 'achat-a-1');
-  assert.match(mails[0].corps.text, /Verkäufer: Éditeur Test/); assert.match(mails[0].corps.text, /293 B/); assert.match(mails[0].corps.text, /Widerrufsrecht/);
+  assert.equal(mails.length, 1); assert.equal(mails[0].url, 'https://api.brevo.com/v3/smtp/email'); assert.equal(mails[0].cleApi, 'brevo_banc');
+  assert.deepEqual(mails[0].corps.to, [{ email: 'k@example.org' }]); assert.equal(mails[0].cle, 'achat-a-1');
+  assert.deepEqual(mails[0].corps.sender, { name: 'Human Gambit', email: 'noreply@human-gambit.com' });
+  assert.deepEqual(mails[0].corps.replyTo, { name: 'Human Gambit', email: 'contact@human-gambit.com' });
+  assert.match(mails[0].corps.textContent, /Verkäufer: Éditeur Test/); assert.match(mails[0].corps.textContent, /293 B/); assert.match(mails[0].corps.textContent, /Widerrufsrecht/);
+  assert.match(mails[0].corps.htmlContent, /<html lang="de">/);
   assert.ok(appels.some(a => a.fn === 'premium_achat_courriel_noter_service'));
   // Sans signature : 400, rien en base.
   const b = base(); const r2 = reponse();
@@ -268,7 +273,7 @@ test('e-mails : 9 langues complètes ; vendeur Stripe hors UE ; rappel annuel ; 
   assert.match(m.texte, /yearly subscription renews automatically/); assert.match(m.texte, /14 days/);
   const r = courrielRappelAnnuel({ langue: 'fr', fin: '2027-03-15T10:00:00Z', montant_centimes: 4800 });
   assert.match(r.sujet, /15 mars 2027/); assert.match(r.texte, /48,00\s€/);
-  assert.deepEqual(await envoyerCourriel({ a: 'x@example.org', sujet: 's', texte: 't' }, { env: {} }), { ok: false, raison: 'courriel_inactif' });
+  assert.deepEqual(await envoyerCourriel({ a: 'x@example.org', sujet: 's', texte: 't' }, { env: {}, journal: null }), { ok: false, raison: 'cle_absente', detail: 'BREVO_API_KEY absente de l’environnement' });
 });
 
 test('rappel annuel (cron) : envoi puis note ; arrêt propre sans service d’e-mail', async () => {
@@ -278,12 +283,12 @@ test('rappel annuel (cron) : envoi puis note ; arrêt propre sans service d’e-
     notes.push([fn, p]); return un({ ok: true });
   };
   const mails = [];
-  const ok = await envoyerRappelsAnnuels({ rpc, env: { RESEND_API_KEY: 'k', COURRIEL_EXPEDITEUR: 'x@hg.example' }, serviceDispo: () => true,
-    fetchFn: async (u, i) => { mails.push(JSON.parse(i.body)); return { ok: true }; } });
+  const ok = await envoyerRappelsAnnuels({ rpc, env: { BREVO_API_KEY: 'k' }, serviceDispo: () => true,
+    fetchFn: async (u, i) => { mails.push(JSON.parse(i.body)); return { ok: true, status: 201, json: async () => ({ messageId: '<r@brevo>' }) }; } });
   assert.deepEqual(ok, { ok: true, envoyes: 1, echecs: 0 });
   assert.match(mails[0].subject, /assinatura anual/); assert.deepEqual(notes, [['premium_rappel_noter_service', { p_id: 'ab-1', p_fin: '2027-02-01T00:00:00Z' }]]);
   notes.length = 0;
-  assert.equal((await envoyerRappelsAnnuels({ rpc, env: {}, serviceDispo: () => true })).raison, 'courriel_inactif');
+  assert.equal((await envoyerRappelsAnnuels({ rpc, env: {}, serviceDispo: () => true })).raison, 'cle_absente');
   assert.equal(notes.length, 0, 'rien de noté : le rappel partira quand l’e-mail sera configuré');
 });
 
@@ -293,8 +298,8 @@ test('raccords : cron de minuit, page MJ, fiche du compte, 12 fonctions, aucune 
   assert.match(cron, /await envoyerRappelsAnnuels\(\)/);
   const fonctions = fs.readdirSync(path.join(root, 'api')).filter(f => f.endsWith('.js') && !f.startsWith('_'));
   assert.ok(fonctions.length <= 12, fonctions.length + ' fonctions');
-  for (const f of ['api/_paiement.js', 'api/_paiement-courriels.js', 'plateau-paiement.js', 'migrations/20261128120000_paiement_stripe.sql'])
-    assert.doesNotMatch(lire(f), /sk_live_[A-Za-z0-9]{6}|sk_test_[A-Za-z0-9]{6}|whsec_[A-Za-z0-9]{6}|re_[A-Za-z0-9]{20}/, f);
+  for (const f of ['api/_paiement.js', 'api/_paiement-courriels.js', 'api/_courriel.js', 'plateau-paiement.js', 'migrations/20261128120000_paiement_stripe.sql'])
+    assert.doesNotMatch(lire(f), /sk_live_[A-Za-z0-9]{6}|sk_test_[A-Za-z0-9]{6}|whsec_[A-Za-z0-9]{6}|xkeysib-[A-Za-z0-9]{6}/, f);
   assert.match(lire('admin-premium.js'), /premium_admin_paiement_fixer/);
   assert.match(lire('plateau-personnage.js'), /rpHtmlAbonnementCompte/);
   assert.match(lire('plateau.html'), /<script src="plateau-paiement\.js\?v=paiement-stripe-20261128"><\/script>/);

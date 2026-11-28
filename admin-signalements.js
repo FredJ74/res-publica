@@ -1,7 +1,8 @@
 // File de modération des messages signalés (Fred, 20/11/2026) : courrier, forum, conversations.
 // Depuis le 28/11/2026 : aussi les images personnalisées et les noms de personnages (contenu_signaler), et les sanctions
 // (admin_sanction_prononcer) : toute sanction est notifiée au joueur avec sa raison (règle enfreinte, contenu visé,
-// durée, contestation possible à contact@human-gambit.com) par un courrier « Modération » et une fenêtre à sa connexion.
+// durée, contestation possible à contact@human-gambit.com) par un courrier « Modération », une fenêtre à sa connexion et un
+// e-mail (Brevo, réponse vers contact@human-gambit.com ; admin-courriels.js).
 // Le serveur trie : ouverts d'abord, impliquant un personnage MINEUR en tête (marqués « mineur »), puis les plus anciens.
 // Accès : admin_exiger() côté serveur (admin_signalements_lire, admin_signalement_traiter, admin_sanction_*).
 const ADM_SIG_SOURCES = { courrier: 'Courrier', forum: 'Forum', conversation: 'Conversation', image: 'Image personnalisée', nom: 'Nom de personnage' };
@@ -26,7 +27,9 @@ function admSignalementFormSanction(s, tous) {
    const r = await rpAdminRpc('admin_sanction_prononcer', { p_signalement_id: s.id, p_personnage: s.auteur || null, p_type: type.value,
      p_regle: regle.value, p_contenu: contenu.value, p_raison: raison.value, p_duree_jours: type.value === 'suspension' ? Number(duree.value) : null });
    if (!r || r.ok !== true) throw Error((r && r.raison) || 'refus');
-   alert('Sanction enregistrée et notifiée' + (r.notification && r.notification.ok === true ? '.' : ' (courrier non posé : ' + JSON.stringify(r.notification) + ').'));
+   // E-mail de notification (Brevo, 28/11/2026 au soir), adresse de réponse contact@human-gambit.com.
+   const courriel = (r.sanction && r.sanction.id && typeof admCourrielSanction === 'function') ? await admCourrielSanction(r.sanction.id) : 'e-mail non envoyé';
+   alert('Sanction enregistrée et notifiée' + (r.notification && r.notification.ok === true ? '' : ' (courrier non posé : ' + JSON.stringify(r.notification) + ')') + ' ; ' + courriel + '.');
    admSignalementsCharger(tous);
   } catch (err) { alert('Non enregistré : ' + err.message); }
  };

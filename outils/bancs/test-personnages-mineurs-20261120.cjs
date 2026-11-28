@@ -92,7 +92,7 @@ test('Signalement : bouton sur courrier, forum et conversations ; file MJ, mineu
   assert.match(sql, /ORDER BY \(s\.statut = 'ouvert'\) DESC, s\.mineur DESC, s\.cree_le ASC/);
   assert.match(sql, /v_moi IN \(m\.to_player, m\.from_player, m\.from_real\)/);
   const admin = lire('admin.html'), js = lire('admin-signalements.js');
-  assert.match(admin, /<script src="admin-signalements\.js\?v=1"><\/script>/);
+  assert.match(admin, /<script src="admin-signalements\.js\?v=[^"]+"><\/script>/);
   assert.match(admin, /admSignalementsCharger\(false\)/);
   assert.match(js, /\(s\.mineur \? '\[MINEUR\] ' : ''\)/);
   assert.match(js, /rpAdminRpc\('admin_signalement_traiter'/);

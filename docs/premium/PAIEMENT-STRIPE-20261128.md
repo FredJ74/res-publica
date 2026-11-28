@@ -68,8 +68,10 @@ l'adresse de facturation (obligatoire en mode éditeur), visible dans Stripe en 
 ## E-mails
 
 `api/_paiement-courriels.js`, 9 langues : confirmation d'achat (produit, montant, vendeur, mention 293 B en mode éditeur,
-renonciation au droit de rétractation, conditions de l'abonnement), rappel annuel, doublon remboursé. Envoi par l'API de
-**Resend** si `RESEND_API_KEY` et `COURRIEL_EXPEDITEUR` existent ; sinon rien n'est envoyé (les e-mails de Stripe restent).
+renonciation au droit de rétractation, conditions de l'abonnement), rappel annuel, doublon remboursé. Envoi par l'API
+transactionnelle de **Brevo** (`api/_courriel.js`, expéditeur « Human Gambit <noreply@human-gambit.com> », réponses vers
+contact@human-gambit.com) avec la clé `BREVO_API_KEY` ; clé absente, refusée ou expirée : rien n'est envoyé (les e-mails
+de Stripe restent), l'échec est consigné et une alerte s'affiche dans la page MJ.
 
 ## Managed Payments : ce que dit la documentation (docs.stripe.com, lue le 28/11/2026)
 
@@ -106,7 +108,7 @@ Côté **Stripe** (mode test d'abord) :
 Côté **Vercel** (Settings → Environment Variables) :
 - `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, puis `PAIEMENT_FOURNISSEUR=stripe`. Tant que ces clés n'existent pas :
   `PAIEMENT_FOURNISSEUR=aucun` (ou absente) : paiement fermé. Une clé réelle (`sk_live_…`) n'est acceptée qu'en production.
-- Facultatif : `RESEND_API_KEY` et `COURRIEL_EXPEDITEUR` (e-mails du jeu), `PAIEMENT_URL_SITE`, `STRIPE_TAX_CODE_*`.
+- Facultatif : `PAIEMENT_URL_SITE`, `STRIPE_TAX_CODE_*`. Les e-mails du jeu utilisent `BREVO_API_KEY` (déjà posée).
 
 Côté **jeu** (page MJ → Premium) : nom de l'éditeur affiché comme vendeur, adresse des CGV (sans elles, aucun achat réel),
 prix (dont l'abonnement annuel), puis fin de la gratuité de la bêta.

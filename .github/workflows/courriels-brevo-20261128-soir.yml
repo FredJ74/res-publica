@@ -1,0 +1,23 @@
+name: "E-mails du jeu par Brevo (envoi, échecs consignés, alerte MJ)"
+on:
+  schedule:
+    - cron: '26 3 * * *'
+  pull_request:
+    paths: [api/_courriel.js, api/_courriel-mj.js, api/_comptes-inactifs.js, api/_paiement.js, api/_paiement-courriels.js, api/chat.js, vercel.json, admin.html, admin-courriels.js, admin-signalements.js, admin-tribunal.js, 'migrations/20261128230000_courriels_brevo.sql', 'outils/bancs/banc-courriels-brevo-*', .github/workflows/courriels-brevo-20261128-soir.yml]
+  push:
+    branches: [main, 'claude/**']
+    paths: [api/_courriel.js, api/_courriel-mj.js, api/_comptes-inactifs.js, api/_paiement.js, api/_paiement-courriels.js, api/chat.js, vercel.json, admin.html, admin-courriels.js, admin-signalements.js, admin-tribunal.js, 'migrations/20261128230000_courriels_brevo.sql', 'outils/bancs/banc-courriels-brevo-*', .github/workflows/courriels-brevo-20261128-soir.yml]
+permissions:
+  contents: read
+jobs:
+  courriels:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: for f in api/_courriel.js api/_courriel-mj.js api/_comptes-inactifs.js api/chat.js admin-courriels.js admin-signalements.js admin-tribunal.js; do node --check "$f"; done
+      - name: Envoi par Brevo (doublures, aucun appel réseau, aucune clé)
+        run: node --test outils/bancs/banc-courriels-brevo-20261128-soir.mjs outils/bancs/banc-textes-juridiques-20261128.cjs outils/bancs/banc-paiement-stripe-20261128.mjs

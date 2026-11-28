@@ -134,7 +134,7 @@ test('comptes inactifs : avertissement noté seulement si l’e-mail part ; supp
   fs.writeFileSync(path.join(dir, '_comptes-inactifs.mjs'), lire('api/_comptes-inactifs.js').replace("'./_courriel.js'", "'./_courriel.mjs'"));
   const m = await import(path.join(dir, '_comptes-inactifs.mjs'));
   const c = await import(path.join(dir, '_courriel.mjs'));
-  assert.deepStrictEqual(await c.envoyerCourriel({ a: 'x@y.z', sujet: 's', texte: 't' }, { env: {} }), { ok: false, raison: 'fournisseur_non_configure' });
+  assert.strictEqual((await c.envoyerCourriel({ a: 'x@y.z', sujet: 's', texte: 't' }, { env: {}, journal: null })).raison, 'cle_absente');   // Brevo (28/11 au soir)
   const appels = [];
   const liste = { ok: true, avertir: [{ user_id: 'u1', email: 'a@b.c', activite: '2023-01-01', suppression_le: '2026-12-28', langue: 'de', personnage: 'Arnie' },
     { user_id: 'u2', email: 'd@e.f', activite: '2023-01-01', suppression_le: '2026-12-28', langue: 'xx', personnage: null }],

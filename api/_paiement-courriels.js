@@ -1,8 +1,8 @@
 /* ===========================================================================
    RES PUBLICA — api/_paiement-courriels.js
    E-MAILS DU PAIEMENT (mission du 28/11/2026, étape 4) : confirmation d'achat, rappel d'abonnement annuel, débit en double.
-   Textes dans les 9 langues du jeu. Envoi par l'API REST de Resend (aucune dépendance) si RESEND_API_KEY et
-   COURRIEL_EXPEDITEUR existent dans Vercel ; sinon rien n'est envoyé (raison « courriel_inactif ») et les e-mails de Stripe
+   Textes dans les 9 langues du jeu. L'envoi passe par api/_courriel.js (Brevo, adresse de réponse contact@human-gambit.com) ;
+   sans clé BREVO_API_KEY valide, rien n'est envoyé (échec consigné, alerte dans la page MJ) et les e-mails de Stripe
    (reçus, factures, rappels de renouvellement réglés dans le tableau de bord Stripe) restent la seule trace.
    =========================================================================== */
 
@@ -169,22 +169,4 @@ export function courrielRappelAnnuel(r) {
 export function courrielDoublon(info) {
   const l = langueCourriel(info.langue), T = TEXTES_COURRIEL[l];
   return { sujet: T.sujetDoublon, texte: [remplir(T.corpsDoublon, { produit: info.libelle, montant: montantTexte(info.montant_centimes, l) }), '', T.signature].join('\n\n') };
-}
-
-const echapper = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-
-// Envoi. Renvoie { ok, raison? }. Une clé d'idempotence évite un double envoi si le webhook est rejoué.
-export async function envoyerCourriel({ a, sujet, texte, cle }, { env = process.env, fetchFn = fetch } = {}) {
-  if (!env.RESEND_API_KEY || !env.COURRIEL_EXPEDITEUR) return { ok: false, raison: 'courriel_inactif' };
-  if (!a || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(a))) return { ok: false, raison: 'adresse_invalide' };
-  try {
-    const r = await fetchFn('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: { Authorization: 'Bearer ' + env.RESEND_API_KEY, 'Content-Type': 'application/json', ...(cle ? { 'Idempotency-Key': String(cle).slice(0, 256) } : {}) },
-      body: JSON.stringify({ from: env.COURRIEL_EXPEDITEUR, to: [String(a)], subject: sujet, text: texte,
-        html: '<div style="font-family:sans-serif;line-height:1.5">' + texte.split('\n\n').map(p => '<p>' + echapper(p) + '</p>').join('') + '</div>' }),
-      signal: AbortSignal.timeout(8000)
-    });
-    return r.ok ? { ok: true } : { ok: false, raison: 'envoi_refuse_' + r.status };
-  } catch (_) { return { ok: false, raison: 'envoi_echoue' }; }
 }

@@ -250,14 +250,36 @@ et `20261128131000_juridique_blocage_interrupteur` (appliquées en production le
 - **Signalements** : `contenu_signaler('nom'|'image', …)` dans `signalements_messages` (même file que les messages,
   `admin-signalements.js`) ; boutons sur la fiche publique (forum.js) et sur les décors de commerce et de logement.
   **Sanctions** : `admin_sanction_prononcer` (avertissement, retrait, suspension en jours), notifiées par un courrier
-  « Modération » dans la langue du compte (règle, contenu, durée, contestation à contact@human-gambit.com) et par
-  une fenêtre à la connexion (`sanction_vue`) ; `admin_sanction_lever`, `admin_sanctions_lire`.
+  « Modération » dans la langue du compte (règle, contenu, durée, contestation à contact@human-gambit.com), par
+  une fenêtre à la connexion (`sanction_vue`) et, depuis le 28/11 au soir, par un e-mail (voir « E-mails du jeu ») ;
+  `admin_sanction_lever`, `admin_sanctions_lire`.
 - **Comptes inactifs (3 ans)** : `api/_comptes-inactifs.js`, appelé par `api/cron-minuit.js` (étape 8b). Activité =
   création, dernière connexion, dernier chargement du plateau (`comptes_activite`). Avertissement à 3 ans moins 1 mois
-  par `api/_courriel.js` (Resend, variables `RESEND_API_KEY` et `COURRIEL_EXPEDITEUR` ; **sans elles, rien ne part et
-  rien n'est supprimé**), noté seulement s'il est parti ; suppression au plus tôt 30 jours après
+  par `api/_courriel.js` (Brevo ; **sans clé valide, rien ne part et rien n'est supprimé**), noté seulement s'il est
+  parti ; suppression au plus tôt 30 jours après
   (`compte_inactif_supprimer` : succession côté serveur `compte_succession_serveur_interne`, forum, compte).
 - Banc : `outils/bancs/banc-textes-juridiques-20261128.cjs`.
+
+### E-mails du jeu (Brevo, 28/11/2026 au soir)
+
+- **Un seul module d'envoi** : `api/_courriel.js` (`envoyerCourriel`), API transactionnelle de Brevo
+  (`POST https://api.brevo.com/v3/smtp/email`, en-tête `api-key`), sans dépendance. Expéditeur fixe
+  « Human Gambit <noreply@human-gambit.com> » (domaine authentifié dans Brevo, DKIM et DMARC) ; option `repondre` :
+  adresse de réponse contact@human-gambit.com (paiement, sanction, comptes inactifs, test). Une seule variable dans
+  Vercel, `BREVO_API_KEY` (Production et Preview, droit « Emails transactionnels »), jamais dans le dépôt.
+  Les e-mails de Supabase Auth (confirmation d'adresse) passent par le SMTP de Brevo, réglé dans Supabase.
+- Utilisateurs : `api/_comptes-inactifs.js` (avertissement), `api/_paiement.js` (confirmation, doublon, rappel annuel ;
+  textes 9 langues dans `api/_paiement-courriels.js`), `api/_courriel-mj.js` (POST `/api/courriel` →
+  `/api/chat?mode=courriel` : e-mail de test, vérification de livraison par `GET /v3/smtp/statistics/events`,
+  notification de sanction dans la langue du joueur via `admin_sanction_courriel_preparer`).
+- **Échec** (clé absente → `cle_absente` ; 401/403 → `cle_refusee` ; autre refus → `envoi_refuse_<code>` ; 5xx ou
+  réseau → `brevo_indisponible_<code>` / `envoi_echoue`) : aucun e-mail ne part, l'appelant reçoit `{ ok:false, raison }`,
+  l'échec est écrit dans le journal Vercel et dans `courriel_echecs` (`courriel_echec_noter_service`, une ligne par
+  raison avec compteur). La page MJ (`admin-courriels.js`) l'affiche en alerte rouge en tête de page à l'ouverture
+  (`admin_courriel_echecs_lire`) jusqu'à « Marquer comme lu » (`admin_courriel_echecs_acquitter`).
+- E-mail de test : bloc « E-mails (Brevo) » de la page MJ (à l'adresse du compte MJ), ou jeton à usage unique posé en
+  base par l'exploitant dans `courriel_tests` (haché SHA-256, 1 h ; `courriel_test_jeton_service`).
+- Migration `20261128230000_courriels_brevo` ; banc `outils/bancs/banc-courriels-brevo-20261128-soir.mjs`.
 
 ## Coder un nouvel empire
 

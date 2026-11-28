@@ -2,7 +2,8 @@
 // 1. Le serveur (comptes_inactifs_lister) désigne les comptes à avertir (3 ans moins 1 mois sans activité) et ceux à
 //    supprimer (3 ans sans activité ET avertis depuis au moins 30 jours). Jamais un administrateur, jamais un compte de test.
 // 2. L'e-mail d'avertissement part dans la langue du compte (celle de son dernier accord) ; il n'est noté
-//    (comptes_inactifs_avertissement_noter) QUE s'il est réellement parti. Sans e-mail envoyé, pas de suppression.
+//    (comptes_inactifs_avertissement_noter) QUE s'il est réellement parti (Brevo, api/_courriel.js, réponse à
+//    contact@human-gambit.com). Sans e-mail envoyé, pas de suppression ; l'échec est consigné et signalé dans la page MJ.
 // 3. La suppression (compte_inactif_supprimer) revérifie tout côté serveur : succession du personnage, forum signé
 //    « Ancien joueur », compte effacé.
 import { envoyerCourriel } from './_courriel.js';
@@ -45,7 +46,7 @@ export async function traiterComptesInactifs({ rpc, envoyer = envoyerCourriel, l
   if (!liste || liste.ok !== true) return { ok: false, raison: 'liste_indisponible' };
   for (const a of liste.avertir || []) {
     const m = texteAvertissement(a.langue, a.personnage, a.suppression_le);
-    const r = await envoyer({ a: a.email, sujet: m.sujet, texte: m.texte }).catch(() => ({ ok: false, raison: 'exception' }));
+    const r = await envoyer({ a: a.email, sujet: m.sujet, texte: m.texte, repondre: true, contexte: 'comptes_inactifs', langue: TEXTES[a.langue] ? a.langue : 'fr' }).catch(() => ({ ok: false, raison: 'exception' }));
     if (!r || r.ok !== true) { bilan.avertissements_non_envoyes++; if (bilan.echecs.length < 5) bilan.echecs.push('courriel:' + ((r && r.raison) || '?')); continue; }
     const n = await rpc('comptes_inactifs_avertissement_noter', { p_uid: a.user_id, p_activite: a.activite });
     const v = Array.isArray(n) ? n[0] : n;

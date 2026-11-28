@@ -105,6 +105,8 @@ async function admDemarrer() {
   admEl('adm-panneau').hidden = false;
   admEl('adm-identite').textContent = (moi.libelle || 'Administration') + ' — ' + (rpAdminEmail() || '');
   admMessage('', false);
+  // Alerte e-mails (Brevo, 28/11/2026) : échecs d'envoi consignés par le serveur, affichés en tête de page.
+  if (typeof admCourrielAlerte === 'function') admCourrielAlerte();
   await admRelire();
   if (ADMIN_MINUTEUR) clearInterval(ADMIN_MINUTEUR);
   ADMIN_MINUTEUR = setInterval(function () {

@@ -27,13 +27,14 @@
      PAIEMENT_FOURNISSEUR = aucun (défaut : paiement fermé) | stripe | faux (bancs et préproduction seulement)
      STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET ; STRIPE_API_VERSION (facultatif) ;
      STRIPE_TAX_CODE_ABONNEMENT, STRIPE_TAX_CODE_UNITE (facultatifs, codes fiscaux éligibles à Managed Payments) ;
-     PAIEMENT_URL_SITE (facultatif, adresse de retour après paiement) ; RESEND_API_KEY, COURRIEL_EXPEDITEUR (e-mails) ;
+     PAIEMENT_URL_SITE (facultatif, adresse de retour après paiement) ; BREVO_API_KEY (e-mails, api/_courriel.js) ;
      PAIEMENT_FAUX_SECRET, PAIEMENT_PAYS_DEFAUT (bancs) ; SUPABASE_SERVICE_ROLE_KEY (déjà présente).
    =========================================================================== */
 import crypto from 'node:crypto';
 import { sbTransportRpc, identiteServeurDisponible } from './_supabase.js';
 import { joueurAuthentifie } from './_deepseek.js';
-import { envoyerCourriel, courrielConfirmation, courrielRappelAnnuel, courrielDoublon, langueCourriel, LANGUES_COURRIEL } from './_paiement-courriels.js';
+import { courrielConfirmation, courrielRappelAnnuel, courrielDoublon, langueCourriel, LANGUES_COURRIEL } from './_paiement-courriels.js';
+import { envoyerCourriel } from './_courriel.js';
 
 export const TOLERANCE_SIGNATURE_S = 300;   // tolérance par défaut des bibliothèques de Stripe
 const API_STRIPE = 'https://api.stripe.com/v1';
@@ -232,14 +233,14 @@ export async function traiterEvenement(ev, { rpc, fournisseur, env = {}, fetchFn
       else await rpc('premium_achat_rembourser_service', { p_ref: n.ref_fournisseur }, svc);
       if (email && n.envoyer_courriel) {
         const m = courrielDoublon(n);
-        const e = await envoyerCourriel({ a: email, ...m, cle: 'doublon-' + achat }, { env, fetchFn });
+        const e = await envoyerCourriel({ a: email, ...m, cle: 'doublon-' + achat, repondre: true, contexte: 'paiement_doublon', langue: langueCourriel(n.langue) }, { env, fetchFn });
         if (e.ok) await rpc('premium_achat_courriel_noter_service', { p_achat: achat }, svc);
       }
       return r;
     }
     if (email && n.envoyer_courriel) {
       const m = courrielConfirmation(n, { editeurNom });
-      const e = await envoyerCourriel({ a: email, ...m, cle: 'achat-' + achat }, { env, fetchFn });
+      const e = await envoyerCourriel({ a: email, ...m, cle: 'achat-' + achat, repondre: true, contexte: 'paiement_achat', langue: langueCourriel(n.langue) }, { env, fetchFn });
       if (e.ok) await rpc('premium_achat_courriel_noter_service', { p_achat: achat }, svc);
     }
     return r;
@@ -293,9 +294,9 @@ export async function envoyerRappelsAnnuels({ rpc = (fn, p, o) => sbTransportRpc
   let envoyes = 0, echecs = 0;
   for (const r of l.rappels || []) {
     const m = courrielRappelAnnuel(r);
-    const e = await envoyerCourriel({ a: r.email, ...m, cle: 'rappel-' + r.id + '-' + r.fin }, { env, fetchFn });
+    const e = await envoyerCourriel({ a: r.email, ...m, cle: 'rappel-' + r.id + '-' + r.fin, repondre: true, contexte: 'paiement_rappel', langue: langueCourriel(r.langue) }, { env, fetchFn });
     if (e.ok) { envoyes++; await rpc('premium_rappel_noter_service', { p_id: r.id, p_fin: r.fin }, { service: true }); }
-    else { echecs++; if (e.raison === 'courriel_inactif') return { ok: false, raison: 'courriel_inactif', a_envoyer: (l.rappels || []).length }; }
+    else { echecs++; if (e.raison === 'cle_absente' || e.raison === 'cle_refusee') return { ok: false, raison: e.raison, a_envoyer: (l.rappels || []).length }; }
   }
   return { ok: true, envoyes, echecs };
 }
