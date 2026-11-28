@@ -220,7 +220,7 @@ INSERT INTO public.ordres_couts (fn,pa,cost) VALUES
   ('forcer_porte',2,0),
   ('foret_campement',0,0),
   ('foret_couper',1,0),
-  ('fuite_info',3,0),
+  ('fuite_info',2,0),
   ('garage_reviser',0,0),
   ('garage_vehicules',0,0),
   ('garde_republicaine',0,0),
