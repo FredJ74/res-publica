@@ -1,5 +1,7 @@
 # Blocage de la clôture documentaire — 27/11/2026
 
+> **BLOCAGE LEVÉ le 28/11/2026** par #1218, fusion `1477db72`. Onze contrôles verts, banc strict exécuté avec succès. Le seed et son empreinte ont été régénérés après comparaison de Supabase en lecture seule. Les paragraphes ci-dessous conservent le diagnostic historique ; ils ne décrivent plus un blocage actuel.
+
 PR #1216 ; workflow **46080019076**, groupe `bancs-js (5)`, job **140777008065** : `banc-controles-globaux-20261107.cjs` échoue avec **Seed miroir différent du générateur : ordres_couts**.
 
 Erreur identique reproduite en local sur **main intact 6ebbbd9e** et sur la branche documentaire. Le banc, le générateur, data.js, le seed et tous les fichiers JavaScript sont inchangés par cette PR ; empreintes dans `BLOCAGE-CLOTURE-20261127.json`. Les premiers essais locaux manquaient de la dépendance Acorn à cause d’un lien macOS restauré avec le workspace : après réparation locale temporaire, l’erreur de seed est bien reproduite des deux côtés. Aucun défaut de Chromium invoqué.

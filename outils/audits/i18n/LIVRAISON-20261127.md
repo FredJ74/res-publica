@@ -1,6 +1,6 @@
 # Clôture des lots i18n du 23 novembre — vérification du 27/11/2026
 
-> **Mise à jour CI** : fonctionnalités #1183/#1184 fusionnées et vérifiées ; clôture documentaire **#1216 non fusionnée**, bloquée par le miroir `ordres_couts` déjà incohérent sur main. Voir `BLOCAGE-CLOTURE-20261127.md`. Les contrôles push verts cités ci-dessous étaient filtrés et ne certifient pas tous les bancs hors sélection. Aucun seed ni coût modifié.
+> **Actualisation du 28/11** : blocage levé par #1218 (`1477db72`), onze contrôles verts et banc strict réussi. #1216 est rebasée sur ce correctif pour sa validation finale. Le diagnostic du 27/11 reste archivé dans `BLOCAGE-CLOTURE-20261127.md/.json`, explicitement historique.
 
 
 ## Codé et fusionné
@@ -56,3 +56,13 @@ Aucune écriture en base, aucune migration appliquée ; aucun PJ connecté, tél
 - « Personnage mineur » : mineur en âge, pas profession minière.
 - Intitulés longs réels distincts des titres courts ; français serveur accentué conservé au repli.
 - Aucun arbitrage de gameplay ni jeu de mots nouveau nécessaire.
+
+## Déblocage vérifié le 28/11/2026
+
+La dernière génération du seed précédait les changements `b343ff38`, `ecd537d2` et `14d14fae` : cinq retraits, deux nouvelles ouvertures gratuites et deux anciens tarifs restaient désynchronisés. #1218 régénère seulement le seed et son empreinte avec l’outil existant. Supabase lu dans une transaction READ ONLY annulée confirme les interrogatoires à **1 PA / 0**, les corps RPC concordants, les cinq ordres supprimés absents et la demande de transfert inchangée à **1 PA / 0**. Les deux nouveaux menus gratuits sont routés avant paiement ; leur absence de la table de production n’est pas une dépense manquante. Aucun tarif serveur ni règle n’est modifié. La recherche des trois horodatages dans le registre des migrations est vide ; la vérification d’installation repose sur les tarifs et fonctions réels, pas sur ce registre.
+
+Huit miroirs conformes, banc global six tests Python, réconciliation PostgreSQL isolé **29 assertions**, garde du monde neuf conforme ; **11/11 contrôles CI** de #1218 verts (46086462185). Vercel **dpl_DD7apg9giHpkkR6iUE8RSgSmcfAg READY**, production `1477db72`, alias public attaché et quatre ressources i18n identiques au commit. Preuves actualisées dans `PRODUCTION-20261128.json` et `VERCEL-20261128.json`. Aucun accès ni écriture à une fiche joueur, aucune migration appliquée.
+
+RELAIS est informé du correctif fusionné. Le seul conflit de rebase de #1216 concernait l’insertion de deux sections Codex dans RELAIS : elles ont été conservées, puis leurs statuts actualisés ; aucun contenu de Claude écrasé. Les contrôles finaux de #1216 et son commit de fusion sont suivis dans la PR pour éviter des preuves autoréférentes.
+
+Rejeu après rebase sur `1477db72` : **43/43 tests** (banc strict, formation, audit global, transport et saisie politique), neuf langues, 320/390/1280 ; aucune régression observée, aucun PJ connecté ni téléphone physique.
