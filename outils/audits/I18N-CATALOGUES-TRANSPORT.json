@@ -134,18 +134,18 @@
     {
       "source": "i18n/equipements-resources.js",
       "packed": "i18n/packed/equipements-resources.js.br",
-      "sourceBytes": 147174,
-      "packedBytes": 42674,
-      "sourceSha256": "8144626057050ddd1cb05b00d2257a1f223cc10d528fbda76ee40609dfc58615",
-      "packedSha256": "36d5ea03c1a3cd84861691012051a17c1f306d7eea68118a690fadffa1cff3ea"
+      "sourceBytes": 147665,
+      "packedBytes": 42886,
+      "sourceSha256": "a9f72b0c7c59909bc468265dcb252a6cdcd301677a0c1dfdc44f3eb3f37fe809",
+      "packedSha256": "acf48a16c5cbc153d30702e23c9f37bf2df827e81dd156e93ac7e6d5a684d291"
     },
     {
       "source": "i18n/finance135-resources.js",
       "packed": "i18n/packed/finance135-resources.js.br",
-      "sourceBytes": 31288,
-      "packedBytes": 8629,
-      "sourceSha256": "09ced3e73b07721391d324fe38f95d8613c351023874af2c9c08446a15f77ae3",
-      "packedSha256": "4740a7cf7d5608fd79873f99ed273b4f6206c0025b48eb9797ed0f5f1ad6c459"
+      "sourceBytes": 32715,
+      "packedBytes": 9121,
+      "sourceSha256": "468e841b934e27e7f7fb38e843d689e48a2f57dfb2edcbe2ad08fca6afa95c80",
+      "packedSha256": "2c467b9dcb17180e171b8def5b2912396fcc4cca77d6cca6d5fb31e3c5bd8279"
     },
     {
       "source": "i18n/forum-feedback-resources.js",
@@ -238,10 +238,10 @@
     {
       "source": "i18n/infobulles-communes-resources.js",
       "packed": "i18n/packed/infobulles-communes-resources.js.br",
-      "sourceBytes": 265769,
-      "packedBytes": 89376,
-      "sourceSha256": "3cc95f43475217563c8bea2452e3fc62bc739c503b50ce7dcc38a441ba4e1304",
-      "packedSha256": "5dfc9ea401130b1a4f68387482be309d7b3b45678e6277b86559dbe7ff510454"
+      "sourceBytes": 276144,
+      "packedBytes": 91669,
+      "sourceSha256": "f2a8f3dd458e5996867e94e99e6e38f35ca765fab672763d00de9482f6149a21",
+      "packedSha256": "af82ed650a612c3241e5c5f44437d8619c6f6eb04f538cb6245a5866cf5199d6"
     },
     {
       "source": "i18n/inventory-ui-resources.js",
@@ -342,10 +342,10 @@
     {
       "source": "i18n/orders-resources.js",
       "packed": "i18n/packed/orders-resources.js.br",
-      "sourceBytes": 249669,
-      "packedBytes": 48816,
-      "sourceSha256": "8e3a735f3bc547ce7c6f8b98edc4dd1d7213d987c14f49ba8e25ef5828d8d74c",
-      "packedSha256": "c8c5e3a402b080818bf17cf883edee7627c38e595301df19b734aa0d707ef366"
+      "sourceBytes": 255605,
+      "packedBytes": 50258,
+      "sourceSha256": "6bd8a904a9f3b9cf9b71b83c4a3c5313633a4910f29a982ff5d0fb60aebe8713",
+      "packedSha256": "a96b91e6002d20192171060f9cd7839c33439a435839af43fab066dec2a0d0f5"
     },
     {
       "source": "i18n/organization-admissions-resources.js",
@@ -566,10 +566,10 @@
     {
       "source": "i18n/sovarka-infobulles-resources.js",
       "packed": "i18n/packed/sovarka-infobulles-resources.js.br",
-      "sourceBytes": 182031,
-      "packedBytes": 59446,
-      "sourceSha256": "d71878c726eb7680f3c2e574ffa2de23601bde09d6685481d7424e609213a73e",
-      "packedSha256": "0d6d5e9f939bbf15656c599a3cbe59fd4b2f84c68ae53fc748ba6e280ebc0411"
+      "sourceBytes": 186015,
+      "packedBytes": 60527,
+      "sourceSha256": "3e3836477bce7e2fedb3a318412178ad88ae3a6c27056ea3ac8a66b46df92572",
+      "packedSha256": "b337c40602458cc514fe4c23a9ac47124fb7e195fcd5f8dff267fa76bf2f0944"
     },
     {
       "source": "i18n/sovarka-justice-resources.js",
@@ -646,10 +646,10 @@
     {
       "source": "i18n/toast-bodies-resources.js",
       "packed": "i18n/packed/toast-bodies-resources.js.br",
-      "sourceBytes": 782983,
-      "packedBytes": 196710,
-      "sourceSha256": "ba8fb0ae927c56c105c3974bf56f02ec0b55ffc8cd7f398fca1845f017bbf7f9",
-      "packedSha256": "9729cde32a7a91b04a536eee9c43f5132bb65ce7d3157d8f85fb653d4c27ba89"
+      "sourceBytes": 782230,
+      "packedBytes": 196404,
+      "sourceSha256": "36836271fb37367009885a72676441bcb06c2bf3aee1b7853de035281665f2c7",
+      "packedSha256": "bae0adfc654c425f9045c7ab96dc04b826c8fa9bdf36183476ef29ebc428681c"
     },
     {
       "source": "i18n/toast-resources.js",

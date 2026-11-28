@@ -2,7 +2,8 @@
 const RUE_CENTRALE_DEPART = {
   republic: { capitale: 'luthecia-palais-presidentiel', ville_a: 'psm-centre-multimodal', ville_b: 'montrouge-vue-3', caserne: 'caserne-exterieur', qhs: 'qhs-exterieur' },
   soviet:   { capitale: 'novomirsk-vue-1', ville_a: 'starovka-rue-gare', ville_b: 'krasnov-rue-gare' },
-  narco: { capitale: 'ciudad-roja-centre-multimodal' }
+  narco: { capitale: 'ciudad-roja-centre-multimodal' },
+  khalija: { capitale: 'al-madina-rue' }
   // Autres villes/empires a ajouter au fur et a mesure des images produites
 };
 
@@ -78,6 +79,20 @@ const RC_FLECHE_HAUT = 'top:10px; left:50%; transform:translateX(-50%);';
 const RC_FLECHE_BAS  = 'bottom:10px; left:50%; transform:translateX(-50%);';
 
 const RUE_CENTRALE_NOEUDS = {
+  // Al Madina (Fred, 28/11/2026) : une seule vue de rue, centre multimodal à gauche, Hôtel Royal d'Al-Khalija à droite ;
+  // flèche du bas : reste de la ville fermé (teaser).
+  khalija: {
+    'al-madina-rue': {
+      image: 'images/Al-Khalija/Al Madina/Al_Madina_centre_multimodal_exterieur.webp',
+      zones: [
+        { xPct: [0, 21], yPct: [14, 66], nom: 'Centre multimodal d\'Al Madina', type: 'batiment', buildingId: 'centre-multinodal-luthecia' },
+        { xPct: [76, 100], yPct: [8, 62], nom: 'Hôtel Royal d\'Al-Khalija', type: 'batiment', buildingId: 'hotel-republica' }
+      ],
+      liens: {},
+      liensInterdits: { arriere: true },
+      flechesStyle: { arriere: RC_FLECHE_BAS }
+    }
+  },
   narco: {
     'ciudad-roja-centre-multimodal': {
       image: 'images/El Estado/Ciudad Roja/Ciudad_Roja_centre_multimodal_exterieur.webp',
@@ -89,7 +104,9 @@ const RUE_CENTRALE_NOEUDS = {
       image: 'images/El Estado/Ciudad Roja/Ciudad_Roja_hotel_exterieur.webp',
       zones: [{ xPct: [17, 84], yPct: [9, 76], nom: 'Hotel Ciudad Roja', type: 'batiment', buildingId: 'hotel-republica' }],
       liens: { toutDroit: 'ciudad-roja-centre-multimodal' },
-      flechesStyle: { toutDroit: RC_FLECHE_HAUT }
+      // Flèche du bas : reste de la ville fermé (teaser, Fred 28/11/2026).
+      liensInterdits: { arriere: true },
+      flechesStyle: { toutDroit: RC_FLECHE_HAUT, arriere: RC_FLECHE_BAS }
     }
   },
   republic: {
@@ -1966,6 +1983,11 @@ async function afficherNoeudRue(pays, noeudId, depuisNoeudId, positionDejaConfir
   fleches.forEach(f => {
     if (liensActuels[f.dir]) {
       html += '<div class="rc-fleche" style="' + f.style + '" onclick="deplacerRueCentrale(\'' + pays + '\',\'' + f.dir + '\')">' +
+        '<i class="ti ' + f.icon + '"></i></div>';
+    } else if (noeud.liensInterdits?.[f.dir]) {
+      // Capitales en teaser (Fred, 28/11/2026) : la flèche existe mais la ville reste fermée ; elle ouvre la fenêtre
+      // « Accès interdit ! » et le compteur d'ouverture (plateau-teaser-capitales.js), sans déplacement.
+      html += '<div class="rc-fleche" style="' + f.style + '" onclick="if(typeof teaserAccesInterdit===\'function\')teaserAccesInterdit()">' +
         '<i class="ti ' + f.icon + '"></i></div>';
     } else if (noeud.liensEnAttente?.[f.dir]) {
       // La destination est définie mais son image n'est pas encore livrée.

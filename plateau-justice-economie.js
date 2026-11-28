@@ -2482,7 +2482,9 @@ function ouvrirFalsifierDocument(pa, cost) {
   html += '<div style="font-size:.8rem;color:#cc4444;font-style:italic;margin-bottom:.8rem">Acte illegal. Taux 45%. Echec : alerte possible. Document ajoute a votre inventaire si succes.</div>';
   DOCUMENTS_FALSIFIABLES.forEach(doc => {
     const action = doc.id === 'faux_laissez_passer' && typeof crimFauxLpOuvrir === 'function'
-      ? 'crimFauxLpOuvrir(\'greffe\',' + pa + ',' + cost + ')' : 'confirmerFalsification(\'' + doc.id + '\',' + pa + ',' + cost + ')';
+      ? 'crimFauxLpOuvrir(\'greffe\',' + pa + ',' + cost + ')'
+      : doc.id === 'faux_carton' && typeof fauxCartonOuvrir === 'function'
+        ? 'fauxCartonOuvrir(\'greffe\',' + pa + ',' + cost + ')' : 'confirmerFalsification(\'' + doc.id + '\',' + pa + ',' + cost + ')';
     html += '<div onclick="' + action + '" style="padding:.6rem .8rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer;transition:background .15s" onmouseover="this.style.background=\'#151005\'" onmouseout="this.style.background=\'#0f0d05\'">';
     html += '<div style="display:flex;align-items:center;gap:.6rem">';
     html += '<i class="ti ' + doc.icon + '" style="font-size:1rem;color:#8a6a20"></i>';
@@ -3939,6 +3941,11 @@ async function confirmerDonObjetPnj(objIdx, encodedPnj) {
     }
     updateUI();
     if (typeof remettreColisBrigitte === 'function') remettreColisBrigitte();
+    return;
+  }
+  if (obj.type === 'carton_invitation' && typeof remettreCartonInvitation === 'function') {
+    // Carton d'invitation du Pavillon (Fred, 27/11/2026) : le PNJ de l'accueil le reprend sans contrôler l'identité.
+    await remettreCartonInvitation(objIdx, obj, nomCourt);
     return;
   }
   if (obj.type === 'tract') {

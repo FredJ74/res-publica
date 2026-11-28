@@ -275,6 +275,7 @@ const words={
 const reasons={
   "fr": {
     "reason_pas_maire_de_la_commune": "Vous n’êtes plus le maire de cette ville.",
+    "reason_permis_construire_requis": "Le prêt « travaux » exige un permis de construire (arrêté d’accord de la mairie) dans votre inventaire.",
     "reason_commune_sans_pret": "Une commune n’emprunte pas : retirez la demande de prêt.",
     "reason_caisse_communale_insuffisante": "La caisse de la mairie ne couvre pas ce paiement.",
     "reason_caisse_mairie_introuvable": "La caisse de la mairie est introuvable.",
@@ -293,6 +294,7 @@ const reasons={
   },
   "en": {
     "reason_pas_maire_de_la_commune": "You are no longer mayor of this city.",
+    "reason_permis_construire_requis": "The “works” loan requires a building permit (the town hall's approval order) in your inventory.",
     "reason_commune_sans_pret": "A municipality cannot borrow: remove the loan request.",
     "reason_caisse_communale_insuffisante": "The town hall treasury cannot cover this payment.",
     "reason_caisse_mairie_introuvable": "The town hall treasury cannot be found.",
@@ -311,6 +313,7 @@ const reasons={
   },
   "es": {
     "reason_pas_maire_de_la_commune": "Ya no eres alcalde de esta ciudad.",
+    "reason_permis_construire_requis": "El préstamo «obras» exige un permiso de construcción (resolución de aprobación del ayuntamiento) en su inventario.",
     "reason_commune_sans_pret": "Un municipio no puede pedir préstamos: retira la solicitud.",
     "reason_caisse_communale_insuffisante": "La tesorería municipal no cubre este pago.",
     "reason_caisse_mairie_introuvable": "No se encuentra la tesorería municipal.",
@@ -329,6 +332,7 @@ const reasons={
   },
   "zh-TW": {
     "reason_pas_maire_de_la_commune": "你已不再是本市市長。",
+    "reason_permis_construire_requis": "「工程」貸款需要你的物品欄中有一份建築許可（市政府的核准令）。",
     "reason_commune_sans_pret": "市政府不得借貸：請撤銷貸款申請。",
     "reason_caisse_communale_insuffisante": "市政府金庫不足以支付此款項。",
     "reason_caisse_mairie_introuvable": "找不到市政府金庫。",
@@ -347,6 +351,7 @@ const reasons={
   },
   "ru": {
     "reason_pas_maire_de_la_commune": "Вы больше не мэр этого города.",
+    "reason_permis_construire_requis": "Кредит «на работы» требует разрешения на строительство (постановления мэрии) в вашем инвентаре.",
     "reason_commune_sans_pret": "Муниципалитет не может брать кредит: уберите заявку.",
     "reason_caisse_communale_insuffisante": "Средств в городской казне недостаточно.",
     "reason_caisse_mairie_introuvable": "Городская казна не найдена.",
@@ -365,6 +370,7 @@ const reasons={
   },
   "ko": {
     "reason_pas_maire_de_la_commune": "더 이상 이 도시의 시장이 아닙니다.",
+    "reason_permis_construire_requis": "‘공사’ 대출에는 인벤토리에 건축 허가서(시청 승인서)가 있어야 합니다.",
     "reason_commune_sans_pret": "지자체는 대출을 받을 수 없습니다. 대출 신청을 취소하세요.",
     "reason_caisse_communale_insuffisante": "시청 금고에 결제할 자금이 부족합니다.",
     "reason_caisse_mairie_introuvable": "시청 금고를 찾을 수 없습니다.",
@@ -383,6 +389,7 @@ const reasons={
   },
   "ar": {
     "reason_pas_maire_de_la_commune": "لم تعد عمدة هذه المدينة.",
+    "reason_permis_construire_requis": "قرض «الأشغال» يتطلب رخصة بناء (قرار موافقة البلدية) في مخزونك.",
     "reason_commune_sans_pret": "لا يجوز للبلدية الاقتراض: أزل طلب القرض.",
     "reason_caisse_communale_insuffisante": "خزينة البلدية لا تغطي هذا المبلغ.",
     "reason_caisse_mairie_introuvable": "تعذّر العثور على خزينة البلدية.",
@@ -401,6 +408,7 @@ const reasons={
   },
   "pt-BR": {
     "reason_pas_maire_de_la_commune": "Você não é mais o prefeito desta cidade.",
+    "reason_permis_construire_requis": "O empréstimo «obras» exige um alvará de construção (despacho de aprovação da prefeitura) no seu inventário.",
     "reason_commune_sans_pret": "O município não pode contrair empréstimos: retire a solicitação.",
     "reason_caisse_communale_insuffisante": "O caixa da prefeitura não cobre este pagamento.",
     "reason_caisse_mairie_introuvable": "O caixa da prefeitura não foi encontrado.",
@@ -419,6 +427,7 @@ const reasons={
   },
   "de": {
     "reason_pas_maire_de_la_commune": "Du bist nicht mehr Bürgermeister dieser Stadt.",
+    "reason_permis_construire_requis": "Der Kredit „Bauarbeiten“ erfordert eine Baugenehmigung (Genehmigungsbescheid des Rathauses) in Ihrem Inventar.",
     "reason_commune_sans_pret": "Eine Gemeinde kann keinen Kredit aufnehmen: entferne den Kreditantrag.",
     "reason_caisse_communale_insuffisante": "Die Stadtkasse deckt diese Zahlung nicht.",
     "reason_caisse_mairie_introuvable": "Die Stadtkasse wurde nicht gefunden.",

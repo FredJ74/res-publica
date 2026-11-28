@@ -1077,3 +1077,14 @@ quatre bars) ; « Écouter le barman / le patron / la serveuse » gratuit (`ecou
 ## Voler le matériel d'un colocataire (Fred, 23/11/2026)
 
 Décisions complètes : `GAME-DESIGN-NOVOMIRSK-PNJ-INTERFACE-20261123.md`. Point 11. « Voler » reste proposé en face du matériel d'autrui, **même chez soi** : le matériel d'un colocataire ne lui appartient pas, c'est un vol avec sa trace. La victime l'apprend par le **journal des événements**, jamais par courrier (R9).
+
+## Faux documents : réponses de Fred du 28/11/2026
+
+- **Faux permis de construire** : rétabli dans « Falsifier un document ». Le prêt « travaux » de la Banque Nationale exige
+  désormais un permis de construire, vrai (arrêté d'accord de la mairie) ou faux ; un faux réussi est accepté comme un vrai,
+  pour un seul prêt (il est retiré de l'inventaire), la détection restant celle du faux, à la fabrication. Le prêt
+  « consommation » ne change pas. Pas de faux compromis de vente (le compromis reste un acte réel du notaire).
+- **Fausse identité, faux contrat commercial, fausse convocation** : restent hors du jeu.
+- **Idée de Fred pour plus tard (non codée)** : un **faux passeport** pour entrer incognito dans un empire (espionnage), ou
+  pour franchir une frontière malgré un bannissement de personnage.
+

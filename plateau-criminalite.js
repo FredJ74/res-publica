@@ -38,7 +38,7 @@ const T = {
     hideCrit: 'Échec critique', hideCritText: 'Vous trébuchez bruyamment derrière le rideau. Votre moral en prend un coup (−15).',
     r_deja_cache: 'Vous êtes déjà caché(e) dans cette pièce.', r_hors_batiment: 'Il faut être dans une pièce.',
     r_pas_a_la_boutique: 'Il faut être dans la boutique.', r_fonds_insuffisants: 'Fonds insuffisants.',
-    r_inventaire_plein: 'Inventaire plein.', r_objet_non_revetable: 'Cet objet ne se revêt pas.', r_deja_revetu: 'Vous le portez déjà.',
+    r_inventaire_plein: 'Inventaire plein.', r_objet_non_revetable: 'Cet objet ne se revêt pas.', r_deja_revetu: 'Vous le portez déjà.', r_deux_objets_revetus_max: 'Vous portez déjà deux objets : retirez-en un d’abord.',
     r_pas_revetu: 'Vous ne le portez pas.', r_objet_introuvable: 'Objet introuvable : rouvrez votre inventaire.',
     r_emprisonne: 'Impossible en détention.', r_hospitalise: 'Impossible à l’hôpital.', r_pa_insuffisants: 'Pas assez de PA.',
     refused: 'Le serveur a refusé l’opération.',

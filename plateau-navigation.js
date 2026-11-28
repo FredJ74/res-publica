@@ -387,6 +387,8 @@ async function commanderNavigationInterieure(buildingId,roomId) {
       if(r?.raison==='porte_fermee_a_cle'&&typeof serrurePopupFermee==='function'){serrurePopupFermee(r.batiment?'batiment':'local',buildingId,r.batiment?null:roomId);return false;}
       // Pavillon des Ambassadeurs et Résidence impériale (acces_reserve_v1) : explication et « Forcer le passage ».
       if(['acces_dignitaires','location_requise','un_seul_invite'].includes(r?.raison)&&typeof accesReserveRefus==='function'&&accesReserveRefus(r))return false;
+      // Hôtel Royal d'Al-Khalija (Fred, 28/11/2026) : pièces réservées aux hommes ou aux femmes (plateau-hotels-teaser.js).
+      if(['reserve_hommes','reserve_femmes'].includes(r?.raison)&&typeof hotelTeaserRefus==='function'&&hotelTeaserRefus(r))return false;
       const incident=r||v;
       const perdu=['non_authentifie','acteur_non_authentifie','session_perdue'].includes(incident?.raison)||incident?.transport?.etat==='session_perdue';
       if(typeof showToast==='function'){showToast(perdu?'Session expirée':'Déplacement non confirmé',
@@ -778,8 +780,11 @@ function renderOngletsPieces(buildingId, roomActifId) {
       const porte = (typeof serrurePorteEtat === 'function') ? serrurePorteEtat(buildingId, roomId) : null;
       const porteInterdite = !!(porte && porte.fermee && !porte.a_cle && roomId !== state.currentRoom);
       const style = locked ? 'opacity:.4;pointer-events:none;cursor:not-allowed' : (porteInterdite ? 'cursor:not-allowed' : '');
-      const icon = locked ? '🔒 ' : (porte ? '<i class="ti ' + (porte.fermee ? 'ti-lock' : 'ti-lock-open') + '"></i> ' : '');
-      const titre = porte ? (porte.fermee ? (porte.a_cle ? 'Fermé à clé — vous en avez la clé' : 'Fermé à clé') : 'Ouvert au public') : '';
+      let icon = locked ? '🔒 ' : (porte ? '<i class="ti ' + (porte.fermee ? 'ti-lock' : 'ti-lock-open') + '"></i> ' : '');
+      if (!locked && !porte && typeof hotelTeaserOngletReserve === 'function' && hotelTeaserOngletReserve(buildingId, roomId)) icon = '<i class="ti ti-lock"></i> ';
+      // Hôtel Royal d'Al-Khalija (Fred, 28/11/2026) : l'onglet d'une pièce réservée l'annonce (plateau-hotels-teaser.js).
+      const reserveHotel = (typeof hotelTeaserOngletReserve === 'function') ? hotelTeaserOngletReserve(buildingId, roomId) : '';
+      const titre = reserveHotel || (porte ? (porte.fermee ? (porte.a_cle ? 'Fermé à clé — vous en avez la clé' : 'Fermé à clé') : 'Ouvert au public') : '');
       const clic = porteInterdite ? "serrurePopupFermee('local','" + buildingId + "','" + roomId + "')"
         : "enterRoom('" + buildingId + "','" + roomId + "',this)";
       // Meme regle de nom que le titre de la piece (plateau-variantes-pieces.js) :
@@ -2983,6 +2988,8 @@ async function commanderTransportServeur(mode,pays,ville) {
     frontiere_fermee:'Frontière fermée, ouverture au premier trimestre 2027',
     chef_de_groupe_requis:'Seul le chef du groupe peut engager ce voyage.',fonds_insuffisants:'Le chef du groupe ne dispose pas des fonds nécessaires pour tous les voyageurs.',
     pa_insuffisants:'Le chef du groupe ne dispose pas des PA nécessaires.'};
+   // Capitales en teaser (Fred, 28/11/2026) : bus, train et taxi fermés à Ciudad Roja et Al Madina.
+   if(v?.raison==='teaser_acces_interdit'&&typeof teaserAccesInterdit==='function'){teaserAccesInterdit();return false;}
    showToast('Voyage non confirmé',motifs[v?.raison]||'Le voyage n’est pas confirmé. Le même reçu sera utilisé si vous réessayez.',false);
    globalThis.RPI18nPlateau?.markToast(motifs[v?.raison]?null:"toastBodies.baf6102a4",motifs[v?.raison]||'Le voyage n’est pas confirmé. Le même reçu sera utilisé si vous réessayez.',undefined,'Voyage non confirmé');return false;
   }

@@ -108,6 +108,14 @@ def preparer(paquet=None):
  if [x for x in source if x['fn'] in menu_virements]!=[{'fn':'virements','pa':0,'cost':0}]:
   raise ValueError('Menu Virements absent ou facture : un choix ne coute aucun PA')
  source_historique=[x for x in source_historique if x['fn'] not in menu_virements]
+ # Capitales en teaser (28/11/2026) : gestes des hôtels de Ciudad Roja et d'Al Madina, postérieurs au plan 97 ; validation exacte.
+ ajouts_teaser=[{'fn':'cr_nager','pa':1,'cost':0},{'fn':'cr_tennis','pa':2,'cost':0},{'fn':'cr_pourboire','pa':0,'cost':200},{'fn':'cr_billet_douaniers','pa':0,'cost':0},
+  {'fn':'am_the_menthe','pa':1,'cost':60},{'fn':'am_patisseries','pa':1,'cost':150},{'fn':'am_jus_fruits','pa':1,'cost':50},{'fn':'am_the_special','pa':1,'cost':150},
+  {'fn':'am_narguile','pa':1,'cost':250},{'fn':'am_cafe_arabe','pa':2,'cost':80},{'fn':'am_bain_vapeur','pa':1,'cost':300},{'fn':'am_secret_contre_secret','pa':1,'cost':0},
+  {'fn':'am_backgammon','pa':0,'cost':0}]
+ if any(x not in source for x in ajouts_teaser):
+  raise ValueError('Ordres des hôtels teaser absents du catalogue actuel')
+ source_historique=[x for x in source_historique if x not in ajouts_teaser]
  # Ordres retirés depuis la coupe historique : restauration UNIQUEMENT pour
  # vérifier son empreinte d'origine, jamais dans le catalogue de jeu courant.
  retires=[{'fn':'assigner_mission','pa':1,'cost':0},
@@ -147,6 +155,8 @@ def preparer(paquet=None):
  source_historique=[{'fn':'mobiliser','pa':2,'cost':0} if x=={'fn':'mobiliser','pa':0,'cost':0} else x for x in source_historique]
  # 27/11/2026 au soir : « Interroger un détenu » (QHS) passe à 1 PA (modèle du goulag) ; la coupe historique garde 2 PA.
  source_historique=[{'fn':'interroger','pa':2,'cost':0} if x=={'fn':'interroger','pa':1,'cost':0} else x for x in source_historique]
+ # 28/11/2026 : « Produire une fuite » à 2 PA (Fred) ; la coupe historique garde 3 PA.
+ source_historique=[{'fn':'fuite_info','pa':3,'cost':0} if x=={'fn':'fuite_info','pa':2,'cost':0} else x for x in source_historique]
  cmp=module('delta_recette97','outils/baseline/comparer-couts-captures.py')
  ts=sorted(cmp.triples(source_historique))
  md5=hashlib.md5('\n'.join('%s|%d|%d'%t for t in ts).encode()).hexdigest()

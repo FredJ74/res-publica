@@ -44,6 +44,10 @@ def main():
  canon={('demander_naturalisation',2,0) if t==('demander_naturalisation',2,50) else t for t in canon}
  canon={('se_rebeller',2,0) if t==('se_rebeller',1,0) else t for t in canon}  # 23/11/2026 : rébellion à 1 PA
  canon={('mobiliser',2,0) if t==('mobiliser',0,0) else t for t in canon}  # 25/11/2026 au soir : « Mobiliser les membres » à 0 PA (audit des chances, 1.3a)
+ canon={('fuite_info',3,0) if t==('fuite_info',2,0) else t for t in canon}  # 28/11/2026 : fuite à 2 PA
+ # Capitales en teaser (28/11/2026) : gestes des hôtels de Ciudad Roja et d'Al Madina, postérieurs à la photographie.
+ posterieurs_teaser={('cr_nager',1,0),('cr_tennis',2,0),('cr_pourboire',0,200),('cr_billet_douaniers',0,0),('am_the_menthe',1,60),('am_patisseries',1,150),('am_jus_fruits',1,50),('am_the_special',1,150),('am_narguile',1,250),('am_cafe_arabe',2,80),('am_bain_vapeur',1,300),('am_secret_contre_secret',1,0),('am_backgammon',0,0)}
+ assert posterieurs_teaser<={(x['fn'],x['pa'],x['cost']) for x in source},'ordre des hôtels teaser absent du catalogue';canon-=posterieurs_teaser
  canon={('interroger',2,0) if t==('interroger',1,0) else t for t in canon}  # 27/11/2026 au soir : interrogatoire du QHS à 1 PA (modèle du goulag)
  retire={(x['fn'],x['pa'],x['cost']) for x in plan['retirer']};ajoute={(x['fn'],x['pa'],x['cost']) for x in plan['ajouter']};capture=sorted((canon-ajoute)|retire)
  assert len(capture)==plan['avant']['lignes']

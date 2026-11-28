@@ -60,7 +60,9 @@ async function ouvrirPavillonReception() {
   if(!v || v.transport || !v.ok){showToast(pavillonT('titre'),pavillonT('indisponible'),false);return;}
   let body='<p>'+pavillonT('receptionTexte')+'</p>';
   if(v.autorisation!==true)body+='<p>'+pavillonT('acces')+'</p>';
-  else if(v.reception_reservee)body+='<p>'+pavillonT('reserve')+'</p>';
+  // Cartons d'invitation (Fred, 27/11/2026) : celui qui a réservé choisit ses invités ; le serveur refuse les autres.
+  else if(v.reception_reservee)body+='<p>'+pavillonT('reserve')+'</p>'+(typeof ouvrirCartonsInvitation==='function'
+    ?vehBouton(window.cartonsInvitationLibelle(),"document.getElementById('modal-postes')?.classList.remove('open');ouvrirCartonsInvitation()",true):'');
   else body+=pavillonBouton(pavillonT('reserverReception'),'reception','salle_reception');
   vehModal(pavillonT('reception'),body);
 }
@@ -79,5 +81,6 @@ async function pavillonSoumettre(action,room) {
     document.getElementById('modal-postes')?.classList.remove('open');
     showToast(pavillonT('recu'),pavillonT('confirme')+' '+pavillonT('somme',{montant:v.montant,devise:v.devise}),true);
     if(typeof updateUI==='function')updateUI();
+    if(action==='reception' && typeof ouvrirCartonsInvitation==='function')setTimeout(()=>ouvrirCartonsInvitation(),0);
   } finally {pavillonActeEnCours=false; }
 }

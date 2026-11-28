@@ -24,7 +24,37 @@ Les décisions de game design ci-dessous sont celles de Fred ; la partie « Rép
 15. **Pas de débat de politique réelle hors jeu** (17/11/2026) : les espaces HRP (forums, Discord, aide) servent uniquement au jeu (entraide, bugs, organisation). Aucun forum du type « Politique et Société ». Règle inscrite dans la charte de conduite et les CGU, appliquée par la modération. Leçon tirée de Kraland, où les conflits HRP ont fait fuir les joueurs.
 16. **Principe de réponse aux abus** (17/11/2026, leçon de Kraland) : face à un abus signalé par des joueurs, on ajoute une voie de recours ou un contre-pouvoir (articles 10 et 14 de la Constitution), on ne retire pas la liberté à tous (pas d'aseptisation).
 
+17. **Capitales d'El Estado et d'Al-Khalija visitables en teaser** (27/11/2026) — **codé le 28/11/2026** (détails de
+    Fred du 28/11 : `GAME-DESIGN-CIUDAD-ROJA.md` et `GAME-DESIGN-AL-MADINA.md` ; migrations `20261128020000`,
+    `20261128030000`, `20261128040000`). Ciudad Roja et Al Madina deviendront visitables, sans autre possibilité de jeu : aucun commerce à louer, aucun
+    poste à prendre, aucune domiciliation. But : donner envie de recruter et de débloquer ces empires. Relevé factuel au
+    27/11/2026 (voir « Capitales en teaser : relevé du 27/11/2026 » ci-dessous).
+
 **Pas encore décidé (ne pas coder, ne pas proposer de prix)** : grille de prix et forme d'achat (unité, monnaie premium, paquets) ; publicité au coucher au lancement ; heures précises des rendez-vous.
+
+## Capitales en teaser : relevé du 27/11/2026 (décision 17, codée le 28/11/2026)
+
+Relevé du dépôt (`data.js`, `images/`) et de la base de production (lecture seule) ; rien n'a été codé.
+
+| | Ciudad Roja (El Estado, `narco`) | Al Madina (Al-Khalija, `khalija`) |
+|---|---|---|
+| Bâtiments déclarés (`data.js`, gabarit commun) | 28 : les bâtiments du gabarit de Luthécia (palais présidentiel, hôtel, palais du gouvernement, assemblée, tribunal, banques, clinique, dispensaire, commissariat, presse, loge, université, armurerie, marché, mairie, centre multimodal, centres commercial/artisanal/d'affaires, cinq terrains, office notarial, stade) + `laboratoire-priere` | 28 : le même gabarit + `patisserie-sacree` |
+| Lieux connus du serveur (`navigation_lieux_regles`, capitale) | 28 | 28 |
+| Rues (`rue_noeuds_serveur`) | 2 vues : devant le centre multimodal, devant l'hôtel (GAME-DESIGN-CIUDAD-ROJA.md, migration `20261127210000`) | aucune |
+| Navigation propre | centre multimodal (hall, douanes, embarquement) et Hotel Ciudad Roja (réception, suite, restaurant, piscine, bar) raccordés, PNJ d'El Estado répartis | aucune |
+| Images dédiées | `images/El Estado/Ciudad Roja/` : 10 (centre multimodal ×4, hôtel ×6) | `images/Al-Khalija/Al Madina/` : 4 (centre multimodal : extérieur, hall, douanes, embarquement) |
+| Images du gabarit déclinées pour l'empire (`images/`, noms contenant le pays) | 21 | 23 |
+| Autres villes et lieux à images | Puerto Negro, Villa Sangre, Bagne, Cuartel | Al-Petrol, Oasis City, Forteresse Royale, Prison Royale |
+
+**Garde-fou serveur actuel** : `frontieres_fermees_v1` — la table `frontieres_fermees` contient les six villes des deux
+empires (capitale, `ville_a`, `ville_b`) avec le message « Frontière fermée, ouverture au premier trimestre 2027 » ;
+`transport_effectuer` refuse tout voyage vers elles (`frontiere_fermee`) et le déclencheur `zz_frontiere_fermee_garder`
+refuse en dernier recours toute écriture d'une position dans une de ces villes. Le teaser exigera donc de lever ce
+garde-fou pour les seules capitales, en gardant fermés commerces, postes et domiciliation.
+
+**Détails à trancher par Fred** : mode d'accès (voyage normal depuis Républia et Sovarka, durée de séjour), bâtiments
+ouverts à la visite (tous les 28, ou une sélection), sort des ordres de ces bâtiments (masqués ou grisés), PNJ et
+dialogues, Al Madina sans rues ni navigation propre pour l'instant.
 
 ## Chantiers qui en découlent
 

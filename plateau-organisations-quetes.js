@@ -9273,9 +9273,6 @@ async function confirmerAchatAccessoireClub(id, label, prix, pa, cost) {
   addJournalEntry('Achat : ' + v.objet + ' (-' + v.prix + ' ' + monnaie + ').', 'event-good');
 }
 
-function doAcheterAccessoirePersonnalise() {
-  showToast('Bientôt disponible', 'La personnalisation (nom, numéro) sera réservée aux comptes premium.', false); globalThis.RPI18nPlateau?.markToast("toastBodies.bb801f97e", 'La personnalisation (nom, numéro) sera réservée aux comptes premium.', undefined, 'Bientôt disponible');
-}
 
 // Reutilise calculerKickoffJournee (source canonique unique de l'heure des matchs, deja utilisee
 // par le moteur live) -- jamais une deuxieme source d'heure recalculee independamment (section 14).
