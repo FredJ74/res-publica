@@ -14,6 +14,16 @@ Règles : voir `AGENTS.md`.
 - Origine : `b343ff38` (interrogatoires), `ecd537d2` (ordres creux) et `14d14fae` (transferts) ont modifié le catalogue le 27/11 après la dernière génération du seed (`27833838`, 26/11). Cinq anciennes entrées, deux entrées gratuites manquantes, deux anciens tarifs à 2 PA : diff déjà conservé dans #1216.
 - Supabase contrôlé **en lecture seule, transaction annulée** : `interroger` et `interroger_renseignement` valent 1 PA/0, confirmé aussi dans les corps RPC ; les cinq ordres retirés sont absents. Les deux nouvelles entrées sont des ouvertures gratuites de fenêtres (`plateau-router.js` retourne avant paiement), pas des actions payantes ; `demander_transfert_detenu` reste à 1 PA/0. Aucun joueur, coût serveur ou fonction SQL modifié ; aucune migration appliquée. Preuve `outils/audits/MIROIR-COUTS-SUPABASE-20261128.json`.
 - Correction exclusivement générée par `outils/baseline/regenerer-seeds-miroirs.py` : seed `ordres_couts` et son empreinte, aucun générateur modifié. Les huit miroirs sont conformes ; banc global (six contrôles Python), réconciliation PostgreSQL jetable et garde du monde neuf passent. CI complète et fusion à suivre dans la PR ; après fusion, rebaser #1216, vérifier et fusionner sa clôture.
+### Mission du 28/11/2026 (nuit) (Claude) — journal des étapes
+
+- **banc-mobile-coque, test L4 : échec aléatoire, cause et correction** (branche `claude/banc-mobile-coque-fiable-20261128`).
+  Preuve du hasard : le même commit `f147a565` est vert sur sa branche (27 workflows) et rouge une fois poussé sur main ;
+  l'étape 3 (`aa3d81e8`) rouge, l'étape 4 qui la contient entièrement (`6ebbbd9e`) verte. Cause : le test compare au pixel
+  près deux captures de la page de création en 1440 px, prises après un délai fixe de 500 ms, sans attendre le réseau local,
+  le décodage des images ni la fin des transitions CSS ; sur un runner lent, l'une des deux captures est prise en cours de
+  chargement. Correction : chaque capture attend le réseau au repos, les polices, le décodage des images et deux images
+  d'animation, puis se prend animations et transitions figées (`animations:'disabled'`). L'échec « Cohérence client » de
+  l'état fusionné de l'étape 1 est ce même test, rien d'autre.
 
 ### Mission du 27/11/2026 (soir) (Claude) — journal des étapes
 
