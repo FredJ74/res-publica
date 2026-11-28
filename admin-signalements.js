@@ -5,7 +5,7 @@
 // Le serveur trie : ouverts d'abord, impliquant un personnage MINEUR en tête (marqués « mineur »), puis les plus anciens.
 // Accès : admin_exiger() côté serveur (admin_signalements_lire, admin_signalement_traiter, admin_sanction_*).
 const ADM_SIG_SOURCES = { courrier: 'Courrier', forum: 'Forum', conversation: 'Conversation', image: 'Image personnalisée', nom: 'Nom de personnage' };
-const ADM_SANCTIONS = { avertissement: 'Avertissement', retrait_contenu: 'Retrait du contenu', suspension: 'Suspension (ordres bloqués)' };
+const ADM_SANCTIONS = { avertissement: 'Avertissement', retrait_contenu: 'Retrait du contenu', suspension: 'Suspension (ordres, forum, courrier et chat bloqués)' };
 function admSignalementFormSanction(s, tous) {
  const f = document.createElement('form'); f.className = 'adm-detail';
  f.style.margin = '.5rem 0'; f.style.display = 'grid'; f.style.gap = '.3rem'; f.style.maxWidth = '36rem';

@@ -38,7 +38,7 @@ import { envoyerCourriel, courrielConfirmation, courrielRappelAnnuel, courrielDo
 export const TOLERANCE_SIGNATURE_S = 300;   // tolérance par défaut des bibliothèques de Stripe
 const API_STRIPE = 'https://api.stripe.com/v1';
 const VERSION_API_DEFAUT = '2025-03-31.basil';
-// Codes fiscaux éligibles à Managed Payments (docs.stripe.com/payments/managed-payments/eligibility) — à confirmer par Fred.
+// Codes fiscaux éligibles à Managed Payments (docs.stripe.com/payments/managed-payments/eligibility) — confirmés par Fred (28/11/2026 soir).
 export const TAX_CODE_ABONNEMENT_DEFAUT = 'txcd_10201004';   // Video Games - streamed - subscription - with conditional rights
 export const TAX_CODE_UNITE_DEFAUT = 'txcd_10000000';        // General - Electronically Supplied Services
 const LOCALES_CHECKOUT = { fr: 'fr', en: 'en', es: 'es', de: 'de', ru: 'ru', ko: 'ko', ar: 'auto', 'pt-BR': 'pt-BR', 'zh-TW': 'zh-TW' };
@@ -85,7 +85,7 @@ export function paramsSessionCheckout(a, ctx, env = {}) {
     metadata: { achat_id: a.achat, mode_vente: ctx.mode },
     line_items: [{ quantity: 1, price_data: {
       currency: 'eur', unit_amount: a.montant_centimes,
-      // Le prix affiché au joueur est le prix payé (taxes comprises quand Managed Payments en collecte) — question à Fred.
+      // Le prix affiché au joueur est le prix payé, toutes taxes comprises, partout (décision de Fred, 28/11/2026 soir).
       tax_behavior: 'inclusive',
       product_data: { name: a.libelle, tax_code: abonnement ? (env.STRIPE_TAX_CODE_ABONNEMENT || TAX_CODE_ABONNEMENT_DEFAUT) : (env.STRIPE_TAX_CODE_UNITE || TAX_CODE_UNITE_DEFAUT) },
       ...(abonnement ? { recurring: { interval: a.intervalle === 'year' ? 'year' : 'month' } } : {})

@@ -21,7 +21,7 @@ jobs:
       - run: npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
       - run: for f in api/_paiement.js api/_paiement-courriels.js plateau-paiement.js plateau-premium.js admin-premium.js; do node --check "$f"; done
       - name: Serveur (doublures de Stripe, secret généré par le banc)
-        run: node --test outils/bancs/banc-paiement-stripe-20261128.mjs outils/bancs/banc-paiement-premium-20261125.mjs outils/bancs/banc-premium-ecran-20261125.cjs
+        run: node --test outils/bancs/banc-paiement-stripe-20261128.mjs outils/bancs/banc-paiement-premium-20261125.mjs outils/bancs/banc-premium-ecran-20261125.cjs outils/bancs/banc-paiement-comptes-20261128-soir.cjs
       - name: Écran (Chromium réel)
         env:
           NODE_PATH: outils/e2e/node_modules

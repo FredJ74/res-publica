@@ -83,7 +83,8 @@ renonciation au droit de rétractation, conditions de l'abonnement), rappel annu
   `invoice_creation`, adresse de livraison, `customer_update`, libellés de relevé, etc. Tarification adaptative (devise
   locale) toujours active : le montant de la session reste en euros.
 - Pays d'acheteurs **non servis** : Chine, Cuba, Iran, Kosovo, Corée du Nord, Russie, Syrie, île de l'Ascension,
-  Tristan da Cunha → liste par défaut de `paiement_pays_exclus` (réglable).
+  Tristan da Cunha → liste par défaut de `paiement_pays_exclus` (réglable). **Biélorussie** ajoutée par décision de Fred
+  (28/11/2026 soir, migration `20261128220000`), comme la Russie.
 - Stripe peut rembourser lui-même jusqu'à 60 jours après l'achat (assistance Link) et applique les délais de rétractation
   régionaux ; ses e-mails de renouvellement « d'anniversaire » partent 15 jours avant par défaut (au moins 7).
 
@@ -110,3 +111,16 @@ Côté **Vercel** (Settings → Environment Variables) :
 
 Côté **jeu** (page MJ → Premium) : nom de l'éditeur affiché comme vendeur, adresse des CGV (sans elles, aucun achat réel),
 prix (dont l'abonnement annuel), puis fin de la gratuité de la bêta.
+
+## Décisions de Fred du 28/11/2026 (soir)
+
+- Prix affichés **toutes taxes comprises partout** (`tax_behavior: 'inclusive'`, déjà le cas).
+- Codes fiscaux `txcd_10201004` (abonnement) et `txcd_10000000` (unité, options) **confirmés**.
+- Monaco et les DOM traités comme la France (liste `paiement_pays_ue`) ; les territoires hors UE (Saint-Pierre-et-Miquelon,
+  Saint-Barthélemy, Nouvelle-Calédonie, Polynésie, Wallis-et-Futuna, TAAF) passent par Managed Payments (déjà le cas).
+- Biélorussie exclue comme la Russie.
+- Un remboursement d'erreur fait depuis Stripe ne coupe pas l'abonnement (déjà le cas : seul le remboursement des
+  14 jours le termine).
+- Nom légal du vendeur : réglage serveur `vendeur_editeur_nom`, **vide** tant que Fred ne l'a pas fourni (sans lui, pas
+  d'achat en mode éditeur).
+- CGV : acceptées par la case existante avant chaque paiement, sans acceptation séparée.
