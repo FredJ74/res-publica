@@ -14,6 +14,183 @@ Règles : voir `AGENTS.md`.
 - Origine : `b343ff38` (interrogatoires), `ecd537d2` (ordres creux) et `14d14fae` (transferts) ont modifié le catalogue le 27/11 après la dernière génération du seed (`27833838`, 26/11). Cinq anciennes entrées, deux entrées gratuites manquantes, deux anciens tarifs à 2 PA : diff déjà conservé dans #1216.
 - Supabase contrôlé **en lecture seule, transaction annulée** : `interroger` et `interroger_renseignement` valent 1 PA/0, confirmé aussi dans les corps RPC ; les cinq ordres retirés sont absents. Les deux nouvelles entrées sont des ouvertures gratuites de fenêtres (`plateau-router.js` retourne avant paiement), pas des actions payantes ; `demander_transfert_detenu` reste à 1 PA/0. Aucun joueur, coût serveur ou fonction SQL modifié ; aucune migration appliquée. Preuve `outils/audits/MIROIR-COUTS-SUPABASE-20261128.json`.
 - Correction exclusivement générée par `outils/baseline/regenerer-seeds-miroirs.py` : seed `ordres_couts` et son empreinte, aucun générateur modifié. Les huit miroirs sont conformes ; banc global (six contrôles Python), réconciliation PostgreSQL jetable et garde du monde neuf passent. CI complète et fusion à suivre dans la PR ; après fusion, rebaser #1216, vérifier et fusionner sa clôture.
+### Mission du 28/11/2026 (nuit) (Claude) — compte rendu pour Fred
+
+**En bref.** Tout est codé et poussé, rien n'est fusionné : c'est Claude, côté claude.ai, qui ouvre les PR, contrôle la
+CI et fusionne. Les **migrations, elles, sont déjà en production** (essai en transaction annulée, application,
+relecture) : le serveur applique donc dès maintenant le teaser (Ciudad Roja et Al Madina ouvertes, avion seul, gestes
+des hôtels), même si l'écran correspondant n'arrive qu'à la fusion des branches.
+
+#### Ce qui part en bêta à la fusion, et comment le tester
+
+1. **Réponses de Fred du 28/11** (branche `claude/reponses-fred-20261128`) :
+   - prêt « travaux » : exige un permis de construire, vrai ou faux ; le faux permis revient dans la liste de
+     l'imprimante ; le prêt « consommation » ne change pas ;
+   - fuite à 2 PA ;
+   - interrogatoire du Renseignement répétable tant que le détenu a plus de 1 PA ;
+   - trace « mauvais traitement » de 30 jours ;
+   - transfert : tous les détenus sont transférables (QHS, goulag, salles d'interrogatoire), arrivée dans la capitale du
+     pays d'origine ;
+   - cartons : seul l'ambassadeur les envoie, 40 par envoi, entrée fermée à minuit sans expulsion ;
+   - accessoire : seule la popularité réellement gagnée est reprise, plafond de 100 gardé.
+   - *Tester* : demander un prêt « travaux » sans permis (refus « permis de construire requis »), puis avec un faux
+     permis imprimé ; produire une fuite (2 PA) ; interroger deux fois un détenu du Renseignement.
+2. **Capitales en teaser** (branche `claude/capitales-teaser-ouverture-20261128`) :
+   - prendre l'avion vers Ciudad Roja ou Al Madina ;
+   - au centre multimodal, essayer le bus, le train ou le taxi : fenêtre « Accès interdit ! » et gros « ? », qui
+     ouvre le compteur ville par ville et poste par poste ;
+   - flèche du bas dans la rue de l'hôtel : même fenêtre ;
+   - **Hotel Ciudad Roja** :
+     - piscine : nager (2 fois par jour au plus), tennis, pourboire ;
+     - pourboire à Tito Maletas : une rumeur sur El Estado ;
+     - parler à Svetlana ou à Valentina : la première fois, Don Augusto lance sa tirade, puis plus jamais ;
+     - réserver une nuitée à la réception, puis « Appel à un(e) escort » dans la suite (catalogue 7 + 3) ;
+   - **douane de Ciudad Roja** : « Donner un billet aux douaniers », montant au choix ; en cas d'échec, la phrase de
+     Juanita et la saisie des objets illégaux ;
+   - **Hôtel Royal d'Al-Khalija** :
+     - les sept pièces et leurs images ;
+     - salon de thé : thé, pâtisseries, jus, thé spécial ;
+     - salon des gentlemen avec un personnage masculin : narguilé (secret dès la 2e pipe), café arabe, backgammon contre
+       un autre joueur présent ;
+     - hammams : bain de vapeur, « Secret contre secret » ;
+     - avec un personnage féminin, tenter le salon des gentlemen : onglet marqué d'un cadenas, refus, puis « Forcer le
+       passage » (réussite : libre circulation dans l'hôtel ; échec : 1 jour de prison) ;
+     - prix doublés : chambre 160 DR, dîner d'affaires 600 DR, service d'étage 300 DR.
+3. **Étapes 5 à 8 du 27/11** : cartons d'invitation, faux documents, accessoire personnalisé, décision 17 consignée.
+   Déjà décrites dans le compte rendu du 27/11 (soir).
+
+#### Migrations appliquées en production le 28/11
+
+- `20261128010000_reponses_fred_27_soir` : réponses de Fred.
+- `20261128020000_capitales_teaser_frontiere_acces` : frontière, deux bâtiments ouverts par capitale, rue d'Al Madina,
+  avion seul, compteur d'ouverture, accès réservés de l'Hôtel Royal.
+- `20261128030000_capitales_teaser_hotels` : gestes des deux hôtels, billet aux douaniers, escorts de Ciudad Roja et
+  leurs confidences, tirade de Don Augusto, journal des passages, protection contre la canicule, verrou de navigation
+  des pièces réservées. L'essai en transaction annulée a couvert tous les gestes, le backgammon et les refus par genre.
+- `20261128040000_hotel_royal_tarifs_doubles` : tarifs habituels de l'hôtel doublés à Al-Khalija.
+
+#### Branches (toutes poussées, toutes à jour sur `main` `1477db72`)
+
+Pile, de la base au sommet ; chaque branche contient celles du dessus de la liste :
+
+| Branche | Dernier commit | Contenu |
+|---|---|---|
+| `claude/cartons-invitation-20261127` | `cb664954` | étape 5 du 27/11 : cartons d'invitation |
+| `claude/faux-documents-20261127` | `5b91f330` | étape 6 : faux documents (empilée sur la précédente) |
+| `claude/accessoire-personnalise-20261127` | `653cfa35` | étape 7 : accessoire et règle des deux objets revêtus |
+| `claude/capitales-teaser-20261127` | `aaea1916` | étape 8 (décision 17 consignée) et compte rendu du 27/11 (soir) |
+| `claude/reponses-fred-20261128` | `a40392f9` | réponses de Fred du 28/11 et miroir des coûts régénéré |
+| `claude/capitales-teaser-ouverture-20261128` | commit de ce compte rendu | capitales en teaser (parties A à E) et ce compte rendu |
+
+Indépendante : `claude/banc-mobile-coque-fiable-20261128` (`dacc8f9b`), qui stabilise les captures du banc L4.
+
+**Il faut fusionner dans l'ordre du tableau.** Une fusion partielle laisserait la suite de la pile en conflit sur
+`RELAIS.md`.
+
+**État des bancs (lancés en local sur le sommet de la pile)** :
+
+- passent :
+  - `node --test outils/bancs/test-*.mjs` : 409 sur 409, avec `--experimental-detect-module` ;
+  - les 47 bancs qui figent une révision des fichiers touchés ;
+  - les bancs i18n des ordres, des transports et des refus ;
+  - `banc-acces-reserve`, `banc-lisibilite-acces-reserve`, `banc-mobile-coque` (21 sur 21) ;
+  - `banc-couts-reconciliation-219-local.py`, `test-plan-recette97-219.py`, `test-catalogue-reconstruction.py` ;
+  - `banc-reponses-fred-20261128`, `banc-faux-documents-20261127` ;
+  - nouveau banc `banc-capitales-teaser-20261128.cjs` (4 sur 4) ;
+  - `regenerer-seeds-miroirs.py --verifier` et `navigation-lieux.cjs --verifier`.
+- deux échecs, aussi présents sur un `main` propre, donc liés à mon environnement local :
+  - test 16 de `banc-deploiement-sobre` ;
+  - `navigation-directions.cjs --verifier`.
+- Je n'ai lancé aucune CI distante.
+
+#### Étape 1 (fin de la mission du 27/11)
+
+- **Étapes 5 à 8** : non fusionnées, faute de pouvoir ouvrir les PR d'ici (refus 403). Elles sont dans la pile ci-dessus.
+  L'étape 7 n'a jamais eu de CI complète.
+- **Étapes 1 à 4 fusionnées sans PR** (poussées directement sur `main` le 27/11) : `f147a565` (interrogatoires),
+  `f910623a` (fuite), `aa3d81e8` (ordres creux), `6ebbbd9e` (transfert). Plus aucune fusion directe depuis.
+- **« Cohérence client » rouge après l'étape 1** : l'échec vient du banc `banc-mobile-coque` (comparaison de captures
+  L4), qui est aléatoire et non lié au code. Le même commit était vert sur sa branche et rouge sur `main`, et l'étape 3
+  était rouge alors que l'étape 4, qui la contient, était verte. Corrigé sur `claude/banc-mobile-coque-fiable-20261128`.
+- **PR #1217** ajoutée à « Derniers chantiers ».
+
+#### PNJ sans image (portraits laissés vides)
+
+- Ciudad Roja, centre multimodal :
+  - hall : Carlos Retraso ;
+  - douanes : Juanita Soborno, Douanier Moustachu Uno, Douanier Moustachu Dos.
+- Hotel Ciudad Roja :
+  - réception : Rosario Esmeralda, Bruno Macizo, Tito Maletas ;
+  - piscine : Svetlana Zolotova, Valentina Fuego, Don Augusto Bigotes ;
+  - bar extérieur : Rafael Toro ;
+  - restaurant : Matías Bandeja.
+  - Svetlana, Valentina et Rafael figurent aussi au catalogue d'escorts avec un portrait vide.
+- Al Madina, centre multimodal :
+  - hall : Chambellan Al-Transit, Yasmine Embarquement ;
+  - douanes : Inspecteur Prosper Tampon (anciens PNJ, conservés).
+- Hôtel Royal d'Al-Khalija :
+  - réception : Amira Miftah, Saïd Chanta ;
+  - restaurant : Karim Sahn ;
+  - salon de thé : Nabil Naana ;
+  - salon des gentlemen : Faris Dukhan, Jabbar Bawwab ;
+  - hammam des hommes : Hamid Bukhar ;
+  - hammam des femmes : Oum Saboun.
+
+#### Pour Codex
+
+- **Déjà en neuf langues** :
+  - `plateau-hotels-teaser.js` (fenêtres, résultats, refus, backgammon) ;
+  - `plateau-teaser-capitales.js` (« Accès interdit ! », compteur, noms de postes) ;
+  - `api/_hotels-teaser.js` (tirade de Don Augusto, « Voyez avec la cheffe ») ;
+  - les 13 libellés d'ordres dans `i18n/orders-resources.js` (bloc `ordresTeaser`, catalogues compressés).
+- **Encore en français seulement dans `data.js`** :
+  - descriptions des 13 ordres ;
+  - noms de pièces : Piscine, Suite, Réception, Salon de thé, Salon des gentlemen, Hammam des hommes, Hammam des
+    femmes, Bar extérieur ;
+  - noms de bâtiments : « Hôtel Royal d'Al-Khalija », « Centre multimodal d'Al Madina » ;
+  - rôles des 20 nouveaux PNJ.
+  - À raccorder aux catalogues des pièces, des bâtiments et des PNJ. Mon branchement contourne `plateau-acces-reserve.js`,
+    figé par son banc.
+- **Traductions proposées** pour les pièces (fr / en / es / de / ru / ko / ar / pt-BR / zh-TW) :
+  - Salon de thé : Tea room / Salón de té / Teesalon / Чайный салон / 티룸 / صالون الشاي / Salão de chá / 茶室 ;
+  - Salon des gentlemen : Gentlemen's lounge / Salón de caballeros / Herrensalon / Мужской салон / 신사 라운지 /
+    صالون السادة / Salão dos cavalheiros / 紳士沙龍 ;
+  - Hammam des hommes : Men's hammam / Hammam de hombres / Männerhammam / Мужской хаммам / 남성 하맘 / حمّام الرجال /
+    Hammam masculino / 男子土耳其浴 ;
+  - Hammam des femmes : Women's hammam / Hammam de mujeres / Frauenhammam / Женский хаммам / 여성 하맘 / حمّام النساء /
+    Hammam feminino / 女子土耳其浴 ;
+  - Piscine : Pool / Piscina / Pool / Бассейн / 수영장 / المسبح / Piscina / 泳池.
+
+#### Questions de game design
+
+1. Les personnages de genre « NB » ou libre sont refusés dans les deux hammams et au salon des gentlemen, et ne peuvent
+   y entrer qu'en forçant le passage. Est-ce voulu ?
+2. Un échec de « Forcer le passage » ouvre un jour de prison à Al Madina, alors que le commissariat d'Al Madina est
+   fermé (teaser). Où le joueur doit-il purger ce jour ?
+3. Le détenu du Renseignement reste désormais indéfiniment en salle d'interrogatoire. Faut-il une durée maximale ?
+4. Lors d'un transfert depuis le goulag, les jours restants deviennent une date de fin au calendrier. Est-ce la bonne
+   conversion ?
+5. Les escorts de la suite de Ciudad Roja sont réservées à un joueur qui a réservé une nuitée depuis moins de 36 h.
+   Est-ce la bonne condition ?
+6. Durées et coûts que j'ai fixés faute de précision :
+   - protection contre la canicule : 12 h ;
+   - thé spécial : 1 PA ;
+   - défi de backgammon : expire après 1 h, sans coût en PA ;
+   - pâtisseries orientales : catégorie de repas « snack ».
+   Les gardes-tu ?
+7. Si les fonds manquent pour l'amende de la police des mœurs (1 000 DR), j'ai pris ce qui reste dans le liquide.
+   Est-ce correct ?
+8. Les huit rumeurs de Tito Maletas sur El Estado sont écrites par moi : peux-tu les relire (migration
+   `20261128030000`) ?
+9. Les « vrais secrets » du narguilé et de « Secret contre secret » sont tirés comme ceux des maisons de Sovarka :
+   poste, argent liquide, domicile, actions récentes. Est-ce suffisant ?
+10. Bruno Macizo « agit contre les gangs armés » seulement dans ses dialogues. Veux-tu une mécanique, par exemple
+    expulser de l'hôtel un PJ armé ?
+11. Au centre multimodal d'Al Madina, j'ai gardé les anciens PNJ (Chambellan Al-Transit, Yasmine Embarquement,
+    Inspecteur Prosper Tampon). Faut-il les retirer en attendant des PNJ nommés ?
+12. Les autres bâtiments des deux capitales restent déclarés dans `data.js` mais fermés par le serveur. Préfères-tu
+    qu'ils disparaissent aussi de l'écran ? Cela retire 170 scènes de PNJ et touche plusieurs miroirs.
+
 ### Mission du 28/11/2026 (nuit) (Claude) — journal des étapes
 
 - **Étape 2 — réponses de Fred** (branche `claude/reponses-fred-20261128`, construite sur l'étape 8 du 27/11) : migration
@@ -22,6 +199,11 @@ Règles : voir `AGENTS.md`.
   2 PA ; interrogatoires répétés au Renseignement ; trace « mauvais traitement » de 30 jours ; transfert de tous les détenus ;
   cartons envoyés par l'ambassadeur seul ; accessoire : seule la popularité réellement gagnée est reprise. Banc
   `banc-reponses-fred-20261128.cjs`.
+- **Étape 3 — capitales en teaser** (branche `claude/capitales-teaser-ouverture-20261128`) : migrations `20261128020000`,
+  `20261128030000` et `20261128040000` **appliquées et relues** ; client (rue d'Al Madina, « Accès interdit ! » et
+  compteur, deux hôtels, douane de Ciudad Roja, backgammon, accès réservés), API (20 fiches de PNJ, tirade, habitués),
+  documents `GAME-DESIGN-CIUDAD-ROJA.md` et `GAME-DESIGN-AL-MADINA.md`, banc `banc-capitales-teaser-20261128.cjs`.
+- **Étape 4 — compte rendu** : ci-dessus.
 
 ### Mission du 27/11/2026 (soir) (Claude) — compte rendu pour Fred
 
@@ -1683,6 +1865,7 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 
 ## Derniers chantiers
 
+- **Hôtel Royal d'Al-Khalija : sept images** (claude.ai, 28/11/2026, PR #1217, fusionnée) : réception, suite, restaurant, salon de thé, salon des gentlemen, hammam des hommes, hammam des femmes dans `images/Al-Khalija/Al Madina/` ; non branchées à la fusion, branchées par la mission du 28/11 (nuit) (`claude/capitales-teaser-ouverture-20261128`).
 - **Al Madina : nouvelle vue de rue** (Claude, 27/11/2026, branche `claude/al-madina-rue-20261127`) : `images/Al-Khalija/Al Madina/Al_Madina_centre_multimodal_exterieur.webp` remplacée par la vue de Fred montrant dans la même rue le centre multimodal (à gauche) et l'Hôtel Royal d'Al-Khalija (à droite), avec le palais au fond (1774×887). Non raccordée. Chantier d'image seule.
 - **Al-Khalija : quatre images du centre multimodal d'Al Madina** (Claude, 27/11/2026, branche `claude/al-khalija-centre-images-20261127`) : images de Fred converties en WebP dans `images/Al-Khalija/Al Madina/` : `Al_Madina_centre_multimodal_exterieur.webp` et `_hall.webp` (1448×1086), `_douanes.webp` et `_embarquement.webp` (1672×941). Non raccordées (navigation teaser d'Al-Khalija décidée le 27/11, détails en cours). Chantier d'image seule.
 - **Ciudad Roja : navigation terminée** (Claude, 27/11/2026, PR #1213, chantier ouvert par ChatGPT, branche `chatgpt/ciudad-roja-navigation-20261127`) : deux rues (centre multimodal ↔ hôtel), centre multimodal à trois pièces, Hotel Ciudad Roja à cinq vues, bar extérieur accessible seulement depuis la piscine (serveur `ciudad_roja_bar_v1`). Corrections : zones cliquables recalées sur les images, suites de Luthécia exclues (client et serveur), PNJ de Républia hérités retirés, scènes PNJ régénérées (cause des quatre échecs i18n). Migration `20261127210000_ciudad_roja_navigation` testée en transaction annulée (bar, façades, suites, idempotence, Luthécia inchangée) puis **appliquée** ; contrôles en lecture bons. El Estado reste fermé (`frontieres_fermees_v1`). Règles : `GAME-DESIGN-CIUDAD-ROJA.md`. **Pour Codex** : textes français nouveaux à traduire : « Hotel Ciudad Roja », « Le grand hôtel de luxe de Ciudad Roja. », « Centre multimodal de Ciudad Roja », « Réception », « Suite », « Restaurant », « Piscine », « Bar extérieur ».
