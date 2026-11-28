@@ -1,5 +1,10 @@
 # Ciudad Roja, capitale d'El Estado (décisions de Fred, 27 et 28/11/2026)
 
+> **Principe de contraste (Fred, 28/11/2026), qui guide tous les ajouts futurs dans ces empires.**
+> Al-Khalija revendique une morale irréprochable mais s'arrange en douce avec elle (le whisky dans la théière, le
+> passage forcé contre un jour de chambre). **El Estado est un empire complètement décadent et corrompu, où l'on est
+> pourtant très pieux.** Voir aussi `GAME-DESIGN-AL-MADINA.md`.
+
 **Statut : codé, migration appliquée le 27/11/2026, en bêta.** El Estado reste fermé aux joueurs : le garde-fou serveur
 `frontieres_fermees_v1` refuse tout passage vers `narco` (« Frontière fermée, ouverture au premier trimestre 2027 »).
 Ce chantier ne l'ouvre pas. Chantier ouvert par ChatGPT (PR #1213), repris et terminé par Claude.
@@ -61,8 +66,8 @@ Ordres habituels de l'hôtel, plus (serveur : `hotel_teaser_agir`) :
 |---|---|---|---|---|
 | Nager dans la piscine | Piscine | 1 PA | +5 Santé ; protège de la canicule pour 12 heures | 2 par jour |
 | Jouer au tennis | Piscine | 2 PA | −8 Santé, +7 influence, +5 popularité | 1 par jour |
-| Donner un pourboire | Toute pièce avec un employé (réception, restaurant, piscine, bar) | 200 PS | +1 popularité ; à Tito Maletas, une rumeur sur El Estado en prime | sans limite |
-| Appel à un(e) escort | Suite | 800 PS par escort et par jour (même mécanique et même montant qu'à Novomirsk) | — | réservé à un client de l'hôtel (nuitée réservée depuis moins de 36 h) |
+| Donner un pourboire | Toute pièce avec un employé (réception, restaurant, piscine, bar) | 200 PS | +1 popularité ; à Tito Maletas, un vrai secret sur un joueur réel en prime (réseau Roxane Velours, voir plus bas) | sans limite |
+| Appel à un(e) escort | Suite | 800 PS par escort et par jour (même mécanique et même montant qu'à Novomirsk) | — | réservé à un client de l'hôtel (nuitée réservée et pas encore de « Dormir » depuis la réservation) |
 
 - Catalogue d'escorts à Ciudad Roja : les **7 escorts internationales** de l'agence Roxane Velours et **3 escorts de
   l'hôtel** : Svetlana Zolotova, Valentina Fuego, Rafael Toro.
@@ -103,3 +108,27 @@ Ordres habituels de l'hôtel, plus (serveur : `hotel_teaser_agir`) :
 
 `images/El Estado/Ciudad Roja/` : quatre vues du centre multimodal (extérieur, hall, douanes, embarquement) et six de
 l'hôtel (extérieur, réception, suite, restaurant, piscine, bar de la piscine).
+
+## Décisions du 28/11/2026 (après-midi) — migration `20261128100000_reponses_fred_teaser`
+
+- **Escorts de la suite** : la condition « nuitée réservée depuis moins de 36 h » devient « nuitée réservée, pas encore
+  consommée, et pas encore d'ordre « Dormir » depuis la réservation » (heure exacte du dernier « Dormir » gardée par le
+  serveur, table `personnages_dormir_horodates`).
+- **Tito Maletas** : les huit rumeurs écrites à la main sont supprimées. Contre le pourboire, Tito livre **un vrai
+  secret sur un joueur réel** tiré au hasard dans tout le jeu (jamais un PNJ, jamais un compte de test), en expliquant
+  que sa source est le **réseau international Roxane Velours**, présent dans le monde entier, dont les escorts entendent
+  toutes les confidences. Quand des réservations réelles passées par le standard Roxane Velours existent
+  (`escort_appels`, `escort_relations`), Tito puise d'abord chez ces clients. Le secret arrive aussi au courrier et dans
+  les renseignements connus du joueur. Svetlana, Valentina et Rafael font partie de ce réseau (personnalités de dialogue
+  complétées : ils le laissent entendre, sans jamais citer de secret ni de nom).
+- **Moteur des « vrais secrets »** (narguilé, « Secret contre secret », Tito ; `hotel_secret_vrai_interne`) : poste,
+  argent liquide, domicile, actions récentes, **plus** parti ou organisation publique, biens (locaux loués, terrains),
+  casier judiciaire et peine en cours, conjoint et nombre d'employés, crimes passés non élucidés (révélés comme rumeur,
+  sans ouvrir d'affaire). **L'appartenance à une organisation secrète n'est jamais révélée, par aucune source** (ni un
+  local loué par une organisation secrète). Les maisons de Sovarka gardent leur tirage d'origine.
+- **Bruno Macizo** : reste du décor, aucune mécanique. Pas très malin, il installe une ambiance d'insécurité
+  (personnalité de dialogue ajustée).
+- **Valeurs gardées** : protection canicule 12 h, défi de backgammon qui expire au bout d'1 h sans coût en PA.
+- **Bâtiments fermés** : les autres bâtiments de la capitale restent déclarés dans `data.js` et fermés par le serveur.
+- **Traductions** : noms de pièces, rôles des PNJ et descriptions des ordres des deux capitales dans les neuf langues
+  (`plateau-teaser-traductions.js`).
