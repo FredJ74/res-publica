@@ -194,6 +194,7 @@ ligne trouvée fausse se corrige ici.
 | Mécanique | Ce qu'elle fait | État | Pour un nouvel empire |
 |---|---|---|---|
 | Football | Clubs, licences, entraînements, matchs en direct, championnat, transferts, supporters. | Mixte | Clubs et stades. |
+| Accessoires de club | Écharpe, casquette, maillot (standard ou personnalisé par IA) : revêtus, +5 popularité seulement dans la ville du club (pays + ville notés sur l'objet), gain réel seul repris ; un de chaque type ; trois objets revêtus au plus (règle générale de `crim_revetir`). Personnalisation incluse dans l'abonnement (renouvellement d'image de la semaine, `premium_renouvellements`), à l'unité sinon. Le bonus est tenu dans `resources.pop` par le déclencheur `zzz_accessoires_club_popularite` (inventaire ET position : tout déplacement, quel que soit le chemin) — 28/11/2026, GAME-DESIGN-FOOTBALL.md. | Serveur | Rien : le club local (`clubs_sportifs_regles`) suffit ; génération d'image : fonction Edge `accessoire-personnalise` (non déployée). |
 
 ### Renseignement et social
 

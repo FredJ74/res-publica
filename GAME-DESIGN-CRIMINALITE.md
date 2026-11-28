@@ -116,6 +116,7 @@ Migrations `20261120330000_organisations_secretes` et `20261120335000_organisati
 ## 5. Équipement
 
 - Vêtements rangés dans l'inventaire. Ordres **« Revêtir »** (générique : sert aussi au gilet pare-balles et à d'autres accessoires) et **« Retirer »**, **0 PA**. Un vêtement retiré n'a plus d'effet.
+- **Trois objets revêtus à la fois au plus**, quels qu'ils soient, un seul par catégorie (Fred, 28/11/2026 ; remplace la règle des deux du 27/11). Les accessoires de club (écharpe, casquette, maillot) se revêtent aussi : voir GAME-DESIGN-FOOTBALL.md, « Accessoires de club ».
 - Une **arrestation** retire le masque d'office, avec une **animation de démasquage** (« Bas les masques ! », scène et personnages originaux). À l'hôpital ou en détention, tous les vêtements portés sont retirés et reviennent dans l'inventaire.
 - **Tenue ninja** : +15 % à « Se cacher », −15 % aux fouilles qui la visent. Famille Habillement, sous-types *civil* **et** *militaire* (boutique de farces et attrapes / déguisements). Coût de revient 120 FR, prix PNJ 240 FR ; 30 PSK en Sovarka.
 - **Masque de carnaval** : anonymat. Famille Habillement, sous-type *civil*. Coût de revient 25 FR, prix PNJ 50 FR ; 8 PSK en Sovarka.

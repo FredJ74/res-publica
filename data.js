@@ -1867,8 +1867,8 @@ const WORLD = {
                 {name:'Vendeuse du Dynamo (PNJ)', role:'Vente des accessoires', rel:'neutral', job:'vendeur'}
               ],
               orders: [
-                {fn:'choisir_accessoire_club', label:'Acheter un accessoire', pa:0, cost:0, type:'legal', icon:'ti-shirt', successRate:100, desc:'Écharpe, casquette ou maillot du Dynamo, à choisir.'},
-                {fn:'acheter_accessoire_personnalise', label:'Acheter un accessoire personnalisé', pa:0, cost:0, type:'legal', icon:'ti-shirt-sport', successRate:100, desc:'Maillot, casquette ou écharpe du club, personnalisé à votre demande (image créée par IA). +10 popularité tant qu\'il est revêtu. Payé à l\'unité en euros.'}
+                {fn:'choisir_accessoire_club', label:'Acheter un accessoire', pa:0, cost:0, type:'legal', icon:'ti-shirt', successRate:100, desc:'Écharpe, casquette ou maillot du Dynamo, à choisir. Revêtu : +5 popularité tant que vous êtes dans la ville du club. Un seul de chaque type.'},
+                {fn:'acheter_accessoire_personnalise', label:'Acheter un accessoire personnalisé', pa:0, cost:0, type:'legal', icon:'ti-shirt-sport', successRate:100, desc:'Maillot, casquette ou écharpe du club, personnalisé à votre demande (image créée par IA). Revêtu : +5 popularité tant que vous êtes dans la ville du club, comme l\'accessoire ordinaire. Inclus dans l\'abonnement (renouvellement d\'image de la semaine), sinon payé à l\'unité en euros.'}
               ]
             }
           }
@@ -2906,8 +2906,8 @@ const WORLD = {
                 {name:'Oxana Zvezdina (PNJ)', role:'Vente des accessoires', rel:'neutral', job:'vendeur'} // nom validé par Fred le 14/11/2026
               ],
               orders: [
-                {fn:'choisir_accessoire_club', label:'Acheter un accessoire', pa:0, cost:0, type:'legal', icon:'ti-shirt', successRate:100, desc:'Écharpe, casquette ou maillot de l’Étoile Rouge, à choisir.'},
-                {fn:'acheter_accessoire_personnalise', label:'Acheter un accessoire personnalisé', pa:0, cost:0, type:'legal', icon:'ti-shirt-sport', successRate:100, desc:'Maillot, casquette ou écharpe du club, personnalisé à votre demande (image créée par IA). +10 popularité tant qu\'il est revêtu. Payé à l\'unité en euros.'}
+                {fn:'choisir_accessoire_club', label:'Acheter un accessoire', pa:0, cost:0, type:'legal', icon:'ti-shirt', successRate:100, desc:'Écharpe, casquette ou maillot de l’Étoile Rouge, à choisir. Revêtu : +5 popularité tant que vous êtes dans la ville du club. Un seul de chaque type.'},
+                {fn:'acheter_accessoire_personnalise', label:'Acheter un accessoire personnalisé', pa:0, cost:0, type:'legal', icon:'ti-shirt-sport', successRate:100, desc:'Maillot, casquette ou écharpe du club, personnalisé à votre demande (image créée par IA). Revêtu : +5 popularité tant que vous êtes dans la ville du club, comme l\'accessoire ordinaire. Inclus dans l\'abonnement (renouvellement d\'image de la semaine), sinon payé à l\'unité en euros.'}
               ]
             }
           }
@@ -4176,8 +4176,8 @@ const BUILDINGS = {
           {fn:'produire_commerce', label:'Servir', i18nKey:'variant.commerce_serve', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Préparer bières, boissons et en-cas pour le service (consomme le stock, rémunéré en FR).'},
           {fn:'consulter_carte_commerce', label:'Consulter la carte', i18nKey:'variant.commerce_menu', pa:1, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir ce qui est disponible au comptoir et commander.'},
           {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', i18nKey:'variant.commerce_sell_business', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'},
-          {fn:'choisir_accessoire_club', label:'Acheter un accessoire', pa: 0, cost:0, type:'legal', icon:'ti-shirt', successRate:100, desc:'Echarpe, casquette ou maillot du club — a choisir.'},
-          {fn:'acheter_accessoire_personnalise', label:'Acheter un accessoire personnalisé', pa:0, cost:0, type:'legal', icon:'ti-shirt-sport', successRate:100, desc:'Maillot, casquette ou écharpe du club, personnalisé à votre demande (image créée par IA). +10 popularité tant qu\'il est revêtu. Payé à l\'unité en euros.'}
+          {fn:'choisir_accessoire_club', label:'Acheter un accessoire', pa: 0, cost:0, type:'legal', icon:'ti-shirt', successRate:100, desc:'Écharpe, casquette ou maillot du club, à choisir. Revêtu : +5 popularité tant que vous êtes dans la ville du club. Un seul de chaque type.'},
+          {fn:'acheter_accessoire_personnalise', label:'Acheter un accessoire personnalisé', pa:0, cost:0, type:'legal', icon:'ti-shirt-sport', successRate:100, desc:'Maillot, casquette ou écharpe du club, personnalisé à votre demande (image créée par IA). Revêtu : +5 popularité tant que vous êtes dans la ville du club, comme l\'accessoire ordinaire. Inclus dans l\'abonnement (renouvellement d\'image de la semaine), sinon payé à l\'unité en euros.'}
         ]
       },
       guichet_paris: {
@@ -12240,8 +12240,8 @@ const ORDRES_RESERVES_AUX_HOSPITALISES = ['transfert_clinique_privee', 'repas_ho
       desc: 'Dans les tribunes, le vendeur de vêtements chauds et d’accessoires du Partizan attend ses clients sous la neige.',
       persons: [{name:'Vendeur des accessoires de Starovka (PNJ)',role:'Vendeur des accessoires du club',rel:'neutral',job:'vendeur'}],
       orders: [
-        {fn:'choisir_accessoire_club',label:'Acheter un accessoire',pa:0,cost:0,type:'legal',icon:'ti-shirt',successRate:100,desc:'Echarpe, casquette ou maillot du club — a choisir.'},
-        {fn:'acheter_accessoire_personnalise', label:'Acheter un accessoire personnalisé', pa:0, cost:0, type:'legal', icon:'ti-shirt-sport', successRate:100, desc:'Maillot, casquette ou écharpe du club, personnalisé à votre demande (image créée par IA). +10 popularité tant qu\'il est revêtu. Payé à l\'unité en euros.'}
+        {fn:'choisir_accessoire_club',label:'Acheter un accessoire',pa:0,cost:0,type:'legal',icon:'ti-shirt',successRate:100,desc:'Écharpe, casquette ou maillot du club, à choisir. Revêtu : +5 popularité tant que vous êtes dans la ville du club. Un seul de chaque type.'},
+        {fn:'acheter_accessoire_personnalise', label:'Acheter un accessoire personnalisé', pa:0, cost:0, type:'legal', icon:'ti-shirt-sport', successRate:100, desc:'Maillot, casquette ou écharpe du club, personnalisé à votre demande (image créée par IA). Revêtu : +5 popularité tant que vous êtes dans la ville du club, comme l\'accessoire ordinaire. Inclus dans l\'abonnement (renouvellement d\'image de la semaine), sinon payé à l\'unité en euros.'}
       ]
     };
   }
