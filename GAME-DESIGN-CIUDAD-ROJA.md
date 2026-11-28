@@ -132,3 +132,9 @@ l'hôtel (extérieur, réception, suite, restaurant, piscine, bar de la piscine)
 - **Bâtiments fermés** : les autres bâtiments de la capitale restent déclarés dans `data.js` et fermés par le serveur.
 - **Traductions** : noms de pièces, rôles des PNJ et descriptions des ordres des deux capitales dans les neuf langues
   (`plateau-teaser-traductions.js`).
+
+## Décisions du 28/11/2026 (soir) — migration `20261128200000_reponses_29_questions`
+
+- **Tito Maletas, cible du secret** : en priorité un **joueur actif** (connecté ou ayant chargé le plateau dans les
+  7 derniers jours), et parmi eux les clients du standard Roxane Velours d'abord ; s'il n'y a aucun joueur actif,
+  n'importe quel joueur réel. Jamais un PNJ ni un compte de test.

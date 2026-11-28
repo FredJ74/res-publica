@@ -107,6 +107,9 @@ une prison ordinaire ou le QHS) ; chaque « Dormir » en retire une ; `detention
 regarder le calendrier. Vérification demandée par Fred : `detentions` n'a pas de colonne `date_fin_universelle` ; la
 libération d'une prison ordinaire suivait le calendrier (`debutTs` + `jours`), et un ancien détenu du goulag transféré
 restait bloqué à jamais (registre du goulag toujours trouvé). Corrigé, banc à l'appui.
+**Nuits à l'hôpital (Fred, 28/11/2026 soir, migration `20261128200000`)** : une nuit passée à l'hôpital ou à la
+clinique (ordre « Dormir » d'un hospitalisé, dès le premier jour après l'admission) décompte elle aussi un jour de
+peine ; le jour même de l'admission ne compte pas (on n'y dort pas).
 
 ### Valise diplomatique (25/10 — avec les autres empires)
 **Pas de passage en douane pour les ambassadeurs.**

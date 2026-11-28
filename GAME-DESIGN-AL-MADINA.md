@@ -108,3 +108,11 @@ réservés), `20261128030000` (gestes, PNJ, secrets, backgammon), `2026112804000
 - **Bâtiments fermés** : les autres bâtiments de la capitale restent déclarés dans `data.js` et fermés par le serveur.
 - **Traductions** : noms de pièces et de bâtiments, rôles des PNJ et descriptions des ordres dans les neuf langues
   (`plateau-teaser-traductions.js`).
+
+## Décisions du 28/11/2026 (soir) — réponses aux 29 questions
+
+- **Assignation à résidence, comportement confirmé** : il faut toujours un ordre « Dormir » pour en sortir, même si le
+  joueur a déjà dormi ce jour-là (il reste donc dans la suite jusqu'au lendemain). Le joueur assigné reste
+  **intouchable** (ni police, ni combat), comme figé dans sa chambre.
+- **Nuit à l'hôpital** : un « Dormir » à l'hôpital ou à la clinique met lui aussi fin à l'assignation (même suite que
+  le « Dormir » ordinaire, migration `20261128200000`).
