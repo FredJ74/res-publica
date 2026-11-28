@@ -55,6 +55,14 @@ Installation réalisée le 21/11/2026 au registre `20261121145200` après contr�
 - **Starovka** : 7 images de toundra enneigée (01 à 07). **Krasnov** : mêmes 7 images puis vue 08 avec très peu de neige et sol/arbre visibles, puis 09–10 en forêt d'automne. La dernière progression autorisée déclenche l'arrivée à 1 PA, sans afficher artificiellement une étape supplémentaire.
 - **Livraison séparée** : assets WebP fusionnés sur `main` par PR #1022 ; l'interface de survie et ses ordres restent dans la PR #1020 non fusionnée, tant que les protections serveur de départ, de retour et de peine ne sont pas toutes appliquées. Ne pas présenter des images seules comme un trajet jouable.
 
+## Suppression d'un personnage ayant des traces au goulag (Fred, 28/11/2026 soir)
+
+Les traces au goulag ne bloquent plus la suppression d'un personnage (ni donc celle du compte) : à la suppression, ses
+traces sont rendues anonymes (« Ancien détenu » ; « Ancien joueur » pour un interrogateur, un juge ou un ministre),
+le séjour en cours est clos et une autorisation de visite encore valable est révoquée, puis la suppression se fait.
+L'historique du goulag est gardé (registre, entrées, incidents, tentatives, corruptions, dépôts, interrogatoires).
+Migration `20261128220000_reponses_fred_paiement_comptes` (déclencheur `trg_zz_personnages_goulag_traces`).
+
 ## Raccordements et protections techniques à prévoir
 1. **Contrôle serveur** de l'accès au goulag par (pays, fonction nationale/locale, ville, PJ), avec autorisation nominative signée par le ministre ; ne pas faire confiance à un bouton grisé.
 2. **Règle de transport spéciale** depuis les gares/centres multimodaux de Sovarka vers `soviet/qhs`, sans créer de fausse ville dans `villes` ni emprunter les règles de taxi du QHS de Républia. Départ vers le goulag refusé à toute personne non autorisée. Retour normal interdit au détenu.

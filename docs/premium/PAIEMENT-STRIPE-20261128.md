@@ -49,6 +49,7 @@ l'adresse de facturation (obligatoire en mode éditeur), visible dans Stripe en 
   jusqu'à la fin de la période payée. Hors UE, le joueur peut aussi résilier depuis son compte Link.
 - **Ce qui a été activé pendant l'abonnement reste acquis** : la première activation d'une option attachée à un lieu (bureau
   à 6, personnalisation du local, commerce premium) inscrit un droit durable (`premium_droits.source = 'abonnement'`).
+  Élargi le 28/11/2026 au soir à tout ce qui a été utilisé (voir « Décisions de Fred du 28/11/2026 (soir) »).
 - **Remboursement de 14 jours** : bouton « Demander le remboursement (jusqu'au …) » tant que les 14 jours suivant le premier
   paiement ne sont pas écoulés **et** qu'aucun avantage n'a été utilisé (option activée, renouvellement d'image inclus, droit
   acquis). Le serveur rembourse le dernier paiement chez Stripe puis arrête l'abonnement.
@@ -124,3 +125,10 @@ prix (dont l'abonnement annuel), puis fin de la gratuité de la bêta.
 - Nom légal du vendeur : réglage serveur `vendeur_editeur_nom`, **vide** tant que Fred ne l'a pas fourni (sans lui, pas
   d'achat en mode éditeur).
 - CGV : acceptées par la case existante avant chaque paiement, sans acceptation séparée.
+- **Fin d'abonnement : tout ce qui a été utilisé pendant l'abonnement reste acquis** — options attachées à un lieu,
+  accessoires personnalisés créés (objets d'inventaire), mini-jeux reçus (règle à appliquer quand ils seront codés),
+  commerce premium dès son premier usage (premier dépassement d'un plafond gratuit : droit durable posé par
+  `premium_commerce_usage_noter_interne`, marque `commerce_premium_acquis_v1`, migration `20261128210000`). Seuls
+  s'arrêtent le renouvellement d'image hebdomadaire, l'absence de publicité et les nouvelles exclusivités.
+- Accessoire personnalisé : gratuit pendant la bêta ; un abonné qui a déjà utilisé son renouvellement de la semaine
+  l'achète à l'unité (produit `accessoire_personnalise`) ; voir `GAME-DESIGN-FOOTBALL.md`.

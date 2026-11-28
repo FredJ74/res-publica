@@ -246,7 +246,18 @@ et `20261128131000_juridique_blocage_interrupteur` (appliquées en production le
   existante (`rpDetruirePersonnageParSuccession`, plateau-personnage.js, qui libère d'abord les nuitées d'hôtel par
   `personnage_suppression_liens_liberer`), puis `compte_suppression_finaliser()` : forum signé « Ancien joueur »
   (`compte_anonymiser_forum_interne`), compte supprimé (ou vidé et fermé si un achat ou un décor s'y rattache).
-  Journal : `comptes_suppressions`. Les traces du goulag (`sovarka_goulag_*`, clés sans cascade) bloquent encore la suppression.
+  Journal : `comptes_suppressions`. Depuis le 28/11/2026 (soir), les traces du goulag ne bloquent plus la suppression :
+  les tables `sovarka_goulag_*` n'ont plus de clé étrangère vers `personnages_donnees` (contrôle à l'écriture par
+  `goulag_nom_verifier_trg`, un nom inconnu reste refusé) et le déclencheur `trg_zz_personnages_goulag_traces` rend les
+  traces anonymes (« Ancien détenu ») avant la suppression. **Une nouvelle table du goulag qui porte un nom doit
+  recevoir ce déclencheur et entrer dans `goulag_traces_anonymiser_interne`.** Les accords (`juridique_accords`, seul
+  `user_id`) sont gardés après la suppression, comme preuve.
+- **Réponses de Fred du 28/11/2026 (soir)**, migration `20261128220000` : comptes sans adresse e-mail supprimés eux
+  aussi après 3 ans d'inactivité, sans avertissement (`comptes_sans_email_v1`) ; une suspension bloque aussi forum,
+  courrier et chat (déclencheurs `trg_moderation_suspension_ecrits`, erreur `compte_suspendu`, ouverte dans l'écran
+  par `supabase.js`) ; l'export masque l'auteur réel d'un courrier signé par une organisation ou anonyme
+  (`export_masques_v1`) et garde toutes les données propres au joueur ; CGV acceptées par la case existante avant
+  chaque paiement. Blocage d'acceptation des CGU **toujours éteint** jusqu'aux textes définitifs.
 - **Signalements** : `contenu_signaler('nom'|'image', …)` dans `signalements_messages` (même file que les messages,
   `admin-signalements.js`) ; boutons sur la fiche publique (forum.js) et sur les décors de commerce et de logement.
   **Sanctions** : `admin_sanction_prononcer` (avertissement, retrait, suspension en jours), notifiées par un courrier
@@ -297,6 +308,12 @@ le turquoise (#4f9594) n'y restant qu'en touche secondaire (barre des PA, onglet
 après les feuilles mobiles, repeint la coque avec les variables `body.empire-<pays>` ; sans classe d'empire (avant le
 chargement du personnage), la coque bleu nuit d'origine reste. Sovarka garde son rouge en fonds et contours, ses
 textes passent au clair de sa palette (AA). Banc : `outils/bancs/banc-couleurs-mobile-20261128-soir.cjs`.
+
+**Accessoires et premium (28/11/2026 soir)** : achat d'accessoires de club libre, port limité par `crim_revetir`
+(trois objets, un par catégorie) ; `visuels_versions.type_visuel` accepte « accessoire » ; l'inventaire affiche l'image
+d'un `accessoire_club_perso` depuis le dépôt public « accessoires-personnalises » ; fonction Edge
+`accessoire-personnalise` déployée (secret `OPENAI_API_KEY`). Fin d'abonnement : tout ce qui a été utilisé reste acquis
+(`premium_commerce_usage_noter_interne`). Tito et nuits à l'hôpital : migration `20261128200000`.
 
 *Tenir ce fichier à jour à chaque mécanique ajoutée, retirée ou passée au serveur.*
 

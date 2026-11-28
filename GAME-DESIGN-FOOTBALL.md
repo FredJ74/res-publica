@@ -42,3 +42,19 @@ Remplace les règles du 27/11/2026 (accessoire personnalisé à +10, deux objets
 Code : migration `20261128110000_accessoires_club_revetables.sql` (déclencheur `zzz_accessoires_club_popularite`, qui suit
 l'inventaire et la position ; `club_accessoire_acheter`, `crim_revetir`, `accessoire_personnalise_offre` / `_commander` /
 `_annuler` / `_livrer_service`) ; écran `plateau-accessoire-personnalise.js` ; banc `outils/bancs/banc-accessoires-club-20261128.cjs`.
+
+### Réponses de Fred du 28/11/2026 (soir) — remplacent « un objet de chaque type » et la personnalisation ci-dessus
+
+- **L'achat n'est plus limité** : plusieurs écharpes, casquettes ou maillots (même club ou non) peuvent s'acheter,
+  se recevoir en don, se voler ou se trouver. **Seul le port est limité** : trois objets revêtus au plus, quels qu'ils
+  soient, et **au plus un accessoire de chaque type revêtu** (écharpe, casquette, maillot), tous clubs confondus.
+  Revêtir une deuxième écharpe retire d'office la première (même règle que les autres objets revêtus).
+- **Accessoire personnalisé** : gratuit pendant la bêta, comme tout le premium. Ensuite : le renouvellement d'image
+  hebdomadaire de l'abonné, puis, s'il l'a déjà utilisé (ou pour un non-abonné), l'achat à l'unité par l'écran de
+  paiement commun (crédit créé par le seul webhook signé, consommé par la commande). **Le renouvellement est consommé
+  dès que l'image est créée**, même si l'objet n'est jamais validé ; il n'est rendu que si la commande est annulée
+  avant toute image.
+- **Fonction d'image déployée** (feu vert de Fred) : fonction Edge `accessoire-personnalise` (génération OpenAI, secret
+  `OPENAI_API_KEY`), éprouvée de bout en bout en production le 28/11/2026 avec un personnage de test supprimé ensuite.
+- Code : migration `20261128210000_accessoires_premium_acquis` (marques `accessoire_achat_libre_v1`,
+  `accessoire_perso_sources_v1`) ; banc `outils/bancs/banc-accessoires-premium-acquis-20261128-soir.cjs`.
