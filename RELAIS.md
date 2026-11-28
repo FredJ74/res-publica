@@ -542,10 +542,6 @@ Indépendante : `claude/banc-mobile-coque-fiable-20261128` (`dacc8f9b`), qui sta
   chargement. Correction : chaque capture attend le réseau au repos, les polices, le décodage des images et deux images
   d'animation, puis se prend animations et transitions figées (`animations:'disabled'`). L'échec « Cohérence client » de
   l'état fusionné de l'étape 1 est ce même test, rien d'autre.
-### Clôture i18n — reprise du 28/11 au soir (Codex) — PR #1216
-- Branche existante remise à jour sur `main bd3ea372`. Conflits documentaires uniquement, comptes rendus de Claude conservés intégralement. Blocage du miroir résolu par #1218 ; captures L4 corrigées par #1220, désormais fusionnée.
-- Nouvelle CI complète demandée sur la branche rebasée ; fusion seulement si tous les contrôles sont verts. Aucun fichier de jeu, migration, règle ou donnée modifié dans cette clôture.
-
 ### Mission du 27/11/2026 (soir) (Claude) — journal des étapes
 
 > Constat au départ : les deux migrations de l'après-midi (`20261127150000` ambassade de Novomirsk, `20261127160000` stage à la
@@ -2076,6 +2072,20 @@ Décisions et relevé des couches : `GAME-DESIGN-NOVOMIRSK.md`. Faits et en bêt
 - Aide HRP (PR #720) : **non certifiés** — réponses réelles DeepSeek dans les neuf langues, recette authentifiée, essais iPhone/Android. Sur téléphone : questions PA/but, fr→en→ko→fr, arabe RTL, clavier IME. — **Pour tester** : un iPhone et un Android, et l'interface passée dans plusieurs langues (dont l'arabe et le coréen).
 
 ## Derniers chantiers
+
+### I18n des textes récents — livraison PR #1226 (Codex, 28/11 soir)
+- PR #1226, branche `codex/i18n-textes-recents-20261128`, rebasée sur `main f9a5144a` après fusion de #1216. Vérification des listes Pour Codex des 27/11 soir et 28/11 nuit/après-midi : les hôtels et cinq écrans sont déjà traduits par Claude, pas de doublon.
+- Nouvelle couverture : description réelle de « Produire une fuite » (1 français strictement conservé, 8 traductions nouvelles) ; ancien motif `r_deux_objets_revetus_max` aligné textuellement sur trois objets dans les neuf langues (8 traductions réutilisées du motif actuel). Aucun seuil, PA, inventaire ou RPC modifié.
+- Relecture : noms propres conservés (Roxane Velours, Tito Maletas, Nabil Naana, Al Madina, Al-Khalija, Ciudad Roja), sigle QHS rétabli, sens de la confidence en allemand corrigé, « fait » distinct d’une infraction en allemand, saisie du juge en arabe et rôle du référent transport clarifiés. Français inchangé hors ancien refus explicitement demandé.
+- Contrôles : témoin français et clés/variables des neuf langues ; décompte réel : 9 pièces, 3 bâtiments, 17 rôles, 14 descriptions (13 gestes hôteliers et douanes). 87 catalogues Brotli régénérés sans perte. Chromium 320/390/1280 : neuf langues, arabe RTL, descriptions ouvertes et bascules, fermeture répétée, ordre bloqué, saisie/PA/argent/position conservés, zéro appel métier. Fixture réelle des composants, aucun PJ connecté ni téléphone physique.
+- Inventaire sans modification des textes restants : `outils/audits/i18n/INVENTAIRE-FRANCAIS-SEUL-20261128.md` et JSON compressé. 315 entrées locales dans 4 fichiers ; 6 575 candidats statiques à confirmer ; 229 expressions de courrier dans 82 fichiers SQL historiques/miroirs, jamais assimilées à des fonctions observées en production. Compteurs par fichier, liste et voie de traduction ; priorité suivante : courriers d’interrogatoire/transfert, sanctions et messages système du forum. Aucune base consultée ou modifiée, aucune migration modifiée/exécutée.
+- Validation locale : 50 tests de catalogues/hôtels/accessoires et 34 tests des missions récentes (avec recouvrement), dont 14 nouveaux contrôles, plus 3 parcours Chromium. Les deux nouveaux bancs sont intégrés à la CI générale. Relecture assistée, pas une validation par neuf relecteurs natifs.
+- Publication et preuves : [PR #1226](https://github.com/FredJ74/res-publica/pull/1226) ; `outils/audits/i18n/RECETTE-RELECTURE-20261128.json`. Aucun changement hors dictionnaires dans les six modules concernés (comparaison AST avec main). Fusion uniquement avec la CI complète verte, puis contrôle Vercel et ressources publiques ; résultats finaux consignés dans la PR.
+- **#1216 fusionnée** : `f9a5144a`, après rebase et 16 contrôles verts ; workflow général **46178914546**. Ancien blocage L4 effectivement levé par #1220. Aucun conflit de code, seulement des insertions de RELAIS conservées.
+
+
+
+- **Clôture documentaire i18n #1216 fusionnée** (Codex, 28/11 soir) : `f9a5144a`, branche rebasée sur `bd3ea372`, 16 contrôles verts, workflow général `46178914546`. #1220 a corrigé les captures L4 ; aucun test relâché, aucun fichier de jeu ni migration modifié.
 
 - **Hôtel Royal d'Al-Khalija : sept images** (claude.ai, 28/11/2026, PR #1217, fusionnée) : réception, suite, restaurant, salon de thé, salon des gentlemen, hammam des hommes, hammam des femmes dans `images/Al-Khalija/Al Madina/` ; non branchées à la fusion, branchées par la mission du 28/11 (nuit) (`claude/capitales-teaser-ouverture-20261128`).
 - **Miroir des coûts et déblocage i18n — PR #1218 fusionnée**, `1477db72` (Codex, 28/11/2026). Générateur inchangé, seed et empreinte régénérés après les trois lots du 27/11 : cinq retraits, deux menus gratuits, deux anciens tarifs alignés sur les **1 PA déjà installés**. Comparaison Supabase READ ONLY annulée : coûts et RPC concordants, aucune écriture ni migration appliquée. Huit miroirs conformes, six tests Python du banc global, réconciliation PostgreSQL isolé **29 assertions**, monde neuf conforme ; CI **46086462185 : 11/11 verts**, banc strict réellement exécuté. Vercel **dpl_DD7apg9giHpkkR6iUE8RSgSmcfAg READY**, alias et quatre ressources i18n publiques vérifiés. **Codex : #1216 est rebasée sur ce correctif**, son ancien blocage est levé et les preuves rouges du 27/11 sont historiques ; validation et fusion finales suivies dans #1216. Preuve serveur `outils/audits/MIROIR-COUTS-SUPABASE-20261128.json` ; résolution dans `outils/audits/i18n/BLOCAGE-CLOTURE-20261127.json`.

@@ -478,10 +478,10 @@
     {
       "source": "i18n/republia-infobulles-resources.js",
       "packed": "i18n/packed/republia-infobulles-resources.js.br",
-      "sourceBytes": 153740,
-      "packedBytes": 51116,
-      "sourceSha256": "08945b5d42c484893b83bc5d935ce6e806d8c53cc3aac26f0da726e9202c455c",
-      "packedSha256": "2bf0ca8692f3b43d7d5da96f6e9079b14402b78e098f46478266d1234c3aa2e1"
+      "sourceBytes": 157398,
+      "packedBytes": 52482,
+      "sourceSha256": "0709dfbc44b2e30356903c5fb1dff1f67695e1493af11952fd69131d0ffa751e",
+      "packedSha256": "fa96051bbb6f272a09bf08b621cb18d669b3b4dbb764767f5dba73a0261f177f"
     },
     {
       "source": "i18n/resources.js",

@@ -29,7 +29,7 @@ function orderDescs(country){
  }
  return d;
 }
-test('141 descriptions du catalogue Républia : françaises exactes et réellement affichées',()=>{
+test('139 descriptions du catalogue Républia : françaises exactes et réellement affichées',()=>{
  const rep=orderDescs('republic'),sov=orderDescs('soviet'),spec=[...rep].filter(d=>!sov.has(d));
  // Cinq descriptions supplémentaires sont désormais propres à Républia à la suite des exclusions ministérielles en Sovarka.
  // Les 141 entrées de ce lot restent inchangées ; les autres descriptions doivent être suivies séparément.
@@ -50,7 +50,8 @@ test('141 descriptions du catalogue Républia : françaises exactes et réelleme
   // 167 → 163 le 27/11 (Fred) : placements Helvetia, caisse et stock de la scierie, Propagande d'État présidentielle supprimés.
  assert.equal(spec.length,163,'inventaire réel après séparation du goulag de Sovarka et du QHS républicain');
  const rows=setup('republic','fr').RP_INFOBULLES_REPUBLIA;
- assert.equal(rows.length,138); // −3 le 27/11 (Fred) : placements Helvetia, caisse et stock de la scierie retirés avec leurs ordres.
+ // 28/11/2026 : +1 description réelle de Produire une fuite, huit traductions nouvelles.
+ assert.equal(rows.length,139); // −3 le 27/11 (Fred) : placements Helvetia, caisse et stock de la scierie retirés avec leurs ordres.
  // Lignes livrées dont l'ordre est supprimé (criminalité lot 7, 20/11 : le temps ne s'achète pas) : gardées au catalogue.
  // Refonte des informateurs (22/11/2026) : « Écouter le patron » (Marin Dulac) retiré ; sa ligne livrée reste au catalogue.
  // Mission du soir (25/11/2026, 1.2) : descriptions de l'article favorable alignées sur le serveur ; lignes livrées gardées
@@ -61,9 +62,9 @@ test('141 descriptions du catalogue Républia : françaises exactes et réelleme
  const HISTORIQUES_AUDIT=["Campagne de communication massive. +POP important.", "Choisir une cible (PJ, organisation, local, gouvernement ou pays) et indiquer le sujet/l'angle souhaite : la redaction redige elle-meme un veritable article favorable, vous n'apparaissez jamais comme commanditaire. Reussite (75% + modificateurs) : 500 FR preleves, article integre a une prochaine edition de La Tribune. Echec : la redaction refuse, aucun frais.", "Choisir une cible (PJ, organisation, local, gouvernement ou pays) et indiquer le sujet/l'angle souhaite : la redaction redige elle-meme un veritable article favorable, vous n'apparaissez jamais comme commanditaire. Reussite (75% + modificateurs) : 500 FR preleves. Echec : la redaction refuse, aucun frais.", "Contracter un pret. Taux selon dossier.", "Contre-lobbying preventif visant une cible (PJ, organisation, local, gouvernement ou pays) : pendant 7 jours, un futur \"Placer un article favorable\" contre cette meme cible devient beaucoup plus difficile (base 10% au lieu de 75%). N'affecte jamais l'actualite reelle (scandales, condamnations, elections...). Reussite (70% + modificateurs) : 1000 FR preleves. Echec : aucun frais.", "Convaincre un député PNJ. Chance 50% + (CHA+ENT)/2. 1 PA + 100 FR, même en cas d'échec. Légal à Républia.", "Influencer massivement l'opinion publique. +POP.", "Liste : fausse identite, faux casier vierge, faux permis construire, faux contrat. Cree un objet en inventaire.", "Même le propriétaire peut se voler lui-même — mise en scène parodique, bonus de sympathie publique.", "Paralyse les importations/exportations 24h. VOL/10 + ENT/10. -IE. Réservé au chef du Syndicat des Dockers.", "Quasi impossible, une tentative par jour. Echec = peine aggravee de 7 jours.", "Rendre visite a un detenu du QHS. Necessite autorisation.", "Révèle contrebandes en cours. INT/10 + ISN/10. Prérogative min_def ou commissaire.", "Taux tres faible. Consequence severe si echec.", "Tres difficile. Obtenir des privileges ou informations.", "Un extrait de casier affirmant un casier VIERGE, pour n'importe quel PJ. Le vrai casier n'est jamais modifie. Le casier etant national, n'importe lequel des trois greffes suffit. 300 FR et 3 PA preleves a la TENTATIVE. Decouvert : aucun document, et le greffier vous denonce.", "Une copie INTEGRALE et authentique d'un dossier de CE tribunal, en cours ou archive. 300 FR et 3 PA preleves a la TENTATIVE. Decouvert : aucun document, et le greffier vous denonce."];
  const HISTORIQUES=[...HISTORIQUES_SOIR,...HISTORIQUES_AUDIT,"Marin Dulac entend tout ce qui se dit au bar. Revele une rumeur vraie ou generee selon le contexte.","Réduit de moitié le délai restant avant le rendez-vous notarial d'un achat direct.","Reduit de moitie la duree d'instruction restante. Risque de decouverte.","Réduit de moitié la durée d'instruction restante du permis. Risque de découverte."];
  for(const line of rows){assert.equal(line.length,9,line[0]);assert.ok(rep.has(line[0])||HISTORIQUES.includes(line[0]),line[0]);}
- assert.equal(new Set(rows.map(l=>l[0])).size,138);
+ assert.equal(new Set(rows.map(l=>l[0])).size,139);
 });
-test('Les 141 lignes sont présentes en neuf langues, sans perte de chiffres, devises ou sigles',()=>{
+test('Les 139 lignes sont présentes en neuf langues, sans perte de chiffres, devises ou sigles',()=>{
  const rows=setup('republic','en').RP_INFOBULLES_REPUBLIA;
  for(const line of rows){
   for(let i=1;i<line.length;i++){
