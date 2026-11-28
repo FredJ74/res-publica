@@ -45,7 +45,7 @@ INSERT INTO public.navigation_lieux_regles(pays,ville,batiment,pieces,ferme,memb
 ('soviet','caserne','caserne-militaire','["corps_garde","infirmerie","salle_commandement","armurerie_militaire","refectoire","salle_faits_armes","quartier_troupes"]'::jsonb,false,NULL),
 ('soviet','qhs','qhs-prison','["entree_qhs","cellules_qhs","salle_interrogatoire","promenoir","salle_commune_qhs"]'::jsonb,false,NULL),
 ('khalija','capitale','palais-presidentiel','["accueil_elysee","bureau_president","salle_presse_elysee","salle_reception"]'::jsonb,false,NULL),
-('khalija','capitale','hotel-republica','["accueil","restaurant","bar","chambres","salon_gentlemen","hammam_hommes","hammam_femmes"]'::jsonb,false,NULL),
+('khalija','capitale','hotel-republica','["accueil","restaurant","bar","chambres","suite_privee","suite_presidentielle"]'::jsonb,false,NULL),
 ('khalija','capitale','palais-gouvernement','["hall","bureaux","salle_conseil","salle_presse","archives_gouv","bureau_min_int","bureau_min_fin","bureau_min_just","bureau_min_def","bureau_min_info","bureau_min_ae"]'::jsonb,false,NULL),
 ('khalija','capitale','assemblee','["accueil_assemblee","hemicycle","couloirs","salle_archives_assemblee"]'::jsonb,false,NULL),
 ('khalija','capitale','tribunal','["salle_audience","bureau_magistrats","greffe"]'::jsonb,false,NULL),

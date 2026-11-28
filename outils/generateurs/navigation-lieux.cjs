@@ -55,6 +55,8 @@ for(const x of rows){
  if(x.pays==='soviet'&&(x.id==='mairie'||x.id==='mairie-capitale'))x.rooms=x.rooms.filter(r=>r!=='bureau_syndicat_national');
  // Hotel Ciudad Roja (27/11) : piscine ajoutée et suites de Luthécia retirées par 20261127210000, hors de la référence du 31/10.
  if(x.pays==='narco'&&x.ville==='capitale'&&x.id==='hotel-republica')x.rooms=['accueil','restaurant','bar','chambres','suite_privee','suite_presidentielle'];
+ // Hôtel Royal d'Al Madina (28/11) : salon des gentlemen et hammams posés par 20261128020000, hors de la référence du 31/10.
+ if(x.pays==='khalija'&&x.ville==='capitale'&&x.id==='hotel-republica')x.rooms=['accueil','restaurant','bar','chambres','suite_privee','suite_presidentielle'];
  if(x.pays==='soviet'&&['ville_a','ville_b'].includes(x.ville)&&x.id==='centre-affaires')x.rooms=["hall","bureau_prestige","bureau_standard","open_space","tribune_republia"];
 }
 const quote=x=>x===null?'NULL':"'"+String(x).replace(/'/g,"''")+"'";

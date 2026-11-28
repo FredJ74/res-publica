@@ -24,9 +24,9 @@ function setup(lang){
  vm.runInContext(script,ctx,{filename:'plateau-terrain-banque.js'});
  return{ctx,nodes,calls,get title(){return title},get body(){return body}};
 }
-test('44 clés exactes et variables identiques dans les neuf langues',()=>{
+test('45 clés exactes et variables identiques dans les neuf langues',()=>{
  const {ctx}=setup('fr'),fr=ctx.RP_I18N_RESOURCES.fr.translation.finance135;
- assert.equal(Object.keys(fr).length,44);
+ assert.equal(Object.keys(fr).length,45); // +1 reason_permis_construire_requis (28/11)
  for(const lang of langs){
   const d=ctx.RP_I18N_RESOURCES[lang].translation.finance135;
   assert.deepEqual(Object.keys(d).sort(),Object.keys(fr).sort(),lang);
