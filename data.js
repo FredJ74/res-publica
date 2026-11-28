@@ -3117,7 +3117,13 @@ const WORLD = {
           persons: []
         },
                 'centre-multinodal-luthecia': {
-          name: "Hall Principal",
+          name: "Centre multimodal d'Al Madina",
+          // Teaser (28/11/2026) : seul l'avion vers les autres capitales part d'ici ; illustrations d'Al Madina branchées.
+          roomOverrides: {
+            hall_gare: { imageUrl: 'images/Al-Khalija/Al Madina/Al_Madina_centre_multimodal_hall.webp' },
+            hall_douanes: { imageUrl: 'images/Al-Khalija/Al Madina/Al_Madina_centre_multimodal_douanes.webp' },
+            zone_embarquement: { imageUrl: 'images/Al-Khalija/Al Madina/Al_Madina_centre_multimodal_embarquement.webp' }
+          },
           desc: "TGV doré, taxis vert et or, service des VIP. Chambellan Al-Transit accueille selon votre rang. Le protocole est une religion.",
           persons: [{"name": "Chambellan Al-Transit (PNJ)", "role": "Directeur du Hub", "rel": "neutral", "job": "chef_gare"}, {"name": "Yasmine Embarquement (PNJ)", "role": "Hôtesse royale", "rel": "neutral", "job": "hotesse"}],
           rooms: {
