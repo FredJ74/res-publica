@@ -68,13 +68,51 @@
     "vercel": {
       "id": "dpl_9jDo2b7MZr3BxNMxzspyevKfD8WV",
       "etat": "READY",
-      "cible": "production"
-    }
+      "cible": "production",
+      "aliasPublic": "human-gambit.com"
+    },
+    "ciMain": {
+      "workflow": "46179761126",
+      "etat": "success"
+    },
+    "ressourcesPubliquesVerifiees": true
   },
   "limites": [
     "Aucun PJ connecté, téléphone physique ou relecteur natif revendiqué.",
     "Aucune base consultée/modifiée, aucune migration modifiée/appliquée.",
     "Inventaire statique : candidats distincts des textes réellement observés en production.",
     "La CI et la production du lot 1226 doivent être contrôlées avant la clôture."
+  ],
+  "absenceChangementHorsDictionnaires": [
+    {
+      "file": "plateau-criminalite.js",
+      "horsDictionnairesIdentique": true,
+      "sha256AST": "1c826502b9d5fd653672eb583eb0234bb26ee2e8674e56ecaa58bf1017552f74"
+    },
+    {
+      "file": "plateau-interrogatoires.js",
+      "horsDictionnairesIdentique": true,
+      "sha256AST": "3fb3c3af6c8be15fd4a10da11721fb88c1e442a016b9abdc1e9e3f03557025ea"
+    },
+    {
+      "file": "plateau-transferts-detenus.js",
+      "horsDictionnairesIdentique": true,
+      "sha256AST": "56eb9b837117e07a731ad50c7c49f7f1a0cafacdd85b038bc08490f5c4796c62"
+    },
+    {
+      "file": "plateau-hotels-teaser.js",
+      "horsDictionnairesIdentique": true,
+      "sha256AST": "838acf5686d14b81c298cb5d731566d0b0de5fc2cbbce41d7b7fca8c06b60cdd"
+    },
+    {
+      "file": "plateau-teaser-traductions.js",
+      "horsDictionnairesIdentique": true,
+      "sha256AST": "085b0e3e5221de28c07d02ca4e21d13291cf9a3988c6153fbaeff4e612a7ac53"
+    },
+    {
+      "file": "api/_hotels-teaser.js",
+      "horsDictionnairesIdentique": true,
+      "sha256AST": "fe0ec620512649c7738ca132a0e59a021f5dfad4c69e5b3d671037113bfd79ef"
+    }
   ]
 }
