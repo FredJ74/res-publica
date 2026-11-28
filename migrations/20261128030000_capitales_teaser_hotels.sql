@@ -116,7 +116,7 @@ CREATE OR REPLACE FUNCTION public.hotel_teaser_agir(p_requete uuid, p_action tex
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public', 'pg_temp' AS $function$
 DECLARE a text := public.mon_personnage(); p record; c record; x record; v jsonb; r jsonb; v_taux integer; v_jet integer;
         v_isn numeric; v_secret text; v_secret2 text; v_n integer; v_mail text; v_temoins integer := 0; v_crit boolean;
-        v_cr boolean; v_am boolean; v_lieu boolean; v_rumeurs text[] := ARRAY[
+        v_cr boolean; v_am boolean; v_lieu boolean; v_cible text := ''; v_rumeurs text[] := ARRAY[
           'Le Caudillo ne dort jamais deux nuits de suite dans le même palais.',
           'Les douaniers de Ciudad Roja touchent plus en billets qu''en salaire.',
           'Un avion sans immatriculation se pose chaque jeudi sur la piste nord.',
@@ -160,6 +160,7 @@ BEGIN
      WHERE name = p_cible AND name <> a AND user_id IS NOT NULL AND country = p.country AND current_city = p.current_city
        AND current_building = p.current_building AND current_room = p.current_room;
     IF NOT FOUND THEN RETURN jsonb_build_object('ok', false, 'raison', 'cible_absente'); END IF;
+    v_cible := c.name;
   END IF;
 
   -- Limites quotidiennes (vérifiées avant paiement, comptées après).
@@ -169,7 +170,7 @@ BEGIN
         AND jour = (now() AT TIME ZONE 'Europe/Paris')::date), 0) >= 1
      OR p_action = 'am_narguile' AND coalesce((SELECT n FROM public.hotel_teaser_compteurs WHERE acteur = a AND action = p_action AND cible = ''
         AND jour = (now() AT TIME ZONE 'Europe/Paris')::date), 0) >= 3
-     OR p_action = 'am_secret_contre_secret' AND coalesce((SELECT n FROM public.hotel_teaser_compteurs WHERE acteur = a AND action = p_action AND cible = c.name
+     OR p_action = 'am_secret_contre_secret' AND coalesce((SELECT n FROM public.hotel_teaser_compteurs WHERE acteur = a AND action = p_action AND cible = v_cible
         AND jour = (now() AT TIME ZONE 'Europe/Paris')::date), 0) >= 1 THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'limite_quotidienne');
   END IF;
@@ -200,7 +201,7 @@ BEGIN
   IF p_action = 'cr_billet_douaniers' THEN
     IF NOT public.helvetia_debiter_fonds_ordinaires(a, p_montant) THEN RAISE EXCEPTION 'fonds_insuffisants'; END IF;
   END IF;
-  PERFORM public.hotel_teaser_compter_interne(a, p_action, CASE WHEN p_action = 'am_secret_contre_secret' THEN c.name ELSE '' END, NULL);
+  PERFORM public.hotel_teaser_compter_interne(a, p_action, v_cible, NULL);
   r := jsonb_build_object('ok', true, 'action', p_action);
 
   CASE p_action
