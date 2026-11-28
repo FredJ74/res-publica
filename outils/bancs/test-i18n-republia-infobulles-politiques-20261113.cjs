@@ -29,7 +29,7 @@ function orderDescs(country){
  }
  return d;
 }
-test('141 descriptions du catalogue Républia : françaises exactes et réellement affichées',()=>{
+test('139 descriptions du catalogue Républia : françaises exactes et réellement affichées',()=>{
  const rep=orderDescs('republic'),sov=orderDescs('soviet'),spec=[...rep].filter(d=>!sov.has(d));
  // Cinq descriptions supplémentaires sont désormais propres à Républia à la suite des exclusions ministérielles en Sovarka.
  // Les 141 entrées de ce lot restent inchangées ; les autres descriptions doivent être suivies séparément.
@@ -64,7 +64,7 @@ test('141 descriptions du catalogue Républia : françaises exactes et réelleme
  for(const line of rows){assert.equal(line.length,9,line[0]);assert.ok(rep.has(line[0])||HISTORIQUES.includes(line[0]),line[0]);}
  assert.equal(new Set(rows.map(l=>l[0])).size,139);
 });
-test('Les 141 lignes sont présentes en neuf langues, sans perte de chiffres, devises ou sigles',()=>{
+test('Les 139 lignes sont présentes en neuf langues, sans perte de chiffres, devises ou sigles',()=>{
  const rows=setup('republic','en').RP_INFOBULLES_REPUBLIA;
  for(const line of rows){
   for(let i=1;i<line.length;i++){

@@ -1,4 +1,4 @@
-/* Républia — catalogue complet des 141 descriptions du catalogue national (13/11/2026).
+/* Républia — catalogue national : 139 descriptions (28/11/2026 ; +1 fuite gouvernementale).
  * Texte original strictement issu de data.js ; colonnes fr,en,es,zh-TW,ru,ko,ar,pt-BR,de.
  * Données d'affichage seules : ni cout, ni PA, ni RPC ne sont modifiés.
  */

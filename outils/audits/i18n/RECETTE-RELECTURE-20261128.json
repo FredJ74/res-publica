@@ -1,0 +1,80 @@
+{
+  "date": "2026-11-28",
+  "base": "f9a5144a3af427c70ae0fc84ff5d5fc8f5794c08",
+  "pr": 1226,
+  "perimetre": {
+    "francaisDescriptionNouvellementCouverte": 1,
+    "traductionsEtrangeresNouvelles": 8,
+    "ancienMotifCorrige": 1,
+    "traductionsMotifReutilisees": 8,
+    "piecesDejaTraduitesRelues": 9,
+    "batimentsDejaTraduitsRelus": 3,
+    "rolesDejaTraduitsRelus": 17,
+    "descriptionsCapitalesDejaTraduitesRelues": 14
+  },
+  "tests": {
+    "cataloguesHotelsAccessoires": {
+      "tests": 50,
+      "echecs": 0
+    },
+    "missionsRecentesAvecRecouvrement": {
+      "tests": 34,
+      "echecs": 0
+    },
+    "nouveauxBancsIntegresCI": {
+      "tests": 17,
+      "echecs": 0
+    },
+    "chromium": {
+      "largeurs": [
+        320,
+        390,
+        1280
+      ],
+      "langues": [
+        "fr",
+        "en",
+        "es",
+        "zh-TW",
+        "ru",
+        "ko",
+        "ar",
+        "pt-BR",
+        "de"
+      ],
+      "testees": "composants réels en fixture, sans personnage connecté",
+      "requeteMetier": 0,
+      "etatConserve": [
+        "pa",
+        "arg",
+        "currentRoom",
+        "country",
+        "currentCity",
+        "saisie"
+      ],
+      "rtlArabe": true,
+      "descriptionOuverteBascule": true,
+      "ordreBloque": true
+    },
+    "brotli": {
+      "catalogues": 87,
+      "sansPerte": true
+    }
+  },
+  "cloture1216": {
+    "fusion": "f9a5144a3af427c70ae0fc84ff5d5fc8f5794c08",
+    "ciPR": "46178914546",
+    "controlesVerts": 16,
+    "vercel": {
+      "id": "dpl_9jDo2b7MZr3BxNMxzspyevKfD8WV",
+      "etat": "READY",
+      "cible": "production"
+    }
+  },
+  "limites": [
+    "Aucun PJ connecté, téléphone physique ou relecteur natif revendiqué.",
+    "Aucune base consultée/modifiée, aucune migration modifiée/appliquée.",
+    "Inventaire statique : candidats distincts des textes réellement observés en production.",
+    "La CI et la production du lot 1226 doivent être contrôlées avant la clôture."
+  ]
+}
