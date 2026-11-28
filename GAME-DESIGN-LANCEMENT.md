@@ -24,14 +24,15 @@ Les décisions de game design ci-dessous sont celles de Fred ; la partie « Rép
 15. **Pas de débat de politique réelle hors jeu** (17/11/2026) : les espaces HRP (forums, Discord, aide) servent uniquement au jeu (entraide, bugs, organisation). Aucun forum du type « Politique et Société ». Règle inscrite dans la charte de conduite et les CGU, appliquée par la modération. Leçon tirée de Kraland, où les conflits HRP ont fait fuir les joueurs.
 16. **Principe de réponse aux abus** (17/11/2026, leçon de Kraland) : face à un abus signalé par des joueurs, on ajoute une voie de recours ou un contre-pouvoir (articles 10 et 14 de la Constitution), on ne retire pas la liberté à tous (pas d'aseptisation).
 
-17. **Capitales d'El Estado et d'Al-Khalija visitables en teaser** (27/11/2026) — **décidé, détails à trancher, non
-    codé.** Ciudad Roja et Al Madina deviendront visitables, sans autre possibilité de jeu : aucun commerce à louer, aucun
+17. **Capitales d'El Estado et d'Al-Khalija visitables en teaser** (27/11/2026) — **codé le 28/11/2026** (détails de
+    Fred du 28/11 : `GAME-DESIGN-CIUDAD-ROJA.md` et `GAME-DESIGN-AL-MADINA.md` ; migrations `20261128020000`,
+    `20261128030000`, `20261128040000`). Ciudad Roja et Al Madina deviendront visitables, sans autre possibilité de jeu : aucun commerce à louer, aucun
     poste à prendre, aucune domiciliation. But : donner envie de recruter et de débloquer ces empires. Relevé factuel au
     27/11/2026 (voir « Capitales en teaser : relevé du 27/11/2026 » ci-dessous).
 
 **Pas encore décidé (ne pas coder, ne pas proposer de prix)** : grille de prix et forme d'achat (unité, monnaie premium, paquets) ; publicité au coucher au lancement ; heures précises des rendez-vous.
 
-## Capitales en teaser : relevé du 27/11/2026 (décision 17, non codée)
+## Capitales en teaser : relevé du 27/11/2026 (décision 17, codée le 28/11/2026)
 
 Relevé du dépôt (`data.js`, `images/`) et de la base de production (lecture seule) ; rien n'a été codé.
 
