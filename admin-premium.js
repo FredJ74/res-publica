@@ -38,6 +38,23 @@ async function admPremiumCharger() {
   ligne(g, 'Campagne de publicité longue (jours) : ', longue, ' ',
     bouton('Enregistrer', () => appliquer('premium_admin_parametre_fixer', { p_cle: 'publicite_duree_longue', p_valeur: String(longue.value) }, m4)), m4);
 
+  // Paiement par Stripe en fonctionnement mixte (décision de Fred, 28/11/2026) : UE → éditeur vendeur (Stripe classique),
+  // reste du monde → Stripe vendeur (Managed Payments). Les clés Stripe restent dans Vercel, jamais ici.
+  const pa = bloc('Paiement (Stripe) — France et UE : l’éditeur vend ; reste du monde : Stripe vend (Managed Payments)');
+  const bascule = (cle, libelle, oui, non) => { const m = msg(); ligne(pa, libelle + ' — ' + (p[cle] === '1' ? oui + ' ' : non + ' '),
+    bouton(p[cle] === '1' ? 'Désactiver' : 'Activer', () => appliquer('premium_admin_paiement_fixer', { p_cle: cle, p_valeur: p[cle] === '1' ? '0' : '1' }, m)), m); };
+  bascule('paiement_mp_actif', 'Managed Payments activé dans le compte Stripe (sinon : aucun achat hors UE)', 'OUI', 'non');
+  bascule('paiement_mp_pour_ue', 'Managed Payments aussi pour la France et l’UE (Stripe vendeur partout)', 'OUI', 'non');
+  const texte = (cle, libelle, largeur) => {
+    const x = document.createElement('input'); x.type = 'text'; x.value = p[cle] || ''; x.style.width = largeur || '22rem';
+    const m = msg(); ligne(pa, libelle + ' : ', x, ' ', bouton('Enregistrer', () => appliquer('premium_admin_paiement_fixer', { p_cle: cle, p_valeur: x.value }, m)), m);
+  };
+  texte('vendeur_editeur_nom', 'Nom de l’éditeur affiché comme vendeur (UE)');
+  texte('cgv_url', 'Adresse des CGV (sans CGV : aucun achat réel)');
+  texte('paiement_pays_exclus', 'Pays sans achats (codes à deux lettres, séparés par des virgules)', '30rem');
+  texte('paiement_pays_ue', 'Pays vendus par l’éditeur (France et UE)', '30rem');
+  texte('rappel_annuel_jours', 'Rappel avant renouvellement annuel (jours, 30 à 60)', '4rem');
+
   const pr = bloc('Prix (euros TTC, 2 € minimum ; vide = pas encore fixé, rien n’est affiché aux joueurs ; campagne longue : prix par jour plus bas que la courte)');
   for (const x of r.produits || []) {
     const champ = document.createElement('input'); champ.type = 'number'; champ.min = 2; champ.step = '0.01'; champ.style.width = '6rem';

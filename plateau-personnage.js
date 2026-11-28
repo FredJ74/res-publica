@@ -751,6 +751,8 @@ function switchSelfTab(tab, el) {
     // ne voit donc jamais ce bouton -- et ne pourrait de toute facon securiser que SON PROPRE
     // compte, PUT /user n'agissant que sur le porteur du jeton.
     html += htmlSecuriteDuCompte();
+    // ABONNEMENT (paiement Stripe, 28/11/2026) : état, « Résilier mon abonnement », remboursement 14 jours (plateau-paiement.js).
+    if (typeof window.rpHtmlAbonnementCompte === 'function' && _compteEstProprietaireDuPersonnage()) html += window.rpHtmlAbonnementCompte();
 
     html += '<div style="margin-top:2rem;padding-top:1rem;border-top:1px solid #2a1a10">';
     html += '<button onclick="ouvrirModalDetruirePersonnage()" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #6a2a20;background:transparent;color:#8a4a3a;cursor:pointer"><i class="ti ti-skull"></i> Détruire mon personnage</button>';

@@ -216,6 +216,74 @@
     const l = (typeof window !== 'undefined' && window.RP_I18N_GAME_ENABLED === true && window.RPPlateauI18n?.language?.()) || 'fr';
     return T[l] ? l : 'fr';
   }
+  // Réponses de Fred du 28/11 (après-midi) : assignation à résidence au lieu de la prison, Tito et le réseau Roxane Velours.
+  const T_SUITE = {
+    fr: { forcerNote: '2 PA. Chance : 60 % + 4 % par point de VOL au-dessus de 13 (− 4 % en dessous). Échec : assignation à résidence dans votre suite de l’hôtel, offerte par la maison, jusqu’à votre prochain « Dormir ». Réussite : vous circulez librement dans les pièces réservées jusqu’à votre sortie de l’hôtel, sans être recherché.',
+      assigne: 'Les gardiens vous raccompagnent poliment dans votre suite, offerte par la maison : vous êtes assigné à résidence. Vous ne pouvez pas en sortir ; vous pouvez dormir, commander au service d’étage, écrire et aller sur le forum. L’assignation prend fin à votre premier « Dormir ».',
+      assigneJournal: 'Hôtel Royal d’Al-Khalija : vous êtes assigné à résidence dans votre suite jusqu’à votre prochain « Dormir ».',
+      assigneFin: 'Hôtel Royal d’Al-Khalija : votre assignation à résidence est levée. Vous pouvez quitter votre suite.',
+      assigneRefus: 'Vous êtes assigné à résidence dans votre suite de l’Hôtel Royal jusqu’à votre prochain « Dormir ».',
+      tito: 'Tito Maletas empoche le billet et baisse la voix : « Le réseau Roxane Velours est partout dans le monde, et ses escorts entendent toutes les confidences. Sur {cible}, on m’a soufflé ceci : {secret} »',
+      titoRien: 'Tito Maletas empoche le billet : « Le réseau Roxane Velours n’a rien entendu d’intéressant ces temps-ci. »' },
+    en: { forcerNote: '2 AP. Chance: 60% + 4% per WIL point above 13 (−4% below). Failure: house arrest in your hotel suite, on the house, until your next “Sleep”. Success: you move freely through the reserved rooms until you leave the hotel, and you are not wanted.',
+      assigne: 'The guards politely escort you back to your suite, on the house: you are under house arrest. You cannot leave it; you can sleep, order room service, write letters and use the forum. The house arrest ends at your first “Sleep”.',
+      assigneJournal: 'Royal Hotel of Al-Khalija: you are under house arrest in your suite until your next “Sleep”.',
+      assigneFin: 'Royal Hotel of Al-Khalija: your house arrest is lifted. You may leave your suite.',
+      assigneRefus: 'You are under house arrest in your Royal Hotel suite until your next “Sleep”.',
+      tito: 'Tito Maletas pockets the note and lowers his voice: “The Roxane Velours network is everywhere in the world, and its escorts hear every confidence. About {cible}, I was told this: {secret}”',
+      titoRien: 'Tito Maletas pockets the note: “The Roxane Velours network hasn’t heard anything interesting lately.”' },
+    es: { forcerNote: '2 PA. Probabilidad: 60 % + 4 % por punto de VOL por encima de 13 (− 4 % por debajo). Fracaso: arresto domiciliario en su suite del hotel, invitación de la casa, hasta su próximo «Dormir». Éxito: circula libremente por las salas reservadas hasta salir del hotel, sin ser buscado.',
+      assigne: 'Los guardianes le acompañan cortésmente a su suite, invitación de la casa: queda bajo arresto domiciliario. No puede salir; puede dormir, pedir servicio de habitaciones, escribir e ir al foro. El arresto termina con su primer «Dormir».',
+      assigneJournal: 'Hotel Real de Al-Khalija: queda bajo arresto domiciliario en su suite hasta su próximo «Dormir».',
+      assigneFin: 'Hotel Real de Al-Khalija: se levanta su arresto domiciliario. Puede salir de su suite.',
+      assigneRefus: 'Está bajo arresto domiciliario en su suite del Hotel Real hasta su próximo «Dormir».',
+      tito: 'Tito Maletas se guarda el billete y baja la voz: «La red Roxane Velours está en todo el mundo, y sus escorts oyen todas las confidencias. Sobre {cible}, me han soplado esto: {secret}»',
+      titoRien: 'Tito Maletas se guarda el billete: «La red Roxane Velours no ha oído nada interesante últimamente.»' },
+    de: { forcerNote: '2 AP. Chance: 60 % + 4 % pro WIL-Punkt über 13 (− 4 % darunter). Misserfolg: Hausarrest in Ihrer Hotelsuite, auf Kosten des Hauses, bis zu Ihrem nächsten „Schlafen“. Erfolg: freie Bewegung in den reservierten Räumen bis zum Verlassen des Hotels, ohne gesucht zu werden.',
+      assigne: 'Die Wächter begleiten Sie höflich in Ihre Suite, auf Kosten des Hauses: Sie stehen unter Hausarrest. Sie können sie nicht verlassen; Sie können schlafen, den Zimmerservice bestellen, Briefe schreiben und ins Forum gehen. Der Hausarrest endet mit Ihrem ersten „Schlafen“.',
+      assigneJournal: 'Königliches Hotel von Al-Khalija: Sie stehen bis zu Ihrem nächsten „Schlafen“ unter Hausarrest in Ihrer Suite.',
+      assigneFin: 'Königliches Hotel von Al-Khalija: Ihr Hausarrest ist aufgehoben. Sie dürfen Ihre Suite verlassen.',
+      assigneRefus: 'Sie stehen bis zu Ihrem nächsten „Schlafen“ unter Hausarrest in Ihrer Suite des Königlichen Hotels.',
+      tito: 'Tito Maletas steckt den Schein ein und senkt die Stimme: „Das Netzwerk Roxane Velours ist überall auf der Welt, und seine Escorts hören jede Vertraulichkeit. Über {cible} hat man mir das zugeflüstert: {secret}“',
+      titoRien: 'Tito Maletas steckt den Schein ein: „Das Netzwerk Roxane Velours hat in letzter Zeit nichts Interessantes gehört.“' },
+    ru: { forcerNote: '2 ОД. Шанс: 60 % + 4 % за каждое очко ВОЛ выше 13 (− 4 % ниже). Неудача: домашний арест в вашем номере-люкс за счёт заведения до следующего «Спать». Успех: свободный проход по закрытым залам до выхода из отеля, без розыска.',
+      assigne: 'Охрана вежливо провожает вас в ваш люкс, за счёт заведения: вы под домашним арестом. Выйти нельзя; можно спать, заказывать обслуживание в номер, писать письма и заходить на форум. Арест заканчивается при первом «Спать».',
+      assigneJournal: 'Королевский отель Аль-Халиджи: вы под домашним арестом в своём люксе до следующего «Спать».',
+      assigneFin: 'Королевский отель Аль-Халиджи: домашний арест снят. Вы можете покинуть люкс.',
+      assigneRefus: 'Вы под домашним арестом в люксе Королевского отеля до следующего «Спать».',
+      tito: 'Тито Малетас прячет купюру и понижает голос: «Сеть Роксаны Велур есть по всему миру, и её эскорт слышит все откровения. Про {cible} мне шепнули вот что: {secret}»',
+      titoRien: 'Тито Малетас прячет купюру: «Сеть Роксаны Велур в последнее время ничего интересного не слышала.»' },
+    ko: { forcerNote: '2 AP. 확률: 60% + VOL 13 초과 1점당 4% (미만은 1점당 −4%). 실패: 다음 “잠자기”까지 호텔이 무료로 제공하는 스위트룸에 가택 연금. 성공: 호텔을 나갈 때까지 전용 구역을 자유롭게 다니며 수배되지 않습니다.',
+      assigne: '경비원이 정중하게 당신을 호텔이 무료로 제공하는 스위트룸으로 데려갑니다. 가택 연금입니다. 밖으로 나갈 수 없지만 잠자기, 룸서비스 주문, 편지 쓰기, 포럼 이용은 가능합니다. 첫 “잠자기”와 함께 연금이 끝납니다.',
+      assigneJournal: '알칼리자 왕립 호텔: 다음 “잠자기”까지 스위트룸에 가택 연금되었습니다.',
+      assigneFin: '알칼리자 왕립 호텔: 가택 연금이 해제되었습니다. 스위트룸을 나갈 수 있습니다.',
+      assigneRefus: '다음 “잠자기”까지 왕립 호텔 스위트룸에 가택 연금 중입니다.',
+      tito: '티토 말레타스가 지폐를 챙기며 목소리를 낮춥니다. "록산 벨루르 네트워크는 전 세계 어디에나 있고, 그곳 에스코트들은 모든 속내를 듣지요. {cible}에 대해선 이런 얘기를 들었습니다: {secret}"',
+      titoRien: '티토 말레타스가 지폐를 챙깁니다. "록산 벨루르 네트워크도 요즘은 흥미로운 얘기를 듣지 못했네요."' },
+    ar: { forcerNote: 'نقطتا عمل. الفرصة: 60٪ + 4٪ لكل نقطة إرادة فوق 13 (− 4٪ تحتها). الفشل: إقامة جبرية في جناحك بالفندق، على حساب الدار، حتى «النوم» التالي. النجاح: تتنقل بحرية في القاعات المحجوزة حتى تغادر الفندق، دون أن تكون مطلوبًا.',
+      assigne: 'يرافقك الحراس بأدب إلى جناحك، على حساب الدار: أنت تحت الإقامة الجبرية. لا يمكنك الخروج منه؛ يمكنك النوم وطلب خدمة الغرف وكتابة الرسائل وزيارة المنتدى. تنتهي الإقامة الجبرية عند أول «نوم».',
+      assigneJournal: 'الفندق الملكي في الخليجة: أنت تحت الإقامة الجبرية في جناحك حتى «النوم» التالي.',
+      assigneFin: 'الفندق الملكي في الخليجة: رُفعت عنك الإقامة الجبرية. يمكنك مغادرة جناحك.',
+      assigneRefus: 'أنت تحت الإقامة الجبرية في جناحك بالفندق الملكي حتى «النوم» التالي.',
+      tito: 'يدسّ تيتو ماليتاس الورقة في جيبه ويخفض صوته: «شبكة روكسان فولور في كل مكان من العالم، ومرافقوها يسمعون كل الأسرار. عن {cible} همسوا لي بهذا: {secret}»',
+      titoRien: 'يدسّ تيتو ماليتاس الورقة في جيبه: «لم تسمع شبكة روكسان فولور شيئًا مثيرًا في الآونة الأخيرة.»' },
+    'pt-BR': { forcerNote: '2 PA. Chance: 60% + 4% por ponto de VON acima de 13 (− 4% abaixo). Falha: prisão domiciliar na sua suíte do hotel, por conta da casa, até o seu próximo “Dormir”. Sucesso: você circula livremente pelas salas reservadas até sair do hotel, sem ser procurado.',
+      assigne: 'Os guardas o acompanham educadamente até a sua suíte, por conta da casa: você está em prisão domiciliar. Não pode sair; pode dormir, pedir serviço de quarto, escrever cartas e ir ao fórum. A prisão domiciliar termina no seu primeiro “Dormir”.',
+      assigneJournal: 'Hotel Real de Al-Khalija: você está em prisão domiciliar na sua suíte até o seu próximo “Dormir”.',
+      assigneFin: 'Hotel Real de Al-Khalija: sua prisão domiciliar foi suspensa. Você pode sair da sua suíte.',
+      assigneRefus: 'Você está em prisão domiciliar na sua suíte do Hotel Real até o seu próximo “Dormir”.',
+      tito: 'Tito Maletas embolsa a nota e baixa a voz: “A rede Roxane Velours está no mundo inteiro, e as escorts ouvem todas as confidências. Sobre {cible}, me sopraram isto: {secret}”',
+      titoRien: 'Tito Maletas embolsa a nota: “A rede Roxane Velours não ouviu nada interessante ultimamente.”' },
+    'zh-TW': { forcerNote: '2 行動點。機率：60% ＋意志每高於 13 一點加 4%（低於則每點減 4%）。失敗：在飯店招待的套房內軟禁，直到您下一次「睡覺」。成功：離開飯店前可自由出入保留區，且不會被通緝。',
+      assigne: '守衛客氣地送您回到飯店招待的套房：您遭到軟禁。您不能離開套房，但可以睡覺、叫客房服務、寫信和上論壇。軟禁在您第一次「睡覺」時結束。',
+      assigneJournal: '阿爾哈利加皇家飯店：您在套房內遭到軟禁，直到下一次「睡覺」。',
+      assigneFin: '阿爾哈利加皇家飯店：您的軟禁已解除，可以離開套房了。',
+      assigneRefus: '您在皇家飯店的套房內遭到軟禁，直到下一次「睡覺」。',
+      tito: '提托·馬萊塔斯收下鈔票，壓低聲音：「洛珊·維洛的網絡遍布全世界，她們的伴遊聽得到所有的心事。關於{cible}，有人跟我說了這個：{secret}」',
+      titoRien: '提托·馬萊塔斯收下鈔票：「洛珊·維洛的網絡最近沒聽到什麼有意思的事。」' }
+  };
+  for (const l of Object.keys(T_SUITE)) Object.assign(T[l], T_SUITE[l]);
+
   function t(cle, vars) {
     const l = T[langue()];
     let s = (l[cle] !== undefined ? l[cle] : T.fr[cle]) || cle;
@@ -282,7 +350,7 @@
     if (!v) return;
     if (v.ok !== true) { toast(t('refus'), motif(v)); return; }
     let corps = t('ok');
-    if (fn === 'cr_pourboire' && v.rumeur_texte) corps = t('rumeur', { texte: v.rumeur_texte });
+    if (fn === 'cr_pourboire' && v.tito) corps = v.tito.cible ? t('tito', { cible: v.tito.cible, secret: v.tito.secret || '' }) : t('titoRien');
     if (fn === 'cr_billet_douaniers') {
       corps = v.reussi ? t('billetOk', { taux: v.taux }) : t('billetKo', { taux: v.taux }) + ' '
         + ((v.saisis || []).length ? t('saisis', { noms: v.saisis.map(o => o.name || o.nom).join(', ') }) : t('rienSaisi'));
@@ -335,6 +403,7 @@
     return RESERVEES[piece] === 'H' ? t('reserveH') : t('reserveF');
   }
   function hotelTeaserRefus(r) {
+    if (r.raison === 'assignation_residence') { toast(t('tHotelAM'), t('assigneRefus')); return true; }
     const piece = r.piece, h = r.raison === 'reserve_hommes';
     const b = fenetre(t('tHotelAM'), '<p><strong>' + ech(h ? t('reserveH') : t('reserveF')) + '</strong></p><p>' + ech(h ? t('gardeH') : t('gardeF')) + '</p>'
       + '<div style="text-align:center">' + bouton('ht-forcer', t('forcer'), true) + '</div><p class="cpj-note">' + ech(t('forcerNote')) + '</p>');
@@ -352,10 +421,16 @@
       if (typeof commanderNavigationInterieure === 'function') await commanderNavigationInterieure('hotel-republica', piece);
       return;
     }
-    toast(t('tHotelAM'), t('prison'));
-    if (typeof adopterDetentionServeur === 'function') adopterDetentionServeur(1, 'Intrusion dans un salon réservé de l’Hôtel Royal', v.detention?.detention_id || v.detention?.id || null);
+    // Échec : assignation à résidence dans la suite (Fred, 28/11/2026, après-midi) ; le serveur a déjà déplacé le personnage.
+    toast(t('tHotelAM'), v.assignation ? t('assigne') : t('prison'));
+    if (typeof adopterPositionServeurRelue === 'function') await adopterPositionServeurRelue();
     if (typeof updateUI === 'function') updateUI();
   }
+
+  // Journal du personnage : textes écrits ici dans la langue du joueur (le serveur envoie un texte vide).
+  const gestionnaires = window.rpEvenementsPersonnageGestionnaires = window.rpEvenementsPersonnageGestionnaires || {};
+  gestionnaires.assignation_hotel_royal = () => { if (typeof addJournalEntry === 'function') addJournalEntry(ech(t('assigneJournal')), 'event-bad'); };
+  gestionnaires.assignation_hotel_royal_fin = () => { if (typeof addJournalEntry === 'function') addJournalEntry(ech(t('assigneFin')), 'event-good'); };
 
   window.hotelTeaserOrdre = hotelTeaserOrdre;
   window.hotelTeaserOngletReserve = hotelTeaserOngletReserve;

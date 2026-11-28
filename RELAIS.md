@@ -9,6 +9,235 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Mission du 28/11/2026 (après-midi) (Claude) — compte rendu pour Fred
+
+**En bref.** Les six étapes sont faites et poussées, **rien n'est fusionné** : c'est Claude, côté claude.ai, qui ouvre
+les PR, contrôle la CI et fusionne. Les **six migrations de l'après-midi sont déjà en production** (essai en
+transaction annulée, application, relecture) : le serveur applique donc dès maintenant les nouvelles règles, même si
+l'écran correspondant n'arrive qu'à la fusion de chaque branche. Aucune clé ni aucun secret écrit nulle part.
+
+#### Branches (une par chantier, toutes poussées, toutes parties de `main` `99e2d2f7`, **aucune empilée**)
+
+| Étape | Branche | Dernier commit | Contenu |
+|---|---|---|---|
+| 1 | `claude/reponses-fred-teaser-20261128` | voir le dernier commit de la branche (compte rendu compris) | réponses aux 12 questions du teaser, traductions des deux capitales, ce compte rendu |
+| 2 | `claude/couleurs-empires-20261128` | `db87fd5a` | couleurs d'El Estado et d'Al-Khalija (`style.css`) |
+| 3 | `claude/accessoires-club-20261128` | `3fda171e` | accessoires de club revêtables, +5 dans la ville du club, trois objets revêtus |
+| 4 | `claude/paiement-stripe-20261128` | `97f3c06e` | Stripe à la place de Paddle (fermé tant que les clés manquent) |
+| 5 | `claude/textes-juridiques-20261128` | `3dd29d2a` | pages juridiques, accords, export et suppression de compte, signalements et sanctions, comptes inactifs |
+| 6 | — | — | vérification DeepSeek : aucun changement de code |
+
+Fichiers touchés par plusieurs branches (conflits simples à prévoir à la fusion) : `docs/suivi-decisions.md` (lignes
+ajoutées en fin de tableau : étapes 1 et 3), `ARCHITECTURE.md` (étapes 2 à 5), `plateau.html` (versions de scripts :
+étapes 1, 2, 4, 5), `plateau-personnage.js` (fiche du compte : étapes 4 et 5), `api/cron-minuit.js` (un appel ajouté
+par les étapes 4 et 5). Les étapes 4 et 5 ont chacune un petit module d'envoi d'e-mails par Resend
+(`api/_paiement-courriels.js`, `api/_courriel.js`) : à unifier après fusion.
+
+#### Migrations appliquées en production cet après-midi
+
+| Migration | Étape | Essai annulé | Appliquée | Relue |
+|---|---|---|---|---|
+| `20261128100000_reponses_fred_teaser` | 1 | TESTS_OK | oui | oui (toutes les marques, tâche horaire, plus de prison à l'Hôtel Royal) |
+| `20261128110000_accessoires_club_revetables` | 3 | TESTS_OK | oui | oui |
+| `20261128120000_paiement_stripe` | 4 | TESTS_OK | oui | oui (bêta gratuite toujours active) |
+| `20261128130000_juridique_accords_comptes` | 5 | TESTS_OK | oui | oui |
+| `20261128131000_juridique_blocage_interrupteur` | 5 | TESTS_OK | oui | oui (blocage éteint) |
+
+**Incident à connaître (étape 5)** : entre les deux migrations juridiques, pendant environ 73 secondes (de 14 h 34 min 33 s
+à 14 h 35 min 46 s UTC), un joueur sans accord enregistré qui passait un ordre payant a pu se le voir refuser (motif
+« conditions_a_accepter », sans fenêtre d'explication). Le blocage est **éteint** depuis (vérifié en lecture). Il ne doit
+être allumé qu'après fusion et déploiement de l'écran :
+`UPDATE public.juridique_parametres SET valeur = true, modifie_le = now() WHERE cle = 'blocage_ordres';`
+
+#### Étape 1 — Réponses aux 12 questions (branche `claude/reponses-fred-teaser-20261128`)
+
+1. Genre « NB » ou libre refusé aux hammams et au salon des gentlemen : voulu, rien ne change (consigné).
+2. **Forcer le passage raté** : plus de prison. Assignation à résidence dans la suite de l'Hôtel Royal, offerte (nuitée
+   gratuite posée si aucune n'attend). Toute navigation est refusée (`assignation_residence`) ; dormir, service d'étage,
+   courrier et forum restent possibles. Fin au premier « Dormir ». Message à l'écran, au journal (neuf langues) et au
+   courrier. *Correctif trouvé en chemin* : le service d'étage de l'Hôtel Royal était refusé à tout le monde depuis le
+   doublement des prix (prix en dur à 150, tarif national 300 DR) ; il suit désormais le tarif national.
+3. **Salle d'interrogatoire du Renseignement : 48 h au plus**, puis retour d'office au lieu de détention d'origine
+   (gardé à l'entrée en salle ; sinon cellule de la ville). Courrier au détenu et au ministre (Défense ; en Sovarka aussi
+   Sécurité du Peuple). Tâche horaire `renseignement_interrogatoire_passe` (à 47 de chaque heure).
+4. **Transfert, vérification demandée** : `detentions` n'a pas de `date_fin_universelle`. En réalité, la libération d'une
+   prison ordinaire suivait le calendrier (`debutTs` + `jours`), pas le compteur `day`. Pire : un ancien détenu du goulag
+   transféré restait **bloqué à jamais** (`detention_clore_purgee` retrouvait toujours son registre du goulag). Corrigé :
+   au transfert, les nuits restantes sont figées (`est_emprisonne.nuitsRestantes`), chaque « Dormir » en retire une, la
+   libération se fait à zéro, sans calendrier. Éprouvé dans l'essai annulé (5 jours de peine, 1 écoulé → 4 nuits ;
+   un « Dormir » → 3 ; libération refusée tant qu'il en reste).
+5. **Escorts de la suite** : nuitée réservée, pas encore consommée, et aucun « Dormir » depuis la réservation (l'heure
+   exacte du dernier « Dormir » est désormais gardée par le serveur).
+6. Valeurs gardées : canicule 12 h, thé spécial 1 PA, défi de backgammon 1 h sans PA, pâtisseries en-cas, narguilé −2 Santé.
+7. **Amende des mœurs** : liquide, puis comptes bancaires (nationale, puis Helvetia), puis ce qui existe.
+8. **Tito Maletas** : les 8 rumeurs écrites à la main sont supprimées. Contre le pourboire, un vrai secret sur un joueur
+   réel (jamais un PNJ ni un compte de test), clients réels du standard Roxane Velours d'abord, présenté comme venant du
+   réseau Roxane Velours. Le secret arrive aussi au courrier. Personnalités de Svetlana, Valentina et Rafael complétées.
+9. **Vrais secrets** (narguilé, « Secret contre secret », Tito) : + parti ou organisation publique, locaux et terrains,
+   casier et peine en cours, conjoint et employés, crimes non élucidés (en rumeur, sans affaire). **Jamais une
+   organisation secrète** (éprouvé sur 80 tirages avec une organisation secrète et une publique). Les maisons de Sovarka
+   gardent leur tirage d'origine.
+10. Bruno Macizo : décor, pas très malin, ambiance d'insécurité (personnalité ajustée).
+11. **Centre multimodal d'Al Madina** : Chambellan Al-Transit et Prosper Tampon retirés ; Youssef Safar (homme),
+    référent transport, avec personnalité de dialogue ; douanes et embarquement sans PNJ.
+12. Autres bâtiments des capitales : inchangés (déclarés, fermés par le serveur).
+13. **Principe de contraste** inscrit en tête de `GAME-DESIGN-AL-MADINA.md` et `GAME-DESIGN-CIUDAD-ROJA.md`, avec toutes
+    les décisions ; transfert dans `GAME-DESIGN-AMBASSADES.md`, interrogatoire dans `GAME-DESIGN-NOVOMIRSK.md`.
+14. **Traductions** (`plateau-teaser-traductions.js`, neuf langues) : 15 descriptions d'ordres, 9 noms de pièces, 3 noms
+    de bâtiments, 17 rôles de PNJ des deux capitales. Aucun catalogue i18n partagé n'est modifié (rien à compresser).
+
+*Tester* : avec un personnage féminin à l'Hôtel Royal, « Forcer le passage » vers le salon des gentlemen jusqu'à l'échec
+(fenêtre « assigné à résidence », impossible de sortir, service d'étage à 300 DR, puis « Dormir » : levée) ; à Ciudad
+Roja, pourboire à Tito Maletas ; au centre multimodal d'Al Madina, parler à Youssef Safar ; passer le jeu en anglais ou
+en coréen dans les deux hôtels (pièces, rôles, infobulles des ordres).
+
+#### Étape 2 — Couleurs (branche `claude/couleurs-empires-20261128`)
+
+- Valeurs de Fred posées telles quelles pour El Estado et Al-Khalija ; Républia et Sovarka inchangées. Barre des PA
+  d'Al-Khalija en turquoise #4f9594 ; onglet actif du journal sur fond #1a332c avec cadre turquoise.
+- Contraste : textes courants et or largement au-dessus du seuil AA (7,4 à 14,3). Sous le seuil : `--text3` sur le fond
+  le plus clair (4,19 El Estado, 3,93 Al-Khalija) ; `--text4`/`--text5` sont décoratifs (comme en Républia). Le texte de
+  l'onglet actif est resté clair : du turquoise #4f9594 sur #1a332c ne donne que 3,9:1.
+- Rendu vérifié sur ordinateur et téléphone (captures dans le dossier de travail de la session). Sur téléphone,
+  l'habillage bleu nuit est fixe : les ambiances d'empire s'y voient peu (état actuel, pas une régression).
+
+#### Étape 3 — Accessoires de club (branche `claude/accessoires-club-20261128`)
+
+- Écharpe, casquette, maillot de la buvette : prix inchangés, « Revêtir », +5 popularité. Personnalisé : +5 (au lieu
+  de +10).
+- Bonus seulement dans la ville du club (pays et ville notés à l'achat) ; le serveur suit tout changement de ville et
+  d'inventaire ; on ne perd que ce qu'on a gagné.
+- Un objet de chaque type au plus (ordinaire et personnalisé ensemble, tous clubs), refusé à l'achat ; trois objets
+  revêtus au plus.
+- Personnalisation incluse dans l'abonnement (renouvellement d'image de la semaine) ; non-abonnés à l'unité.
+- **Limite** : la fonction qui fabrique l'image par IA est écrite mais **pas déployée** (pas dans le feu vert). Un abonné
+  reçoit pour l'instant « La création d'image n'est pas encore disponible », et son renouvellement lui est rendu.
+
+#### Étape 4 — Paiement Stripe (branche `claude/paiement-stripe-20261128`)
+
+- France et UE : Stripe classique, l'éditeur vend, mention « TVA non applicable, article 293 B du CGI ». Reste du monde :
+  Managed Payments (Stripe vend). Le pays vient de la géolocalisation de Vercel, le serveur décide. Réglage MJ
+  `paiement_mp_pour_ue` pour étendre Managed Payments à l'UE. Aucun achat hors UE tant que « Managed Payments activé »
+  n'est pas coché dans la page MJ. Pays non servis par Stripe : pas d'achat, jeu gratuit.
+- Même chemin d'achat : prix de la base (2 € au moins), achat « en_attente », confirmation par le seul webhook signé,
+  sans double effet. Fournisseur « faux » gardé pour les bancs. Sans SDK (appels REST et `node:crypto`).
+- Abonnement mensuel et annuel, résiliation en deux clics (fiche → Identité → Abonnement), effet en fin de période,
+  rappel par e-mail au moins 30 jours avant un renouvellement annuel, remboursement intégral dans les 14 jours si aucun
+  avantage utilisé, doublons remboursés automatiquement. Cases CGV et renonciation non pré-cochée avant tout achat à
+  l'unité ; écran et e-mails en neuf langues ; le vendeur est toujours affiché.
+- **Rien n'est éprouvé contre la vraie API Stripe.** À faire par Fred (détail dans
+  `docs/premium/PAIEMENT-STRIPE-20261128.md`) : compte Stripe en mode test, webhook vers `/api/paiement/webhook`, clés
+  dans Vercel (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `PAIEMENT_FOURNISSEUR=stripe`), pied de facture 293 B,
+  demande de Managed Payments, nom de l'éditeur, adresse des CGV et prix (dont l'annuel) dans la page MJ.
+
+#### Étape 5 — Textes juridiques (branche `claude/textes-juridiques-20261128`)
+
+- 36 fichiers `juridique/<langue>/<texte>.md` (version 0.1, une ligne provisoire), page `juridique.html` (la version
+  française fait foi), liens au pied de l'accueil et dans l'Aide du plateau. Registre serveur `juridique_versions` ; la
+  marche à suivre pour publier une version est dans `ARCHITECTURE.md`.
+- Case « J'ai lu et j'accepte les CGU et la politique de confidentialité, et j'ai au moins 16 ans » à la création ;
+  table `juridique_accords` ; blocage du premier ordre côté serveur (interrupteur, **éteint**, voir l'incident) ;
+  fenêtre de ré-acceptation à la connexion.
+- Fiche du compte : « Télécharger mes données » (JSON), « Supprimer mon compte » (succession existante, forum signé
+  « Ancien joueur »).
+- « Signaler » sur le nom et l'image d'un personnage et sur les décors personnalisés (forum et courrier l'avaient déjà),
+  même file `admin-signalements.js` ; « Sanctionner… » (avertissement, retrait, suspension) notifié par courrier et
+  fenêtre avec la règle, le contenu, la durée et la contestation à contact@human-gambit.com.
+- Comptes inactifs depuis 3 ans : avertissement un mois avant, puis suppression ; 482 comptes examinés, aucun visé.
+  **Le jeu n'avait aucun envoi d'e-mail** : rien ne part (donc rien n'est supprimé) tant que `RESEND_API_KEY` et
+  `COURRIEL_EXPEDITEUR` ne sont pas dans Vercel.
+- Trouvé et réparé en chemin : « Détruire mon personnage » échouait en silence pour tout client d'un hôtel.
+
+#### Étape 6 — DeepSeek
+
+- Je n'ai pas la clé en local (elle n'est que dans Vercel) : pas d'appel direct possible d'ici. Preuve tirée de la
+  production : les deux éditions du Journal du 28/11, générées cette nuit à 23 h 41 UTC par `deepseek-chat`, sont
+  marquées « rédaction IA » sans repli (de même les 26 et 27/11). **« deepseek-chat » répond donc toujours** : je n'ai
+  rien changé (consigne de Fred).
+- À savoir : la page officielle des mises à jour de DeepSeek annonçait la fin des noms `deepseek-chat` et
+  `deepseek-reasoner` pour le 24/07/2026 (remplacés par `deepseek-flash`) ; ils répondent encore, mais peuvent cesser du
+  jour au lendemain. Si cela arrive : passer `DEEPSEEK_MODELE` à `deepseek-flash` dans `api/_deepseek.js`, en désactivant
+  explicitement le mode « réflexion » (activé par défaut sur ce modèle, plus lent et facturé autrement).
+
+#### État des bancs
+
+- Étape 1 : nouveau `banc-reponses-fred-teaser-20261128.cjs` (4 sur 4) ; `banc-capitales-teaser-20261128.cjs`,
+  `test-suivi-decisions.mjs` et tous les bancs qui citent les fichiers touchés (personnalités, scènes générées,
+  centre multimodal, module des hôtels) : verts.
+- Étape 2 : `banc-couleurs-empires-20261128` 6/6, `banc-mobile-coque` 21/21, lisibilité et chronique verts.
+- Étape 3 : `banc-accessoires-club-20261128` 9/9 ; deux bancs ajustés à la règle (+5, trois objets) ; un échec non
+  comparé à `main` : `test-crim-lot9-carriere` (test 8, écran de l'université, fichier non touché).
+- Étape 4 : trois bancs nouveaux (20, 8, 5 tests) et deux adaptés, verts ; workflow `paiement-stripe-20261128.yml`.
+- Étape 5 : `banc-textes-juridiques-20261128` 8/8 ; 454 `test-*.mjs` verts ; 49 bancs échouent pareil sur une copie propre
+  de `main` (environnement local).
+- Échecs d'environnement connus, pareils sur `main` : test 16 de `banc-deploiement-sobre`, `navigation-directions.cjs
+  --verifier`, bancs i18n navigateur « exit-feedback » et « refus-actions ».
+- Aucune CI distante lancée d'ici.
+
+#### PNJ sans portrait (images laissées vides)
+
+- Ciudad Roja, centre multimodal : hall — Carlos Retraso ; douanes — Juanita Soborno, Douanier Moustachu Uno, Douanier
+  Moustachu Dos.
+- Hotel Ciudad Roja : réception — Rosario Esmeralda, Bruno Macizo, Tito Maletas ; piscine — Svetlana Zolotova,
+  Valentina Fuego, Don Augusto Bigotes ; bar extérieur — Rafael Toro ; restaurant — Matías Bandeja. (Svetlana,
+  Valentina et Rafael ont aussi un portrait vide au catalogue d'escorts.)
+- Al Madina, centre multimodal : hall — **Youssef Safar** (nouveau).
+- Hôtel Royal d'Al-Khalija : réception — Amira Miftah, Saïd Chanta ; restaurant — Karim Sahn ; salon de thé — Nabil
+  Naana ; salon des gentlemen — Faris Dukhan, Jabbar Bawwab ; hammam des hommes — Hamid Bukhar ; hammam des femmes —
+  Oum Saboun.
+
+#### Pour Codex
+
+- Aucun catalogue `i18n/*resources.js` modifié par l'étape 1 (traductions dans `plateau-teaser-traductions.js`).
+- L'étape 3 a modifié les infobulles communes (catalogues recompressés) ; les étapes 4 et 5 livrent leurs textes dans
+  leurs propres modules, en neuf langues. Les courriers système (assignation, interrogatoire, secrets) restent en
+  français, comme tous les courriers système.
+
+#### Questions de game design
+
+*Étape 1 — teaser*
+1. Assignation à résidence : un joueur assigné qui a déjà dormi ce jour-là ne peut pas redormir avant le lendemain
+   (règle du « Dormir » quotidien) ; il reste donc enfermé jusqu'au lendemain. Est-ce voulu ?
+2. Assignation : le joueur est aussi « indisponible » pour la police et les combats (même porte que les détenus). Est-ce
+   voulu, ou doit-il rester interpellable ?
+3. Tito : le secret porte sur un joueur tiré dans **tout** le jeu, Républia et Sovarka comprises, y compris des
+   personnages peu actifs. Faut-il se limiter aux joueurs actifs (par exemple, connectés depuis 7 jours) ?
+4. Un détenu hospitalisé après son transfert ne décompte pas de nuit quand il dort à l'hôpital (seul le « Dormir »
+   ordinaire est compté). Faut-il compter aussi ces nuits ?
+
+*Étape 2 — couleurs*
+5. Éclaircir `--text3` (proposé : `#9c9878` pour El Estado, `#ad9574` pour Al-Khalija, 4,64:1) ?
+6. Texte de l'onglet actif d'Al-Khalija en turquoise plus clair `#5fa8a7` (4,92:1) plutôt qu'en clair ?
+7. Libellé et valeur des PA d'Al-Khalija aussi en turquoise ?
+8. Faire suivre l'empire à l'habillage mobile (bleu nuit et or, fixe aujourd'hui) ?
+
+*Étape 3 — accessoires*
+9. Un objet de chaque type : une seule écharpe en tout (choix actuel), ou une par club ?
+10. Bloquer aussi la deuxième écharpe reçue en don, volée ou trouvée ?
+11. Accessoire personnalisé gratuit pour tous pendant la bêta « tout gratuit » ?
+12. Un abonné qui a déjà utilisé son renouvellement de la semaine peut-il acheter à l'unité ?
+13. Renouvellement consommé dès que l'image est créée, même si l'abonné ne valide pas l'objet : d'accord ?
+14. Feu vert pour déployer la fonction qui fabrique l'image par IA ?
+
+*Étape 4 — paiement*
+15. Prix affichés taxes comprises hors UE (choix actuel) ou taxes ajoutées ?
+16. Codes fiscaux `txcd_10201004` (abonnement) et `txcd_10000000` (unité, options) : à confirmer (comptable) ?
+17. Monaco et les DOM comme la France, les territoires hors UE par Managed Payments : d'accord ?
+18. Exclure aussi la Biélorussie ?
+19. « Reste acquis » limité aux options attachées à un lieu (bureau à 6, personnalisation, commerce premium) : d'accord ?
+20. Commerce premium acquis dès le premier usage pendant l'abonnement ?
+21. Un remboursement d'erreur fait depuis Stripe ne coupe pas l'abonnement (seul celui des 14 jours le coupe) : d'accord ?
+22. Nom légal affiché comme vendeur ?
+
+*Étape 5 — juridique et comptes*
+23. Service d'envoi d'e-mails (Resend est câblé dans les étapes 4 et 5) et adresse d'expédition ?
+24. Comptes sans adresse e-mail : jamais avertis, donc jamais supprimés ; faut-il les supprimer quand même ?
+25. Une suspension doit-elle aussi bloquer le forum, le courrier et le chat ?
+26. Personnages ayant des traces au goulag : la base refuse leur suppression (et donc celle du compte) ; que faire ?
+27. Les CGV doivent-elles être acceptées à part au premier achat premium ?
+28. Accords gardés après suppression du compte, comme preuve, rattachés à son seul identifiant : d'accord ?
+29. L'export contient la fiche brute du personnage (champs internes compris) : faut-il en masquer certains ?
+
 ### Miroir des coûts — déblocage #1216 (Codex, 28/11/2026)
 - Branche `codex/correctif-miroir-couts-20261128`, base `60641d38`. Aucune correction équivalente en PR ouverte ou branche récente identifiée.
 - Origine : `b343ff38` (interrogatoires), `ecd537d2` (ordres creux) et `14d14fae` (transferts) ont modifié le catalogue le 27/11 après la dernière génération du seed (`27833838`, 26/11). Cinq anciennes entrées, deux entrées gratuites manquantes, deux anciens tarifs à 2 PA : diff déjà conservé dans #1216.
