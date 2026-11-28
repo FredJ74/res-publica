@@ -9,6 +9,146 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Mission du 28/11/2026 (soir) (Claude) — compte rendu pour Fred
+
+**En bref.** Les deux chantiers sont faits et poussés, **rien n'est fusionné** (Claude, côté claude.ai, ouvre les PR,
+contrôle la CI et fusionne). Les **quatre migrations du soir sont déjà en production** (essai en transaction annulée,
+application, relecture). **Le blocage d'acceptation des CGU est resté éteint** (vérifié en production à la fin).
+Aucune clé ni aucun secret écrit nulle part. **Une seule chose n'a pas pu être faite : le vrai e-mail de test Brevo**
+(voir chantier 2).
+
+#### Branches (à jour sur `main` `70f04530`, non empilées ; fusion d'essai des deux branches : aucun conflit)
+
+| Chantier | Branche | Dernier commit |
+|---|---|---|
+| 1 — réponses aux 29 questions | `claude/reponses-29-questions-20261128-soir` | dernier commit de la branche (ce compte rendu) |
+| 2 — e-mails par Brevo | `claude/emails-brevo-20261128-soir` | `6bbd70f8` |
+
+Fichiers touchés par les deux branches (fusion automatique sans conflit, vérifiée) : `ARCHITECTURE.md`,
+`admin-signalements.js`, `api/_paiement.js`, `docs/premium/PAIEMENT-STRIPE-20261128.md`,
+`.github/workflows/paiement-stripe-20261128.yml`. Les branches temporaires `claude/q29-*-tmp-20261128-soir` ont servi
+aux agents ; leurs commits sont repris dans la branche du chantier 1 : elles peuvent être supprimées.
+
+#### Migrations appliquées en production ce soir
+
+| Migration | Contenu | Essai annulé | Appliquée | Relue |
+|---|---|---|---|---|
+| `20261128200000_reponses_29_questions` | Tito, nuits à l'hôpital | TESTS_OK | oui | oui |
+| `20261128210000_accessoires_premium_acquis` | achat libre, accessoire personnalisé, premium acquis | TESTS_OK | oui | oui (bêta gratuite toujours active) |
+| `20261128220000_reponses_fred_paiement_comptes` | Biélorussie, comptes sans e-mail, suspension, goulag, export | TESTS_OK | oui | oui |
+| `20261128230000_courriels_brevo` (branche Brevo) | échecs d'e-mail, alerte MJ, jeton de test, e-mail de sanction | TESTS_OK | oui | oui |
+
+#### Chantier 1 — tes réponses aux 29 questions
+
+1. **Assignation à résidence** : rien ne change (un « Dormir » pour sortir, même si l'on a déjà dormi ; intouchable).
+   Conséquence du point 3 : un « Dormir » à l'hôpital met aussi fin à l'assignation.
+2. **Tito** : d'abord un joueur connecté (ou ayant chargé le plateau) dans les 7 derniers jours, clients du standard
+   Roxane Velours en tête ; sinon n'importe quel joueur réel. Essai : 20 tirages sur 20 sur des joueurs actifs ;
+   repli vérifié en simulant l'absence de joueur actif.
+3. **Détenu transféré** : une nuit à l'hôpital ou à la clinique décompte un jour de peine (dès le jour 1 ; le jour de
+   l'admission ne compte pas, on n'y dort pas). Essai : 3 nuits → 2.
+4. **Couleurs** : tes valeurs posées ; sur téléphone, l'habillage suit désormais l'empire, avec les mêmes palettes
+   (nouvelle feuille `plateau-mobile-empires-20261128.css`). Contrastes AA mesurés sur 11 sortes de textes, ordinateur
+   inchangé au pixel près. Sovarka : son « or » rouge sombre est trop peu lisible en texte, ses titres passent donc au
+   clair de sa palette (le rouge reste en fonds et contours). Captures :
+   `/private/tmp/claude-501/-Users-fredericjasseron/35172f08-7e5f-427c-b8d0-243fb690fd4d/scratchpad/captures-couleurs/`.
+5. **Accessoires de club** : achat libre (buvette, commande personnalisée ; dons, vols et trouvailles n'étaient pas
+   bloqués). Port : trois objets au plus, un de chaque type ; revêtir une deuxième écharpe retire la première.
+6. **Accessoire personnalisé** : gratuit en bêta ; ensuite renouvellement de la semaine, puis achat à l'unité par
+   l'écran de paiement commun ; consommé dès que l'image existe. **Fonction d'image déployée et éprouvée de bout en
+   bout en production** (personnage de test temporaire, image OpenAI d'une écharpe de l'Olympique de Luthécia, objet
+   livré à l'inventaire avec +5 popularité ; tout supprimé ensuite sauf le fichier image, laissé comme preuve dans le
+   dépôt de stockage « accessoires-personnalises », à effacer depuis le tableau de bord Supabase si tu veux).
+   Corrigés en chemin : l'historique des images d'accessoires était refusé en silence ; l'inventaire n'affichait pas
+   l'image personnalisée.
+7. **Fin d'abonnement** : options de lieu et accessoires créés étaient déjà acquis ; ajouté : commerce premium acquis
+   dès le premier dépassement d'un plafond gratuit. Les mini-jeux ne sont pas codés : règle consignée.
+8. **Paiement** : déjà conformes — TTC, codes fiscaux, Monaco et DOM, territoires hors UE, remboursement d'erreur,
+   nom du vendeur vide. Changé : Biélorussie exclue.
+9. **Comptes** : comptes sans e-mail supprimés après 3 ans (aucun visé aujourd'hui) ; suspension étendue au forum
+   (y compris la modification de ses propres messages), au courrier et au chat ; traces du goulag rendues anonymes puis
+   suppression (13 clés étrangères remplacées par un contrôle à l'écriture, historique gardé) ; CGV et accords déjà
+   conformes ; export : l'auteur réel d'un courrier anonyme ou signé par une organisation est masqué.
+10. **Documentation** : `GAME-DESIGN-AL-MADINA.md`, `-CIUDAD-ROJA.md`, `-AMBASSADES.md`, `-FOOTBALL.md`,
+    `-GOULAG-SOVARKA.md`, `docs/premium/PAIEMENT-STRIPE-20261128.md`, `docs/suivi-decisions.md` (7 lignes),
+    `ARCHITECTURE.md`, et la charte graphique d'`AGENTS.md` (la coque mobile suit l'empire).
+
+#### Chantier 2 — e-mails par Brevo
+
+- Un seul module, `api/_courriel.js`, sur l'API transactionnelle de Brevo ; expéditeur « Human Gambit
+  <noreply@human-gambit.com> » ; réponse vers contact@human-gambit.com pour les sanctions, le paiement et l'avertissement
+  des comptes inactifs. Une seule variable : `BREVO_API_KEY`. **Resend est supprimé** du code, des variables et de la
+  documentation (il n'en reste que dans les anciens comptes rendus de ce fichier). Le « resend » d'`auth.js`,
+  `creation.js` et `plateau-core.js` est le renvoi de l'e-mail de confirmation de Supabase : intact.
+- Clé absente, refusée ou expirée : rien ne part, l'échec est écrit dans le journal Vercel et dans `courriel_echecs`,
+  et la page MJ l'affiche en alerte rouge en tête de page avec un message clair, jusqu'à « Marquer comme lu ».
+- La notification de sanction part aussi par e-mail, dans la langue du joueur. Les « réponses du support » n'existent
+  pas dans le code : le module est prêt.
+- Toujours 12 fonctions Vercel (`/api/courriel` est redirigé vers `/api/chat?mode=courriel`).
+- **Vrai e-mail de test : NON envoyé.** La clé n'est que dans Vercel ; il n'y a pas de CLI Vercel connectée ici, et
+  les déploiements de prévisualisation sont protégés par l'authentification Vercel. La production n'aura
+  `/api/courriel` qu'après la fusion. **À faire après la fusion**, au choix :
+  - bouton « Envoyer un e-mail de test » du bloc « E-mails (Brevo) » de la page MJ, puis « Vérifier la livraison » ;
+    l'e-mail part à l'adresse du compte MJ ;
+  - ou, par une session Claude : un jeton à usage unique posé en base (`courriel_tests`, haché, 1 h), puis
+    `POST https://human-gambit.com/api/courriel` avec `{"action":"test","jeton":"…"}`, puis `"action":"test_statut"`.
+
+    Si la vérification répond « clé refusée » alors que l'envoi a réussi, la clé (droit « Emails transactionnels »
+    seul) ne lit sans doute pas les statistiques : vérifier alors dans Brevo, Transactionnel → Logs.
+- **Attention : la table `administrateurs` est vide en production.** Tant qu'aucun compte MJ n'y est déclaré, la
+  page MJ ne peut ni afficher l'alerte, ni envoyer le test.
+
+#### État des bancs
+
+- Nouveaux, tous verts :
+  - `banc-reponses-29-questions-20261128-soir` 3/3 ;
+  - `banc-couleurs-mobile-20261128-soir` 5/5 ;
+  - `banc-accessoires-premium-acquis-20261128-soir` 8/8 ;
+  - `banc-paiement-comptes-20261128-soir` 7/7 ;
+  - `banc-courriels-brevo-20261128-soir` 8/8 ; nouveau workflow `courriels-brevo-20261128-soir.yml`.
+- Adaptés ou rejoués, verts : `banc-couleurs-empires` 6/6, `banc-mobile-coque` 21/21, `banc-accessoires-club` 9/9,
+  `banc-accessoire-personnalise` 3/3, `banc-paiement-stripe` 15/15, `banc-textes-juridiques` 8/8,
+  `banc-reponses-fred-teaser` 4/4, `banc-vercel-douze-fonctions` 2/2, `test-suivi-decisions` 6/6. Les bancs du
+  paiement, des comptes, des accessoires et de Brevo sont aussi verts sur la fusion d'essai des deux branches.
+- Échecs pareils sur `main` (environnement local) : `banc-administration-client`, `banc-etat-terrain`,
+  `banc-greffe-documents-client`, `banc-tribunal-client`, `banc-universite-et-pnj-client`,
+  `banc-i18n-onglet-organisations-navigateur`. Non comparés à `main` : `banc-lisibilite-acces-reserve` (playwright
+  absent) et `banc-transport-rest.js` (ne tourne pas sous node). Aucune CI distante lancée d'ici.
+- Incident sans conséquence : un agent a lancé un `git stash` nu (interdit), qu'il a aussitôt repris ; la pile de
+  stash est vide, rien n'a été perdu.
+
+#### À faire par toi
+
+- Déclarer ton compte dans `administrateurs` (page MJ).
+- Après la fusion, envoyer l'e-mail de test Brevo.
+- Fournir le nom légal du vendeur (`vendeur_editeur_nom`).
+- Fixer le prix à l'unité de l'accessoire personnalisé dans la page MJ : sans prix, le bouton d'achat n'apparaît pas
+  hors bêta.
+
+#### Questions de game design
+
+1. Un « Dormir » à l'hôpital met aussi fin à l'assignation à résidence (même suite que le « Dormir » ordinaire) :
+   d'accord ?
+2. Coque mobile avant le chargement du personnage : garder le bleu nuit (choix actuel) ou prendre la palette de Républia ?
+3. Les boutons ronds du journal et du chat et le fond de la jauge des PA restent à l'or de Républia (couleurs en dur,
+   ordinateur et téléphone) : les passer aux couleurs de l'empire ?
+4. Sovarka : un rouge plus clair pour les titres, au lieu du clair acier actuel ?
+5. Pendant la bêta, l'accessoire personnalisé est gratuit et **sans limite**, alors que chaque image est payée à
+   OpenAI : faut-il un plafond (par exemple un par semaine et par joueur) ?
+6. Revêtir une deuxième écharpe retire d'office la première : d'accord, ou faut-il refuser avec un message ?
+7. Commerce premium acquis « dès le premier usage » = premier dépassement d'un plafond gratuit (plus de 2 familles ou
+   plus de 4 références) : est-ce la bonne définition ?
+8. Les mentions « Ancien détenu » et « Ancien joueur » sont écrites en français dans la base, comme au forum : faut-il
+   les traduire à l'affichage ?
+9. Goulag : « Ancien joueur » pour un interrogateur, un juge ou un ministre, « Ancien détenu » même pour un simple
+   visiteur : ces libellés conviennent-ils ?
+10. Des noms peuvent rester dans les détails libres du goulag et dans la table `detentions` des prisons ordinaires :
+    faut-il les rendre anonymes aussi ?
+11. Un détenu évadé dont le compte est supprimé reste « en fuite » au registre sous « Ancien détenu » : faut-il clore
+    son dossier ?
+12. Faut-il aussi envoyer par e-mail la levée d'une sanction et le retrait d'un contenu ?
+13. Avertissement des comptes inactifs : adresse de réponse vers contact@ (choix actuel), ou aucune ?
+
 ### Mission du 28/11/2026 (après-midi) (Claude) — compte rendu pour Fred
 
 **En bref.** Les six étapes sont faites et poussées, **rien n'est fusionné** : c'est Claude, côté claude.ai, qui ouvre
