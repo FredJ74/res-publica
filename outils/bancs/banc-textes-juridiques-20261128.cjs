@@ -87,8 +87,11 @@ test('raccords dans l’écran', () => {
   assert.ok(index.includes('id="hg-pied-juridique"') && index.includes('id="hg-case-juridique"') && index.includes('juridique-client.js'));
   assert.ok(index.indexOf('juridique-client.js') < index.indexOf('creation.js?v='), 'module chargé avant creation.js');
   assert.ok(plateau.includes('data-section="juridique"') && plateau.includes('juridique-client.js'));
-  const iAccord = creation.indexOf('RPJuridique.accepterCreation()'), iCreation = creation.indexOf('await sbCreerPersonnageInitial(');
-  assert.ok(iAccord > 0 && iAccord < iCreation, 'accord enregistré avant la création du personnage');
+  // 28/11 (Claude) : la case est vérifiée sans attente avant le verrou de création ; l'accord est enregistré juste après la création réussie.
+  const iCase = creation.indexOf('RPJuridique.caseCochee()'), iVerrou = creation.indexOf('CREATION_EN_COURS = true'),
+        iCreation = creation.indexOf('await sbCreerPersonnageInitial('), iAccord = creation.indexOf('RPJuridique.accepterCreation()');
+  assert.ok(iCase > 0 && iCase < iVerrou, 'case vérifiée avant le verrou de création');
+  assert.ok(iAccord > iCreation, 'accord enregistré après la création réussie');
   assert.ok(lire('supabase.js').includes("v.raison === 'conditions_a_accepter' || v.raison === 'compte_suspendu'"));
   assert.ok(lire('forum.js').includes('RPJuridique.htmlSignaler(nom, photo)'));
   const perso = lire('plateau-personnage.js');

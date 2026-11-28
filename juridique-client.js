@@ -253,6 +253,11 @@
     const c = document.getElementById('hg-case-juridique-input');
     if (c) c.checked = cochee;
   }
+  // Création du personnage : vérification immédiate de la case, sans appel au serveur.
+  function caseCochee() {
+    const c = document.getElementById('hg-case-juridique-input');
+    return { ok: !!(c && c.checked), message: tr('caseRequise') };
+  }
   // Création du personnage : la case doit être cochée ; le serveur enregistre l'accord (versions en vigueur).
   async function accepterCreation() {
     const c = document.getElementById('hg-case-juridique-input');
@@ -430,7 +435,7 @@
   }
 
   global.RPJuridique = { TEXTES, LANGUES, T, langue, tr, titre, lien, htmlLiens, remplirPied, htmlCaseAcceptation, remplirCaseCreation,
-    accepterCreation, ouvrirReacceptation, afficherSanctions, refus, verifierConnexion, renderAide, htmlCompte, exporter,
+    accepterCreation, caseCochee, ouvrirReacceptation, afficherSanctions, refus, verifierConnexion, renderAide, htmlCompte, exporter,
     supprimerCompte, signalerContenu, htmlSignaler, dateLocale };
   global.rpJuridiqueRefus = refus;
 
