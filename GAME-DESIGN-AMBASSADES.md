@@ -100,6 +100,13 @@ Tous les détenus sont transférables, y compris ceux du QHS, du goulag et des s
 28/11/2026 : c'est aux joueurs de négocier) ; le régime particulier est levé au transfert.
 L'ordre reste grisé pour El Estado et Al-Khalija. Serveur : `transfert_detenu_demander`,
 `transfert_detenu_decider` (migration `20261127234000`).
+**Peine restante au « Dormir » (Fred, 28/11/2026 après-midi, migration `20261128100000`)** : après le transfert, la
+peine restante ne se décompte **que** par les ordres « Dormir » (règle de base du jeu). Le nombre de nuits restantes
+est figé au transfert (`est_emprisonne.nuitsRestantes` : jours restants du goulag, ou jours calendaires restants pour
+une prison ordinaire ou le QHS) ; chaque « Dormir » en retire une ; `detention_clore_purgee` libère à zéro, sans plus
+regarder le calendrier. Vérification demandée par Fred : `detentions` n'a pas de colonne `date_fin_universelle` ; la
+libération d'une prison ordinaire suivait le calendrier (`debutTs` + `jours`), et un ancien détenu du goulag transféré
+restait bloqué à jamais (registre du goulag toujours trouvé). Corrigé, banc à l'appui.
 
 ### Valise diplomatique (25/10 — avec les autres empires)
 **Pas de passage en douane pour les ambassadeurs.**

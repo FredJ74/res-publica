@@ -1548,17 +1548,17 @@ const WORLD = {
           roomsExtra: {
             piscine: { name: 'Piscine', imageUrl: 'images/El Estado/Ciudad Roja/Ciudad_Roja_hotel_piscine.webp',
               persons: [{"name": "Svetlana Zolotova (PNJ)", "role": "Escort de l’hôtel", "rel": "neutral", "job": "escort", "genre": "F"}, {"name": "Valentina Fuego (PNJ)", "role": "Escort de l’hôtel", "rel": "neutral", "job": "escort", "genre": "F"}, {"name": "Don Augusto Bigotes (PNJ)", "role": "Caudillo en villégiature", "rel": "neutral", "job": "client", "genre": "H"}],
-              orders: [{fn:'cr_nager',label:'Nager dans la piscine',pa:1,cost:0,type:'legal',icon:'ti-swimming',successRate:100,desc:'+5 Santé et protection contre la canicule pour la journée. Deux fois par jour.'}, {fn:'cr_tennis',label:'Jouer au tennis',pa:2,cost:0,type:'legal',icon:'ti-ball-tennis',successRate:100,desc:'−8 Santé, mais +7 influence et +5 popularité : on vous voit avec les bonnes personnes. Une fois par jour.'}, {fn:'cr_pourboire',label:'Donner un pourboire',pa:0,cost:200,type:'legal',icon:'ti-coin',successRate:100,desc:'200 PS au membre du personnel de votre choix : +1 popularité. Tito Maletas, le bagagiste, glisse en prime une rumeur sur El Estado. Sans limite.'}] }
+              orders: [{fn:'cr_nager',label:'Nager dans la piscine',pa:1,cost:0,type:'legal',icon:'ti-swimming',successRate:100,desc:'+5 Santé et protection contre la canicule pour la journée. Deux fois par jour.'}, {fn:'cr_tennis',label:'Jouer au tennis',pa:2,cost:0,type:'legal',icon:'ti-ball-tennis',successRate:100,desc:'−8 Santé, mais +7 influence et +5 popularité : on vous voit avec les bonnes personnes. Une fois par jour.'}, {fn:'cr_pourboire',label:'Donner un pourboire',pa:0,cost:200,type:'legal',icon:'ti-coin',successRate:100,desc:'200 PS au membre du personnel de votre choix : +1 popularité. Tito Maletas, le bagagiste, livre en prime un vrai secret sur un joueur, soufflé par le réseau Roxane Velours. Sans limite.'}] }
           },
           roomOverrides: {
             accueil: { name: 'Réception', imageUrl: 'images/El Estado/Ciudad Roja/Ciudad_Roja_hotel_reception.webp',
-              persons: [{"name": "Rosario Esmeralda (PNJ)", "role": "Réceptionniste en chef", "rel": "neutral", "job": "receptionniste", "genre": "F"}, {"name": "Bruno Macizo (PNJ)", "role": "Chef de la sécurité", "rel": "neutral", "job": "securite", "genre": "H"}, {"name": "Tito Maletas (PNJ)", "role": "Bagagiste", "rel": "neutral", "job": "bagagiste", "genre": "H"}], orders: [{fn:'cr_pourboire',label:'Donner un pourboire',pa:0,cost:200,type:'legal',icon:'ti-coin',successRate:100,desc:'200 PS au membre du personnel de votre choix : +1 popularité. Tito Maletas, le bagagiste, glisse en prime une rumeur sur El Estado. Sans limite.'}] },
+              persons: [{"name": "Rosario Esmeralda (PNJ)", "role": "Réceptionniste en chef", "rel": "neutral", "job": "receptionniste", "genre": "F"}, {"name": "Bruno Macizo (PNJ)", "role": "Chef de la sécurité", "rel": "neutral", "job": "securite", "genre": "H"}, {"name": "Tito Maletas (PNJ)", "role": "Bagagiste", "rel": "neutral", "job": "bagagiste", "genre": "H"}], orders: [{fn:'cr_pourboire',label:'Donner un pourboire',pa:0,cost:200,type:'legal',icon:'ti-coin',successRate:100,desc:'200 PS au membre du personnel de votre choix : +1 popularité. Tito Maletas, le bagagiste, livre en prime un vrai secret sur un joueur, soufflé par le réseau Roxane Velours. Sans limite.'}] },
             restaurant: { name: 'Restaurant', imageUrl: 'images/El Estado/Ciudad Roja/Ciudad_Roja_hotel_restaurant.webp',
-              persons: [{"name": "Matías Bandeja (PNJ)", "role": "Maître d’hôtel", "rel": "neutral", "job": "serveur", "genre": "H"}], orders: [{fn:'cr_pourboire',label:'Donner un pourboire',pa:0,cost:200,type:'legal',icon:'ti-coin',successRate:100,desc:'200 PS au membre du personnel de votre choix : +1 popularité. Tito Maletas, le bagagiste, glisse en prime une rumeur sur El Estado. Sans limite.'}] },
+              persons: [{"name": "Matías Bandeja (PNJ)", "role": "Maître d’hôtel", "rel": "neutral", "job": "serveur", "genre": "H"}], orders: [{fn:'cr_pourboire',label:'Donner un pourboire',pa:0,cost:200,type:'legal',icon:'ti-coin',successRate:100,desc:'200 PS au membre du personnel de votre choix : +1 popularité. Tito Maletas, le bagagiste, livre en prime un vrai secret sur un joueur, soufflé par le réseau Roxane Velours. Sans limite.'}] },
             bar: { name: 'Bar extérieur', imageUrl: 'images/El Estado/Ciudad Roja/Ciudad_Roja_hotel_bar_piscine.webp',
-              persons: [{"name": "Rafael Toro (PNJ)", "role": "Barman", "rel": "neutral", "job": "serveur", "genre": "H"}], orders: [{fn:'cr_pourboire',label:'Donner un pourboire',pa:0,cost:200,type:'legal',icon:'ti-coin',successRate:100,desc:'200 PS au membre du personnel de votre choix : +1 popularité. Tito Maletas, le bagagiste, glisse en prime une rumeur sur El Estado. Sans limite.'}] },
+              persons: [{"name": "Rafael Toro (PNJ)", "role": "Barman", "rel": "neutral", "job": "serveur", "genre": "H"}], orders: [{fn:'cr_pourboire',label:'Donner un pourboire',pa:0,cost:200,type:'legal',icon:'ti-coin',successRate:100,desc:'200 PS au membre du personnel de votre choix : +1 popularité. Tito Maletas, le bagagiste, livre en prime un vrai secret sur un joueur, soufflé par le réseau Roxane Velours. Sans limite.'}] },
             chambres: { name: 'Suite', imageUrl: 'images/El Estado/Ciudad Roja/Ciudad_Roja_hotel_suite.webp', personsVides: true,
-              orders: [{fn:'escort_standard',label:'Appel à un(e) escort',pa:0,cost:0,type:'legal',icon:'ti-phone-call',successRate:100,desc:'Le standard de l’agence internationale Roxane Velours et les trois escorts de l’hôtel. 800 PS par escort et par jour, jusqu’à ce que vous rompiez le contrat. Réservé aux clients de l’hôtel (nuitée réservée à la réception). Légal, mais immoral : la rumeur coûte cher.'}] }
+              orders: [{fn:'escort_standard',label:'Appel à un(e) escort',pa:0,cost:0,type:'legal',icon:'ti-phone-call',successRate:100,desc:'Le standard de l’agence internationale Roxane Velours et les trois escorts de l’hôtel. 800 PS par escort et par jour, jusqu’à ce que vous rompiez le contrat. Réservé aux clients de l’hôtel (nuitée réservée à la réception, jusqu’à votre prochain « Dormir »). Légal, mais immoral : la rumeur coûte cher.'}] }
           },
           persons: []
         },
@@ -3119,28 +3119,29 @@ const WORLD = {
                 'centre-multinodal-luthecia': {
           name: "Centre multimodal d'Al Madina",
           // Teaser (28/11/2026) : seul l'avion vers les autres capitales part d'ici ; illustrations d'Al Madina branchées.
+          // Fred, 28/11 (après-midi) : anciens PNJ du hall et des douanes retirés ; l'hôtesse devient Youssef Safar, référent transport.
           roomOverrides: {
-            hall_gare: { imageUrl: 'images/Al-Khalija/Al Madina/Al_Madina_centre_multimodal_hall.webp' },
-            hall_douanes: { imageUrl: 'images/Al-Khalija/Al Madina/Al_Madina_centre_multimodal_douanes.webp' },
-            zone_embarquement: { imageUrl: 'images/Al-Khalija/Al Madina/Al_Madina_centre_multimodal_embarquement.webp' }
+            hall_gare: { imageUrl: 'images/Al-Khalija/Al Madina/Al_Madina_centre_multimodal_hall.webp', persons: [{"name": "Youssef Safar (PNJ)", "role": "Référent transport", "rel": "neutral", "job": "chef_gare", "genre": "H"}] },
+            hall_douanes: { imageUrl: 'images/Al-Khalija/Al Madina/Al_Madina_centre_multimodal_douanes.webp', personsVides: true },
+            zone_embarquement: { imageUrl: 'images/Al-Khalija/Al Madina/Al_Madina_centre_multimodal_embarquement.webp', personsVides: true }
           },
-          desc: "TGV doré, taxis vert et or, service des VIP. Chambellan Al-Transit accueille selon votre rang. Le protocole est une religion.",
-          persons: [{"name": "Chambellan Al-Transit (PNJ)", "role": "Directeur du Hub", "rel": "neutral", "job": "chef_gare"}, {"name": "Yasmine Embarquement (PNJ)", "role": "Hôtesse royale", "rel": "neutral", "job": "hotesse"}],
+          desc: "TGV doré, taxis vert et or, service des VIP. Youssef Safar renseigne les voyageurs selon le protocole. Le protocole est une religion.",
+          persons: [{"name": "Youssef Safar (PNJ)", "role": "Référent transport", "rel": "neutral", "job": "chef_gare", "genre": "H"}],
           rooms: {
           'hall_gare': {
             name: "Hall Principal — Hub Royal",
-            desc: "TGV doré, taxis vert et or, service des VIP. Chambellan Al-Transit accueille selon votre rang. Le protocole est une religion.",
-            persons: [{"name": "Chambellan Al-Transit (PNJ)", "role": "Directeur du Hub", "rel": "neutral", "job": "chef_gare"}, {"name": "Yasmine Embarquement (PNJ)", "role": "Hôtesse royale", "rel": "neutral", "job": "hotesse"}]
+            desc: "TGV doré, taxis vert et or, service des VIP. Youssef Safar renseigne les voyageurs selon le protocole. Le protocole est une religion.",
+            persons: [{"name": "Youssef Safar (PNJ)", "role": "Référent transport", "rel": "neutral", "job": "chef_gare", "genre": "H"}]
           },
           'hall_douanes': {
             name: "Contrôle Douanier Royal",
-            desc: "Le contrôle douanier royal. Le Chambellan Al-Transit incline la tête. Vos papiers sont vérifiés selon le protocole royal.",
-            persons: [{"name": "Chambellan Al-Transit (PNJ)", "role": "Inspecteur royal", "rel": "neutral", "job": "douanier"}]
+            desc: "Le contrôle douanier royal. Vos papiers sont vérifiés selon le protocole royal.",
+            persons: []
           },
           'zone_embarquement': {
             name: "Terminal Royal d\\'Embarquement",
             desc: "Le terminal d\\'embarquement royal. Vols vers les 4 empires. Service VIP disponible.",
-            persons: [{"name": "Yasmine Embarquement (PNJ)", "role": "Hôtesse royale", "rel": "neutral", "job": "hotesse"}]
+            persons: []
           }
           }
         },        'commissariat': {

@@ -122,6 +122,7 @@ ligne trouvée fausse se corrige ici.
 | Prêts | Prêts bancaires, mensualités, saisies. | Mixte | Banques et taux. |
 | Fiscalité | Taxes locales et nationales, recettes, répartition. | Mixte | Déclarer le circuit national de l'empire. |
 | Budgets publics | Budgets nationaux, municipaux, des clubs. | Mixte | Institutions et répartitions. |
+| Paiement réel (premium) | (28/11/2026) Euros par Stripe : France et UE en Stripe classique (l'éditeur vend, franchise de TVA, mention 293 B), reste du monde en Managed Payments (Stripe vend) ; mode décidé par la base selon le pays de Vercel (`premium_paiement_contexte_service`, réglage `paiement_mp_pour_ue`) ; prix de la base, consentements CGV et rétractation enregistrés, confirmation par le seul webhook signé ; abonnements mensuel et annuel, résiliation en fin de période, remboursement 14 jours, rappel annuel (cron). Fermé tant que les clés Stripe manquent. Détails : `docs/premium/PAIEMENT-STRIPE-20261128.md`. | Serveur | Rien : commun (prix MJ). |
 
 ### Territoire
 
@@ -237,6 +238,12 @@ serveur.
 **À noter** : le dépôt définit quatre empires à trois villes (Républia, El Estado, Sovarka,
 Al-Khalija) ; la structure à huit empires (quatre non payants, quatre pay-to-win) voulue par
 Fred n'y figure pas encore.
+
+**Ambiances visuelles (doctrine de Fred, 28/11/2026 : 4 empires, 4 ambiances)** : variables de couleur posées sur
+`body.empire-<pays>` dans `style.css` (classe mise par `plateau-navigation.js`). Républia : noir profond et or ;
+El Estado : vert olive militaire et or doux ; Sovarka : gris acier et rouge ; Al-Khalija : brun chaud, bronze et or,
+le turquoise (#4f9594) n'y restant qu'en touche secondaire (barre des PA, onglet actif du journal). Banc :
+`outils/bancs/banc-couleurs-empires-20261128.cjs`.
 
 *Tenir ce fichier à jour à chaque mécanique ajoutée, retirée ou passée au serveur.*
 

@@ -93,7 +93,7 @@
     if (!d) { c.querySelector('.hg-premium').innerHTML = h + '<p><strong>' + esc(t('indisponible')) + '</strong></p>'; return; }
     if (d.beta) h += '<p><strong>' + esc(t('beta')) + '</strong></p>';
     if (d.abonne) h += '<p>' + esc(d.semaine && d.semaine.renouvellement_inclus_utilise ? t('semaineUtilisee') : t('semaineLibre')) + '</p>';
-    const ordre = ['commerce_premium', 'bureau_six', 'personnalisation_local', 'publicite_joueur', 'renouvellement_image', 'abonnement_mensuel'];
+    const ordre = ['commerce_premium', 'bureau_six', 'personnalisation_local', 'publicite_joueur', 'renouvellement_image', 'abonnement_mensuel', 'abonnement_annuel'];
     const produits = (d.produits || []).filter(p => ordre.includes(p.produit)).sort((a, b) => ordre.indexOf(a.produit) - ordre.indexOf(b.produit));
     for (const p of produits) {
       const e = etatProduit(d, p);
@@ -106,8 +106,14 @@
     h += '<p><button type="button" data-premium-pubs>' + esc(t('pubJoueurs')) + '</button></p><div id="premium-retour" role="status"></div>';
     const zone = c.querySelector('.hg-premium');
     zone.innerHTML = h;
-    zone.querySelectorAll('[data-premium-acheter]').forEach(b => b.addEventListener('click', () =>
-      commander(b.getAttribute('data-premium-acheter'), b.getAttribute('data-premium-acheter') === focus ? cible : null)));
+    zone.querySelectorAll('[data-premium-acheter]').forEach(b => b.addEventListener('click', () => {
+      const code = b.getAttribute('data-premium-acheter'), c2 = code === focus ? cible : null;
+      // Paiement (28/11/2026) : écran de confirmation (vendeur, CGV, renonciation au droit de rétractation) de plateau-paiement.js.
+      if (window.RPPaiement && typeof window.RPPaiement.confirmerAchat === 'function') {
+        window.RPPaiement.confirmerAchat(code, c2, produits.find(x => x.produit === code)); return;
+      }
+      commander(code, c2);
+    }));
     const pb = zone.querySelector('[data-premium-pubs]');
     if (pb) pb.addEventListener('click', ouvrirPublicitesJoueur);
   }
