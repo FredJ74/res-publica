@@ -87,6 +87,7 @@ ligne trouvée fausse se corrige ici.
 | Intérim des PNJ | Un PNJ tient un poste vacant en attendant un joueur. | Mixte | Noms et portraits des titulaires PNJ. |
 | Dialogues des PNJ | Conversations des PNJ par DeepSeek, avec fiches de personnalité. | Serveur | Fiches de personnalité, bibles de contexte. |
 | Indices | Sécurité, économie, social, piété, moral par ville ; Indice Diplomatique par pays. | Mixte | Valeurs de départ. |
+| Textes juridiques et compte | Accord aux CGU et à la confidentialité (version en vigueur, 16 ans), ré-acceptation, export des données, suppression du compte, signalements et sanctions notifiées, comptes inactifs (28/11/2026, voir « Textes juridiques »). | Serveur | Rien : commun. |
 
 ### Vie du personnage
 
@@ -210,6 +211,53 @@ ligne trouvée fausse se corrige ici.
 | Ambassades | Ouverture, ambassadeur, audience, asile, réception, mécénat. | Serveur | Ambassades et ambassadeurs PNJ. |
 | Diplomatie et guerres | Indice Diplomatique, propositions, traités, guerres, trêves. | Serveur | Rien : commun. |
 | Voyage entre empires | Existe entre Républia et Sovarka (relevé du 27/11/2026) : `transport_effectuer` en **avion** (depuis la zone d'embarquement du centre multimodal, après le contrôle douanier) ou en **bateau** (depuis le quai d'un port), vers la capitale de l'autre pays ; le groupe voyage avec son chef. `personnages_donnees.country` est le pays où l'on se trouve, `personnage_nationalite()` la nationalité. Les villes d'El Estado et d'Al-Khalija sont fermées par `frontieres_fermees` (`frontieres_fermees_v1` : refus de `transport_effectuer` et déclencheur `zz_frontiere_fermee_garder`). Branché dessus : transfert d'un détenu entre ambassades (27/11/2026). | Serveur | Retirer ses villes de `frontieres_fermees` à l'ouverture. |
+
+## Textes juridiques, accords et compte (28/11/2026)
+
+Intégration seule : les textes définitifs seront fournis plus tard. Migrations `20261128130000_juridique_accords_comptes`
+et `20261128131000_juridique_blocage_interrupteur` (appliquées en production le 28/11/2026).
+
+- **Fichiers** : `juridique/<langue>/<texte>.md` (9 langues × `mentions-legales`, `cgu` — charte de conduite en annexe —,
+  `cgv`, `confidentialite`), en-tête `texte` / `version` / `date`. Lus par `juridique.html?texte=…&lang=…` (Markdown
+  minimal, tout le reste échappé) ; la version française fait foi (rappel sur chaque traduction). `.vercelignore` exclut
+  les `.md` sauf `!juridique/**/*.md` ; `vercel-ignore-build.cjs` tolère cette seule négation et recompile pour ces fichiers.
+- **Registre serveur** : table `juridique_versions` (texte, version, date de publication, `importante`). Version en vigueur
+  = la plus récente déjà publiée. Un accord (`juridique_accords` : compte, texte, version, langue, 16 ans, date) ne
+  peut viser qu'une version réelle (clé étrangère). Accepter = `juridique_accepter(langue, true)` : CGU + confidentialité.
+  Miroir dans le dépôt : `juridique/versions.json` (le banc vérifie l'accord entre fichiers, miroir et migration).
+- **Publier une nouvelle version** (Claude ou Fred) : (1) remplacer le texte des 9 fichiers `juridique/<langue>/<texte>.md`
+  et leur en-tête (`version`, `date`) ; (2) mettre à jour `juridique/versions.json` ; (3) migration dans la plage du jour :
+  `INSERT INTO public.juridique_versions (texte, version, publie_le, importante, note) VALUES ('cgu', '1.0', DATE '…', true, '…');`
+  — `importante = true` déclenche la fenêtre de ré-acceptation pour tous les comptes (et le blocage des ordres tant
+  qu'ils n'ont pas accepté) ; `false` pour une correction mineure. Une date future prépare la version sans l'activer.
+- **Premier ordre bloqué** : `payer_ordre_interne` (marque `juridique_accord_v1`) appelle `juridique_ordre_refus_interne` :
+  `compte_suspendu` pendant une suspension de modération, `conditions_a_accepter` tant que la dernière version
+  importante des CGU ou de la confidentialité n'est pas acceptée. Jamais pour un PNJ (sans compte), un compte de test
+  (`est_compte_test`), un administrateur ou un appel du serveur. **Interrupteur** `juridique_parametres.blocage_ordres`
+  (éteint à l'application) : à allumer après le déploiement de l'écran —
+  `UPDATE public.juridique_parametres SET valeur = true, modifie_le = now() WHERE cle = 'blocage_ordres';`.
+  Les joueurs déjà inscrits n'ont aucun accord : la fenêtre de ré-acceptation s'ouvre à leur connexion.
+- **Écran** : `juridique-client.js` (9 langues, `window.RPJuridique`) — case non cochée à l'étape « Récapitulatif » de la
+  création (`creation.js` enregistre l'accord avant `sbCreerPersonnageInitial`), pied de l'accueil, onglet « Informations
+  légales » de l'Aide, fenêtre de ré-acceptation (`juridique_etat` au chargement du plateau, refus commun dans
+  `supabase.js`), fenêtres des sanctions, bloc « Mon compte et mes données » de la fiche (identité).
+- **Export** : `mes_donnees_exporter()` (compte connecté seulement) → fichier JSON.
+- **Suppression du compte** : `compte_suppression_demander()`, puis destruction du personnage par la succession
+  existante (`rpDetruirePersonnageParSuccession`, plateau-personnage.js, qui libère d'abord les nuitées d'hôtel par
+  `personnage_suppression_liens_liberer`), puis `compte_suppression_finaliser()` : forum signé « Ancien joueur »
+  (`compte_anonymiser_forum_interne`), compte supprimé (ou vidé et fermé si un achat ou un décor s'y rattache).
+  Journal : `comptes_suppressions`. Les traces du goulag (`sovarka_goulag_*`, clés sans cascade) bloquent encore la suppression.
+- **Signalements** : `contenu_signaler('nom'|'image', …)` dans `signalements_messages` (même file que les messages,
+  `admin-signalements.js`) ; boutons sur la fiche publique (forum.js) et sur les décors de commerce et de logement.
+  **Sanctions** : `admin_sanction_prononcer` (avertissement, retrait, suspension en jours), notifiées par un courrier
+  « Modération » dans la langue du compte (règle, contenu, durée, contestation à contact@human-gambit.com) et par
+  une fenêtre à la connexion (`sanction_vue`) ; `admin_sanction_lever`, `admin_sanctions_lire`.
+- **Comptes inactifs (3 ans)** : `api/_comptes-inactifs.js`, appelé par `api/cron-minuit.js` (étape 8b). Activité =
+  création, dernière connexion, dernier chargement du plateau (`comptes_activite`). Avertissement à 3 ans moins 1 mois
+  par `api/_courriel.js` (Resend, variables `RESEND_API_KEY` et `COURRIEL_EXPEDITEUR` ; **sans elles, rien ne part et
+  rien n'est supprimé**), noté seulement s'il est parti ; suppression au plus tôt 30 jours après
+  (`compte_inactif_supprimer` : succession côté serveur `compte_succession_serveur_interne`, forum, compte).
+- Banc : `outils/bancs/banc-textes-juridiques-20261128.cjs`.
 
 ## Coder un nouvel empire
 

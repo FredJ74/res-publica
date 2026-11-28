@@ -1285,6 +1285,21 @@ async function validateChar(){
     document.getElementById('s8')?.prepend(notice);
     return;
   }
+  // ACCORD JURIDIQUE (Fred, 28/11/2026) : case « J'ai lu et j'accepte les CGU et la politique de confidentialite, et
+  // j'ai au moins 16 ans », non cochee par defaut. La case est verifiee ICI, sans attente, avant le verrou de creation
+  // (le chemin de creation reste strictement identique) ; l'accord est enregistre par le serveur juste apres la
+  // creation reussie. S'il echouait, la fenetre de re-acceptation le redemande a la connexion, et payer_ordre_interne
+  // refuse les ordres payants tant qu'il manque.
+  if (window.RPJuridique && typeof window.RPJuridique.caseCochee === 'function') {
+    const caseJuridique = window.RPJuridique.caseCochee();
+    if (!caseJuridique.ok) {
+      const notice=document.getElementById('creation-erreur')||document.createElement('div');
+      notice.id='creation-erreur';notice.setAttribute('role','alert');
+      notice.textContent=caseJuridique.message||'Cochez la case pour continuer.';
+      document.getElementById('s8')?.prepend(notice);
+      return;
+    }
+  }
   // CREATION NON DESTRUCTRICE (chantier B, 14 septembre 2026).
   // Jusqu'ici cette fonction ecrivait le personnage sans attendre le resultat, par un chemin
   // qui faisait un PATCH si le nom etait deja pris : saisir le nom d'un joueur existant
@@ -1555,6 +1570,10 @@ async function validateChar(){
     }
   }
   catch(e){ console.warn('localStorage non disponible'); }
+  if (window.RPJuridique && typeof window.RPJuridique.accepterCreation === 'function') {
+    const accord = await window.RPJuridique.accepterCreation().catch(() => ({ ok: false }));
+    if (!accord || !accord.ok) console.warn('[creation] accord juridique non enregistre ; il sera redemande a la connexion.');
+  }
   goTo(9);
 }
 

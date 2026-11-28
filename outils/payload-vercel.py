@@ -50,9 +50,15 @@ def charger_exclusions(chemin):
             if not ligne or ligne.startswith("#"):
                 continue
             if ligne.startswith("!"):
-                raise SystemExit("payload-vercel : la negation « %s » n'est pas geree par ce "
-                                 "simulateur. Ajoute-la ici avant de l'utiliser dans "
-                                 ".vercelignore." % ligne)
+                # Negation (re-inclusion) : seule la forme « !dossier/**/*.ext » est geree, comme
+                # gitignore : la DERNIERE regle qui correspond l'emporte. Toute autre forme refusee.
+                corps = ligne[1:].strip("/")
+                if "/**/" not in corps or corps.startswith("**"):
+                    raise SystemExit("payload-vercel : la negation « %s » n'est pas geree par ce "
+                                     "simulateur. Ajoute-la ici avant de l'utiliser dans "
+                                     ".vercelignore." % ligne)
+                motifs.append(("reinclure", corps))
+                continue
             if ligne.endswith("/"):
                 motifs.append(("repertoire", ligne.rstrip("/").lstrip("/")))
             elif ligne.startswith("**/"):
@@ -68,23 +74,36 @@ def charger_exclusions(chemin):
 
 
 def exclu(chemin, motifs):
+    # Comme gitignore, la derniere regle qui correspond l'emporte (utile pour les negations).
+    resultat = None
+    for genre, motif in motifs:
+        if genre == "reinclure":
+            import fnmatch
+            tete, queue = motif.split("/**/", 1)
+            if chemin.startswith(tete + "/") and fnmatch.fnmatch(os.path.basename(chemin), queue):
+                resultat = None
+        elif _exclu_un(chemin, genre, motif):
+            resultat = motif
+    return resultat
+
+
+def _exclu_un(chemin, genre, motif):
     nom = os.path.basename(chemin)
     morceaux = chemin.split("/")
-    for genre, motif in motifs:
-        if genre == "repertoire":
-            tete = motif.split("/")
-            if morceaux[:len(tete)] == tete:
-                return motif
-        elif genre == "nom":
-            if nom == motif:
-                return motif
-        elif genre == "chemin":
-            if chemin == motif or chemin.startswith(motif + "/"):
-                return motif
-        elif genre == "glob":
-            import fnmatch
-            if fnmatch.fnmatch(nom, motif):
-                return motif
+    if genre == "repertoire":
+        tete = motif.split("/")
+        if morceaux[:len(tete)] == tete:
+            return motif
+    elif genre == "nom":
+        if nom == motif:
+            return motif
+    elif genre == "chemin":
+        if chemin == motif or chemin.startswith(motif + "/"):
+            return motif
+    elif genre == "glob":
+        import fnmatch
+        if fnmatch.fnmatch(nom, motif):
+            return motif
     return None
 
 

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#172b3c">
+<title>Human Gambit — Informations légales</title>
+<link rel="stylesheet" href="style.css?v=juridique-20261128">
+<style>body{background:#172b3c;margin:0;font-family:'Crimson Pro',Georgia,serif}</style>
+</head>
+<body>
+<!-- Textes juridiques (Fred, 28/11/2026). Lit juridique/<langue>/<texte>.md : en-tête « version » et « date », puis le texte.
+     La version française fait foi ; une traduction le rappelle et renvoie au texte français. -->
+<main class="hg-juridique-page" id="hg-juridique-page">
+  <p id="hg-juridique-nav"></p>
+  <div class="hg-juridique-entete" id="hg-juridique-entete"></div>
+  <article id="hg-juridique-texte" dir="auto"></article>
+  <p class="cpj-note" id="hg-juridique-pied"></p>
+</main>
+<script src="juridique-client.js?v=20261128"></script>
+<script>
+(function () {
+  'use strict';
+  const J = window.RPJuridique;
+  const params = new URLSearchParams(location.search);
+  const texte = J.TEXTES.includes(params.get('texte')) ? params.get('texte') : 'cgu';
+  const lg = J.LANGUES.includes(params.get('lang')) ? params.get('lang') : J.langue();
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, k => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[k]));
+  document.documentElement.lang = lg;
+  document.documentElement.dir = lg === 'ar' ? 'rtl' : 'ltr';
+  document.title = 'Human Gambit — ' + J.titre(texte, lg);
+  document.getElementById('hg-juridique-nav').innerHTML = '<a href="plateau.html">' + esc(J.tr('retourJeu', null, lg)) + '</a> · ' + J.htmlLiens(lg).replace(/ target="_blank" rel="noopener"/g, '');
+  document.getElementById('hg-juridique-texte').textContent = J.tr('chargement', null, lg);
+  // Markdown minimal et sûr : titres, paragraphes, listes, gras, italique, liens http(s)/mailto. Tout le reste est échappé.
+  function enLigne(s) {
+    return esc(s).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\*(.+?)\*/g, '<em>$1</em>')
+      .replace(/\[([^\]]+)\]\(((?:https?:\/\/|mailto:)[^)\s]+)\)/g, '<a href="$2" rel="noopener">$1</a>');
+  }
+  function rendre(md) {
+    const lignes = md.split(/\r?\n/); let html = '', liste = false, para = [];
+    const finPara = () => { if (para.length) { html += '<p>' + enLigne(para.join(' ')) + '</p>'; para = []; } };
+    const finListe = () => { if (liste) { html += '</ul>'; liste = false; } };
+    for (const l of lignes) {
+      const m = /^(#{1,4})\s+(.*)$/.exec(l);
+      if (m) { finPara(); finListe(); const n = Math.min(4, m[1].length + 1); html += '<h' + n + '>' + enLigne(m[2]) + '</h' + n + '>'; continue; }
+      const li = /^\s*[-*]\s+(.*)$/.exec(l);
+      if (li) { finPara(); if (!liste) { html += '<ul>'; liste = true; } html += '<li>' + enLigne(li[1]) + '</li>'; continue; }
+      if (!l.trim()) { finPara(); finListe(); continue; }
+      finListe(); para.push(l.trim());
+    }
+    finPara(); finListe();
+    return html;
+  }
+  function entete(md) {
+    const m = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/.exec(md);
+    const meta = {};
+    if (m) for (const l of m[1].split(/\r?\n/)) { const k = /^(\w[\w-]*):\s*(.*)$/.exec(l); if (k) meta[k[1]] = k[2].trim(); }
+    return { meta, corps: m ? md.slice(m[0].length) : md };
+  }
+  fetch('juridique/' + encodeURIComponent(lg) + '/' + texte + '.md', { cache: 'no-cache' })
+    .then(r => { if (!r.ok) throw Error('HTTP ' + r.status); return r.text(); })
+    .then(md => {
+      const { meta, corps } = entete(md);
+      document.getElementById('hg-juridique-entete').textContent = J.tr('versionLigne', { v: meta.version || '?', d: J.dateLocale(meta.date, lg) }, lg);
+      document.getElementById('hg-juridique-texte').innerHTML = rendre(corps);
+      document.getElementById('hg-juridique-pied').innerHTML = lg === 'fr' ? esc(J.tr('foi', null, 'fr'))
+        : esc(J.tr('traduction', null, lg)) + ' <a href="' + esc(J.lien(texte, 'fr')) + '">' + esc(J.tr('lireFr', null, lg)) + '</a>';
+    })
+    .catch(() => { document.getElementById('hg-juridique-texte').textContent = J.tr('introuvable', null, lg); });
+})();
+</script>
+</body>
+</html>

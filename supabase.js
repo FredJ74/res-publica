@@ -5472,6 +5472,11 @@ async function sbTransportRpcBrut(fn, params, options) {
         && typeof window !== 'undefined' && typeof window.rpResynchroniserEtat === 'function') {
       try { window.rpResynchroniserEtat('refus:' + v.raison); } catch (_) {}
     }
+    // Textes juridiques (Fred, 28/11/2026) : CGU à accepter ou compte suspendu (payer_ordre_interne) -> fenêtre commune.
+    if (v && v.ok === false && (v.raison === 'conditions_a_accepter' || v.raison === 'compte_suspendu')
+        && typeof window !== 'undefined' && typeof window.rpJuridiqueRefus === 'function') {
+      try { window.rpJuridiqueRefus(v); } catch (_) {}
+    }
     // Garde-fous des personnages mineurs (Fred, 20/11/2026) : refus neutre, même point d'écoute.
     if (v && (v.raison === 'action_non_disponible' || v.raison === 'personnage_mineur_carriere_unique')
         && typeof window !== 'undefined' && typeof window.rpActionNonDisponible === 'function') {

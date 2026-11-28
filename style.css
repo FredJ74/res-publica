@@ -2842,3 +2842,16 @@ textarea.cpj-champ,input[type="text"].cpj-champ{text-align:start}
 .hg-cond-ko .hg-cond-marque,.hg-cond-ko .hg-cond-texte{color:#e07a6a}
 .hg-cond-lu{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .hg-cand-avertir{color:#e07a6a}
+/* Textes juridiques, compte et pied de l'accueil (Fred, 28/11/2026, juridique-client.js) */
+.hg-juridique-compte{margin-top:1.4rem;padding-top:.8rem;border-top:1px solid #a98d56}
+.hg-juridique-boite a,.hg-juridique-aide a,.hg-juridique-compte a,.hg-juridique-case a{color:#e5c477}
+.hg-juridique-boite dt{font-weight:600;margin-top:.35rem}
+.hg-juridique-boite dd{margin:0 0 .2rem}
+.hg-pied-juridique{margin-top:1rem;font-size:.78rem;line-height:1.7;text-align:center;color:#e2e9f1;opacity:.85}
+.hg-pied-juridique a{color:#e5c477;text-decoration:none}
+.hg-pied-juridique a:hover{text-decoration:underline}
+.hg-juridique-page{max-width:760px;margin:0 auto;padding:1.5rem 16px 3rem;color:#e2e9f1;line-height:1.7}
+.hg-juridique-page a{color:#e5c477}
+.hg-juridique-page .hg-juridique-entete{color:#aab8c8;font-size:.85rem;border-bottom:1px solid #a98d56;padding-bottom:.5rem;margin-bottom:1rem}
+.hg-juridique-signal-decor{position:absolute;right:.5rem;bottom:.5rem;z-index:3;opacity:.75}
+.hg-juridique-signal-decor:hover{opacity:1}

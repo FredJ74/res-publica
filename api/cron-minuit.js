@@ -15,6 +15,7 @@ import { genererToutesLesEditions } from './_journal-generation.js';
 import { appelDeepSeek, cleConfiguree, classerEchecFournisseur } from './_deepseek.js';
 import { recopierImagesForumExterieures } from './_forum-images-externes.js';   // Forum : images extérieures (22/11/2026)
 import { envoyerRappelsAnnuels } from './_paiement.js';   // Paiement : rappel des abonnements annuels (28/11/2026)
+import { traiterComptesInactifs } from './_comptes-inactifs.js';   // Comptes inactifs depuis 3 ans (28/11/2026)
 
 // REFERENTIELS DU JEU -- IMPORTES, PLUS RECOPIES (chantier 4B, 6 octobre 2026).
 //
@@ -6576,6 +6577,10 @@ export default async function handler(req, res) {
     // Jamais bloquant : sans service d'e-mail configuré, rien n'est envoyé ni noté (les rappels de Stripe restent actifs).
     const rappelsAbonnements = await envoyerRappelsAnnuels().catch(e => ({ ok: false, raison: String(e && e.message || e) }));
     if (rappelsAbonnements && rappelsAbonnements.ok === false && rappelsAbonnements.raison !== 'courriel_inactif') console.warn('[cron] rappels abonnements', rappelsAbonnements.raison);
+    // 8c. Comptes inactifs depuis 3 ans (Fred, 28/11/2026) : e-mail d'avertissement un mois avant, puis suppression.
+    const comptesInactifs = await traiterComptesInactifs({ rpc: (fn, p) => sbRpc(fn, p, HEADERS_SERVICE) })
+      .catch(e => ({ ok: false, raison: String(e && e.message || e) }));
+    if (!comptesInactifs || comptesInactifs.ok !== true || (comptesInactifs.echecs || []).length) signalerEchec('comptes_inactifs', JSON.stringify(comptesInactifs).slice(0, 300));
 
     // 9. Mensualites des prets bancaires (a heure fixe, que le joueur dorme ou non)
     const prets = await preleverPretsBancairesServeur();
@@ -6873,7 +6878,7 @@ export default async function handler(req, res) {
     // alerter -- un console.error, non. Le corps reste identique par ailleurs : tout ce qui a
     // abouti est conserve et documente, rien n'est annule. Le rejeu qui suivra est sur, chaque
     // tache financiere portant desormais son marqueur de journee (voir tacheQuotidienne).
-    const corps = { ok: ECHECS_PASSE.length === 0, traites: results.length, details: results, echecs: ECHECS_PASSE, nbEchecs: ECHECS_PASSE.length, detentionsLiberees, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, cascadeMunicipale, subventionsExpirees, delaisJudiciaires, convocationsTemoins, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, permis, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, productionSovarka, commerceInternational, entrepotsSovarka, urbanismeSovarka, herosTravail, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, effortDeGuerre, journalDuJour, detentionsPnj, cellulesRenseignement, collecteAgents, rapportsCellules, payeDouane, syncGloireSovarka, bonsEtatSovarka, ecoutesSovarka, pouvoirSovarka, releveDouaneAeroport, payePolice, bataillesEchues, affectationsExpirees, candidaturesRelancees, naturalisations, partisPresidence, mairesDeparts, controleGoulag };
+    const corps = { ok: ECHECS_PASSE.length === 0, traites: results.length, details: results, echecs: ECHECS_PASSE, nbEchecs: ECHECS_PASSE.length, detentionsLiberees, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, cascadeMunicipale, subventionsExpirees, delaisJudiciaires, convocationsTemoins, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, permis, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, productionSovarka, commerceInternational, entrepotsSovarka, urbanismeSovarka, herosTravail, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, effortDeGuerre, journalDuJour, detentionsPnj, cellulesRenseignement, collecteAgents, rapportsCellules, payeDouane, syncGloireSovarka, bonsEtatSovarka, ecoutesSovarka, pouvoirSovarka, releveDouaneAeroport, payePolice, bataillesEchues, affectationsExpirees, candidaturesRelancees, naturalisations, partisPresidence, mairesDeparts, comptesInactifs, controleGoulag };
     if (ECHECS_PASSE.length > 0) {
       console.error('[cron-minuit] PASSE INCOMPLETE : ' + ECHECS_PASSE.length + ' etape(s) en echec -> ' + ECHECS_PASSE.map(e => e.etape).join(', '));
       await journaliserCron('_passe', jourPasse, 'echec',
