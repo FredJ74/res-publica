@@ -4641,6 +4641,145 @@
   }
 };
   for(const [locale,labels] of Object.entries(modalOrders)) Object.assign(words[locale],labels);
+  // Capitales en teaser (Claude, 28/11/2026) : gestes des hôtels de Ciudad Roja et d'Al Madina, douane de Ciudad Roja.
+  const ordresTeaser={
+    "fr": {
+      "cr_nager": "Nager dans la piscine",
+      "cr_tennis": "Jouer au tennis",
+      "cr_pourboire": "Donner un pourboire",
+      "cr_billet_douaniers": "Donner un billet aux douaniers",
+      "am_the_menthe": "Thé à la menthe",
+      "am_patisseries": "Pâtisseries orientales",
+      "am_jus_fruits": "Jus de fruits frais",
+      "am_the_special": "Demander un thé spécial",
+      "am_narguile": "Fumer un narguilé",
+      "am_cafe_arabe": "Boire un café arabe",
+      "am_bain_vapeur": "Bain de vapeur",
+      "am_secret_contre_secret": "Secret contre secret",
+      "am_backgammon": "Backgammon"
+    },
+    "en": {
+      "cr_nager": "Swim in the pool",
+      "cr_tennis": "Play tennis",
+      "cr_pourboire": "Give a tip",
+      "cr_billet_douaniers": "Slip the customs officers a bill",
+      "am_the_menthe": "Mint tea",
+      "am_patisseries": "Oriental pastries",
+      "am_jus_fruits": "Fresh fruit juice",
+      "am_the_special": "Ask for a special tea",
+      "am_narguile": "Smoke a hookah",
+      "am_cafe_arabe": "Drink an Arabic coffee",
+      "am_bain_vapeur": "Steam bath",
+      "am_secret_contre_secret": "Secret for a secret",
+      "am_backgammon": "Backgammon"
+    },
+    "es": {
+      "cr_nager": "Nadar en la piscina",
+      "cr_tennis": "Jugar al tenis",
+      "cr_pourboire": "Dar una propina",
+      "cr_billet_douaniers": "Dar un billete a los aduaneros",
+      "am_the_menthe": "Té a la menta",
+      "am_patisseries": "Pasteles orientales",
+      "am_jus_fruits": "Zumo de fruta natural",
+      "am_the_special": "Pedir un té especial",
+      "am_narguile": "Fumar una cachimba",
+      "am_cafe_arabe": "Tomar un café árabe",
+      "am_bain_vapeur": "Baño de vapor",
+      "am_secret_contre_secret": "Secreto por secreto",
+      "am_backgammon": "Backgammon"
+    },
+    "zh-TW": {
+      "cr_nager": "在泳池游泳",
+      "cr_tennis": "打網球",
+      "cr_pourboire": "給小費",
+      "cr_billet_douaniers": "塞鈔票給海關",
+      "am_the_menthe": "薄荷茶",
+      "am_patisseries": "東方糕點",
+      "am_jus_fruits": "鮮榨果汁",
+      "am_the_special": "點一壺特製茶",
+      "am_narguile": "抽水煙",
+      "am_cafe_arabe": "喝阿拉伯咖啡",
+      "am_bain_vapeur": "蒸氣浴",
+      "am_secret_contre_secret": "以秘密換秘密",
+      "am_backgammon": "雙陸棋"
+    },
+    "ru": {
+      "cr_nager": "Поплавать в бассейне",
+      "cr_tennis": "Сыграть в теннис",
+      "cr_pourboire": "Дать чаевые",
+      "cr_billet_douaniers": "Сунуть купюру таможенникам",
+      "am_the_menthe": "Мятный чай",
+      "am_patisseries": "Восточные сладости",
+      "am_jus_fruits": "Свежевыжатый сок",
+      "am_the_special": "Попросить особый чай",
+      "am_narguile": "Покурить кальян",
+      "am_cafe_arabe": "Выпить арабский кофе",
+      "am_bain_vapeur": "Паровая баня",
+      "am_secret_contre_secret": "Тайна за тайну",
+      "am_backgammon": "Нарды"
+    },
+    "ko": {
+      "cr_nager": "수영장에서 수영하기",
+      "cr_tennis": "테니스 치기",
+      "cr_pourboire": "팁 주기",
+      "cr_billet_douaniers": "세관원에게 지폐 건네기",
+      "am_the_menthe": "민트차",
+      "am_patisseries": "중동식 페이스트리",
+      "am_jus_fruits": "생과일주스",
+      "am_the_special": "특별한 차 주문하기",
+      "am_narguile": "물담배 피우기",
+      "am_cafe_arabe": "아랍 커피 마시기",
+      "am_bain_vapeur": "증기욕",
+      "am_secret_contre_secret": "비밀 대 비밀",
+      "am_backgammon": "백개먼"
+    },
+    "ar": {
+      "cr_nager": "السباحة في المسبح",
+      "cr_tennis": "لعب التنس",
+      "cr_pourboire": "إعطاء بقشيش",
+      "cr_billet_douaniers": "دسّ ورقة نقدية لموظفي الجمارك",
+      "am_the_menthe": "شاي بالنعناع",
+      "am_patisseries": "حلويات شرقية",
+      "am_jus_fruits": "عصير فواكه طازج",
+      "am_the_special": "طلب شاي خاص",
+      "am_narguile": "تدخين الأرجيلة",
+      "am_cafe_arabe": "شرب قهوة عربية",
+      "am_bain_vapeur": "حمّام بخار",
+      "am_secret_contre_secret": "سرّ مقابل سرّ",
+      "am_backgammon": "طاولة الزهر"
+    },
+    "pt-BR": {
+      "cr_nager": "Nadar na piscina",
+      "cr_tennis": "Jogar tênis",
+      "cr_pourboire": "Dar uma gorjeta",
+      "cr_billet_douaniers": "Passar uma nota aos fiscais da alfândega",
+      "am_the_menthe": "Chá de hortelã",
+      "am_patisseries": "Doces orientais",
+      "am_jus_fruits": "Suco de frutas fresco",
+      "am_the_special": "Pedir um chá especial",
+      "am_narguile": "Fumar narguilé",
+      "am_cafe_arabe": "Tomar um café árabe",
+      "am_bain_vapeur": "Banho de vapor",
+      "am_secret_contre_secret": "Segredo por segredo",
+      "am_backgammon": "Gamão"
+    },
+    "de": {
+      "cr_nager": "Im Pool schwimmen",
+      "cr_tennis": "Tennis spielen",
+      "cr_pourboire": "Trinkgeld geben",
+      "cr_billet_douaniers": "Den Zöllnern einen Schein zustecken",
+      "am_the_menthe": "Minztee",
+      "am_patisseries": "Orientalisches Gebäck",
+      "am_jus_fruits": "Frischer Fruchtsaft",
+      "am_the_special": "Einen besonderen Tee bestellen",
+      "am_narguile": "Wasserpfeife rauchen",
+      "am_cafe_arabe": "Arabischen Kaffee trinken",
+      "am_bain_vapeur": "Dampfbad",
+      "am_secret_contre_secret": "Geheimnis gegen Geheimnis",
+      "am_backgammon": "Backgammon"
+    }
+  };
+  for(const [locale,labels] of Object.entries(ordresTeaser)) Object.assign(words[locale],labels);
   for(const [locale,labels] of Object.entries(words)) {
     if(resources[locale]?.translation) resources[locale].translation.orders={...labels};
   }
