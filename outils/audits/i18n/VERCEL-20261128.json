@@ -1,0 +1,12 @@
+{
+  "id": "dpl_DD7apg9giHpkkR6iUE8RSgSmcfAg",
+  "commit": "1477db72e2603d9d615dd70384bd8bd4a37495d4",
+  "state": "READY",
+  "target": "production",
+  "alias": [
+    "human-gambit.com",
+    "www.human-gambit.com"
+  ],
+  "aliasError": null,
+  "verification": "Métadonnées Vercel et GET publics, aucune écriture en base."
+}

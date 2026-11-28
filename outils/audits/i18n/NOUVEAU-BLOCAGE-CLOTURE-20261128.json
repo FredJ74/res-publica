@@ -1,0 +1,68 @@
+{
+  "pr": 1216,
+  "revision_controlee": "66b558a8b1bfbe4b79c07bde9e2936a3d009828f",
+  "ci": 46087362319,
+  "jobs_en_echec": [
+    140800130533,
+    140801993094
+  ],
+  "banc": "banc-mobile-coque.cjs",
+  "cas": "L4 : création réelle dans les six langues",
+  "assertion": "création bureau 1440 identique",
+  "comparaison": "deux captures strictement égales",
+  "premier_passage": {
+    "verts": 10,
+    "rouges": 1
+  },
+  "relance_unique_inchangee": {
+    "verts": 10,
+    "rouges": 1
+  },
+  "rejeux_locaux_inchanges": {
+    "reussis": 2,
+    "echoues": 0
+  },
+  "autre_succes_ci_meme_banc": {
+    "pr": 1218,
+    "job": 140797355912
+  },
+  "sources": [
+    {
+      "fichier": "outils/bancs/banc-mobile-coque.cjs",
+      "identique_a_main": true,
+      "sha256": "3b19b65d6144771b5c1700b58ee13fc91f6a9089503d10874e2b6298f6f288a2"
+    },
+    {
+      "fichier": "outils/bancs/mobile-navigateur.cjs",
+      "identique_a_main": true,
+      "sha256": "cb73483961e997df9760e003c580b61ad9a8911e24f237fb8ca3dd659507d6fa"
+    },
+    {
+      "fichier": "index.html",
+      "identique_a_main": true,
+      "sha256": "40b8a0df90793b5480ce668dc53d3c7f21b494fcb85126c1c0a43bae3cc438d9"
+    },
+    {
+      "fichier": "creation.js",
+      "identique_a_main": true,
+      "sha256": "078adf33c7b2b4857b3b3d8d633b77ad7325a545235fdcae043bce43d6ff1dce"
+    },
+    {
+      "fichier": "style.css",
+      "identique_a_main": true,
+      "sha256": "f33c1600c29c54516481829d30c03f0ffd3123cc0b42501c3abd49d351de43a1"
+    }
+  ],
+  "correctif_existant_claude": {
+    "branche": "claude/banc-mobile-coque-fiable-20261128",
+    "commit": "c8ca3470",
+    "modification_par_codex": false
+  },
+  "cause_precise_des_pixels_differents": "Non établie ; attente fixe de 500 ms dans le banc actuel, branche Claude de synchronisation des captures existante. Aucune instabilité de Chromium ni défaut de production déduit.",
+  "ancien_blocage_seed": {
+    "resolu": true,
+    "pr": 1218,
+    "merge": "1477db72e2603d9d615dd70384bd8bd4a37495d4"
+  },
+  "fusion_1216": false
+}

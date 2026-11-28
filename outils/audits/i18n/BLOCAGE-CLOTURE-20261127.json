@@ -1,0 +1,303 @@
+{
+  "main": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+  "pr": 1216,
+  "ci": 46080019076,
+  "job": 140777008065,
+  "banc": "banc-controles-globaux-20261107.cjs",
+  "erreur": "Seed miroir différent du générateur : ordres_couts",
+  "reproduit_sur_main_intact": true,
+  "reproduit_sur_branche_documentaire": true,
+  "sources_identiques": [
+    {
+      "fichier": "data.js",
+      "identique_a_main": true,
+      "sha256": "e5affd50d291c91a0abea9cdcd060d3f8ed76edb4471005c5fe99cdbf788b48c"
+    },
+    {
+      "fichier": "baseline/seeds/95_a-regenerer/ordres_couts.sql",
+      "identique_a_main": true,
+      "sha256": "f7a05fa22e2d37f38715cf143d324cfe789019b2b1e8a9e5fbc8593f89e50d9c"
+    },
+    {
+      "fichier": "outils/generateurs/generer_ordres_couts.py",
+      "identique_a_main": true,
+      "sha256": "d24607f8ca9050fe76f76020c1b8eab68192385d3042c332578c8c2bae29e99e"
+    },
+    {
+      "fichier": "outils/generateurs/extraire-ordres-modules.cjs",
+      "identique_a_main": true,
+      "sha256": "af3c96de74109887eb2cc32780951cecb400ef8fade1b543f6da604e48e3fc25"
+    },
+    {
+      "fichier": "outils/baseline/regenerer-seeds-miroirs.py",
+      "identique_a_main": true,
+      "sha256": "89a060e7904eba9a9dda31ec5532d16b6d272dc1955be3b2b429b41eba8d41a7"
+    },
+    {
+      "fichier": "outils/bancs/banc-controles-globaux-20261107.cjs",
+      "identique_a_main": true,
+      "sha256": "6c23ef50b75a6555f1c5dfb635fbd0f94aa71c1e74ae9eda9262f8952d5b6efc"
+    },
+    {
+      "fichier": "outils/bancs/test-controles-globaux-20261107.py",
+      "identique_a_main": true,
+      "sha256": "eee4335228beb02f1a465959803c02661be16cc861f1b8c34107689827d5a7ee"
+    }
+  ],
+  "modification_seed": false,
+  "ecriture_base": false,
+  "fusion_autorisee_avec_ci_rouge": false,
+  "revision_documentaire_controlee": "e1b12270752abd05258165619799c2e5560aa190",
+  "controles_termines": [
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-27T23:05:01Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/46080019076/job/140776587476",
+      "name": "bancs-hors-production",
+      "startedAt": "2026-11-27T23:00:53Z",
+      "status": "COMPLETED",
+      "workflowName": "Cohérence client et transactions locales"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-27T23:01:07Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/46080019116/job/140776587437",
+      "name": "mesurer-le-payload",
+      "startedAt": "2026-11-27T23:00:53Z",
+      "status": "COMPLETED",
+      "workflowName": "Garde du payload Vercel"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-27T23:02:23Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/46080019102/job/140776587328",
+      "name": "images",
+      "startedAt": "2026-11-27T23:00:53Z",
+      "status": "COMPLETED",
+      "workflowName": "Images du jeu — fichiers, alias et correction SQL isolée"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-27T23:01:18Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/46080019110/job/140776587333",
+      "name": "parcours-immobilier",
+      "startedAt": "2026-11-27T23:00:53Z",
+      "status": "COMPLETED",
+      "workflowName": "Parcours immobilier cinq terrains - PostgreSQL jetable"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-27T23:02:10Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/46080019076/job/140776587430",
+      "name": "plan-bancs",
+      "startedAt": "2026-11-27T23:00:53Z",
+      "status": "COMPLETED",
+      "workflowName": "Cohérence client et transactions locales"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-27T23:08:58Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/46080019076/job/140777008055",
+      "name": "bancs-js (1)",
+      "startedAt": "2026-11-27T23:02:12Z",
+      "status": "COMPLETED",
+      "workflowName": "Cohérence client et transactions locales"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-27T23:05:44Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/46080019076/job/140777008093",
+      "name": "bancs-js (2)",
+      "startedAt": "2026-11-27T23:02:12Z",
+      "status": "COMPLETED",
+      "workflowName": "Cohérence client et transactions locales"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-27T23:05:55Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/46080019076/job/140777008038",
+      "name": "bancs-js (3)",
+      "startedAt": "2026-11-27T23:02:12Z",
+      "status": "COMPLETED",
+      "workflowName": "Cohérence client et transactions locales"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-27T23:08:05Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/46080019076/job/140777008128",
+      "name": "bancs-js (4)",
+      "startedAt": "2026-11-27T23:02:12Z",
+      "status": "COMPLETED",
+      "workflowName": "Cohérence client et transactions locales"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-27T23:06:31Z",
+      "conclusion": "FAILURE",
+      "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/46080019076/job/140777008065",
+      "name": "bancs-js (5)",
+      "startedAt": "2026-11-27T23:02:12Z",
+      "status": "COMPLETED",
+      "workflowName": "Cohérence client et transactions locales"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-27T23:07:29Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/46080019076/job/140777008097",
+      "name": "bancs-js (6)",
+      "startedAt": "2026-11-27T23:02:12Z",
+      "status": "COMPLETED",
+      "workflowName": "Cohérence client et transactions locales"
+    }
+  ],
+  "resultat": {
+    "verts": 10,
+    "rouges": 1
+  },
+  "resolution": {
+    "date": "2026-11-28",
+    "pr": 1218,
+    "merge": "1477db72e2603d9d615dd70384bd8bd4a37495d4",
+    "ci_pr": {
+      "headRefOid": "fcd48184e72f9e362bed2093e776fa216bab42c1",
+      "statusCheckRollup": [
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-11-28T00:15:58Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/46086462185/job/140797061737",
+          "name": "bancs-hors-production",
+          "startedAt": "2026-11-28T00:10:30Z",
+          "status": "COMPLETED",
+          "workflowName": "Cohérence client et transactions locales"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-11-28T00:10:52Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/46086462168/job/140797061531",
+          "name": "mesurer-le-payload",
+          "startedAt": "2026-11-28T00:10:30Z",
+          "status": "COMPLETED",
+          "workflowName": "Garde du payload Vercel"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-11-28T00:11:46Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/46086462158/job/140797061563",
+          "name": "images",
+          "startedAt": "2026-11-28T00:10:30Z",
+          "status": "COMPLETED",
+          "workflowName": "Images du jeu — fichiers, alias et correction SQL isolée"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-11-28T00:10:51Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/46086462259/job/140797061738",
+          "name": "parcours-immobilier",
+          "startedAt": "2026-11-28T00:10:30Z",
+          "status": "COMPLETED",
+          "workflowName": "Parcours immobilier cinq terrains - PostgreSQL jetable"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-11-28T00:11:29Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/46086462185/job/140797061607",
+          "name": "plan-bancs",
+          "startedAt": "2026-11-28T00:10:30Z",
+          "status": "COMPLETED",
+          "workflowName": "Cohérence client et transactions locales"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-11-28T00:16:51Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/46086462185/job/140797355969",
+          "name": "bancs-js (1)",
+          "startedAt": "2026-11-28T00:11:31Z",
+          "status": "COMPLETED",
+          "workflowName": "Cohérence client et transactions locales"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-11-28T00:15:57Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/46086462185/job/140797355912",
+          "name": "bancs-js (2)",
+          "startedAt": "2026-11-28T00:11:31Z",
+          "status": "COMPLETED",
+          "workflowName": "Cohérence client et transactions locales"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-11-28T00:15:44Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/46086462185/job/140797355884",
+          "name": "bancs-js (3)",
+          "startedAt": "2026-11-28T00:11:31Z",
+          "status": "COMPLETED",
+          "workflowName": "Cohérence client et transactions locales"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-11-28T00:16:42Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/46086462185/job/140797355960",
+          "name": "bancs-js (4)",
+          "startedAt": "2026-11-28T00:11:31Z",
+          "status": "COMPLETED",
+          "workflowName": "Cohérence client et transactions locales"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-11-28T00:16:25Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/46086462185/job/140797355868",
+          "name": "bancs-js (5)",
+          "startedAt": "2026-11-28T00:11:31Z",
+          "status": "COMPLETED",
+          "workflowName": "Cohérence client et transactions locales"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-11-28T00:18:06Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/46086462185/job/140797355845",
+          "name": "bancs-js (6)",
+          "startedAt": "2026-11-28T00:11:31Z",
+          "status": "COMPLETED",
+          "workflowName": "Cohérence client et transactions locales"
+        }
+      ]
+    },
+    "banc_strict_execute_en_ci": true,
+    "generateur_modifie": false,
+    "ecriture_production": false,
+    "rejeu_local_apres_rebase": {
+      "tests": 43,
+      "reussis": 43,
+      "echoues": 0,
+      "langues": 9,
+      "largeurs": [
+        320,
+        390,
+        1280
+      ],
+      "pj_connecte": false,
+      "telephone_physique": false
+    }
+  }
+}

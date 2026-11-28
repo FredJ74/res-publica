@@ -1,0 +1,1123 @@
+{
+  "date": "2026-11-27",
+  "prs": {
+    "1183": {
+      "headRefOid": "99bc77965ff69b4d84f7bd4aa51f243a7589fa95",
+      "mergeCommit": {
+        "oid": "8b2c2bffa60f7993b185fa696c5854ab6dce46da"
+      },
+      "mergedAt": "2026-11-24T14:04:25Z",
+      "statusCheckRollup": [
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-11-23T21:48:02Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/45273036901/job/138037533141",
+          "name": "audit",
+          "startedAt": "2026-11-23T21:46:23Z",
+          "status": "COMPLETED",
+          "workflowName": "Audit internationalisation — mesures reproductibles"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-11-23T22:09:54Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/45273036978/job/138037533767",
+          "name": "bancs-hors-production",
+          "startedAt": "2026-11-23T21:46:23Z",
+          "status": "COMPLETED",
+          "workflowName": "Cohérence client et transactions locales"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-11-23T21:48:49Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/45273036823/job/138037532995",
+          "name": "formation",
+          "startedAt": "2026-11-23T21:46:23Z",
+          "status": "COMPLETED",
+          "workflowName": "Formation universitaire — neuf langues et progression conservée"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-11-23T21:46:39Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/45273037444/job/138037536026",
+          "name": "mesurer-le-payload",
+          "startedAt": "2026-11-23T21:46:24Z",
+          "status": "COMPLETED",
+          "workflowName": "Garde du payload Vercel"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-11-23T21:47:48Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/45273036995/job/138037534294",
+          "name": "corps-notifications",
+          "startedAt": "2026-11-23T21:46:23Z",
+          "status": "COMPLETED",
+          "workflowName": "I18N - corps des notifications"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-11-23T21:46:32Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/45273025552/job/138037489853",
+          "name": "salles",
+          "startedAt": "2026-11-23T21:46:18Z",
+          "status": "COMPLETED",
+          "workflowName": "I18N — Actions de salles et audioguides"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-11-23T21:47:17Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/45273037078/job/138037534011",
+          "name": "parcours-statique",
+          "startedAt": "2026-11-23T21:46:23Z",
+          "status": "COMPLETED",
+          "workflowName": "I18N — Chromium accueil neuf langues sans compte"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-11-23T21:46:34Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/45273025626/job/138037490101",
+          "name": "navigation",
+          "startedAt": "2026-11-23T21:46:18Z",
+          "status": "COMPLETED",
+          "workflowName": "I18N — Plans et transports (9 langues)"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-11-23T21:46:33Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/45273025672/job/138037490611",
+          "name": "avertissement",
+          "startedAt": "2026-11-23T21:46:18Z",
+          "status": "COMPLETED",
+          "workflowName": "I18N — Transparence de la beta internationale"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-11-23T21:47:09Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/45273037335/job/138037535312",
+          "name": "descriptions-krasnov",
+          "startedAt": "2026-11-23T21:46:23Z",
+          "status": "COMPLETED",
+          "workflowName": "I18N — descriptions de Krasnov"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-11-23T21:47:28Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/45273037127/job/138037534542",
+          "name": "images",
+          "startedAt": "2026-11-23T21:46:23Z",
+          "status": "COMPLETED",
+          "workflowName": "Images du jeu — fichiers, alias et correction SQL isolée"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-11-23T21:47:34Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/45273036884/job/138037534474",
+          "name": "coherence",
+          "startedAt": "2026-11-23T21:46:23Z",
+          "status": "COMPLETED",
+          "workflowName": "Internationalisation — catalogues et accueil"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-11-23T21:46:46Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/45273037809/job/138037537199",
+          "name": "parcours-immobilier",
+          "startedAt": "2026-11-23T21:46:23Z",
+          "status": "COMPLETED",
+          "workflowName": "Parcours immobilier cinq terrains - PostgreSQL jetable"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-11-23T21:48:36Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/45273036957/job/138037534110",
+          "name": "socle",
+          "startedAt": "2026-11-23T21:46:23Z",
+          "status": "COMPLETED",
+          "workflowName": "Socle des ordres multi-empires — issue 871"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-11-23T21:47:00Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/45273025690/job/138037489970",
+          "name": "coherence",
+          "startedAt": "2026-11-23T21:46:18Z",
+          "status": "COMPLETED",
+          "workflowName": "i18n — Démarches et ordres dynamiques (9 langues)"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-11-23T21:46:34Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/45273025593/job/138037489651",
+          "name": "verifier",
+          "startedAt": "2026-11-23T21:46:18Z",
+          "status": "COMPLETED",
+          "workflowName": "i18n — Sovarka et PNJ sociaux (9 langues)"
+        }
+      ]
+    },
+    "1184": {
+      "headRefOid": "dd0b49150fbe286a907cffa8f57338e6c72cf0f1",
+      "mergeCommit": {
+        "oid": "e4ef92bfbdf2bb64548ba955cc1a3411f52de5ba"
+      },
+      "mergedAt": "2026-11-24T14:04:25Z",
+      "statusCheckRollup": [
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-11-23T21:10:59Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/45266693640/job/138015373519",
+          "name": "audit",
+          "startedAt": "2026-11-23T21:09:40Z",
+          "status": "COMPLETED",
+          "workflowName": "Audit internationalisation — mesures reproductibles"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-11-23T21:37:42Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/45266693541/job/138015544464",
+          "name": "bancs-hors-production",
+          "startedAt": "2026-11-23T21:10:06Z",
+          "status": "COMPLETED",
+          "workflowName": "Cohérence client et transactions locales"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-11-23T21:10:53Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/45266693475/job/138015373345",
+          "name": "saisie",
+          "startedAt": "2026-11-23T21:09:31Z",
+          "status": "COMPLETED",
+          "workflowName": "Création de parti — sens de saisie dans neuf langues"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-11-23T21:09:57Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/45266693463/job/138015374527",
+          "name": "mesurer-le-payload",
+          "startedAt": "2026-11-23T21:09:32Z",
+          "status": "COMPLETED",
+          "workflowName": "Garde du payload Vercel"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-11-23T21:11:16Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/45266693810/job/138015374988",
+          "name": "corps-notifications",
+          "startedAt": "2026-11-23T21:09:32Z",
+          "status": "COMPLETED",
+          "workflowName": "I18N - corps des notifications"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-11-23T21:09:20Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/45266679806/job/138015326364",
+          "name": "salles",
+          "startedAt": "2026-11-23T21:09:05Z",
+          "status": "COMPLETED",
+          "workflowName": "I18N — Actions de salles et audioguides"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-11-23T21:10:13Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/45266693521/job/138015373699",
+          "name": "parcours-statique",
+          "startedAt": "2026-11-23T21:09:31Z",
+          "status": "COMPLETED",
+          "workflowName": "I18N — Chromium accueil neuf langues sans compte"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-11-23T21:09:33Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/45266679782/job/138015326346",
+          "name": "navigation",
+          "startedAt": "2026-11-23T21:09:06Z",
+          "status": "COMPLETED",
+          "workflowName": "I18N — Plans et transports (9 langues)"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-11-23T21:09:19Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/45266679815/job/138015326758",
+          "name": "avertissement",
+          "startedAt": "2026-11-23T21:09:05Z",
+          "status": "COMPLETED",
+          "workflowName": "I18N — Transparence de la beta internationale"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-11-23T21:10:25Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/45266693732/job/138015373376",
+          "name": "descriptions-krasnov",
+          "startedAt": "2026-11-23T21:09:32Z",
+          "status": "COMPLETED",
+          "workflowName": "I18N — descriptions de Krasnov"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-11-23T21:10:58Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/45266693398/job/138015373523",
+          "name": "images",
+          "startedAt": "2026-11-23T21:09:46Z",
+          "status": "COMPLETED",
+          "workflowName": "Images du jeu — fichiers, alias et correction SQL isolée"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-11-23T21:10:52Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/45266693499/job/138015373873",
+          "name": "coherence",
+          "startedAt": "2026-11-23T21:09:58Z",
+          "status": "COMPLETED",
+          "workflowName": "Internationalisation — catalogues et accueil"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-11-23T21:13:40Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/45266693936/job/138015374870",
+          "name": "organisations",
+          "startedAt": "2026-11-23T21:09:31Z",
+          "status": "COMPLETED",
+          "workflowName": "Organisations — langues, formulaires et confidentialité"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-11-23T21:09:56Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/45266693496/job/138015374028",
+          "name": "parcours-immobilier",
+          "startedAt": "2026-11-23T21:09:32Z",
+          "status": "COMPLETED",
+          "workflowName": "Parcours immobilier cinq terrains - PostgreSQL jetable"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-11-23T21:12:15Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/45266693692/job/138015374098",
+          "name": "socle",
+          "startedAt": "2026-11-23T21:10:03Z",
+          "status": "COMPLETED",
+          "workflowName": "Socle des ordres multi-empires — issue 871"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-11-23T21:10:57Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/45266679983/job/138015327227",
+          "name": "coherence",
+          "startedAt": "2026-11-23T21:09:06Z",
+          "status": "COMPLETED",
+          "workflowName": "i18n — Démarches et ordres dynamiques (9 langues)"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-11-23T21:09:26Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/FredJ74/res-publica/actions/runs/45266680060/job/138015326754",
+          "name": "verifier",
+          "startedAt": "2026-11-23T21:09:05Z",
+          "status": "COMPLETED",
+          "workflowName": "i18n — Sovarka et PNJ sociaux (9 langues)"
+        }
+      ]
+    }
+  },
+  "ci_commit_production": [
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425155,
+      "name": "Garde du payload Vercel",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425433,
+      "name": "I18N — Plans et transports (9 langues)",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425084,
+      "name": "I18N — descriptions du goulag",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425267,
+      "name": "I18N - corps des notifications",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425646,
+      "name": "I18N — descriptions de Krasnov",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425329,
+      "name": "Ordres regroupés dans les pièces (inspection à trois volets, mairies, partis, syndicat, Fonctions de [poste])",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425117,
+      "name": "i18n — infobulles des ordres (Sovarka et communes) et salon (9 langues)",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425459,
+      "name": "Lisibilité des fenêtres d’accès réservé",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425708,
+      "name": "i18n — Sovarka et PNJ sociaux (9 langues)",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425562,
+      "name": "Sovarka — accès aux saisines du ministre",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425633,
+      "name": "Purge A — accueil, fenêtres automatiques, notifications du chat, PNJ guide",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425394,
+      "name": "Kolkhoze — don libre et plafonds",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425559,
+      "name": "Sovarka — dotation et mandats nationaux",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425511,
+      "name": "Casernes — parité et menus lisibles",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425422,
+      "name": "Médicaments, usines d'État et antidote",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425474,
+      "name": "Purge D et F — climat (canicule, chantiers, Starovka, eau en Sovarka) et fontaines",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425607,
+      "name": "Sovarka - verification des ministeres lot 2 compatible",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425402,
+      "name": "I18N — Actions de salles et audioguides",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425321,
+      "name": "Sovarka - controle des descriptions et des ordres i18n",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425112,
+      "name": "Informateurs (refonte, étape K) — barème commun, PNJ des lieux, commissaire",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425340,
+      "name": "Santé — Suites : paliers, repas, robustesse, tracts, marchés, objectif (serveur et navigateur)",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425355,
+      "name": "Répertoire partagé et courrier — neuf langues",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425386,
+      "name": "Interview d'accueil — journaliste de la ville, premier jour, courrier lisible",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425566,
+      "name": "Parcours immobilier cinq terrains - PostgreSQL jetable",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425360,
+      "name": "Santé — consommation : alcool, sommeil, repas, soins (serveur)",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425453,
+      "name": "Purge B — accès aux forums (PGlite), jauge des PA, candidature, messages",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425503,
+      "name": "Images du jeu — fichiers, alias et correction SQL isolée",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425447,
+      "name": "Presse — monde fictif, point de vue du pays, anonymat, noms cliquables",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425388,
+      "name": "I18N — Transparence de la beta internationale",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425475,
+      "name": "Chantier « construction » — fenêtre unique, images par étape, accélération",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425298,
+      "name": "Décisions du 26/11 — revenu universel, remise à zéro, traduction (PGlite)",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425661,
+      "name": "Tabac-presse de Krasnov (cigarettes, carte postale, revue) et crue sans blocage",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425092,
+      "name": "Mission de nuit 25/11 — explosifs, chances réelles (PGlite)",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425497,
+      "name": "Lot de Krasnov, étape I — marché unique, une fontaine par ville, actions de pièce",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425437,
+      "name": "Titres ministeriels — isolation des empires",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425143,
+      "name": "Novomirsk — decors du marche et de la presse",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425356,
+      "name": "Forêt de Krasnov — portique, clairière, retour au campement, groupe",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425528,
+      "name": "Novomirsk — Direction du renseignement",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425621,
+      "name": "i18n — descriptions politiques Républia (9 langues)",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425630,
+      "name": "Mandats nationaux et casernes de tous les empires",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425323,
+      "name": "Santé — médecin de terrain, montrer un objet, jauges, forêt en plein air",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425311,
+      "name": "Pays d'un poste — registre postes_attribues, jamais la position (B.15-16)",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425548,
+      "name": "Placement national transactionnel",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425393,
+      "name": "Accueil — interview de la première connexion, parcours dans Mes objectifs, bulle des PA",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425496,
+      "name": "Accueil progressif nouveaux personnages",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425442,
+      "name": "Confession mondiale — DUP et indices locaux",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425557,
+      "name": "Dynamo — six salles et isolation des autres stades",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425375,
+      "name": "Première rue — relance si la fiche change pendant la lecture",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425241,
+      "name": "Climat (décisions définitives du 21/11) — 6 heures, sacs de sable, un événement par pays, pictogrammes, eau gratuite",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425451,
+      "name": "Ordres — descriptions tactiles sans action",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425231,
+      "name": "i18n — Démarches et ordres dynamiques (9 langues)",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425282,
+      "name": "Descriptions communes — réemploi des traductions existantes",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425524,
+      "name": "Socle des ordres multi-empires — issue 871",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425404,
+      "name": "Audit internationalisation — mesures reproductibles",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "main",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46077425384,
+      "name": "Cohérence client et transactions locales",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "claude/transfert-detenu-20261127",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46076040741,
+      "name": "Pays d'un poste — registre postes_attribues, jamais la position (B.15-16)",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "claude/transfert-detenu-20261127",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46076040530,
+      "name": "I18N — Actions de salles et audioguides",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "claude/transfert-detenu-20261127",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46076040534,
+      "name": "I18N — Transparence de la beta internationale",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "claude/transfert-detenu-20261127",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46076040505,
+      "name": "Presse — monde fictif, point de vue du pays, anonymat, noms cliquables",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "claude/transfert-detenu-20261127",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46076040463,
+      "name": "Purge B — accès aux forums (PGlite), jauge des PA, candidature, messages",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "claude/transfert-detenu-20261127",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46076040307,
+      "name": "Informateurs (refonte, étape K) — barème commun, PNJ des lieux, commissaire",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "claude/transfert-detenu-20261127",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46076040526,
+      "name": "Accueil — interview de la première connexion, parcours dans Mes objectifs, bulle des PA",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "claude/transfert-detenu-20261127",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46076040523,
+      "name": "Mission de nuit 25/11 — explosifs, chances réelles (PGlite)",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "claude/transfert-detenu-20261127",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46076040333,
+      "name": "Santé — médecin de terrain, montrer un objet, jauges, forêt en plein air",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "claude/transfert-detenu-20261127",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46076040580,
+      "name": "Purge D et F — climat (canicule, chantiers, Starovka, eau en Sovarka) et fontaines",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "claude/transfert-detenu-20261127",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46076040452,
+      "name": "Climat (décisions définitives du 21/11) — 6 heures, sacs de sable, un événement par pays, pictogrammes, eau gratuite",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "claude/transfert-detenu-20261127",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46076040568,
+      "name": "Interview d'accueil — journaliste de la ville, premier jour, courrier lisible",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "claude/transfert-detenu-20261127",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46076040298,
+      "name": "Ordres regroupés dans les pièces (inspection à trois volets, mairies, partis, syndicat, Fonctions de [poste])",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "claude/transfert-detenu-20261127",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46076040346,
+      "name": "I18N — Plans et transports (9 langues)",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "claude/transfert-detenu-20261127",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46076040611,
+      "name": "Chantier « construction » — fenêtre unique, images par étape, accélération",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "claude/transfert-detenu-20261127",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46076040313,
+      "name": "i18n — Démarches et ordres dynamiques (9 langues)",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "claude/transfert-detenu-20261127",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46076040315,
+      "name": "Purge A — accueil, fenêtres automatiques, notifications du chat, PNJ guide",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "claude/transfert-detenu-20261127",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46076040516,
+      "name": "i18n — Sovarka et PNJ sociaux (9 langues)",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "claude/transfert-detenu-20261127",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46076040578,
+      "name": "Décisions du 26/11 — revenu universel, remise à zéro, traduction (PGlite)",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "claude/transfert-detenu-20261127",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46076040363,
+      "name": "Forêt de Krasnov — portique, clairière, retour au campement, groupe",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "claude/transfert-detenu-20261127",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46076040491,
+      "name": "Tabac-presse de Krasnov (cigarettes, carte postale, revue) et crue sans blocage",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "claude/transfert-detenu-20261127",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46076040394,
+      "name": "Médicaments, usines d'État et antidote",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "claude/transfert-detenu-20261127",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46076040357,
+      "name": "Santé — Suites : paliers, repas, robustesse, tracts, marchés, objectif (serveur et navigateur)",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "claude/transfert-detenu-20261127",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46076040482,
+      "name": "Santé — consommation : alcool, sommeil, repas, soins (serveur)",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "claude/transfert-detenu-20261127",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46076040494,
+      "name": "Lot de Krasnov, étape I — marché unique, une fontaine par ville, actions de pièce",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "claude/transfert-detenu-20261127",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46076040531,
+      "name": "Première rue — relance si la fiche change pendant la lecture",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "push",
+      "head_branch": "claude/transfert-detenu-20261127",
+      "head_sha": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+      "id": 46076040319,
+      "name": "Cohérence client et transactions locales",
+      "status": "completed"
+    }
+  ],
+  "tests_locaux": {
+    "reussis": 42,
+    "echoues": 0,
+    "largeurs": [
+      320,
+      390,
+      1280
+    ],
+    "langues": [
+      "fr",
+      "en",
+      "es",
+      "zh-TW",
+      "ru",
+      "ko",
+      "ar",
+      "pt-BR",
+      "de"
+    ],
+    "bascules_universite_par_largeur": 648,
+    "bascules_organisation_historique": 756,
+    "showToast_reel_bascules": 81,
+    "petits_ecrans": [
+      "320x568",
+      "390x568"
+    ],
+    "conditions": "Réponses métier simulées, Chromium local ; aucun PJ connecté ni téléphone physique."
+  },
+  "base_ecriture": false,
+  "relecture_native": false
+}

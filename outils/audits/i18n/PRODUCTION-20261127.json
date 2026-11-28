@@ -1,0 +1,65 @@
+{
+  "commit_attendu": "6ebbbd9e8158985d2968e3a6d70a67d38410ca69",
+  "origine": "https://human-gambit.com",
+  "verification": "GET statiques sans PJ connecté ni appel métier",
+  "fichiers": [
+    {
+      "fichier": "i18n/resources.js",
+      "url": "https://human-gambit.com/i18n/resources.js?v=9-langues-20261102",
+      "http": 200,
+      "type": "application/javascript; charset=utf-8",
+      "encodage": "br",
+      "sha256": "64f0d09d1a0fdf8a0a4225e21353fff956465aead31a22bbb7d06b6207cac42b",
+      "octets": 161386,
+      "identique_au_commit": true
+    },
+    {
+      "fichier": "plateau-universite.js",
+      "url": "https://human-gambit.com/plateau-universite.js?v=crim-lot9-20261120",
+      "http": 200,
+      "type": "application/javascript; charset=utf-8",
+      "encodage": "br",
+      "sha256": "237ff12cad0c8750492cf9187489055be5e032d8c312a108b4911ce2415e2e5d",
+      "octets": 13531,
+      "identique_au_commit": true
+    },
+    {
+      "fichier": "i18n/university-resources.js",
+      "url": "https://human-gambit.com/i18n/university-resources.js?v=20261123",
+      "http": 200,
+      "type": "application/javascript; charset=utf-8",
+      "encodage": "br",
+      "sha256": "1de5cf4356a40eca8cc976dc96a030c9df4a981035bae2efcb102193e11c0a09",
+      "octets": 27395,
+      "identique_au_commit": true
+    },
+    {
+      "fichier": "i18n/organization-creation-resources.js",
+      "url": "https://human-gambit.com/i18n/organization-creation-resources.js?v=20261114",
+      "http": 200,
+      "type": "application/javascript; charset=utf-8",
+      "encodage": "br",
+      "sha256": "66220063e3f854f011de89be00ef972fcc343a7a8ad78b2329006ec427cb405a",
+      "octets": 12537,
+      "identique_au_commit": true
+    }
+  ],
+  "langues": [
+    "fr",
+    "en",
+    "es",
+    "zh-TW",
+    "ru",
+    "ko",
+    "ar",
+    "pt-BR",
+    "de"
+  ],
+  "cles_universite_par_langue": 46,
+  "textes_francais_couverts": 51,
+  "traductions_etrangeres": 368,
+  "traductions_etrangeres_reutilisees": 40,
+  "francais_original_exact": true,
+  "correctif_sens_saisie_present": true,
+  "telephone_physique": false
+}
