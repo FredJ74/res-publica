@@ -1520,5 +1520,17 @@ window.RP_INFOBULLES_REPUBLIA = [
     "مستخرج سجل جنائي مزوّر يزعم أن سجل أي لاعب نظيف. لا يتغير السجل الحقيقي أبدًا. ولأن السجل وطني تكفي أي واحدة من كتابات الضبط الثلاث. تُخصم 300 FR و3 نقاط عمل عند المحاولة. إذا انكشف أمرك فلا وثيقة ويبلّغ الكاتب عنك.",
     "Extrato que declara falsamente ficha LIMPA para qualquer PJ. O registro verdadeiro não muda. Como é nacional, qualquer um dos três cartórios serve. 300 FR e 3 PA cobrados na TENTATIVA. Se descoberto: sem documento, e o escrivão denuncia você.",
     "Gefälschter Strafregisterauszug mit angeblich SAUBEREM Register für eine beliebige Spielerfigur. Der echte Eintrag bleibt unverändert. Da das Register national ist, genügt eine der drei Geschäftsstellen. 300 FR und 3 AP beim VERSUCH. Bei Entdeckung: kein Dokument, der Gerichtsschreiber zeigt Sie an."
-  ]
+  ],
+  // 28/11/2026 : fuite gouvernementale, français exact ; aucun changement métier.
+  [
+    "Subtiliser une pièce réelle des archives (un fait compromettant d'un membre du gouvernement ou le solde d'une caisse ministérielle) : elle rejoint votre inventaire, libre à vous de la monnayer auprès d'un journaliste. Mêmes risques que le vol d'archives d'écoute : témoin, détection, bagarre. En Sovarka : vous faites fuiter un sondage ou le registre des signalements, sans jet.",
+    "Steal a real document from the archives (a compromising fact about a government member or the balance of a ministry fund): it goes into your inventory, and you are free to sell it to a journalist. The same risks as stealing from the listening-post archives: witness, detection, fight. In Sovarka: you leak a poll or the reports register, with no roll.",
+    "Sustraer un documento real de los archivos (un hecho comprometedor sobre un miembro del gobierno o el saldo de una caja ministerial): pasa a su inventario y puede vendérselo a un periodista. Los mismos riesgos que al robar en los archivos de escucha: testigo, detección, pelea. En Sovarka: filtra una encuesta o el registro de denuncias, sin tirada.",
+    "從檔案中偷走一份真實文件（政府成員的醜聞事實或部會金庫的餘額）：文件會進入您的物品欄，您可自行賣給記者。風險與竊取監聽檔案相同：目擊者、被發現、打鬥。在 Sovarka：您洩露的是民調或舉報登記簿，無需擲骰。",
+    "Похитить настоящий документ из архива (компрометирующий факт о члене правительства или остаток средств в министерской кассе): он попадёт в ваш инвентарь, и вы сможете продать его журналисту. Риски те же, что при краже из архива прослушки: свидетель, обнаружение, драка. В Sovarka: вы раскрываете опрос или реестр доносов без броска.",
+    "기록 보관소에서 실제 문서(정부 인사의 치부 또는 부처 금고 잔액)를 훔칩니다. 문서는 소지품에 들어가며 기자에게 팔 수 있습니다. 감청 기록 절도와 같은 위험이 있습니다. 목격자, 발각, 난투입니다. Sovarka에서는 판정 없이 여론조사나 신고 대장을 유출합니다.",
+    "اسرق وثيقة حقيقية من الأرشيف (واقعة محرجة عن عضو في الحكومة أو رصيد خزينة وزارة): تُضاف إلى مخزونك، ولك أن تبيعها لصحفي. المخاطر نفسها عند سرقة أرشيف التنصّت: شاهد، انكشاف، شجار. في Sovarka: تسرّب استطلاعًا أو سجل البلاغات، دون رمية.",
+    "Subtrair um documento real dos arquivos (um fato comprometedor sobre um membro do governo ou o saldo de um caixa ministerial): ele vai para seu inventário, e você pode vendê-lo a um jornalista. Os mesmos riscos do roubo dos arquivos de escuta: testemunha, detecção, briga. Em Sovarka: você vaza uma pesquisa ou o registro de denúncias, sem rolagem.",
+    "Ein echtes Dokument aus dem Archiv stehlen (eine kompromittierende Tatsache über ein Regierungsmitglied oder den Kontostand einer Ministeriumskasse): Es kommt in Ihr Inventar und kann an einen Journalisten verkauft werden. Dieselben Risiken wie beim Diebstahl von Abhörakten: Zeuge, Entdeckung, Schlägerei. In Sovarka: Sie geben eine Umfrage oder das Melderegister weiter, ohne Würfelwurf."
+]
 ];

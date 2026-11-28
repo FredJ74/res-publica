@@ -9,6 +9,15 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Relecture i18n du 28/11 au soir (Codex)
+- Branche `codex/i18n-textes-recents-20261128`, partie du dernier main `bd3ea372`. Vérification des listes Pour Codex des 27/11 soir et 28/11 nuit/après-midi : les hôtels et cinq écrans sont déjà traduits par Claude, pas de doublon.
+- Nouvelle couverture : description réelle de « Produire une fuite » (1 français strictement conservé, 8 traductions nouvelles) ; ancien motif `r_deux_objets_revetus_max` aligné textuellement sur trois objets dans les neuf langues (8 traductions réutilisées du motif actuel). Aucun seuil, PA, inventaire ou RPC modifié.
+- Relecture : noms propres conservés (Roxane Velours, Tito Maletas, Nabil Naana, Al Madina, Al-Khalija, Ciudad Roja), sigle QHS rétabli, sens de la confidence en allemand corrigé, « fait » distinct d’une infraction en allemand, saisie du juge en arabe et rôle du référent transport clarifiés. Français inchangé hors ancien refus explicitement demandé.
+- Contrôles : témoin français et clés/variables des neuf langues ; décompte réel : 9 pièces, 3 bâtiments, 17 rôles, 14 descriptions (13 gestes hôteliers et douanes). 87 catalogues Brotli régénérés sans perte. Chromium 320/390/1280 : neuf langues, arabe RTL, descriptions ouvertes et bascules, fermeture répétée, ordre bloqué, saisie/PA/argent/position conservés, zéro appel métier. Fixture réelle des composants, aucun PJ connecté ni téléphone physique.
+- Inventaire sans modification des textes restants : `outils/audits/i18n/INVENTAIRE-FRANCAIS-SEUL-20261128.md` et JSON compressé. 315 entrées locales dans 4 fichiers ; 6 575 candidats statiques à confirmer ; 229 expressions de courrier dans 82 fichiers SQL historiques/miroirs, jamais assimilées à des fonctions observées en production. Compteurs par fichier, liste et voie de traduction ; priorité suivante : courriers d’interrogatoire/transfert, sanctions et messages système du forum. Aucune base consultée ou modifiée, aucune migration modifiée/exécutée.
+- PR et CI à renseigner après publication ; fusion seulement verte et sur main à jour. #1216 rebasée séparément, CI en cours après #1220.
+
+
 ### Mission du 28/11/2026 (après-midi) (Claude) — compte rendu pour Fred
 
 **En bref.** Les six étapes sont faites et poussées, **rien n'est fusionné** : c'est Claude, côté claude.ai, qui ouvre

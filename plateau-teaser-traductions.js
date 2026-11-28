@@ -22,17 +22,17 @@
     'Suite': ligne(['Suite', 'Suite', 'Suite', 'Suite', 'Люкс', '스위트룸', 'الجناح', 'Suíte', '套房']),
     'Salon de thé': ligne(['Salon de thé', 'Tea room', 'Salón de té', 'Teesalon', 'Чайный салон', '티룸', 'صالون الشاي', 'Salão de chá', '茶室']),
     'Salon des gentlemen': ligne(['Salon des gentlemen', 'Gentlemen’s lounge', 'Salón de caballeros', 'Herrensalon', 'Мужской салон', '신사 라운지', 'صالون السادة', 'Salão dos cavalheiros', '紳士沙龍']),
-    'Hammam des hommes': ligne(['Hammam des hommes', 'Men’s hammam', 'Hammam de hombres', 'Männerhammam', 'Мужской хаммам', '남성 하맘', 'حمّام الرجال', 'Hammam masculino', '男子浴室']),
-    'Hammam des femmes': ligne(['Hammam des femmes', 'Women’s hammam', 'Hammam de mujeres', 'Frauenhammam', 'Женский хаммам', '여성 하맘', 'حمّام النساء', 'Hammam feminino', '女子浴室'])
+    'Hammam des hommes': ligne(['Hammam des hommes', 'Men’s hammam', 'Hammam de hombres', 'Männerhammam', 'Мужской хаммам', '남성 하맘', 'حمّام الرجال', 'Hammam masculino', '男子哈瑪浴場']),
+    'Hammam des femmes': ligne(['Hammam des femmes', 'Women’s hammam', 'Hammam de mujeres', 'Frauenhammam', 'Женский хаммам', '여성 하맘', 'حمّام النساء', 'Hammam feminino', '女子哈瑪浴場'])
   };
   const SCOPES_PIECES = {
     'hotel-republica': ['piscine', 'accueil', 'restaurant', 'bar', 'chambres', 'salon_gentlemen', 'hammam_hommes', 'hammam_femmes']
   };
 
   const BATIMENTS = {
-    'Hôtel Royal d\'Al-Khalija': ligne(['Hôtel Royal d\'Al-Khalija', 'Royal Hotel of Al-Khalija', 'Hotel Real de Al-Khalija', 'Königliches Hotel von Al-Khalija', 'Королевский отель Аль-Халиджи', '알칼리자 왕립 호텔', 'الفندق الملكي في الخليجة', 'Hotel Real de Al-Khalija', '阿爾哈利加皇家飯店']),
-    'Centre multimodal d\'Al Madina': ligne(['Centre multimodal d\'Al Madina', 'Al Madina transport hub', 'Centro multimodal de Al Madina', 'Verkehrsknotenpunkt Al Madina', 'Транспортный узел Аль-Мадины', '알 마디나 복합 교통 센터', 'مركز المدينة متعدد الوسائط', 'Centro multimodal de Al Madina', '麥地那綜合交通中心']),
-    'Centre multimodal de Ciudad Roja': ligne(['Centre multimodal de Ciudad Roja', 'Ciudad Roja transport hub', 'Centro multimodal de Ciudad Roja', 'Verkehrsknotenpunkt Ciudad Roja', 'Транспортный узел Сьюдад-Рохи', '시우다드 로하 복합 교통 센터', 'مركز سيوداد روخا متعدد الوسائط', 'Centro multimodal de Ciudad Roja', '紅城綜合交通中心'])
+    'Hôtel Royal d\'Al-Khalija': ligne(['Hôtel Royal d\'Al-Khalija', 'Royal Hotel of Al-Khalija', 'Hotel Real de Al-Khalija', 'Königliches Hotel von Al-Khalija', 'Королевский отель Al-Khalija', 'Al-Khalija 왕립 호텔', 'الفندق الملكي في Al-Khalija', 'Hotel Real de Al-Khalija', 'Al-Khalija 皇家飯店']),
+    'Centre multimodal d\'Al Madina': ligne(['Centre multimodal d\'Al Madina', 'Al Madina transport hub', 'Centro multimodal de Al Madina', 'Verkehrsknotenpunkt Al Madina', 'Транспортный узел Al Madina', 'Al Madina 복합 교통 센터', 'مركز النقل متعدد الوسائط في Al Madina', 'Centro multimodal de Al Madina', 'Al Madina 綜合交通中心']),
+    'Centre multimodal de Ciudad Roja': ligne(['Centre multimodal de Ciudad Roja', 'Ciudad Roja transport hub', 'Centro multimodal de Ciudad Roja', 'Verkehrsknotenpunkt Ciudad Roja', 'Транспортный узел Ciudad Roja', 'Ciudad Roja 복합 교통 센터', 'مركز النقل متعدد الوسائط في Ciudad Roja', 'Centro multimodal de Ciudad Roja', 'Ciudad Roja 綜合交通中心'])
   };
 
   const ROLES = {
@@ -45,14 +45,14 @@
     'Barman': ligne(['Barman', 'Bartender', 'Barman', 'Barkeeper', 'Бармен', '바텐더', 'ساقي البار', 'Barman', '酒保']),
     'Serveur de narguilé': ligne(['Serveur de narguilé', 'Hookah server', 'Camarero de narguile', 'Shisha-Kellner', 'Кальянщик', '물담배 담당', 'نادل الأرجيلة', 'Garçom de narguilé', '水煙侍者']),
     'Gardien du salon': ligne(['Gardien du salon', 'Lounge guard', 'Guardián del salón', 'Wächter des Salons', 'Страж салона', '라운지 경비원', 'حارس الصالون', 'Guardião do salão', '沙龍守衛']),
-    'Gardien du hammam des hommes': ligne(['Gardien du hammam des hommes', 'Men’s hammam attendant', 'Guardián del hammam de hombres', 'Wächter des Männerhammams', 'Смотритель мужского хаммама', '남성 하맘 관리인', 'حارس حمّام الرجال', 'Guardião do hammam masculino', '男子浴室看守']),
-    'Matrone du hammam des femmes': ligne(['Matrone du hammam des femmes', 'Women’s hammam matron', 'Matrona del hammam de mujeres', 'Matrone des Frauenhammams', 'Матрона женского хаммама', '여성 하맘 사감', 'مشرفة حمّام النساء', 'Matrona do hammam feminino', '女子浴室女管事']),
+    'Gardien du hammam des hommes': ligne(['Gardien du hammam des hommes', 'Men’s hammam attendant', 'Guardián del hammam de hombres', 'Wächter des Männerhammams', 'Смотритель мужского хаммама', '남성 하맘 관리인', 'حارس حمّام الرجال', 'Guardião do hammam masculino', '男子哈瑪浴場看守']),
+    'Matrone du hammam des femmes': ligne(['Matrone du hammam des femmes', 'Women’s hammam matron', 'Matrona del hammam de mujeres', 'Matrone des Frauenhammams', 'Матрона женского хаммама', '여성 하맘 사감', 'مشرفة حمّام النساء', 'Matrona do hammam feminino', '女子哈瑪浴場女管事']),
     'Serveur du salon de thé': ligne(['Serveur du salon de thé', 'Tea room waiter', 'Camarero del salón de té', 'Kellner im Teesalon', 'Официант чайного салона', '티룸 웨이터', 'نادل صالون الشاي', 'Garçom do salão de chá', '茶室侍者']),
     'Chef de gare': ligne(['Chef de gare', 'Stationmaster', 'Jefe de estación', 'Bahnhofsvorsteher', 'Начальник вокзала', '역장', 'ناظر المحطة', 'Chefe da estação', '站長']),
     'Cheffe des douanes': ligne(['Cheffe des douanes', 'Head of customs', 'Jefa de aduanas', 'Zollchefin', 'Начальница таможни', '세관장', 'رئيسة الجمارك', 'Chefe da alfândega', '海關主管']),
     'Douanier': ligne(['Douanier', 'Customs officer', 'Aduanero', 'Zollbeamter', 'Таможенник', '세관원', 'موظف الجمارك', 'Fiscal da alfândega', '海關人員']),
     'Agente de sécurité': ligne(['Agente de sécurité', 'Security officer', 'Agente de seguridad', 'Sicherheitsbeamtin', 'Сотрудница охраны', '보안 요원', 'عنصر أمن', 'Agente de segurança', '保安人員']),
-    'Référent transport': ligne(['Référent transport', 'Transport adviser', 'Referente de transporte', 'Ansprechpartner für Verkehr', 'Консультант по транспорту', '교통 안내 담당', 'مرجع النقل', 'Referência de transporte', '交通諮詢員'])
+    'Référent transport': ligne(['Référent transport', 'Transport adviser', 'Asesor de transporte', 'Ansprechpartner für Verkehr', 'Консультант по транспорту', '교통 안내 담당', 'مسؤول إرشاد المسافرين', 'Orientador de transporte', '交通諮詢員'])
   };
 
   // Descriptions des ordres : clé = texte français exact de data.js.
@@ -79,24 +79,24 @@
      '200 PS to the staff member of your choice: +1 popularity. Tito Maletas, the porter, also passes on a real secret about a player, whispered by the Roxane Velours network. No limit.',
      '200 PS al empleado que elija: +1 popularidad. Tito Maletas, el botones, le revela además un secreto real sobre un jugador, que le sopla la red Roxane Velours. Sin límite.',
      '200 PS für ein Mitglied des Personals Ihrer Wahl: +1 Beliebtheit. Tito Maletas, der Gepäckträger, verrät Ihnen dazu ein echtes Geheimnis über einen Spieler, zugeflüstert vom Netzwerk Roxane Velours. Ohne Begrenzung.',
-     '200 PS выбранному сотруднику: +1 к популярности. Носильщик Тито Малетас вдобавок выдаёт настоящий секрет о игроке, который ему нашептала сеть Роксаны Велур. Без ограничений.',
-     '원하는 직원에게 200 PS: 인기 +1. 벨보이 티토 말레타스가 덤으로 록산 벨루르 네트워크에서 들은 어느 플레이어의 진짜 비밀을 알려 줍니다. 제한 없음.',
-     '200 PS لمن تختار من العاملين: +1 شعبية. ويكشف لك تيتو ماليتاس، حامل الأمتعة، سرًّا حقيقيًّا عن لاعب همست به شبكة روكسان فولور. بلا حد.',
+     '200 PS выбранному сотруднику: +1 к популярности. Носильщик Tito Maletas вдобавок выдаёт настоящий секрет об игроке, который ему нашептала сеть Roxane Velours. Без ограничений.',
+     '원하는 직원에게 200 PS: 인기 +1. 벨보이 Tito Maletas가 덤으로 Roxane Velours 네트워크에서 들은 어느 플레이어의 진짜 비밀을 알려 줍니다. 제한 없음.',
+     '200 PS لمن تختار من العاملين: +1 شعبية. ويكشف لك Tito Maletas، حامل الأمتعة، سرًّا حقيقيًّا عن لاعب همست به شبكة Roxane Velours. بلا حد.',
      '200 PS ao funcionário que você escolher: +1 popularidade. Tito Maletas, o carregador, ainda revela um segredo real sobre um jogador, soprado pela rede Roxane Velours. Sem limite.',
-     '給您選擇的員工 200 PS：聲望 +1。行李員提托·馬萊塔斯還會附送一個由洛珊·維洛網絡透露的玩家真實秘密。無次數限制。'],
+     '給您選擇的員工 200 PS：聲望 +1。行李員Tito Maletas還會附送一個由Roxane Velours網絡透露的玩家真實秘密。無次數限制。'],
     ['Le standard de l’agence internationale Roxane Velours et les trois escorts de l’hôtel. 800 PS par escort et par jour, jusqu’à ce que vous rompiez le contrat. Réservé aux clients de l’hôtel (nuitée réservée à la réception, jusqu’à votre prochain « Dormir »). Légal, mais immoral : la rumeur coûte cher.',
      'The switchboard of the Roxane Velours international agency and the hotel’s three escorts. 800 PS per escort per day, until you end the contract. Hotel guests only (night booked at reception, until your next “Sleep”). Legal but immoral: rumours cost dearly.',
      'La centralita de la agencia internacional Roxane Velours y los tres acompañantes del hotel. 800 PS por acompañante y por día, hasta que rompa el contrato. Solo para clientes del hotel (noche reservada en recepción, hasta su próximo «Dormir»). Legal, pero inmoral: el rumor sale caro.',
      'Die Vermittlung der internationalen Agentur Roxane Velours und die drei Begleitungen des Hotels. 800 PS pro Begleitung und Tag, bis Sie den Vertrag beenden. Nur für Hotelgäste (Übernachtung an der Rezeption gebucht, bis zu Ihrem nächsten „Schlafen“). Legal, aber unmoralisch: Gerüchte kommen teuer.',
-     'Коммутатор международного агентства «Роксана Велур» и три эскорта отеля. 800 PS за эскорт в день, пока вы не расторгнете контракт. Только для гостей отеля (ночь забронирована на ресепшене, до следующего «Спать»). Законно, но безнравственно: слухи обходятся дорого.',
-     '록산 벨루르 국제 에이전시 교환대와 호텔 에스코트 세 명. 에스코트 한 명당 하루 800 PS, 계약을 끝낼 때까지. 호텔 투숙객 전용(리셉션에서 숙박 예약, 다음 “잠자기”까지). 합법이지만 부도덕합니다. 소문은 비쌉니다.',
-     'مقسم وكالة روكسان فولور الدولية ومرافقو الفندق الثلاثة. 800 PS لكل مرافق في اليوم حتى تفسخ العقد. لنزلاء الفندق فقط (ليلة محجوزة في الاستقبال، حتى «النوم» التالي). قانوني لكنه غير أخلاقي: الشائعة مكلفة.',
+     'Коммутатор международного агентства «Roxane Velours» и три эскорта отеля. 800 PS за эскорт в день, пока вы не расторгнете контракт. Только для гостей отеля (ночь забронирована на ресепшене, до следующего «Спать»). Законно, но безнравственно: слухи обходятся дорого.',
+     'Roxane Velours 국제 에이전시 교환대와 호텔 에스코트 세 명. 에스코트 한 명당 하루 800 PS, 계약을 끝낼 때까지. 호텔 투숙객 전용(리셉션에서 숙박 예약, 다음 “잠자기”까지). 합법이지만 부도덕합니다. 소문은 비쌉니다.',
+     'مقسم وكالة Roxane Velours الدولية ومرافقو الفندق الثلاثة. 800 PS لكل مرافق في اليوم حتى تفسخ العقد. لنزلاء الفندق فقط (ليلة محجوزة في الاستقبال، حتى «النوم» التالي). قانوني لكنه غير أخلاقي: الشائعة مكلفة.',
      'A central da agência internacional Roxane Velours e os três acompanhantes do hotel. 800 PS por acompanhante por dia, até você romper o contrato. Só para hóspedes (pernoite reservado na recepção, até o seu próximo “Dormir”). Legal, mas imoral: o boato custa caro.',
-     '洛珊·維洛國際經紀公司的總機與飯店的三位伴遊。每位伴遊每天 800 PS，直到您解約為止。僅限飯店住客（在接待處訂房，直到您下一次「睡覺」）。合法但不道德：流言代價高昂。'],
+     'Roxane Velours國際經紀公司的總機與飯店的三位伴遊。每位伴遊每天 800 PS，直到您解約為止。僅限飯店住客（在接待處訂房，直到您下一次「睡覺」）。合法但不道德：流言代價高昂。'],
     ['+4 influence, −2 Santé. Trois par jour au plus. Dès la deuxième pipe de la journée, la langue se délie : un vrai secret sur vous échappe à tous les joueurs présents, et la rumeur court.',
      '+4 influence, −2 Health. Three a day at most. From the second pipe of the day, your tongue loosens: a real secret about you slips out to every player present, and the rumour spreads.',
      '+4 influencia, −2 Salud. Tres al día como máximo. Desde la segunda pipa del día se le suelta la lengua: un secreto real sobre usted llega a todos los jugadores presentes y corre el rumor.',
-     '+4 Einfluss, −2 Gesundheit. Höchstens drei am Tag. Ab der zweiten Pfeife des Tages löst sich die Zunge: Ein echtes Geheimnis über Sie entschlüpft allen anwesenden Spielern, und das Gerücht macht die Runde.',
+     '+4 Einfluss, −2 Gesundheit. Höchstens drei am Tag. Ab der zweiten Pfeife des Tages löst sich die Zunge: Ihnen entschlüpft ein echtes Geheimnis über sich selbst, das alle anwesenden Spieler hören, und das Gerücht macht die Runde.',
      '+4 к влиянию, −2 к Здоровью. Не больше трёх в день. Со второй трубки за день язык развязывается: настоящий секрет о вас узнают все присутствующие игроки, и пойдёт слух.',
      '영향력 +4, 건강 −2. 하루 최대 세 번. 그날 두 번째 물담배부터 입이 풀립니다. 당신의 진짜 비밀이 그 자리의 모든 플레이어에게 새어 나가고 소문이 돕니다.',
      '+4 نفوذ، −2 صحة. ثلاث مرات في اليوم على الأكثر. منذ النرجيلة الثانية في اليوم ينحلّ لسانك: يفلت سرّ حقيقي عنك إلى كل اللاعبين الحاضرين، وتسري الشائعة.',
@@ -138,11 +138,11 @@
      'Nabil Naana serves alcohol in a teapot: the usual effects of alcohol. One time in ten, the morality police are told: 1,000 DR fine, no prison.',
      'Nabil Naana sirve alcohol en una tetera: efectos habituales del alcohol. Una vez de cada diez, avisan a la policía de costumbres: multa de 1 000 DR, sin cárcel.',
      'Nabil Naana serviert Alkohol in einer Teekanne: die üblichen Wirkungen von Alkohol. In einem von zehn Fällen wird die Sittenpolizei informiert: 1 000 DR Geldstrafe, kein Gefängnis.',
-     'Набиль Наана подаёт алкоголь в чайнике: обычное действие алкоголя. В одном случае из десяти полицию нравов предупреждают: штраф 1 000 DR, без тюрьмы.',
-     '나빌 나아나가 찻주전자에 술을 담아 내옵니다. 술의 일반적인 효과가 있습니다. 열 번에 한 번은 풍기 단속 경찰에 신고되어 벌금 1,000 DR을 내지만 감옥에는 가지 않습니다.',
-     'يقدّم نبيل نعناع الكحول في إبريق شاي: آثار الكحول المعتادة. ومرة من كل عشر تُبلَّغ شرطة الآداب: غرامة 1000 DR دون سجن.',
+     'Nabil Naana подаёт алкоголь в чайнике: обычное действие алкоголя. В одном случае из десяти полицию нравов предупреждают: штраф 1 000 DR, без тюрьмы.',
+     'Nabil Naana가 찻주전자에 술을 담아 내옵니다. 술의 일반적인 효과가 있습니다. 열 번에 한 번은 풍기 단속 경찰에 신고되어 벌금 1,000 DR을 내지만 감옥에는 가지 않습니다.',
+     'يقدّم Nabil Naana الكحول في إبريق شاي: آثار الكحول المعتادة. ومرة من كل عشر تُبلَّغ شرطة الآداب: غرامة 1000 DR دون سجن.',
      'Nabil Naana serve álcool num bule de chá: efeitos habituais do álcool. Uma vez em dez, a polícia de costumes é avisada: multa de 1.000 DR, sem prisão.',
-     '納比勒·納阿納用茶壺盛酒端上：一般飲酒效果。十次中有一次會被舉報給風化警察：罰款 1,000 DR，不必坐牢。'],
+     'Nabil Naana用茶壺盛酒端上：一般飲酒效果。十次中有一次會被舉報給風化警察：罰款 1,000 DR，不必坐牢。'],
     ['Vous choisissez le montant. Chance : 50 % + 1 % par tranche de 10 PS + 2 % par point de CHA et d’ENT au-dessus de 8 + 1 % par 3 points d’indice de sécurité sous 50 (95 % au plus). Réussite : vous passez sans confiscation. Échec : le billet est perdu et vos objets illégaux sont saisis, sans arrestation ni amende.',
      'You choose the amount. Chance: 50% + 1% per 10 PS + 2% per CHA and ENT point above 8 + 1% per 3 points of security index below 50 (95% at most). Success: you pass without confiscation. Failure: the note is lost and your illegal items are seized, with no arrest or fine.',
      'Usted elige la cantidad. Probabilidad: 50 % + 1 % por cada 10 PS + 2 % por punto de CAR y de EMP por encima de 8 + 1 % por cada 3 puntos de índice de seguridad por debajo de 50 (95 % como máximo). Éxito: pasa sin confiscación. Fracaso: el billete se pierde y le requisan los objetos ilegales, sin arresto ni multa.',

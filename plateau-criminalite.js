@@ -38,7 +38,7 @@ const T = {
     hideCrit: 'Échec critique', hideCritText: 'Vous trébuchez bruyamment derrière le rideau. Votre moral en prend un coup (−15).',
     r_deja_cache: 'Vous êtes déjà caché(e) dans cette pièce.', r_hors_batiment: 'Il faut être dans une pièce.',
     r_pas_a_la_boutique: 'Il faut être dans la boutique.', r_fonds_insuffisants: 'Fonds insuffisants.',
-    r_inventaire_plein: 'Inventaire plein.', r_objet_non_revetable: 'Cet objet ne se revêt pas.', r_deja_revetu: 'Vous le portez déjà.', r_deux_objets_revetus_max: 'Vous portez déjà deux objets : retirez-en un d’abord.', r_trois_objets_revetus_max: 'Vous portez déjà trois objets : retirez-en un d’abord.',
+    r_inventaire_plein: 'Inventaire plein.', r_objet_non_revetable: 'Cet objet ne se revêt pas.', r_deja_revetu: 'Vous le portez déjà.', r_trois_objets_revetus_max: 'Vous portez déjà trois objets : retirez-en un d’abord.', r_deux_objets_revetus_max: 'Vous portez déjà trois objets : retirez-en un d’abord.',
     r_pas_revetu: 'Vous ne le portez pas.', r_objet_introuvable: 'Objet introuvable : rouvrez votre inventaire.',
     r_emprisonne: 'Impossible en détention.', r_hospitalise: 'Impossible à l’hôpital.', r_pa_insuffisants: 'Pas assez de PA.',
     refused: 'Le serveur a refusé l’opération.',
@@ -206,15 +206,16 @@ const T = {
     r_demande_close: 'Cette demande est close.', r_reponse_invalide: 'Cette réponse n’est pas possible à ce stade.', r_demande_introuvable: 'Demande introuvable.',
     r_vote_ferme: 'Ce référendum est clos.', r_non_domicilie: 'Seules les personnes domiciliées dans le pays votent.', r_deja_vote: 'Vous avez déjà voté.'
   },
+  // 28/11/2026 : ancien motif « deux » conservé comme identifiant, même refus à trois objets.
   // Trois objets revêtus au plus (Fred, 28/11/2026, revetus_trois_max_v1) : refus traduit ; les autres textes restent en français.
-  en: { r_trois_objets_revetus_max: 'You are already wearing three items: take one off first.' },
-  es: { r_trois_objets_revetus_max: 'Ya lleva tres objetos puestos: quítese uno primero.' },
-  de: { r_trois_objets_revetus_max: 'Sie tragen bereits drei Gegenstände: Legen Sie zuerst einen ab.' },
-  ru: { r_trois_objets_revetus_max: 'На вас уже три предмета: сначала снимите один.' },
-  ko: { r_trois_objets_revetus_max: '이미 물건 세 개를 착용하고 있습니다. 먼저 하나를 벗으세요.' },
-  ar: { r_trois_objets_revetus_max: 'ترتدي بالفعل ثلاثة أغراض: اخلع واحدًا أولًا.' },
-  'pt-BR': { r_trois_objets_revetus_max: 'Você já está usando três objetos: tire um primeiro.' },
-  'zh-TW': { r_trois_objets_revetus_max: '你已經穿戴三件物品：請先脫下一件。' }
+  en: { r_trois_objets_revetus_max: 'You are already wearing three items: take one off first.', r_deux_objets_revetus_max: 'You are already wearing three items: take one off first.' },
+  es: { r_trois_objets_revetus_max: 'Ya lleva tres objetos puestos: quítese uno primero.', r_deux_objets_revetus_max: 'Ya lleva tres objetos puestos: quítese uno primero.' },
+  de: { r_trois_objets_revetus_max: 'Sie tragen bereits drei Gegenstände: Legen Sie zuerst einen ab.', r_deux_objets_revetus_max: 'Sie tragen bereits drei Gegenstände: Legen Sie zuerst einen ab.' },
+  ru: { r_trois_objets_revetus_max: 'На вас уже три предмета: сначала снимите один.', r_deux_objets_revetus_max: 'На вас уже три предмета: сначала снимите один.' },
+  ko: { r_trois_objets_revetus_max: '이미 물건 세 개를 착용하고 있습니다. 먼저 하나를 벗으세요.', r_deux_objets_revetus_max: '이미 물건 세 개를 착용하고 있습니다. 먼저 하나를 벗으세요.' },
+  ar: { r_trois_objets_revetus_max: 'ترتدي بالفعل ثلاثة أغراض: اخلع واحدًا أولًا.', r_deux_objets_revetus_max: 'ترتدي بالفعل ثلاثة أغراض: اخلع واحدًا أولًا.' },
+  'pt-BR': { r_trois_objets_revetus_max: 'Você já está usando três objetos: tire um primeiro.', r_deux_objets_revetus_max: 'Você já está usando três objetos: tire um primeiro.' },
+  'zh-TW': { r_trois_objets_revetus_max: '你已經穿戴三件物品：請先脫下一件。', r_deux_objets_revetus_max: '你已經穿戴三件物品：請先脫下一件。' }
 };
 const etat = () => (typeof state !== 'undefined' && state) ? state : {};
 function langue() { try { const l = global.RPI18n && global.RPI18n.language; return (l && T[l]) ? l : 'fr'; } catch (_) { return 'fr'; } }
