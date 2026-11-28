@@ -8190,8 +8190,7 @@ export const SCENES_PNJ = {
     "batiment": "Centre multimodal d'Al Madina",
     "piece": "Hall Principal",
     "personnes": [
-      "Chambellan Al-Transit",
-      "Yasmine Embarquement"
+      "Youssef Safar"
     ]
   },
   "[\"khalija\",\"capitale\",\"centre-multinodal-luthecia\",\"hall_douanes\"]": {
@@ -8199,9 +8198,7 @@ export const SCENES_PNJ = {
     "ville": "Al Madina",
     "batiment": "Centre multimodal d'Al Madina",
     "piece": "Hall des Douanes",
-    "personnes": [
-      "Inspecteur Prosper Tampon"
-    ]
+    "personnes": []
   },
   "[\"khalija\",\"capitale\",\"centre-multinodal-luthecia\",\"zone_embarquement\"]": {
     "pays": "Al-Khalija",

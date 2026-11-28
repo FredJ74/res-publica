@@ -1,5 +1,10 @@
 # Al Madina, capitale d'Al-Khalija — teaser (décisions de Fred, 28/11/2026)
 
+> **Principe de contraste (Fred, 28/11/2026), qui guide tous les ajouts futurs dans ces empires.**
+> **Al-Khalija revendique une morale irréprochable mais s'arrange en douce avec elle** (le whisky dans la théière, le
+> passage forcé contre un jour de chambre). El Estado est un empire complètement décadent et corrompu, où l'on est
+> pourtant très pieux. Voir aussi `GAME-DESIGN-CIUDAD-ROJA.md`.
+
 Décision 17 de `GAME-DESIGN-LANCEMENT.md`, codée le 28/11/2026. Migrations : `20261128020000` (frontière, rue, accès
 réservés), `20261128030000` (gestes, PNJ, secrets, backgammon), `20261128040000` (tarifs doublés).
 
@@ -10,8 +15,8 @@ réservés), `20261128030000` (gestes, PNJ, secrets, backgammon), `2026112804000
 - Une vue de rue (`al-madina-rue`, image `Al_Madina_centre_multimodal_exterieur.webp`) avec deux bâtiments cliquables :
   le centre multimodal (à gauche) et l'hôtel (à droite). La flèche du bas affiche « Accès interdit ! » et le « ? » du
   compteur d'ouverture (mêmes conditions et même texte qu'à Ciudad Roja, voir `GAME-DESIGN-CIUDAD-ROJA.md`).
-- Centre multimodal : règles du teaser (seul l'avion vers les autres capitales fonctionne), sans PNJ nommés ni ordre
-  exclusif pour l'instant.
+- Centre multimodal : règles du teaser (seul l'avion vers les autres capitales fonctionne), sans ordre exclusif. Un seul
+  PNJ : **Youssef Safar**, référent transport (hall), portrait à venir ; douanes et embarquement sans PNJ.
 
 ## Hôtel Royal d'Al-Khalija
 
@@ -30,7 +35,8 @@ réservés), `20261128030000` (gestes, PNJ, secrets, backgammon), `2026112804000
 - L'onglet affiche « Accès strictement réservé aux hommes » (ou « aux femmes ») ; le serveur refuse l'entrée
   (`acces_reserve_raison_interne`, raisons `reserve_hommes` / `reserve_femmes`).
 - **Forcer le passage** : 2 PA ; chance 60 % + 4 % par point de VOL au-dessus de 13 (− 4 % par point en dessous).
-  - Échec : **1 jour de prison**, sans combat ni amende.
+  - Échec : **assignation à résidence** dans la suite (pièce « chambres »), attribuée d'office et sans frais même sans
+    réservation (décision du 28/11 après-midi, remplace le jour de prison).
   - Réussite : libre circulation dans les pièces réservées **jusqu'à la sortie de l'hôtel**, sans être recherché.
 
 ### Salon de thé
@@ -40,7 +46,7 @@ réservés), `20261128030000` (gestes, PNJ, secrets, backgammon), `2026112804000
 | Thé à la menthe | 1 PA, 60 DR | +2 Santé |
 | Pâtisseries orientales | 1 PA, 150 DR | repas léger (catégorie « snack ») |
 | Jus de fruits frais | 1 PA, 50 DR | +1 Santé, protège de la chaleur pour 12 heures |
-| Demander un thé spécial (à Nabil Naana) | 1 PA, 150 DR (3 fois le prix d'un verre au bar de l'hôtel) | alcool servi dans une théière, effets habituels de l'alcool ; 10 % de chances par commande d'être signalé à la police des mœurs : 1 000 DR d'amende, sans prison ; sans limite quotidienne |
+| Demander un thé spécial (à Nabil Naana) | 1 PA, 150 DR (3 fois le prix d'un verre au bar de l'hôtel) | alcool servi dans une théière, effets habituels de l'alcool ; 10 % de chances par commande d'être signalé à la police des mœurs : 1 000 DR d'amende, sans prison (liquide d'abord, puis comptes bancaires, puis ce qui existe) ; sans limite quotidienne |
 
 ### Salon des gentlemen
 
@@ -80,4 +86,25 @@ réservés), `20261128030000` (gestes, PNJ, secrets, backgammon), `2026112804000
 ## Ce qui n'est pas codé
 
 - Aucun commerce à louer, aucun poste à prendre, aucune domiciliation à Al Madina (décision 17).
-- Pas de PNJ nommés ni d'ordre exclusif au centre multimodal d'Al Madina.
+- Pas d'ordre exclusif au centre multimodal d'Al Madina.
+
+## Décisions du 28/11/2026 (après-midi) — migration `20261128100000_reponses_fred_teaser`
+
+- **Accès réservés par genre** : un personnage de genre « NB » ou libre est refusé dans les deux hammams et au salon des
+  gentlemen. **Voulu**, rien ne change.
+- **Échec de « Forcer le passage »** : plus de prison. Le joueur est **assigné à résidence** dans la suite de l'Hôtel
+  Royal (pièce « chambres »), attribuée d'office et sans frais même sans réservation (une nuitée gratuite est posée si
+  aucune n'attend). Il ne peut pas en sortir (toute navigation est refusée : `assignation_residence`) ; il peut y
+  dormir, commander au service d'étage (payant), écrire du courrier et aller sur le forum. **L'assignation prend fin à
+  son premier ordre « Dormir »**. Message à l'écran, au journal et au courrier, dans les neuf langues (le courrier reste
+  en français comme tous les courriers système).
+- **Thé spécial** : 1 PA gardé. **Pâtisseries** : comptées comme en-cas. **Narguilé** : −2 Santé gardé.
+- **Amende de la police des mœurs (1 000 DR)** : liquide d'abord, puis les comptes bancaires du joueur (banque nationale
+  puis Helvetia) ; s'il manque encore de l'argent, on prend ce qui existe.
+- **Vrais secrets** (narguilé, « Secret contre secret ») : moteur élargi, voir `GAME-DESIGN-CIUDAD-ROJA.md`
+  (« Décisions du 28/11 après-midi ») ; jamais une organisation secrète.
+- **Centre multimodal** : Chambellan Al-Transit et Inspecteur Prosper Tampon retirés ; Yasmine Embarquement devient
+  **Youssef Safar** (homme), référent transport, avec une personnalité de dialogue ; portrait vide pour l'instant.
+- **Bâtiments fermés** : les autres bâtiments de la capitale restent déclarés dans `data.js` et fermés par le serveur.
+- **Traductions** : noms de pièces et de bâtiments, rôles des PNJ et descriptions des ordres dans les neuf langues
+  (`plateau-teaser-traductions.js`).

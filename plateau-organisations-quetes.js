@@ -9251,6 +9251,8 @@ function doChoisirAccessoireClub(pa, cost) {
 
   document.getElementById('postes-modal-title').textContent = 'Accessoires — ' + clubLocal.nom;
   let html = '<div style="padding:1rem;display:flex;flex-direction:column;gap:.6rem">';
+  // Accessoire revêtable, +5 popularité dans la ville du club, un de chaque type (Fred, 28/11/2026) : texte traduit.
+  if (typeof window.accessoireClubNote === 'function') html += '<p class="cpj-note" dir="auto">' + window.accessoireClubNote() + '</p>';
   accessoires.forEach(a => {
     const img = visuels[a.id];
     html += '<button onclick="confirmerAchatAccessoireClub(\'' + a.id + '\',\'' + a.label + '\',' + a.prix + ',' + pa + ',' + cost + ')" style="display:flex;align-items:center;gap:.7rem;padding:.6rem .8rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.8rem;text-align:left">';
@@ -9265,7 +9267,15 @@ function doChoisirAccessoireClub(pa, cost) {
 }
 
 async function confirmerAchatAccessoireClub(id, label, prix, pa, cost) {
-  const v = await executerReceptionInventaire('club_accessoire_acheter', { p_accessoire: id, p_pa: pa, p_cost: cost });
+  const v = await executerReceptionInventaire('club_accessoire_acheter', { p_accessoire: id, p_pa: pa, p_cost: cost }, {
+    // Refus nommés des accessoires de club (un de chaque type…), traduits par plateau-accessoire-personnalise.js.
+    surRefus: (r) => {
+      const texte = typeof window.accessoireClubMotif === 'function' ? window.accessoireClubMotif(r) : null;
+      if (!texte) return false;
+      showToast(label, texte, false);
+      return true;
+    }
+  });
   if (!v) return;
   document.getElementById('modal-postes').classList.remove('open'); updateUI();
   const monnaie = COUNTRIES[state.country]?.cur || 'FR';

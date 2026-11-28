@@ -21,13 +21,13 @@ body.empire-republic {
   --accent:#C9A84C;--accent2:#8a6a20;
 }
 
-/* EL ESTADO — Brun chaud, orange brûlé */
+/* EL ESTADO — Vert olive militaire, or doux (doctrine de Fred, 28/11/2026) */
 body.empire-narco {
-  --bg:#1a0e06;--bg2:#200f06;--bg3:#271207;--bg4:#301508;
-  --border:#4a2208;--border2:#351808;
-  --text:#f5dfc0;--text2:#c89868;--text3:#906040;--text4:#604028;--text5:#402818;
-  --gold:#d4862a;--gold-light:#e8a850;--gold-dark:#904a10;--gold-dim:#401e06;
-  --accent:#d4862a;--accent2:#904a10;
+  --bg:#1a1d16;--bg2:#1c2019;--bg3:#232820;--bg4:#2a3023;
+  --border:#504c34;--border2:#3a3a28;
+  --text:#ece6cc;--text2:#c8c0a0;--text3:#949070;--text4:#686650;--text5:#44442f;
+  --gold:#d9b86a;--gold-light:#f0cd7f;--gold-dark:#8f7a3e;--gold-dim:#3a3420;
+  --accent:#d9b86a;--accent2:#43492d;
 }
 
 /* SOVARKA — Gris acier, rouge soviétique */
@@ -39,14 +39,17 @@ body.empire-soviet {
   --accent:#9a2020;--accent2:#6a1010;
 }
 
-/* AL-KHALIJA — Ocre sombre, turquoise doré */
+/* AL-KHALIJA — Brun chaud, bronze et or ; turquoise secondaire (doctrine de Fred, 28/11/2026) */
 body.empire-khalija {
-  --bg:#2a2210;--bg2:#302814;--bg3:#382e18;--bg4:#40341c;
-  --border:#584828;--border2:#443818;
-  --text:#f0e8c8;--text2:#c0b080;--text3:#887848;--text4:#585030;--text5:#383020;
-  --gold:#20a090;--gold-light:#30c0b0;--gold-dark:#107060;--gold-dim:#083828;
-  --accent:#20a090;--accent2:#107060;
+  --bg:#24180f;--bg2:#2b1e15;--bg3:#34241a;--bg4:#3e2c1b;
+  --border:#704827;--border2:#4e321c;
+  --text:#f5e8cc;--text2:#d8bf96;--text3:#a08868;--text4:#6e5a44;--text5:#463626;
+  --gold:#e0b25c;--gold-light:#f3d58a;--gold-dark:#8a5a24;--gold-dim:#3e2a14;
+  --accent:#e0b25c;--accent2:#6f451b;
 }
+/* Al-Khalija : le turquoise reste en touche secondaire, barre des PA et onglet actif du journal. */
+body.empire-khalija #hg-jauge-pa .hg-jauge-barre{background:#4f9594}
+body.empire-khalija .hg-chron-onglets button[aria-selected="true"]{background:#1a332c;border-color:#4f9594;color:var(--text)}
 body{font-family:'Crimson Pro',Georgia,serif;background:var(--bg);color:var(--text);min-height:100vh}
 body.plateau-body{height:100vh;overflow:hidden;display:flex;flex-direction:column}
 .bebas{font-family:'Bebas Neue',sans-serif}

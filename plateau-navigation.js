@@ -388,7 +388,7 @@ async function commanderNavigationInterieure(buildingId,roomId) {
       // Pavillon des Ambassadeurs et Résidence impériale (acces_reserve_v1) : explication et « Forcer le passage ».
       if(['acces_dignitaires','location_requise','un_seul_invite'].includes(r?.raison)&&typeof accesReserveRefus==='function'&&accesReserveRefus(r))return false;
       // Hôtel Royal d'Al-Khalija (Fred, 28/11/2026) : pièces réservées aux hommes ou aux femmes (plateau-hotels-teaser.js).
-      if(['reserve_hommes','reserve_femmes'].includes(r?.raison)&&typeof hotelTeaserRefus==='function'&&hotelTeaserRefus(r))return false;
+      if(['reserve_hommes','reserve_femmes','assignation_residence'].includes(r?.raison)&&typeof hotelTeaserRefus==='function'&&hotelTeaserRefus(r))return false;
       const incident=r||v;
       const perdu=['non_authentifie','acteur_non_authentifie','session_perdue'].includes(incident?.raison)||incident?.transport?.etat==='session_perdue';
       if(typeof showToast==='function'){showToast(perdu?'Session expirée':'Déplacement non confirmé',
@@ -602,7 +602,8 @@ function enterBuilding(buildingId, skipAutoRoom) {
   const displayCat = b.cat;
 
   // Header
-  document.getElementById('bat-nom').textContent = displayName;
+  // Capitales en teaser (28/11/2026) : nom du bâtiment traduit (plateau-teaser-traductions.js).
+  document.getElementById('bat-nom').textContent = (typeof window !== 'undefined' && window.RPTeaserCapitalesI18n) ? window.RPTeaserCapitalesI18n.batiment(buildingId, displayName) : displayName;
   document.getElementById('bat-cat').textContent = displayCat;
   globalThis.RPNavigationI18n?.markCategory?.(document.getElementById('bat-cat'),displayCat);
 

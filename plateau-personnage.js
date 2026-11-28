@@ -751,6 +751,8 @@ function switchSelfTab(tab, el) {
     // ne voit donc jamais ce bouton -- et ne pourrait de toute facon securiser que SON PROPRE
     // compte, PUT /user n'agissant que sur le porteur du jeton.
     html += htmlSecuriteDuCompte();
+    // ABONNEMENT (paiement Stripe, 28/11/2026) : état, « Résilier mon abonnement », remboursement 14 jours (plateau-paiement.js).
+    if (typeof window.rpHtmlAbonnementCompte === 'function' && _compteEstProprietaireDuPersonnage()) html += window.rpHtmlAbonnementCompte();
     // Mon compte et mes données (Fred, 28/11/2026) : export, suppression du compte, liens vers les textes juridiques.
     if (window.RPJuridique && typeof window.RPJuridique.htmlCompte === 'function') html += window.RPJuridique.htmlCompte();
 

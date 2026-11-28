@@ -23,16 +23,19 @@ test('serveur : deux objets revêtus au plus, bonus de popularité suivant l’i
 
 test('écran : ouvert à tous, paiement « bientôt disponible », rien n’est créé ni débité', () => {
   const src = lire('plateau-accessoire-personnalise.js');
-  assert.match(src, /sbRpcVerdict\('accessoire_personnalise_offre'/);
-  const clic = src.slice(src.indexOf("addEventListener('click'"));
-  assert.doesNotMatch(clic, /sbRpc|fetch\(/, 'aucun appel au paiement ni à la création');
+  assert.match(src, /rpc\('accessoire_personnalise_offre'/);
+  // Achat à l'unité (non-abonné) : le bouton « Payer » n'appelle rien (l'achat inclus dans l'abonnement est à part, 28/11/2026).
+  const clic = src.slice(src.indexOf("payer.addEventListener('click'"), src.indexOf("const inclus = b.querySelector"));
+  assert.ok(clic.length > 50);
+  assert.doesNotMatch(clic, /sbRpc|rpc\(|edge\(|fetch\(/, 'aucun appel au paiement ni à la création');
   assert.match(clic, /t\('bientot'\)/);
   const data = lire('data.js'), lignes = data.split('\n').filter(l => l.includes("{fn:'acheter_accessoire_personnalise'"));
   assert.equal(lignes.length, 4);
-  for (const l of lignes) { assert.doesNotMatch(l, /premium|ti-lock|requiresPremium/); assert.match(l, /\+10 popularité/); }
+  // 28/11/2026 (Fred) : +5 dans la ville du club (banc-accessoires-club-20261128.cjs).
+  for (const l of lignes) { assert.doesNotMatch(l, /premium|ti-lock|requiresPremium/); assert.match(l, /\+5 popularité/); }
   assert.match(lire('plateau-router.js'), /fn === 'acheter_accessoire_personnalise'\) \{ ouvrirAccessoirePersonnalise\(\)/);
   assert.doesNotMatch(lire('plateau-organisations-quetes.js'), /function doAcheterAccessoirePersonnalise/);
-  assert.match(lire('plateau-criminalite.js'), /r_deux_objets_revetus_max:/);
+  assert.match(lire('plateau-criminalite.js'), /r_trois_objets_revetus_max:/, 'règle des trois objets (28/11/2026)');
 });
 
 test('textes : neuf langues, mêmes clés', () => {
