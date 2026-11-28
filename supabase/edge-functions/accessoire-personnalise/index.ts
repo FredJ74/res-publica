@@ -3,7 +3,10 @@
 // l'inventaire par accessoire_personnalise_livrer_service. Toutes les actions exigent un paiement CONFIRMÉ
 // (accessoires_personnalises.paiement_confirme_le, posé par le webhook du prestataire) : tant que le prestataire n'est pas
 // choisi, aucune commande n'est payée et cette fonction ne peut rien produire. NON DÉPLOYÉE : à déployer avec le paiement.
-// Actions : generate, retouch, finalize.
+// 28/11/2026 (Fred) : la personnalisation est incluse dans l'abonnement ; accessoire_personnalise_commander (SQL) crée alors une
+// commande réglée en consommant le renouvellement d'image de la semaine. L'écran annule la commande (renouvellement rendu) si
+// la génération échoue. Les aperçus sont rendus avec leur adresse publique (dépôt « accessoires-personnalises »).
+// Actions : generate, retouch, preview, finalize.
 import {createClient} from "npm:@supabase/supabase-js@2.57.0";
 const cors={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"authorization,apikey,content-type","Access-Control-Allow-Methods":"POST,OPTIONS"};
 const out=(body,status=200)=>new Response(JSON.stringify(body),{status,headers:{...cors,"Content-Type":"application/json"}});
@@ -20,11 +23,13 @@ Deno.serve(async(req)=>{
  const db=createClient(url,service);
  let body;try{body=await req.json()}catch{return out({error:"Invalid JSON"},400)}
  const id=String(body.id||""),action=String(body.action||"");
- if(!/^[0-9a-f-]{36}$/i.test(id)||!["generate","retouch","finalize"].includes(action))return out({error:"Invalid parameters"},400);
+ if(!/^[0-9a-f-]{36}$/i.test(id)||!["generate","retouch","preview","finalize"].includes(action))return out({error:"Invalid parameters"},400);
  const {data:acc,error:readError}=await db.from("accessoires_personnalises").select("*").eq("id",id).eq("acheteur_user_id",user.id).maybeSingle();
  if(readError||!acc)return out({error:"Not found"},404);
  if(!acc.paiement_confirme_le)return out({error:"Payment required"},402);
  if(!["commande","apercu"].includes(acc.etat))return out({error:"Not editable"},409);
+ const urlDe=(p)=>db.storage.from("accessoires-personnalises").getPublicUrl(p).data.publicUrl;
+ if(action==="preview")return acc.etat==="apercu"&&acc.apercu_path?out({ok:true,path:acc.apercu_path,url:urlDe(acc.apercu_path),retouches:acc.retouches}):out({error:"No preview"},400);
  if(action==="finalize"){
   if(acc.etat!=="apercu"||!acc.apercu_path)return out({error:"No preview"},400);
   const {data:livre,error}=await db.rpc("accessoire_personnalise_livrer_service",{p_id:id});
@@ -60,5 +65,5 @@ Deno.serve(async(req)=>{
  const {data:updated,error:saveError}=await db.from("accessoires_personnalises").update({apercu_path:path,etat:"apercu",retouches}).eq("id",id).eq("etat",acc.etat).eq("retouches",acc.retouches).select("id").maybeSingle();
  if(saveError||!updated)return out({error:"Save failed"},409);
  await db.from("visuels_versions").insert({type_visuel:"accessoire",objet_id:id,image_path:path,auteur_user_id:user.id,action});
- return out({ok:true,path,retouches});
+ return out({ok:true,path,url:urlDe(path),retouches});
 });
