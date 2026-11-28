@@ -84,7 +84,8 @@ test('écran : textes 9 langues, refus nommés, achat standard traduit', () => {
   const T = ctx.window.RP_ACCESSOIRE_PERSONNALISE_T;
   assert.deepEqual(Object.keys(T), ['fr', 'en', 'es', 'zh-TW', 'ru', 'ko', 'ar', 'pt-BR', 'de']);
   for (const l of Object.keys(T)) {
-    for (const k of ['accessoire_type_deja_possede', 'renouvellement_hebdo_utilise', 'paiement_bientot', 'commande_non_annulable']) assert.ok(T[l].r[k], l + ' ' + k);
+    // 28/11 soir : l'achat n'est plus limité (refus « accessoire_type_deja_possede » retiré, banc-accessoires-premium-acquis-20261128-soir).
+    for (const k of ['achat_unite_requis', 'renouvellement_hebdo_utilise', 'paiement_bientot', 'commande_non_annulable']) assert.ok(T[l].r[k], l + ' ' + k);
     for (const k of ['inclus', 'inclusNote', 'hebdoPris', 'standardNote', 'imageIndispo']) assert.ok(T[l][k], l + ' ' + k);
     assert.match(T[l].intro, /\+5/, l);
     assert.doesNotMatch(T[l].intro, /\+10/, l);

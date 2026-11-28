@@ -42,6 +42,9 @@ function nomObjetAffiche(item) {
 function imageUrlObjet(item) {
   if (!item) return '';
   const carte = carteModeleObjet(item);
+  // Accessoire de club personnalisé : l'image créée par IA est rangée dans le dépôt public « accessoires-personnalises ».
+  if (item.type === 'accessoire_club_perso' && /^[0-9a-f-]{36}\/[0-9a-f-]{36}\.png$/i.test(String(item.image || ''))
+      && typeof SUPABASE_URL === 'string') return SUPABASE_URL + '/storage/v1/object/public/accessoires-personnalises/' + item.image;
   const brute = (carte && carte.image) || item.imageUrl;
   if (brute) return typeof imagePubliqueUrl === 'function' ? imagePubliqueUrl(brute) : brute;
   return IMAGES_OBJETS_PAR_IDENTITE[item.recette_id] || IMAGES_OBJETS_PAR_IDENTITE[item.generique_id] || IMAGES_OBJETS_PAR_IDENTITE[item.type]
