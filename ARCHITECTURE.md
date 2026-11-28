@@ -237,6 +237,12 @@ serveur.
 Al-Khalija) ; la structure à huit empires (quatre non payants, quatre pay-to-win) voulue par
 Fred n'y figure pas encore.
 
+**Ambiances visuelles (doctrine de Fred, 28/11/2026 : 4 empires, 4 ambiances)** : variables de couleur posées sur
+`body.empire-<pays>` dans `style.css` (classe mise par `plateau-navigation.js`). Républia : noir profond et or ;
+El Estado : vert olive militaire et or doux ; Sovarka : gris acier et rouge ; Al-Khalija : brun chaud, bronze et or,
+le turquoise (#4f9594) n'y restant qu'en touche secondaire (barre des PA, onglet actif du journal). Banc :
+`outils/bancs/banc-couleurs-empires-20261128.cjs`.
+
 *Tenir ce fichier à jour à chaque mécanique ajoutée, retirée ou passée au serveur.*
 
 
