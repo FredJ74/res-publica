@@ -1532,27 +1532,33 @@ const WORLD = {
       imageUrl:'images/rue-el-estado.webp',
       desc:'Capitale d\'El Estado. Chaleur étouffante, corruption omniprésente, Generalissimo Gordito règne sans partage.',
       isCapitale: true,
-      // Teaser (décision 17, codée le 28/11/2026) : seuls le centre multimodal et l'hôtel sont ouverts ; liste complète d'origine :
-      // buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','laboratoire-priere','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade'],
-      buildings: ['centre-multinodal-luthecia','hotel-republica'],
+      // Teaser (décision 17, 28/11/2026) : les autres bâtiments restent déclarés mais fermés par le serveur
+      // (navigation_lieux_regles.ferme) ; la rue n'expose que le centre multimodal et l'hôtel.
+      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','laboratoire-priere','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade'],
       buildingContext: {
         'hotel-republica': {
           name: "Hotel Ciudad Roja",
-          desc: "Le grand hôtel de luxe de Ciudad Roja.",
-          // Ciudad Roja (27/11/2026) : cinq vues (réception, suite, restaurant, piscine, bar extérieur). Les suites
-          // privée et présidentielle du gabarit de Luthécia sont exclues ; le bar n'a pas d'onglet : on y entre depuis
-          // la piscine en cliquant sur le bar de l'illustration (serveur : ciudad_roja_bar_v1). PNJ d'El Estado
-          // existants répartis par métier, aucun PNJ de Républia hérité.
+          desc: "Le grand hôtel de luxe de Ciudad Roja : piscine, tennis, cocktails et confidences sur l'oreiller.",
+          // Ciudad Roja (27/11/2026), personnel refait par Fred le 28/11/2026 (GAME-DESIGN-CIUDAD-ROJA.md) : Pedro Tequila,
+          // Lupe Cantina et Lola Discreta laissent la place à l'équipe de l'hôtel. Cinq vues ; les suites privée et présidentielle
+          // du gabarit sont exclues ; le bar n'a pas d'onglet : on y entre depuis la piscine (serveur : ciudad_roja_bar_v1).
+          // Ordres propres (serveur : hotel_teaser_agir, migration 20261128030000) ; prix en PS.
           roomsExclues: ['suite_privee', 'suite_presidentielle'],
           roomsMasquees: ['bar'],
           roomsExtra: {
-            piscine: { name: 'Piscine', imageUrl: 'images/El Estado/Ciudad Roja/Ciudad_Roja_hotel_piscine.webp', persons: [], orders: [] }
+            piscine: { name: 'Piscine', imageUrl: 'images/El Estado/Ciudad Roja/Ciudad_Roja_hotel_piscine.webp',
+              persons: [{"name": "Svetlana Zolotova (PNJ)", "role": "Escort de l’hôtel", "rel": "neutral", "job": "escort", "genre": "F"}, {"name": "Valentina Fuego (PNJ)", "role": "Escort de l’hôtel", "rel": "neutral", "job": "escort", "genre": "F"}, {"name": "Don Augusto Bigotes (PNJ)", "role": "Caudillo en villégiature", "rel": "neutral", "job": "client", "genre": "H"}],
+              orders: [{fn:'cr_nager',label:'Nager dans la piscine',pa:1,cost:0,type:'legal',icon:'ti-swimming',successRate:100,desc:'+5 Santé et protection contre la canicule pour la journée. Deux fois par jour.'}, {fn:'cr_tennis',label:'Jouer au tennis',pa:2,cost:0,type:'legal',icon:'ti-ball-tennis',successRate:100,desc:'−8 Santé, mais +7 influence et +5 popularité : on vous voit avec les bonnes personnes. Une fois par jour.'}, {fn:'cr_pourboire',label:'Donner un pourboire',pa:0,cost:200,type:'legal',icon:'ti-coin',successRate:100,desc:'200 PS au membre du personnel de votre choix : +1 popularité. Tito Maletas, le bagagiste, glisse en prime une rumeur sur El Estado. Sans limite.'}] }
           },
           roomOverrides: {
-            accueil: { name: 'Réception', imageUrl: 'images/El Estado/Ciudad Roja/Ciudad_Roja_hotel_reception.webp', personsVides: true },
-            restaurant: { name: 'Restaurant', imageUrl: 'images/El Estado/Ciudad Roja/Ciudad_Roja_hotel_restaurant.webp', persons: [{"name": "Lupe Cantina (PNJ)", "role": "Serveuse armée", "rel": "neutral", "job": "serveur"}] },
-            bar: { name: 'Bar extérieur', imageUrl: 'images/El Estado/Ciudad Roja/Ciudad_Roja_hotel_bar_piscine.webp', persons: [{"name": "Pedro Tequila (PNJ)", "role": "Barman", "rel": "neutral", "job": "serveur"}, {"name": "Lola Discreta (PNJ)", "role": "Informatrice double jeu", "rel": "neutral", "job": "escort"}] },
-            chambres: { name: 'Suite', imageUrl: 'images/El Estado/Ciudad Roja/Ciudad_Roja_hotel_suite.webp', personsVides: true }
+            accueil: { name: 'Réception', imageUrl: 'images/El Estado/Ciudad Roja/Ciudad_Roja_hotel_reception.webp',
+              persons: [{"name": "Rosario Esmeralda (PNJ)", "role": "Réceptionniste en chef", "rel": "neutral", "job": "receptionniste", "genre": "F"}, {"name": "Bruno Macizo (PNJ)", "role": "Chef de la sécurité", "rel": "neutral", "job": "securite", "genre": "H"}, {"name": "Tito Maletas (PNJ)", "role": "Bagagiste", "rel": "neutral", "job": "bagagiste", "genre": "H"}], orders: [{fn:'cr_pourboire',label:'Donner un pourboire',pa:0,cost:200,type:'legal',icon:'ti-coin',successRate:100,desc:'200 PS au membre du personnel de votre choix : +1 popularité. Tito Maletas, le bagagiste, glisse en prime une rumeur sur El Estado. Sans limite.'}] },
+            restaurant: { name: 'Restaurant', imageUrl: 'images/El Estado/Ciudad Roja/Ciudad_Roja_hotel_restaurant.webp',
+              persons: [{"name": "Matías Bandeja (PNJ)", "role": "Maître d’hôtel", "rel": "neutral", "job": "serveur", "genre": "H"}], orders: [{fn:'cr_pourboire',label:'Donner un pourboire',pa:0,cost:200,type:'legal',icon:'ti-coin',successRate:100,desc:'200 PS au membre du personnel de votre choix : +1 popularité. Tito Maletas, le bagagiste, glisse en prime une rumeur sur El Estado. Sans limite.'}] },
+            bar: { name: 'Bar extérieur', imageUrl: 'images/El Estado/Ciudad Roja/Ciudad_Roja_hotel_bar_piscine.webp',
+              persons: [{"name": "Rafael Toro (PNJ)", "role": "Barman", "rel": "neutral", "job": "serveur", "genre": "H"}], orders: [{fn:'cr_pourboire',label:'Donner un pourboire',pa:0,cost:200,type:'legal',icon:'ti-coin',successRate:100,desc:'200 PS au membre du personnel de votre choix : +1 popularité. Tito Maletas, le bagagiste, glisse en prime une rumeur sur El Estado. Sans limite.'}] },
+            chambres: { name: 'Suite', imageUrl: 'images/El Estado/Ciudad Roja/Ciudad_Roja_hotel_suite.webp', personsVides: true,
+              orders: [{fn:'escort_standard',label:'Appel à un(e) escort',pa:0,cost:0,type:'legal',icon:'ti-phone-call',successRate:100,desc:'Le standard de l’agence internationale Roxane Velours et les trois escorts de l’hôtel. 800 PS par escort et par jour, jusqu’à ce que vous rompiez le contrat. Réservé aux clients de l’hôtel (nuitée réservée à la réception). Légal, mais immoral : la rumeur coûte cher.'}] }
           },
           persons: []
         },
@@ -1638,8 +1644,12 @@ const WORLD = {
                 'centre-multinodal-luthecia': {
           name: "Centre multimodal de Ciudad Roja",
           roomOverrides: {
-            hall_gare: { imageUrl: 'images/El Estado/Ciudad Roja/Ciudad_Roja_centre_multimodal_hall.webp' },
-            hall_douanes: { imageUrl: 'images/El Estado/Ciudad Roja/Ciudad_Roja_centre_multimodal_douanes.webp', persons: [{"name": "Juanita Soborno (PNJ)", "role": "Agente des douanes", "rel": "neutral", "job": "douanier"}] },
+            hall_gare: { imageUrl: 'images/El Estado/Ciudad Roja/Ciudad_Roja_centre_multimodal_hall.webp', persons: [{"name": "Carlos Retraso (PNJ)", "role": "Chef de gare", "rel": "neutral", "job": "chef_gare", "genre": "H"}] },
+            // Douane de Ciudad Roja (Fred, 28/11/2026) : Juanita Soborno commande ; ses deux douaniers moustachus ne répondent
+            // que « Voyez avec la cheffe ». « Donner un billet aux douaniers » : montant au choix, tiré par le serveur.
+            hall_douanes: { imageUrl: 'images/El Estado/Ciudad Roja/Ciudad_Roja_centre_multimodal_douanes.webp',
+              persons: [{"name": "Juanita Soborno (PNJ)", "role": "Cheffe des douanes", "rel": "neutral", "job": "douanier", "genre": "F"}, {"name": "Douanier Moustachu Uno (PNJ)", "role": "Douanier", "rel": "neutral", "job": "douanier", "genre": "H"}, {"name": "Douanier Moustachu Dos (PNJ)", "role": "Douanier", "rel": "neutral", "job": "douanier", "genre": "H"}],
+              orders: [{fn:'cr_billet_douaniers',label:'Donner un billet aux douaniers',pa:0,cost:0,type:'illegal',icon:'ti-cash',successRate:100,desc:'Vous choisissez le montant. Chance : 50 % + 1 % par tranche de 10 PS + 2 % par point de CHA et d’ENT au-dessus de 8 + 1 % par 3 points d’indice de sécurité sous 50 (95 % au plus). Réussite : vous passez sans confiscation. Échec : le billet est perdu et vos objets illégaux sont saisis, sans arrestation ni amende.'}] },
             zone_embarquement: { imageUrl: 'images/El Estado/Ciudad Roja/Ciudad_Roja_centre_multimodal_embarquement.webp' }
           },
           desc: "Taxis dorés, bus dorés, Trans-Gold Express. Carlos Retraso annonce des horaires purement décoratifs. Juanita Soborno surveille les entrées.",
@@ -2979,22 +2989,35 @@ const WORLD = {
       imageUrl:'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1200&q=80',
       desc:'Capitale d\'Al-Khalija. Or, turquoise et sable. Le Palais Royal domine tout. Le protocole est une religion.',
       isCapitale: true,
-      // Teaser (décision 17, codée le 28/11/2026) : seuls le centre multimodal et l'hôtel sont ouverts ; liste complète d'origine :
-      // buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','patisserie-sacree','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade'],
-      buildings: ['centre-multinodal-luthecia','hotel-republica'],
+      // Teaser (décision 17, 28/11/2026) : les autres bâtiments restent déclarés mais fermés par le serveur
+      // (navigation_lieux_regles.ferme) ; la rue n'expose que le centre multimodal et l'hôtel.
+      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','patisserie-sacree','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade'],
       buildingContext: {
         'hotel-republica': {
-          name: "Hôtel Al-Nour Palace",
-          desc: "Cinq étoiles. Marbre, or et silence. Hassan Marchandage règle les problèmes des clients fortunés.",
-          persons: [{"name": "Hassan Marchandage (PNJ)", "role": "Concierge Royal", "rel": "neutral", "job": "serveur"}, {"name": "Yasmine Épices (PNJ)", "role": "Hôtesse", "rel": "neutral", "job": "serveur"}],
-          // Cles de salles corrigees le 12 septembre 2026 : 'hall_hotel' et 'chambre' n'existent
-          // pas dans BUILDINGS['hotel-republica'] (ce sont 'accueil' et 'chambres'), ces deux
-          // habillages khalija n'ont donc jamais ete appliques.
+          name: "Hôtel Royal d'Al-Khalija",
+          desc: "Marbre, or et silence. Salon de thé, salon des gentlemen et hammams : à Al Madina, tout se dit entre deux vapeurs.",
+          // Hôtel Royal d'Al-Khalija (Fred, 28/11/2026, GAME-DESIGN-AL-MADINA.md) : ancien « Hôtel Al-Nour Palace ». Monnaie : dinar
+          // royal (DR), prix doubles de Républia. Pièces : réception, suite, restaurant, salon de thé (pièce serveur « bar »), salon
+          // des gentlemen (hommes), hammam des hommes, hammam des femmes. Accès réservés : moteur du Pavillon (serveur :
+          // acces_reserve_raison_interne, hotel_royal_genre_v1). Ordres propres : hotel_teaser_agir (migration 20261128030000).
+          persons: [],
+          roomsExclues: ['suite_privee', 'suite_presidentielle'],
+          roomsExtra: {
+            salon_gentlemen: { name: 'Salon des gentlemen', imageUrl: 'images/Al-Khalija/Al Madina/Al_Madina_hotel_salon_gentlemen.webp',
+              persons: [{"name": "Faris Dukhan (PNJ)", "role": "Serveur de narguilé", "rel": "neutral", "job": "serveur", "genre": "H"}, {"name": "Jabbar Bawwab (PNJ)", "role": "Gardien du salon", "rel": "neutral", "job": "securite", "genre": "H"}],
+              orders: [{fn:'am_narguile',label:'Fumer un narguilé',pa:1,cost:250,type:'legal',icon:'ti-smoking',successRate:100,desc:'+4 influence, −2 Santé. Trois par jour au plus. Dès la deuxième pipe de la journée, la langue se délie : un vrai secret sur vous échappe à tous les joueurs présents, et la rumeur court.'}, {fn:'am_cafe_arabe',label:'Boire un café arabe',pa:2,cost:80,type:'legal',icon:'ti-coffee',successRate:100,desc:'+2 VOL pendant 6 heures, non cumulable.'}, {fn:'am_backgammon',label:'Backgammon',pa:0,cost:0,type:'legal',icon:'ti-dice',successRate:100,desc:'Défiez un joueur présent : il accepte ou refuse. Chacun mise le montant choisi par celui qui défie. Chance : 50 % + 2 % par point d’INT d’écart. Le gagnant empoche les mises et +2 popularité.'}, {fn:'am_secret_contre_secret',label:'Secret contre secret',pa:1,cost:0,type:'illegal',icon:'ti-lock-open',successRate:100,desc:'Visez un joueur de la même pièce, une fois par jour et par cible, sans son accord. Chance : 50 % + 3 % par point de CHA au-dessus de 8 − 3 % par point de VOL de la cible au-dessus de 8 (entre 10 et 90 %). Réussite : chacun apprend un vrai secret de l’autre. Échec : rien, et la cible n’est pas prévenue ; une fois sur dix, c’est elle qui apprend un de vos secrets.'}] },
+            hammam_hommes: { name: 'Hammam des hommes', imageUrl: 'images/Al-Khalija/Al Madina/Al_Madina_hotel_hammam_hommes.webp',
+              persons: [{"name": "Hamid Bukhar (PNJ)", "role": "Gardien du hammam des hommes", "rel": "neutral", "job": "securite", "genre": "H"}], orders: [{fn:'am_bain_vapeur',label:'Bain de vapeur',pa:1,cost:300,type:'legal',icon:'ti-droplet',successRate:100,desc:'+6 Santé et guérit la gueule de bois. Une fois par jour.'}, {fn:'am_secret_contre_secret',label:'Secret contre secret',pa:1,cost:0,type:'illegal',icon:'ti-lock-open',successRate:100,desc:'Visez un joueur de la même pièce, une fois par jour et par cible, sans son accord. Chance : 50 % + 3 % par point de CHA au-dessus de 8 − 3 % par point de VOL de la cible au-dessus de 8 (entre 10 et 90 %). Réussite : chacun apprend un vrai secret de l’autre. Échec : rien, et la cible n’est pas prévenue ; une fois sur dix, c’est elle qui apprend un de vos secrets.'}] },
+            hammam_femmes: { name: 'Hammam des femmes', imageUrl: 'images/Al-Khalija/Al Madina/Al_Madina_hotel_hammam_femmes.webp',
+              persons: [{"name": "Oum Saboun (PNJ)", "role": "Matrone du hammam des femmes", "rel": "neutral", "job": "securite", "genre": "F"}], orders: [{fn:'am_bain_vapeur',label:'Bain de vapeur',pa:1,cost:300,type:'legal',icon:'ti-droplet',successRate:100,desc:'+6 Santé et guérit la gueule de bois. Une fois par jour.'}, {fn:'am_secret_contre_secret',label:'Secret contre secret',pa:1,cost:0,type:'illegal',icon:'ti-lock-open',successRate:100,desc:'Visez un joueur de la même pièce, une fois par jour et par cible, sans son accord. Chance : 50 % + 3 % par point de CHA au-dessus de 8 − 3 % par point de VOL de la cible au-dessus de 8 (entre 10 et 90 %). Réussite : chacun apprend un vrai secret de l’autre. Échec : rien, et la cible n’est pas prévenue ; une fois sur dix, c’est elle qui apprend un de vos secrets.'}] }
+          },
           roomOverrides: {
-            'accueil':      { name: "Grand Hall Al-Nour",    imageUrl: 'images/hall-hotel-khalija.webp' },
-            'chambres':     { name: "Suite Royale",          imageUrl: 'images/chambre-hotel-khalija.webp' },
-            'restaurant':   { name: "Restaurant Al-Nour",   imageUrl: 'images/hall-hotel-khalija.webp' },
-            'bar':          { name: "Salon des Hôtes",       imageUrl: 'images/hall-hotel-khalija.webp' }
+            'accueil':    { name: "Réception", imageUrl: 'images/Al-Khalija/Al Madina/Al_Madina_hotel_reception.webp', persons: [{"name": "Amira Miftah (PNJ)", "role": "Réceptionniste en chef", "rel": "neutral", "job": "receptionniste", "genre": "F"}, {"name": "Saïd Chanta (PNJ)", "role": "Bagagiste", "rel": "neutral", "job": "bagagiste", "genre": "H"}] },
+            'chambres':   { name: "Suite", imageUrl: 'images/Al-Khalija/Al Madina/Al_Madina_hotel_suite.webp', personsVides: true },
+            'restaurant': { name: "Restaurant", imageUrl: 'images/Al-Khalija/Al Madina/Al_Madina_hotel_restaurant.webp', persons: [{"name": "Karim Sahn (PNJ)", "role": "Maître d’hôtel", "rel": "neutral", "job": "serveur", "genre": "H"}] },
+            'bar':        { name: "Salon de thé", imageUrl: 'images/Al-Khalija/Al Madina/Al_Madina_hotel_salon_the.webp', persons: [{"name": "Nabil Naana (PNJ)", "role": "Serveur du salon de thé", "rel": "neutral", "job": "serveur", "genre": "H"}],
+              excludeOrders: ['escort_piege', 'offrir_tournee', 'produire_commerce', 'consulter_carte_commerce', 'gerer_commerce', 'vendre_matiere_commerce'],
+              orders: [{fn:'am_the_menthe',label:'Thé à la menthe',pa:1,cost:60,type:'legal',icon:'ti-cup',successRate:100,desc:'+2 Santé.'}, {fn:'am_patisseries',label:'Pâtisseries orientales',pa:1,cost:150,type:'legal',icon:'ti-cookie',successRate:100,desc:'Un repas léger.'}, {fn:'am_jus_fruits',label:'Jus de fruits frais',pa:1,cost:50,type:'legal',icon:'ti-glass-full',successRate:100,desc:'+1 Santé et protection contre la chaleur pour la journée.'}, {fn:'am_the_special',label:'Demander un thé spécial',pa:1,cost:150,type:'illegal',icon:'ti-teapot',successRate:100,desc:'Nabil Naana sert de l’alcool dans une théière : effets habituels de l’alcool. Une fois sur dix, la police des mœurs est prévenue : 1 000 DR d’amende, sans prison.'}] }
           }
         },
         'commissariat': {

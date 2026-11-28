@@ -596,6 +596,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'aller_douanes_aeroport') { doAllerDouanesAeroport(); return; }
   if (fn === 'prendre_bateau')         { ouvrirModalTransport('bateau'); return; }
   if (fn === 'corrompre_douanier')     { doCorrompreDoanier(pa, cost); return; }
+  // Capitales en teaser (Fred, 28/11/2026) : gestes des hôtels de Ciudad Roja et d'Al Madina, billet aux douaniers.
+  if (/^(cr|am)_/.test(fn) && typeof hotelTeaserOrdre === 'function') { hotelTeaserOrdre(fn); return; }
   if (fn === 'expedier_colis')         { ouvrirExpedierColis(pa, cost); return; }
   if (fn === 'receptionner_commande')  { ouvrirReceptionnerCommande(pa, cost); return; }
   if (fn === 'blocus_portuaire')       { doBlocusPortuaire(pa, cost); return; }

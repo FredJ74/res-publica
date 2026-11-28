@@ -21,6 +21,7 @@
 //
 // LA CLE D'API N'EST JAMAIS TRANSMISE AU NAVIGATEUR, ni journalisee, ni renvoyee dans une erreur.
 
+import { PNJ_PISCINE_CIUDAD_ROJA, PNJ_REFERENTS_HABITUES, PNJ_DOUANIERS_MOUSTACHUS, repliqueAugusto, repliqueDouanier, consigneHabitues } from './_hotels-teaser.js';
 import { construirePromptSysteme, profilExiste, maxTokensProfil, filtrerReponseSquatteur, langueDialogueAutorisee, TOUS_PROFILS } from './_pnj-profils.js';
 import { handlerAide } from './_aide.js';
 import { handlerReactionHabitant } from './_reaction-habitant.js';
@@ -357,6 +358,16 @@ export default async function handler(req, res) {
     }
   }
 
+  // Hotel Ciudad Roja (Fred, 28/11/2026) : la première fois qu'un joueur s'adresse à Svetlana ou à Valentina, Don Augusto
+  // Bigotes l'interrompt, une seule fois. Le serveur décide (lieu, première fois) ; sinon, dialogue habituel.
+  if (PNJ_DOUANIERS_MOUSTACHUS.includes(req.body.profil))
+    return res.status(200).json({ reponse: repliqueDouanier(langueDialogueAutorisee(req.body.lang)) });
+  if (PNJ_PISCINE_CIUDAD_ROJA.includes(req.body.profil)) {
+    const v = await rpcJoueur('ciudad_roja_augusto_tirade', {}, utilisateur.jeton);
+    if (v && v.ok === true && v.tirade === true)
+      return res.status(200).json({ reponse: repliqueAugusto(langueDialogueAutorisee(req.body.lang)), locuteur: 'Don Augusto Bigotes' });
+  }
+
   // Les lectures de contexte et de position partent ENSEMBLE : elles sont independantes, et les enchainer ajouterait
   // quatre allers-retours reseau a chaque replique. Un PNJ n'a jamais les deux memoires -- un
   // social n'est pas referent, un referent ne se lie pas --, le contexte public les concerne
@@ -383,7 +394,10 @@ export default async function handler(req, res) {
   // Fonctionnaires de Sovarka (Fred, 15/11/2026) : une question absurde de vigilance d'État, environ une
   // conversation sur quatre ; tirage au serveur, stable par joueur, PNJ et jour.
   const soupcon = consigneSoupconSovarka(req.body.profil, TOUS_PROFILS[req.body.profil], position, scene, utilisateur.id);
-  const systeme = soupcon ? systemeBase + '\n' + soupcon : systemeBase;
+  // Référents des habitués des hôtels teaser (28/11/2026) : la liste réelle des passages, lue au serveur pour eux seuls.
+  const habitues = PNJ_REFERENTS_HABITUES.includes(req.body.profil)
+    ? consigneHabitues(await rpcJoueur('hotel_teaser_habitues', { p_pnj: req.body.profil }, utilisateur.jeton).catch(() => null)) : '';
+  const systeme = [systemeBase, soupcon, habitues].filter(Boolean).join('\n');
 
   const messages = [];
   for (const m of (req.body.historique || [])) messages.push({ role: m.role, content: m.content });

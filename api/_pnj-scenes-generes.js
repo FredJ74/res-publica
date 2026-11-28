@@ -2766,7 +2766,11 @@ export const SCENES_PNJ = {
     "ville": "Ciudad Roja",
     "batiment": "Hotel Ciudad Roja",
     "piece": "Réception",
-    "personnes": []
+    "personnes": [
+      "Rosario Esmeralda",
+      "Bruno Macizo",
+      "Tito Maletas"
+    ]
   },
   "[\"narco\",\"capitale\",\"hotel-republica\",\"restaurant\"]": {
     "pays": "El Estado",
@@ -2774,7 +2778,7 @@ export const SCENES_PNJ = {
     "batiment": "Hotel Ciudad Roja",
     "piece": "Restaurant",
     "personnes": [
-      "Lupe Cantina"
+      "Matías Bandeja"
     ]
   },
   "[\"narco\",\"capitale\",\"hotel-republica\",\"bar\"]": {
@@ -2783,8 +2787,7 @@ export const SCENES_PNJ = {
     "batiment": "Hotel Ciudad Roja",
     "piece": "Bar extérieur",
     "personnes": [
-      "Pedro Tequila",
-      "Lola Discreta"
+      "Rafael Toro"
     ]
   },
   "[\"narco\",\"capitale\",\"hotel-republica\",\"chambres\"]": {
@@ -2799,7 +2802,11 @@ export const SCENES_PNJ = {
     "ville": "Ciudad Roja",
     "batiment": "Hotel Ciudad Roja",
     "piece": "Piscine",
-    "personnes": []
+    "personnes": [
+      "Svetlana Zolotova",
+      "Valentina Fuego",
+      "Don Augusto Bigotes"
+    ]
   },
   "[\"narco\",\"capitale\",\"palais-gouvernement\",\"hall\"]": {
     "pays": "El Estado",
@@ -3264,8 +3271,7 @@ export const SCENES_PNJ = {
     "batiment": "Centre multimodal de Ciudad Roja",
     "piece": "Hall Principal",
     "personnes": [
-      "Carlos Retraso",
-      "Juanita Soborno"
+      "Carlos Retraso"
     ]
   },
   "[\"narco\",\"capitale\",\"centre-multinodal-luthecia\",\"hall_douanes\"]": {
@@ -3274,7 +3280,9 @@ export const SCENES_PNJ = {
     "batiment": "Centre multimodal de Ciudad Roja",
     "piece": "Hall des Douanes",
     "personnes": [
-      "Juanita Soborno"
+      "Juanita Soborno",
+      "Douanier Moustachu Uno",
+      "Douanier Moustachu Dos"
     ]
   },
   "[\"narco\",\"capitale\",\"centre-multinodal-luthecia\",\"zone_embarquement\"]": {
@@ -7658,58 +7666,65 @@ export const SCENES_PNJ = {
   "[\"khalija\",\"capitale\",\"hotel-republica\",\"accueil\"]": {
     "pays": "Al-Khalija",
     "ville": "Al Madina",
-    "batiment": "Hôtel Al-Nour Palace",
-    "piece": "Grand Hall Al-Nour",
+    "batiment": "Hôtel Royal d'Al-Khalija",
+    "piece": "Réception",
     "personnes": [
-      "Hassan Marchandage",
-      "Yasmine Épices"
+      "Amira Miftah",
+      "Saïd Chanta"
     ]
   },
   "[\"khalija\",\"capitale\",\"hotel-republica\",\"restaurant\"]": {
     "pays": "Al-Khalija",
     "ville": "Al Madina",
-    "batiment": "Hôtel Al-Nour Palace",
-    "piece": "Restaurant Al-Nour",
+    "batiment": "Hôtel Royal d'Al-Khalija",
+    "piece": "Restaurant",
     "personnes": [
-      "Gaston Sauceblanche",
-      "Régis Gondasse",
-      "Yvette Gratinée",
-      "Jean Dupont",
-      "Marie Leblanc"
+      "Karim Sahn"
     ]
   },
   "[\"khalija\",\"capitale\",\"hotel-republica\",\"bar\"]": {
     "pays": "Al-Khalija",
     "ville": "Al Madina",
-    "batiment": "Hôtel Al-Nour Palace",
-    "piece": "Salon des Hôtes",
+    "batiment": "Hôtel Royal d'Al-Khalija",
+    "piece": "Salon de thé",
     "personnes": [
-      "Marco (Barman)",
-      "Natacha",
-      "Julien",
-      "Marc Hantile"
+      "Nabil Naana"
     ]
   },
   "[\"khalija\",\"capitale\",\"hotel-republica\",\"chambres\"]": {
     "pays": "Al-Khalija",
     "ville": "Al Madina",
-    "batiment": "Hôtel Al-Nour Palace",
-    "piece": "Suite Royale",
+    "batiment": "Hôtel Royal d'Al-Khalija",
+    "piece": "Suite",
     "personnes": []
   },
-  "[\"khalija\",\"capitale\",\"hotel-republica\",\"suite_privee\"]": {
+  "[\"khalija\",\"capitale\",\"hotel-republica\",\"salon_gentlemen\"]": {
     "pays": "Al-Khalija",
     "ville": "Al Madina",
-    "batiment": "Hôtel Al-Nour Palace",
-    "piece": "Suite Privée — Local à louer",
-    "personnes": []
+    "batiment": "Hôtel Royal d'Al-Khalija",
+    "piece": "Salon des gentlemen",
+    "personnes": [
+      "Faris Dukhan",
+      "Jabbar Bawwab"
+    ]
   },
-  "[\"khalija\",\"capitale\",\"hotel-republica\",\"suite_presidentielle\"]": {
+  "[\"khalija\",\"capitale\",\"hotel-republica\",\"hammam_hommes\"]": {
     "pays": "Al-Khalija",
     "ville": "Al Madina",
-    "batiment": "Hôtel Al-Nour Palace",
-    "piece": "Suite Présidentielle — Local à louer",
-    "personnes": []
+    "batiment": "Hôtel Royal d'Al-Khalija",
+    "piece": "Hammam des hommes",
+    "personnes": [
+      "Hamid Bukhar"
+    ]
+  },
+  "[\"khalija\",\"capitale\",\"hotel-republica\",\"hammam_femmes\"]": {
+    "pays": "Al-Khalija",
+    "ville": "Al Madina",
+    "batiment": "Hôtel Royal d'Al-Khalija",
+    "piece": "Hammam des femmes",
+    "personnes": [
+      "Oum Saboun"
+    ]
   },
   "[\"khalija\",\"capitale\",\"palais-gouvernement\",\"hall\"]": {
     "pays": "Al-Khalija",

@@ -265,7 +265,8 @@ const ACCES_TEXTES = {
   }
 };
 const ACCES_RESIDENCE = 'residence-imperiale-novomirsk';
-const ACCES_RAISONS = ['acces_dignitaires', 'location_requise', 'un_seul_invite'];
+// reserve_hommes / reserve_femmes : salons et hammams de l'Hôtel Royal d'Al-Khalija (Fred, 28/11/2026), fenêtre dans plateau-hotels-teaser.js.
+const ACCES_RAISONS = ['acces_dignitaires', 'location_requise', 'un_seul_invite', 'reserve_hommes', 'reserve_femmes'];
 let accesActeEnCours = false, accesEtatResidence = null;
 
 function accesT(cle, vars = {}) {
@@ -309,6 +310,7 @@ async function accesActe(rpc, params, geste) {
 // Refus d'entrer (appelé par la navigation intérieure) : explication et « Forcer le passage ».
 function accesReserveRefus(r) {
   if (!r || !ACCES_RAISONS.includes(r.raison)) return false;
+  if ((r.raison === 'reserve_hommes' || r.raison === 'reserve_femmes') && typeof hotelTeaserRefus === 'function') return hotelTeaserRefus(r);
   const b = r.batiment || state.currentBuilding, piece = r.piece;
   let html = r.raison === 'acces_dignitaires'
     ? '<p>' + accesT('dignitaires') + '</p><p>' + accesT('postes') + '</p>'
