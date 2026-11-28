@@ -9,7 +9,9 @@ const root = path.resolve(__dirname, '../..'), lire = f => fs.readFileSync(path.
 test('aucun tarif écrit en dur ni mention de Stripe dans le code servi', () => {
   const servis = ['plateau-premium.js', 'plateau-publicite-premium.js', 'plateau-commerce-pj.js', 'plateau-appartements.js', 'admin.html',
     'i18n/premium-ads-resources.js', 'i18n/appartements-resources.js', 'supabase/edge-functions/commerce-decoration/index.ts',
-    'supabase/edge-functions/logement-decoration/index.ts', 'api/_paiement.js'];
+    'supabase/edge-functions/logement-decoration/index.ts'];
+  // Le 28/11/2026, Fred a choisi Stripe (api/_paiement.js, plateau-paiement.js) : seuls les tarifs en dur restent interdits partout.
+  for (const f of ['api/_paiement.js', 'plateau-paiement.js']) assert.doesNotMatch(lire(f), /[047][.,]99 ?€|€ ?[047][.,]99/, f);
   for (const f of servis) {
     const s = lire(f);
     assert.doesNotMatch(s, /[047][.,]99 ?€|€ ?[047][.,]99|0[.,]99 (euro|يورو|歐元|유로)/i, f);
@@ -18,7 +20,7 @@ test('aucun tarif écrit en dur ni mention de Stripe dans le code servi', () => 
 });
 
 test('branchements : script chargé, réveil, atelier de presse, ateliers de décoration côté serveur', () => {
-  assert.match(lire('plateau.html'), /<script src="plateau-premium\.js\?v=premium-20261125"><\/script>/);
+  assert.match(lire('plateau.html'), /<script src="plateau-premium\.js\?v=premium-20261125-stripe-20261128"><\/script>/);
   assert.match(lire('plateau-personnage.js'), /window\.premiumPubExterneAuDormir\(\)/);
   assert.match(lire('plateau-publicite-premium.js'), /ouvrirPublicitesJoueur\(\)/);
   assert.match(lire('supabase/edge-functions/commerce-decoration/index.ts'), /premium_renouvellement_autoriser_service[\s\S]*premium_personnalisation_autoriser_service/);

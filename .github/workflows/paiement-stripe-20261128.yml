@@ -1,0 +1,33 @@
+name: "Paiement — Stripe en fonctionnement mixte (éditeur UE, Managed Payments ailleurs)"
+on:
+  schedule:
+    - cron: '16 3 * * *'
+  pull_request:
+    paths: [api/_paiement.js, api/_paiement-courriels.js, api/chat.js, api/cron-minuit.js, plateau-paiement.js, plateau-premium.js, plateau-personnage.js, plateau.html, admin-premium.js, vercel.json, 'migrations/20261125700000_premium_socle.sql', 'migrations/20261128120000_paiement_stripe.sql', 'outils/bancs/banc-paiement-*', 'outils/bancs/banc-premium-*', .github/workflows/paiement-stripe-20261128.yml]
+  push:
+    branches: [main, 'claude/**']
+    paths: [api/_paiement.js, api/_paiement-courriels.js, api/chat.js, api/cron-minuit.js, plateau-paiement.js, plateau-premium.js, plateau-personnage.js, plateau.html, admin-premium.js, vercel.json, 'migrations/20261125700000_premium_socle.sql', 'migrations/20261128120000_paiement_stripe.sql', 'outils/bancs/banc-paiement-*', 'outils/bancs/banc-premium-*', .github/workflows/paiement-stripe-20261128.yml]
+permissions:
+  contents: read
+jobs:
+  paiement:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
+      - run: for f in api/_paiement.js api/_paiement-courriels.js plateau-paiement.js plateau-premium.js admin-premium.js; do node --check "$f"; done
+      - name: Serveur (doublures de Stripe, secret généré par le banc)
+        run: node --test outils/bancs/banc-paiement-stripe-20261128.mjs outils/bancs/banc-paiement-premium-20261125.mjs outils/bancs/banc-premium-ecran-20261125.cjs
+      - name: Écran (Chromium réel)
+        env:
+          NODE_PATH: outils/e2e/node_modules
+          HG_CHROMIUM: /usr/bin/google-chrome
+        run: node --test outils/bancs/banc-paiement-ecran-20261128.cjs
+      - name: PostgreSQL local (PGlite)
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund --prefix "$RUNNER_TEMP/pglite" @electric-sql/pglite@0.2.17
+          PGLITE_DIR="$RUNNER_TEMP/pglite" node --test outils/bancs/banc-paiement-stripe-pglite-20261128.cjs outils/bancs/banc-premium-socle-pglite-20261125.cjs

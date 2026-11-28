@@ -76,6 +76,9 @@ Ancrages relus en production le 25/11 au soir (lecture seule) : `fonds_definir_t
 
 ## Paiement : fournisseur recommandé et ce que Fred doit faire
 
+> **Remplacé le 28/11/2026** : Fred a choisi Stripe en fonctionnement mixte ; Paddle est retiré du code. Marche à suivre à
+> jour : `docs/premium/PAIEMENT-STRIPE-20261128.md`. La section ci-dessous reste comme historique.
+
 Recommandation : **Paddle** (Paddle Billing). Il vend en son nom (« merchant of record ») et déclare la TVA de tous les pays,
 gère abonnements, remboursements et factures, accepte les prix fixés au moment de l'achat (nos prix MJ) ; Lemon Squeezy
 fait de même mais appartient désormais à Stripe et son avenir est moins lisible.
