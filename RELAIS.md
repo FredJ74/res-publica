@@ -9,6 +9,12 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Miroir des coûts — déblocage #1216 (Codex, 28/11/2026)
+- Branche `codex/correctif-miroir-couts-20261128`, base `60641d38`. Aucune correction équivalente en PR ouverte ou branche récente identifiée.
+- Origine : `b343ff38` (interrogatoires), `ecd537d2` (ordres creux) et `14d14fae` (transferts) ont modifié le catalogue le 27/11 après la dernière génération du seed (`27833838`, 26/11). Cinq anciennes entrées, deux entrées gratuites manquantes, deux anciens tarifs à 2 PA : diff déjà conservé dans #1216.
+- Supabase contrôlé **en lecture seule, transaction annulée** : `interroger` et `interroger_renseignement` valent 1 PA/0, confirmé aussi dans les corps RPC ; les cinq ordres retirés sont absents. Les deux nouvelles entrées sont des ouvertures gratuites de fenêtres (`plateau-router.js` retourne avant paiement), pas des actions payantes ; `demander_transfert_detenu` reste à 1 PA/0. Aucun joueur, coût serveur ou fonction SQL modifié ; aucune migration appliquée. Preuve `outils/audits/MIROIR-COUTS-SUPABASE-20261128.json`.
+- Correction exclusivement générée par `outils/baseline/regenerer-seeds-miroirs.py` : seed `ordres_couts` et son empreinte, aucun générateur modifié. Les huit miroirs sont conformes ; banc global (six contrôles Python), réconciliation PostgreSQL jetable et garde du monde neuf passent. CI complète et fusion à suivre dans la PR ; après fusion, rebaser #1216, vérifier et fusionner sa clôture.
+
 ### Mission du 27/11/2026 (soir) (Claude) — journal des étapes
 
 > Constat au départ : les deux migrations de l'après-midi (`20261127150000` ambassade de Novomirsk, `20261127160000` stage à la

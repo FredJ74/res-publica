@@ -1,0 +1,43 @@
+{
+  "date": "2026-11-28",
+  "projet": "jxpwoosmmhohoihxpbuc",
+  "methode": "BEGIN READ ONLY, SELECT tarifs et catalogues de fonctions, ROLLBACK ; aucune donnée joueur ni écriture.",
+  "preuve": {
+    "rpc": [
+      {
+        "fonction": "qhs_interroger",
+        "interroger_1pa": true,
+        "renseignement_1pa": false
+      },
+      {
+        "fonction": "renseignement_interroger",
+        "interroger_1pa": false,
+        "renseignement_1pa": true
+      }
+    ],
+    "tarifs": [
+      {
+        "fn": "demander_transfert_detenu",
+        "pa": 1,
+        "cost": 0
+      },
+      {
+        "fn": "interroger",
+        "pa": 1,
+        "cost": 0
+      },
+      {
+        "fn": "interroger_renseignement",
+        "pa": 1,
+        "cost": 0
+      },
+      {
+        "fn": "sovarka_goulag_interroger",
+        "pa": 1,
+        "cost": 0
+      }
+    ],
+    "migrations": null,
+    "lecture_seule": "on"
+  }
+}
